@@ -1,5 +1,8 @@
 {
     email admin@divestreams.com
+    on_demand_tls {
+        ask http://app:3000/api/health
+    }
 }
 
 divestreams.com {
@@ -21,4 +24,25 @@ divestreams.com {
 
 www.divestreams.com {
     redir https://divestreams.com{uri} permanent
+}
+
+*.divestreams.com {
+    tls {
+        on_demand
+    }
+
+    reverse_proxy app:3000
+    encode gzip
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
 }
