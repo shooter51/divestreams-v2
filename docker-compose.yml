@@ -5,8 +5,6 @@ services:
       dockerfile: Dockerfile
     container_name: divestreams-app
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -36,7 +34,7 @@ services:
       dockerfile: Dockerfile
     container_name: divestreams-worker
     restart: unless-stopped
-    command: ["node", "--import", "tsx", "lib/jobs/worker.ts"]
+    command: ["node", "build/worker/lib/jobs/worker.js"]
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_prod}@postgres:5432/divestreams
@@ -88,14 +86,15 @@ services:
       - divestreams-network
 
   caddy:
-    image: caddy:2-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.caddy
     container_name: divestreams-caddy
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
