@@ -1,6 +1,7 @@
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation } from "react-router";
 import { createTenant, isSubdomainAvailable } from "../../../lib/db/tenant.server";
+import { getTenantUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => {
   return [
@@ -60,7 +61,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     // Redirect to the new tenant's onboarding
-    return redirect(`http://${tenant.subdomain}.localhost:5173/app`);
+    return redirect(getTenantUrl(tenant.subdomain, "/app"));
   } catch (error) {
     return {
       errors: { form: "Failed to create account. Please try again." },
