@@ -9,13 +9,16 @@
  */
 
 import { Worker, Queue } from "bullmq";
+import type { ConnectionOptions } from "bullmq";
 import IORedis from "ioredis";
 
 // Redis connection
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
-const connection = new IORedis(redisUrl, {
+const redisClient = new IORedis(redisUrl, {
   maxRetriesPerRequest: null,
 });
+// Cast to ConnectionOptions to avoid ioredis version conflicts between packages
+const connection = redisClient as unknown as ConnectionOptions;
 
 // Queue names
 export const QUEUES = {
@@ -185,7 +188,7 @@ function startWorkers() {
     await bookingWorker.close();
     await reportWorker.close();
     await maintenanceWorker.close();
-    await connection.quit();
+    await redisClient.quit();
     process.exit(0);
   };
 

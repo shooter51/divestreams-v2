@@ -5,19 +5,21 @@
  */
 
 import { Queue } from "bullmq";
+import type { ConnectionOptions } from "bullmq";
 import IORedis from "ioredis";
 
 // Redis connection (lazy initialization)
 let connection: IORedis | null = null;
 
-function getConnection() {
+function getConnection(): ConnectionOptions {
   if (!connection) {
     const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
     connection = new IORedis(redisUrl, {
       maxRetriesPerRequest: null,
     });
   }
-  return connection;
+  // Cast to ConnectionOptions to avoid ioredis version conflicts between packages
+  return connection as unknown as ConnectionOptions;
 }
 
 // Queue names

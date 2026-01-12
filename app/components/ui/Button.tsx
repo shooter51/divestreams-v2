@@ -1,0 +1,70 @@
+import { Link } from "react-router";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
+
+type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
+type ButtonSize = "sm" | "md" | "lg";
+
+const variantClasses: Record<ButtonVariant, string> = {
+  primary: "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400",
+  secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50",
+  danger: "bg-red-600 text-white hover:bg-red-700 disabled:bg-red-400",
+  ghost: "text-gray-600 hover:bg-gray-100",
+};
+
+const sizeClasses: Record<ButtonSize, string> = {
+  sm: "px-3 py-1.5 text-sm",
+  md: "px-4 py-2",
+  lg: "px-6 py-3 text-lg",
+};
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  children: ReactNode;
+  loading?: boolean;
+}
+
+export function Button({
+  variant = "primary",
+  size = "md",
+  children,
+  loading,
+  disabled,
+  className = "",
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      {...props}
+      disabled={disabled || loading}
+      className={`rounded-lg font-medium transition-colors ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+    >
+      {loading ? "Loading..." : children}
+    </button>
+  );
+}
+
+interface LinkButtonProps {
+  to: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  children: ReactNode;
+  className?: string;
+}
+
+export function LinkButton({
+  to,
+  variant = "primary",
+  size = "md",
+  children,
+  className = "",
+}: LinkButtonProps) {
+  return (
+    <Link
+      to={to}
+      className={`inline-block rounded-lg font-medium transition-colors ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+    >
+      {children}
+    </Link>
+  );
+}

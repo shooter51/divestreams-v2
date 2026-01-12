@@ -1,33 +1,453 @@
-import type { MetaFunction } from "react-router";
+import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { useLoaderData, useFetcher, Link } from "react-router";
+import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
+const plans = [
+  {
+    id: "starter",
+    name: "Starter",
+    price: 49,
+    yearlyPrice: 470,
+    features: [
+      "Up to 100 bookings/month",
+      "2 team members",
+      "Basic reporting",
+      "Email support",
+    ],
+    limits: {
+      bookings: 100,
+      team: 2,
+    },
+  },
+  {
+    id: "professional",
+    name: "Professional",
+    price: 99,
+    yearlyPrice: 950,
+    features: [
+      "Up to 500 bookings/month",
+      "10 team members",
+      "Advanced reporting",
+      "Priority support",
+      "Custom booking widget",
+      "API access",
+    ],
+    limits: {
+      bookings: 500,
+      team: 10,
+    },
+    popular: true,
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    price: 199,
+    yearlyPrice: 1910,
+    features: [
+      "Unlimited bookings",
+      "Unlimited team members",
+      "Custom integrations",
+      "Dedicated support",
+      "White-label options",
+      "Multi-location support",
+    ],
+    limits: {
+      bookings: -1, // unlimited
+      team: -1,
+    },
+  },
+];
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const { tenant, db } = await requireTenant(request);
+
+  // Mock billing data
+  const billing = {
+    currentPlan: "starter",
+    billingCycle: "monthly" as const,
+    nextBillingDate: "2026-02-11",
+    amount: 49,
+    subscriptionStatus: tenant.subscriptionStatus || "active",
+    trialEndsAt: tenant.trialEndsAt?.toISOString(),
+    paymentMethod: {
+      type: "card",
+      brand: "Visa",
+      last4: "4242",
+      expiryMonth: 12,
+      expiryYear: 2027,
+    },
+    billingHistory: [
+      {
+        id: "inv-001",
+        date: "2026-01-11",
+        description: "Starter Plan - Monthly",
+        amount: 49,
+        status: "paid",
+        invoiceUrl: "#",
+      },
+      {
+        id: "inv-002",
+        date: "2025-12-11",
+        description: "Starter Plan - Monthly",
+        amount: 49,
+        status: "paid",
+        invoiceUrl: "#",
+      },
+      {
+        id: "inv-003",
+        date: "2025-11-11",
+        description: "Starter Plan - Monthly",
+        amount: 49,
+        status: "paid",
+        invoiceUrl: "#",
+      },
+    ],
+    usage: {
+      bookingsThisMonth: 67,
+      bookingsLimit: 100,
+      teamMembers: 2,
+      teamLimit: 2,
+    },
+  };
+
+  return { billing, plans };
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const { tenant, db } = await requireTenant(request);
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "upgrade") {
+    const planId = formData.get("planId");
+    // TODO: Redirect to Stripe checkout
+    return { redirectToCheckout: true, planId };
+  }
+
+  if (intent === "cancel") {
+    // TODO: Handle subscription cancellation
+    return { cancelled: true };
+  }
+
+  if (intent === "update-payment") {
+    // TODO: Open Stripe portal for payment method update
+    return { redirectToPortal: true };
+  }
+
+  return null;
+}
+
 export default function BillingPage() {
+  const { billing, plans } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher();
+
+  const currentPlanData = plans.find((p) => p.id === billing.currentPlan);
+  const isTrialing = billing.subscriptionStatus === "trialing";
+  const trialDaysLeft = billing.trialEndsAt
+    ? Math.ceil(
+        (new Date(billing.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      )
+    : 0;
+
+  const usagePercent = Math.round(
+    (billing.usage.bookingsThisMonth / billing.usage.bookingsLimit) * 100
+  );
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Billing & Subscription</h1>
-      <div className="grid gap-6 max-w-2xl">
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Current Plan</h2>
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-lg font-medium">Starter</p>
-              <p className="text-gray-500">$49/month</p>
+    <div className="max-w-4xl">
+      <div className="mb-6">
+        <Link to="/app/settings" className="text-blue-600 hover:underline text-sm">
+          ← Back to Settings
+        </Link>
+        <h1 className="text-2xl font-bold mt-2">Billing & Subscription</h1>
+      </div>
+
+      {/* Trial Banner */}
+      {isTrialing && trialDaysLeft > 0 && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+          <p className="font-medium">Free Trial Active</p>
+          <p className="text-sm">
+            You have {trialDaysLeft} days left in your trial. Add a payment method to
+            continue after the trial ends.
+          </p>
+        </div>
+      )}
+
+      {/* Current Plan */}
+      <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="font-semibold mb-1">Current Plan</h2>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-bold">{currentPlanData?.name}</span>
+              <span
+                className={`text-xs px-2 py-1 rounded-full ${
+                  billing.subscriptionStatus === "active"
+                    ? "bg-green-100 text-green-700"
+                    : billing.subscriptionStatus === "trialing"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+              >
+                {billing.subscriptionStatus}
+              </span>
             </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-              Upgrade Plan
-            </button>
+            <p className="text-gray-500 mt-1">
+              ${billing.amount}/{billing.billingCycle === "monthly" ? "month" : "year"}
+              {!isTrialing && ` • Next billing: ${billing.nextBillingDate}`}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <fetcher.Form method="post">
+              <input type="hidden" name="intent" value="update-payment" />
+              <button
+                type="submit"
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              >
+                Manage Payment
+              </button>
+            </fetcher.Form>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Payment Method</h2>
-          <p className="text-gray-500">No payment method on file.</p>
-          <button className="mt-4 text-blue-600">Add payment method</button>
+
+        {/* Usage */}
+        <div className="mt-6 pt-6 border-t">
+          <h3 className="font-medium mb-3">Usage This Month</h3>
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-500">Bookings</span>
+                <span>
+                  {billing.usage.bookingsThisMonth} / {billing.usage.bookingsLimit}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full ${
+                    usagePercent > 90
+                      ? "bg-red-500"
+                      : usagePercent > 70
+                      ? "bg-yellow-500"
+                      : "bg-green-500"
+                  }`}
+                  style={{ width: `${Math.min(usagePercent, 100)}%` }}
+                />
+              </div>
+              {usagePercent > 80 && (
+                <p className="text-xs text-yellow-600 mt-1">
+                  Approaching limit - consider upgrading
+                </p>
+              )}
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-500">Team Members</span>
+                <span>
+                  {billing.usage.teamMembers} / {billing.usage.teamLimit}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full bg-blue-500"
+                  style={{
+                    width: `${
+                      (billing.usage.teamMembers / billing.usage.teamLimit) * 100
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Billing History</h2>
-          <p className="text-gray-500">No billing history yet.</p>
+      </div>
+
+      {/* Available Plans */}
+      <div className="mb-6">
+        <h2 className="font-semibold mb-4">Available Plans</h2>
+        <div className="grid grid-cols-3 gap-4">
+          {plans.map((plan) => {
+            const isCurrent = plan.id === billing.currentPlan;
+            return (
+              <div
+                key={plan.id}
+                className={`bg-white rounded-xl p-6 shadow-sm relative ${
+                  plan.popular ? "ring-2 ring-blue-500" : ""
+                }`}
+              >
+                {plan.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
+                    Most Popular
+                  </span>
+                )}
+                <h3 className="font-semibold text-lg">{plan.name}</h3>
+                <div className="mt-2">
+                  <span className="text-3xl font-bold">${plan.price}</span>
+                  <span className="text-gray-500">/month</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  or ${plan.yearlyPrice}/year (save{" "}
+                  {Math.round(((plan.price * 12 - plan.yearlyPrice) / (plan.price * 12)) * 100)}
+                  %)
+                </p>
+                <ul className="mt-4 space-y-2 text-sm">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2">
+                      <span className="text-green-500">✓</span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-6">
+                  {isCurrent ? (
+                    <button
+                      disabled
+                      className="w-full py-2 border border-gray-300 rounded-lg text-gray-500 cursor-not-allowed"
+                    >
+                      Current Plan
+                    </button>
+                  ) : (
+                    <fetcher.Form method="post">
+                      <input type="hidden" name="intent" value="upgrade" />
+                      <input type="hidden" name="planId" value={plan.id} />
+                      <button
+                        type="submit"
+                        className={`w-full py-2 rounded-lg ${
+                          plan.popular
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "border border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {plans.findIndex((p) => p.id === plan.id) >
+                        plans.findIndex((p) => p.id === billing.currentPlan)
+                          ? "Upgrade"
+                          : "Switch"}
+                      </button>
+                    </fetcher.Form>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
+      </div>
+
+      {/* Payment Method */}
+      <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <h2 className="font-semibold mb-4">Payment Method</h2>
+        {billing.paymentMethod ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center text-sm font-medium">
+                {billing.paymentMethod.brand}
+              </div>
+              <div>
+                <p className="font-medium">
+                  •••• •••• •••• {billing.paymentMethod.last4}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Expires {billing.paymentMethod.expiryMonth}/
+                  {billing.paymentMethod.expiryYear}
+                </p>
+              </div>
+            </div>
+            <fetcher.Form method="post">
+              <input type="hidden" name="intent" value="update-payment" />
+              <button type="submit" className="text-blue-600 hover:underline text-sm">
+                Update
+              </button>
+            </fetcher.Form>
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-gray-500 mb-3">No payment method on file</p>
+            <fetcher.Form method="post">
+              <input type="hidden" name="intent" value="update-payment" />
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Add Payment Method
+              </button>
+            </fetcher.Form>
+          </div>
+        )}
+      </div>
+
+      {/* Billing History */}
+      <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <h2 className="font-semibold mb-4">Billing History</h2>
+        {billing.billingHistory.length === 0 ? (
+          <p className="text-gray-500 text-center py-4">No billing history yet</p>
+        ) : (
+          <table className="w-full">
+            <thead className="border-b">
+              <tr>
+                <th className="text-left py-2 text-sm font-medium text-gray-500">Date</th>
+                <th className="text-left py-2 text-sm font-medium text-gray-500">
+                  Description
+                </th>
+                <th className="text-left py-2 text-sm font-medium text-gray-500">Status</th>
+                <th className="text-right py-2 text-sm font-medium text-gray-500">Amount</th>
+                <th className="text-right py-2 text-sm font-medium text-gray-500"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {billing.billingHistory.map((invoice) => (
+                <tr key={invoice.id}>
+                  <td className="py-3 text-sm">{invoice.date}</td>
+                  <td className="py-3 text-sm">{invoice.description}</td>
+                  <td className="py-3">
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        invoice.status === "paid"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {invoice.status}
+                    </span>
+                  </td>
+                  <td className="py-3 text-sm text-right">${invoice.amount}</td>
+                  <td className="py-3 text-right">
+                    <a
+                      href={invoice.invoiceUrl}
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      Download
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Cancel Subscription */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-red-100">
+        <h2 className="font-semibold mb-2">Cancel Subscription</h2>
+        <p className="text-gray-500 text-sm mb-4">
+          If you cancel, you'll lose access to your account at the end of your billing
+          period. Your data will be retained for 30 days.
+        </p>
+        <fetcher.Form
+          method="post"
+          onSubmit={(e) => {
+            if (!confirm("Are you sure you want to cancel your subscription?")) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <input type="hidden" name="intent" value="cancel" />
+          <button
+            type="submit"
+            className="text-red-600 border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50"
+          >
+            Cancel Subscription
+          </button>
+        </fetcher.Form>
       </div>
     </div>
   );

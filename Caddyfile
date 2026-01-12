@@ -1,0 +1,24 @@
+{
+    email admin@divestreams.com
+}
+
+divestreams.com {
+    reverse_proxy app:3000
+    encode gzip
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}
+
+www.divestreams.com {
+    redir https://divestreams.com{uri} permanent
+}
