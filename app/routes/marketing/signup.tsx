@@ -138,7 +138,7 @@ export default function SignupPage() {
                     defaultValue={actionData?.values?.subdomain}
                     className="flex-1 px-4 py-2 border rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="paradise"
-                    pattern="[a-z0-9][a-z0-9-]*[a-z0-9]|[a-z0-9]"
+                    pattern="[a-z0-9]([a-z0-9-]*[a-z0-9])?"
                     required
                   />
                   <span className="bg-gray-100 px-4 py-2 border border-l-0 rounded-r-lg text-gray-500">
