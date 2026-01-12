@@ -1,4 +1,8 @@
 import type { MetaFunction } from "react-router";
+import { useLoaderData } from "react-router";
+import { db } from "../../../lib/db";
+import { subscriptionPlans, type SubscriptionPlan } from "../../../lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export const meta: MetaFunction = () => {
   return [
@@ -7,62 +11,45 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-const plans = [
-  {
-    name: "Starter",
-    price: "$49",
-    yearlyPrice: "$39",
-    period: "/month",
-    description: "Perfect for small dive shops getting started",
-    features: [
-      "Up to 3 team members",
-      "1,000 customer records",
-      "Booking management",
-      "Basic reporting",
-      "Email support",
-    ],
-    cta: "Start Free Trial",
-    popular: false,
-  },
-  {
-    name: "Pro",
-    price: "$99",
-    yearlyPrice: "$79",
-    period: "/month",
-    description: "For growing shops that need more power",
-    features: [
-      "Up to 10 team members",
-      "Unlimited customers",
-      "Online booking widget",
-      "Equipment tracking",
-      "Advanced reporting",
-      "Priority support",
-      "API access",
-    ],
-    cta: "Start Free Trial",
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    price: "$199",
-    yearlyPrice: "$159",
-    period: "/month",
-    description: "For large operations and multiple locations",
-    features: [
-      "Unlimited team members",
-      "Unlimited customers",
-      "Multi-location support",
-      "Custom integrations",
-      "Dedicated support",
-      "White-label options",
-      "SLA guarantee",
-    ],
-    cta: "Contact Sales",
-    popular: false,
-  },
-];
+// Helper to format cents to dollars
+function formatPrice(cents: number): string {
+  return `$${(cents / 100).toFixed(0)}`;
+}
+
+// Helper to get description based on plan name
+function getPlanDescription(name: string): string {
+  const descriptions: Record<string, string> = {
+    starter: "Perfect for small dive shops getting started",
+    pro: "For growing shops that need more power",
+    enterprise: "For large operations and multiple locations",
+  };
+  return descriptions[name.toLowerCase()] || "A great plan for your dive shop";
+}
+
+// Helper to determine if plan is popular
+function isPlanPopular(name: string): boolean {
+  return name.toLowerCase() === "pro";
+}
+
+// Helper to get CTA text
+function getPlanCta(name: string): string {
+  return name.toLowerCase() === "enterprise" ? "Contact Sales" : "Start Free Trial";
+}
+
+export async function loader() {
+  const plans = await db
+    .select()
+    .from(subscriptionPlans)
+    .where(eq(subscriptionPlans.isActive, true));
+
+  // Sort plans by monthly price (ascending)
+  plans.sort((a, b) => a.monthlyPrice - b.monthlyPrice);
+
+  return { plans };
+}
 
 export default function PricingPage() {
+  const { plans } = useLoaderData<typeof loader>();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -104,58 +91,65 @@ export default function PricingPage() {
       {/* Pricing Cards */}
       <section className="container mx-auto px-4 pb-20">
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`bg-white rounded-2xl p-8 ${
-                plan.popular
-                  ? "ring-2 ring-blue-600 shadow-lg relative"
-                  : "border border-gray-200"
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm">
-                  Most Popular
-                </div>
-              )}
-              <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-              <p className="text-gray-600 mb-4">{plan.description}</p>
-              <div className="mb-6">
-                <span className="text-4xl font-bold">{plan.price}</span>
-                <span className="text-gray-600">{plan.period}</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2">
-                    <svg
-                      className="w-5 h-5 text-green-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="/signup"
-                className={`block text-center py-3 rounded-lg ${
-                  plan.popular
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "border border-gray-300 hover:bg-gray-50"
+          {plans.map((plan) => {
+            const popular = isPlanPopular(plan.name);
+            const description = getPlanDescription(plan.name);
+            const cta = getPlanCta(plan.name);
+            const features = plan.features as string[];
+
+            return (
+              <div
+                key={plan.id}
+                className={`bg-white rounded-2xl p-8 ${
+                  popular
+                    ? "ring-2 ring-blue-600 shadow-lg relative"
+                    : "border border-gray-200"
                 }`}
               >
-                {plan.cta}
-              </a>
-            </div>
-          ))}
+                {popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm">
+                    Most Popular
+                  </div>
+                )}
+                <h3 className="text-xl font-bold mb-2">{plan.displayName}</h3>
+                <p className="text-gray-600 mb-4">{description}</p>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">{formatPrice(plan.monthlyPrice)}</span>
+                  <span className="text-gray-600">/month</span>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  {features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2">
+                      <svg
+                        className="w-5 h-5 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href="/signup"
+                  className={`block text-center py-3 rounded-lg ${
+                    popular
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {cta}
+                </a>
+              </div>
+            );
+          })}
         </div>
       </section>
 

@@ -1,62 +1,63 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import {
+  getDiveSiteById,
+  getDiveSiteStats,
+  getRecentTripsForDiveSite,
+  getToursUsingDiveSite,
+} from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Dive Site Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const siteId = params.id;
 
-  // Mock data
+  if (!siteId) {
+    throw new Response("Dive Site ID required", { status: 400 });
+  }
+
+  // Fetch dive site data from database
+  const siteData = await getDiveSiteById(tenant.schemaName, siteId);
+
+  if (!siteData) {
+    throw new Response("Dive site not found", { status: 404 });
+  }
+
+  // Fetch stats, recent trips, and related tours in parallel
+  const [stats, recentTrips, toursUsingSite] = await Promise.all([
+    getDiveSiteStats(tenant.schemaName, siteId),
+    getRecentTripsForDiveSite(tenant.schemaName, siteId, 5),
+    getToursUsingDiveSite(tenant.schemaName, siteId, 5),
+  ]);
+
+  // Format the dive site data for the view
   const diveSite = {
-    id: siteId,
-    name: "Blue Corner",
-    location: "Palau",
-    maxDepth: 30,
-    difficulty: "advanced",
-    description:
-      "Famous drift dive with sharks, mantas, and schooling fish. One of the world's top dive sites known for its incredible biodiversity and reliable encounters with large pelagics.",
-    coordinates: { lat: 7.165, lng: 134.271 },
-    conditions: "Strong currents common, best on incoming tide. Visibility typically 20-40m.",
-    highlights: ["Grey reef sharks", "Manta rays", "Napoleon wrasse", "Wall dive", "Strong currents"],
-    isActive: true,
-    createdAt: "2025-06-15",
-    updatedAt: "2026-01-10",
+    id: siteData.id,
+    name: siteData.name,
+    location: siteData.visibility || "", // Using visibility as location fallback, adjust as needed
+    maxDepth: siteData.maxDepth || 0,
+    difficulty: siteData.difficulty || "beginner",
+    description: siteData.description || "",
+    coordinates:
+      siteData.latitude && siteData.longitude
+        ? { lat: siteData.latitude, lng: siteData.longitude }
+        : null,
+    conditions: siteData.currentStrength
+      ? `Current: ${siteData.currentStrength}. Visibility: ${siteData.visibility || "Variable"}.`
+      : null,
+    highlights: siteData.highlights || [],
+    isActive: siteData.isActive,
+    createdAt: siteData.createdAt
+      ? new Date(siteData.createdAt).toISOString().split("T")[0]
+      : "",
+    updatedAt: siteData.updatedAt
+      ? new Date(siteData.updatedAt).toISOString().split("T")[0]
+      : "",
   };
 
-  const recentTrips = [
-    {
-      id: "t1",
-      date: "2026-01-15",
-      tourName: "Morning 2-Tank Dive",
-      participants: 8,
-      conditions: "Good visibility, moderate current",
-    },
-    {
-      id: "t2",
-      date: "2026-01-12",
-      tourName: "Advanced Drift Dive",
-      participants: 6,
-      conditions: "Strong current, excellent visibility",
-    },
-    {
-      id: "t3",
-      date: "2026-01-08",
-      tourName: "Morning 2-Tank Dive",
-      participants: 10,
-      conditions: "Calm, good conditions",
-    },
-  ];
-
-  const stats = {
-    totalTrips: 45,
-    totalDivers: 387,
-    avgRating: 4.8,
-    lastVisited: "2026-01-15",
-  };
-
-  return { diveSite, recentTrips, stats };
+  return { diveSite, recentTrips, stats, toursUsingSite };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -85,7 +86,7 @@ const difficultyColors: Record<string, string> = {
 };
 
 export default function DiveSiteDetailPage() {
-  const { diveSite, recentTrips, stats } = useLoaderData<typeof loader>();
+  const { diveSite, recentTrips, stats, toursUsingSite } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   const handleDelete = () => {
@@ -164,7 +165,9 @@ export default function DiveSiteDetailPage() {
               <p className="text-gray-500 text-sm">Max Depth</p>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-yellow-500">{stats.avgRating}</p>
+              <p className="text-2xl font-bold text-yellow-500">
+                {stats.avgRating !== null ? stats.avgRating : "-"}
+              </p>
               <p className="text-gray-500 text-sm">Avg Rating</p>
             </div>
           </div>
@@ -188,7 +191,7 @@ export default function DiveSiteDetailPage() {
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-3">Highlights</h2>
               <div className="flex flex-wrap gap-2">
-                {diveSite.highlights.map((h) => (
+                {diveSite.highlights.map((h: string) => (
                   <span
                     key={h}
                     className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
@@ -294,26 +297,29 @@ export default function DiveSiteDetailPage() {
           {/* Tours Using This Site */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Used In Tours</h2>
-            <div className="space-y-2">
+            {toursUsingSite.length === 0 ? (
+              <p className="text-gray-500 text-sm">No tours have visited this site yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {toursUsingSite.map((tour) => (
+                  <Link
+                    key={tour.id}
+                    to={`/app/tours/${tour.id}`}
+                    className="block text-sm text-blue-600 hover:underline"
+                  >
+                    {tour.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+            {toursUsingSite.length > 0 && (
               <Link
-                to="/app/tours/1"
-                className="block text-sm text-blue-600 hover:underline"
+                to={`/app/tours?siteId=${diveSite.id}`}
+                className="block text-center mt-4 text-gray-500 text-xs hover:underline"
               >
-                Morning 2-Tank Dive
+                View all tours
               </Link>
-              <Link
-                to="/app/tours/5"
-                className="block text-sm text-blue-600 hover:underline"
-              >
-                Advanced Drift Dive
-              </Link>
-            </div>
-            <Link
-              to={`/app/tours?siteId=${diveSite.id}`}
-              className="block text-center mt-4 text-gray-500 text-xs hover:underline"
-            >
-              View all tours
-            </Link>
+            )}
           </div>
 
           {/* Meta */}

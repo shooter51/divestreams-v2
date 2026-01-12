@@ -33,7 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     trip: {
       id: b.tripId,
       tourName: b.tourName,
-      date: b.tripDate,
+      date: b.tripDate instanceof Date ? b.tripDate.toLocaleDateString() : String(b.tripDate),
       startTime: b.tripTime,
     },
     participants: b.participants,
@@ -44,7 +44,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }));
 
   // Calculate stats
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString();
   const stats = {
     today: bookings.filter((b) => b.trip.date === today).length,
     upcoming: bookings.filter((b) => b.status === "confirmed").length,

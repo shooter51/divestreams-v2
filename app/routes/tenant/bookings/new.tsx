@@ -2,61 +2,60 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/validation";
+import { getCustomers, getTrips, getEquipment } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const url = new URL(request.url);
   const customerId = url.searchParams.get("customerId");
   const tripId = url.searchParams.get("tripId");
 
-  // Mock data - will query tenant DB
-  const customers = [
-    { id: "1", firstName: "John", lastName: "Smith", email: "john.smith@example.com" },
-    { id: "2", firstName: "Sarah", lastName: "Johnson", email: "sarah.j@example.com" },
-    { id: "3", firstName: "Mike", lastName: "Wilson", email: "mike.wilson@example.com" },
-  ];
+  // Get today's date for filtering upcoming trips
+  const today = new Date().toISOString().split("T")[0];
 
-  const upcomingTrips = [
-    {
-      id: "t1",
-      tourName: "Morning 2-Tank Dive",
-      date: "2026-01-15",
-      startTime: "08:00",
-      spotsAvailable: 4,
-      price: "150.00",
-    },
-    {
-      id: "t2",
-      tourName: "Night Dive Adventure",
-      date: "2026-01-18",
-      startTime: "18:00",
-      spotsAvailable: 3,
-      price: "120.00",
-    },
-    {
-      id: "t3",
-      tourName: "Sunset Dive",
-      date: "2026-01-16",
-      startTime: "16:00",
-      spotsAvailable: 6,
-      price: "85.00",
-    },
-    {
-      id: "t4",
-      tourName: "Discover Scuba",
-      date: "2026-01-20",
-      startTime: "09:00",
-      spotsAvailable: 2,
-      price: "199.00",
-    },
-  ];
+  // Fetch real data from tenant database
+  const [customersResult, tripsData, equipmentData] = await Promise.all([
+    getCustomers(tenant.schemaName, { limit: 100 }),
+    getTrips(tenant.schemaName, { fromDate: today, status: "scheduled", limit: 50 }),
+    getEquipment(tenant.schemaName, { isRentable: true, status: "available" }),
+  ]);
+
+  // Map customers to expected format
+  const customers = customersResult.customers.map((c) => ({
+    id: c.id,
+    firstName: c.firstName,
+    lastName: c.lastName,
+    email: c.email,
+  }));
+
+  // Map trips to expected format with availability
+  const upcomingTrips = tripsData.map((t) => {
+    const maxParticipants = t.maxParticipants || 10;
+    const bookedParticipants = t.bookedParticipants || 0;
+    const spotsAvailable = Math.max(0, maxParticipants - bookedParticipants);
+    return {
+      id: t.id,
+      tourName: t.tourName || "Trip",
+      date: typeof t.date === "string" ? t.date : new Date(t.date).toISOString().split("T")[0],
+      startTime: t.startTime || "00:00",
+      spotsAvailable,
+      price: t.price ? t.price.toFixed(2) : "0.00",
+    };
+  }).filter((t) => t.spotsAvailable > 0); // Only show trips with availability
+
+  // Map equipment to expected format
+  const rentalEquipment = equipmentData.map((e) => ({
+    id: e.id,
+    name: e.name,
+    price: e.rentalPrice ? e.rentalPrice.toFixed(2) : "0.00",
+  }));
 
   const selectedCustomer = customerId ? customers.find((c) => c.id === customerId) : null;
   const selectedTrip = tripId ? upcomingTrips.find((t) => t.id === tripId) : null;
 
-  return { customers, upcomingTrips, selectedCustomer, selectedTrip };
+  return { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -77,7 +76,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function NewBookingPage() {
-  const { customers, upcomingTrips, selectedCustomer, selectedTrip } = useLoaderData<typeof loader>();
+  const { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -233,6 +232,34 @@ export default function NewBookingPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Equipment Rental */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Equipment Rental</h2>
+          <p className="text-sm text-gray-500 mb-4">Select equipment to rent for this booking</p>
+          <div className="grid grid-cols-2 gap-3">
+            {rentalEquipment.map((item) => (
+              <label
+                key={item.id}
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    name="equipment"
+                    value={item.id}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium">{item.name}</span>
+                </div>
+                <span className="text-sm text-gray-600">${item.price}</span>
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-3">
+            Equipment prices are per person per day. Full Gear Package includes BCD, Regulator, Wetsuit, Mask, Snorkel, and Fins.
+          </p>
         </div>
 
         {/* Notes */}

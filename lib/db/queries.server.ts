@@ -678,10 +678,10 @@ export async function updateBookingStatus(schemaName: string, id: string, status
 
 export async function getEquipment(
   schemaName: string,
-  options: { category?: string; status?: string; search?: string; limit?: number } = {}
+  options: { category?: string; status?: string; search?: string; isRentable?: boolean; limit?: number } = {}
 ) {
   const client = getClient(schemaName);
-  const { category, status, search, limit = 100 } = options;
+  const { category, status, search, isRentable, limit = 100 } = options;
 
   try {
     const conditions: string[] = [];
@@ -691,6 +691,7 @@ export async function getEquipment(
       const searchTerm = search.replace(/'/g, "''");
       conditions.push(`name ILIKE '%${searchTerm}%'`);
     }
+    if (isRentable !== undefined) conditions.push(`is_rentable = ${isRentable}`);
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
@@ -887,6 +888,197 @@ export async function getDiveSiteById(schemaName: string, id: string) {
   }
 }
 
+// ============================================================================
+// Tour Detail Queries
+// ============================================================================
+
+export async function getTourStats(schemaName: string, tourId: string) {
+  const client = getClient(schemaName);
+
+  try {
+    // Get trip count
+    const tripCountResult = await client.unsafe(`
+      SELECT COUNT(*) as count FROM "${schemaName}".trips WHERE tour_id = '${tourId}'
+    `);
+
+    // Get total revenue from bookings on trips for this tour
+    const revenueResult = await client.unsafe(`
+      SELECT COALESCE(SUM(b.total), 0) as total
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".trips t ON b.trip_id = t.id
+      WHERE t.tour_id = '${tourId}' AND b.status NOT IN ('canceled', 'refunded')
+    `);
+
+    // Get average rating (if you have ratings, otherwise return null)
+    // For now, return null as ratings may not be implemented
+    const avgRating = null;
+
+    return {
+      tripCount: Number(tripCountResult[0]?.count || 0),
+      totalRevenue: Number(revenueResult[0]?.total || 0),
+      averageRating: avgRating,
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getUpcomingTripsForTour(schemaName: string, tourId: string, limit = 5) {
+  const client = getClient(schemaName);
+
+  try {
+    const today = new Date().toISOString().split("T")[0];
+
+    const trips = await client.unsafe(`
+      SELECT
+        t.id,
+        t.date,
+        t.start_time,
+        t.status,
+        COALESCE(t.max_participants, tr.max_participants) as max_spots,
+        b.name as boat_name,
+        (
+          SELECT COALESCE(SUM(bk.participants), 0)
+          FROM "${schemaName}".bookings bk
+          WHERE bk.trip_id = t.id AND bk.status NOT IN ('canceled', 'no_show')
+        ) as spots_booked
+      FROM "${schemaName}".trips t
+      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
+      LEFT JOIN "${schemaName}".boats b ON t.boat_id = b.id
+      WHERE t.tour_id = '${tourId}' AND t.date >= '${today}'
+      ORDER BY t.date, t.start_time
+      LIMIT ${limit}
+    `);
+
+    return trips.map((trip: any) => {
+      const spotsBooked = Number(trip.spots_booked || 0);
+      const maxSpots = Number(trip.max_spots || 0);
+      let status = trip.status;
+
+      // Determine display status
+      if (spotsBooked >= maxSpots && maxSpots > 0) {
+        status = "full";
+      } else if (trip.status === "scheduled" && spotsBooked > 0) {
+        status = "confirmed";
+      } else if (trip.status === "scheduled") {
+        status = "open";
+      }
+
+      return {
+        id: trip.id,
+        date: formatDateString(trip.date),
+        startTime: formatTimeString(trip.start_time),
+        boatName: trip.boat_name || "No boat assigned",
+        spotsBooked,
+        maxSpots,
+        status,
+      };
+    });
+  } finally {
+    await client.end();
+  }
+}
+
+// ============================================================================
+// Dive Site Detail Queries
+// ============================================================================
+
+export async function getDiveSiteStats(schemaName: string, siteId: string) {
+  const client = getClient(schemaName);
+
+  try {
+    // Get total trips that visited this site
+    // Check if dive_site_ids array contains this site ID
+    const tripCountResult = await client.unsafe(`
+      SELECT COUNT(DISTINCT t.id) as count
+      FROM "${schemaName}".trips t
+      WHERE t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
+    `).catch(() => [{ count: 0 }]);
+
+    // Get total divers (sum of participants from bookings on trips to this site)
+    const diversResult = await client.unsafe(`
+      SELECT COALESCE(SUM(b.participants), 0) as total
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".trips t ON b.trip_id = t.id
+      WHERE b.status NOT IN ('canceled', 'no_show')
+        AND t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
+    `).catch(() => [{ total: 0 }]);
+
+    // Get last visited date
+    const lastVisitedResult = await client.unsafe(`
+      SELECT MAX(t.date) as last_date
+      FROM "${schemaName}".trips t
+      WHERE t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
+    `).catch(() => [{ last_date: null }]);
+
+    return {
+      totalTrips: Number(tripCountResult[0]?.count || 0),
+      totalDivers: Number(diversResult[0]?.total || 0),
+      avgRating: null, // Ratings may not be implemented
+      lastVisited: lastVisitedResult[0]?.last_date ? formatDateString(lastVisitedResult[0].last_date) : null,
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getRecentTripsForDiveSite(schemaName: string, siteId: string, limit = 5) {
+  const client = getClient(schemaName);
+
+  try {
+    const trips = await client.unsafe(`
+      SELECT
+        t.id,
+        t.date,
+        t.conditions,
+        tr.name as tour_name,
+        (
+          SELECT COALESCE(SUM(bk.participants), 0)
+          FROM "${schemaName}".bookings bk
+          WHERE bk.trip_id = t.id AND bk.status NOT IN ('canceled', 'no_show')
+        ) as participants
+      FROM "${schemaName}".trips t
+      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
+      WHERE t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
+      ORDER BY t.date DESC
+      LIMIT ${limit}
+    `).catch(() => []);
+
+    return trips.map((trip: any) => ({
+      id: trip.id,
+      date: formatDateString(trip.date),
+      tourName: trip.tour_name,
+      participants: Number(trip.participants || 0),
+      conditions: trip.conditions || null,
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getToursUsingDiveSite(schemaName: string, siteId: string, limit = 5) {
+  const client = getClient(schemaName);
+
+  try {
+    // Get tours that have had trips to this dive site
+    const tours = await client.unsafe(`
+      SELECT DISTINCT tr.id, tr.name
+      FROM "${schemaName}".tours tr
+      JOIN "${schemaName}".trips t ON t.tour_id = tr.id
+      WHERE t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
+      ORDER BY tr.name
+      LIMIT ${limit}
+    `).catch(() => []);
+
+    return tours.map((tour: any) => ({
+      id: tour.id,
+      name: tour.name,
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
 export async function createDiveSite(schemaName: string, data: {
   name: string;
   description?: string;
@@ -918,6 +1110,43 @@ export async function createDiveSite(schemaName: string, data: {
       ) RETURNING *
     `);
     return mapDiveSite(result[0]);
+  } finally {
+    await client.end();
+  }
+}
+
+// ============================================================================
+// Users/Staff Queries
+// ============================================================================
+
+export async function getStaff(
+  schemaName: string,
+  options: { activeOnly?: boolean; role?: string } = {}
+) {
+  const client = getClient(schemaName);
+  const { activeOnly = true, role } = options;
+
+  try {
+    const conditions: string[] = [];
+    if (activeOnly) conditions.push("is_active = true");
+    if (role) conditions.push(`role = '${role}'`);
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const staff = await client.unsafe(`
+      SELECT id, name, email, role, avatar_url
+      FROM "${schemaName}".users
+      ${whereClause}
+      ORDER BY name
+    `);
+
+    return staff.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      role: row.role,
+      avatarUrl: row.avatar_url,
+    }));
   } finally {
     await client.end();
   }
@@ -968,6 +1197,21 @@ function formatRelativeTime(dateStr: string): string {
   if (diffHours < 24) return `${diffHours} hours ago`;
   if (diffDays === 1) return "Yesterday";
   return `${diffDays} days ago`;
+}
+
+function formatDateString(dateStr: string | Date): string {
+  if (!dateStr) return "";
+  const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+  return date.toISOString().split("T")[0]; // Returns YYYY-MM-DD format
+}
+
+function formatTimeString(timeStr: string): string {
+  if (!timeStr) return "";
+  // If already in HH:MM format, return as-is
+  if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
+  // If in HH:MM:SS format, strip seconds
+  if (/^\d{2}:\d{2}:\d{2}$/.test(timeStr)) return timeStr.slice(0, 5);
+  return timeStr;
 }
 
 // Map database row to camelCase object
@@ -1147,4 +1391,909 @@ function mapDiveSite(row: any) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+// ============================================================================
+// Team / User Queries
+// ============================================================================
+
+export async function getTeamMembers(schemaName: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const users = await client.unsafe(`
+      SELECT
+        id,
+        name,
+        email,
+        role,
+        is_active,
+        avatar_url,
+        last_login_at,
+        created_at
+      FROM "${schemaName}".users
+      WHERE is_active = true
+      ORDER BY
+        CASE role
+          WHEN 'owner' THEN 1
+          WHEN 'manager' THEN 2
+          WHEN 'divemaster' THEN 3
+          ELSE 4
+        END,
+        name
+    `);
+
+    return users.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      role: row.role,
+      status: row.is_active ? "active" : "inactive",
+      avatar: row.avatar_url,
+      lastActive: row.last_login_at ? formatRelativeTime(row.last_login_at) : "Never",
+      joinedAt: row.created_at ? new Date(row.created_at).toISOString().split("T")[0] : null,
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getTeamMemberCount(schemaName: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT COUNT(*) as count FROM "${schemaName}".users WHERE is_active = true
+    `);
+    return Number(result[0]?.count || 0);
+  } finally {
+    await client.end();
+  }
+}
+
+// ============================================================================
+// Subscription Plan Queries (Public Schema)
+// ============================================================================
+
+export async function getSubscriptionPlanById(planId: string) {
+  const client = getClient("public");
+
+  try {
+    const result = await client.unsafe(`
+      SELECT * FROM subscription_plans WHERE id = '${planId}'
+    `);
+
+    if (!result[0]) return null;
+
+    const row = result[0];
+    return {
+      id: row.id,
+      name: row.name,
+      displayName: row.display_name,
+      monthlyPrice: Number(row.monthly_price),
+      yearlyPrice: Number(row.yearly_price),
+      monthlyPriceId: row.monthly_price_id,
+      yearlyPriceId: row.yearly_price_id,
+      features: row.features,
+      limits: row.limits,
+      isActive: row.is_active,
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getAllSubscriptionPlans() {
+  const client = getClient("public");
+
+  try {
+    const result = await client.unsafe(`
+      SELECT * FROM subscription_plans WHERE is_active = true ORDER BY monthly_price
+    `);
+
+    return result.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      displayName: row.display_name,
+      monthlyPrice: Number(row.monthly_price),
+      yearlyPrice: Number(row.yearly_price),
+      monthlyPriceId: row.monthly_price_id,
+      yearlyPriceId: row.yearly_price_id,
+      features: row.features,
+      limits: row.limits,
+      isActive: row.is_active,
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+// ============================================================================
+// Billing / Transaction Queries
+// ============================================================================
+
+export async function getBillingHistory(schemaName: string, limit = 10) {
+  const client = getClient(schemaName);
+
+  try {
+    const transactions = await client.unsafe(`
+      SELECT
+        id,
+        type,
+        amount,
+        currency,
+        payment_method,
+        stripe_payment_id,
+        notes,
+        created_at
+      FROM "${schemaName}".transactions
+      WHERE type IN ('sale', 'payment', 'subscription')
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+    `);
+
+    return transactions.map((row: any) => ({
+      id: row.id,
+      date: new Date(row.created_at).toISOString().split("T")[0],
+      description: row.notes || `${row.type.charAt(0).toUpperCase() + row.type.slice(1)} Payment`,
+      amount: Number(row.amount),
+      status: "paid",
+      invoiceUrl: row.stripe_payment_id ? `https://dashboard.stripe.com/payments/${row.stripe_payment_id}` : "#",
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getMonthlyBookingCount(schemaName: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const result = await client.unsafe(`
+      SELECT COUNT(*) as count FROM "${schemaName}".bookings
+      WHERE created_at >= '${startOfMonth.toISOString()}'
+    `);
+    return Number(result[0]?.count || 0);
+  } finally {
+    await client.end();
+  }
+}
+
+// ============================================================================
+// Integration Status Queries
+// ============================================================================
+
+export interface ConnectedIntegration {
+  id: string;
+  connectedAt: string;
+  status: string;
+  accountName: string;
+  lastSync: string;
+}
+
+export function getConnectedIntegrations(tenant: {
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  name: string;
+}): ConnectedIntegration[] {
+  const integrations: ConnectedIntegration[] = [];
+
+  // Check Stripe connection
+  if (tenant.stripeCustomerId) {
+    integrations.push({
+      id: "stripe",
+      connectedAt: "Connected",
+      status: "active",
+      accountName: tenant.name,
+      lastSync: "Auto-synced",
+    });
+  }
+
+  // Add more integration checks here as needed
+  // e.g., Google Calendar, Mailchimp, etc.
+
+  return integrations;
+}
+
+// ============================================================================
+// Booking Detail Queries (for booking detail page)
+// ============================================================================
+
+export async function getBookingWithFullDetails(schemaName: string, id: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT
+        b.*,
+        c.id as customer_id,
+        c.first_name,
+        c.last_name,
+        c.email as customer_email,
+        c.phone as customer_phone,
+        t.id as trip_id,
+        t.date as trip_date,
+        t.start_time,
+        t.end_time,
+        t.boat_id,
+        tr.id as tour_id,
+        tr.name as tour_name,
+        tr.price as tour_price,
+        bo.name as boat_name
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".customers c ON b.customer_id = c.id
+      JOIN "${schemaName}".trips t ON b.trip_id = t.id
+      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
+      LEFT JOIN "${schemaName}".boats bo ON t.boat_id = bo.id
+      WHERE b.id = '${id}'
+    `);
+
+    if (!result[0]) return null;
+
+    const row = result[0];
+    return {
+      id: row.id,
+      bookingNumber: row.booking_number,
+      status: row.status,
+      customer: {
+        id: row.customer_id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.customer_email,
+        phone: row.customer_phone,
+      },
+      trip: {
+        id: row.trip_id,
+        tourName: row.tour_name,
+        tourId: row.tour_id,
+        date: formatDateStr(row.trip_date),
+        startTime: formatTimeStr(row.start_time),
+        endTime: formatTimeStr(row.end_time),
+        boatName: row.boat_name,
+      },
+      participants: row.participants,
+      participantDetails: row.participant_details || [],
+      equipmentRental: row.equipment_rental || [],
+      pricing: {
+        basePrice: Number(row.tour_price || 0).toFixed(2),
+        participants: row.participants,
+        subtotal: Number(row.subtotal).toFixed(2),
+        equipmentTotal: calcEquipmentTotal(row.equipment_rental),
+        discount: Number(row.discount || 0).toFixed(2),
+        total: Number(row.total).toFixed(2),
+      },
+      paidAmount: Number(row.paid_amount || 0).toFixed(2),
+      balanceDue: (Number(row.total) - Number(row.paid_amount || 0)).toFixed(2),
+      specialRequests: row.special_requests,
+      internalNotes: row.internal_notes,
+      source: row.source,
+      createdAt: formatDateTimeStr(row.created_at),
+      updatedAt: formatDateTimeStr(row.updated_at),
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getPaymentsByBookingId(schemaName: string, bookingId: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const payments = await client.unsafe(`
+      SELECT
+        t.id,
+        t.amount,
+        t.payment_method,
+        t.notes,
+        t.created_at
+      FROM "${schemaName}".transactions t
+      WHERE t.booking_id = '${bookingId}'
+      ORDER BY t.created_at DESC
+    `);
+
+    return payments.map((p: any) => ({
+      id: p.id,
+      date: formatDateStr(p.created_at),
+      amount: Number(p.amount).toFixed(2),
+      method: fmtPaymentMethod(p.payment_method),
+      note: p.notes,
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+// ============================================================================
+// Trip Detail Queries (for trip detail page)
+// ============================================================================
+
+export async function getTripWithFullDetails(schemaName: string, id: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT
+        t.*,
+        tr.id as tour_id,
+        tr.name as tour_name,
+        tr.price as tour_price,
+        COALESCE(t.max_participants, tr.max_participants) as effective_max_participants,
+        b.id as boat_id,
+        b.name as boat_name
+      FROM "${schemaName}".trips t
+      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
+      LEFT JOIN "${schemaName}".boats b ON t.boat_id = b.id
+      WHERE t.id = '${id}'
+    `);
+
+    if (!result[0]) return null;
+
+    const row = result[0];
+
+    // Get staff details if staff_ids exist
+    let staff: { id: string; name: string; role: string }[] = [];
+    if (row.staff_ids && Array.isArray(row.staff_ids) && row.staff_ids.length > 0) {
+      const staffIds = row.staff_ids.map((sid: string) => `'${sid}'`).join(",");
+      const staffResult = await client.unsafe(`
+        SELECT id, name, role FROM "${schemaName}".users WHERE id IN (${staffIds})
+      `);
+      staff = staffResult.map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        role: capFirst(s.role),
+      }));
+    }
+
+    return {
+      id: row.id,
+      tour: {
+        id: row.tour_id,
+        name: row.tour_name,
+      },
+      boat: {
+        id: row.boat_id,
+        name: row.boat_name || "No boat assigned",
+      },
+      date: formatDateStr(row.date),
+      startTime: formatTimeStr(row.start_time),
+      endTime: formatTimeStr(row.end_time),
+      maxParticipants: Number(row.effective_max_participants),
+      status: row.status,
+      price: Number(row.price || row.tour_price || 0).toFixed(2),
+      weatherNotes: row.weather_notes,
+      notes: row.notes,
+      staff,
+      createdAt: formatDateStr(row.created_at),
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getTripBookings(schemaName: string, tripId: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const bookings = await client.unsafe(`
+      SELECT
+        b.id,
+        b.booking_number,
+        b.participants,
+        b.status,
+        b.total,
+        b.paid_amount,
+        c.id as customer_id,
+        c.first_name,
+        c.last_name
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".customers c ON b.customer_id = c.id
+      WHERE b.trip_id = '${tripId}'
+      ORDER BY b.created_at DESC
+    `);
+
+    return bookings.map((b: any) => ({
+      id: b.id,
+      bookingNumber: b.booking_number,
+      customer: {
+        id: b.customer_id,
+        firstName: b.first_name,
+        lastName: b.last_name,
+      },
+      participants: b.participants,
+      status: b.status,
+      total: Number(b.total).toFixed(2),
+      paidInFull: Number(b.paid_amount || 0) >= Number(b.total),
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getTripRevenue(schemaName: string, tripId: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT
+        COALESCE(SUM(total), 0) as bookings_total,
+        COALESCE(SUM(paid_amount), 0) as paid_total,
+        COALESCE(SUM(total) - SUM(paid_amount), 0) as pending_total
+      FROM "${schemaName}".bookings
+      WHERE trip_id = '${tripId}' AND status NOT IN ('canceled', 'no_show')
+    `);
+
+    const row = result[0] || {};
+    return {
+      bookingsTotal: fmtCurrency(Number(row.bookings_total || 0)),
+      paidTotal: fmtCurrency(Number(row.paid_total || 0)),
+      pendingTotal: fmtCurrency(Number(row.pending_total || 0)),
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getTripBookedParticipants(schemaName: string, tripId: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT COALESCE(SUM(participants), 0) as count
+      FROM "${schemaName}".bookings
+      WHERE trip_id = '${tripId}' AND status NOT IN ('canceled', 'no_show')
+    `);
+
+    return Number(result[0]?.count || 0);
+  } finally {
+    await client.end();
+  }
+}
+
+// ============================================================================
+// Additional Detail Page Helpers
+// ============================================================================
+
+function formatDateStr(dateValue: any): string {
+  if (!dateValue) return "";
+  const d = new Date(dateValue);
+  return d.toISOString().split("T")[0];
+}
+
+function formatTimeStr(timeValue: any): string {
+  if (!timeValue) return "";
+  // If already in HH:MM format, return as-is
+  if (typeof timeValue === "string") {
+    if (/^\d{2}:\d{2}$/.test(timeValue)) return timeValue;
+    if (/^\d{2}:\d{2}:\d{2}$/.test(timeValue)) return timeValue.slice(0, 5);
+  }
+  return String(timeValue);
+}
+
+function formatDateTimeStr(dateValue: any): string {
+  if (!dateValue) return "";
+  const d = new Date(dateValue);
+  return d.toISOString();
+}
+
+function calcEquipmentTotal(equipmentRental: any[] | null): string {
+  if (!equipmentRental || !Array.isArray(equipmentRental)) return "0.00";
+  const total = equipmentRental.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+  return total.toFixed(2);
+}
+
+function fmtPaymentMethod(method: string): string {
+  const methods: Record<string, string> = {
+    cash: "Cash",
+    card: "Credit Card",
+    stripe: "Credit Card",
+    bank_transfer: "Bank Transfer",
+  };
+  return methods[method] || method;
+}
+
+function capFirst(str: string): string {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function fmtCurrency(amount: number): string {
+  return amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ============================================================================
+// Equipment Detail Queries
+// ============================================================================
+
+/**
+ * Get rental history for a specific equipment item
+ * Searches bookings with equipment_rental JSONB field that references this equipment
+ */
+export async function getEquipmentRentalHistory(
+  schemaName: string,
+  equipmentId: string,
+  limit = 10
+) {
+  const client = getClient(schemaName);
+
+  try {
+    // Get the equipment name/category to search for in bookings
+    const equipmentResult = await client.unsafe(`
+      SELECT name, category FROM "${schemaName}".equipment WHERE id = '${equipmentId}'
+    `);
+
+    if (!equipmentResult[0]) {
+      return [];
+    }
+
+    const equipment = equipmentResult[0];
+
+    // Search bookings where equipment_rental JSONB contains this equipment
+    // The equipment_rental field structure is: [{ item: string, size?: string, price: number }]
+    const rentals = await client.unsafe(`
+      SELECT
+        b.id,
+        b.booking_number,
+        b.created_at as rental_date,
+        b.status,
+        c.first_name,
+        c.last_name,
+        t.date as trip_date
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".customers c ON b.customer_id = c.id
+      JOIN "${schemaName}".trips t ON b.trip_id = t.id
+      WHERE b.equipment_rental IS NOT NULL
+        AND EXISTS (
+          SELECT 1 FROM jsonb_array_elements(b.equipment_rental) elem
+          WHERE elem->>'item' ILIKE '%${equipment.name.replace(/'/g, "''")}%'
+             OR elem->>'item' ILIKE '%${equipment.category.replace(/'/g, "''")}%'
+        )
+      ORDER BY t.date DESC
+      LIMIT ${limit}
+    `);
+
+    return rentals.map((r: any) => ({
+      id: r.id,
+      bookingNumber: r.booking_number,
+      customerName: `${r.first_name} ${r.last_name}`,
+      date: r.trip_date,
+      returned: r.status === "completed" || r.status === "checked_in",
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Get equipment rental stats
+ */
+export async function getEquipmentRentalStats(schemaName: string, equipmentId: string) {
+  const client = getClient(schemaName);
+
+  try {
+    // Get the equipment details
+    const equipmentResult = await client.unsafe(`
+      SELECT name, category, rental_price FROM "${schemaName}".equipment WHERE id = '${equipmentId}'
+    `);
+
+    if (!equipmentResult[0]) {
+      return {
+        totalRentals: 0,
+        rentalRevenue: 0,
+        daysRented: 0,
+        avgRentalsPerMonth: 0,
+      };
+    }
+
+    const equipment = equipmentResult[0];
+    const rentalPrice = Number(equipment.rental_price || 0);
+
+    // Count bookings that include this equipment
+    const statsResult = await client.unsafe(`
+      SELECT
+        COUNT(DISTINCT b.id) as total_rentals,
+        COUNT(DISTINCT t.date) as days_rented,
+        MIN(t.date) as first_rental_date
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".trips t ON b.trip_id = t.id
+      WHERE b.equipment_rental IS NOT NULL
+        AND b.status NOT IN ('canceled', 'no_show')
+        AND EXISTS (
+          SELECT 1 FROM jsonb_array_elements(b.equipment_rental) elem
+          WHERE elem->>'item' ILIKE '%${equipment.name.replace(/'/g, "''")}%'
+             OR elem->>'item' ILIKE '%${equipment.category.replace(/'/g, "''")}%'
+        )
+    `);
+
+    const stats = statsResult[0];
+    const totalRentals = Number(stats?.total_rentals || 0);
+    const daysRented = Number(stats?.days_rented || 0);
+
+    // Calculate months since first rental for avg calculation
+    let avgRentalsPerMonth = 0;
+    if (stats?.first_rental_date) {
+      const firstRentalDate = new Date(stats.first_rental_date);
+      const now = new Date();
+      const monthsDiff = Math.max(1,
+        (now.getFullYear() - firstRentalDate.getFullYear()) * 12 +
+        (now.getMonth() - firstRentalDate.getMonth())
+      );
+      avgRentalsPerMonth = Math.round((totalRentals / monthsDiff) * 10) / 10;
+    }
+
+    return {
+      totalRentals,
+      rentalRevenue: totalRentals * rentalPrice,
+      daysRented,
+      avgRentalsPerMonth,
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Get service history for equipment
+ * Note: This uses a simple approach - storing service entries in the equipment notes
+ * A production system might have a separate equipment_service_log table
+ */
+export async function getEquipmentServiceHistory(schemaName: string, equipmentId: string) {
+  const client = getClient(schemaName);
+
+  try {
+    // For now, we'll return the service info from the equipment record itself
+    // A more complete implementation would have a separate service_log table
+    const result = await client.unsafe(`
+      SELECT
+        last_service_date,
+        next_service_date,
+        service_notes,
+        created_at
+      FROM "${schemaName}".equipment
+      WHERE id = '${equipmentId}'
+    `);
+
+    if (!result[0]) {
+      return [];
+    }
+
+    const eq = result[0];
+    const history = [];
+
+    // If there's a last service date, create an entry for it
+    if (eq.last_service_date) {
+      history.push({
+        id: `s-${equipmentId}-1`,
+        date: eq.last_service_date,
+        type: "Service",
+        notes: eq.service_notes || "Routine service completed",
+        performedBy: "Service Technician",
+      });
+    }
+
+    // Add initial entry (purchase/registration)
+    if (eq.created_at) {
+      history.push({
+        id: `s-${equipmentId}-0`,
+        date: new Date(eq.created_at).toISOString().split("T")[0],
+        type: "Initial Registration",
+        notes: "Equipment added to inventory",
+        performedBy: "System",
+      });
+    }
+
+    return history;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Update equipment status
+ */
+export async function updateEquipmentStatus(schemaName: string, id: string, status: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      UPDATE "${schemaName}".equipment
+      SET status = '${status}', updated_at = NOW()
+      WHERE id = '${id}'
+      RETURNING *
+    `);
+    return result[0] ? mapEquipment(result[0]) : null;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Delete equipment
+ */
+export async function deleteEquipment(schemaName: string, id: string) {
+  const client = getClient(schemaName);
+
+  try {
+    await client.unsafe(`DELETE FROM "${schemaName}".equipment WHERE id = '${id}'`);
+    return true;
+  } finally {
+    await client.end();
+  }
+}
+
+// ============================================================================
+// Boat Detail Queries
+// ============================================================================
+
+/**
+ * Get recent trips for a boat
+ */
+export async function getBoatRecentTrips(schemaName: string, boatId: string, limit = 5) {
+  const client = getClient(schemaName);
+
+  try {
+    const today = new Date().toISOString().split("T")[0];
+
+    const trips = await client.unsafe(`
+      SELECT
+        t.id,
+        t.date,
+        tr.name as tour_name,
+        COALESCE(
+          (SELECT COALESCE(SUM(b.participants), 0)
+           FROM "${schemaName}".bookings b
+           WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')),
+          0
+        ) as participants,
+        COALESCE(
+          (SELECT COALESCE(SUM(b.total), 0)
+           FROM "${schemaName}".bookings b
+           WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')),
+          0
+        ) as revenue
+      FROM "${schemaName}".trips t
+      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
+      WHERE t.boat_id = '${boatId}'
+        AND t.date < '${today}'
+        AND t.status = 'completed'
+      ORDER BY t.date DESC
+      LIMIT ${limit}
+    `);
+
+    return trips.map((trip: any) => ({
+      id: trip.id,
+      date: trip.date,
+      tourName: trip.tour_name,
+      participants: Number(trip.participants || 0),
+      revenue: `$${Number(trip.revenue || 0).toLocaleString()}`,
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Get upcoming trips for a boat
+ */
+export async function getBoatUpcomingTrips(schemaName: string, boatId: string, limit = 5) {
+  const client = getClient(schemaName);
+
+  try {
+    const today = new Date().toISOString().split("T")[0];
+
+    const trips = await client.unsafe(`
+      SELECT
+        t.id,
+        t.date,
+        tr.name as tour_name,
+        COALESCE(t.max_participants, tr.max_participants) as max_participants,
+        COALESCE(
+          (SELECT COALESCE(SUM(b.participants), 0)
+           FROM "${schemaName}".bookings b
+           WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')),
+          0
+        ) as booked_participants
+      FROM "${schemaName}".trips t
+      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
+      WHERE t.boat_id = '${boatId}'
+        AND t.date >= '${today}'
+        AND t.status = 'scheduled'
+      ORDER BY t.date, t.start_time
+      LIMIT ${limit}
+    `);
+
+    return trips.map((trip: any) => ({
+      id: trip.id,
+      date: trip.date,
+      tourName: trip.tour_name,
+      bookedParticipants: Number(trip.booked_participants || 0),
+      maxParticipants: Number(trip.max_participants || 0),
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Get boat stats (total trips, passengers, revenue, avg occupancy)
+ */
+export async function getBoatStats(schemaName: string, boatId: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const statsResult = await client.unsafe(`
+      SELECT
+        COUNT(DISTINCT t.id) as total_trips,
+        COALESCE(SUM(bk.participants), 0) as total_passengers,
+        COALESCE(SUM(bk.total), 0) as total_revenue,
+        COALESCE(AVG(
+          CASE WHEN COALESCE(t.max_participants, tr.max_participants) > 0
+          THEN (bk_sum.participants::decimal / COALESCE(t.max_participants, tr.max_participants)) * 100
+          ELSE 0 END
+        ), 0) as avg_occupancy
+      FROM "${schemaName}".trips t
+      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
+      LEFT JOIN "${schemaName}".bookings bk ON bk.trip_id = t.id AND bk.status NOT IN ('canceled', 'no_show')
+      LEFT JOIN (
+        SELECT trip_id, SUM(participants) as participants
+        FROM "${schemaName}".bookings
+        WHERE status NOT IN ('canceled', 'no_show')
+        GROUP BY trip_id
+      ) bk_sum ON bk_sum.trip_id = t.id
+      WHERE t.boat_id = '${boatId}'
+        AND t.status IN ('completed', 'scheduled', 'in_progress')
+    `);
+
+    const stats = statsResult[0];
+
+    return {
+      totalTrips: Number(stats?.total_trips || 0),
+      totalPassengers: Number(stats?.total_passengers || 0),
+      totalRevenue: `$${Number(stats?.total_revenue || 0).toLocaleString()}`,
+      avgOccupancy: Math.round(Number(stats?.avg_occupancy || 0)),
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Update boat active status
+ */
+export async function updateBoatActiveStatus(schemaName: string, id: string, isActive: boolean) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      UPDATE "${schemaName}".boats
+      SET is_active = ${isActive}, updated_at = NOW()
+      WHERE id = '${id}'
+      RETURNING *
+    `);
+    return result[0] ? mapBoat(result[0]) : null;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Delete boat (soft delete by setting is_active = false)
+ */
+export async function deleteBoat(schemaName: string, id: string) {
+  const client = getClient(schemaName);
+
+  try {
+    // Soft delete - just mark as inactive
+    await client.unsafe(`
+      UPDATE "${schemaName}".boats
+      SET is_active = false, updated_at = NOW()
+      WHERE id = '${id}'
+    `);
+    return true;
+  } finally {
+    await client.end();
+  }
 }

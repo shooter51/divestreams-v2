@@ -2,33 +2,42 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import { tripSchema, validateFormData, getFormValues } from "../../../../lib/validation";
+import { getTours, getBoats, getStaff } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Schedule Trip - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const url = new URL(request.url);
   const tourId = url.searchParams.get("tourId");
 
-  // Mock data
-  const tours = [
-    { id: "1", name: "Morning 2-Tank Dive", duration: 240, maxParticipants: 12, price: "150.00" },
-    { id: "2", name: "Sunset Dive", duration: 180, maxParticipants: 8, price: "85.00" },
-    { id: "3", name: "Night Dive Adventure", duration: 180, maxParticipants: 6, price: "120.00" },
-    { id: "4", name: "Discover Scuba", duration: 180, maxParticipants: 4, price: "199.00" },
-  ];
+  // Fetch real data from tenant database
+  const [toursData, boatsData, staffData] = await Promise.all([
+    getTours(tenant.schemaName, { activeOnly: true }),
+    getBoats(tenant.schemaName, { activeOnly: true }),
+    getStaff(tenant.schemaName, { activeOnly: true }),
+  ]);
 
-  const boats = [
-    { id: "b1", name: "Ocean Explorer", capacity: 14 },
-    { id: "b2", name: "Sea Breeze", capacity: 10 },
-  ];
+  // Map to expected format for the form
+  const tours = toursData.map((t) => ({
+    id: t.id,
+    name: t.name,
+    duration: t.duration,
+    maxParticipants: t.maxParticipants,
+    price: t.price.toFixed(2),
+  }));
 
-  const staff = [
-    { id: "s1", name: "Captain Mike", role: "Captain" },
-    { id: "s2", name: "DM Sarah", role: "Dive Master" },
-    { id: "s3", name: "DM Alex", role: "Dive Master" },
-    { id: "s4", name: "Instructor John", role: "Instructor" },
-  ];
+  const boats = boatsData.map((b) => ({
+    id: b.id,
+    name: b.name,
+    capacity: b.capacity,
+  }));
+
+  const staff = staffData.map((s) => ({
+    id: s.id,
+    name: s.name,
+    role: s.role,
+  }));
 
   const selectedTour = tourId ? tours.find((t) => t.id === tourId) : null;
 

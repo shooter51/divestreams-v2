@@ -1,107 +1,66 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import {
+  getBoatById,
+  getBoatRecentTrips,
+  getBoatUpcomingTrips,
+  getBoatStats,
+  updateBoatActiveStatus,
+  deleteBoat,
+} from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Boat Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const boatId = params.id;
 
-  // Mock data
-  const boat = {
-    id: boatId,
-    name: "Ocean Explorer",
-    type: "Dive Boat",
-    capacity: 14,
-    registrationNumber: "PW-1234-DV",
-    description:
-      "Our flagship vessel with full amenities for day trips. Features a spacious dive platform, freshwater showers, and comfortable seating areas.",
-    amenities: [
-      "Freshwater shower",
-      "Sun deck",
-      "Camera station",
-      "Dive platform",
-      "Toilet",
-      "First aid kit",
-      "Storage lockers",
-    ],
-    isActive: true,
-    createdAt: "2024-06-15",
-    updatedAt: "2026-01-10",
-    lastMaintenance: "2025-12-15",
-    nextMaintenance: "2026-03-15",
-    maintenanceNotes: "Regular service completed. New dive compressor installed.",
-  };
+  if (!boatId) {
+    throw new Response("Boat ID required", { status: 400 });
+  }
 
-  const recentTrips = [
-    {
-      id: "t1",
-      date: "2026-01-15",
-      tourName: "Morning 2-Tank Dive",
-      participants: 10,
-      revenue: "$1,500",
-    },
-    {
-      id: "t2",
-      date: "2026-01-14",
-      tourName: "Morning 2-Tank Dive",
-      participants: 12,
-      revenue: "$1,800",
-    },
-    {
-      id: "t3",
-      date: "2026-01-12",
-      tourName: "Night Dive Adventure",
-      participants: 6,
-      revenue: "$720",
-    },
-  ];
+  // Fetch all data in parallel
+  const [boat, recentTrips, upcomingTrips, stats] = await Promise.all([
+    getBoatById(tenant.schemaName, boatId),
+    getBoatRecentTrips(tenant.schemaName, boatId),
+    getBoatUpcomingTrips(tenant.schemaName, boatId),
+    getBoatStats(tenant.schemaName, boatId),
+  ]);
 
-  const upcomingTrips = [
-    {
-      id: "t4",
-      date: "2026-01-18",
-      tourName: "Morning 2-Tank Dive",
-      bookedParticipants: 8,
-      maxParticipants: 14,
-    },
-    {
-      id: "t5",
-      date: "2026-01-20",
-      tourName: "Sunset Dive",
-      bookedParticipants: 10,
-      maxParticipants: 14,
-    },
-  ];
-
-  const stats = {
-    totalTrips: 156,
-    totalPassengers: 1842,
-    totalRevenue: "$127,450",
-    avgOccupancy: 84,
-  };
+  if (!boat) {
+    throw new Response("Boat not found", { status: 404 });
+  }
 
   return { boat, recentTrips, upcomingTrips, stats };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
+  const boatId = params.id;
+
+  if (!boatId) {
+    return { error: "Boat ID required" };
+  }
 
   if (intent === "toggle-active") {
-    // TODO: Toggle active status
+    // Get current boat to toggle its status
+    const boat = await getBoatById(tenant.schemaName, boatId);
+    if (boat) {
+      await updateBoatActiveStatus(tenant.schemaName, boatId, !boat.isActive);
+    }
     return { toggled: true };
   }
 
   if (intent === "delete") {
-    // TODO: Delete boat (soft delete)
-    return { deleted: true };
+    await deleteBoat(tenant.schemaName, boatId);
+    return redirect("/app/boats");
   }
 
   if (intent === "log-maintenance") {
-    // TODO: Log maintenance event
+    // TODO: Implement maintenance logging when maintenance_log table is added
     return { maintenanceLogged: true };
   }
 
@@ -118,8 +77,10 @@ export default function BoatDetailPage() {
     }
   };
 
-  const maintenanceDue =
-    boat.nextMaintenance && new Date(boat.nextMaintenance) <= new Date();
+  // Note: The boats table doesn't have maintenance fields in the current schema
+  // These would need to be added to the schema if maintenance tracking is needed
+  const amenities = boat.amenities || [];
+  const maintenanceDue = false; // TODO: Add maintenance tracking to boats table
 
   return (
     <div>
@@ -207,11 +168,11 @@ export default function BoatDetailPage() {
           </div>
 
           {/* Amenities */}
-          {boat.amenities.length > 0 && (
+          {amenities.length > 0 && (
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-3">Amenities</h2>
               <div className="flex flex-wrap gap-2">
-                {boat.amenities.map((a) => (
+                {amenities.map((a: string) => (
                   <span
                     key={a}
                     className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
@@ -319,22 +280,9 @@ export default function BoatDetailPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Maintenance</h2>
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Last Service</span>
-                <span>{boat.lastMaintenance || "Never"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Next Due</span>
-                <span className={maintenanceDue ? "text-yellow-600 font-medium" : ""}>
-                  {boat.nextMaintenance || "Not scheduled"}
-                </span>
-              </div>
-              {boat.maintenanceNotes && (
-                <div className="pt-2 border-t">
-                  <p className="text-gray-500 mb-1">Notes:</p>
-                  <p className="text-gray-700">{boat.maintenanceNotes}</p>
-                </div>
-              )}
+              <p className="text-gray-500 text-sm">
+                Maintenance tracking coming soon.
+              </p>
             </div>
             <fetcher.Form method="post" className="mt-4">
               <input type="hidden" name="intent" value="log-maintenance" />

@@ -1,4 +1,6 @@
-import type { MetaFunction } from "react-router";
+import type { MetaFunction, LoaderFunctionArgs } from "react-router";
+import { redirect } from "react-router";
+import { isAdminSubdomain, isAdminAuthenticated } from "../../../lib/auth/admin-auth.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -9,6 +11,18 @@ export const meta: MetaFunction = () => {
     },
   ];
 };
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  // If on admin subdomain, redirect to admin dashboard or login
+  if (isAdminSubdomain(request)) {
+    if (isAdminAuthenticated(request)) {
+      throw redirect("/dashboard");
+    } else {
+      throw redirect("/login");
+    }
+  }
+  return null;
+}
 
 export default function HomePage() {
   return (

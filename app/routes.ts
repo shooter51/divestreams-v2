@@ -82,7 +82,7 @@ export default [
 
   // Admin protected routes with layout
   layout("routes/admin/layout.tsx", [
-    index("routes/admin/index.tsx"),
+    route("dashboard", "routes/admin/index.tsx"),
     route("tenants/new", "routes/admin/tenants.new.tsx"),
     route("tenants/:id", "routes/admin/tenants.$id.tsx"),
     route("plans", "routes/admin/plans.tsx"),

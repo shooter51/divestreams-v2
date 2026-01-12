@@ -1,69 +1,65 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import {
+  getTourById,
+  getTourStats,
+  getUpcomingTripsForTour,
+} from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Tour Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const tourId = params.id;
 
-  // Mock data for now
-  const tour = {
-    id: tourId,
-    name: "Morning 2-Tank Dive",
-    description:
-      "Experience the best of local diving with our morning 2-tank adventure. Visit two premier dive sites with experienced guides.",
-    type: "multi_dive",
-    duration: 240,
-    maxParticipants: 12,
-    minParticipants: 2,
-    price: "150.00",
-    currency: "USD",
-    includesEquipment: true,
-    includesMeals: true,
-    includesTransport: false,
-    inclusions: ["Full equipment rental", "Light breakfast", "Snacks & drinks", "Dive guide"],
-    exclusions: ["Marine park fees ($10)", "Photos/videos"],
-    minCertLevel: "Open Water",
-    minAge: 12,
-    requirements: ["Valid certification", "Dive within last 12 months"],
-    isActive: true,
-    createdAt: "2024-06-15",
-    tripCount: 45,
-    totalRevenue: "5,250.00",
-    averageRating: 4.8,
-  };
+  if (!tourId) {
+    throw new Response("Tour ID required", { status: 400 });
+  }
 
-  const upcomingTrips = [
-    {
-      id: "t1",
-      date: "2026-01-15",
-      startTime: "08:00",
-      boatName: "Ocean Explorer",
-      spotsBooked: 8,
-      maxSpots: 12,
-      status: "confirmed",
-    },
-    {
-      id: "t2",
-      date: "2026-01-16",
-      startTime: "08:00",
-      boatName: "Sea Breeze",
-      spotsBooked: 5,
-      maxSpots: 10,
-      status: "open",
-    },
-    {
-      id: "t3",
-      date: "2026-01-17",
-      startTime: "08:00",
-      boatName: "Ocean Explorer",
-      spotsBooked: 12,
-      maxSpots: 12,
-      status: "full",
-    },
-  ];
+  // Fetch tour data from database
+  const tourData = await getTourById(tenant.schemaName, tourId);
+
+  if (!tourData) {
+    throw new Response("Tour not found", { status: 404 });
+  }
+
+  // Fetch stats and upcoming trips in parallel
+  const [stats, upcomingTrips] = await Promise.all([
+    getTourStats(tenant.schemaName, tourId),
+    getUpcomingTripsForTour(tenant.schemaName, tourId, 5),
+  ]);
+
+  // Format the tour data for the view
+  const tour = {
+    id: tourData.id,
+    name: tourData.name,
+    description: tourData.description || "",
+    type: tourData.type,
+    duration: tourData.duration || 0,
+    maxParticipants: tourData.maxParticipants,
+    minParticipants: tourData.minParticipants || 1,
+    price: tourData.price.toFixed(2),
+    currency: tourData.currency || "USD",
+    includesEquipment: tourData.includesEquipment || false,
+    includesMeals: tourData.includesMeals || false,
+    includesTransport: tourData.includesTransport || false,
+    inclusions: tourData.inclusions || [],
+    exclusions: tourData.exclusions || [],
+    minCertLevel: tourData.minCertLevel || null,
+    minAge: tourData.minAge || null,
+    requirements: tourData.requirements || [],
+    isActive: tourData.isActive,
+    createdAt: tourData.createdAt
+      ? new Date(tourData.createdAt).toISOString().split("T")[0]
+      : "",
+    tripCount: stats.tripCount,
+    totalRevenue: stats.totalRevenue.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
+    averageRating: stats.averageRating,
+  };
 
   return { tour, upcomingTrips };
 }
@@ -173,7 +169,9 @@ export default function TourDetailPage() {
               <p className="text-gray-500 text-sm">Total Revenue</p>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{tour.averageRating}</p>
+              <p className="text-2xl font-bold">
+                {tour.averageRating !== null ? tour.averageRating : "-"}
+              </p>
               <p className="text-gray-500 text-sm">Avg Rating</p>
             </div>
           </div>
@@ -219,7 +217,7 @@ export default function TourDetailPage() {
                   {tour.includesEquipment && <li>✓ Equipment rental</li>}
                   {tour.includesMeals && <li>✓ Meals/snacks</li>}
                   {tour.includesTransport && <li>✓ Transport</li>}
-                  {tour.inclusions?.map((item, i) => (
+                  {tour.inclusions?.map((item: string, i: number) => (
                     <li key={i}>✓ {item}</li>
                   ))}
                 </ul>
@@ -227,7 +225,7 @@ export default function TourDetailPage() {
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Not Included</h3>
                 <ul className="space-y-1 text-sm text-gray-600">
-                  {tour.exclusions?.map((item, i) => (
+                  {tour.exclusions?.map((item: string, i: number) => (
                     <li key={i}>• {item}</li>
                   ))}
                   {(!tour.exclusions || tour.exclusions.length === 0) && (
@@ -323,7 +321,7 @@ export default function TourDetailPage() {
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Requirements</h2>
               <ul className="space-y-2 text-sm">
-                {tour.requirements.map((req, i) => (
+                {tour.requirements.map((req: string, i: number) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="text-yellow-500">⚠</span>
                     {req}

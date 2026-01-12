@@ -1,65 +1,35 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { getBookingWithFullDetails, getPaymentsByBookingId } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Booking Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const bookingId = params.id;
 
-  // Mock data
-  const booking = {
-    id: bookingId,
-    bookingNumber: "BK-2026-001",
-    status: "confirmed",
-    customer: {
-      id: "1",
-      firstName: "John",
-      lastName: "Smith",
-      email: "john.smith@example.com",
-      phone: "+1 555-0101",
-    },
-    trip: {
-      id: "t1",
-      tourName: "Morning 2-Tank Dive",
-      tourId: "1",
-      date: "2026-01-15",
-      startTime: "08:00",
-      endTime: "12:00",
-      boatName: "Ocean Explorer",
-    },
-    participants: 2,
-    participantDetails: [
-      { name: "John Smith", certLevel: "Advanced Open Water" },
-      { name: "Jane Smith", certLevel: "Open Water" },
-    ],
-    equipmentRental: [
-      { item: "Full Set", quantity: 1, price: "35.00" },
-      { item: "Wetsuit", quantity: 1, price: "15.00" },
-    ],
-    pricing: {
-      basePrice: "150.00",
-      participants: 2,
-      subtotal: "300.00",
-      equipmentTotal: "50.00",
-      discount: "0.00",
-      total: "350.00",
-    },
-    payments: [
-      { id: "p1", date: "2026-01-10", amount: "175.00", method: "Credit Card", note: "50% deposit" },
-      { id: "p2", date: "2026-01-14", amount: "175.00", method: "Cash", note: "Balance" },
-    ],
-    paidAmount: "350.00",
-    balanceDue: "0.00",
-    specialRequests: "Would like to be in the same buddy team if possible.",
-    internalNotes: "Experienced divers, bringing their own cameras.",
-    source: "website",
-    createdAt: "2026-01-10T14:30:00",
-    updatedAt: "2026-01-14T09:15:00",
+  if (!bookingId) {
+    throw new Response("Booking ID is required", { status: 400 });
+  }
+
+  // Fetch booking details and payments from database
+  const [booking, payments] = await Promise.all([
+    getBookingWithFullDetails(tenant.schemaName, bookingId),
+    getPaymentsByBookingId(tenant.schemaName, bookingId),
+  ]);
+
+  if (!booking) {
+    throw new Response("Booking not found", { status: 404 });
+  }
+
+  // Add payments to booking object
+  const bookingWithPayments = {
+    ...booking,
+    payments,
   };
 
-  return { booking };
+  return { booking: bookingWithPayments };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

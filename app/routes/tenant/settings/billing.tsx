@@ -1,118 +1,123 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import {
+  getSubscriptionPlanById,
+  getAllSubscriptionPlans,
+  getBillingHistory,
+  getMonthlyBookingCount,
+  getTeamMemberCount,
+} from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
-const plans = [
-  {
-    id: "starter",
-    name: "Starter",
-    price: 49,
-    yearlyPrice: 470,
-    features: [
-      "Up to 100 bookings/month",
-      "2 team members",
-      "Basic reporting",
-      "Email support",
-    ],
-    limits: {
-      bookings: 100,
-      team: 2,
-    },
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    price: 99,
-    yearlyPrice: 950,
-    features: [
-      "Up to 500 bookings/month",
-      "10 team members",
-      "Advanced reporting",
-      "Priority support",
-      "Custom booking widget",
-      "API access",
-    ],
-    limits: {
-      bookings: 500,
-      team: 10,
-    },
-    popular: true,
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: 199,
-    yearlyPrice: 1910,
-    features: [
-      "Unlimited bookings",
-      "Unlimited team members",
-      "Custom integrations",
-      "Dedicated support",
-      "White-label options",
-      "Multi-location support",
-    ],
-    limits: {
-      bookings: -1, // unlimited
-      team: -1,
-    },
-  },
-];
-
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
 
-  // Mock billing data
+  // Get all subscription plans from database
+  const dbPlans = await getAllSubscriptionPlans();
+
+  // Transform database plans to the format expected by the component
+  const plans = dbPlans.map((plan) => {
+    const limits = plan.limits as { users?: number; toursPerMonth?: number } | null;
+    return {
+      id: plan.name,
+      name: plan.displayName,
+      price: plan.monthlyPrice / 100, // Convert from cents
+      yearlyPrice: plan.yearlyPrice / 100, // Convert from cents
+      features: plan.features as string[],
+      limits: {
+        bookings: limits?.toursPerMonth ?? 100,
+        team: limits?.users ?? 2,
+      },
+      popular: plan.name === "professional",
+    };
+  });
+
+  // If no plans in database, use defaults
+  const finalPlans = plans.length > 0 ? plans : [
+    {
+      id: "starter",
+      name: "Starter",
+      price: 49,
+      yearlyPrice: 470,
+      features: ["Up to 100 bookings/month", "2 team members", "Basic reporting", "Email support"],
+      limits: { bookings: 100, team: 2 },
+    },
+    {
+      id: "professional",
+      name: "Professional",
+      price: 99,
+      yearlyPrice: 950,
+      features: ["Up to 500 bookings/month", "10 team members", "Advanced reporting", "Priority support", "Custom booking widget", "API access"],
+      limits: { bookings: 500, team: 10 },
+      popular: true,
+    },
+    {
+      id: "enterprise",
+      name: "Enterprise",
+      price: 199,
+      yearlyPrice: 1910,
+      features: ["Unlimited bookings", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options", "Multi-location support"],
+      limits: { bookings: -1, team: -1 },
+    },
+  ];
+
+  // Get current plan details
+  let currentPlanName = "starter";
+  let currentPlanLimits = { bookings: 100, team: 2 };
+  let monthlyPrice = 49;
+
+  if (tenant.planId) {
+    const currentPlan = await getSubscriptionPlanById(tenant.planId);
+    if (currentPlan) {
+      currentPlanName = currentPlan.name;
+      monthlyPrice = currentPlan.monthlyPrice / 100;
+      const limits = currentPlan.limits as { users?: number; toursPerMonth?: number } | null;
+      currentPlanLimits = {
+        bookings: limits?.toursPerMonth ?? 100,
+        team: limits?.users ?? 2,
+      };
+    }
+  }
+
+  // Get real usage data
+  const bookingsThisMonth = await getMonthlyBookingCount(tenant.schemaName);
+  const teamMemberCount = await getTeamMemberCount(tenant.schemaName);
+
+  // Get billing history from transactions
+  const billingHistory = await getBillingHistory(tenant.schemaName, 10);
+
+  // Calculate next billing date (assumes monthly billing from current period end)
+  const nextBillingDate = tenant.currentPeriodEnd
+    ? new Date(tenant.currentPeriodEnd).toISOString().split("T")[0]
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
   const billing = {
-    currentPlan: "starter",
+    currentPlan: currentPlanName,
     billingCycle: "monthly" as const,
-    nextBillingDate: "2026-02-11",
-    amount: 49,
+    nextBillingDate,
+    amount: monthlyPrice,
     subscriptionStatus: tenant.subscriptionStatus || "active",
     trialEndsAt: tenant.trialEndsAt?.toISOString(),
-    paymentMethod: {
+    // Payment method would come from Stripe - for now show placeholder if they have a Stripe customer ID
+    paymentMethod: tenant.stripeCustomerId ? {
       type: "card",
-      brand: "Visa",
-      last4: "4242",
-      expiryMonth: 12,
-      expiryYear: 2027,
-    },
-    billingHistory: [
-      {
-        id: "inv-001",
-        date: "2026-01-11",
-        description: "Starter Plan - Monthly",
-        amount: 49,
-        status: "paid",
-        invoiceUrl: "#",
-      },
-      {
-        id: "inv-002",
-        date: "2025-12-11",
-        description: "Starter Plan - Monthly",
-        amount: 49,
-        status: "paid",
-        invoiceUrl: "#",
-      },
-      {
-        id: "inv-003",
-        date: "2025-11-11",
-        description: "Starter Plan - Monthly",
-        amount: 49,
-        status: "paid",
-        invoiceUrl: "#",
-      },
-    ],
+      brand: "Card",
+      last4: "****",
+      expiryMonth: 0,
+      expiryYear: 0,
+    } : null,
+    billingHistory,
     usage: {
-      bookingsThisMonth: 67,
-      bookingsLimit: 100,
-      teamMembers: 2,
-      teamLimit: 2,
+      bookingsThisMonth,
+      bookingsLimit: currentPlanLimits.bookings,
+      teamMembers: teamMemberCount,
+      teamLimit: currentPlanLimits.team,
     },
   };
 
-  return { billing, plans };
+  return { billing, plans: finalPlans };
 }
 
 export async function action({ request }: ActionFunctionArgs) {

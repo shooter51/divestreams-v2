@@ -1,80 +1,42 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import {
+  getTripWithFullDetails,
+  getTripBookings,
+  getTripRevenue,
+  getTripBookedParticipants,
+} from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const tripId = params.id;
 
-  // Mock data
-  const trip = {
-    id: tripId,
-    tour: { id: "1", name: "Morning 2-Tank Dive" },
-    boat: { id: "b1", name: "Ocean Explorer" },
-    date: "2026-01-15",
-    startTime: "08:00",
-    endTime: "12:00",
-    maxParticipants: 12,
-    bookedParticipants: 8,
-    status: "confirmed",
-    price: "150.00",
-    weatherNotes: "Clear skies, light wind from NE, visibility 25m+",
-    notes: "VIP group from hotel - provide extra attention",
-    staff: [
-      { id: "s1", name: "Captain Mike", role: "Captain" },
-      { id: "s2", name: "DM Sarah", role: "Dive Master" },
-    ],
-    createdAt: "2026-01-05",
+  if (!tripId) {
+    throw new Response("Trip ID is required", { status: 400 });
+  }
+
+  // Fetch all trip data from database in parallel
+  const [trip, bookings, revenue, bookedParticipants] = await Promise.all([
+    getTripWithFullDetails(tenant.schemaName, tripId),
+    getTripBookings(tenant.schemaName, tripId),
+    getTripRevenue(tenant.schemaName, tripId),
+    getTripBookedParticipants(tenant.schemaName, tripId),
+  ]);
+
+  if (!trip) {
+    throw new Response("Trip not found", { status: 404 });
+  }
+
+  // Add bookedParticipants to trip object
+  const tripWithBookedCount = {
+    ...trip,
+    bookedParticipants,
   };
 
-  const bookings = [
-    {
-      id: "b1",
-      bookingNumber: "BK-2026-001",
-      customer: { id: "1", firstName: "John", lastName: "Smith" },
-      participants: 2,
-      status: "confirmed",
-      total: "300.00",
-      paidInFull: true,
-    },
-    {
-      id: "b2",
-      bookingNumber: "BK-2026-002",
-      customer: { id: "2", firstName: "Sarah", lastName: "Johnson" },
-      participants: 1,
-      status: "confirmed",
-      total: "150.00",
-      paidInFull: true,
-    },
-    {
-      id: "b3",
-      bookingNumber: "BK-2026-005",
-      customer: { id: "5", firstName: "David", lastName: "Lee" },
-      participants: 3,
-      status: "confirmed",
-      total: "450.00",
-      paidInFull: false,
-    },
-    {
-      id: "b4",
-      bookingNumber: "BK-2026-006",
-      customer: { id: "6", firstName: "Emma", lastName: "Brown" },
-      participants: 2,
-      status: "pending",
-      total: "300.00",
-      paidInFull: false,
-    },
-  ];
-
-  const revenue = {
-    bookingsTotal: "1,200.00",
-    paidTotal: "750.00",
-    pendingTotal: "450.00",
-  };
-
-  return { trip, bookings, revenue };
+  return { trip: tripWithBookedCount, bookings, revenue };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

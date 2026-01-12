@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { useState } from "react";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { getTeamMembers, getSubscriptionPlanById } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -33,53 +34,29 @@ const roles = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
 
-  // Mock team data
-  const team = [
-    {
-      id: "u1",
-      name: "Tom Gibson",
-      email: "tom@coralbaydiving.com",
-      role: "owner",
-      status: "active",
-      avatar: null,
-      lastActive: "Just now",
-      joinedAt: "2024-06-15",
-    },
-    {
-      id: "u2",
-      name: "Sarah Martinez",
-      email: "sarah@coralbaydiving.com",
-      role: "manager",
-      status: "active",
-      avatar: null,
-      lastActive: "2 hours ago",
-      joinedAt: "2024-08-20",
-    },
-    {
-      id: "u3",
-      name: "Mike Chen",
-      email: "mike@coralbaydiving.com",
-      role: "divemaster",
-      status: "active",
-      avatar: null,
-      lastActive: "Yesterday",
-      joinedAt: "2025-01-05",
-    },
-  ];
+  // Get real team members from database
+  const team = await getTeamMembers(tenant.schemaName);
 
-  const pendingInvites = [
-    {
-      id: "inv1",
-      email: "newstaff@gmail.com",
-      role: "staff",
-      invitedAt: "2026-01-10",
-      expiresAt: "2026-01-17",
-    },
-  ];
+  // Get plan limits from subscription plan
+  let planLimit = 2; // Default for starter plan
+  if (tenant.planId) {
+    const plan = await getSubscriptionPlanById(tenant.planId);
+    if (plan?.limits && typeof plan.limits === "object" && "users" in plan.limits) {
+      planLimit = (plan.limits as { users: number }).users;
+    }
+  }
 
-  const planLimit = 2; // Based on starter plan
+  // No invitations table exists yet - return empty array
+  // TODO: Create invitations table and query when needed
+  const pendingInvites: Array<{
+    id: string;
+    email: string;
+    role: string;
+    invitedAt: string;
+    expiresAt: string;
+  }> = [];
 
   return { team, pendingInvites, roles, planLimit };
 }

@@ -1,6 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { getConnectedIntegrations, getSubscriptionPlanById } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Integrations - DiveStreams" }];
 
@@ -80,20 +81,23 @@ const availableIntegrations = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
 
-  // Mock connected integrations
-  const connectedIntegrations = [
-    {
-      id: "stripe",
-      connectedAt: "2024-06-20",
-      status: "active",
-      accountName: "Coral Bay Diving",
-      lastSync: "2 minutes ago",
-    },
-  ];
+  // Get connected integrations based on tenant's integration status
+  const connectedIntegrations = getConnectedIntegrations({
+    stripeCustomerId: tenant.stripeCustomerId,
+    stripeSubscriptionId: tenant.stripeSubscriptionId,
+    name: tenant.name,
+  });
 
-  const currentPlan = "starter"; // From tenant subscription
+  // Get current plan name from subscription
+  let currentPlan = "starter";
+  if (tenant.planId) {
+    const plan = await getSubscriptionPlanById(tenant.planId);
+    if (plan) {
+      currentPlan = plan.name;
+    }
+  }
 
   return { connectedIntegrations, availableIntegrations, currentPlan };
 }

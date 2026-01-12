@@ -17,7 +17,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // If already authenticated, redirect to dashboard
   if (isAdminAuthenticated(request)) {
-    return redirect("/");
+    return redirect("/dashboard");
   }
   return null;
 }
@@ -35,7 +35,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Create session cookie and redirect
-  return redirect("/", {
+  return redirect("/dashboard", {
     headers: {
       "Set-Cookie": createAdminSessionCookie(),
     },

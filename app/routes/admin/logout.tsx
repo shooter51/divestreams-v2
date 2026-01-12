@@ -12,5 +12,5 @@ export async function action({ request }: ActionFunctionArgs) {
 
 // Redirect GET requests to home
 export async function loader() {
-  return redirect("/");
+  return redirect("/dashboard");
 }

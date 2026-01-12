@@ -1,111 +1,71 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import {
+  getEquipmentById,
+  getEquipmentRentalHistory,
+  getEquipmentRentalStats,
+  getEquipmentServiceHistory,
+  updateEquipmentStatus,
+  deleteEquipment,
+} from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const equipmentId = params.id;
 
-  // Mock data
-  const equipment = {
-    id: equipmentId,
-    category: "bcd",
-    name: "Aqualung Pro HD",
-    brand: "Aqualung",
-    model: "Pro HD",
-    serialNumber: "AQ-2024-001",
-    size: "M",
-    status: "available",
-    condition: "excellent",
-    rentalPrice: 25,
-    isRentable: true,
-    lastServiceDate: "2025-12-01",
-    nextServiceDate: "2026-06-01",
-    serviceNotes: "Annual service completed. O-rings replaced.",
-    purchaseDate: "2024-03-15",
-    purchasePrice: 850,
-    notes: "Primary BCD for intermediate level divers.",
-    createdAt: "2024-03-15",
-    updatedAt: "2025-12-01",
-  };
+  if (!equipmentId) {
+    throw new Response("Equipment ID required", { status: 400 });
+  }
 
-  const rentalHistory = [
-    {
-      id: "r1",
-      bookingNumber: "BK-2026-015",
-      customerName: "John Smith",
-      date: "2026-01-08",
-      returned: true,
-    },
-    {
-      id: "r2",
-      bookingNumber: "BK-2025-098",
-      customerName: "Sarah Johnson",
-      date: "2025-12-22",
-      returned: true,
-    },
-    {
-      id: "r3",
-      bookingNumber: "BK-2025-087",
-      customerName: "Mike Wilson",
-      date: "2025-12-15",
-      returned: true,
-    },
-  ];
+  // Fetch all data in parallel
+  const [equipment, rentalHistory, stats, serviceHistory] = await Promise.all([
+    getEquipmentById(tenant.schemaName, equipmentId),
+    getEquipmentRentalHistory(tenant.schemaName, equipmentId),
+    getEquipmentRentalStats(tenant.schemaName, equipmentId),
+    getEquipmentServiceHistory(tenant.schemaName, equipmentId),
+  ]);
 
-  const serviceHistory = [
-    {
-      id: "s1",
-      date: "2025-12-01",
-      type: "Annual Service",
-      notes: "O-rings replaced, pressure test passed",
-      performedBy: "Dive Tech Pro",
-    },
-    {
-      id: "s2",
-      date: "2024-12-10",
-      type: "Annual Service",
-      notes: "Full inspection, all components in good condition",
-      performedBy: "Dive Tech Pro",
-    },
-  ];
-
-  const stats = {
-    totalRentals: 42,
-    rentalRevenue: 1050,
-    daysRented: 58,
-    avgRentalsPerMonth: 3.5,
-  };
+  if (!equipment) {
+    throw new Response("Equipment not found", { status: 404 });
+  }
 
   return { equipment, rentalHistory, serviceHistory, stats };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
+  const equipmentId = params.id;
+
+  if (!equipmentId) {
+    return { error: "Equipment ID required" };
+  }
 
   if (intent === "update-status") {
-    const newStatus = formData.get("status");
-    // TODO: Update status
+    const newStatus = formData.get("status") as string;
+    if (newStatus) {
+      await updateEquipmentStatus(tenant.schemaName, equipmentId, newStatus);
+    }
     return { statusUpdated: true };
   }
 
   if (intent === "log-service") {
-    // TODO: Log service event
+    // TODO: Implement service logging when service_log table is added
     return { serviceLogged: true };
   }
 
   if (intent === "retire") {
-    // TODO: Retire equipment
+    await updateEquipmentStatus(tenant.schemaName, equipmentId, "retired");
     return { retired: true };
   }
 
   if (intent === "delete") {
-    // TODO: Delete equipment
-    return { deleted: true };
+    await deleteEquipment(tenant.schemaName, equipmentId);
+    return redirect("/app/equipment");
   }
 
   return null;

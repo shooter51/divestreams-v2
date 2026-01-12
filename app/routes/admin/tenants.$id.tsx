@@ -43,7 +43,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     await deleteTenant(tenantId);
-    return redirect("/");
+    return redirect("/dashboard");
   }
 
   // Update tenant
@@ -134,7 +134,7 @@ export default function EditTenantPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/" className="text-blue-600 hover:underline text-sm">
+        <Link to="/dashboard" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Tenants
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Tenant</h1>
@@ -330,7 +330,7 @@ export default function EditTenantPage() {
             >
               {isSubmitting ? "Saving..." : "Save Changes"}
             </button>
-            <Link to="/" className="px-6 py-2 border rounded-lg hover:bg-gray-50">
+            <Link to="/dashboard" className="px-6 py-2 border rounded-lg hover:bg-gray-50">
               Cancel
             </Link>
           </div>

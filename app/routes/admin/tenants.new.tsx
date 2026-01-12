@@ -3,6 +3,7 @@ import { redirect, useLoaderData, useActionData, useNavigation, Link } from "rea
 import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
 import { createTenant, isSubdomainAvailable } from "../../../lib/db/tenant.server";
+import { seedDemoData } from "../../../lib/db/seed-demo-data.server";
 import { eq } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Create Tenant - DiveStreams Admin" }];
@@ -26,6 +27,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const timezone = formData.get("timezone") as string;
   const currency = formData.get("currency") as string;
   const planId = formData.get("planId") as string;
+  const populateDemoData = formData.get("populateDemoData") === "on";
 
   // Validation
   const errors: Record<string, string> = {};
@@ -47,7 +49,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    await createTenant({
+    const tenant = await createTenant({
       subdomain,
       name,
       email,
@@ -57,7 +59,17 @@ export async function action({ request }: ActionFunctionArgs) {
       planId: planId || undefined,
     });
 
-    return redirect("/");
+    // Seed demo data if requested
+    if (populateDemoData) {
+      try {
+        await seedDemoData(tenant.schemaName);
+      } catch (seedError) {
+        console.error("Failed to seed demo data:", seedError);
+        // Don't fail the whole operation if seeding fails
+      }
+    }
+
+    return redirect("/dashboard");
   } catch (error) {
     console.error("Failed to create tenant:", error);
     return { errors: { form: "Failed to create tenant. Please try again." } };
@@ -93,7 +105,7 @@ export default function CreateTenantPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/" className="text-blue-600 hover:underline text-sm">
+        <Link to="/dashboard" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Tenants
         </Link>
         <h1 className="text-2xl font-bold mt-2">Create Tenant</h1>
@@ -227,6 +239,22 @@ export default function CreateTenantPage() {
               ))}
             </select>
           </div>
+
+          <div className="col-span-2 pt-2">
+            <label className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100">
+              <input
+                type="checkbox"
+                name="populateDemoData"
+                className="w-5 h-5 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+              />
+              <div>
+                <span className="font-medium text-blue-900">Populate with demo data</span>
+                <p className="text-sm text-blue-700">
+                  Add sample customers, dive sites, boats, equipment, tours, and bookings
+                </p>
+              </div>
+            </label>
+          </div>
         </div>
 
         <div className="flex gap-3 pt-4 border-t">
@@ -237,7 +265,7 @@ export default function CreateTenantPage() {
           >
             {isSubmitting ? "Creating..." : "Create Tenant"}
           </button>
-          <Link to="/" className="px-6 py-2 border rounded-lg hover:bg-gray-50">
+          <Link to="/dashboard" className="px-6 py-2 border rounded-lg hover:bg-gray-50">
             Cancel
           </Link>
         </div>
