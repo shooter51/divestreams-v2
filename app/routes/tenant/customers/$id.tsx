@@ -1,83 +1,43 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const customerId = params.id;
 
-  // TODO: Fetch from tenant database
-  // For now, return mock data
-  const customer = {
-    id: customerId,
-    firstName: "John",
-    lastName: "Smith",
-    email: "john.smith@example.com",
-    phone: "+1 555-0101",
-    dateOfBirth: "1985-06-15",
-    emergencyContactName: "Jane Smith",
-    emergencyContactPhone: "+1 555-0102",
-    emergencyContactRelation: "Spouse",
-    medicalConditions: "None",
-    medications: "None",
-    certifications: [
-      { agency: "PADI", level: "Advanced Open Water", number: "12345678", date: "2020-05-10" },
-    ],
-    address: "123 Ocean Drive",
-    city: "Miami",
-    state: "FL",
-    postalCode: "33139",
-    country: "USA",
-    preferredLanguage: "en",
-    marketingOptIn: true,
-    notes: "Prefers morning dives. Experienced underwater photographer.",
-    tags: ["photographer", "regular"],
-    totalDives: 15,
-    totalSpent: "1,250.00",
-    lastDiveAt: "2026-01-05",
-    createdAt: "2024-03-15",
-  };
+  if (!customerId) {
+    throw new Response("Customer ID required", { status: 400 });
+  }
 
-  const bookings = [
-    {
-      id: "b1",
-      bookingNumber: "BK-2026-001",
-      tripName: "Morning 2-Tank Dive",
-      date: "2026-01-05",
-      status: "completed",
-      total: "150.00",
-    },
-    {
-      id: "b2",
-      bookingNumber: "BK-2025-089",
-      tripName: "Sunset Dive",
-      date: "2025-12-20",
-      status: "completed",
-      total: "85.00",
-    },
-    {
-      id: "b3",
-      bookingNumber: "BK-2026-015",
-      tripName: "Night Dive Adventure",
-      date: "2026-01-18",
-      status: "confirmed",
-      total: "120.00",
-    },
-  ];
+  const [customer, bookings] = await Promise.all([
+    getCustomerById(tenant.schemaName, customerId),
+    getCustomerBookings(tenant.schemaName, customerId),
+  ]);
+
+  if (!customer) {
+    throw new Response("Customer not found", { status: 404 });
+  }
 
   return { customer, bookings };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
+  const customerId = params.id;
+
+  if (!customerId) {
+    return { error: "Customer ID required" };
+  }
 
   if (intent === "delete") {
-    // TODO: Delete customer
-    return { deleted: true };
+    await deleteCustomer(tenant.schemaName, customerId);
+    return redirect("/app/customers");
   }
 
   return null;
@@ -232,7 +192,7 @@ export default function CustomerDetailPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Certification</h2>
             {customer.certifications?.length > 0 ? (
-              customer.certifications.map((cert, i) => (
+              customer.certifications.map((cert: { agency: string; level: string; number?: string; date?: string }, i: number) => (
                 <div key={i} className="text-sm">
                   <p className="font-medium">{cert.agency} {cert.level}</p>
                   {cert.number && <p className="text-gray-500">#{cert.number}</p>}
@@ -279,7 +239,7 @@ export default function CustomerDetailPage() {
             <p className="text-sm">{customer.notes || "No notes"}</p>
             {customer.tags?.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-3">
-                {customer.tags.map((tag) => (
+                {customer.tags.map((tag: string) => (
                   <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
                     {tag}
                   </span>

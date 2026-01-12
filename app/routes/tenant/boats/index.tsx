@@ -1,72 +1,31 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { getBoats } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Boats - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("q") || "";
 
-  // Mock data
-  const boats = [
-    {
-      id: "b1",
-      name: "Ocean Explorer",
-      type: "Dive Boat",
-      capacity: 14,
-      registrationNumber: "PW-1234-DV",
-      description: "Our flagship vessel with full amenities for day trips",
-      amenities: ["Freshwater shower", "Sun deck", "Camera station", "Dive platform", "Toilet"],
-      isActive: true,
-      tripCount: 156,
-      lastMaintenance: "2025-12-15",
-      nextMaintenance: "2026-03-15",
-    },
-    {
-      id: "b2",
-      name: "Sea Breeze",
-      type: "Speed Boat",
-      capacity: 10,
-      registrationNumber: "PW-5678-SP",
-      description: "Fast and agile for reaching distant dive sites quickly",
-      amenities: ["Dive platform", "Storage lockers", "Shade cover"],
-      isActive: true,
-      tripCount: 89,
-      lastMaintenance: "2026-01-05",
-      nextMaintenance: "2026-04-05",
-    },
-    {
-      id: "b3",
-      name: "Coral Queen",
-      type: "Catamaran",
-      capacity: 20,
-      registrationNumber: "PW-9012-CT",
-      description: "Spacious catamaran ideal for larger groups and snorkeling tours",
-      amenities: ["Two toilets", "Large sun deck", "BBQ grill", "Sound system", "Camera station"],
-      isActive: true,
-      tripCount: 45,
-      lastMaintenance: "2025-11-20",
-      nextMaintenance: "2026-02-20",
-    },
-    {
-      id: "b4",
-      name: "Night Diver",
-      type: "Dive Boat",
-      capacity: 8,
-      registrationNumber: "PW-3456-ND",
-      description: "Specialized for night and small group dives",
-      amenities: ["Dive lights", "Dive platform", "First aid kit"],
-      isActive: false,
-      tripCount: 23,
-      lastMaintenance: "2025-10-10",
-      nextMaintenance: "2026-01-10",
-    },
-  ].filter((boat) => {
-    if (search && !boat.name.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
+  const rawBoats = await getBoats(tenant.schemaName, {
+    search: search || undefined,
   });
+
+  // Transform to UI format
+  const boats = rawBoats.map((b) => ({
+    id: b.id,
+    name: b.name,
+    type: b.type || "Dive Boat",
+    capacity: b.capacity || 0,
+    registrationNumber: b.registrationNumber || "",
+    description: b.description || "",
+    amenities: b.amenities || [],
+    isActive: b.isActive ?? true,
+    tripCount: b.tripCount || 0,
+  }));
 
   const totalCapacity = boats.filter((b) => b.isActive).reduce((sum, b) => sum + b.capacity, 0);
   const activeCount = boats.filter((b) => b.isActive).length;
@@ -178,7 +137,7 @@ export default function BoatsPage() {
               </p>
 
               <div className="flex flex-wrap gap-1 mb-3">
-                {boat.amenities.slice(0, 3).map((a) => (
+                {boat.amenities.slice(0, 3).map((a: string) => (
                   <span
                     key={a}
                     className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"

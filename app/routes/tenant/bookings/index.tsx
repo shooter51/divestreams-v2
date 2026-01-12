@@ -1,96 +1,59 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { getBookings } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Bookings - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const status = url.searchParams.get("status") || "";
-  const dateFrom = url.searchParams.get("from") || "";
-  const dateTo = url.searchParams.get("to") || "";
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = 20;
+  const offset = (page - 1) * limit;
 
-  // Mock data for now
-  const bookings = [
-    {
-      id: "b1",
-      bookingNumber: "BK-2026-001",
-      customer: { id: "1", firstName: "John", lastName: "Smith", email: "john.smith@example.com" },
-      trip: { id: "t1", tourName: "Morning 2-Tank Dive", date: "2026-01-15", startTime: "08:00" },
-      participants: 2,
-      total: "300.00",
-      status: "confirmed",
-      paidAmount: "300.00",
-      createdAt: "2026-01-10",
-    },
-    {
-      id: "b2",
-      bookingNumber: "BK-2026-002",
-      customer: { id: "2", firstName: "Sarah", lastName: "Johnson", email: "sarah.j@example.com" },
-      trip: { id: "t1", tourName: "Morning 2-Tank Dive", date: "2026-01-15", startTime: "08:00" },
-      participants: 1,
-      total: "150.00",
-      status: "confirmed",
-      paidAmount: "75.00",
-      createdAt: "2026-01-11",
-    },
-    {
-      id: "b3",
-      bookingNumber: "BK-2026-003",
-      customer: { id: "3", firstName: "Mike", lastName: "Wilson", email: "mike.wilson@example.com" },
-      trip: { id: "t2", tourName: "Night Dive Adventure", date: "2026-01-18", startTime: "18:00" },
-      participants: 3,
-      total: "360.00",
-      status: "pending",
-      paidAmount: "0.00",
-      createdAt: "2026-01-11",
-    },
-    {
-      id: "b4",
-      bookingNumber: "BK-2025-089",
-      customer: { id: "1", firstName: "John", lastName: "Smith", email: "john.smith@example.com" },
-      trip: { id: "t3", tourName: "Sunset Dive", date: "2025-12-20", startTime: "16:00" },
-      participants: 2,
-      total: "170.00",
-      status: "completed",
-      paidAmount: "170.00",
-      createdAt: "2025-12-15",
-    },
-    {
-      id: "b5",
-      bookingNumber: "BK-2026-004",
-      customer: { id: "4", firstName: "Emily", lastName: "Davis", email: "emily.d@example.com" },
-      trip: { id: "t4", tourName: "Discover Scuba", date: "2026-01-20", startTime: "09:00" },
-      participants: 1,
-      total: "199.00",
-      status: "cancelled",
-      paidAmount: "199.00",
-      createdAt: "2026-01-08",
-    },
-  ].filter((b) => {
-    const matchesSearch =
-      !search ||
-      b.bookingNumber.toLowerCase().includes(search.toLowerCase()) ||
-      b.customer.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      b.customer.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      b.customer.email.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !status || b.status === status;
-    return matchesSearch && matchesStatus;
+  const { bookings: rawBookings, total } = await getBookings(tenant.schemaName, {
+    status: status || undefined,
+    limit,
+    offset,
   });
 
+  // Transform to expected format
+  const bookings = rawBookings.map((b) => ({
+    id: b.id,
+    bookingNumber: b.bookingNumber,
+    customer: {
+      id: b.customerId,
+      firstName: b.customerFirstName,
+      lastName: b.customerLastName,
+      email: b.customerEmail,
+    },
+    trip: {
+      id: b.tripId,
+      tourName: b.tourName,
+      date: b.tripDate,
+      startTime: b.tripTime,
+    },
+    participants: b.participants,
+    total: b.total.toFixed(2),
+    status: b.status,
+    paidAmount: b.paidAmount.toFixed(2),
+    createdAt: b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "",
+  }));
+
+  // Calculate stats
+  const today = new Date().toISOString().split("T")[0];
   const stats = {
-    today: bookings.filter((b) => b.trip.date === "2026-01-11").length,
+    today: bookings.filter((b) => b.trip.date === today).length,
     upcoming: bookings.filter((b) => b.status === "confirmed").length,
     pendingPayment: bookings.filter(
-      (b) => b.status !== "cancelled" && parseFloat(b.paidAmount) < parseFloat(b.total)
+      (b) => b.status !== "cancelled" && b.status !== "canceled" && parseFloat(b.paidAmount) < parseFloat(b.total)
     ).length,
   };
 
-  return { bookings, total: bookings.length, page, search, status, stats };
+  return { bookings, total, page, search, status, stats };
 }
 
 const statusColors: Record<string, string> = {

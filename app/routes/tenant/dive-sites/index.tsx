@@ -1,87 +1,34 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { getDiveSites } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Dive Sites - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("q") || "";
   const difficulty = url.searchParams.get("difficulty") || "";
 
-  // Mock data
-  const diveSites = [
-    {
-      id: "ds1",
-      name: "Blue Corner",
-      location: "Palau",
-      maxDepth: 30,
-      difficulty: "advanced",
-      description: "Famous drift dive with sharks, mantas, and schooling fish",
-      coordinates: { lat: 7.165, lng: 134.271 },
-      conditions: "Strong currents common",
-      highlights: ["Sharks", "Mantas", "Wall dive"],
-      isActive: true,
-      tripCount: 45,
-    },
-    {
-      id: "ds2",
-      name: "The Wreck",
-      location: "Local Harbor",
-      maxDepth: 18,
-      difficulty: "intermediate",
-      description: "Historic cargo ship sunk in 1985, now home to diverse marine life",
-      coordinates: { lat: 7.345, lng: 134.465 },
-      conditions: "Generally calm, some current",
-      highlights: ["Wreck penetration", "Soft corals", "Nudibranchs"],
-      isActive: true,
-      tripCount: 32,
-    },
-    {
-      id: "ds3",
-      name: "Coral Garden",
-      location: "South Bay",
-      maxDepth: 12,
-      difficulty: "beginner",
-      description: "Shallow reef perfect for beginners and snorkelers",
-      coordinates: { lat: 7.289, lng: 134.390 },
-      conditions: "Protected bay, calm waters",
-      highlights: ["Colorful corals", "Tropical fish", "Turtles"],
-      isActive: true,
-      tripCount: 78,
-    },
-    {
-      id: "ds4",
-      name: "Shark Point",
-      location: "Outer Reef",
-      maxDepth: 40,
-      difficulty: "expert",
-      description: "Deep wall dive with guaranteed shark encounters",
-      coordinates: { lat: 7.412, lng: 134.521 },
-      conditions: "Strong currents, advanced divers only",
-      highlights: ["Grey reef sharks", "Deep wall", "Pelagics"],
-      isActive: true,
-      tripCount: 15,
-    },
-    {
-      id: "ds5",
-      name: "Manta Station",
-      location: "Channel",
-      maxDepth: 22,
-      difficulty: "intermediate",
-      description: "Cleaning station with regular manta ray visits",
-      coordinates: { lat: 7.198, lng: 134.333 },
-      conditions: "Current varies with tide",
-      highlights: ["Manta rays", "Cleaning station", "Photography"],
-      isActive: false,
-      tripCount: 28,
-    },
-  ].filter((site) => {
-    if (search && !site.name.toLowerCase().includes(search.toLowerCase())) return false;
-    if (difficulty && site.difficulty !== difficulty) return false;
-    return true;
+  const rawSites = await getDiveSites(tenant.schemaName, {
+    search: search || undefined,
+    difficulty: difficulty || undefined,
   });
+
+  // Transform to UI format
+  const diveSites = rawSites.map((s) => ({
+    id: s.id,
+    name: s.name,
+    location: "", // Could derive from lat/lng or store separately
+    maxDepth: s.maxDepth || 0,
+    difficulty: s.difficulty || "intermediate",
+    description: s.description || "",
+    coordinates: s.latitude && s.longitude ? { lat: s.latitude, lng: s.longitude } : null,
+    conditions: s.currentStrength || "",
+    highlights: s.highlights || [],
+    isActive: s.isActive ?? true,
+  }));
 
   return { diveSites, total: diveSites.length, search, difficulty };
 }
@@ -193,7 +140,7 @@ export default function DiveSitesPage() {
               </p>
 
               <div className="flex flex-wrap gap-1 mb-3">
-                {site.highlights.slice(0, 3).map((h) => (
+                {site.highlights.slice(0, 3).map((h: string) => (
                   <span
                     key={h}
                     className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
@@ -206,9 +153,6 @@ export default function DiveSitesPage() {
               <div className="flex justify-between items-center text-sm border-t pt-3">
                 <span className="text-gray-500">
                   Max depth: <strong>{site.maxDepth}m</strong>
-                </span>
-                <span className="text-gray-500">
-                  {site.tripCount} trips
                 </span>
               </div>
 

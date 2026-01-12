@@ -1,82 +1,34 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { getTours } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Tours - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const typeFilter = url.searchParams.get("type") || "";
 
-  // Mock data for now - will query tenant DB
-  const tours = [
-    {
-      id: "1",
-      name: "Morning 2-Tank Dive",
-      type: "multi_dive",
-      duration: 240,
-      maxParticipants: 12,
-      price: "150.00",
-      currency: "USD",
-      minCertLevel: "Open Water",
-      isActive: true,
-      tripCount: 45,
-    },
-    {
-      id: "2",
-      name: "Sunset Dive",
-      type: "single_dive",
-      duration: 120,
-      maxParticipants: 8,
-      price: "85.00",
-      currency: "USD",
-      minCertLevel: "Open Water",
-      isActive: true,
-      tripCount: 32,
-    },
-    {
-      id: "3",
-      name: "Night Dive Adventure",
-      type: "night_dive",
-      duration: 150,
-      maxParticipants: 6,
-      price: "120.00",
-      currency: "USD",
-      minCertLevel: "Advanced Open Water",
-      isActive: true,
-      tripCount: 18,
-    },
-    {
-      id: "4",
-      name: "Discover Scuba",
-      type: "course",
-      duration: 180,
-      maxParticipants: 4,
-      price: "199.00",
-      currency: "USD",
-      minCertLevel: null,
-      isActive: true,
-      tripCount: 28,
-    },
-    {
-      id: "5",
-      name: "Snorkel Safari",
-      type: "snorkel",
-      duration: 180,
-      maxParticipants: 20,
-      price: "65.00",
-      currency: "USD",
-      minCertLevel: null,
-      isActive: false,
-      tripCount: 12,
-    },
-  ].filter((t) => {
-    const matchesSearch = !search || t.name.toLowerCase().includes(search.toLowerCase());
-    const matchesType = !typeFilter || t.type === typeFilter;
-    return matchesSearch && matchesType;
+  const rawTours = await getTours(tenant.schemaName, {
+    search: search || undefined,
+    type: typeFilter || undefined,
   });
+
+  // Transform to UI format
+  const tours = rawTours.map((t) => ({
+    id: t.id,
+    name: t.name,
+    type: t.type || "other",
+    duration: t.duration || 0,
+    maxParticipants: t.maxParticipants || 0,
+    price: t.price?.toFixed(2) || "0.00",
+    currency: t.currency || "USD",
+    minCertLevel: t.minCertLevel,
+    isActive: t.isActive ?? true,
+    tripCount: t.tripCount || 0,
+  }));
 
   return { tours, total: tours.length, search, typeFilter };
 }

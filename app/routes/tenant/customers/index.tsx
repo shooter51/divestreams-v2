@@ -1,67 +1,29 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { eq, ilike, or, desc, sql } from "drizzle-orm";
+import { getCustomers } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Customers - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  // For now, return mock data since we need to set up the tenant DB query properly
-  // In production, this would query the tenant's schema
-  const customers = [
-    {
-      id: "1",
-      firstName: "John",
-      lastName: "Smith",
-      email: "john.smith@example.com",
-      phone: "+1 555-0101",
-      totalDives: 15,
-      totalSpent: "1,250.00",
-      lastDiveAt: "2026-01-05",
-      certifications: [{ agency: "PADI", level: "Advanced Open Water" }],
-    },
-    {
-      id: "2",
-      firstName: "Sarah",
-      lastName: "Johnson",
-      email: "sarah.j@example.com",
-      phone: "+1 555-0102",
-      totalDives: 8,
-      totalSpent: "680.00",
-      lastDiveAt: "2026-01-08",
-      certifications: [{ agency: "SSI", level: "Open Water" }],
-    },
-    {
-      id: "3",
-      firstName: "Mike",
-      lastName: "Wilson",
-      email: "mike.wilson@example.com",
-      phone: "+1 555-0103",
-      totalDives: 42,
-      totalSpent: "3,150.00",
-      lastDiveAt: "2026-01-10",
-      certifications: [{ agency: "PADI", level: "Rescue Diver" }],
-    },
-  ].filter(
-    (c) =>
-      !search ||
-      c.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      c.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const { customers, total } = await getCustomers(tenant.schemaName, {
+    search: search || undefined,
+    limit,
+    offset,
+  });
 
   return {
     customers,
-    total: customers.length,
+    total,
     page,
-    totalPages: Math.ceil(customers.length / limit),
+    totalPages: Math.ceil(total / limit),
     search,
   };
 }
@@ -154,7 +116,7 @@ export default function CustomersPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">{customer.totalDives}</td>
-                  <td className="px-6 py-4 text-sm">${customer.totalSpent}</td>
+                  <td className="px-6 py-4 text-sm">${Number(customer.totalSpent || 0).toLocaleString()}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{customer.lastDiveAt || "Never"}</td>
                   <td className="px-6 py-4 text-right">
                     <Link

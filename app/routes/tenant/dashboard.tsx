@@ -1,74 +1,29 @@
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
 import { requireTenant } from "../../../lib/auth/tenant-auth.server";
+import {
+  getDashboardStats,
+  getUpcomingTrips,
+  getRecentBookings,
+} from "../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Dashboard - DiveStreams" }];
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
 
-  // TODO: Fetch actual stats from tenant database
+  const [stats, upcomingTrips, recentBookings] = await Promise.all([
+    getDashboardStats(tenant.schemaName),
+    getUpcomingTrips(tenant.schemaName, 5),
+    getRecentBookings(tenant.schemaName, 5),
+  ]);
+
   return {
-    stats: {
-      todayBookings: 8,
-      weekRevenue: 4250,
-      activeTrips: 3,
-      totalCustomers: 156,
-    },
-    upcomingTrips: [
-      {
-        id: "1",
-        name: "Morning 2-Tank Dive",
-        date: "Today",
-        time: "8:00 AM",
-        participants: 6,
-        maxParticipants: 8,
-      },
-      {
-        id: "2",
-        name: "Sunset Dive",
-        date: "Today",
-        time: "4:00 PM",
-        participants: 4,
-        maxParticipants: 6,
-      },
-      {
-        id: "3",
-        name: "Discovery Snorkel",
-        date: "Tomorrow",
-        time: "9:00 AM",
-        participants: 12,
-        maxParticipants: 15,
-      },
-    ],
-    recentBookings: [
-      {
-        id: "1",
-        customer: "John Smith",
-        trip: "Morning 2-Tank Dive",
-        date: "2 hours ago",
-        status: "confirmed",
-        amount: 150,
-      },
-      {
-        id: "2",
-        customer: "Sarah Johnson",
-        trip: "Sunset Dive",
-        date: "5 hours ago",
-        status: "pending",
-        amount: 85,
-      },
-      {
-        id: "3",
-        customer: "Mike Wilson",
-        trip: "Discovery Snorkel",
-        date: "Yesterday",
-        status: "confirmed",
-        amount: 65,
-      },
-    ],
+    stats,
+    upcomingTrips,
+    recentBookings,
   };
 }
 

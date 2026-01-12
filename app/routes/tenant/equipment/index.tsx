@@ -1,137 +1,31 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { getEquipment } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Equipment - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("q") || "";
   const category = url.searchParams.get("category") || "";
   const status = url.searchParams.get("status") || "";
 
-  // Mock data
-  const equipment = [
-    {
-      id: "e1",
-      category: "bcd",
-      name: "Aqualung Pro HD",
-      brand: "Aqualung",
-      model: "Pro HD",
-      serialNumber: "AQ-2024-001",
-      size: "M",
-      status: "available",
-      condition: "excellent",
-      rentalPrice: 25,
-      isRentable: true,
-      lastServiceDate: "2025-12-01",
-      nextServiceDate: "2026-06-01",
-    },
-    {
-      id: "e2",
-      category: "regulator",
-      name: "Scubapro MK25",
-      brand: "Scubapro",
-      model: "MK25/S620Ti",
-      serialNumber: "SP-2023-042",
-      status: "available",
-      condition: "excellent",
-      rentalPrice: 30,
-      isRentable: true,
-      lastServiceDate: "2025-11-15",
-      nextServiceDate: "2026-05-15",
-    },
-    {
-      id: "e3",
-      category: "wetsuit",
-      name: "3mm Full Suit",
-      brand: "Henderson",
-      model: "Thermoprene",
-      size: "L",
-      status: "rented",
-      condition: "good",
-      rentalPrice: 15,
-      isRentable: true,
-    },
-    {
-      id: "e4",
-      category: "mask",
-      name: "Cressi Big Eyes",
-      brand: "Cressi",
-      model: "Big Eyes Evolution",
-      status: "available",
-      condition: "good",
-      rentalPrice: 10,
-      isRentable: true,
-    },
-    {
-      id: "e5",
-      category: "fins",
-      name: "Mares Avanti",
-      brand: "Mares",
-      model: "Avanti Quattro +",
-      size: "L",
-      status: "maintenance",
-      condition: "fair",
-      rentalPrice: 12,
-      isRentable: true,
-      serviceNotes: "Strap replacement needed",
-    },
-    {
-      id: "e6",
-      category: "computer",
-      name: "Shearwater Perdix",
-      brand: "Shearwater",
-      model: "Perdix AI",
-      serialNumber: "SW-2024-015",
-      status: "available",
-      condition: "excellent",
-      rentalPrice: 40,
-      isRentable: true,
-      lastServiceDate: "2025-10-01",
-      nextServiceDate: "2026-10-01",
-    },
-    {
-      id: "e7",
-      category: "tank",
-      name: "Aluminum 80",
-      brand: "Luxfer",
-      model: "AL80",
-      serialNumber: "LX-2022-108",
-      status: "available",
-      condition: "good",
-      rentalPrice: 8,
-      isRentable: true,
-      lastServiceDate: "2025-08-15",
-      nextServiceDate: "2026-08-15",
-    },
-    {
-      id: "e8",
-      category: "bcd",
-      name: "Zeagle Ranger",
-      brand: "Zeagle",
-      model: "Ranger",
-      serialNumber: "ZG-2023-022",
-      size: "XL",
-      status: "retired",
-      condition: "poor",
-      isRentable: false,
-      notes: "Beyond repair, keep for parts",
-    },
-  ].filter((item) => {
-    if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
-    if (category && item.category !== category) return false;
-    if (status && item.status !== status) return false;
-    return true;
+  // Get all equipment first for stats, then filter for display
+  const allEquipment = await getEquipment(tenant.schemaName, {});
+  const equipment = await getEquipment(tenant.schemaName, {
+    search: search || undefined,
+    category: category || undefined,
+    status: status || undefined,
   });
 
   const stats = {
-    total: equipment.length,
-    available: equipment.filter((e) => e.status === "available").length,
-    rented: equipment.filter((e) => e.status === "rented").length,
-    maintenance: equipment.filter((e) => e.status === "maintenance").length,
-    retired: equipment.filter((e) => e.status === "retired").length,
+    total: allEquipment.length,
+    available: allEquipment.filter((e) => e.status === "available").length,
+    rented: allEquipment.filter((e) => e.status === "rented").length,
+    maintenance: allEquipment.filter((e) => e.status === "maintenance").length,
+    retired: allEquipment.filter((e) => e.status === "retired").length,
   };
 
   return { equipment, stats, search, category, status };

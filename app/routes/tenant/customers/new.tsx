@@ -1,34 +1,80 @@
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { customerSchema, validateFormData, getFormValues } from "../../../../lib/validation";
+import { createCustomer } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
+
+  const firstName = formData.get("firstName") as string;
+  const lastName = formData.get("lastName") as string;
+  const email = formData.get("email") as string;
+
+  // Basic validation
+  const errors: Record<string, string> = {};
+  if (!firstName) errors.firstName = "First name is required";
+  if (!lastName) errors.lastName = "Last name is required";
+  if (!email) errors.email = "Email is required";
+  else if (!email.includes("@")) errors.email = "Invalid email address";
+
+  if (Object.keys(errors).length > 0) {
+    // Convert FormData to Record<string, string> for defaultValue compatibility
+    const values: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      if (typeof value === "string") {
+        values[key] = value;
+      }
+    });
+    return { errors, values };
+  }
 
   // Parse certifications from form
   const certAgency = formData.get("certAgency") as string;
   const certLevel = formData.get("certLevel") as string;
   const certNumber = formData.get("certNumber") as string;
 
-  if (certAgency && certLevel) {
-    formData.set("certifications", JSON.stringify([{ agency: certAgency, level: certLevel, number: certNumber }]));
+  const certifications = certAgency && certLevel
+    ? [{ agency: certAgency, level: certLevel, number: certNumber || undefined }]
+    : undefined;
+
+  try {
+    await createCustomer(tenant.schemaName, {
+      email,
+      firstName,
+      lastName,
+      phone: formData.get("phone") as string || undefined,
+      dateOfBirth: formData.get("dateOfBirth") as string || undefined,
+      emergencyContactName: formData.get("emergencyContactName") as string || undefined,
+      emergencyContactPhone: formData.get("emergencyContactPhone") as string || undefined,
+      emergencyContactRelation: formData.get("emergencyContactRelation") as string || undefined,
+      medicalConditions: formData.get("medicalConditions") as string || undefined,
+      medications: formData.get("medications") as string || undefined,
+      certifications,
+      address: formData.get("address") as string || undefined,
+      city: formData.get("city") as string || undefined,
+      state: formData.get("state") as string || undefined,
+      postalCode: formData.get("postalCode") as string || undefined,
+      country: formData.get("country") as string || undefined,
+      notes: formData.get("notes") as string || undefined,
+    });
+
+    return redirect("/app/customers");
+  } catch (error) {
+    console.error("Failed to create customer:", error);
+    const values: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      if (typeof value === "string") {
+        values[key] = value;
+      }
+    });
+    return {
+      errors: { form: "Failed to create customer. Please try again." },
+      values,
+    };
   }
-
-  const validation = validateFormData(formData, customerSchema);
-
-  if (!validation.success) {
-    return { errors: validation.errors, values: getFormValues(formData) };
-  }
-
-  // TODO: Insert into tenant database
-  // const [customer] = await db.insert(customers).values(validation.data).returning();
-
-  // For now, simulate success
-  return redirect("/app/customers");
 }
 
 export default function NewCustomerPage() {
