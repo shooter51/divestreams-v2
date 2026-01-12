@@ -42,9 +42,9 @@ export default [
       route("trips/:id", "routes/tenant/trips/$id.tsx"),
 
       // Dive Sites
-      route("sites", "routes/tenant/sites/index.tsx"),
-      route("sites/new", "routes/tenant/sites/new.tsx"),
-      route("sites/:id", "routes/tenant/sites/$id.tsx"),
+      route("dive-sites", "routes/tenant/dive-sites/index.tsx"),
+      route("dive-sites/new", "routes/tenant/dive-sites/new.tsx"),
+      route("dive-sites/:id", "routes/tenant/dive-sites/$id.tsx"),
 
       // Boats
       route("boats", "routes/tenant/boats/index.tsx"),
