@@ -13,12 +13,11 @@ COPY . /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
 RUN npm run build
-# Compile worker to JavaScript
-RUN npx tsc lib/jobs/worker.ts lib/jobs/index.ts --outDir build/worker --module nodenext --moduleResolution nodenext --esModuleInterop --skipLibCheck --target es2022
 
 FROM node:20-alpine
 COPY ./package.json package-lock.json /app/
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
+COPY --from=build-env /app/lib /app/lib
 WORKDIR /app
 CMD ["npm", "run", "start"]

@@ -34,7 +34,7 @@ services:
       dockerfile: Dockerfile
     container_name: divestreams-worker
     restart: unless-stopped
-    command: ["node", "build/worker/lib/jobs/worker.js"]
+    command: ["node", "--import", "tsx", "lib/jobs/worker.ts"]
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_prod}@postgres:5432/divestreams
