@@ -74,4 +74,18 @@ export default [
     route("forgot-password", "routes/auth/forgot-password.tsx"),
     route("reset-password", "routes/auth/reset-password.tsx"),
   ]),
+
+  // Admin routes (accessed via admin.divestreams.com)
+  // Login is outside the layout so it doesn't require auth
+  route("login", "routes/admin/login.tsx"),
+  route("logout", "routes/admin/logout.tsx"),
+
+  // Admin protected routes with layout
+  layout("routes/admin/layout.tsx", [
+    index("routes/admin/index.tsx"),
+    route("tenants/new", "routes/admin/tenants.new.tsx"),
+    route("tenants/:id", "routes/admin/tenants.$id.tsx"),
+    route("plans", "routes/admin/plans.tsx"),
+    route("plans/:id", "routes/admin/plans.$id.tsx"),
+  ]),
 ] satisfies RouteConfig;

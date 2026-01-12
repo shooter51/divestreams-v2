@@ -1,0 +1,340 @@
+import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
+import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
+import { db } from "../../../lib/db";
+import { subscriptionPlans } from "../../../lib/db/schema";
+import { eq } from "drizzle-orm";
+
+export const meta: MetaFunction = () => [{ title: "Edit Plan - DiveStreams Admin" }];
+
+export async function loader({ params }: LoaderFunctionArgs) {
+  const planId = params.id;
+
+  // Handle "new" plan
+  if (planId === "new") {
+    return {
+      plan: null,
+      isNew: true,
+    };
+  }
+
+  const [plan] = await db
+    .select()
+    .from(subscriptionPlans)
+    .where(eq(subscriptionPlans.id, planId!))
+    .limit(1);
+
+  if (!plan) throw new Response("Not found", { status: 404 });
+
+  return { plan, isNew: false };
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const planId = params.id;
+  const formData = await request.formData();
+
+  const name = (formData.get("name") as string)?.toLowerCase().trim();
+  const displayName = formData.get("displayName") as string;
+  const monthlyPrice = Math.round(parseFloat(formData.get("monthlyPrice") as string) * 100);
+  const yearlyPrice = Math.round(parseFloat(formData.get("yearlyPrice") as string) * 100);
+  const monthlyPriceId = formData.get("monthlyPriceId") as string;
+  const yearlyPriceId = formData.get("yearlyPriceId") as string;
+  const featuresRaw = formData.get("features") as string;
+  const features = featuresRaw
+    .split("\n")
+    .map((f) => f.trim())
+    .filter(Boolean);
+  const limitUsers = parseInt(formData.get("limitUsers") as string) || -1;
+  const limitCustomers = parseInt(formData.get("limitCustomers") as string) || -1;
+  const limitTours = parseInt(formData.get("limitTours") as string) || -1;
+  const limitStorage = parseInt(formData.get("limitStorage") as string) || -1;
+  const isActive = formData.get("isActive") === "on";
+
+  const errors: Record<string, string> = {};
+  if (!name) errors.name = "Name is required";
+  if (!displayName) errors.displayName = "Display name is required";
+  if (isNaN(monthlyPrice)) errors.monthlyPrice = "Invalid monthly price";
+  if (isNaN(yearlyPrice)) errors.yearlyPrice = "Invalid yearly price";
+
+  if (Object.keys(errors).length > 0) {
+    return { errors };
+  }
+
+  const limits = {
+    users: limitUsers,
+    customers: limitCustomers,
+    toursPerMonth: limitTours,
+    storageGb: limitStorage,
+  };
+
+  try {
+    if (planId === "new") {
+      // Create new plan
+      await db.insert(subscriptionPlans).values({
+        name,
+        displayName,
+        monthlyPrice,
+        yearlyPrice,
+        monthlyPriceId: monthlyPriceId || null,
+        yearlyPriceId: yearlyPriceId || null,
+        features,
+        limits,
+        isActive,
+      });
+    } else {
+      // Update existing plan
+      await db
+        .update(subscriptionPlans)
+        .set({
+          name,
+          displayName,
+          monthlyPrice,
+          yearlyPrice,
+          monthlyPriceId: monthlyPriceId || null,
+          yearlyPriceId: yearlyPriceId || null,
+          features,
+          limits,
+          isActive,
+          updatedAt: new Date(),
+        })
+        .where(eq(subscriptionPlans.id, planId!));
+    }
+
+    return redirect("/plans");
+  } catch (error) {
+    console.error("Failed to save plan:", error);
+    return { errors: { form: "Failed to save plan. Please try again." } };
+  }
+}
+
+export default function EditPlanPage() {
+  const { plan, isNew } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+
+  const limits = plan?.limits as { users: number; customers: number; toursPerMonth: number; storageGb: number } | undefined;
+
+  return (
+    <div className="max-w-2xl">
+      <div className="mb-6">
+        <Link to="/plans" className="text-blue-600 hover:underline text-sm">
+          &larr; Back to Plans
+        </Link>
+        <h1 className="text-2xl font-bold mt-2">
+          {isNew ? "Create Plan" : "Edit Plan"}
+        </h1>
+      </div>
+
+      <form method="post" className="bg-white rounded-xl p-6 shadow-sm space-y-6">
+        {actionData?.errors?.form && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+            {actionData.errors.form}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium mb-1">
+              Internal Name *
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              defaultValue={plan?.name || ""}
+              placeholder="e.g., starter, pro, enterprise"
+              pattern="[a-z0-9_-]+"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+              required
+            />
+            {actionData?.errors?.name && (
+              <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="displayName" className="block text-sm font-medium mb-1">
+              Display Name *
+            </label>
+            <input
+              type="text"
+              id="displayName"
+              name="displayName"
+              defaultValue={plan?.displayName || ""}
+              placeholder="e.g., Starter, Professional"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            {actionData?.errors?.displayName && (
+              <p className="text-red-500 text-sm mt-1">{actionData.errors.displayName}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="monthlyPrice" className="block text-sm font-medium mb-1">
+              Monthly Price (USD) *
+            </label>
+            <input
+              type="number"
+              id="monthlyPrice"
+              name="monthlyPrice"
+              step="0.01"
+              min="0"
+              defaultValue={plan ? (plan.monthlyPrice / 100).toFixed(2) : ""}
+              placeholder="49.00"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            {actionData?.errors?.monthlyPrice && (
+              <p className="text-red-500 text-sm mt-1">{actionData.errors.monthlyPrice}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="yearlyPrice" className="block text-sm font-medium mb-1">
+              Yearly Price (USD) *
+            </label>
+            <input
+              type="number"
+              id="yearlyPrice"
+              name="yearlyPrice"
+              step="0.01"
+              min="0"
+              defaultValue={plan ? (plan.yearlyPrice / 100).toFixed(2) : ""}
+              placeholder="470.00"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            {actionData?.errors?.yearlyPrice && (
+              <p className="text-red-500 text-sm mt-1">{actionData.errors.yearlyPrice}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="monthlyPriceId" className="block text-sm font-medium mb-1">
+              Stripe Monthly Price ID
+            </label>
+            <input
+              type="text"
+              id="monthlyPriceId"
+              name="monthlyPriceId"
+              defaultValue={plan?.monthlyPriceId || ""}
+              placeholder="price_..."
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="yearlyPriceId" className="block text-sm font-medium mb-1">
+              Stripe Yearly Price ID
+            </label>
+            <input
+              type="text"
+              id="yearlyPriceId"
+              name="yearlyPriceId"
+              defaultValue={plan?.yearlyPriceId || ""}
+              placeholder="price_..."
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            />
+          </div>
+
+          <div className="col-span-2">
+            <label htmlFor="features" className="block text-sm font-medium mb-1">
+              Features (one per line)
+            </label>
+            <textarea
+              id="features"
+              name="features"
+              rows={5}
+              defaultValue={(plan?.features as string[])?.join("\n") || ""}
+              placeholder="Up to 3 users&#10;1,000 customers&#10;Basic reporting"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="col-span-2">
+            <h3 className="text-sm font-medium mb-3">Limits (-1 for unlimited)</h3>
+            <div className="grid grid-cols-4 gap-4">
+              <div>
+                <label htmlFor="limitUsers" className="block text-xs text-gray-500 mb-1">
+                  Users
+                </label>
+                <input
+                  type="number"
+                  id="limitUsers"
+                  name="limitUsers"
+                  defaultValue={limits?.users ?? -1}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="limitCustomers" className="block text-xs text-gray-500 mb-1">
+                  Customers
+                </label>
+                <input
+                  type="number"
+                  id="limitCustomers"
+                  name="limitCustomers"
+                  defaultValue={limits?.customers ?? -1}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="limitTours" className="block text-xs text-gray-500 mb-1">
+                  Tours/Month
+                </label>
+                <input
+                  type="number"
+                  id="limitTours"
+                  name="limitTours"
+                  defaultValue={limits?.toursPerMonth ?? -1}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="limitStorage" className="block text-xs text-gray-500 mb-1">
+                  Storage (GB)
+                </label>
+                <input
+                  type="number"
+                  id="limitStorage"
+                  name="limitStorage"
+                  defaultValue={limits?.storageGb ?? -1}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="isActive"
+                defaultChecked={plan?.isActive ?? true}
+                className="rounded"
+              />
+              <span className="text-sm font-medium">Active</span>
+            </label>
+            <p className="text-xs text-gray-500 mt-1">
+              Inactive plans won't be shown on the pricing page
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3 pt-4 border-t">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+          >
+            {isSubmitting ? "Saving..." : isNew ? "Create Plan" : "Save Changes"}
+          </button>
+          <Link to="/plans" className="px-6 py-2 border rounded-lg hover:bg-gray-50">
+            Cancel
+          </Link>
+        </div>
+      </form>
+    </div>
+  );
+}
