@@ -2,7 +2,7 @@
  * Products Management (Inventory for POS)
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Form } from "react-router";
 import { requireTenant } from "../../../lib/auth/tenant-auth.server";
@@ -114,7 +114,129 @@ export async function action({ request }: ActionFunctionArgs) {
     return { success: true, message: "Product deleted" };
   }
 
+  if (intent === "import-csv") {
+    const csvData = formData.get("csvData") as string;
+
+    if (!csvData) {
+      return { error: "No CSV data provided" };
+    }
+
+    const lines = csvData.split("\n").filter(line => line.trim());
+    if (lines.length < 2) {
+      return { error: "CSV must have a header row and at least one data row" };
+    }
+
+    // Parse header row
+    const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+
+    // Validate required columns
+    const requiredColumns = ["name", "sku", "price", "stockquantity"];
+    const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+    if (missingColumns.length > 0) {
+      return { error: `Missing required columns: ${missingColumns.join(", ")}` };
+    }
+
+    const validCategories = ["equipment", "apparel", "accessories", "courses", "rental", "consumables", "other"];
+
+    let successCount = 0;
+    let errorCount = 0;
+    const errors: string[] = [];
+
+    // Process each data row
+    for (let i = 1; i < lines.length; i++) {
+      const values = parseCSVLine(lines[i]);
+      if (values.length === 0 || values.every(v => !v.trim())) continue;
+
+      const row: Record<string, string> = {};
+      headers.forEach((header, idx) => {
+        row[header] = values[idx]?.trim() || "";
+      });
+
+      // Validate required fields
+      if (!row.name) {
+        errors.push(`Row ${i + 1}: Missing required field 'name'`);
+        errorCount++;
+        continue;
+      }
+      if (!row.sku) {
+        errors.push(`Row ${i + 1}: Missing required field 'sku'`);
+        errorCount++;
+        continue;
+      }
+      if (!row.price || isNaN(parseFloat(row.price))) {
+        errors.push(`Row ${i + 1}: Invalid or missing 'price'`);
+        errorCount++;
+        continue;
+      }
+      if (row.stockquantity === "" || isNaN(parseInt(row.stockquantity))) {
+        errors.push(`Row ${i + 1}: Invalid or missing 'stockQuantity'`);
+        errorCount++;
+        continue;
+      }
+
+      // Validate category
+      const category = row.category?.toLowerCase() || "other";
+      if (!validCategories.includes(category)) {
+        errors.push(`Row ${i + 1}: Invalid category '${row.category}', using 'other'`);
+      }
+
+      try {
+        await db.insert(tables.products).values({
+          name: row.name,
+          sku: row.sku,
+          category: validCategories.includes(category) ? category : "other",
+          price: row.price,
+          costPrice: row.costprice || null,
+          stockQuantity: parseInt(row.stockquantity),
+          lowStockThreshold: row.lowstockthreshold ? parseInt(row.lowstockthreshold) : 5,
+          description: row.description || null,
+          isActive: row.isactive?.toLowerCase() !== "false",
+          trackInventory: true,
+        });
+        successCount++;
+      } catch (err) {
+        errors.push(`Row ${i + 1}: Database error - ${err instanceof Error ? err.message : "Unknown error"}`);
+        errorCount++;
+      }
+    }
+
+    return {
+      success: true,
+      message: `Imported ${successCount} products${errorCount > 0 ? `, ${errorCount} errors` : ""}`,
+      importResult: { successCount, errorCount, errors: errors.slice(0, 10) },
+    };
+  }
+
   return { error: "Invalid intent" };
+}
+
+// Helper function to parse CSV line, handling quoted values with commas
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        // Escaped quote
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current);
+  return result;
 }
 
 const CATEGORIES = [
@@ -133,8 +255,98 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<typeof products[0] | null>(null);
   const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string } | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    successCount: number;
+    errorCount: number;
+    errors: string[];
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isSubmitting = fetcher.state === "submitting";
+
+  // Handle CSV export
+  const handleExportCSV = () => {
+    const headers = [
+      "name",
+      "sku",
+      "category",
+      "price",
+      "costPrice",
+      "stockQuantity",
+      "lowStockThreshold",
+      "description",
+      "isActive",
+    ];
+
+    const escapeCSV = (value: string | number | boolean | null | undefined): string => {
+      if (value === null || value === undefined) return "";
+      const str = String(value);
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const csvRows = [
+      headers.join(","),
+      ...products.map((p) =>
+        [
+          escapeCSV(p.name),
+          escapeCSV(p.sku),
+          escapeCSV(p.category),
+          escapeCSV(p.price),
+          escapeCSV(p.costPrice),
+          escapeCSV(p.stockQuantity),
+          escapeCSV(p.lowStockThreshold),
+          escapeCSV(p.description),
+          escapeCSV(p.isActive),
+        ].join(",")
+      ),
+    ];
+
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `products-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  // Handle CSV file selection
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const text = await file.text();
+
+    // Submit the CSV data via the fetcher
+    const formData = new FormData();
+    formData.append("intent", "import-csv");
+    formData.append("csvData", text);
+
+    fetcher.submit(formData, { method: "post" });
+    setShowImportModal(false);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // Check for import result in fetcher data
+  const fetcherData = fetcher.data as {
+    success?: boolean;
+    message?: string;
+    error?: string;
+    importResult?: { successCount: number; errorCount: number; errors: string[] };
+  } | undefined;
+
+  // Update import result when fetcher completes
+  if (fetcherData?.importResult && fetcherData.importResult !== importResult) {
+    setImportResult(fetcherData.importResult);
+  }
 
   // Group products by category
   const productsByCategory = products.reduce((acc, product) => {
@@ -155,15 +367,30 @@ export default function ProductsPage() {
           <h1 className="text-2xl font-bold">Products & Inventory</h1>
           <p className="text-gray-600">Manage your retail products and stock levels</p>
         </div>
-        <button
-          onClick={() => {
-            setEditingProduct(null);
-            setShowForm(true);
-          }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          + Add Product
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            disabled={products.length === 0}
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Import CSV
+          </button>
+          <button
+            onClick={() => {
+              setEditingProduct(null);
+              setShowForm(true);
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            + Add Product
+          </button>
+        </div>
       </div>
 
       {/* Low Stock Alert */}
@@ -184,9 +411,39 @@ export default function ProductsPage() {
       )}
 
       {/* Success Message */}
-      {(fetcher.data as { success?: boolean; message?: string })?.success && (
+      {fetcherData?.success && (
         <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg mb-4">
-          {(fetcher.data as { message: string }).message}
+          {fetcherData.message}
+        </div>
+      )}
+
+      {/* Error Message */}
+      {fetcherData?.error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4">
+          {fetcherData.error}
+        </div>
+      )}
+
+      {/* Import Results */}
+      {importResult && importResult.errors.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-amber-800">Import Errors</h3>
+            <button
+              onClick={() => setImportResult(null)}
+              className="text-amber-600 hover:text-amber-800 text-sm"
+            >
+              Dismiss
+            </button>
+          </div>
+          <ul className="text-sm text-amber-700 space-y-1">
+            {importResult.errors.map((error, idx) => (
+              <li key={idx}>{error}</li>
+            ))}
+            {importResult.errorCount > 10 && (
+              <li className="italic">...and {importResult.errorCount - 10} more errors</li>
+            )}
+          </ul>
         </div>
       )}
 
@@ -503,6 +760,62 @@ export default function ProductsPage() {
                 </button>
               </div>
             </fetcher.Form>
+          </div>
+        </div>
+      )}
+
+      {/* Import CSV Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md p-6">
+            <h2 className="text-lg font-bold mb-4">Import Products from CSV</h2>
+
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-medium text-sm mb-2">CSV Format Requirements:</h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  Your CSV file must include a header row with these columns:
+                </p>
+                <ul className="text-xs text-gray-600 space-y-1 ml-4 list-disc">
+                  <li><strong>name</strong> (required)</li>
+                  <li><strong>sku</strong> (required)</li>
+                  <li><strong>category</strong> (equipment, apparel, accessories, courses, rental, consumables, other)</li>
+                  <li><strong>price</strong> (required)</li>
+                  <li><strong>costPrice</strong> (optional)</li>
+                  <li><strong>stockQuantity</strong> (required)</li>
+                  <li><strong>lowStockThreshold</strong> (optional, defaults to 5)</li>
+                  <li><strong>description</strong> (optional)</li>
+                  <li><strong>isActive</strong> (true/false, defaults to true)</li>
+                </ul>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Select CSV File</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={handleFileSelect}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+
+              {products.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  <strong>Tip:</strong> Export your existing products first to get a properly formatted CSV template.
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowImportModal(false)}
+                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
