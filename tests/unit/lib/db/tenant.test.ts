@@ -244,8 +244,9 @@ describe("Tenant Server Module", () => {
       const result1 = getTenantDb("tenant_testshop");
       const result2 = getTenantDb("tenant_testshop");
 
-      // Both should return the same cached instance
-      expect(result1).toBe(result2);
+      // Both should return the same cached db and schema instances
+      expect(result1.db).toBe(result2.db);
+      expect(result1.schema).toBe(result2.schema);
     });
 
     it("should create new connection for different schema", () => {
