@@ -6,6 +6,17 @@
 
 import { z } from "zod";
 
+// Helper for optional number fields - converts empty strings to undefined
+const optionalNumber = z.preprocess(
+  (val) => (val === "" || val === undefined || val === null ? undefined : val),
+  z.coerce.number().positive().optional()
+);
+
+const optionalIntNumber = z.preprocess(
+  (val) => (val === "" || val === undefined || val === null ? undefined : val),
+  z.coerce.number().int().positive().optional()
+);
+
 // ============================================================================
 // Customer Schemas
 // ============================================================================
@@ -52,7 +63,7 @@ export const tourSchema = z.object({
   name: z.string().min(1, "Tour name required").max(200),
   description: z.string().optional(),
   type: z.enum(["single_dive", "multi_dive", "course", "snorkel", "night_dive", "other"]),
-  duration: z.coerce.number().int().positive().optional(), // minutes
+  duration: optionalIntNumber, // minutes
   maxParticipants: z.coerce.number().int().positive("Max participants required"),
   minParticipants: z.coerce.number().int().positive().default(1),
   price: z.coerce.number().positive("Price required"),
@@ -63,7 +74,7 @@ export const tourSchema = z.object({
   inclusions: z.array(z.string()).optional(),
   exclusions: z.array(z.string()).optional(),
   minCertLevel: z.string().optional(),
-  minAge: z.coerce.number().int().positive().optional(),
+  minAge: optionalIntNumber,
   requirements: z.array(z.string()).optional(),
   images: z.array(z.string()).optional(),
   isActive: z.boolean().default(true),
@@ -81,8 +92,8 @@ export const tripSchema = z.object({
   date: z.string().min(1, "Date required"), // ISO date
   startTime: z.string().min(1, "Start time required"), // HH:mm
   endTime: z.string().optional(),
-  maxParticipants: z.coerce.number().int().positive().optional(),
-  price: z.coerce.number().positive().optional(),
+  maxParticipants: optionalIntNumber,
+  price: optionalNumber,
   weatherNotes: z.string().optional(),
   notes: z.string().optional(),
   staffIds: z.array(z.string().uuid()).optional(),
@@ -131,10 +142,16 @@ export const diveSiteSchema = z.object({
   name: z.string().min(1, "Site name required").max(200),
   location: z.string().min(1, "Location required").max(200),
   description: z.string().optional(),
-  latitude: z.coerce.number().min(-90).max(90).optional(),
-  longitude: z.coerce.number().min(-180).max(180).optional(),
+  latitude: z.preprocess(
+    (val) => (val === "" || val === undefined || val === null ? undefined : val),
+    z.coerce.number().min(-90).max(90).optional()
+  ),
+  longitude: z.preprocess(
+    (val) => (val === "" || val === undefined || val === null ? undefined : val),
+    z.coerce.number().min(-180).max(180).optional()
+  ),
   maxDepth: z.coerce.number().int().positive("Max depth required"),
-  minDepth: z.coerce.number().int().positive().optional(),
+  minDepth: optionalIntNumber,
   difficulty: z.enum(["beginner", "intermediate", "advanced", "expert"]),
   visibility: z.string().optional(),
   currentStrength: z.string().optional(),
@@ -176,13 +193,13 @@ export const equipmentSchema = z.object({
   size: z.string().optional(),
   status: z.enum(["available", "rented", "maintenance", "retired"]).default("available"),
   condition: z.enum(["excellent", "good", "fair", "poor"]).default("good"),
-  rentalPrice: z.coerce.number().positive().optional(),
+  rentalPrice: optionalNumber,
   isRentable: z.boolean().default(true),
   lastServiceDate: z.string().optional(),
   nextServiceDate: z.string().optional(),
   serviceNotes: z.string().optional(),
   purchaseDate: z.string().optional(),
-  purchasePrice: z.coerce.number().positive().optional(),
+  purchasePrice: optionalNumber,
   notes: z.string().optional(),
 });
 
@@ -222,7 +239,10 @@ export const shopSettingsSchema = z.object({
   booking: z
     .object({
       requireDeposit: z.boolean().optional(),
-      depositPercent: z.coerce.number().min(0).max(100).optional(),
+      depositPercent: z.preprocess(
+        (val) => (val === "" || val === undefined || val === null ? undefined : val),
+        z.coerce.number().min(0).max(100).optional()
+      ),
       cancellationPolicy: z.string().optional(),
     })
     .optional(),
@@ -230,7 +250,7 @@ export const shopSettingsSchema = z.object({
     .object({
       emailBookingConfirmation: z.boolean().optional(),
       emailReminders: z.boolean().optional(),
-      reminderDaysBefore: z.coerce.number().int().positive().optional(),
+      reminderDaysBefore: optionalIntNumber,
     })
     .optional(),
 });
