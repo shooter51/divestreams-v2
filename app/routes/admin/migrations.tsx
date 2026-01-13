@@ -42,6 +42,14 @@ export async function action({ request }: ActionFunctionArgs) {
     return await runSalePriceMigration();
   }
 
+  if (migration === "delete-all-tenants") {
+    const confirmCode = formData.get("confirmCode");
+    if (confirmCode !== "DELETE-ALL-TENANTS") {
+      return { error: "Invalid confirmation code" };
+    }
+    return await deleteAllTenants();
+  }
+
   return { error: "Unknown migration" };
 }
 
@@ -182,6 +190,46 @@ async function runDiscountCodesMigration() {
   }
 }
 
+async function deleteAllTenants() {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    return { error: "DATABASE_URL not set" };
+  }
+
+  const client = postgres(connectionString);
+  const results: string[] = [];
+
+  try {
+    const allTenants = await db.select().from(tenants);
+
+    if (allTenants.length === 0) {
+      return { success: true, results: ["No tenants to delete"] };
+    }
+
+    for (const tenant of allTenants) {
+      try {
+        // Drop the schema
+        await client.unsafe(`DROP SCHEMA IF EXISTS "${tenant.schemaName}" CASCADE`);
+        results.push(`${tenant.subdomain}: Schema dropped`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        results.push(`${tenant.subdomain}: ERROR dropping schema - ${message}`);
+      }
+    }
+
+    // Delete all tenant records
+    await db.delete(tenants);
+    results.push(`Deleted ${allTenants.length} tenant records from database`);
+
+    return { success: true, results };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return { error: `Delete all tenants failed: ${message}` };
+  } finally {
+    await client.end();
+  }
+}
+
 async function runSalePriceMigration() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
@@ -295,6 +343,35 @@ export default function AdminMigrationsPage() {
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
           >
             {isRunning ? "Running Migration..." : "Run Migration"}
+          </button>
+        </Form>
+      </div>
+
+      <div className="bg-red-50 border border-red-300 rounded-lg shadow p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4 text-red-700">⚠️ Delete All Tenants</h2>
+        <p className="text-red-600 mb-4">
+          <strong>DANGER:</strong> This will permanently delete ALL tenants and their data. This action cannot be undone.
+        </p>
+
+        <Form method="post">
+          <input type="hidden" name="migration" value="delete-all-tenants" />
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-red-700 mb-1">
+              Type DELETE-ALL-TENANTS to confirm:
+            </label>
+            <input
+              type="text"
+              name="confirmCode"
+              placeholder="DELETE-ALL-TENANTS"
+              className="w-full max-w-xs px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isRunning}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-red-400"
+          >
+            {isRunning ? "Deleting..." : "Delete All Tenants"}
           </button>
         </Form>
       </div>
