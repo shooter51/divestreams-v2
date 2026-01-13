@@ -11,6 +11,13 @@
 import { Worker, Queue } from "bullmq";
 import type { ConnectionOptions } from "bullmq";
 import IORedis from "ioredis";
+import {
+  sendEmail,
+  bookingConfirmationEmail,
+  bookingReminderEmail,
+  passwordResetEmail,
+  welcomeEmail,
+} from "../email";
 
 // Redis connection
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
@@ -34,23 +41,94 @@ export const bookingQueue = new Queue(QUEUES.BOOKING, { connection });
 export const reportQueue = new Queue(QUEUES.REPORT, { connection });
 export const maintenanceQueue = new Queue(QUEUES.MAINTENANCE, { connection });
 
+// Email job data types
+interface BookingConfirmationJobData {
+  to: string;
+  customerName: string;
+  tripName: string;
+  tripDate: string;
+  tripTime: string;
+  participants: number;
+  total: string;
+  bookingNumber: string;
+  shopName: string;
+}
+
+interface BookingReminderJobData {
+  to: string;
+  customerName: string;
+  tripName: string;
+  tripDate: string;
+  tripTime: string;
+  bookingNumber: string;
+  shopName: string;
+}
+
+interface PasswordResetJobData {
+  to: string;
+  userName: string;
+  resetUrl: string;
+}
+
+interface WelcomeJobData {
+  to: string;
+  userName: string;
+  shopName: string;
+  loginUrl: string;
+}
+
 // Job handlers
 async function processEmailJob(job: { name: string; data: unknown }) {
   console.log(`Processing email job: ${job.name}`, job.data);
-  // TODO: Implement email sending
+
   switch (job.name) {
-    case "booking-confirmation":
-      // Send booking confirmation email
+    case "booking-confirmation": {
+      const data = job.data as BookingConfirmationJobData;
+      const email = bookingConfirmationEmail({
+        customerName: data.customerName,
+        tripName: data.tripName,
+        tripDate: data.tripDate,
+        tripTime: data.tripTime,
+        participants: data.participants,
+        total: data.total,
+        bookingNumber: data.bookingNumber,
+        shopName: data.shopName,
+      });
+      await sendEmail({ to: data.to, ...email });
       break;
-    case "booking-reminder":
-      // Send booking reminder email
+    }
+    case "booking-reminder": {
+      const data = job.data as BookingReminderJobData;
+      const email = bookingReminderEmail({
+        customerName: data.customerName,
+        tripName: data.tripName,
+        tripDate: data.tripDate,
+        tripTime: data.tripTime,
+        bookingNumber: data.bookingNumber,
+        shopName: data.shopName,
+      });
+      await sendEmail({ to: data.to, ...email });
       break;
-    case "password-reset":
-      // Send password reset email
+    }
+    case "password-reset": {
+      const data = job.data as PasswordResetJobData;
+      const email = passwordResetEmail({
+        userName: data.userName,
+        resetUrl: data.resetUrl,
+      });
+      await sendEmail({ to: data.to, ...email });
       break;
-    case "welcome":
-      // Send welcome email
+    }
+    case "welcome": {
+      const data = job.data as WelcomeJobData;
+      const email = welcomeEmail({
+        userName: data.userName,
+        shopName: data.shopName,
+        loginUrl: data.loginUrl,
+      });
+      await sendEmail({ to: data.to, ...email });
       break;
+    }
     default:
       console.warn(`Unknown email job: ${job.name}`);
   }
