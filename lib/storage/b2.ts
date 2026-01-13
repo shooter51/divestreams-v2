@@ -1,0 +1,92 @@
+/**
+ * Backblaze B2 Storage Service
+ *
+ * S3-compatible API for image uploads with Cloudflare CDN.
+ */
+
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+
+// B2 configuration from environment
+const B2_ENDPOINT = process.env.B2_ENDPOINT;
+const B2_REGION = process.env.B2_REGION || "us-west-000";
+const B2_BUCKET = process.env.B2_BUCKET || "DiveStreams";
+const B2_KEY_ID = process.env.B2_KEY_ID;
+const B2_APP_KEY = process.env.B2_APP_KEY;
+const CDN_URL = process.env.CDN_URL;
+
+let s3Client: S3Client | null = null;
+
+export function getS3Client(): S3Client | null {
+  if (!B2_ENDPOINT || !B2_KEY_ID || !B2_APP_KEY) {
+    console.warn("B2 storage not configured - image uploads disabled");
+    return null;
+  }
+
+  if (!s3Client) {
+    s3Client = new S3Client({
+      endpoint: B2_ENDPOINT,
+      region: B2_REGION,
+      credentials: {
+        accessKeyId: B2_KEY_ID,
+        secretAccessKey: B2_APP_KEY,
+      },
+    });
+  }
+
+  return s3Client;
+}
+
+export interface UploadResult {
+  key: string;
+  url: string;
+  cdnUrl: string;
+}
+
+export async function uploadToB2(
+  key: string,
+  body: Buffer,
+  contentType: string
+): Promise<UploadResult | null> {
+  const client = getS3Client();
+  if (!client) return null;
+
+  await client.send(new PutObjectCommand({
+    Bucket: B2_BUCKET,
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+    CacheControl: "public, max-age=31536000", // 1 year cache
+  }));
+
+  const url = `${B2_ENDPOINT}/${B2_BUCKET}/${key}`;
+  const cdnUrl = CDN_URL ? `${CDN_URL}/${key}` : url;
+
+  return { key, url, cdnUrl };
+}
+
+export async function deleteFromB2(key: string): Promise<boolean> {
+  const client = getS3Client();
+  if (!client) return false;
+
+  try {
+    await client.send(new DeleteObjectCommand({
+      Bucket: B2_BUCKET,
+      Key: key,
+    }));
+    return true;
+  } catch (error) {
+    console.error("Failed to delete from B2:", error);
+    return false;
+  }
+}
+
+export function getImageKey(
+  tenantId: string,
+  entityType: string,
+  entityId: string,
+  filename: string
+): string {
+  const timestamp = Date.now();
+  const sanitized = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
+  return `${tenantId}/${entityType}/${entityId}/${timestamp}-${sanitized}`;
+}
