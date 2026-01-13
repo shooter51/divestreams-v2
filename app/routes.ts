@@ -36,8 +36,8 @@ export default [
       // Tours & Trips
       route("tours", "routes/tenant/tours/index.tsx"),
       route("tours/new", "routes/tenant/tours/new.tsx"),
-      route("tours/:id", "routes/tenant/tours/$id.tsx"),
       route("tours/:id/edit", "routes/tenant/tours/$id/edit.tsx"),
+      route("tours/:id", "routes/tenant/tours/$id.tsx"),
 
       // Image management API
       route("images", "routes/tenant/images/index.tsx"),
