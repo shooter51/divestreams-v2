@@ -37,6 +37,13 @@ export default [
       route("tours", "routes/tenant/tours/index.tsx"),
       route("tours/new", "routes/tenant/tours/new.tsx"),
       route("tours/:id", "routes/tenant/tours/$id.tsx"),
+      route("tours/:id/edit", "routes/tenant/tours/$id/edit.tsx"),
+
+      // Image management API
+      route("images", "routes/tenant/images/index.tsx"),
+      route("images/upload", "routes/tenant/images/upload.tsx"),
+      route("images/delete", "routes/tenant/images/delete.tsx"),
+      route("images/reorder", "routes/tenant/images/reorder.tsx"),
       route("trips", "routes/tenant/trips/index.tsx"),
       route("trips/new", "routes/tenant/trips/new.tsx"),
       route("trips/:id", "routes/tenant/trips/$id.tsx"),
