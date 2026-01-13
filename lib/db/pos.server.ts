@@ -148,7 +148,7 @@ export async function processPOSCheckout(
   data: {
     items: CartItem[];
     customerId?: string;
-    userId: string;
+    userId?: string | null;
     payments: Payment[];
     subtotal: number;
     tax: number;
