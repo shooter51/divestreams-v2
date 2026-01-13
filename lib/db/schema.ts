@@ -1,6 +1,5 @@
 import {
   pgTable,
-  pgSchema,
   text,
   timestamp,
   boolean,
@@ -16,7 +15,17 @@ import {
 import { relations } from "drizzle-orm";
 
 // ============================================================================
-// PUBLIC SCHEMA - Shared across all tenants
+// RE-EXPORT AUTH AND SUBSCRIPTION SCHEMAS
+// ============================================================================
+
+export * from "./schema/auth";
+export * from "./schema/subscription";
+
+// Import organization for foreign key references
+import { organization } from "./schema/auth";
+
+// ============================================================================
+// PUBLIC SCHEMA - Shared across all tenants (LEGACY - to be removed)
 // ============================================================================
 
 // Subscription plans available in the system
@@ -40,7 +49,7 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// Tenants (dive shops)
+// Tenants (dive shops) - LEGACY: Will be removed after migration to organization
 export const tenants = pgTable("tenants", {
   id: uuid("id").primaryKey().defaultRandom(),
   subdomain: text("subdomain").notNull().unique(),
@@ -110,475 +119,632 @@ export const tenantsRelations = relations(tenants, ({ one }) => ({
 }));
 
 // ============================================================================
-// TENANT SCHEMA TEMPLATE - Each tenant gets their own schema with these tables
+// BUSINESS TABLES - Single schema with organization_id
 // ============================================================================
 
-// Helper to create tenant-specific schema
-export function createTenantSchema(schemaName: string) {
-  const schema = pgSchema(schemaName);
-
-  // Users within the tenant
-  const users = schema.table("users", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    email: text("email").notNull().unique(),
-    emailVerified: boolean("email_verified").notNull().default(false),
-    name: text("name").notNull(),
-    phone: text("phone"),
-    avatarUrl: text("avatar_url"),
-    role: text("role").notNull().default("staff"), // owner, manager, staff
-    permissions: jsonb("permissions").$type<string[]>(),
-    isActive: boolean("is_active").notNull().default(true),
-    lastLoginAt: timestamp("last_login_at"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  });
-
-  // Sessions for Better Auth
-  const sessions = schema.table("sessions", {
-    id: text("id").primaryKey(),
-    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    expiresAt: timestamp("expires_at").notNull(),
-    ipAddress: text("ip_address"),
-    userAgent: text("user_agent"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  });
-
-  // Accounts for Better Auth (OAuth providers)
-  const accounts = schema.table("accounts", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    providerId: text("provider_id").notNull(),
-    providerAccountId: text("provider_account_id").notNull(),
-    accessToken: text("access_token"),
-    refreshToken: text("refresh_token"),
-    expiresAt: timestamp("expires_at"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  });
-
-  // Customers (divers)
-  const customers = schema.table("customers", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    email: text("email").notNull(),
-    firstName: text("first_name").notNull(),
-    lastName: text("last_name").notNull(),
-    phone: text("phone"),
-    dateOfBirth: date("date_of_birth"),
-
-    // Emergency contact
-    emergencyContactName: text("emergency_contact_name"),
-    emergencyContactPhone: text("emergency_contact_phone"),
-    emergencyContactRelation: text("emergency_contact_relation"),
-
-    // Medical info
-    medicalConditions: text("medical_conditions"),
-    medications: text("medications"),
-
-    // Certifications
-    certifications: jsonb("certifications").$type<{
-      agency: string;
-      level: string;
-      number?: string;
-      date?: string;
-    }[]>(),
-
-    // Address
-    address: text("address"),
-    city: text("city"),
-    state: text("state"),
-    postalCode: text("postal_code"),
-    country: text("country"),
-
-    // Preferences
-    preferredLanguage: text("preferred_language").default("en"),
-    marketingOptIn: boolean("marketing_opt_in").default(false),
-
-    notes: text("notes"),
-    tags: jsonb("tags").$type<string[]>(),
-
-    // Stats (denormalized for performance)
-    totalDives: integer("total_dives").default(0),
-    totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0"),
-    lastDiveAt: timestamp("last_dive_at"),
-
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  }, (table) => [
-    index("customers_email_idx").on(table.email),
-    index("customers_name_idx").on(table.lastName, table.firstName),
-  ]);
-
-  // Boats
-  const boats = schema.table("boats", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    name: text("name").notNull(),
-    description: text("description"),
-    capacity: integer("capacity").notNull(),
-    type: text("type"), // speedboat, catamaran, etc.
-    registrationNumber: text("registration_number"),
-    images: jsonb("images").$type<string[]>(),
-    amenities: jsonb("amenities").$type<string[]>(),
-    isActive: boolean("is_active").notNull().default(true),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  });
-
-  // Dive sites
-  const diveSites = schema.table("dive_sites", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    name: text("name").notNull(),
-    description: text("description"),
-    latitude: decimal("latitude", { precision: 10, scale: 7 }),
-    longitude: decimal("longitude", { precision: 10, scale: 7 }),
-    maxDepth: integer("max_depth"), // in meters
-    minDepth: integer("min_depth"),
-    difficulty: text("difficulty"), // beginner, intermediate, advanced
-    currentStrength: text("current_strength"),
-    visibility: text("visibility"), // typical visibility
-    highlights: jsonb("highlights").$type<string[]>(), // marine life, features
-    images: jsonb("images").$type<string[]>(),
-    isActive: boolean("is_active").notNull().default(true),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  });
-
-  // Tours/Trips
-  const tours = schema.table("tours", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    name: text("name").notNull(),
-    description: text("description"),
-    type: text("type").notNull(), // single_dive, multi_dive, course, snorkel, etc.
-    duration: integer("duration"), // in minutes
-    maxParticipants: integer("max_participants").notNull(),
-    minParticipants: integer("min_participants").default(1),
-    price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-    currency: text("currency").notNull().default("USD"),
-
-    // What's included
-    includesEquipment: boolean("includes_equipment").default(false),
-    includesMeals: boolean("includes_meals").default(false),
-    includesTransport: boolean("includes_transport").default(false),
-    inclusions: jsonb("inclusions").$type<string[]>(),
-    exclusions: jsonb("exclusions").$type<string[]>(),
-
-    // Requirements
-    minCertLevel: text("min_cert_level"),
-    minAge: integer("min_age"),
-    requirements: jsonb("requirements").$type<string[]>(),
-
-    images: jsonb("images").$type<string[]>(),
-    isActive: boolean("is_active").notNull().default(true),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  });
-
-  // Tour to dive site mapping
-  const tourDiveSites = schema.table("tour_dive_sites", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tourId: uuid("tour_id").notNull().references(() => tours.id, { onDelete: "cascade" }),
-    diveSiteId: uuid("dive_site_id").notNull().references(() => diveSites.id, { onDelete: "cascade" }),
-    order: integer("order").default(0),
-  });
-
-  // Scheduled trips (instances of tours)
-  const trips = schema.table("trips", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tourId: uuid("tour_id").notNull().references(() => tours.id),
-    boatId: uuid("boat_id").references(() => boats.id),
-
-    date: date("date").notNull(),
-    startTime: time("start_time").notNull(),
-    endTime: time("end_time"),
-
-    status: text("status").notNull().default("scheduled"), // scheduled, in_progress, completed, canceled
-
-    // Override tour defaults if needed
-    maxParticipants: integer("max_participants"),
-    price: decimal("price", { precision: 10, scale: 2 }),
-
-    // Conditions
-    weatherNotes: text("weather_notes"),
-    conditions: jsonb("conditions").$type<{
-      weather?: string;
-      visibility?: string;
-      currentStrength?: string;
-      waterTemp?: number;
-    }>(),
-
-    notes: text("notes"),
-
-    // Staff assignments
-    staffIds: jsonb("staff_ids").$type<string[]>(),
-
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  }, (table) => [
-    index("trips_date_idx").on(table.date),
-    index("trips_status_idx").on(table.status),
-  ]);
-
-  // Bookings
-  const bookings = schema.table("bookings", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    bookingNumber: text("booking_number").notNull().unique(),
-
-    tripId: uuid("trip_id").notNull().references(() => trips.id),
-    customerId: uuid("customer_id").notNull().references(() => customers.id),
-
-    // Participants (if booking for multiple people)
-    participants: integer("participants").notNull().default(1),
-    participantDetails: jsonb("participant_details").$type<{
-      name: string;
-      certLevel?: string;
-      equipment?: string[];
-    }[]>(),
-
-    status: text("status").notNull().default("pending"), // pending, confirmed, checked_in, completed, canceled, no_show
-
-    // Pricing
-    subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
-    discount: decimal("discount", { precision: 10, scale: 2 }).default("0"),
-    tax: decimal("tax", { precision: 10, scale: 2 }).default("0"),
-    total: decimal("total", { precision: 10, scale: 2 }).notNull(),
-    currency: text("currency").notNull().default("USD"),
-
-    // Payment
-    paymentStatus: text("payment_status").notNull().default("pending"), // pending, partial, paid, refunded
-    depositAmount: decimal("deposit_amount", { precision: 10, scale: 2 }),
-    depositPaidAt: timestamp("deposit_paid_at"),
-    paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }).default("0"),
-
-    // Stripe
-    stripePaymentIntentId: text("stripe_payment_intent_id"),
-
-    // Equipment rental
-    equipmentRental: jsonb("equipment_rental").$type<{
-      item: string;
-      size?: string;
-      price: number;
-    }[]>(),
-
-    // Waivers and forms
-    waiverSignedAt: timestamp("waiver_signed_at"),
-    medicalFormSignedAt: timestamp("medical_form_signed_at"),
-
-    specialRequests: text("special_requests"),
-    internalNotes: text("internal_notes"),
-
-    // Source tracking
-    source: text("source").default("direct"), // direct, online, referral, etc.
-
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  }, (table) => [
-    index("bookings_trip_idx").on(table.tripId),
-    index("bookings_customer_idx").on(table.customerId),
-    index("bookings_status_idx").on(table.status),
-    index("bookings_date_idx").on(table.createdAt),
-  ]);
-
-  // Equipment inventory
-  const equipment = schema.table("equipment", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    category: text("category").notNull(), // bcd, regulator, wetsuit, mask, fins, tank, etc.
-    name: text("name").notNull(),
-    brand: text("brand"),
-    model: text("model"),
-    serialNumber: text("serial_number"),
-    size: text("size"),
-
-    status: text("status").notNull().default("available"), // available, rented, maintenance, retired
-    condition: text("condition").default("good"), // excellent, good, fair, poor
-
-    // For rentals
-    rentalPrice: decimal("rental_price", { precision: 10, scale: 2 }),
-    isRentable: boolean("is_rentable").default(true),
-
-    // Maintenance
-    lastServiceDate: date("last_service_date"),
-    nextServiceDate: date("next_service_date"),
-    serviceNotes: text("service_notes"),
-
-    purchaseDate: date("purchase_date"),
-    purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }),
-
-    notes: text("notes"),
-
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  }, (table) => [
-    index("equipment_category_idx").on(table.category),
-    index("equipment_status_idx").on(table.status),
-  ]);
-
-  // Transactions (for POS and payments)
-  const transactions = schema.table("transactions", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    type: text("type").notNull(), // sale, refund, deposit, payment
-
-    bookingId: uuid("booking_id").references(() => bookings.id),
-    customerId: uuid("customer_id").references(() => customers.id),
-    userId: uuid("user_id").references(() => users.id), // staff who processed
-
-    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-    currency: text("currency").notNull().default("USD"),
-
-    paymentMethod: text("payment_method").notNull(), // cash, card, stripe, bank_transfer
-    stripePaymentId: text("stripe_payment_id"),
-
-    // Line items for POS
-    items: jsonb("items").$type<{
-      description: string;
-      quantity: number;
-      unitPrice: number;
-      total: number;
-    }[]>(),
-
-    notes: text("notes"),
-
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  }, (table) => [
-    index("transactions_booking_idx").on(table.bookingId),
-    index("transactions_customer_idx").on(table.customerId),
-    index("transactions_date_idx").on(table.createdAt),
-  ]);
-
-  // Equipment rentals tracking
-  const rentals = schema.table("rentals", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    transactionId: uuid("transaction_id").references(() => transactions.id),
-    customerId: uuid("customer_id").notNull().references(() => customers.id),
-    equipmentId: uuid("equipment_id").notNull().references(() => equipment.id),
-
-    rentedAt: timestamp("rented_at").notNull().defaultNow(),
-    dueAt: timestamp("due_at").notNull(),
-    returnedAt: timestamp("returned_at"),
-
-    dailyRate: decimal("daily_rate", { precision: 10, scale: 2 }).notNull(),
-    totalCharge: decimal("total_charge", { precision: 10, scale: 2 }).notNull(),
-
-    status: text("status").notNull().default("active"), // active, returned, overdue
-
-    // Rental agreement
-    agreementNumber: text("agreement_number").notNull(),
-    agreementSignedAt: timestamp("agreement_signed_at"),
-    agreementSignedBy: text("agreement_signed_by"),
-
-    notes: text("notes"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  }, (table) => [
-    index("rentals_customer_idx").on(table.customerId),
-    index("rentals_equipment_idx").on(table.equipmentId),
-    index("rentals_status_idx").on(table.status),
-  ]);
-
-  // Products for POS (retail items)
-  const products = schema.table("products", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    name: text("name").notNull(),
-    sku: text("sku"),
-    category: text("category").notNull(), // equipment, apparel, accessories, courses, rental
-    description: text("description"),
-
-    price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-    costPrice: decimal("cost_price", { precision: 10, scale: 2 }), // for margin calculation
-    currency: text("currency").notNull().default("USD"),
-    taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0"),
-
-    // Sale pricing
-    salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
-    saleStartDate: timestamp("sale_start_date"),
-    saleEndDate: timestamp("sale_end_date"),
-
-    // Inventory tracking
-    trackInventory: boolean("track_inventory").notNull().default(true),
-    stockQuantity: integer("stock_quantity").notNull().default(0),
-    lowStockThreshold: integer("low_stock_threshold").default(5),
-
-    imageUrl: text("image_url"),
-    isActive: boolean("is_active").notNull().default(true),
-
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  }, (table) => [
-    index("products_category_idx").on(table.category),
-    index("products_sku_idx").on(table.sku),
-  ]);
-
-  // Discount codes for bookings
-  const discountCodes = schema.table("discount_codes", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    code: text("code").notNull().unique(),
-    description: text("description"),
-
-    discountType: text("discount_type").notNull(), // 'percentage' | 'fixed'
-    discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(), // e.g., 10 for 10% or $10
-
-    minBookingAmount: decimal("min_booking_amount", { precision: 10, scale: 2 }), // optional minimum
-    maxUses: integer("max_uses"), // null = unlimited
-    usedCount: integer("used_count").notNull().default(0),
-
-    validFrom: timestamp("valid_from"),
-    validTo: timestamp("valid_to"),
-
-    isActive: boolean("is_active").notNull().default(true),
-    applicableTo: text("applicable_to").notNull().default("all"), // 'all' | 'tours' | 'courses'
-
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  }, (table) => [
-    index("discount_codes_code_idx").on(table.code),
-    index("discount_codes_active_idx").on(table.isActive),
-  ]);
-
-  // Images (polymorphic - can belong to any entity)
-  const images = schema.table("images", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    entityType: text("entity_type").notNull(), // 'tour', 'dive_site', 'boat', 'equipment', 'staff'
-    entityId: uuid("entity_id").notNull(),
-
-    url: text("url").notNull(), // Full CDN URL
-    thumbnailUrl: text("thumbnail_url"), // 200x200 thumbnail
-
-    filename: text("filename").notNull(),
-    mimeType: text("mime_type").notNull(),
-    sizeBytes: integer("size_bytes").notNull(),
-    width: integer("width"),
-    height: integer("height"),
-
-    alt: text("alt"), // Accessibility text
-    sortOrder: integer("sort_order").notNull().default(0),
-    isPrimary: boolean("is_primary").notNull().default(false),
-
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  }, (table) => [
-    index("images_entity_idx").on(table.entityType, table.entityId),
-  ]);
-
-  return {
-    schema,
-    users,
-    sessions,
-    accounts,
-    customers,
-    boats,
-    diveSites,
-    tours,
-    tourDiveSites,
-    trips,
-    bookings,
-    equipment,
-    transactions,
-    rentals,
-    products,
-    discountCodes,
-    images,
-  };
-}
-
-// Type exports for use throughout the application
+// Customers (divers)
+export const customers = pgTable("customers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phone: text("phone"),
+  dateOfBirth: date("date_of_birth"),
+
+  // Emergency contact
+  emergencyContactName: text("emergency_contact_name"),
+  emergencyContactPhone: text("emergency_contact_phone"),
+  emergencyContactRelation: text("emergency_contact_relation"),
+
+  // Medical info
+  medicalConditions: text("medical_conditions"),
+  medications: text("medications"),
+
+  // Certifications
+  certifications: jsonb("certifications").$type<{
+    agency: string;
+    level: string;
+    number?: string;
+    date?: string;
+  }[]>(),
+
+  // Address
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  postalCode: text("postal_code"),
+  country: text("country"),
+
+  // Preferences
+  preferredLanguage: text("preferred_language").default("en"),
+  marketingOptIn: boolean("marketing_opt_in").default(false),
+
+  notes: text("notes"),
+  tags: jsonb("tags").$type<string[]>(),
+
+  // Stats (denormalized for performance)
+  totalDives: integer("total_dives").default(0),
+  totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0"),
+  lastDiveAt: timestamp("last_dive_at"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("customers_org_idx").on(table.organizationId),
+  index("customers_org_email_idx").on(table.organizationId, table.email),
+  index("customers_org_name_idx").on(table.organizationId, table.lastName, table.firstName),
+]);
+
+// Boats
+export const boats = pgTable("boats", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  capacity: integer("capacity").notNull(),
+  type: text("type"), // speedboat, catamaran, etc.
+  registrationNumber: text("registration_number"),
+  images: jsonb("images").$type<string[]>(),
+  amenities: jsonb("amenities").$type<string[]>(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("boats_org_idx").on(table.organizationId),
+]);
+
+// Dive sites
+export const diveSites = pgTable("dive_sites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }),
+  maxDepth: integer("max_depth"), // in meters
+  minDepth: integer("min_depth"),
+  difficulty: text("difficulty"), // beginner, intermediate, advanced
+  currentStrength: text("current_strength"),
+  visibility: text("visibility"), // typical visibility
+  highlights: jsonb("highlights").$type<string[]>(), // marine life, features
+  images: jsonb("images").$type<string[]>(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("dive_sites_org_idx").on(table.organizationId),
+]);
+
+// Tours/Trips
+export const tours = pgTable("tours", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // single_dive, multi_dive, course, snorkel, etc.
+  duration: integer("duration"), // in minutes
+  maxParticipants: integer("max_participants").notNull(),
+  minParticipants: integer("min_participants").default(1),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+
+  // What's included
+  includesEquipment: boolean("includes_equipment").default(false),
+  includesMeals: boolean("includes_meals").default(false),
+  includesTransport: boolean("includes_transport").default(false),
+  inclusions: jsonb("inclusions").$type<string[]>(),
+  exclusions: jsonb("exclusions").$type<string[]>(),
+
+  // Requirements
+  minCertLevel: text("min_cert_level"),
+  minAge: integer("min_age"),
+  requirements: jsonb("requirements").$type<string[]>(),
+
+  images: jsonb("images").$type<string[]>(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("tours_org_idx").on(table.organizationId),
+]);
+
+// Tour to dive site mapping
+export const tourDiveSites = pgTable("tour_dive_sites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  tourId: uuid("tour_id").notNull().references(() => tours.id, { onDelete: "cascade" }),
+  diveSiteId: uuid("dive_site_id").notNull().references(() => diveSites.id, { onDelete: "cascade" }),
+  order: integer("order").default(0),
+}, (table) => [
+  index("tour_dive_sites_org_idx").on(table.organizationId),
+  index("tour_dive_sites_tour_idx").on(table.tourId),
+]);
+
+// Scheduled trips (instances of tours)
+export const trips = pgTable("trips", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  tourId: uuid("tour_id").notNull().references(() => tours.id),
+  boatId: uuid("boat_id").references(() => boats.id),
+
+  date: date("date").notNull(),
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time"),
+
+  status: text("status").notNull().default("scheduled"), // scheduled, in_progress, completed, canceled
+
+  // Override tour defaults if needed
+  maxParticipants: integer("max_participants"),
+  price: decimal("price", { precision: 10, scale: 2 }),
+
+  // Conditions
+  weatherNotes: text("weather_notes"),
+  conditions: jsonb("conditions").$type<{
+    weather?: string;
+    visibility?: string;
+    currentStrength?: string;
+    waterTemp?: number;
+  }>(),
+
+  notes: text("notes"),
+
+  // Staff assignments
+  staffIds: jsonb("staff_ids").$type<string[]>(),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("trips_org_idx").on(table.organizationId),
+  index("trips_org_date_idx").on(table.organizationId, table.date),
+  index("trips_org_status_idx").on(table.organizationId, table.status),
+]);
+
+// Bookings
+export const bookings = pgTable("bookings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  bookingNumber: text("booking_number").notNull(),
+
+  tripId: uuid("trip_id").notNull().references(() => trips.id),
+  customerId: uuid("customer_id").notNull().references(() => customers.id),
+
+  // Participants (if booking for multiple people)
+  participants: integer("participants").notNull().default(1),
+  participantDetails: jsonb("participant_details").$type<{
+    name: string;
+    certLevel?: string;
+    equipment?: string[];
+  }[]>(),
+
+  status: text("status").notNull().default("pending"), // pending, confirmed, checked_in, completed, canceled, no_show
+
+  // Pricing
+  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+  discount: decimal("discount", { precision: 10, scale: 2 }).default("0"),
+  tax: decimal("tax", { precision: 10, scale: 2 }).default("0"),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+
+  // Payment
+  paymentStatus: text("payment_status").notNull().default("pending"), // pending, partial, paid, refunded
+  depositAmount: decimal("deposit_amount", { precision: 10, scale: 2 }),
+  depositPaidAt: timestamp("deposit_paid_at"),
+  paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }).default("0"),
+
+  // Stripe
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+
+  // Equipment rental
+  equipmentRental: jsonb("equipment_rental").$type<{
+    item: string;
+    size?: string;
+    price: number;
+  }[]>(),
+
+  // Waivers and forms
+  waiverSignedAt: timestamp("waiver_signed_at"),
+  medicalFormSignedAt: timestamp("medical_form_signed_at"),
+
+  specialRequests: text("special_requests"),
+  internalNotes: text("internal_notes"),
+
+  // Source tracking
+  source: text("source").default("direct"), // direct, online, referral, etc.
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("bookings_org_idx").on(table.organizationId),
+  uniqueIndex("bookings_org_number_idx").on(table.organizationId, table.bookingNumber),
+  index("bookings_org_trip_idx").on(table.organizationId, table.tripId),
+  index("bookings_org_customer_idx").on(table.organizationId, table.customerId),
+  index("bookings_org_status_idx").on(table.organizationId, table.status),
+  index("bookings_org_date_idx").on(table.organizationId, table.createdAt),
+]);
+
+// Equipment inventory
+export const equipment = pgTable("equipment", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  category: text("category").notNull(), // bcd, regulator, wetsuit, mask, fins, tank, etc.
+  name: text("name").notNull(),
+  brand: text("brand"),
+  model: text("model"),
+  serialNumber: text("serial_number"),
+  size: text("size"),
+
+  status: text("status").notNull().default("available"), // available, rented, maintenance, retired
+  condition: text("condition").default("good"), // excellent, good, fair, poor
+
+  // For rentals
+  rentalPrice: decimal("rental_price", { precision: 10, scale: 2 }),
+  isRentable: boolean("is_rentable").default(true),
+
+  // Maintenance
+  lastServiceDate: date("last_service_date"),
+  nextServiceDate: date("next_service_date"),
+  serviceNotes: text("service_notes"),
+
+  purchaseDate: date("purchase_date"),
+  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }),
+
+  notes: text("notes"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("equipment_org_idx").on(table.organizationId),
+  index("equipment_org_category_idx").on(table.organizationId, table.category),
+  index("equipment_org_status_idx").on(table.organizationId, table.status),
+]);
+
+// Transactions (for POS and payments)
+export const transactions = pgTable("transactions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // sale, refund, deposit, payment
+
+  bookingId: uuid("booking_id").references(() => bookings.id),
+  customerId: uuid("customer_id").references(() => customers.id),
+  userId: text("user_id"), // staff who processed (references auth.user)
+
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+
+  paymentMethod: text("payment_method").notNull(), // cash, card, stripe, bank_transfer
+  stripePaymentId: text("stripe_payment_id"),
+
+  // Line items for POS
+  items: jsonb("items").$type<{
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }[]>(),
+
+  notes: text("notes"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("transactions_org_idx").on(table.organizationId),
+  index("transactions_org_booking_idx").on(table.organizationId, table.bookingId),
+  index("transactions_org_customer_idx").on(table.organizationId, table.customerId),
+  index("transactions_org_date_idx").on(table.organizationId, table.createdAt),
+]);
+
+// Equipment rentals tracking
+export const rentals = pgTable("rentals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  transactionId: uuid("transaction_id").references(() => transactions.id),
+  customerId: uuid("customer_id").notNull().references(() => customers.id),
+  equipmentId: uuid("equipment_id").notNull().references(() => equipment.id),
+
+  rentedAt: timestamp("rented_at").notNull().defaultNow(),
+  dueAt: timestamp("due_at").notNull(),
+  returnedAt: timestamp("returned_at"),
+
+  dailyRate: decimal("daily_rate", { precision: 10, scale: 2 }).notNull(),
+  totalCharge: decimal("total_charge", { precision: 10, scale: 2 }).notNull(),
+
+  status: text("status").notNull().default("active"), // active, returned, overdue
+
+  // Rental agreement
+  agreementNumber: text("agreement_number").notNull(),
+  agreementSignedAt: timestamp("agreement_signed_at"),
+  agreementSignedBy: text("agreement_signed_by"),
+
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("rentals_org_idx").on(table.organizationId),
+  index("rentals_org_customer_idx").on(table.organizationId, table.customerId),
+  index("rentals_org_equipment_idx").on(table.organizationId, table.equipmentId),
+  index("rentals_org_status_idx").on(table.organizationId, table.status),
+]);
+
+// Products for POS (retail items)
+export const products = pgTable("products", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  sku: text("sku"),
+  category: text("category").notNull(), // equipment, apparel, accessories, courses, rental
+  description: text("description"),
+
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  costPrice: decimal("cost_price", { precision: 10, scale: 2 }), // for margin calculation
+  currency: text("currency").notNull().default("USD"),
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0"),
+
+  // Sale pricing
+  salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
+  saleStartDate: timestamp("sale_start_date"),
+  saleEndDate: timestamp("sale_end_date"),
+
+  // Inventory tracking
+  trackInventory: boolean("track_inventory").notNull().default(true),
+  stockQuantity: integer("stock_quantity").notNull().default(0),
+  lowStockThreshold: integer("low_stock_threshold").default(5),
+
+  imageUrl: text("image_url"),
+  isActive: boolean("is_active").notNull().default(true),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("products_org_idx").on(table.organizationId),
+  index("products_org_category_idx").on(table.organizationId, table.category),
+  index("products_org_sku_idx").on(table.organizationId, table.sku),
+]);
+
+// Discount codes for bookings
+export const discountCodes = pgTable("discount_codes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  code: text("code").notNull(),
+  description: text("description"),
+
+  discountType: text("discount_type").notNull(), // 'percentage' | 'fixed'
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(), // e.g., 10 for 10% or $10
+
+  minBookingAmount: decimal("min_booking_amount", { precision: 10, scale: 2 }), // optional minimum
+  maxUses: integer("max_uses"), // null = unlimited
+  usedCount: integer("used_count").notNull().default(0),
+
+  validFrom: timestamp("valid_from"),
+  validTo: timestamp("valid_to"),
+
+  isActive: boolean("is_active").notNull().default(true),
+  applicableTo: text("applicable_to").notNull().default("all"), // 'all' | 'tours' | 'courses'
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("discount_codes_org_idx").on(table.organizationId),
+  uniqueIndex("discount_codes_org_code_idx").on(table.organizationId, table.code),
+  index("discount_codes_org_active_idx").on(table.organizationId, table.isActive),
+]);
+
+// Images (polymorphic - can belong to any entity)
+export const images = pgTable("images", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  entityType: text("entity_type").notNull(), // 'tour', 'dive_site', 'boat', 'equipment', 'staff'
+  entityId: uuid("entity_id").notNull(),
+
+  url: text("url").notNull(), // Full CDN URL
+  thumbnailUrl: text("thumbnail_url"), // 200x200 thumbnail
+
+  filename: text("filename").notNull(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+
+  alt: text("alt"), // Accessibility text
+  sortOrder: integer("sort_order").notNull().default(0),
+  isPrimary: boolean("is_primary").notNull().default(false),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("images_org_idx").on(table.organizationId),
+  index("images_org_entity_idx").on(table.organizationId, table.entityType, table.entityId),
+]);
+
+// ============================================================================
+// RELATIONS
+// ============================================================================
+
+export const customersRelations = relations(customers, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [customers.organizationId],
+    references: [organization.id],
+  }),
+  bookings: many(bookings),
+  transactions: many(transactions),
+  rentals: many(rentals),
+}));
+
+export const boatsRelations = relations(boats, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [boats.organizationId],
+    references: [organization.id],
+  }),
+  trips: many(trips),
+}));
+
+export const diveSitesRelations = relations(diveSites, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [diveSites.organizationId],
+    references: [organization.id],
+  }),
+  tourDiveSites: many(tourDiveSites),
+}));
+
+export const toursRelations = relations(tours, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [tours.organizationId],
+    references: [organization.id],
+  }),
+  tourDiveSites: many(tourDiveSites),
+  trips: many(trips),
+}));
+
+export const tourDiveSitesRelations = relations(tourDiveSites, ({ one }) => ({
+  organization: one(organization, {
+    fields: [tourDiveSites.organizationId],
+    references: [organization.id],
+  }),
+  tour: one(tours, {
+    fields: [tourDiveSites.tourId],
+    references: [tours.id],
+  }),
+  diveSite: one(diveSites, {
+    fields: [tourDiveSites.diveSiteId],
+    references: [diveSites.id],
+  }),
+}));
+
+export const tripsRelations = relations(trips, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [trips.organizationId],
+    references: [organization.id],
+  }),
+  tour: one(tours, {
+    fields: [trips.tourId],
+    references: [tours.id],
+  }),
+  boat: one(boats, {
+    fields: [trips.boatId],
+    references: [boats.id],
+  }),
+  bookings: many(bookings),
+}));
+
+export const bookingsRelations = relations(bookings, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [bookings.organizationId],
+    references: [organization.id],
+  }),
+  trip: one(trips, {
+    fields: [bookings.tripId],
+    references: [trips.id],
+  }),
+  customer: one(customers, {
+    fields: [bookings.customerId],
+    references: [customers.id],
+  }),
+  transactions: many(transactions),
+}));
+
+export const equipmentRelations = relations(equipment, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [equipment.organizationId],
+    references: [organization.id],
+  }),
+  rentals: many(rentals),
+}));
+
+export const transactionsRelations = relations(transactions, ({ one }) => ({
+  organization: one(organization, {
+    fields: [transactions.organizationId],
+    references: [organization.id],
+  }),
+  booking: one(bookings, {
+    fields: [transactions.bookingId],
+    references: [bookings.id],
+  }),
+  customer: one(customers, {
+    fields: [transactions.customerId],
+    references: [customers.id],
+  }),
+}));
+
+export const rentalsRelations = relations(rentals, ({ one }) => ({
+  organization: one(organization, {
+    fields: [rentals.organizationId],
+    references: [organization.id],
+  }),
+  transaction: one(transactions, {
+    fields: [rentals.transactionId],
+    references: [transactions.id],
+  }),
+  customer: one(customers, {
+    fields: [rentals.customerId],
+    references: [customers.id],
+  }),
+  equipment: one(equipment, {
+    fields: [rentals.equipmentId],
+    references: [equipment.id],
+  }),
+}));
+
+export const productsRelations = relations(products, ({ one }) => ({
+  organization: one(organization, {
+    fields: [products.organizationId],
+    references: [organization.id],
+  }),
+}));
+
+export const discountCodesRelations = relations(discountCodes, ({ one }) => ({
+  organization: one(organization, {
+    fields: [discountCodes.organizationId],
+    references: [organization.id],
+  }),
+}));
+
+export const imagesRelations = relations(images, ({ one }) => ({
+  organization: one(organization, {
+    fields: [images.organizationId],
+    references: [organization.id],
+  }),
+}));
+
+// ============================================================================
+// TYPE EXPORTS
+// ============================================================================
+
 export type Tenant = typeof tenants.$inferSelect;
 export type NewTenant = typeof tenants.$inferInsert;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type NewSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
 
-// Tenant schema types (using ReturnType to get types from the factory)
-export type TenantSchema = ReturnType<typeof createTenantSchema>;
+export type Customer = typeof customers.$inferSelect;
+export type NewCustomer = typeof customers.$inferInsert;
+
+export type Boat = typeof boats.$inferSelect;
+export type NewBoat = typeof boats.$inferInsert;
+
+export type DiveSite = typeof diveSites.$inferSelect;
+export type NewDiveSite = typeof diveSites.$inferInsert;
+
+export type Tour = typeof tours.$inferSelect;
+export type NewTour = typeof tours.$inferInsert;
+
+export type TourDiveSite = typeof tourDiveSites.$inferSelect;
+export type NewTourDiveSite = typeof tourDiveSites.$inferInsert;
+
+export type Trip = typeof trips.$inferSelect;
+export type NewTrip = typeof trips.$inferInsert;
+
+export type Booking = typeof bookings.$inferSelect;
+export type NewBooking = typeof bookings.$inferInsert;
+
+export type Equipment = typeof equipment.$inferSelect;
+export type NewEquipment = typeof equipment.$inferInsert;
+
+export type Transaction = typeof transactions.$inferSelect;
+export type NewTransaction = typeof transactions.$inferInsert;
+
+export type Rental = typeof rentals.$inferSelect;
+export type NewRental = typeof rentals.$inferInsert;
+
+export type Product = typeof products.$inferSelect;
+export type NewProduct = typeof products.$inferInsert;
+
+export type DiscountCode = typeof discountCodes.$inferSelect;
+export type NewDiscountCode = typeof discountCodes.$inferInsert;
+
+export type Image = typeof images.$inferSelect;
+export type NewImage = typeof images.$inferInsert;
