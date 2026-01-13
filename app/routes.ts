@@ -15,6 +15,9 @@ export default [
   // Health check
   route("api/health", "routes/api/health.tsx"),
 
+  // Better Auth API (catch-all for /api/auth/*)
+  route("api/auth/*", "routes/api/auth.$.tsx"),
+
   // Tenant application routes (accessed via subdomain)
   // These routes check for tenant context in their loaders
   ...prefix("app", [
