@@ -12,19 +12,21 @@ const PRODUCTION_URL = "https://divestreams.com";
  * Get the appropriate base URL
  *
  * Priority:
- * 1. APP_URL environment variable (if set)
+ * 1. APP_URL environment variable (if set AND not localhost)
  * 2. Production URL (https://divestreams.com) - ALWAYS the default
  *
- * Note: localhost is NEVER used. For local development, set APP_URL explicitly.
+ * Note: localhost values are ALWAYS rejected, even if set in APP_URL.
  * This prevents any possibility of localhost URLs leaking into production.
  */
 function getBaseUrl(): string {
-  // Use APP_URL if explicitly set
-  if (process.env.APP_URL) {
-    return process.env.APP_URL;
+  const appUrl = process.env.APP_URL;
+
+  // Only use APP_URL if it's set AND does not contain localhost
+  if (appUrl && !appUrl.includes("localhost")) {
+    return appUrl;
   }
 
-  // Always default to production URL - never use localhost
+  // Always default to production URL - reject localhost
   return PRODUCTION_URL;
 }
 
