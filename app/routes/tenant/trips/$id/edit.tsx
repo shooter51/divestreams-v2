@@ -25,13 +25,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Trip not found", { status: 404 });
   }
 
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
   const trip = {
     id: tripData.id,
     tourId: tripData.tour.id,
     tourName: tripData.tour.name,
     boatId: tripData.boat.id,
     boatName: tripData.boat.name,
-    date: tripData.date,
+    date: formatDate(tripData.date),
     startTime: tripData.startTime,
     endTime: tripData.endTime,
     maxParticipants: tripData.maxParticipants,
