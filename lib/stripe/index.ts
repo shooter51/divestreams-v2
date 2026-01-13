@@ -135,6 +135,45 @@ export async function createBillingPortalSession(
   return session.url;
 }
 
+// Create a setup session for adding a payment method (used when no customer exists yet)
+export async function createSetupSession(
+  tenantId: string,
+  successUrl: string,
+  cancelUrl: string
+): Promise<string | null> {
+  if (!stripe) return null;
+
+  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+
+  if (!tenant) {
+    throw new Error("Tenant not found");
+  }
+
+  // Get or create Stripe customer
+  let customerId = tenant.stripeCustomerId;
+  if (!customerId) {
+    customerId = await createStripeCustomer(tenantId);
+  }
+
+  if (!customerId) {
+    throw new Error("Could not create Stripe customer");
+  }
+
+  // Create a Checkout session in setup mode to collect payment method
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    mode: "setup",
+    payment_method_types: ["card"],
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    metadata: {
+      tenantId: tenant.id,
+    },
+  });
+
+  return session.url;
+}
+
 // Handle subscription updated (from webhook)
 export async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const tenantId = subscription.metadata.tenantId;
@@ -249,6 +288,34 @@ export async function cancelSubscription(tenantId: string): Promise<boolean> {
     .where(eq(tenants.id, tenantId));
 
   return true;
+}
+
+// Set the default payment method for a customer from a setup intent
+export async function setDefaultPaymentMethod(
+  customerId: string,
+  paymentMethodId: string
+): Promise<void> {
+  if (!stripe) return;
+
+  try {
+    // Attach payment method to customer if not already
+    await stripe.paymentMethods.attach(paymentMethodId, {
+      customer: customerId,
+    });
+  } catch (error) {
+    // Payment method might already be attached, that's ok
+    const err = error as { code?: string };
+    if (err.code !== "resource_already_exists") {
+      throw error;
+    }
+  }
+
+  // Set as default payment method for invoices
+  await stripe.customers.update(customerId, {
+    invoice_settings: {
+      default_payment_method: paymentMethodId,
+    },
+  });
 }
 
 // Get payment method details for a tenant

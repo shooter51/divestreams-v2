@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { stripe, handleSubscriptionUpdated, handleSubscriptionDeleted } from "./index";
+import { stripe, handleSubscriptionUpdated, handleSubscriptionDeleted, setDefaultPaymentMethod } from "./index";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -54,7 +54,26 @@ export async function handleStripeWebhook(
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       console.log("Checkout completed:", session.id);
-      // The subscription events will handle the actual update
+
+      // Handle setup mode checkout (payment method added)
+      if (session.mode === "setup" && session.setup_intent && session.customer) {
+        try {
+          const setupIntent = await stripe.setupIntents.retrieve(
+            typeof session.setup_intent === "string" ? session.setup_intent : session.setup_intent.id
+          );
+
+          if (setupIntent.payment_method && typeof setupIntent.payment_method === "string") {
+            const customerId = typeof session.customer === "string"
+              ? session.customer
+              : session.customer.id;
+            await setDefaultPaymentMethod(customerId, setupIntent.payment_method);
+            console.log("Set default payment method for customer:", customerId);
+          }
+        } catch (error) {
+          console.error("Error setting default payment method:", error);
+        }
+      }
+      // For subscription mode, the subscription events will handle the actual update
       break;
     }
 

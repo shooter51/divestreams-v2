@@ -5,12 +5,22 @@ import { requireTenant, type TenantContext } from "../../../lib/auth/tenant-auth
 export async function loader({ request }: LoaderFunctionArgs) {
   const { tenant } = await requireTenant(request);
 
+  // Calculate trial days left on the server to ensure accurate countdown
+  // This ensures the value is fresh on every request, not cached client-side
+  let trialDaysLeft = 0;
+  if (tenant.trialEndsAt) {
+    const now = new Date();
+    const trialEnd = new Date(tenant.trialEndsAt);
+    const msLeft = trialEnd.getTime() - now.getTime();
+    trialDaysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+  }
+
   return {
     tenant: {
       name: tenant.name,
       subdomain: tenant.subdomain,
       subscriptionStatus: tenant.subscriptionStatus,
-      trialEndsAt: tenant.trialEndsAt?.toISOString(),
+      trialDaysLeft,
     },
   };
 }
@@ -20,9 +30,8 @@ export default function TenantLayout() {
   const location = useLocation();
 
   const isTrialing = tenant.subscriptionStatus === "trialing";
-  const trialDaysLeft = tenant.trialEndsAt
-    ? Math.ceil((new Date(tenant.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : 0;
+  // Use server-calculated trialDaysLeft for accurate countdown
+  const trialDaysLeft = tenant.trialDaysLeft;
 
   const navItems = [
     { href: "/app", label: "Dashboard", icon: "📊" },

@@ -12,6 +12,7 @@ import {
 import {
   createCheckoutSession,
   createBillingPortalSession,
+  createSetupSession,
   cancelSubscription,
   getPaymentMethod,
 } from "../../../../lib/stripe/index";
@@ -193,10 +194,29 @@ export async function action({ request }: ActionFunctionArgs) {
         return redirect(portalUrl);
       }
 
-      return { error: "Could not open billing portal. Please add a payment method first." };
+      return { error: "Could not open billing portal." };
     } catch (error) {
       console.error("Portal error:", error);
       return { error: "Failed to open billing portal" };
+    }
+  }
+
+  if (intent === "add-payment") {
+    try {
+      const setupUrl = await createSetupSession(
+        tenant.id,
+        `${baseUrl}/app/settings/billing?payment_added=true`,
+        `${baseUrl}/app/settings/billing?canceled=true`
+      );
+
+      if (setupUrl) {
+        return redirect(setupUrl);
+      }
+
+      return { error: "Could not create payment setup. Stripe may not be configured." };
+    } catch (error) {
+      console.error("Setup session error:", error);
+      return { error: "Failed to create payment setup session" };
     }
   }
 
@@ -232,6 +252,12 @@ export default function BillingPage() {
       setNotification({
         type: "success",
         message: "Payment successful! Your subscription has been updated.",
+      });
+      setSearchParams({}, { replace: true });
+    } else if (searchParams.get("payment_added") === "true") {
+      setNotification({
+        type: "success",
+        message: "Payment method added successfully!",
       });
       setSearchParams({}, { replace: true });
     } else if (searchParams.get("canceled") === "true") {
@@ -499,7 +525,7 @@ export default function BillingPage() {
           <div className="text-center py-4">
             <p className="text-gray-500 mb-3">No payment method on file</p>
             <fetcher.Form method="post">
-              <input type="hidden" name="intent" value="update-payment" />
+              <input type="hidden" name="intent" value="add-payment" />
               <button
                 type="submit"
                 disabled={isSubmitting}
