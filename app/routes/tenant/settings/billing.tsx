@@ -85,8 +85,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const bookingsThisMonth = await getMonthlyBookingCount(tenant.schemaName);
   const teamMemberCount = await getTeamMemberCount(tenant.schemaName);
 
-  // Get billing history from transactions
-  const billingHistory = await getBillingHistory(tenant.schemaName, 10);
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
+  // Get billing history from transactions and format dates
+  const rawBillingHistory = await getBillingHistory(tenant.schemaName, 10);
+  const billingHistory = rawBillingHistory.map((invoice) => ({
+    ...invoice,
+    date: formatDate(invoice.date),
+  }));
 
   // Calculate next billing date (assumes monthly billing from current period end)
   const nextBillingDate = tenant.currentPeriodEnd

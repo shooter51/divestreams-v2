@@ -31,19 +31,25 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     return String(date);
   };
 
+  // Format certifications with dates as strings
+  const formattedCertifications = customer.certifications?.map((cert: { agency: string; level: string; number?: string; date?: Date | string }) => ({
+    ...cert,
+    date: formatDate(cert.date),
+  })) || [];
+
   // Format customer with dates as strings
   const formattedCustomer = {
     ...customer,
     dateOfBirth: formatDate(customer.dateOfBirth),
     createdAt: formatDate(customer.createdAt),
     updatedAt: formatDate(customer.updatedAt),
+    certifications: formattedCertifications,
   };
 
   // Format bookings with dates as strings
   const formattedBookings = bookings.map((booking) => ({
     ...booking,
     date: formatDate(booking.date),
-    createdAt: formatDate(booking.createdAt),
   }));
 
   return { customer: formattedCustomer, bookings: formattedBookings };

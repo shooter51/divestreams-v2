@@ -36,16 +36,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const formattedPayments = payments.map((payment) => ({
     ...payment,
     date: formatDate(payment.date),
-    createdAt: formatDate(payment.createdAt),
   }));
 
   // Add payments to booking object and format dates
   const bookingWithPayments = {
     ...booking,
     payments: formattedPayments,
-    date: formatDate(booking.date),
     createdAt: formatDate(booking.createdAt),
     updatedAt: formatDate(booking.updatedAt),
+    // Format nested trip date
+    trip: {
+      ...booking.trip,
+      date: formatDate(booking.trip.date),
+    },
   };
 
   return { booking: bookingWithPayments };

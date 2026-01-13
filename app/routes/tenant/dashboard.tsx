@@ -38,7 +38,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const formattedBookings = recentBookings.map((booking) => ({
     ...booking,
     date: formatDate(booking.date),
-    createdAt: formatDate(booking.createdAt),
   }));
 
   return {

@@ -44,7 +44,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ...trip,
     bookedParticipants,
     createdAt: formatDate(trip.createdAt),
-    updatedAt: formatDate(trip.updatedAt),
   };
 
   return { trip: tripWithBookedCount, bookings, revenue };
