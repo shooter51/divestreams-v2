@@ -30,10 +30,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Trip not found", { status: 404 });
   }
 
-  // Add bookedParticipants to trip object
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
+  // Add bookedParticipants to trip object and format dates
   const tripWithBookedCount = {
     ...trip,
     bookedParticipants,
+    createdAt: formatDate(trip.createdAt),
+    updatedAt: formatDate(trip.updatedAt),
   };
 
   return { trip: tripWithBookedCount, bookings, revenue };

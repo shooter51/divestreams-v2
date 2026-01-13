@@ -22,7 +22,23 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Customer not found", { status: 404 });
   }
 
-  return { customer, bookings };
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
+  // Format customer with dates as strings
+  const formattedCustomer = {
+    ...customer,
+    createdAt: formatDate(customer.createdAt),
+    updatedAt: formatDate(customer.updatedAt),
+  };
+
+  return { customer: formattedCustomer, bookings };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

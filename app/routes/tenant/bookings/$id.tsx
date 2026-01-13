@@ -23,10 +23,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Booking not found", { status: 404 });
   }
 
-  // Add payments to booking object
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
+  // Add payments to booking object and format dates
   const bookingWithPayments = {
     ...booking,
     payments,
+    createdAt: formatDate(booking.createdAt),
+    updatedAt: formatDate(booking.updatedAt),
   };
 
   return { booking: bookingWithPayments };
