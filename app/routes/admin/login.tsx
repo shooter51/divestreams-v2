@@ -5,6 +5,7 @@ import {
   createAdminSessionCookie,
   isAdminAuthenticated,
   isAdminSubdomain,
+  getAdminPassword,
 } from "../../../lib/auth/admin-auth.server";
 
 export const meta: MetaFunction = () => [{ title: "Admin Login - DiveStreams" }];
@@ -25,6 +26,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const password = formData.get("password") as string;
+
+  // Check if admin password is configured
+  if (!getAdminPassword()) {
+    return { error: "Admin login is not configured. Please set ADMIN_PASSWORD environment variable." };
+  }
 
   if (!password) {
     return { error: "Password is required" };

@@ -28,20 +28,28 @@ function verifySignedValue(signed: string, secret: string): string | null {
   return null;
 }
 
-export function getAdminPassword(): string {
+export function getAdminPassword(): string | null {
   const password = process.env.ADMIN_PASSWORD;
   if (!password) {
-    throw new Error("ADMIN_PASSWORD environment variable is not set");
+    console.error("ADMIN_PASSWORD environment variable is not set");
+    return null;
   }
   return password;
 }
 
 export function validateAdminPassword(input: string): boolean {
-  return input === getAdminPassword();
+  const password = getAdminPassword();
+  if (!password) {
+    return false;
+  }
+  return input === password;
 }
 
 export function createAdminSessionCookie(): string {
   const password = getAdminPassword();
+  if (!password) {
+    throw new Error("Cannot create admin session: ADMIN_PASSWORD not configured");
+  }
   const timestamp = Date.now().toString();
   const signed = signValue(timestamp, password);
 
@@ -56,11 +64,13 @@ export function isAdminAuthenticated(request: Request): boolean {
   const cookieHeader = request.headers.get("Cookie");
   if (!cookieHeader) return false;
 
+  const password = getAdminPassword();
+  if (!password) return false;
+
   const cookies = cookieHeader.split(";").map((c) => c.trim());
   for (const cookie of cookies) {
     const [name, value] = cookie.split("=");
     if (name === COOKIE_NAME && value) {
-      const password = getAdminPassword();
       const timestamp = verifySignedValue(value, password);
 
       if (timestamp) {
