@@ -2,6 +2,7 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../lib/validation";
+import { createBoat } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Add Boat - DiveStreams" }];
 
@@ -26,7 +27,19 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  // TODO: Create boat in tenant database
+  // Parse amenities from JSON string
+  const amenitiesStr = formData.get("amenities") as string;
+  const amenities = amenitiesStr ? JSON.parse(amenitiesStr) as string[] : undefined;
+
+  await createBoat(tenant.schemaName, {
+    name: formData.get("name") as string,
+    description: (formData.get("description") as string) || undefined,
+    capacity: Number(formData.get("capacity")),
+    type: (formData.get("type") as string) || undefined,
+    registrationNumber: (formData.get("registrationNumber") as string) || undefined,
+    amenities,
+    isActive: formData.get("isActive") === "true",
+  });
 
   return redirect("/app/boats");
 }

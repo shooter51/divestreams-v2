@@ -989,19 +989,24 @@ export async function createBoat(schemaName: string, data: {
   capacity: number;
   type?: string;
   registrationNumber?: string;
+  amenities?: string[];
+  isActive?: boolean;
 }) {
   const client = getClient(schemaName);
 
   try {
+    const amenitiesJson = data.amenities ? JSON.stringify(data.amenities) : null;
     const result = await client.unsafe(`
       INSERT INTO "${schemaName}".boats (
-        name, description, capacity, type, registration_number
+        name, description, capacity, type, registration_number, amenities, is_active
       ) VALUES (
         '${data.name.replace(/'/g, "''")}',
         ${data.description ? `'${data.description.replace(/'/g, "''")}'` : "NULL"},
         ${data.capacity},
         ${data.type ? `'${data.type}'` : "NULL"},
-        ${data.registrationNumber ? `'${data.registrationNumber.replace(/'/g, "''")}'` : "NULL"}
+        ${data.registrationNumber ? `'${data.registrationNumber.replace(/'/g, "''")}'` : "NULL"},
+        ${amenitiesJson ? `'${amenitiesJson}'::jsonb` : "NULL"},
+        ${data.isActive !== false}
       ) RETURNING *
     `);
     return mapBoat(result[0]);

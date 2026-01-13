@@ -2,7 +2,7 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import { tripSchema, validateFormData, getFormValues } from "../../../../lib/validation";
-import { getTours, getBoats, getStaff } from "../../../../lib/db/queries.server";
+import { getTours, getBoats, getStaff, createTrip } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Schedule Trip - DiveStreams" }];
 
@@ -60,7 +60,16 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  // TODO: Create trip in tenant database
+  await createTrip(tenant.schemaName, {
+    tourId: formData.get("tourId") as string,
+    boatId: (formData.get("boatId") as string) || undefined,
+    date: formData.get("date") as string,
+    startTime: formData.get("startTime") as string,
+    endTime: (formData.get("endTime") as string) || undefined,
+    maxParticipants: formData.get("maxParticipants") ? Number(formData.get("maxParticipants")) : undefined,
+    price: formData.get("price") ? Number(formData.get("price")) : undefined,
+    notes: (formData.get("notes") as string) || undefined,
+  });
 
   return redirect("/app/trips");
 }

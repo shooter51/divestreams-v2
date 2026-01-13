@@ -2,6 +2,7 @@ import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import { tourSchema, validateFormData, getFormValues } from "../../../../lib/validation";
+import { createTour } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -42,8 +43,21 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  // TODO: Insert into tenant database
-  // const [tour] = await db.insert(tours).values(validation.data).returning();
+  await createTour(tenant.schemaName, {
+    name: formData.get("name") as string,
+    description: (formData.get("description") as string) || undefined,
+    type: formData.get("type") as string,
+    duration: formData.get("duration") ? Number(formData.get("duration")) : undefined,
+    maxParticipants: Number(formData.get("maxParticipants")),
+    minParticipants: formData.get("minParticipants") ? Number(formData.get("minParticipants")) : undefined,
+    price: Number(formData.get("price")),
+    currency: (formData.get("currency") as string) || undefined,
+    includesEquipment: formData.get("includesEquipment") === "true",
+    includesMeals: formData.get("includesMeals") === "true",
+    includesTransport: formData.get("includesTransport") === "true",
+    minCertLevel: (formData.get("minCertLevel") as string) || undefined,
+    minAge: formData.get("minAge") ? Number(formData.get("minAge")) : undefined,
+  });
 
   return redirect("/app/tours");
 }

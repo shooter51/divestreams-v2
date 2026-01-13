@@ -2,6 +2,7 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../lib/validation";
+import { createEquipment } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Add Equipment - DiveStreams" }];
 
@@ -20,7 +21,18 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  // TODO: Create equipment in tenant database
+  await createEquipment(tenant.schemaName, {
+    category: formData.get("category") as string,
+    name: formData.get("name") as string,
+    brand: (formData.get("brand") as string) || undefined,
+    model: (formData.get("model") as string) || undefined,
+    serialNumber: (formData.get("serialNumber") as string) || undefined,
+    size: (formData.get("size") as string) || undefined,
+    status: (formData.get("status") as string) || undefined,
+    condition: (formData.get("condition") as string) || undefined,
+    rentalPrice: formData.get("rentalPrice") ? Number(formData.get("rentalPrice")) : undefined,
+    isRentable: formData.get("isRentable") === "true",
+  });
 
   return redirect("/app/equipment");
 }

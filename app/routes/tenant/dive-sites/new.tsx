@@ -2,6 +2,7 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../lib/validation";
+import { createDiveSite } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
 
@@ -26,7 +27,17 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  // TODO: Create dive site in tenant database
+  await createDiveSite(tenant.schemaName, {
+    name: formData.get("name") as string,
+    description: (formData.get("description") as string) || undefined,
+    latitude: formData.get("latitude") ? Number(formData.get("latitude")) : undefined,
+    longitude: formData.get("longitude") ? Number(formData.get("longitude")) : undefined,
+    maxDepth: formData.get("maxDepth") ? Number(formData.get("maxDepth")) : undefined,
+    minDepth: formData.get("minDepth") ? Number(formData.get("minDepth")) : undefined,
+    difficulty: (formData.get("difficulty") as string) || undefined,
+    currentStrength: (formData.get("currentStrength") as string) || undefined,
+    visibility: (formData.get("visibility") as string) || undefined,
+  });
 
   return redirect("/app/dive-sites");
 }
