@@ -2703,3 +2703,382 @@ export async function getRevenueOverview(schemaName: string) {
     await client.end();
   }
 }
+
+// ============================================================================
+// POS (Point of Sale) Queries
+// ============================================================================
+
+export interface Product {
+  id: string;
+  name: string;
+  sku: string | null;
+  category: string;
+  description: string | null;
+  price: number;
+  costPrice: number | null;
+  currency: string;
+  taxRate: number;
+  trackInventory: boolean;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  imageUrl: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+function mapProduct(row: any): Product {
+  return {
+    id: row.id,
+    name: row.name,
+    sku: row.sku,
+    category: row.category,
+    description: row.description,
+    price: Number(row.price) || 0,
+    costPrice: row.cost_price ? Number(row.cost_price) : null,
+    currency: row.currency || "USD",
+    taxRate: Number(row.tax_rate) || 0,
+    trackInventory: row.track_inventory ?? true,
+    stockQuantity: Number(row.stock_quantity) || 0,
+    lowStockThreshold: Number(row.low_stock_threshold) || 5,
+    imageUrl: row.image_url,
+    isActive: row.is_active ?? true,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+export async function getProducts(
+  schemaName: string,
+  options: { category?: string; search?: string; isActive?: boolean; limit?: number } = {}
+): Promise<Product[]> {
+  const client = getClient(schemaName);
+  const { category, search, isActive = true, limit = 100 } = options;
+
+  try {
+    const conditions: string[] = [];
+    if (isActive !== undefined) conditions.push(`is_active = ${isActive}`);
+    if (category) conditions.push(`category = '${category}'`);
+    if (search) {
+      const searchTerm = search.replace(/'/g, "''");
+      conditions.push(`(name ILIKE '%${searchTerm}%' OR sku ILIKE '%${searchTerm}%')`);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const products = await client.unsafe(`
+      SELECT * FROM "${schemaName}".products
+      ${whereClause}
+      ORDER BY category, name
+      LIMIT ${limit}
+    `);
+
+    return products.map(mapProduct);
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getProductById(schemaName: string, id: string): Promise<Product | null> {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT * FROM "${schemaName}".products WHERE id = '${id}'
+    `);
+    return result[0] ? mapProduct(result[0]) : null;
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getProductCategories(schemaName: string): Promise<string[]> {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT DISTINCT category FROM "${schemaName}".products
+      WHERE is_active = true
+      ORDER BY category
+    `);
+    return result.map((r: any) => r.category);
+  } finally {
+    await client.end();
+  }
+}
+
+export async function createProduct(schemaName: string, data: {
+  name: string;
+  category: string;
+  price: number;
+  sku?: string;
+  description?: string;
+  costPrice?: number;
+  taxRate?: number;
+  trackInventory?: boolean;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  imageUrl?: string;
+}): Promise<Product> {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      INSERT INTO "${schemaName}".products (
+        name, category, price, sku, description, cost_price,
+        tax_rate, track_inventory, stock_quantity, low_stock_threshold, image_url
+      ) VALUES (
+        '${data.name.replace(/'/g, "''")}',
+        '${data.category}',
+        ${data.price},
+        ${data.sku ? `'${data.sku.replace(/'/g, "''")}'` : "NULL"},
+        ${data.description ? `'${data.description.replace(/'/g, "''")}'` : "NULL"},
+        ${data.costPrice || "NULL"},
+        ${data.taxRate || 0},
+        ${data.trackInventory !== false},
+        ${data.stockQuantity || 0},
+        ${data.lowStockThreshold || 5},
+        ${data.imageUrl ? `'${data.imageUrl}'` : "NULL"}
+      ) RETURNING *
+    `);
+    return mapProduct(result[0]);
+  } finally {
+    await client.end();
+  }
+}
+
+export async function updateProduct(schemaName: string, id: string, data: {
+  name?: string;
+  category?: string;
+  price?: number;
+  sku?: string;
+  description?: string;
+  costPrice?: number;
+  taxRate?: number;
+  trackInventory?: boolean;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  imageUrl?: string;
+  isActive?: boolean;
+}): Promise<Product | null> {
+  const client = getClient(schemaName);
+
+  try {
+    const updates: string[] = ["updated_at = NOW()"];
+    if (data.name !== undefined) updates.push(`name = '${data.name.replace(/'/g, "''")}'`);
+    if (data.category !== undefined) updates.push(`category = '${data.category}'`);
+    if (data.price !== undefined) updates.push(`price = ${data.price}`);
+    if (data.sku !== undefined) updates.push(`sku = ${data.sku ? `'${data.sku.replace(/'/g, "''")}'` : "NULL"}`);
+    if (data.description !== undefined) updates.push(`description = ${data.description ? `'${data.description.replace(/'/g, "''")}'` : "NULL"}`);
+    if (data.costPrice !== undefined) updates.push(`cost_price = ${data.costPrice || "NULL"}`);
+    if (data.taxRate !== undefined) updates.push(`tax_rate = ${data.taxRate}`);
+    if (data.trackInventory !== undefined) updates.push(`track_inventory = ${data.trackInventory}`);
+    if (data.stockQuantity !== undefined) updates.push(`stock_quantity = ${data.stockQuantity}`);
+    if (data.lowStockThreshold !== undefined) updates.push(`low_stock_threshold = ${data.lowStockThreshold}`);
+    if (data.imageUrl !== undefined) updates.push(`image_url = ${data.imageUrl ? `'${data.imageUrl}'` : "NULL"}`);
+    if (data.isActive !== undefined) updates.push(`is_active = ${data.isActive}`);
+
+    const result = await client.unsafe(`
+      UPDATE "${schemaName}".products
+      SET ${updates.join(", ")}
+      WHERE id = '${id}'
+      RETURNING *
+    `);
+    return result[0] ? mapProduct(result[0]) : null;
+  } finally {
+    await client.end();
+  }
+}
+
+export async function deleteProduct(schemaName: string, id: string): Promise<boolean> {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      DELETE FROM "${schemaName}".products WHERE id = '${id}'
+    `);
+    return result.count > 0;
+  } finally {
+    await client.end();
+  }
+}
+
+export async function adjustProductStock(
+  schemaName: string,
+  id: string,
+  adjustment: number,
+  reason?: string
+): Promise<Product | null> {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      UPDATE "${schemaName}".products
+      SET stock_quantity = stock_quantity + ${adjustment}, updated_at = NOW()
+      WHERE id = '${id}'
+      RETURNING *
+    `);
+    return result[0] ? mapProduct(result[0]) : null;
+  } finally {
+    await client.end();
+  }
+}
+
+export interface POSTransaction {
+  id: string;
+  type: string;
+  bookingId: string | null;
+  customerId: string | null;
+  customerName: string | null;
+  userId: string | null;
+  staffName: string | null;
+  amount: number;
+  currency: string;
+  paymentMethod: string;
+  stripePaymentId: string | null;
+  items: { description: string; quantity: number; unitPrice: number; total: number }[] | null;
+  notes: string | null;
+  createdAt: Date;
+}
+
+function mapPOSTransaction(row: any): POSTransaction {
+  return {
+    id: row.id,
+    type: row.type,
+    bookingId: row.booking_id,
+    customerId: row.customer_id,
+    customerName: row.customer_name,
+    userId: row.user_id,
+    staffName: row.staff_name,
+    amount: Number(row.amount) || 0,
+    currency: row.currency || "USD",
+    paymentMethod: row.payment_method,
+    stripePaymentId: row.stripe_payment_id,
+    items: row.items ? (typeof row.items === "string" ? JSON.parse(row.items) : row.items) : null,
+    notes: row.notes,
+    createdAt: new Date(row.created_at),
+  };
+}
+
+export async function getPOSTransactions(
+  schemaName: string,
+  options: { limit?: number; type?: string; dateFrom?: string; dateTo?: string } = {}
+): Promise<POSTransaction[]> {
+  const client = getClient(schemaName);
+  const { limit = 50, type, dateFrom, dateTo } = options;
+
+  try {
+    const conditions: string[] = [];
+    if (type) conditions.push(`t.type = '${type}'`);
+    if (dateFrom) conditions.push(`t.created_at >= '${dateFrom}'`);
+    if (dateTo) conditions.push(`t.created_at <= '${dateTo}'`);
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const transactions = await client.unsafe(`
+      SELECT
+        t.*,
+        c.first_name || ' ' || c.last_name as customer_name,
+        u.name as staff_name
+      FROM "${schemaName}".transactions t
+      LEFT JOIN "${schemaName}".customers c ON t.customer_id = c.id
+      LEFT JOIN "${schemaName}".users u ON t.user_id = u.id
+      ${whereClause}
+      ORDER BY t.created_at DESC
+      LIMIT ${limit}
+    `);
+
+    return transactions.map(mapPOSTransaction);
+  } finally {
+    await client.end();
+  }
+}
+
+export async function createPOSTransaction(schemaName: string, data: {
+  type: string;
+  amount: number;
+  paymentMethod: string;
+  items: { description: string; quantity: number; unitPrice: number; total: number }[];
+  customerId?: string;
+  userId?: string;
+  bookingId?: string;
+  stripePaymentId?: string;
+  notes?: string;
+}): Promise<POSTransaction> {
+  const client = getClient(schemaName);
+
+  try {
+    const itemsJson = JSON.stringify(data.items).replace(/'/g, "''");
+
+    const result = await client.unsafe(`
+      INSERT INTO "${schemaName}".transactions (
+        type, amount, payment_method, items, customer_id, user_id, booking_id, stripe_payment_id, notes
+      ) VALUES (
+        '${data.type}',
+        ${data.amount},
+        '${data.paymentMethod}',
+        '${itemsJson}'::jsonb,
+        ${data.customerId ? `'${data.customerId}'` : "NULL"},
+        ${data.userId ? `'${data.userId}'` : "NULL"},
+        ${data.bookingId ? `'${data.bookingId}'` : "NULL"},
+        ${data.stripePaymentId ? `'${data.stripePaymentId}'` : "NULL"},
+        ${data.notes ? `'${data.notes.replace(/'/g, "''")}'` : "NULL"}
+      ) RETURNING *
+    `);
+    return mapPOSTransaction(result[0]);
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getPOSSummary(schemaName: string, date?: string): Promise<{
+  totalSales: number;
+  transactionCount: number;
+  cashSales: number;
+  cardSales: number;
+  avgTransaction: number;
+}> {
+  const client = getClient(schemaName);
+  const targetDate = date || new Date().toISOString().split("T")[0];
+
+  try {
+    const summary = await client.unsafe(`
+      SELECT
+        COALESCE(SUM(amount), 0) as total_sales,
+        COUNT(*) as transaction_count,
+        COALESCE(SUM(CASE WHEN payment_method = 'cash' THEN amount ELSE 0 END), 0) as cash_sales,
+        COALESCE(SUM(CASE WHEN payment_method IN ('card', 'stripe') THEN amount ELSE 0 END), 0) as card_sales,
+        COALESCE(AVG(amount), 0) as avg_transaction
+      FROM "${schemaName}".transactions
+      WHERE type = 'sale' AND DATE(created_at) = '${targetDate}'
+    `);
+
+    return {
+      totalSales: Number(summary[0]?.total_sales || 0),
+      transactionCount: Number(summary[0]?.transaction_count || 0),
+      cashSales: Number(summary[0]?.cash_sales || 0),
+      cardSales: Number(summary[0]?.card_sales || 0),
+      avgTransaction: Math.round(Number(summary[0]?.avg_transaction || 0)),
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getLowStockProducts(schemaName: string): Promise<Product[]> {
+  const client = getClient(schemaName);
+
+  try {
+    const products = await client.unsafe(`
+      SELECT * FROM "${schemaName}".products
+      WHERE is_active = true
+        AND track_inventory = true
+        AND stock_quantity <= low_stock_threshold
+      ORDER BY stock_quantity ASC
+    `);
+
+    return products.map(mapProduct);
+  } finally {
+    await client.end();
+  }
+}

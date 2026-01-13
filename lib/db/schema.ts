@@ -432,6 +432,34 @@ export function createTenantSchema(schemaName: string) {
     index("transactions_date_idx").on(table.createdAt),
   ]);
 
+  // Products for POS (retail items)
+  const products = schema.table("products", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    sku: text("sku"),
+    category: text("category").notNull(), // equipment, apparel, accessories, courses, rental
+    description: text("description"),
+
+    price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+    costPrice: decimal("cost_price", { precision: 10, scale: 2 }), // for margin calculation
+    currency: text("currency").notNull().default("USD"),
+    taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0"),
+
+    // Inventory tracking
+    trackInventory: boolean("track_inventory").notNull().default(true),
+    stockQuantity: integer("stock_quantity").notNull().default(0),
+    lowStockThreshold: integer("low_stock_threshold").default(5),
+
+    imageUrl: text("image_url"),
+    isActive: boolean("is_active").notNull().default(true),
+
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  }, (table) => [
+    index("products_category_idx").on(table.category),
+    index("products_sku_idx").on(table.sku),
+  ]);
+
   // Images (polymorphic - can belong to any entity)
   const images = schema.table("images", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -470,6 +498,7 @@ export function createTenantSchema(schemaName: string) {
     bookings,
     equipment,
     transactions,
+    products,
     images,
   };
 }

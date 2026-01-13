@@ -34,6 +34,7 @@ export default function TenantLayout() {
     { href: "/app/dive-sites", label: "Dive Sites", icon: "🌊" },
     { href: "/app/boats", label: "Boats", icon: "⛵" },
     { href: "/app/equipment", label: "Equipment", icon: "🤿" },
+    { href: "/app/pos", label: "POS", icon: "💳" },
     { href: "/app/reports", label: "Reports", icon: "📈" },
     { href: "/app/settings", label: "Settings", icon: "⚙️" },
   ];
