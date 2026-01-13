@@ -58,6 +58,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Boat not found", { status: 404 });
   }
 
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
+  // Format boat data with dates as strings
+  const formattedBoat = {
+    ...boat,
+    createdAt: formatDate(boat.createdAt),
+    updatedAt: formatDate(boat.updatedAt),
+  };
+
   // Format images for the component
   const images: Image[] = boatImages.map((img) => ({
     id: img.id,
@@ -71,7 +87,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  return { boat, recentTrips, upcomingTrips, stats, images };
+  return { boat: formattedBoat, recentTrips, upcomingTrips, stats, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

@@ -58,6 +58,25 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Equipment not found", { status: 404 });
   }
 
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
+  // Format equipment data with dates as strings
+  const formattedEquipment = {
+    ...equipment,
+    lastServiceDate: formatDate(equipment.lastServiceDate),
+    nextServiceDate: formatDate(equipment.nextServiceDate),
+    purchaseDate: formatDate(equipment.purchaseDate),
+    createdAt: formatDate(equipment.createdAt),
+    updatedAt: formatDate(equipment.updatedAt),
+  };
+
   // Format images for the component
   const images: Image[] = equipmentImages.map((img) => ({
     id: img.id,
@@ -71,7 +90,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  return { equipment, rentalHistory, serviceHistory, stats, images };
+  return { equipment: formattedEquipment, rentalHistory, serviceHistory, stats, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
