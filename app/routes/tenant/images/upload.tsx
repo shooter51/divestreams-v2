@@ -1,0 +1,157 @@
+/**
+ * Image Upload API
+ *
+ * POST /app/images/upload
+ * Handles multipart form data for image uploads.
+ */
+
+import type { ActionFunctionArgs } from "react-router";
+import { eq, and, count } from "drizzle-orm";
+import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { uploadToB2, getImageKey, getWebPMimeType } from "../../../../lib/storage";
+import { processImage, isValidImageType } from "../../../../lib/storage";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_IMAGES_PER_ENTITY = 5;
+
+export async function action({ request }: ActionFunctionArgs) {
+  if (request.method !== "POST") {
+    return Response.json({ error: "Method not allowed" }, { status: 405 });
+  }
+
+  try {
+    const { tenant } = await requireTenant(request);
+
+    const formData = await request.formData();
+    const file = formData.get("file") as File | null;
+    const entityType = formData.get("entityType") as string;
+    const entityId = formData.get("entityId") as string;
+    const alt = formData.get("alt") as string | null;
+
+    // Validate inputs
+    if (!file) {
+      return Response.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    if (!entityType || !entityId) {
+      return Response.json(
+        { error: "entityType and entityId are required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate allowed entity types
+    const allowedTypes = ["tour", "diveSite", "boat", "equipment", "staff"];
+    if (!allowedTypes.includes(entityType)) {
+      return Response.json(
+        { error: `Invalid entityType. Allowed: ${allowedTypes.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate file type
+    if (!isValidImageType(file.type)) {
+      return Response.json(
+        { error: "Invalid file type. Allowed: JPEG, PNG, WebP, GIF" },
+        { status: 400 }
+      );
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      return Response.json(
+        { error: "File too large. Maximum size: 10MB" },
+        { status: 400 }
+      );
+    }
+
+    // Check image count limit
+    const { db, schema } = getTenantDb(tenant.subdomain);
+
+    const [countResult] = await db
+      .select({ count: count() })
+      .from(schema.images)
+      .where(
+        and(
+          eq(schema.images.entityType, entityType),
+          eq(schema.images.entityId, entityId)
+        )
+      );
+
+    if (countResult.count >= MAX_IMAGES_PER_ENTITY) {
+      return Response.json(
+        { error: `Maximum ${MAX_IMAGES_PER_ENTITY} images allowed per ${entityType}` },
+        { status: 400 }
+      );
+    }
+
+    // Process image
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const processed = await processImage(buffer);
+
+    // Generate storage keys
+    const baseKey = getImageKey(tenant.subdomain, entityType, entityId, file.name);
+    const originalKey = `${baseKey}.webp`;
+    const thumbnailKey = `${baseKey}-thumb.webp`;
+
+    // Upload to B2
+    const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+    if (!originalUpload) {
+      return Response.json(
+        { error: "Failed to upload image. Storage not configured." },
+        { status: 500 }
+      );
+    }
+
+    const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+
+    // Determine sort order (next available)
+    const nextOrder = countResult.count;
+
+    // Save to database
+    const [image] = await db
+      .insert(schema.images)
+      .values({
+        entityType,
+        entityId,
+        url: originalUpload.cdnUrl,
+        thumbnailUrl: thumbnailUpload?.cdnUrl || originalUpload.cdnUrl,
+        filename: file.name,
+        mimeType: getWebPMimeType(),
+        sizeBytes: processed.original.length,
+        width: processed.width,
+        height: processed.height,
+        alt: alt || file.name,
+        sortOrder: nextOrder,
+        isPrimary: nextOrder === 0, // First image is primary
+      })
+      .returning();
+
+    return Response.json({
+      success: true,
+      image: {
+        id: image.id,
+        url: image.url,
+        thumbnailUrl: image.thumbnailUrl,
+        filename: image.filename,
+        width: image.width,
+        height: image.height,
+        alt: image.alt,
+        sortOrder: image.sortOrder,
+        isPrimary: image.isPrimary,
+      },
+    });
+  } catch (error) {
+    console.error("Image upload error:", error);
+    return Response.json(
+      { error: "Failed to upload image" },
+      { status: 500 }
+    );
+  }
+}
+
+export default function ImageUpload() {
+  return null;
+}

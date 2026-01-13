@@ -22,10 +22,24 @@ export async function getTenantById(id: string): Promise<Tenant | null> {
   return result[0] ?? null;
 }
 
-// Get drizzle instance for a specific tenant schema
+// Cache for tenant schema instances
+const tenantSchemas = new Map<string, ReturnType<typeof createTenantSchema>>();
+
+// Get drizzle instance and schema for a specific tenant
 export function getTenantDb(schemaName: string) {
+  // Get or create schema
+  let tenantSchema = tenantSchemas.get(schemaName);
+  if (!tenantSchema) {
+    tenantSchema = createTenantSchema(schemaName);
+    tenantSchemas.set(schemaName, tenantSchema);
+  }
+
+  // Get or create db connection
   if (tenantConnections.has(schemaName)) {
-    return tenantConnections.get(schemaName)!;
+    return {
+      db: tenantConnections.get(schemaName)!,
+      schema: tenantSchema,
+    };
   }
 
   const connectionString = process.env.DATABASE_URL;
@@ -40,11 +54,13 @@ export function getTenantDb(schemaName: string) {
     },
   });
 
-  const tenantSchema = createTenantSchema(schemaName);
   const tenantDb = drizzle(client, { schema: tenantSchema });
 
   tenantConnections.set(schemaName, tenantDb);
-  return tenantDb;
+  return {
+    db: tenantDb,
+    schema: tenantSchema,
+  };
 }
 
 // Generate a schema name from subdomain
@@ -361,6 +377,26 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
     )
   `);
 
+  // Images table (polymorphic for tours, dive sites, boats, equipment, staff)
+  await client.unsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}".images (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      entity_type TEXT NOT NULL,
+      entity_id UUID NOT NULL,
+      url TEXT NOT NULL,
+      thumbnail_url TEXT,
+      filename TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      size_bytes INTEGER NOT NULL,
+      width INTEGER,
+      height INTEGER,
+      alt TEXT,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      is_primary BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   // Create indexes
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_customers_email_idx" ON "${schemaName}".customers(email)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_customers_name_idx" ON "${schemaName}".customers(last_name, first_name)`);
@@ -373,6 +409,7 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_equipment_status_idx" ON "${schemaName}".equipment(status)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_transactions_booking_idx" ON "${schemaName}".transactions(booking_id)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_transactions_customer_idx" ON "${schemaName}".transactions(customer_id)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_images_entity_idx" ON "${schemaName}".images(entity_type, entity_id)`);
 }
 
 // Delete a tenant and their schema
