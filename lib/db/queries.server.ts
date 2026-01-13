@@ -666,6 +666,25 @@ export async function createTrip(schemaName: string, data: {
   }
 }
 
+/**
+ * Update trip status
+ */
+export async function updateTripStatus(schemaName: string, id: string, status: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      UPDATE "${schemaName}".trips
+      SET status = '${status}', updated_at = NOW()
+      WHERE id = '${id}'
+      RETURNING *
+    `);
+    return result[0] ? mapTrip(result[0]) : null;
+  } finally {
+    await client.end();
+  }
+}
+
 // ============================================================================
 // Booking Queries
 // ============================================================================
@@ -1036,6 +1055,44 @@ export async function getDiveSiteById(schemaName: string, id: string) {
       SELECT * FROM "${schemaName}".dive_sites WHERE id = '${id}'
     `);
     return result[0] ? mapDiveSite(result[0]) : null;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Update dive site active status
+ */
+export async function updateDiveSiteActiveStatus(schemaName: string, id: string, isActive: boolean) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      UPDATE "${schemaName}".dive_sites
+      SET is_active = ${isActive}, updated_at = NOW()
+      WHERE id = '${id}'
+      RETURNING *
+    `);
+    return result[0] ? mapDiveSite(result[0]) : null;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Delete dive site (soft delete by setting is_active = false)
+ */
+export async function deleteDiveSite(schemaName: string, id: string) {
+  const client = getClient(schemaName);
+
+  try {
+    // Soft delete - just mark as inactive
+    await client.unsafe(`
+      UPDATE "${schemaName}".dive_sites
+      SET is_active = false, updated_at = NOW()
+      WHERE id = '${id}'
+    `);
+    return true;
   } finally {
     await client.end();
   }

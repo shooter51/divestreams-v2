@@ -6,6 +6,7 @@ import {
   getTripBookings,
   getTripRevenue,
   getTripBookedParticipants,
+  updateTripStatus,
 } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
@@ -50,17 +51,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
+  const tripId = params.id!;
 
   if (intent === "cancel") {
-    // TODO: Cancel trip
+    await updateTripStatus(tenant.schemaName, tripId, "cancelled");
     return { cancelled: true };
   }
 
   if (intent === "complete") {
-    // TODO: Mark trip complete
+    await updateTripStatus(tenant.schemaName, tripId, "completed");
     return { completed: true };
   }
 
