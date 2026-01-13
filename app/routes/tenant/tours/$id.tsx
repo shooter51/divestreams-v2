@@ -1,11 +1,14 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
+import { eq, and, asc } from "drizzle-orm";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import {
   getTourById,
   getTourStats,
   getUpcomingTripsForTour,
 } from "../../../../lib/db/queries.server";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { ImageManager, type Image } from "../../../../app/components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Tour Details - DiveStreams" }];
 
@@ -24,10 +27,33 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Tour not found", { status: 404 });
   }
 
-  // Fetch stats and upcoming trips in parallel
-  const [stats, upcomingTrips] = await Promise.all([
+  // Get tenant database for images query
+  const { db, schema } = getTenantDb(tenant.schemaName);
+
+  // Fetch stats, upcoming trips, and images in parallel
+  const [stats, upcomingTrips, tourImages] = await Promise.all([
     getTourStats(tenant.schemaName, tourId),
     getUpcomingTripsForTour(tenant.schemaName, tourId, 5),
+    db
+      .select({
+        id: schema.images.id,
+        url: schema.images.url,
+        thumbnailUrl: schema.images.thumbnailUrl,
+        filename: schema.images.filename,
+        width: schema.images.width,
+        height: schema.images.height,
+        alt: schema.images.alt,
+        sortOrder: schema.images.sortOrder,
+        isPrimary: schema.images.isPrimary,
+      })
+      .from(schema.images)
+      .where(
+        and(
+          eq(schema.images.entityType, "tour"),
+          eq(schema.images.entityId, tourId)
+        )
+      )
+      .orderBy(asc(schema.images.sortOrder)),
   ]);
 
   // Format the tour data for the view
@@ -61,7 +87,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     averageRating: stats.averageRating,
   };
 
-  return { tour, upcomingTrips };
+  // Format images for the component
+  const images: Image[] = tourImages.map((img) => ({
+    id: img.id,
+    url: img.url,
+    thumbnailUrl: img.thumbnailUrl || img.url,
+    filename: img.filename,
+    width: img.width ?? undefined,
+    height: img.height ?? undefined,
+    alt: img.alt ?? undefined,
+    sortOrder: img.sortOrder,
+    isPrimary: img.isPrimary,
+  }));
+
+  return { tour, upcomingTrips, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -92,7 +131,7 @@ const tourTypes: Record<string, string> = {
 };
 
 export default function TourDetailPage() {
-  const { tour, upcomingTrips } = useLoaderData<typeof loader>();
+  const { tour, upcomingTrips, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   const formatDuration = (minutes: number) => {
@@ -180,6 +219,17 @@ export default function TourDetailPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-3">Description</h2>
             <p className="text-gray-700">{tour.description || "No description provided."}</p>
+          </div>
+
+          {/* Images */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Tour Images</h2>
+            <ImageManager
+              entityType="tour"
+              entityId={tour.id}
+              images={images}
+              maxImages={5}
+            />
           </div>
 
           {/* Details */}
