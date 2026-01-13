@@ -30,6 +30,8 @@ function verifySignedValue(signed: string, secret: string): string | null {
 
 export function getAdminPassword(): string | null {
   const password = process.env.ADMIN_PASSWORD;
+  // Temporary debug logging - remove after fixing
+  console.log("ADMIN_PASSWORD value:", password ? `"${password.substring(0, 3)}..."` : "NOT SET");
   if (!password) {
     console.error("ADMIN_PASSWORD environment variable is not set");
     return null;
