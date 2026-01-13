@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { redirect, useLoaderData, useFetcher, Link } from "react-router";
+import { redirect, useLoaderData, useFetcher, Link, useSearchParams } from "react-router";
+import { useEffect, useState } from "react";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import {
   getSubscriptionPlanById,
@@ -12,6 +13,7 @@ import {
   createCheckoutSession,
   createBillingPortalSession,
   cancelSubscription,
+  getPaymentMethod,
 } from "../../../../lib/stripe/index";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
@@ -111,6 +113,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ? new Date(tenant.currentPeriodEnd).toISOString().split("T")[0]
     : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
+  // Get real payment method from Stripe
+  const paymentMethod = await getPaymentMethod(tenant.id);
+
   const billing = {
     currentPlan: currentPlanName,
     billingCycle: "monthly" as const,
@@ -118,14 +123,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     amount: monthlyPrice,
     subscriptionStatus: tenant.subscriptionStatus || "active",
     trialEndsAt: tenant.trialEndsAt?.toISOString(),
-    // Payment method would come from Stripe - for now show placeholder if they have a Stripe customer ID
-    paymentMethod: tenant.stripeCustomerId ? {
-      type: "card",
-      brand: "Card",
-      last4: "****",
-      expiryMonth: 0,
-      expiryYear: 0,
-    } : null,
+    paymentMethod,
     billingHistory,
     usage: {
       bookingsThisMonth,
@@ -133,6 +131,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       teamMembers: teamMemberCount,
       teamLimit: currentPlanLimits.team,
     },
+    hasStripeCustomer: !!tenant.stripeCustomerId,
   };
 
   return { billing, plans: finalPlans };
@@ -206,7 +205,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function BillingPage() {
   const { billing, plans } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<{ error?: string; cancelled?: boolean; message?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [notification, setNotification] = useState<{
+    type: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
 
   const currentPlanData = plans.find((p) => p.id === billing.currentPlan);
   const isTrialing = billing.subscriptionStatus === "trialing";
@@ -216,18 +220,77 @@ export default function BillingPage() {
       )
     : 0;
 
-  const usagePercent = Math.round(
-    (billing.usage.bookingsThisMonth / billing.usage.bookingsLimit) * 100
-  );
+  const usagePercent = billing.usage.bookingsLimit > 0
+    ? Math.round((billing.usage.bookingsThisMonth / billing.usage.bookingsLimit) * 100)
+    : 0;
+
+  const isSubmitting = fetcher.state !== "idle";
+
+  // Handle URL params from Stripe redirect
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      setNotification({
+        type: "success",
+        message: "Payment successful! Your subscription has been updated.",
+      });
+      setSearchParams({}, { replace: true });
+    } else if (searchParams.get("canceled") === "true") {
+      setNotification({
+        type: "info",
+        message: "Checkout was canceled. No changes were made.",
+      });
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  // Handle fetcher responses
+  useEffect(() => {
+    if (fetcher.data) {
+      if (fetcher.data.error) {
+        setNotification({ type: "error", message: fetcher.data.error });
+      } else if (fetcher.data.cancelled && fetcher.data.message) {
+        setNotification({ type: "success", message: fetcher.data.message });
+      }
+    }
+  }, [fetcher.data]);
+
+  // Auto-dismiss notifications
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
         <Link to="/app/settings" className="text-blue-600 hover:underline text-sm">
-          ← Back to Settings
+          &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Billing & Subscription</h1>
       </div>
+
+      {/* Notification Banner */}
+      {notification && (
+        <div
+          className={`px-4 py-3 rounded-lg mb-6 flex justify-between items-center ${
+            notification.type === "success"
+              ? "bg-green-50 border border-green-200 text-green-700"
+              : notification.type === "error"
+              ? "bg-red-50 border border-red-200 text-red-700"
+              : "bg-blue-50 border border-blue-200 text-blue-700"
+          }`}
+        >
+          <p>{notification.message}</p>
+          <button
+            onClick={() => setNotification(null)}
+            className="text-current opacity-70 hover:opacity-100"
+          >
+            &times;
+          </button>
+        </div>
+      )}
 
       {/* Trial Banner */}
       {isTrialing && trialDaysLeft > 0 && (
@@ -269,9 +332,10 @@ export default function BillingPage() {
               <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
-                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                disabled={isSubmitting}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Manage Payment
+                {isSubmitting ? "Loading..." : "Manage Payment"}
               </button>
             </fetcher.Form>
           </div>
@@ -378,14 +442,17 @@ export default function BillingPage() {
                       <input type="hidden" name="planId" value={plan.id} />
                       <button
                         type="submit"
-                        className={`w-full py-2 rounded-lg ${
+                        disabled={isSubmitting}
+                        className={`w-full py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed ${
                           plan.popular
                             ? "bg-blue-600 text-white hover:bg-blue-700"
                             : "border border-gray-300 hover:bg-gray-50"
                         }`}
                       >
-                        {plans.findIndex((p) => p.id === plan.id) >
-                        plans.findIndex((p) => p.id === billing.currentPlan)
+                        {isSubmitting
+                          ? "Processing..."
+                          : plans.findIndex((p) => p.id === plan.id) >
+                            plans.findIndex((p) => p.id === billing.currentPlan)
                           ? "Upgrade"
                           : "Switch"}
                       </button>
@@ -419,8 +486,12 @@ export default function BillingPage() {
             </div>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="update-payment" />
-              <button type="submit" className="text-blue-600 hover:underline text-sm">
-                Update
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="text-blue-600 hover:underline text-sm disabled:opacity-50"
+              >
+                {isSubmitting ? "Loading..." : "Update"}
               </button>
             </fetcher.Form>
           </div>
@@ -431,9 +502,10 @@ export default function BillingPage() {
               <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                disabled={isSubmitting}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Add Payment Method
+                {isSubmitting ? "Loading..." : "Add Payment Method"}
               </button>
             </fetcher.Form>
           </div>
@@ -491,29 +563,46 @@ export default function BillingPage() {
       </div>
 
       {/* Cancel Subscription */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-red-100">
-        <h2 className="font-semibold mb-2">Cancel Subscription</h2>
-        <p className="text-gray-500 text-sm mb-4">
-          If you cancel, you'll lose access to your account at the end of your billing
-          period. Your data will be retained for 30 days.
-        </p>
-        <fetcher.Form
-          method="post"
-          onSubmit={(e) => {
-            if (!confirm("Are you sure you want to cancel your subscription?")) {
-              e.preventDefault();
-            }
-          }}
-        >
-          <input type="hidden" name="intent" value="cancel" />
-          <button
-            type="submit"
-            className="text-red-600 border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50"
+      {billing.subscriptionStatus !== "canceled" && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-red-100">
+          <h2 className="font-semibold mb-2">Cancel Subscription</h2>
+          <p className="text-gray-500 text-sm mb-4">
+            If you cancel, you will retain access until the end of your billing period.
+            Your data will be retained for 30 days after that.
+          </p>
+          <fetcher.Form
+            method="post"
+            onSubmit={(e) => {
+              if (!confirm("Are you sure you want to cancel your subscription?")) {
+                e.preventDefault();
+              }
+            }}
           >
-            Cancel Subscription
-          </button>
-        </fetcher.Form>
-      </div>
+            <input type="hidden" name="intent" value="cancel" />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="text-red-600 border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Processing..." : "Cancel Subscription"}
+            </button>
+          </fetcher.Form>
+        </div>
+      )}
+
+      {/* Canceled Notice */}
+      {billing.subscriptionStatus === "canceled" && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+          <h2 className="font-semibold mb-2 text-yellow-800">Subscription Canceled</h2>
+          <p className="text-yellow-700 text-sm mb-4">
+            Your subscription has been canceled. You will retain access until{" "}
+            {billing.nextBillingDate}. After that, your account will be deactivated.
+          </p>
+          <p className="text-yellow-700 text-sm">
+            To reactivate your subscription, please select a plan above.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

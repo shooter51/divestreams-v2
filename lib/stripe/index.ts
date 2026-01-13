@@ -250,3 +250,72 @@ export async function cancelSubscription(tenantId: string): Promise<boolean> {
 
   return true;
 }
+
+// Get payment method details for a tenant
+export async function getPaymentMethod(tenantId: string): Promise<{
+  type: string;
+  brand: string;
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
+} | null> {
+  if (!stripe) return null;
+
+  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+
+  if (!tenant?.stripeCustomerId) {
+    return null;
+  }
+
+  try {
+    // Get the customer's default payment method
+    const customer = await stripe.customers.retrieve(tenant.stripeCustomerId);
+
+    if (customer.deleted) {
+      return null;
+    }
+
+    // Check for invoice_settings.default_payment_method first
+    const defaultPaymentMethodId =
+      (customer as Stripe.Customer).invoice_settings?.default_payment_method;
+
+    if (defaultPaymentMethodId && typeof defaultPaymentMethodId === "string") {
+      const paymentMethod = await stripe.paymentMethods.retrieve(defaultPaymentMethodId);
+
+      if (paymentMethod.type === "card" && paymentMethod.card) {
+        return {
+          type: "card",
+          brand: paymentMethod.card.brand || "Card",
+          last4: paymentMethod.card.last4 || "****",
+          expiryMonth: paymentMethod.card.exp_month || 0,
+          expiryYear: paymentMethod.card.exp_year || 0,
+        };
+      }
+    }
+
+    // Fallback: list payment methods
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: tenant.stripeCustomerId,
+      type: "card",
+      limit: 1,
+    });
+
+    if (paymentMethods.data.length > 0) {
+      const pm = paymentMethods.data[0];
+      if (pm.card) {
+        return {
+          type: "card",
+          brand: pm.card.brand || "Card",
+          last4: pm.card.last4 || "****",
+          expiryMonth: pm.card.exp_month || 0,
+          expiryYear: pm.card.exp_year || 0,
+        };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error fetching payment method:", error);
+    return null;
+  }
+}
