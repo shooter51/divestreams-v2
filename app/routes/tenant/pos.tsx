@@ -40,7 +40,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getPOSTrips(tables, tenant.timezone),
   ]);
 
-  const agreementNumber = await generateAgreementNumber(tables);
+  // Generate agreement number - handle case where rentals table may not exist yet
+  let agreementNumber = `RA-${new Date().getFullYear()}-0001`;
+  try {
+    agreementNumber = await generateAgreementNumber(tables);
+  } catch (error) {
+    console.error("Could not generate agreement number:", error);
+    // Use default - rentals table may not exist yet
+  }
 
   return {
     tenant,
