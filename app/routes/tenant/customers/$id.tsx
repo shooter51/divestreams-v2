@@ -34,11 +34,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   // Format customer with dates as strings
   const formattedCustomer = {
     ...customer,
+    dateOfBirth: formatDate(customer.dateOfBirth),
     createdAt: formatDate(customer.createdAt),
     updatedAt: formatDate(customer.updatedAt),
   };
 
-  return { customer: formattedCustomer, bookings };
+  // Format bookings with dates as strings
+  const formattedBookings = bookings.map((booking) => ({
+    ...booking,
+    date: formatDate(booking.date),
+    createdAt: formatDate(booking.createdAt),
+  }));
+
+  return { customer: formattedCustomer, bookings: formattedBookings };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

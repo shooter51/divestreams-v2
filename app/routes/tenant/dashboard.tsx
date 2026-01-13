@@ -20,10 +20,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getRecentBookings(tenant.schemaName, 5),
   ]);
 
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
+  // Format dates in trips and bookings
+  const formattedTrips = upcomingTrips.map((trip) => ({
+    ...trip,
+    date: formatDate(trip.date),
+  }));
+
+  const formattedBookings = recentBookings.map((booking) => ({
+    ...booking,
+    date: formatDate(booking.date),
+    createdAt: formatDate(booking.createdAt),
+  }));
+
   return {
     stats,
-    upcomingTrips,
-    recentBookings,
+    upcomingTrips: formattedTrips,
+    recentBookings: formattedBookings,
   };
 }
 

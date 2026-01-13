@@ -83,6 +83,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       : "",
   };
 
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
+  // Format recent trips dates
+  const formattedRecentTrips = recentTrips.map((trip) => ({
+    ...trip,
+    date: formatDate(trip.date),
+  }));
+
   // Format images for the component
   const images: Image[] = siteImages.map((img) => ({
     id: img.id,
@@ -96,7 +111,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  return { diveSite, recentTrips, stats, toursUsingSite, images };
+  return { diveSite, recentTrips: formattedRecentTrips, stats, toursUsingSite, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

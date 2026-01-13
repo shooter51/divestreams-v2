@@ -74,6 +74,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     updatedAt: formatDate(boat.updatedAt),
   };
 
+  // Format trip dates
+  const formattedRecentTrips = recentTrips.map((trip) => ({
+    ...trip,
+    date: formatDate(trip.date),
+  }));
+
+  const formattedUpcomingTrips = upcomingTrips.map((trip) => ({
+    ...trip,
+    date: formatDate(trip.date),
+  }));
+
   // Format images for the component
   const images: Image[] = boatImages.map((img) => ({
     id: img.id,
@@ -87,7 +98,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  return { boat: formattedBoat, recentTrips, upcomingTrips, stats, images };
+  return { boat: formattedBoat, recentTrips: formattedRecentTrips, upcomingTrips: formattedUpcomingTrips, stats, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

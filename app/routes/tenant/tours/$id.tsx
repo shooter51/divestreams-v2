@@ -56,6 +56,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .orderBy(asc(schema.images.sortOrder)),
   ]);
 
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
+
+  // Format upcomingTrips dates
+  const formattedUpcomingTrips = upcomingTrips.map((trip) => ({
+    ...trip,
+    date: formatDate(trip.date),
+  }));
+
   // Format the tour data for the view
   const tour = {
     id: tourData.id,
@@ -100,7 +115,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  return { tour, upcomingTrips, images };
+  return { tour, upcomingTrips: formattedUpcomingTrips, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {

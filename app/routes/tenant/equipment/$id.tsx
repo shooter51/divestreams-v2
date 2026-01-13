@@ -77,6 +77,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     updatedAt: formatDate(equipment.updatedAt),
   };
 
+  // Format rental history dates
+  const formattedRentalHistory = rentalHistory.map((rental) => ({
+    ...rental,
+    date: formatDate(rental.date),
+  }));
+
+  // Format service history dates
+  const formattedServiceHistory = serviceHistory.map((service) => ({
+    ...service,
+    date: formatDate(service.date),
+  }));
+
   // Format images for the component
   const images: Image[] = equipmentImages.map((img) => ({
     id: img.id,
@@ -90,7 +102,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  return { equipment: formattedEquipment, rentalHistory, serviceHistory, stats, images };
+  return { equipment: formattedEquipment, rentalHistory: formattedRentalHistory, serviceHistory: formattedServiceHistory, stats, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
