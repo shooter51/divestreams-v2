@@ -2,7 +2,8 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/validation";
-import { getCustomers, getTrips, getEquipment } from "../../../../lib/db/queries.server";
+import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById } from "../../../../lib/db/queries.server";
+import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
 
 export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }];
 
@@ -59,7 +60,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
 
   const validation = validateFormData(formData, bookingSchema);
@@ -68,9 +69,57 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  // TODO: Create booking in tenant database
-  // Generate booking number: BK-YYYY-XXX
-  // const bookingNumber = `BK-${new Date().getFullYear()}-${String(nextId).padStart(3, '0')}`;
+  const data = validation.data;
+
+  // Get customer and trip details for pricing and email
+  const [customer, trip] = await Promise.all([
+    getCustomerById(tenant.schemaName, data.customerId),
+    getTripById(tenant.schemaName, data.tripId),
+  ]);
+
+  if (!customer) {
+    return { errors: { customerId: "Customer not found" }, values: getFormValues(formData) };
+  }
+
+  if (!trip) {
+    return { errors: { tripId: "Trip not found" }, values: getFormValues(formData) };
+  }
+
+  // Calculate pricing
+  const pricePerPerson = trip.price || 0;
+  const participants = data.participants || 1;
+  const subtotal = pricePerPerson * participants;
+  const total = subtotal; // Could add tax/discounts here
+
+  // Create the booking
+  const booking = await createBooking(tenant.schemaName, {
+    tripId: data.tripId,
+    customerId: data.customerId,
+    participants,
+    subtotal,
+    total,
+    currency: tenant.currency,
+    specialRequests: data.specialRequests,
+    source: data.source || "direct",
+  });
+
+  // Queue confirmation email (don't fail booking if email fails)
+  try {
+    await triggerBookingConfirmation({
+      customerEmail: customer.email,
+      customerName: `${customer.firstName} ${customer.lastName}`,
+      tripName: trip.tourName || "Trip",
+      tripDate: typeof trip.date === "string" ? trip.date : new Date(trip.date).toISOString().split("T")[0],
+      tripTime: trip.startTime || "",
+      participants,
+      totalCents: Math.round(total * 100), // Convert to cents for email formatting
+      bookingNumber: booking.booking_number,
+      shopName: tenant.name,
+      tenantId: tenant.id,
+    });
+  } catch (emailError) {
+    console.error("Failed to queue booking confirmation email:", emailError);
+  }
 
   return redirect("/app/bookings");
 }
