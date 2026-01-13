@@ -139,11 +139,11 @@ export default function TourDetailPage() {
     branding: { primaryColor: string };
   }>();
 
-  const inclusions = [];
+  const inclusions: string[] = [];
   if (tour.includesEquipment) inclusions.push("Equipment");
   if (tour.includesMeals) inclusions.push("Meals");
   if (tour.includesTransport) inclusions.push("Transport");
-  if (tour.inclusions?.length) inclusions.push(...tour.inclusions);
+  if (Array.isArray(tour.inclusions) && tour.inclusions.length) inclusions.push(...tour.inclusions);
 
   return (
     <div>

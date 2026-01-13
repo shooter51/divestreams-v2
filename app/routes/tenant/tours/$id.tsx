@@ -289,7 +289,7 @@ export default function TourDetailPage() {
                   {tour.includesEquipment && <li>✓ Equipment rental</li>}
                   {tour.includesMeals && <li>✓ Meals/snacks</li>}
                   {tour.includesTransport && <li>✓ Transport</li>}
-                  {tour.inclusions?.map((item: string, i: number) => (
+                  {(Array.isArray(tour.inclusions) ? tour.inclusions : []).map((item: string, i: number) => (
                     <li key={i}>✓ {item}</li>
                   ))}
                 </ul>
@@ -297,10 +297,10 @@ export default function TourDetailPage() {
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Not Included</h3>
                 <ul className="space-y-1 text-sm text-gray-600">
-                  {tour.exclusions?.map((item: string, i: number) => (
+                  {(Array.isArray(tour.exclusions) ? tour.exclusions : []).map((item: string, i: number) => (
                     <li key={i}>• {item}</li>
                   ))}
-                  {(!tour.exclusions || tour.exclusions.length === 0) && (
+                  {(!Array.isArray(tour.exclusions) || tour.exclusions.length === 0) && (
                     <li className="text-gray-400">None specified</li>
                   )}
                 </ul>
@@ -389,11 +389,11 @@ export default function TourDetailPage() {
           </div>
 
           {/* Requirements */}
-          {tour.requirements && tour.requirements.length > 0 && (
+          {Array.isArray(tour.requirements) && tour.requirements.length > 0 && (
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Requirements</h2>
               <ul className="space-y-2 text-sm">
-                {tour.requirements.map((req: string, i: number) => (
+                {(Array.isArray(tour.requirements) ? tour.requirements : []).map((req: string, i: number) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="text-yellow-500">⚠</span>
                     {req}

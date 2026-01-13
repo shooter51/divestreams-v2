@@ -140,7 +140,7 @@ export default function DiveSitesPage() {
               </p>
 
               <div className="flex flex-wrap gap-1 mb-3">
-                {site.highlights.slice(0, 3).map((h: string) => (
+                {(Array.isArray(site.highlights) ? site.highlights : []).slice(0, 3).map((h: string) => (
                   <span
                     key={h}
                     className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"

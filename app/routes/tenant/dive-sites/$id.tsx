@@ -259,11 +259,11 @@ export default function DiveSiteDetailPage() {
           )}
 
           {/* Highlights */}
-          {diveSite.highlights.length > 0 && (
+          {Array.isArray(diveSite.highlights) && diveSite.highlights.length > 0 && (
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-3">Highlights</h2>
               <div className="flex flex-wrap gap-2">
-                {diveSite.highlights.map((h: string) => (
+                {(Array.isArray(diveSite.highlights) ? diveSite.highlights : []).map((h: string) => (
                   <span
                     key={h}
                     className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"

@@ -32,10 +32,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   };
 
   // Format certifications with dates as strings
-  const formattedCertifications = customer.certifications?.map((cert: { agency: string; level: string; number?: string; date?: Date | string }) => ({
+  const formattedCertifications = (Array.isArray(customer.certifications) ? customer.certifications : []).map((cert: { agency: string; level: string; number?: string; date?: Date | string }) => ({
     ...cert,
     date: formatDate(cert.date),
-  })) || [];
+  }));
 
   // Format customer with dates as strings
   const formattedCustomer = {
@@ -221,7 +221,7 @@ export default function CustomerDetailPage() {
           {/* Certification */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Certification</h2>
-            {customer.certifications?.length > 0 ? (
+            {Array.isArray(customer.certifications) && customer.certifications.length > 0 ? (
               customer.certifications.map((cert: { agency: string; level: string; number?: string; date?: string }, i: number) => (
                 <div key={i} className="text-sm">
                   <p className="font-medium">{cert.agency} {cert.level}</p>
@@ -267,9 +267,9 @@ export default function CustomerDetailPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Notes</h2>
             <p className="text-sm">{customer.notes || "No notes"}</p>
-            {customer.tags?.length > 0 && (
+            {Array.isArray(customer.tags) && customer.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-3">
-                {customer.tags.map((tag: string) => (
+                {(Array.isArray(customer.tags) ? customer.tags : []).map((tag: string) => (
                   <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
                     {tag}
                   </span>

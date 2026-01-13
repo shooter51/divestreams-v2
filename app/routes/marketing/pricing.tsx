@@ -163,7 +163,7 @@ export default function PricingPage() {
             const popular = isPlanPopular(plan.name);
             const description = getPlanDescription(plan.name);
             const cta = getPlanCta(plan.name);
-            const features = Array.isArray(plan.features) ? plan.features : [];
+            const features: string[] = Array.isArray(plan.features) ? plan.features : [];
 
             return (
               <div

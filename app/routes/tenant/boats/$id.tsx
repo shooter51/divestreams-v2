@@ -145,7 +145,7 @@ export default function BoatDetailPage() {
 
   // Note: The boats table doesn't have maintenance fields in the current schema
   // These would need to be added to the schema if maintenance tracking is needed
-  const amenities = boat.amenities || [];
+  const amenities = Array.isArray(boat.amenities) ? boat.amenities : [];
   const maintenanceDue = false; // TODO: Add maintenance tracking to boats table
 
   return (
@@ -245,11 +245,11 @@ export default function BoatDetailPage() {
           </div>
 
           {/* Amenities */}
-          {amenities.length > 0 && (
+          {Array.isArray(amenities) && amenities.length > 0 && (
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-3">Amenities</h2>
               <div className="flex flex-wrap gap-2">
-                {amenities.map((a: string) => (
+                {(Array.isArray(amenities) ? amenities : []).map((a: string) => (
                   <span
                     key={a}
                     className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"

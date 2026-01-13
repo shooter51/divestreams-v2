@@ -22,7 +22,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     capacity: b.capacity || 0,
     registrationNumber: b.registrationNumber || "",
     description: b.description || "",
-    amenities: b.amenities || [],
+    amenities: Array.isArray(b.amenities) ? b.amenities : [],
     isActive: b.isActive ?? true,
     tripCount: b.tripCount || 0,
   }));

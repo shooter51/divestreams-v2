@@ -30,7 +30,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       name: plan.displayName,
       price: plan.monthlyPrice / 100, // Convert from cents
       yearlyPrice: plan.yearlyPrice / 100, // Convert from cents
-      features: plan.features as string[],
+      features: Array.isArray(plan.features) ? plan.features : [],
       limits: {
         bookings: limits?.toursPerMonth ?? 100,
         team: limits?.users ?? 2,

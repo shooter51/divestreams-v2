@@ -216,7 +216,7 @@ export default function BookingDetailPage() {
               Participants ({booking.participants})
             </h2>
             <div className="space-y-3">
-              {booking.participantDetails?.map((p: { name: string; certLevel?: string }, i: number) => (
+              {(Array.isArray(booking.participantDetails) ? booking.participantDetails : []).map((p: { name: string; certLevel?: string }, i: number) => (
                 <div
                   key={i}
                   className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
@@ -234,11 +234,11 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Equipment */}
-          {booking.equipmentRental && booking.equipmentRental.length > 0 && (
+          {Array.isArray(booking.equipmentRental) && booking.equipmentRental.length > 0 && (
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Equipment Rental</h2>
               <div className="space-y-2">
-                {booking.equipmentRental.map((item: { item: string; quantity: number; price: number }, i: number) => (
+                {(Array.isArray(booking.equipmentRental) ? booking.equipmentRental : []).map((item: { item: string; quantity: number; price: number }, i: number) => (
                   <div key={i} className="flex justify-between text-sm">
                     <span>
                       {item.item} x{item.quantity}
