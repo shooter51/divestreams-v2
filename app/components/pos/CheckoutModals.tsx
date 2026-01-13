@@ -66,7 +66,10 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
 
         <div className="flex gap-3 mt-6">
           <button
-            onClick={onClose}
+            onClick={() => {
+              setTendered("");
+              onClose();
+            }}
             className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
           >
             Cancel
@@ -95,7 +98,7 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
 
   const addPayment = () => {
     const amount = parseFloat(currentAmount);
-    if (amount > 0 && amount <= remaining) {
+    if (!isNaN(amount) && amount > 0 && amount <= remaining) {
       setPayments([...payments, { method: currentMethod, amount }]);
       setCurrentAmount("");
     }
@@ -251,7 +254,8 @@ export function RentalAgreementModal({
   const [agreementSigned, setAgreementSigned] = useState(false);
 
   const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + Math.max(...rentals.map(r => r.days)));
+  const maxDays = rentals.length > 0 ? Math.max(...rentals.map(r => r.days)) : 1;
+  dueDate.setDate(dueDate.getDate() + maxDays);
 
   const handlePrint = () => {
     window.print();
