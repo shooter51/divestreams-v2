@@ -377,6 +377,28 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
     )
   `);
 
+  // Products table (for POS retail items)
+  await client.unsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}".products (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL,
+      sku TEXT,
+      category TEXT NOT NULL,
+      description TEXT,
+      price DECIMAL(10, 2) NOT NULL,
+      cost_price DECIMAL(10, 2),
+      currency TEXT NOT NULL DEFAULT 'USD',
+      tax_rate DECIMAL(5, 2) DEFAULT 0,
+      track_inventory BOOLEAN NOT NULL DEFAULT true,
+      stock_quantity INTEGER NOT NULL DEFAULT 0,
+      low_stock_threshold INTEGER DEFAULT 5,
+      image_url TEXT,
+      is_active BOOLEAN NOT NULL DEFAULT true,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   // Images table (polymorphic for tours, dive sites, boats, equipment, staff)
   await client.unsafe(`
     CREATE TABLE IF NOT EXISTS "${schemaName}".images (
@@ -409,6 +431,8 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_equipment_status_idx" ON "${schemaName}".equipment(status)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_transactions_booking_idx" ON "${schemaName}".transactions(booking_id)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_transactions_customer_idx" ON "${schemaName}".transactions(customer_id)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_products_category_idx" ON "${schemaName}".products(category)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_products_sku_idx" ON "${schemaName}".products(sku)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_images_entity_idx" ON "${schemaName}".images(entity_type, entity_id)`);
 }
 
