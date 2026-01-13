@@ -527,6 +527,74 @@ export async function getTripById(schemaName: string, id: string) {
   }
 }
 
+// ============================================================================
+// Calendar Queries
+// ============================================================================
+
+export interface CalendarTrip {
+  id: string;
+  tourId: string;
+  tourName: string;
+  tourType: string;
+  date: string;
+  startTime: string;
+  endTime: string | null;
+  boatName: string | null;
+  maxParticipants: number;
+  bookedParticipants: number;
+  status: string;
+}
+
+export async function getCalendarTrips(
+  schemaName: string,
+  options: { fromDate: string; toDate: string }
+): Promise<CalendarTrip[]> {
+  const client = getClient(schemaName);
+  const { fromDate, toDate } = options;
+
+  try {
+    const trips = await client.unsafe(`
+      SELECT
+        t.id,
+        t.tour_id,
+        tr.name as tour_name,
+        tr.type as tour_type,
+        t.date,
+        t.start_time,
+        t.end_time,
+        b.name as boat_name,
+        COALESCE(t.max_participants, tr.max_participants) as max_participants,
+        t.status,
+        (
+          SELECT COALESCE(SUM(bk.participants), 0)
+          FROM "${schemaName}".bookings bk
+          WHERE bk.trip_id = t.id AND bk.status NOT IN ('canceled', 'no_show')
+        ) as booked_participants
+      FROM "${schemaName}".trips t
+      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
+      LEFT JOIN "${schemaName}".boats b ON t.boat_id = b.id
+      WHERE t.date >= '${fromDate}' AND t.date <= '${toDate}'
+      ORDER BY t.date, t.start_time
+    `);
+
+    return trips.map((row: any) => ({
+      id: row.id,
+      tourId: row.tour_id,
+      tourName: row.tour_name,
+      tourType: row.tour_type,
+      date: formatDateString(row.date),
+      startTime: formatTimeString(row.start_time),
+      endTime: row.end_time ? formatTimeString(row.end_time) : null,
+      boatName: row.boat_name,
+      maxParticipants: Number(row.max_participants || 0),
+      bookedParticipants: Number(row.booked_participants || 0),
+      status: row.status,
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
 export async function createTrip(schemaName: string, data: {
   tourId: string;
   boatId?: string;
