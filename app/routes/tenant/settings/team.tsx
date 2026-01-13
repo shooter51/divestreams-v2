@@ -1,8 +1,11 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { useState } from "react";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { getTeamMembers, getSubscriptionPlanById } from "../../../../lib/db/queries.server";
+import { requireOrgContext, requirePremium } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { member, user, invitation } from "../../../../lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { PremiumGate } from "../../../../app/components/ui/UpgradePrompt";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -14,86 +17,151 @@ const roles = [
     permissions: ["all"],
   },
   {
-    id: "manager",
-    name: "Manager",
+    id: "admin",
+    name: "Admin",
     description: "Manage bookings, customers, and staff",
     permissions: ["bookings", "customers", "trips", "tours", "equipment", "boats", "reports"],
   },
   {
-    id: "staff",
+    id: "member",
     name: "Staff",
     description: "View and manage daily operations",
     permissions: ["bookings", "customers", "trips"],
   },
-  {
-    id: "divemaster",
-    name: "Divemaster",
-    description: "Manage trips and equipment",
-    permissions: ["trips", "equipment", "boats"],
-  },
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
 
-  // Get real team members from database
-  const team = await getTeamMembers(tenant.schemaName);
+  // Get team members from Better Auth member table
+  const membersRaw = await db
+    .select({
+      id: member.id,
+      role: member.role,
+      userId: member.userId,
+      userName: user.name,
+      userEmail: user.email,
+    })
+    .from(member)
+    .innerJoin(user, eq(member.userId, user.id))
+    .where(eq(member.organizationId, ctx.org.id));
 
-  // Get plan limits from subscription plan
-  let planLimit = 2; // Default for starter plan
-  if (tenant.planId) {
-    const plan = await getSubscriptionPlanById(tenant.planId);
-    if (plan?.limits && typeof plan.limits === "object" && "users" in plan.limits) {
-      planLimit = (plan.limits as { users: number }).users;
-    }
-  }
+  const team = membersRaw.map(m => ({
+    id: m.id,
+    name: m.userName || "Unknown",
+    email: m.userEmail,
+    role: m.role,
+    status: "active",
+    lastActive: "Recently",
+  }));
 
-  // No invitations table exists yet - return empty array
-  // TODO: Create invitations table and query when needed
-  const pendingInvites: Array<{
-    id: string;
-    email: string;
-    role: string;
-    invitedAt: string;
-    expiresAt: string;
-  }> = [];
+  // Get pending invitations
+  const invitationsRaw = await db
+    .select()
+    .from(invitation)
+    .where(
+      and(
+        eq(invitation.organizationId, ctx.org.id),
+        eq(invitation.status, "pending")
+      )
+    );
 
-  return { team, pendingInvites, roles, planLimit };
+  const pendingInvites = invitationsRaw.map(inv => ({
+    id: inv.id,
+    email: inv.email,
+    role: inv.role,
+    invitedAt: inv.createdAt?.toISOString().split("T")[0] || "",
+    expiresAt: inv.expiresAt?.toISOString().split("T")[0] || "",
+  }));
+
+  // Plan limit from context
+  const planLimit = ctx.limits.teamMembers;
+
+  return {
+    team,
+    pendingInvites,
+    roles,
+    planLimit,
+    isPremium: ctx.isPremium,
+    canInviteTeamMembers: ctx.isPremium, // Only premium users can invite team members
+  };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   if (intent === "invite") {
-    const email = formData.get("email");
-    const role = formData.get("role");
-    // TODO: Send invitation email and create pending invite
+    // Only premium users can invite team members
+    if (!ctx.isPremium) {
+      return { error: "Team invitations require a premium subscription" };
+    }
+
+    const email = formData.get("email") as string;
+    const role = formData.get("role") as string;
+
+    // Create invitation with generated ID
+    const inviteId = crypto.randomUUID();
+    await db.insert(invitation).values({
+      id: inviteId,
+      organizationId: ctx.org.id,
+      email,
+      role,
+      status: "pending",
+      inviterId: ctx.user.id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    });
+
+    // TODO: Send invitation email
     return { success: true, message: `Invitation sent to ${email}` };
   }
 
   if (intent === "update-role") {
-    const userId = formData.get("userId");
-    const role = formData.get("role");
-    // TODO: Update user role
+    const memberId = formData.get("userId") as string;
+    const role = formData.get("role") as string;
+
+    await db
+      .update(member)
+      .set({ role })
+      .where(
+        and(
+          eq(member.id, memberId),
+          eq(member.organizationId, ctx.org.id)
+        )
+      );
+
     return { success: true, message: "Role updated successfully" };
   }
 
   if (intent === "remove") {
-    const userId = formData.get("userId");
-    // TODO: Remove user from team
+    const memberId = formData.get("userId") as string;
+
+    await db.delete(member).where(
+      and(
+        eq(member.id, memberId),
+        eq(member.organizationId, ctx.org.id)
+      )
+    );
+
     return { success: true, message: "Team member removed" };
   }
 
   if (intent === "cancel-invite") {
-    const inviteId = formData.get("inviteId");
-    // TODO: Cancel pending invite
+    const inviteId = formData.get("inviteId") as string;
+
+    await db.delete(invitation).where(
+      and(
+        eq(invitation.id, inviteId),
+        eq(invitation.organizationId, ctx.org.id)
+      )
+    );
+
     return { success: true, message: "Invitation cancelled" };
   }
 
   if (intent === "resend-invite") {
-    const inviteId = formData.get("inviteId");
+    const inviteId = formData.get("inviteId") as string;
     // TODO: Resend invitation email
     return { success: true, message: "Invitation resent" };
   }
@@ -102,7 +170,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TeamPage() {
-  const { team, pendingInvites, roles, planLimit } = useLoaderData<typeof loader>();
+  const { team, pendingInvites, roles, planLimit, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
 
@@ -121,8 +189,22 @@ export default function TeamPage() {
         </p>
       </div>
 
+      {/* Premium required warning for team invites */}
+      {!canInviteTeamMembers && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+          <p className="font-medium">Upgrade to invite team members</p>
+          <p className="text-sm">
+            Team member invitations are a premium feature.{" "}
+            <Link to="/app/settings/billing" className="underline">
+              Upgrade your plan
+            </Link>{" "}
+            to invite additional team members.
+          </p>
+        </div>
+      )}
+
       {/* Plan limit warning */}
-      {atLimit && (
+      {canInviteTeamMembers && atLimit && (
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6">
           <p className="font-medium">Team limit reached</p>
           <p className="text-sm">
@@ -139,9 +221,9 @@ export default function TeamPage() {
       <div className="flex justify-end mb-4">
         <button
           onClick={() => setShowInviteModal(true)}
-          disabled={atLimit}
+          disabled={atLimit || !canInviteTeamMembers}
           className={`px-4 py-2 rounded-lg ${
-            atLimit
+            atLimit || !canInviteTeamMembers
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}

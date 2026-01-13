@@ -1,20 +1,33 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { getDiveSites } from "../../../../lib/db/queries.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { diveSites as diveSitesTable } from "../../../../lib/db/schema";
+import { eq, ilike, and } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Dive Sites - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("q") || "";
   const difficulty = url.searchParams.get("difficulty") || "";
 
-  const rawSites = await getDiveSites(tenant.schemaName, {
-    search: search || undefined,
-    difficulty: difficulty || undefined,
-  });
+  // Build query conditions
+  const conditions = [eq(diveSitesTable.organizationId, ctx.org.id)];
+
+  if (search) {
+    conditions.push(ilike(diveSitesTable.name, `%${search}%`));
+  }
+
+  if (difficulty) {
+    conditions.push(eq(diveSitesTable.difficulty, difficulty));
+  }
+
+  const rawSites = await db
+    .select()
+    .from(diveSitesTable)
+    .where(and(...conditions));
 
   // Transform to UI format
   const diveSites = rawSites.map((s) => ({
@@ -24,13 +37,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     maxDepth: s.maxDepth || 0,
     difficulty: s.difficulty || "intermediate",
     description: s.description || "",
-    coordinates: s.latitude && s.longitude ? { lat: s.latitude, lng: s.longitude } : null,
+    coordinates: s.latitude && s.longitude ? { lat: Number(s.latitude), lng: Number(s.longitude) } : null,
     conditions: s.currentStrength || "",
     highlights: s.highlights || [],
     isActive: s.isActive ?? true,
   }));
 
-  return { diveSites, total: diveSites.length, search, difficulty };
+  return {
+    diveSites,
+    total: diveSites.length,
+    search,
+    difficulty,
+    isPremium: ctx.isPremium,
+  };
 }
 
 const difficultyColors: Record<string, string> = {

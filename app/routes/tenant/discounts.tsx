@@ -7,33 +7,30 @@
 import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
-import { requireTenant } from "../../../lib/auth/tenant-auth.server";
-import { getTenantDb } from "../../../lib/db/tenant.server";
-import { db } from "../../../lib/db/index";
-import { eq } from "drizzle-orm";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { db } from "../../../lib/db";
+import { discountCodes } from "../../../lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
-  const { schema: tables } = getTenantDb(tenant.schemaName);
+  const ctx = await requireOrgContext(request);
 
-  try {
-    const discountCodes = await db
-      .select()
-      .from(tables.discountCodes)
-      .orderBy(tables.discountCodes.createdAt);
+  const discountCodesList = await db
+    .select()
+    .from(discountCodes)
+    .where(eq(discountCodes.organizationId, ctx.org.id))
+    .orderBy(discountCodes.createdAt);
 
-    return { tenant, discountCodes, migrationNeeded: false };
-  } catch (error) {
-    console.error("Discount codes query failed - table may not exist:", error);
-    return { tenant, discountCodes: [], migrationNeeded: true };
-  }
+  return {
+    discountCodes: discountCodesList,
+    isPremium: ctx.isPremium,
+  };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
-  const { schema: tables } = getTenantDb(tenant.schemaName);
+  const ctx = await requireOrgContext(request);
 
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -49,18 +46,24 @@ export async function action({ request }: ActionFunctionArgs) {
     const validTo = formData.get("validTo") as string || null;
     const applicableTo = formData.get("applicableTo") as string || "all";
 
-    // Check if code already exists
+    // Check if code already exists for this organization
     const existing = await db
       .select()
-      .from(tables.discountCodes)
-      .where(eq(tables.discountCodes.code, code))
+      .from(discountCodes)
+      .where(
+        and(
+          eq(discountCodes.organizationId, ctx.org.id),
+          eq(discountCodes.code, code)
+        )
+      )
       .limit(1);
 
     if (existing.length > 0) {
       return { error: "A discount code with this code already exists" };
     }
 
-    await db.insert(tables.discountCodes).values({
+    await db.insert(discountCodes).values({
+      organizationId: ctx.org.id,
       code,
       description,
       discountType,
@@ -89,11 +92,16 @@ export async function action({ request }: ActionFunctionArgs) {
     const applicableTo = formData.get("applicableTo") as string || "all";
     const isActive = formData.get("isActive") === "true";
 
-    // Check if code already exists (for a different discount)
+    // Check if code already exists for this organization (for a different discount)
     const existing = await db
       .select()
-      .from(tables.discountCodes)
-      .where(eq(tables.discountCodes.code, code))
+      .from(discountCodes)
+      .where(
+        and(
+          eq(discountCodes.organizationId, ctx.org.id),
+          eq(discountCodes.code, code)
+        )
+      )
       .limit(1);
 
     if (existing.length > 0 && existing[0].id !== id) {
@@ -101,7 +109,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     await db
-      .update(tables.discountCodes)
+      .update(discountCodes)
       .set({
         code,
         description,
@@ -114,7 +122,12 @@ export async function action({ request }: ActionFunctionArgs) {
         applicableTo,
         isActive,
       })
-      .where(eq(tables.discountCodes.id, id));
+      .where(
+        and(
+          eq(discountCodes.organizationId, ctx.org.id),
+          eq(discountCodes.id, id)
+        )
+      );
 
     return { success: true, message: "Discount code updated" };
   }
@@ -124,16 +137,26 @@ export async function action({ request }: ActionFunctionArgs) {
     const isActive = formData.get("isActive") === "true";
 
     await db
-      .update(tables.discountCodes)
+      .update(discountCodes)
       .set({ isActive })
-      .where(eq(tables.discountCodes.id, id));
+      .where(
+        and(
+          eq(discountCodes.organizationId, ctx.org.id),
+          eq(discountCodes.id, id)
+        )
+      );
 
     return { success: true, message: isActive ? "Discount code activated" : "Discount code deactivated" };
   }
 
   if (intent === "delete") {
     const id = formData.get("id") as string;
-    await db.delete(tables.discountCodes).where(eq(tables.discountCodes.id, id));
+    await db.delete(discountCodes).where(
+      and(
+        eq(discountCodes.organizationId, ctx.org.id),
+        eq(discountCodes.id, id)
+      )
+    );
     return { success: true, message: "Discount code deleted" };
   }
 

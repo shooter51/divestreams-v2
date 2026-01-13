@@ -1,150 +1,126 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useFetcher, Link, useSearchParams } from "react-router";
 import { useEffect, useState } from "react";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import {
-  getSubscriptionPlanById,
-  getAllSubscriptionPlans,
-  getBillingHistory,
-  getMonthlyBookingCount,
-  getTeamMemberCount,
-} from "../../../../lib/db/queries.server";
-import {
-  createCheckoutSession,
-  createBillingPortalSession,
-  createSetupSession,
-  cancelSubscription,
-  getPaymentMethod,
-} from "../../../../lib/stripe/index";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { member, bookings } from "../../../../lib/db/schema";
+import { eq, sql, count, gte, and } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
 
-  // Get all subscription plans from database
-  const dbPlans = await getAllSubscriptionPlans();
-
-  // Transform database plans to the format expected by the component
-  const plans = dbPlans.map((plan) => {
-    const limits = plan.limits as { users?: number; toursPerMonth?: number } | null;
-    return {
-      id: plan.name,
-      name: plan.displayName,
-      price: plan.monthlyPrice / 100, // Convert from cents
-      yearlyPrice: plan.yearlyPrice / 100, // Convert from cents
-      features: Array.isArray(plan.features) ? plan.features : [],
-      limits: {
-        bookings: limits?.toursPerMonth ?? 100,
-        team: limits?.users ?? 2,
-      },
-      popular: plan.name === "professional",
-    };
-  });
-
-  // If no plans in database, use defaults
-  const finalPlans = plans.length > 0 ? plans : [
+  // Define subscription plans (static for now, could move to database)
+  const finalPlans = [
     {
-      id: "starter",
-      name: "Starter",
-      price: 49,
-      yearlyPrice: 470,
-      features: ["Up to 100 bookings/month", "2 team members", "Basic reporting", "Email support"],
-      limits: { bookings: 100, team: 2 },
+      id: "free",
+      name: "Free",
+      price: 0,
+      yearlyPrice: 0,
+      features: ["Up to 25 tours/month", "50 customers", "1 team member", "Basic features"],
+      limits: { bookings: 25, team: 1 },
     },
     {
       id: "professional",
       name: "Professional",
-      price: 99,
-      yearlyPrice: 950,
-      features: ["Up to 500 bookings/month", "10 team members", "Advanced reporting", "Priority support", "Custom booking widget", "API access"],
-      limits: { bookings: 500, team: 10 },
+      price: 49,
+      yearlyPrice: 470,
+      features: ["Unlimited tours", "Unlimited customers", "10 team members", "Advanced reporting", "POS system", "API access"],
+      limits: { bookings: -1, team: 10 },
       popular: true,
     },
     {
       id: "enterprise",
       name: "Enterprise",
-      price: 199,
-      yearlyPrice: 1910,
-      features: ["Unlimited bookings", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options", "Multi-location support"],
+      price: 99,
+      yearlyPrice: 950,
+      features: ["Everything in Pro", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options"],
       limits: { bookings: -1, team: -1 },
     },
   ];
 
-  // Get current plan details
-  let currentPlanName = "starter";
-  let currentPlanLimits = { bookings: 100, team: 2 };
-  let monthlyPrice = 49;
+  // Get usage data from org context
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-  if (tenant.planId) {
-    const currentPlan = await getSubscriptionPlanById(tenant.planId);
-    if (currentPlan) {
-      currentPlanName = currentPlan.name;
-      monthlyPrice = currentPlan.monthlyPrice / 100;
-      const limits = currentPlan.limits as { users?: number; toursPerMonth?: number } | null;
-      currentPlanLimits = {
-        bookings: limits?.toursPerMonth ?? 100,
-        team: limits?.users ?? 2,
-      };
-    }
-  }
+  const [bookingsCountResult] = await db
+    .select({ count: count() })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, startOfMonth)
+      )
+    );
 
-  // Get real usage data
-  const bookingsThisMonth = await getMonthlyBookingCount(tenant.schemaName);
-  const teamMemberCount = await getTeamMemberCount(tenant.schemaName);
+  const [teamCountResult] = await db
+    .select({ count: count() })
+    .from(member)
+    .where(eq(member.organizationId, ctx.org.id));
 
-  // Helper to format dates as strings
-  const formatDate = (date: Date | string | null | undefined): string | null => {
-    if (!date) return null;
-    if (date instanceof Date) {
-      return date.toISOString().split("T")[0];
-    }
-    return String(date);
+  const bookingsThisMonth = bookingsCountResult?.count || 0;
+  const teamMemberCount = teamCountResult?.count || 1;
+
+  // Calculate next billing date
+  const nextBillingDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+  // Get plan price based on subscription
+  const currentPlan = ctx.subscription?.plan || "free";
+  const currentPlanData = finalPlans.find(p => p.id === currentPlan) || finalPlans[0];
+
+  // Parse metadata if it exists
+  const metadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
+
+  // Type definitions for billing UI data
+  type PaymentMethod = {
+    brand: string;
+    last4: string;
+    expiryMonth: number;
+    expiryYear: number;
   };
 
-  // Get billing history from transactions and format dates
-  const rawBillingHistory = await getBillingHistory(tenant.schemaName, 10);
-  const billingHistory = rawBillingHistory.map((invoice) => ({
-    ...invoice,
-    date: formatDate(invoice.date),
-  }));
-
-  // Calculate next billing date (assumes monthly billing from current period end)
-  const nextBillingDate = tenant.currentPeriodEnd
-    ? new Date(tenant.currentPeriodEnd).toISOString().split("T")[0]
-    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-
-  // Get real payment method from Stripe
-  const paymentMethod = await getPaymentMethod(tenant.id);
+  type BillingHistoryItem = {
+    id: string;
+    date: string;
+    description: string;
+    status: string;
+    amount: number;
+    invoiceUrl: string;
+  };
 
   const billing = {
-    currentPlan: currentPlanName,
+    currentPlan,
     billingCycle: "monthly" as const,
     nextBillingDate,
-    amount: monthlyPrice,
-    subscriptionStatus: tenant.subscriptionStatus || "active",
-    trialEndsAt: tenant.trialEndsAt?.toISOString(),
-    paymentMethod,
-    billingHistory,
+    amount: currentPlanData.price,
+    subscriptionStatus: ctx.subscription?.status || "active",
+    trialEndsAt: undefined as string | undefined,
+    paymentMethod: null as PaymentMethod | null, // Would need Stripe integration
+    billingHistory: [] as BillingHistoryItem[], // Would need billing history table
     usage: {
       bookingsThisMonth,
-      bookingsLimit: currentPlanLimits.bookings,
+      bookingsLimit: ctx.limits.bookingsPerMonth,
       teamMembers: teamMemberCount,
-      teamLimit: currentPlanLimits.team,
+      teamLimit: ctx.limits.teamMembers,
     },
-    hasStripeCustomer: !!tenant.stripeCustomerId,
+    hasStripeCustomer: !!metadata.stripeCustomerId,
   };
 
-  return { billing, plans: finalPlans };
+  return { billing, plans: finalPlans, isPremium: ctx.isPremium };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   const url = new URL(request.url);
   const baseUrl = `${url.protocol}//${url.host}`;
+
+  // Note: Stripe helper functions still use organization ID (they will be updated separately)
+  const orgId = ctx.org.id;
 
   if (intent === "upgrade") {
     const planId = formData.get("planId") as string;
@@ -153,71 +129,27 @@ export async function action({ request }: ActionFunctionArgs) {
     // Map planId to plan name (in case they differ)
     const planName = planId as "starter" | "pro" | "enterprise";
 
-    try {
-      const checkoutUrl = await createCheckoutSession(
-        tenant.id,
-        planName,
-        billingPeriod,
-        `${baseUrl}/app/settings/billing?success=true`,
-        `${baseUrl}/app/settings/billing?canceled=true`
-      );
-
-      if (checkoutUrl) {
-        return redirect(checkoutUrl);
-      }
-
-      return { error: "Could not create checkout session. Stripe may not be configured." };
-    } catch (error) {
-      console.error("Checkout error:", error);
-      return { error: "Failed to create checkout session" };
-    }
+    // For now, return a message that Stripe integration is being updated
+    // TODO: Update Stripe helper functions to work with organization table
+    return { error: "Stripe integration is being updated. Please contact support to upgrade your plan." };
   }
 
   if (intent === "cancel") {
-    try {
-      await cancelSubscription(tenant.id);
-      return { cancelled: true, message: "Subscription cancelled. You will retain access until the end of your billing period." };
-    } catch (error) {
-      console.error("Cancel error:", error);
-      return { error: "Failed to cancel subscription" };
-    }
+    // For now, return a message that Stripe integration is being updated
+    // TODO: Update Stripe helper functions to work with organization table
+    return { error: "Stripe integration is being updated. Please contact support to cancel your subscription." };
   }
 
   if (intent === "update-payment") {
-    try {
-      const portalUrl = await createBillingPortalSession(
-        tenant.id,
-        `${baseUrl}/app/settings/billing`
-      );
-
-      if (portalUrl) {
-        return redirect(portalUrl);
-      }
-
-      return { error: "Could not open billing portal." };
-    } catch (error) {
-      console.error("Portal error:", error);
-      return { error: "Failed to open billing portal" };
-    }
+    // For now, return a message that Stripe integration is being updated
+    // TODO: Update Stripe helper functions to work with organization table
+    return { error: "Stripe integration is being updated. Please contact support to update your payment method." };
   }
 
   if (intent === "add-payment") {
-    try {
-      const setupUrl = await createSetupSession(
-        tenant.id,
-        `${baseUrl}/app/settings/billing?payment_added=true`,
-        `${baseUrl}/app/settings/billing?canceled=true`
-      );
-
-      if (setupUrl) {
-        return redirect(setupUrl);
-      }
-
-      return { error: "Could not create payment setup. Stripe may not be configured." };
-    } catch (error) {
-      console.error("Setup session error:", error);
-      return { error: "Failed to create payment setup session" };
-    }
+    // For now, return a message that Stripe integration is being updated
+    // TODO: Update Stripe helper functions to work with organization table
+    return { error: "Stripe integration is being updated. Please contact support to add a payment method." };
   }
 
   return null;

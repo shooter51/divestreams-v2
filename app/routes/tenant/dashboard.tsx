@@ -1,24 +1,140 @@
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
-import { useLoaderData } from "react-router";
-import { requireTenant } from "../../../lib/auth/tenant-auth.server";
-import {
-  getDashboardStats,
-  getUpcomingTrips,
-  getRecentBookings,
-} from "../../../lib/db/queries.server";
+import { useLoaderData, Link } from "react-router";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { db } from "../../../lib/db";
+import { trips, bookings, customers, tours } from "../../../lib/db/schema";
+import { eq, sql, and, gte, count, desc } from "drizzle-orm";
+import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Dashboard - DiveStreams" }];
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const [stats, upcomingTrips, recentBookings] = await Promise.all([
-    getDashboardStats(tenant.schemaName),
-    getUpcomingTrips(tenant.schemaName, 5),
-    getRecentBookings(tenant.schemaName, 5),
-  ]);
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+  // Get dashboard stats
+  const [todayBookingsResult] = await db
+    .select({ count: count() })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, today)
+      )
+    );
+
+  const [totalCustomersResult] = await db
+    .select({ count: count() })
+    .from(customers)
+    .where(eq(customers.organizationId, ctx.org.id));
+
+  const [activeTripsResult] = await db
+    .select({ count: count() })
+    .from(trips)
+    .where(
+      and(
+        eq(trips.organizationId, ctx.org.id),
+        eq(trips.status, "scheduled")
+      )
+    );
+
+  // Get week revenue (sum of bookings this week)
+  const [weekRevenueResult] = await db
+    .select({ total: sql<number>`COALESCE(SUM(${bookings.total}), 0)` })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, startOfWeek)
+      )
+    );
+
+  const stats = {
+    todayBookings: todayBookingsResult?.count || 0,
+    weekRevenue: Number(weekRevenueResult?.total || 0),
+    activeTrips: activeTripsResult?.count || 0,
+    totalCustomers: totalCustomersResult?.count || 0,
+  };
+
+  // Get upcoming trips with tour info
+  const upcomingTripsRaw = await db
+    .select({
+      id: trips.id,
+      date: trips.date,
+      startTime: trips.startTime,
+      maxParticipants: trips.maxParticipants,
+      tourName: tours.name,
+    })
+    .from(trips)
+    .innerJoin(tours, eq(trips.tourId, tours.id))
+    .where(
+      and(
+        eq(trips.organizationId, ctx.org.id),
+        gte(trips.date, today.toISOString().split("T")[0])
+      )
+    )
+    .orderBy(trips.date, trips.startTime)
+    .limit(5);
+
+  // Get booking counts for each trip
+  const tripIds = upcomingTripsRaw.map(t => t.id);
+  const bookingCounts = tripIds.length > 0 ? await db
+    .select({
+      tripId: bookings.tripId,
+      count: sql<number>`SUM(${bookings.participants})`,
+    })
+    .from(bookings)
+    .where(sql`${bookings.tripId} IN ${tripIds}`)
+    .groupBy(bookings.tripId) : [];
+
+  const bookingCountMap = new Map(bookingCounts.map(b => [b.tripId, Number(b.count) || 0]));
+
+  const upcomingTrips = upcomingTripsRaw.map(trip => ({
+    id: trip.id,
+    name: trip.tourName,
+    date: trip.date,
+    time: trip.startTime,
+    participants: bookingCountMap.get(trip.id) || 0,
+    maxParticipants: trip.maxParticipants || 0,
+  }));
+
+  // Get recent bookings with customer and trip info
+  const recentBookingsRaw = await db
+    .select({
+      id: bookings.id,
+      total: bookings.total,
+      status: bookings.status,
+      createdAt: bookings.createdAt,
+      customerFirstName: customers.firstName,
+      customerLastName: customers.lastName,
+      tourName: tours.name,
+      tripDate: trips.date,
+    })
+    .from(bookings)
+    .innerJoin(customers, eq(bookings.customerId, customers.id))
+    .innerJoin(trips, eq(bookings.tripId, trips.id))
+    .innerJoin(tours, eq(trips.tourId, tours.id))
+    .where(eq(bookings.organizationId, ctx.org.id))
+    .orderBy(desc(bookings.createdAt))
+    .limit(5);
+
+  const recentBookings = recentBookingsRaw.map(b => ({
+    id: b.id,
+    customer: `${b.customerFirstName} ${b.customerLastName}`,
+    trip: b.tourName,
+    amount: Number(b.total || 0).toFixed(2),
+    status: b.status,
+    date: b.tripDate,
+  }));
 
   // Helper to format dates as strings
   const formatDate = (date: Date | string | null | undefined): string | null => {
@@ -44,15 +160,60 @@ export async function loader({ request }: LoaderFunctionArgs) {
     stats,
     upcomingTrips: formattedTrips,
     recentBookings: formattedBookings,
+    subscription: ctx.subscription,
+    limits: ctx.limits,
+    usage: ctx.usage,
+    isPremium: ctx.isPremium,
+    orgName: ctx.org.name,
   };
 }
 
 export default function DashboardPage() {
-  const { stats, upcomingTrips, recentBookings } = useLoaderData<typeof loader>();
+  const { stats, upcomingTrips, recentBookings, subscription, limits, usage, isPremium, orgName } = useLoaderData<typeof loader>();
+
+  // Calculate usage percentages - using correct property names from TierLimits and OrgUsage
+  const bookingsUsagePercent = limits.bookingsPerMonth > 0
+    ? Math.round((usage.bookingsThisMonth / limits.bookingsPerMonth) * 100)
+    : 0;
+  const customersUsagePercent = limits.customers > 0
+    ? Math.round((usage.customers / limits.customers) * 100)
+    : 0;
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-gray-500">{orgName}</p>
+        </div>
+
+        {/* Subscription Status */}
+        <div className="text-right">
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              subscription?.status === "active"
+                ? "bg-green-100 text-green-700"
+                : subscription?.status === "trialing"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-yellow-100 text-yellow-700"
+            }`}>
+              {subscription?.plan || "free"} - {subscription?.status || "active"}
+            </span>
+          </div>
+          {!isPremium && (
+            <Link to="/app/settings/billing" className="text-sm text-blue-600 hover:underline mt-1 inline-block">
+              Upgrade for more features
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* Free Tier Usage Warning */}
+      {!isPremium && (bookingsUsagePercent > 80 || customersUsagePercent > 80) && (
+        <div className="mb-6">
+          <UpgradePrompt feature="higher limits" />
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-4 gap-6 mb-8">

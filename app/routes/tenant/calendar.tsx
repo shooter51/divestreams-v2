@@ -7,8 +7,10 @@
 
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
-import { requireTenant } from "../../../lib/auth/tenant-auth.server";
-import { getCalendarTrips } from "../../../lib/db/queries.server";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { db } from "../../../lib/db";
+import { trips as tripsTable, tours, boats, bookings } from "../../../lib/db/schema";
+import { eq, and, gte, lte, sql } from "drizzle-orm";
 import { useState, useCallback, useMemo } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -18,7 +20,7 @@ import type { EventClickArg } from "@fullcalendar/core";
 export const meta: MetaFunction = () => [{ title: "Calendar - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const url = new URL(request.url);
 
   // Get date range from URL or default to current month
@@ -29,9 +31,60 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const fromDate = url.searchParams.get("from") || defaultStart.toISOString().split("T")[0];
   const toDate = url.searchParams.get("to") || defaultEnd.toISOString().split("T")[0];
 
-  const trips = await getCalendarTrips(tenant.schemaName, { fromDate, toDate });
+  // Query trips with tour and boat info
+  const rawTrips = await db
+    .select({
+      id: tripsTable.id,
+      date: tripsTable.date,
+      startTime: tripsTable.startTime,
+      endTime: tripsTable.endTime,
+      maxParticipants: tripsTable.maxParticipants,
+      status: tripsTable.status,
+      tourId: tripsTable.tourId,
+      tourName: tours.name,
+      tourType: tours.type,
+      boatName: boats.name,
+    })
+    .from(tripsTable)
+    .leftJoin(tours, eq(tripsTable.tourId, tours.id))
+    .leftJoin(boats, eq(tripsTable.boatId, boats.id))
+    .where(
+      and(
+        eq(tripsTable.organizationId, ctx.org.id),
+        gte(tripsTable.date, fromDate),
+        lte(tripsTable.date, toDate)
+      )
+    )
+    .orderBy(tripsTable.date, tripsTable.startTime);
 
-  return { trips };
+  // Get booking counts per trip
+  const tripIds = rawTrips.map(t => t.id);
+  const bookingCounts = tripIds.length > 0 ? await db
+    .select({
+      tripId: bookings.tripId,
+      count: sql<number>`SUM(${bookings.participants})`,
+    })
+    .from(bookings)
+    .where(sql`${bookings.tripId} IN ${tripIds}`)
+    .groupBy(bookings.tripId) : [];
+
+  const bookingCountMap = new Map(bookingCounts.map(b => [b.tripId, Number(b.count) || 0]));
+
+  const trips = rawTrips.map(t => ({
+    id: t.id,
+    tourId: t.tourId,
+    tourName: t.tourName || "Unknown Tour",
+    tourType: t.tourType || "other",
+    date: t.date,
+    startTime: t.startTime,
+    endTime: t.endTime,
+    boatName: t.boatName,
+    maxParticipants: t.maxParticipants || 0,
+    bookedParticipants: bookingCountMap.get(t.id) || 0,
+    status: t.status,
+  }));
+
+  return { trips, isPremium: ctx.isPremium };
 }
 
 // Tour type colors

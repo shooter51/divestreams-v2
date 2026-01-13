@@ -1,19 +1,36 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { Link, useLoaderData } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { member } from "../../../../lib/db/schema";
+import { eq, count } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Settings - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
 
-  // Mock data
-  const tenantName = "Coral Bay Diving";
-  const planName = "Starter";
-  const teamCount = 2;
-  const connectedIntegrations = 1;
+  // Get real team count
+  const [teamCountResult] = await db
+    .select({ count: count() })
+    .from(member)
+    .where(eq(member.organizationId, ctx.org.id));
 
-  return { tenantName, planName, teamCount, connectedIntegrations };
+  const teamCount = teamCountResult?.count || 1;
+
+  // Parse metadata to check for integrations
+  const metadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
+
+  // Count connected integrations (based on Stripe connection for now)
+  const connectedIntegrations = metadata.stripeCustomerId ? 1 : 0;
+
+  return {
+    tenantName: ctx.org.name,
+    planName: ctx.subscription?.plan || "free",
+    teamCount,
+    connectedIntegrations,
+    isPremium: ctx.isPremium,
+  };
 }
 
 export default function SettingsPage() {

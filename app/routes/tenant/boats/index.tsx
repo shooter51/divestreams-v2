@@ -1,18 +1,62 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { getBoats } from "../../../../lib/db/queries.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { boats as boatsTable, trips } from "../../../../lib/db/schema";
+import { eq, ilike, sql, count } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Boats - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("q") || "";
 
-  const rawBoats = await getBoats(tenant.schemaName, {
-    search: search || undefined,
-  });
+  // Query boats with trip counts
+  let rawBoats;
+  if (search) {
+    rawBoats = await db
+      .select({
+        id: boatsTable.id,
+        name: boatsTable.name,
+        type: boatsTable.type,
+        capacity: boatsTable.capacity,
+        registrationNumber: boatsTable.registrationNumber,
+        description: boatsTable.description,
+        amenities: boatsTable.amenities,
+        isActive: boatsTable.isActive,
+      })
+      .from(boatsTable)
+      .where(
+        sql`${boatsTable.organizationId} = ${ctx.org.id} AND ${boatsTable.name} ILIKE ${'%' + search + '%'}`
+      );
+  } else {
+    rawBoats = await db
+      .select({
+        id: boatsTable.id,
+        name: boatsTable.name,
+        type: boatsTable.type,
+        capacity: boatsTable.capacity,
+        registrationNumber: boatsTable.registrationNumber,
+        description: boatsTable.description,
+        amenities: boatsTable.amenities,
+        isActive: boatsTable.isActive,
+      })
+      .from(boatsTable)
+      .where(eq(boatsTable.organizationId, ctx.org.id));
+  }
+
+  // Get trip counts per boat
+  const tripCounts = await db
+    .select({
+      boatId: trips.boatId,
+      count: count(),
+    })
+    .from(trips)
+    .where(eq(trips.organizationId, ctx.org.id))
+    .groupBy(trips.boatId);
+
+  const tripCountMap = new Map(tripCounts.map(t => [t.boatId, t.count]));
 
   // Transform to UI format
   const boats = rawBoats.map((b) => ({
@@ -24,13 +68,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
     description: b.description || "",
     amenities: Array.isArray(b.amenities) ? b.amenities : [],
     isActive: b.isActive ?? true,
-    tripCount: b.tripCount || 0,
+    tripCount: tripCountMap.get(b.id) || 0,
   }));
 
   const totalCapacity = boats.filter((b) => b.isActive).reduce((sum, b) => sum + b.capacity, 0);
   const activeCount = boats.filter((b) => b.isActive).length;
 
-  return { boats, total: boats.length, activeCount, totalCapacity, search };
+  return {
+    boats,
+    total: boats.length,
+    activeCount,
+    totalCapacity,
+    search,
+    isPremium: ctx.isPremium,
+  };
 }
 
 export default function BoatsPage() {

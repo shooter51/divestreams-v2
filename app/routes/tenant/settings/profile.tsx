@@ -1,45 +1,75 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Link } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { updateTenant } from "../../../../lib/db/tenant.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { organization } from "../../../../lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Shop Profile - DiveStreams" }];
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+// Type for organization metadata
+interface OrgMetadata {
+  email?: string;
+  phone?: string;
+  website?: string;
+  timezone?: string;
+  currency?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+  };
+  booking?: {
+    minAdvanceBooking?: number;
+    maxAdvanceBooking?: number;
+    cancellationPolicy?: string;
+    requireDeposit?: boolean;
+    depositPercent?: number;
+  };
+}
 
-  // Build profile from actual tenant data
+export async function loader({ request }: LoaderFunctionArgs) {
+  const ctx = await requireOrgContext(request);
+
+  // Parse metadata from JSON string
+  const metadata: OrgMetadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
+
   const profile = {
-    name: tenant.name,
-    subdomain: tenant.subdomain,
-    email: tenant.email,
-    phone: tenant.phone || "",
-    website: tenant.settings?.website || "",
-    timezone: tenant.timezone,
-    currency: tenant.currency,
+    name: ctx.org.name,
+    slug: ctx.org.slug,
+    email: metadata.email || "",
+    phone: metadata.phone || "",
+    website: metadata.website || "",
+    timezone: metadata.timezone || "America/New_York",
+    currency: metadata.currency || "USD",
     address: {
-      street: tenant.settings?.address?.street || "",
-      city: tenant.settings?.address?.city || "",
-      state: tenant.settings?.address?.state || "",
-      country: tenant.settings?.address?.country || "",
-      postalCode: tenant.settings?.address?.postalCode || "",
+      street: metadata.address?.street || "",
+      city: metadata.address?.city || "",
+      state: metadata.address?.state || "",
+      country: metadata.address?.country || "",
+      postalCode: metadata.address?.postalCode || "",
     },
     bookingSettings: {
-      minAdvanceBooking: tenant.settings?.booking?.minAdvanceBooking ?? 24,
-      maxAdvanceBooking: tenant.settings?.booking?.maxAdvanceBooking ?? 90,
-      cancellationPolicy: tenant.settings?.booking?.cancellationPolicy || "24h",
-      requireDeposit: tenant.settings?.booking?.requireDeposit ?? false,
-      depositPercent: tenant.settings?.booking?.depositPercent ?? 25,
+      minAdvanceBooking: metadata.booking?.minAdvanceBooking ?? 24,
+      maxAdvanceBooking: metadata.booking?.maxAdvanceBooking ?? 90,
+      cancellationPolicy: metadata.booking?.cancellationPolicy || "24h",
+      requireDeposit: metadata.booking?.requireDeposit ?? false,
+      depositPercent: metadata.booking?.depositPercent ?? 25,
     },
   };
 
-  return { profile, tenantId: tenant.id };
+  return { profile, orgId: ctx.org.id, isPremium: ctx.isPremium };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
+
+  // Parse current metadata from JSON string
+  const currentMetadata: OrgMetadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
 
   if (intent === "update-profile") {
     const name = formData.get("name") as string;
@@ -57,18 +87,24 @@ export async function action({ request }: ActionFunctionArgs) {
       postalCode: (formData.get("postalCode") as string) || undefined,
     };
 
-    await updateTenant(tenant.id, {
-      name,
+    // Store metadata as JSON string
+    const newMetadata = JSON.stringify({
+      ...currentMetadata,
       email,
       phone,
+      website,
       timezone,
       currency,
-      settings: {
-        ...tenant.settings,
-        website,
-        address,
-      },
+      address,
     });
+
+    await db
+      .update(organization)
+      .set({
+        name,
+        metadata: newMetadata,
+      })
+      .where(eq(organization.id, ctx.org.id));
 
     return { success: true, message: "Profile updated successfully" };
   }
@@ -80,19 +116,25 @@ export async function action({ request }: ActionFunctionArgs) {
     const requireDeposit = formData.get("requireDeposit") === "true";
     const depositPercent = Number(formData.get("depositPercent")) || 25;
 
-    await updateTenant(tenant.id, {
-      settings: {
-        ...tenant.settings,
-        booking: {
-          ...tenant.settings?.booking,
-          minAdvanceBooking,
-          maxAdvanceBooking,
-          cancellationPolicy,
-          requireDeposit,
-          depositPercent,
-        },
+    // Store metadata as JSON string
+    const newMetadata = JSON.stringify({
+      ...currentMetadata,
+      booking: {
+        ...currentMetadata.booking,
+        minAdvanceBooking,
+        maxAdvanceBooking,
+        cancellationPolicy,
+        requireDeposit,
+        depositPercent,
       },
     });
+
+    await db
+      .update(organization)
+      .set({
+        metadata: newMetadata,
+      })
+      .where(eq(organization.id, ctx.org.id));
 
     return { success: true, message: "Booking settings updated" };
   }
@@ -170,11 +212,11 @@ export default function ProfileSettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Subdomain</label>
+                <label className="block text-sm font-medium mb-1">URL Slug</label>
                 <div className="flex items-center">
                   <input
                     type="text"
-                    value={profile.subdomain}
+                    value={profile.slug}
                     disabled
                     className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500"
                   />
@@ -182,7 +224,7 @@ export default function ProfileSettingsPage() {
                     .divestreams.com
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Contact support to change subdomain</p>
+                <p className="text-xs text-gray-500 mt-1">Contact support to change URL slug</p>
               </div>
             </div>
 

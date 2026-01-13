@@ -1,49 +1,92 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { getTrips } from "../../../../lib/db/queries.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { trips as tripsTable, tours, boats, bookings } from "../../../../lib/db/schema";
+import { eq, and, gte, or, sql, lt } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Trips - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const url = new URL(request.url);
   const view = url.searchParams.get("view") || "upcoming";
   const tourId = url.searchParams.get("tourId") || "";
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Determine date filters based on view
-  const options: { fromDate?: string; status?: string } = {};
+  // Build query conditions
+  const conditions = [eq(tripsTable.organizationId, ctx.org.id)];
+
   if (view === "upcoming") {
-    options.fromDate = today;
+    conditions.push(gte(tripsTable.date, today));
   } else if (view === "past") {
-    options.status = "completed";
+    conditions.push(lt(tripsTable.date, today));
   }
 
-  const rawTrips = await getTrips(tenant.schemaName, options);
+  if (tourId) {
+    conditions.push(eq(tripsTable.tourId, tourId));
+  }
+
+  // Get trips with tour and boat info
+  const rawTrips = await db
+    .select({
+      id: tripsTable.id,
+      date: tripsTable.date,
+      startTime: tripsTable.startTime,
+      endTime: tripsTable.endTime,
+      maxParticipants: tripsTable.maxParticipants,
+      status: tripsTable.status,
+      tourId: tripsTable.tourId,
+      boatId: tripsTable.boatId,
+      tourName: tours.name,
+      tourPrice: tours.price,
+      boatName: boats.name,
+    })
+    .from(tripsTable)
+    .leftJoin(tours, eq(tripsTable.tourId, tours.id))
+    .leftJoin(boats, eq(tripsTable.boatId, boats.id))
+    .where(and(...conditions))
+    .orderBy(tripsTable.date, tripsTable.startTime);
+
+  // Get booking counts per trip
+  const tripIds = rawTrips.map(t => t.id);
+  const bookingCounts = tripIds.length > 0 ? await db
+    .select({
+      tripId: bookings.tripId,
+      count: sql<number>`SUM(${bookings.participants})`,
+    })
+    .from(bookings)
+    .where(sql`${bookings.tripId} IN ${tripIds}`)
+    .groupBy(bookings.tripId) : [];
+
+  const bookingCountMap = new Map(bookingCounts.map(b => [b.tripId, Number(b.count) || 0]));
 
   // Filter by view and transform
   const trips = rawTrips
     .filter((t) => {
-      if (tourId && t.tourId !== tourId) return false;
+      const bookedParticipants = bookingCountMap.get(t.id) || 0;
       if (view === "upcoming" && (t.status === "completed" || t.status === "cancelled")) return false;
       if (view === "past" && t.status !== "completed" && t.status !== "cancelled") return false;
       return true;
     })
-    .map((t) => ({
-      id: t.id,
-      tour: { id: t.tourId, name: t.tourName || "Unknown Tour" },
-      boat: { id: t.boatId, name: t.boatName || "TBD" },
-      date: t.date,
-      startTime: t.startTime,
-      endTime: t.endTime || "",
-      maxParticipants: t.maxParticipants || 0,
-      bookedParticipants: t.bookedParticipants || 0,
-      status: t.bookedParticipants >= t.maxParticipants ? "full" : t.status,
-      revenue: (t.bookedParticipants * (t.price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 }),
-      staff: [], // Staff would need separate query
-    }));
+    .map((t) => {
+      const bookedParticipants = bookingCountMap.get(t.id) || 0;
+      const maxParticipants = t.maxParticipants || 0;
+      return {
+        id: t.id,
+        tour: { id: t.tourId, name: t.tourName || "Unknown Tour" },
+        boat: { id: t.boatId, name: t.boatName || "TBD" },
+        date: t.date,
+        startTime: t.startTime,
+        endTime: t.endTime || "",
+        maxParticipants,
+        bookedParticipants,
+        status: bookedParticipants >= maxParticipants && maxParticipants > 0 ? "full" : t.status,
+        revenue: (bookedParticipants * Number(t.tourPrice || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+        staff: [], // Staff would need separate query
+      };
+    });
 
   // Group by date
   const tripsByDate: Record<string, typeof trips> = {};
@@ -52,7 +95,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     tripsByDate[trip.date].push(trip);
   });
 
-  return { trips, tripsByDate, total: trips.length, view, tourId };
+  return {
+    trips,
+    tripsByDate,
+    total: trips.length,
+    view,
+    tourId,
+    isPremium: ctx.isPremium,
+  };
 }
 
 const statusColors: Record<string, string> = {
