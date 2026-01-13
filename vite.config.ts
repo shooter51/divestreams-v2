@@ -5,4 +5,21 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  ssr: {
+    noExternal: [],
+    external: ["postgres", "better-auth"],
+  },
+  build: {
+    rollupOptions: {
+      external: [
+        "postgres",
+        /^postgres\/.*/,
+        "better-auth",
+        /^better-auth\/.*/,
+      ],
+    },
+  },
+  optimizeDeps: {
+    exclude: ["postgres", "better-auth"],
+  },
 });
