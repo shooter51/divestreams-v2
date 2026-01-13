@@ -6,6 +6,8 @@ export default [
   route("pricing", "routes/marketing/pricing.tsx"),
   route("features", "routes/marketing/features.tsx"),
   route("signup", "routes/marketing/signup.tsx"),
+  route("terms", "routes/marketing/terms.tsx"),
+  route("privacy", "routes/marketing/privacy.tsx"),
 
   // Stripe webhook
   route("api/stripe/webhook", "routes/api/stripe-webhook.tsx"),
@@ -28,6 +30,9 @@ export default [
 
       // Calendar
       route("calendar", "routes/tenant/calendar.tsx"),
+
+      // POS
+      route("pos", "routes/tenant/pos.tsx"),
 
       // Customers
       route("customers", "routes/tenant/customers/index.tsx"),
@@ -74,6 +79,7 @@ export default [
 
       // Settings
       route("settings", "routes/tenant/settings/index.tsx"),
+      route("settings/profile", "routes/tenant/settings/profile.tsx"),
       route("settings/billing", "routes/tenant/settings/billing.tsx"),
       route("settings/team", "routes/tenant/settings/team.tsx"),
       route("settings/integrations", "routes/tenant/settings/integrations.tsx"),
