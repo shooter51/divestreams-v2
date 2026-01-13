@@ -11,6 +11,45 @@ interface CheckoutModalProps {
   onComplete: (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string }>) => void;
 }
 
+// Card Payment Modal (Placeholder - TODO: Stripe Integration)
+export function CardModal({ isOpen, onClose, total, onComplete }: CheckoutModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4">Card Payment</h2>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Total Due</label>
+            <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
+          </div>
+
+          <div className="p-6 bg-gray-50 rounded-lg text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            <p className="text-gray-600 mb-2">Card payment integration coming soon</p>
+            <p className="text-sm text-gray-500">Use Cash or Split payment for now</p>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Cash Payment Modal
 export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalProps) {
   const [tendered, setTendered] = useState("");

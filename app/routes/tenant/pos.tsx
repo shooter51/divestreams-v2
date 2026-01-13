@@ -4,7 +4,7 @@
  * Full-featured POS for retail, rentals, and quick bookings.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
 import { requireTenant } from "../../../lib/auth/tenant-auth.server";
@@ -20,6 +20,7 @@ import {
 import { Cart } from "../../components/pos/Cart";
 import { ProductGrid } from "../../components/pos/ProductGrid";
 import {
+  CardModal,
   CashModal,
   SplitModal,
   RentalAgreementModal,
@@ -65,24 +66,28 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "checkout") {
-    const data = JSON.parse(formData.get("data") as string);
+    try {
+      const data = JSON.parse(formData.get("data") as string);
 
-    // TODO: Get actual user ID from session once auth is fully implemented
-    // For now, use a placeholder - the transactions table allows null userId
-    const userId = data.userId || null;
+      // TODO: Get actual user ID from session once auth is fully implemented
+      // For now, use a placeholder - the transactions table allows null userId
+      const userId = data.userId || null;
 
-    const result = await processPOSCheckout(tables, {
-      items: data.items,
-      customerId: data.customerId,
-      userId,
-      payments: data.payments,
-      subtotal: data.subtotal,
-      tax: data.tax,
-      total: data.total,
-      notes: data.notes,
-    });
+      const result = await processPOSCheckout(tables, {
+        items: data.items,
+        customerId: data.customerId,
+        userId,
+        payments: data.payments,
+        subtotal: data.subtotal,
+        tax: data.tax,
+        total: data.total,
+        notes: data.notes,
+      });
 
-    return { success: true, receiptNumber: result.receiptNumber };
+      return { success: true, receiptNumber: result.receiptNumber };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Checkout failed" };
+    }
   }
 
   return { error: "Invalid intent" };
@@ -242,10 +247,12 @@ export default function POSPage() {
   }, [fetcher]);
 
   // Update search results when fetcher returns
-  const fetcherData = fetcher.data as { customers?: Array<{ id: string; firstName: string; lastName: string; email: string; phone?: string | null }> } | undefined;
-  if (fetcherData?.customers && fetcherData.customers !== customerSearchResults) {
-    setCustomerSearchResults(fetcherData.customers);
-  }
+  useEffect(() => {
+    const fetcherData = fetcher.data as { customers?: Array<{ id: string; firstName: string; lastName: string; email: string; phone?: string | null }> } | undefined;
+    if (fetcherData?.customers) {
+      setCustomerSearchResults(fetcherData.customers);
+    }
+  }, [fetcher.data]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
@@ -325,6 +332,13 @@ export default function POSPage() {
       </div>
 
       {/* Modals */}
+      <CardModal
+        isOpen={checkoutMethod === "card"}
+        onClose={() => setCheckoutMethod(null)}
+        total={total}
+        onComplete={completeCheckout}
+      />
+
       <CashModal
         isOpen={checkoutMethod === "cash"}
         onClose={() => setCheckoutMethod(null)}
