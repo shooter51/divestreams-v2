@@ -3,32 +3,33 @@
  */
 
 /**
- * Production URL constant - used as fallback when APP_URL is not set in production
+ * Production URL constant - ALWAYS used unless explicitly overridden by APP_URL
+ * This ensures we never accidentally use localhost in production builds
  */
 const PRODUCTION_URL = "https://divestreams.com";
 
 /**
- * Get the appropriate base URL based on environment
- * In production (NODE_ENV=production), uses APP_URL or falls back to production URL
- * In development, uses APP_URL or falls back to localhost
+ * Get the appropriate base URL
+ *
+ * Priority:
+ * 1. APP_URL environment variable (if set)
+ * 2. Production URL (https://divestreams.com) - ALWAYS the default
+ *
+ * Note: localhost is NEVER used. For local development, set APP_URL explicitly.
+ * This prevents any possibility of localhost URLs leaking into production.
  */
 function getBaseUrl(): string {
+  // Use APP_URL if explicitly set
   if (process.env.APP_URL) {
     return process.env.APP_URL;
   }
 
-  // In production, always use the production URL as fallback
-  if (process.env.NODE_ENV === "production") {
-    return PRODUCTION_URL;
-  }
-
-  // In development, use localhost
-  return "http://localhost:5173";
+  // Always default to production URL - never use localhost
+  return PRODUCTION_URL;
 }
 
 /**
  * Get the full URL for a tenant subdomain
- * Uses APP_URL environment variable in production, falls back to localhost for development
  *
  * @param subdomain - The tenant's subdomain (e.g., "demo")
  * @param path - Optional path to append (e.g., "/app")
@@ -41,8 +42,8 @@ export function getTenantUrl(subdomain: string, path = ""): string {
 }
 
 /**
- * Get the base app URL from environment
- * @returns The APP_URL or appropriate fallback based on environment
+ * Get the base app URL
+ * @returns The APP_URL if set, otherwise production URL
  */
 export function getAppUrl(): string {
   return getBaseUrl();
@@ -50,7 +51,7 @@ export function getAppUrl(): string {
 
 /**
  * Get the base domain from APP_URL
- * @returns Just the domain like "divestreams.com" or "localhost:5173"
+ * @returns Just the domain like "divestreams.com"
  */
 export function getBaseDomain(): string {
   const appUrl = getBaseUrl();
