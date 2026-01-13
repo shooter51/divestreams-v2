@@ -310,6 +310,13 @@ export function parseFormData(formData: FormData): Record<string, unknown> {
       result[key] = false;
     } else if (value === "" || value === "undefined") {
       // Skip empty values
+    } else if (typeof value === "string" && value.startsWith("[")) {
+      // Try to parse JSON arrays
+      try {
+        result[key] = JSON.parse(value);
+      } catch {
+        result[key] = value;
+      }
     } else {
       result[key] = value;
     }
