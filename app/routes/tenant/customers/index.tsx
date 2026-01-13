@@ -1,35 +1,74 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { getCustomers } from "../../../../lib/db/queries.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { customers } from "../../../../lib/db/schema";
+import { eq, or, ilike, sql, count } from "drizzle-orm";
+import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 
 export const meta: MetaFunction = () => [{ title: "Customers - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const page = parseInt(url.searchParams.get("page") || "1");
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  const { customers, total } = await getCustomers(tenant.schemaName, {
-    search: search || undefined,
-    limit,
-    offset,
-  });
+  // Build query with organization filter
+  const baseCondition = eq(customers.organizationId, ctx.org.id);
+
+  // Add search filter if provided
+  const searchCondition = search
+    ? or(
+        ilike(customers.firstName, `%${search}%`),
+        ilike(customers.lastName, `%${search}%`),
+        ilike(customers.email, `%${search}%`)
+      )
+    : undefined;
+
+  // Get customers with pagination
+  const customerList = await db
+    .select()
+    .from(customers)
+    .where(searchCondition ? sql`${baseCondition} AND ${searchCondition}` : baseCondition)
+    .orderBy(customers.lastName, customers.firstName)
+    .limit(limit)
+    .offset(offset);
+
+  // Get total count for pagination
+  const [{ value: total }] = await db
+    .select({ value: count() })
+    .from(customers)
+    .where(searchCondition ? sql`${baseCondition} AND ${searchCondition}` : baseCondition);
 
   return {
-    customers,
+    customers: customerList,
     total,
     page,
     totalPages: Math.ceil(total / limit),
     search,
+    // Freemium data
+    canAddCustomer: ctx.canAddCustomer,
+    usage: ctx.usage.customers,
+    limit: ctx.limits.customers,
+    isPremium: ctx.isPremium,
   };
 }
 
 export default function CustomersPage() {
-  const { customers, total, page, totalPages, search } = useLoaderData<typeof loader>();
+  const {
+    customers,
+    total,
+    page,
+    totalPages,
+    search,
+    canAddCustomer,
+    usage,
+    limit,
+    isPremium
+  } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -39,16 +78,48 @@ export default function CustomersPage() {
     setSearchParams(search ? { search } : {});
   };
 
+  // Check if at limit (for free tier)
+  const isAtLimit = !isPremium && usage >= limit;
+
   return (
     <div>
+      {/* Show upgrade banner when at limit */}
+      {isAtLimit && (
+        <div className="mb-6">
+          <UpgradePrompt
+            feature="customers"
+            currentCount={usage}
+            limit={limit}
+            variant="banner"
+          />
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Customers</h1>
-          <p className="text-gray-500">{total} total customers</p>
+          <p className="text-gray-500">
+            {total} total customers
+            {!isPremium && (
+              <span className="ml-2 text-sm text-gray-400">
+                ({usage}/{limit} used)
+              </span>
+            )}
+          </p>
         </div>
         <Link
           to="/app/customers/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className={`px-4 py-2 rounded-lg ${
+            canAddCustomer
+              ? "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+          onClick={(e) => {
+            if (!canAddCustomer) {
+              e.preventDefault();
+            }
+          }}
+          aria-disabled={!canAddCustomer}
         >
           Add Customer
         </Link>
@@ -117,7 +188,11 @@ export default function CustomersPage() {
                   </td>
                   <td className="px-6 py-4 text-sm">{customer.totalDives}</td>
                   <td className="px-6 py-4 text-sm">${Number(customer.totalSpent || 0).toLocaleString()}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{customer.lastDiveAt || "Never"}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {customer.lastDiveAt
+                      ? new Date(customer.lastDiveAt).toLocaleDateString()
+                      : "Never"}
+                  </td>
                   <td className="px-6 py-4 text-right">
                     <Link
                       to={`/app/customers/${customer.id}`}
