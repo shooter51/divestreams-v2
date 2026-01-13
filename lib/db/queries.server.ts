@@ -2412,3 +2412,294 @@ export async function deleteBoat(schemaName: string, id: string) {
     await client.end();
   }
 }
+
+// ============================================================================
+// Report Queries
+// ============================================================================
+
+export interface RevenueData {
+  period: string;
+  revenue: number;
+  bookings: number;
+}
+
+export interface BookingsByStatus {
+  status: string;
+  count: number;
+}
+
+export interface TopTour {
+  id: string;
+  name: string;
+  bookings: number;
+  revenue: number;
+}
+
+export interface CustomerStats {
+  totalCustomers: number;
+  newThisMonth: number;
+  repeatCustomers: number;
+  avgBookingsPerCustomer: number;
+}
+
+export interface EquipmentUtilization {
+  category: string;
+  total: number;
+  available: number;
+  rented: number;
+  maintenance: number;
+}
+
+export async function getRevenueReport(
+  schemaName: string,
+  period: "daily" | "weekly" | "monthly" = "daily",
+  days: number = 30
+): Promise<RevenueData[]> {
+  const client = getClient(schemaName);
+
+  try {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const startDateStr = startDate.toISOString().split("T")[0];
+
+    let groupBy: string;
+    let format: string;
+
+    if (period === "daily") {
+      groupBy = "DATE(t.date)";
+      format = "YYYY-MM-DD";
+    } else if (period === "weekly") {
+      groupBy = "DATE_TRUNC('week', t.date)";
+      format = "IYYY-IW";
+    } else {
+      groupBy = "DATE_TRUNC('month', t.date)";
+      format = "YYYY-MM";
+    }
+
+    const result = await client.unsafe(`
+      SELECT
+        TO_CHAR(${groupBy}, '${format}') as period,
+        COALESCE(SUM(b.total), 0) as revenue,
+        COUNT(DISTINCT b.id) as bookings
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".trips t ON b.trip_id = t.id
+      WHERE t.date >= '${startDateStr}'
+        AND b.status NOT IN ('canceled', 'no_show')
+      GROUP BY ${groupBy}
+      ORDER BY ${groupBy}
+    `);
+
+    return result.map((row: any) => ({
+      period: row.period,
+      revenue: Number(row.revenue || 0),
+      bookings: Number(row.bookings || 0),
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getBookingsByStatus(schemaName: string): Promise<BookingsByStatus[]> {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT
+        status,
+        COUNT(*) as count
+      FROM "${schemaName}".bookings
+      GROUP BY status
+      ORDER BY count DESC
+    `);
+
+    return result.map((row: any) => ({
+      status: row.status,
+      count: Number(row.count || 0),
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getTopTours(schemaName: string, limit: number = 5): Promise<TopTour[]> {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT
+        tr.id,
+        tr.name,
+        COUNT(DISTINCT b.id) as bookings,
+        COALESCE(SUM(b.total), 0) as revenue
+      FROM "${schemaName}".tours tr
+      JOIN "${schemaName}".trips t ON t.tour_id = tr.id
+      JOIN "${schemaName}".bookings b ON b.trip_id = t.id
+      WHERE b.status NOT IN ('canceled', 'no_show')
+      GROUP BY tr.id, tr.name
+      ORDER BY revenue DESC
+      LIMIT ${limit}
+    `);
+
+    return result.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      bookings: Number(row.bookings || 0),
+      revenue: Number(row.revenue || 0),
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getCustomerReportStats(schemaName: string): Promise<CustomerStats> {
+  const client = getClient(schemaName);
+
+  try {
+    // Get start of current month
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonthStr = startOfMonth.toISOString().split("T")[0];
+
+    // Total customers
+    const totalResult = await client.unsafe(`
+      SELECT COUNT(*) as count FROM "${schemaName}".customers
+    `);
+
+    // New customers this month
+    const newResult = await client.unsafe(`
+      SELECT COUNT(*) as count FROM "${schemaName}".customers
+      WHERE created_at >= '${startOfMonthStr}'
+    `);
+
+    // Repeat customers (more than one booking)
+    const repeatResult = await client.unsafe(`
+      SELECT COUNT(*) as count FROM (
+        SELECT customer_id
+        FROM "${schemaName}".bookings
+        WHERE status NOT IN ('canceled', 'no_show')
+        GROUP BY customer_id
+        HAVING COUNT(*) > 1
+      ) as repeat_customers
+    `);
+
+    // Average bookings per customer
+    const avgResult = await client.unsafe(`
+      SELECT
+        CASE WHEN COUNT(DISTINCT customer_id) > 0
+        THEN COUNT(*)::decimal / COUNT(DISTINCT customer_id)
+        ELSE 0 END as avg
+      FROM "${schemaName}".bookings
+      WHERE status NOT IN ('canceled', 'no_show')
+    `);
+
+    return {
+      totalCustomers: Number(totalResult[0]?.count || 0),
+      newThisMonth: Number(newResult[0]?.count || 0),
+      repeatCustomers: Number(repeatResult[0]?.count || 0),
+      avgBookingsPerCustomer: Math.round(Number(avgResult[0]?.avg || 0) * 10) / 10,
+    };
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getEquipmentUtilization(schemaName: string): Promise<EquipmentUtilization[]> {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      SELECT
+        category,
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available,
+        SUM(CASE WHEN status = 'rented' THEN 1 ELSE 0 END) as rented,
+        SUM(CASE WHEN status = 'maintenance' THEN 1 ELSE 0 END) as maintenance
+      FROM "${schemaName}".equipment
+      GROUP BY category
+      ORDER BY total DESC
+    `);
+
+    return result.map((row: any) => ({
+      category: row.category,
+      total: Number(row.total || 0),
+      available: Number(row.available || 0),
+      rented: Number(row.rented || 0),
+      maintenance: Number(row.maintenance || 0),
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+export async function getRevenueOverview(schemaName: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const now = new Date();
+
+    // This month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonthStr = startOfMonth.toISOString().split("T")[0];
+
+    // Last month
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    const startOfLastMonthStr = startOfLastMonth.toISOString().split("T")[0];
+    const endOfLastMonthStr = endOfLastMonth.toISOString().split("T")[0];
+
+    // This year
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const startOfYearStr = startOfYear.toISOString().split("T")[0];
+
+    // Current month revenue
+    const currentMonthResult = await client.unsafe(`
+      SELECT COALESCE(SUM(b.total), 0) as revenue
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".trips t ON b.trip_id = t.id
+      WHERE t.date >= '${startOfMonthStr}'
+        AND b.status NOT IN ('canceled', 'no_show')
+    `);
+
+    // Last month revenue
+    const lastMonthResult = await client.unsafe(`
+      SELECT COALESCE(SUM(b.total), 0) as revenue
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".trips t ON b.trip_id = t.id
+      WHERE t.date >= '${startOfLastMonthStr}'
+        AND t.date <= '${endOfLastMonthStr}'
+        AND b.status NOT IN ('canceled', 'no_show')
+    `);
+
+    // Year to date revenue
+    const ytdResult = await client.unsafe(`
+      SELECT COALESCE(SUM(b.total), 0) as revenue
+      FROM "${schemaName}".bookings b
+      JOIN "${schemaName}".trips t ON b.trip_id = t.id
+      WHERE t.date >= '${startOfYearStr}'
+        AND b.status NOT IN ('canceled', 'no_show')
+    `);
+
+    // Average booking value
+    const avgResult = await client.unsafe(`
+      SELECT COALESCE(AVG(total), 0) as avg
+      FROM "${schemaName}".bookings
+      WHERE status NOT IN ('canceled', 'no_show')
+    `);
+
+    const currentMonth = Number(currentMonthResult[0]?.revenue || 0);
+    const lastMonth = Number(lastMonthResult[0]?.revenue || 0);
+    const changePercent = lastMonth > 0
+      ? Math.round(((currentMonth - lastMonth) / lastMonth) * 100)
+      : 0;
+
+    return {
+      currentMonth,
+      lastMonth,
+      changePercent,
+      yearToDate: Number(ytdResult[0]?.revenue || 0),
+      avgBookingValue: Math.round(Number(avgResult[0]?.avg || 0)),
+    };
+  } finally {
+    await client.end();
+  }
+}
