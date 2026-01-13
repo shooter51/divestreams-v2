@@ -8,8 +8,8 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client
 
 // B2 configuration from environment
 const B2_ENDPOINT = process.env.B2_ENDPOINT;
-const B2_REGION = process.env.B2_REGION || "us-west-000";
-const B2_BUCKET = process.env.B2_BUCKET || "DiveStreams";
+const B2_REGION = process.env.B2_REGION || "us-west-004";
+const B2_BUCKET = process.env.B2_BUCKET || "divestreams-images";
 const B2_KEY_ID = process.env.B2_KEY_ID;
 const B2_APP_KEY = process.env.B2_APP_KEY;
 const CDN_URL = process.env.CDN_URL;
@@ -34,6 +34,10 @@ export function getS3Client(): S3Client | null {
   }
 
   return s3Client;
+}
+
+export function isStorageConfigured(): boolean {
+  return Boolean(B2_ENDPOINT && B2_KEY_ID && B2_APP_KEY);
 }
 
 export interface UploadResult {

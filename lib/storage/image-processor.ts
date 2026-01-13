@@ -1,7 +1,7 @@
 /**
  * Image Processing Service
  *
- * Generates thumbnails and optimizes images for web.
+ * Generates thumbnails and optimizes images for web using Sharp.
  */
 
 import sharp from "sharp";
