@@ -484,6 +484,11 @@ export function createTenantSchema(schemaName: string) {
     currency: text("currency").notNull().default("USD"),
     taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0"),
 
+    // Sale pricing
+    salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
+    saleStartDate: timestamp("sale_start_date"),
+    saleEndDate: timestamp("sale_end_date"),
+
     // Inventory tracking
     trackInventory: boolean("track_inventory").notNull().default(true),
     stockQuantity: integer("stock_quantity").notNull().default(0),
@@ -497,6 +502,31 @@ export function createTenantSchema(schemaName: string) {
   }, (table) => [
     index("products_category_idx").on(table.category),
     index("products_sku_idx").on(table.sku),
+  ]);
+
+  // Discount codes for bookings
+  const discountCodes = schema.table("discount_codes", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code: text("code").notNull().unique(),
+    description: text("description"),
+
+    discountType: text("discount_type").notNull(), // 'percentage' | 'fixed'
+    discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(), // e.g., 10 for 10% or $10
+
+    minBookingAmount: decimal("min_booking_amount", { precision: 10, scale: 2 }), // optional minimum
+    maxUses: integer("max_uses"), // null = unlimited
+    usedCount: integer("used_count").notNull().default(0),
+
+    validFrom: timestamp("valid_from"),
+    validTo: timestamp("valid_to"),
+
+    isActive: boolean("is_active").notNull().default(true),
+    applicableTo: text("applicable_to").notNull().default("all"), // 'all' | 'tours' | 'courses'
+
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  }, (table) => [
+    index("discount_codes_code_idx").on(table.code),
+    index("discount_codes_active_idx").on(table.isActive),
   ]);
 
   // Images (polymorphic - can belong to any entity)
@@ -539,6 +569,7 @@ export function createTenantSchema(schemaName: string) {
     transactions,
     rentals,
     products,
+    discountCodes,
     images,
   };
 }

@@ -40,6 +40,9 @@ export async function action({ request }: ActionFunctionArgs) {
     const stockQuantity = parseInt(formData.get("stockQuantity") as string) || 0;
     const lowStockThreshold = parseInt(formData.get("lowStockThreshold") as string) || 5;
     const costPrice = formData.get("costPrice") as string || null;
+    const salePrice = formData.get("salePrice") as string || null;
+    const saleStartDate = formData.get("saleStartDate") as string || null;
+    const saleEndDate = formData.get("saleEndDate") as string || null;
 
     await db.insert(tables.products).values({
       name,
@@ -50,6 +53,9 @@ export async function action({ request }: ActionFunctionArgs) {
       stockQuantity,
       lowStockThreshold,
       costPrice,
+      salePrice: salePrice || null,
+      saleStartDate: saleStartDate ? new Date(saleStartDate) : null,
+      saleEndDate: saleEndDate ? new Date(saleEndDate) : null,
       trackInventory: true,
       isActive: true,
     });
@@ -67,6 +73,9 @@ export async function action({ request }: ActionFunctionArgs) {
     const stockQuantity = parseInt(formData.get("stockQuantity") as string) || 0;
     const lowStockThreshold = parseInt(formData.get("lowStockThreshold") as string) || 5;
     const costPrice = formData.get("costPrice") as string || null;
+    const salePrice = formData.get("salePrice") as string || null;
+    const saleStartDate = formData.get("saleStartDate") as string || null;
+    const saleEndDate = formData.get("saleEndDate") as string || null;
     const isActive = formData.get("isActive") === "true";
 
     await db
@@ -80,6 +89,9 @@ export async function action({ request }: ActionFunctionArgs) {
         stockQuantity,
         lowStockThreshold,
         costPrice,
+        salePrice: salePrice || null,
+        saleStartDate: saleStartDate ? new Date(saleStartDate) : null,
+        saleEndDate: saleEndDate ? new Date(saleEndDate) : null,
         isActive,
         updatedAt: new Date(),
       })
@@ -248,6 +260,39 @@ const CATEGORIES = [
   "consumables",
   "other",
 ];
+
+// Helper to check if product is currently on sale
+function isOnSale(product: {
+  salePrice?: string | null;
+  saleStartDate?: Date | string | null;
+  saleEndDate?: Date | string | null;
+}): boolean {
+  if (!product.salePrice) return false;
+  const now = new Date();
+  if (product.saleStartDate && new Date(product.saleStartDate) > now) return false;
+  if (product.saleEndDate && new Date(product.saleEndDate) < now) return false;
+  return true;
+}
+
+// Helper to get the effective price (sale price if on sale, otherwise regular price)
+function getEffectivePrice(product: {
+  price: string;
+  salePrice?: string | null;
+  saleStartDate?: Date | string | null;
+  saleEndDate?: Date | string | null;
+}): number {
+  if (isOnSale(product)) {
+    return Number(product.salePrice);
+  }
+  return Number(product.price);
+}
+
+// Helper to format date for datetime-local input
+function formatDateForInput(dateVal: Date | string | null): string {
+  if (!dateVal) return "";
+  const date = dateVal instanceof Date ? dateVal : new Date(dateVal);
+  return date.toISOString().slice(0, 16);
+}
 
 export default function ProductsPage() {
   const { products } = useLoaderData<typeof loader>();
@@ -466,10 +511,19 @@ export default function ProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {categoryProducts.map((product) => (
+                {categoryProducts.map((product) => {
+                  const onSale = isOnSale(product);
+                  return (
                   <tr key={product.id} className={!product.isActive ? "bg-gray-50 opacity-60" : ""}>
                     <td className="px-4 py-3">
-                      <div className="font-medium">{product.name}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{product.name}</span>
+                        {onSale && (
+                          <span className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded font-semibold">
+                            SALE
+                          </span>
+                        )}
+                      </div>
                       {product.description && (
                         <div className="text-sm text-gray-500 truncate max-w-xs">
                           {product.description}
@@ -477,8 +531,21 @@ export default function ProductsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{product.sku || "-"}</td>
-                    <td className="px-4 py-3 text-right font-medium">
-                      ${Number(product.price).toFixed(2)}
+                    <td className="px-4 py-3 text-right">
+                      {onSale ? (
+                        <div>
+                          <span className="font-bold text-red-600">
+                            ${Number(product.salePrice).toFixed(2)}
+                          </span>
+                          <span className="text-sm text-gray-400 line-through ml-2">
+                            ${Number(product.price).toFixed(2)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-medium">
+                          ${Number(product.price).toFixed(2)}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span
@@ -523,7 +590,8 @@ export default function ProductsPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -638,6 +706,48 @@ export default function ProductsPage() {
                       name="lowStockThreshold"
                       min="0"
                       defaultValue={editingProduct?.lowStockThreshold ?? 5}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Sale Pricing Section */}
+                  <div className="col-span-2 border-t pt-4 mt-2">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Sale Pricing (Optional)</h3>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Sale Price</label>
+                    <input
+                      type="number"
+                      name="salePrice"
+                      step="0.01"
+                      min="0"
+                      defaultValue={editingProduct?.salePrice || ""}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Leave empty for no sale"
+                    />
+                  </div>
+
+                  <div className="col-span-1">
+                    {/* Empty div for grid alignment */}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Sale Starts</label>
+                    <input
+                      type="datetime-local"
+                      name="saleStartDate"
+                      defaultValue={formatDateForInput(editingProduct?.saleStartDate || null)}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Sale Ends</label>
+                    <input
+                      type="datetime-local"
+                      name="saleEndDate"
+                      defaultValue={formatDateForInput(editingProduct?.saleEndDate || null)}
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>

@@ -77,6 +77,9 @@ export default [
       // Products (Inventory)
       route("products", "routes/tenant/products.tsx"),
 
+      // Discount Codes
+      route("discounts", "routes/tenant/discounts.tsx"),
+
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
 

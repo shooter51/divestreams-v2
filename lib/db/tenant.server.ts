@@ -422,6 +422,9 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
       cost_price DECIMAL(10, 2),
       currency TEXT NOT NULL DEFAULT 'USD',
       tax_rate DECIMAL(5, 2) DEFAULT 0,
+      sale_price DECIMAL(10, 2),
+      sale_start_date TIMESTAMPTZ,
+      sale_end_date TIMESTAMPTZ,
       track_inventory BOOLEAN NOT NULL DEFAULT true,
       stock_quantity INTEGER NOT NULL DEFAULT 0,
       low_stock_threshold INTEGER DEFAULT 5,
@@ -429,6 +432,25 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
       is_active BOOLEAN NOT NULL DEFAULT true,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // Discount codes table
+  await client.unsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}".discount_codes (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      code TEXT NOT NULL UNIQUE,
+      description TEXT,
+      discount_type TEXT NOT NULL,
+      discount_value DECIMAL(10, 2) NOT NULL,
+      min_booking_amount DECIMAL(10, 2),
+      max_uses INTEGER,
+      used_count INTEGER NOT NULL DEFAULT 0,
+      valid_from TIMESTAMPTZ,
+      valid_to TIMESTAMPTZ,
+      is_active BOOLEAN NOT NULL DEFAULT true,
+      applicable_to TEXT NOT NULL DEFAULT 'all',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
@@ -466,6 +488,8 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_transactions_customer_idx" ON "${schemaName}".transactions(customer_id)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_products_category_idx" ON "${schemaName}".products(category)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_products_sku_idx" ON "${schemaName}".products(sku)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_discount_codes_code_idx" ON "${schemaName}".discount_codes(code)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_discount_codes_active_idx" ON "${schemaName}".discount_codes(is_active)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_rentals_customer_idx" ON "${schemaName}".rentals(customer_id)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_rentals_equipment_idx" ON "${schemaName}".rentals(equipment_id)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_rentals_status_idx" ON "${schemaName}".rentals(status)`);

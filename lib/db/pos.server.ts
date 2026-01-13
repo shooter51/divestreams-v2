@@ -11,10 +11,21 @@ type TenantTables = ReturnType<typeof createTenantSchema>;
 
 /**
  * Get active products for POS display
+ * Includes sale price fields for displaying sale indicators
  */
 export async function getPOSProducts(tables: TenantTables) {
   return db
-    .select()
+    .select({
+      id: tables.products.id,
+      name: tables.products.name,
+      category: tables.products.category,
+      price: tables.products.price,
+      salePrice: tables.products.salePrice,
+      saleStartDate: tables.products.saleStartDate,
+      saleEndDate: tables.products.saleEndDate,
+      stockQuantity: tables.products.stockQuantity,
+      imageUrl: tables.products.imageUrl,
+    })
     .from(tables.products)
     .where(eq(tables.products.isActive, true))
     .orderBy(tables.products.category, tables.products.name);

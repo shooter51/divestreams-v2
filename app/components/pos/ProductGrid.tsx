@@ -9,8 +9,28 @@ interface Product {
   name: string;
   category: string;
   price: string;
+  salePrice: string | null;
+  saleStartDate: Date | string | null;
+  saleEndDate: Date | string | null;
   stockQuantity: number;
   imageUrl: string | null;
+}
+
+// Helper to check if product is currently on sale
+function isOnSale(product: Product): boolean {
+  if (!product.salePrice) return false;
+  const now = new Date();
+  if (product.saleStartDate && new Date(product.saleStartDate) > now) return false;
+  if (product.saleEndDate && new Date(product.saleEndDate) < now) return false;
+  return true;
+}
+
+// Helper to get the effective price (sale price if on sale, otherwise regular price)
+function getEffectivePrice(product: Product): number {
+  if (isOnSale(product)) {
+    return Number(product.salePrice);
+  }
+  return Number(product.price);
 }
 
 interface Equipment {
@@ -132,15 +152,23 @@ export function ProductGrid({
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {tab === "retail" && filteredProducts.map(product => (
+          {tab === "retail" && filteredProducts.map(product => {
+            const onSale = isOnSale(product);
+            const effectivePrice = getEffectivePrice(product);
+            return (
             <button
               key={product.id}
-              onClick={() => onAddProduct(product)}
+              onClick={() => onAddProduct({ ...product, price: effectivePrice.toString() })}
               disabled={product.stockQuantity <= 0}
-              className={`p-4 bg-white rounded-lg shadow-sm border hover:border-blue-400 hover:shadow-md transition-all text-left ${
+              className={`p-4 bg-white rounded-lg shadow-sm border hover:border-blue-400 hover:shadow-md transition-all text-left relative ${
                 product.stockQuantity <= 0 ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
+              {onSale && (
+                <span className="absolute top-2 right-2 px-2 py-0.5 text-xs bg-red-500 text-white rounded-full font-semibold">
+                  SALE
+                </span>
+              )}
               {product.imageUrl && (
                 <img
                   src={product.imageUrl}
@@ -149,10 +177,18 @@ export function ProductGrid({
                 />
               )}
               <p className="font-medium truncate">{product.name}</p>
-              <p className="text-lg font-bold text-blue-600">${Number(product.price).toFixed(2)}</p>
+              {onSale ? (
+                <div>
+                  <span className="text-lg font-bold text-red-600">${effectivePrice.toFixed(2)}</span>
+                  <span className="text-sm text-gray-400 line-through ml-2">${Number(product.price).toFixed(2)}</span>
+                </div>
+              ) : (
+                <p className="text-lg font-bold text-blue-600">${Number(product.price).toFixed(2)}</p>
+              )}
               <p className="text-xs text-gray-500">{product.stockQuantity} in stock</p>
             </button>
-          ))}
+            );
+          })}
 
           {tab === "rentals" && filteredEquipment.map(item => (
             <RentalCard
