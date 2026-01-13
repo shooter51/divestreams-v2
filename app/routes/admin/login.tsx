@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">DiveStreams Admin</h1>
-          <p className="text-gray-500 mt-2">Enter your admin password to continue</p>
+          <p className="text-gray-600 mt-2">Enter your admin password to continue</p>
         </div>
 
         <form method="post" className="space-y-6">

@@ -55,7 +55,7 @@ export default function AdminPlansPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Subscription Plans</h1>
-          <p className="text-gray-500">{plans.length} plans</p>
+          <p className="text-gray-600">{plans.length} plans</p>
         </div>
         <Link
           to="/plans/new"
@@ -70,18 +70,18 @@ export default function AdminPlansPage() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Name</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Display Name</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-gray-500">Monthly</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-gray-500">Yearly</th>
-              <th className="text-center px-4 py-3 text-sm font-medium text-gray-500">Status</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-gray-500">Actions</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Name</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Display Name</th>
+              <th className="text-right px-4 py-3 text-sm font-medium text-gray-700">Monthly</th>
+              <th className="text-right px-4 py-3 text-sm font-medium text-gray-700">Yearly</th>
+              <th className="text-center px-4 py-3 text-sm font-medium text-gray-700">Status</th>
+              <th className="text-right px-4 py-3 text-sm font-medium text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {plans.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-600">
                   No plans found
                 </td>
               </tr>

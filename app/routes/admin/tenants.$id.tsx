@@ -138,7 +138,7 @@ export default function EditTenantPage() {
           &larr; Back to Tenants
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Tenant</h1>
-        <p className="text-gray-500">{tenant.subdomain}.divestreams.com</p>
+        <p className="text-gray-600">{tenant.subdomain}.divestreams.com</p>
       </div>
 
       <form method="post" className="bg-white rounded-xl p-6 shadow-sm space-y-6">
@@ -156,7 +156,7 @@ export default function EditTenantPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
-            <label className="block text-sm font-medium mb-1 text-gray-500">
+            <label className="block text-sm font-medium mb-1 text-gray-600">
               Subdomain (cannot be changed)
             </label>
             <div className="flex items-center">
@@ -164,9 +164,9 @@ export default function EditTenantPage() {
                 type="text"
                 value={tenant.subdomain}
                 disabled
-                className="flex-1 px-3 py-2 border rounded-l-lg bg-gray-50 text-gray-500"
+                className="flex-1 px-3 py-2 border rounded-l-lg bg-gray-50 text-gray-600"
               />
-              <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-lg text-gray-500">
+              <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-lg text-gray-600">
                 .divestreams.com
               </span>
             </div>
@@ -315,7 +315,7 @@ export default function EditTenantPage() {
               />
               <span className="text-sm font-medium">Active</span>
             </label>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               Inactive tenants cannot access their dashboard
             </p>
           </div>
@@ -362,19 +362,19 @@ export default function EditTenantPage() {
           <div className="text-sm space-y-2">
             {tenant.stripeCustomerId && (
               <p>
-                <span className="text-gray-500">Customer ID:</span>{" "}
+                <span className="text-gray-600">Customer ID:</span>{" "}
                 <code className="bg-gray-100 px-2 py-1 rounded">{tenant.stripeCustomerId}</code>
               </p>
             )}
             {tenant.stripeSubscriptionId && (
               <p>
-                <span className="text-gray-500">Subscription ID:</span>{" "}
+                <span className="text-gray-600">Subscription ID:</span>{" "}
                 <code className="bg-gray-100 px-2 py-1 rounded">{tenant.stripeSubscriptionId}</code>
               </p>
             )}
             {tenant.currentPeriodEnd && (
               <p>
-                <span className="text-gray-500">Current Period Ends:</span> {tenant.currentPeriodEnd}
+                <span className="text-gray-600">Current Period Ends:</span> {tenant.currentPeriodEnd}
               </p>
             )}
           </div>

@@ -112,7 +112,7 @@ export default function AdminTenantsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Tenants</h1>
-          <p className="text-gray-500">{tenantList.length} total</p>
+          <p className="text-gray-600">{tenantList.length} total</p>
         </div>
         <Link
           to="/tenants/new"
@@ -138,13 +138,13 @@ export default function AdminTenantsPage() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Subdomain</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Name</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Email</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Plan</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Status</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Created</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-gray-500">Actions</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Subdomain</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Name</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Email</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Plan</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Status</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Created</th>
+              <th className="text-right px-4 py-3 text-sm font-medium text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -168,7 +168,7 @@ export default function AdminTenantsPage() {
                     </a>
                   </td>
                   <td className="px-4 py-3">{tenant.name}</td>
-                  <td className="px-4 py-3 text-gray-500">{tenant.email}</td>
+                  <td className="px-4 py-3 text-gray-700">{tenant.email}</td>
                   <td className="px-4 py-3">{tenant.planName || "—"}</td>
                   <td className="px-4 py-3">
                     <span
@@ -179,7 +179,7 @@ export default function AdminTenantsPage() {
                       {tenant.subscriptionStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 text-sm">{tenant.createdAt}</td>
+                  <td className="px-4 py-3 text-gray-700 text-sm">{tenant.createdAt}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
                       <Link
