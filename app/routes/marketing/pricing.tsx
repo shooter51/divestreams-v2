@@ -36,16 +36,84 @@ function getPlanCta(name: string): string {
   return name.toLowerCase() === "enterprise" ? "Contact Sales" : "Start Free Trial";
 }
 
+// Default fallback plans if database is unavailable
+const DEFAULT_PLANS: Array<{
+  id: string;
+  name: string;
+  displayName: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  features: string[];
+}> = [
+  {
+    id: "default-starter",
+    name: "starter",
+    displayName: "Starter",
+    monthlyPrice: 4900,
+    yearlyPrice: 47000,
+    features: [
+      "Up to 3 users",
+      "1,000 customers",
+      "Booking management",
+      "Basic reporting",
+      "Email support",
+    ],
+  },
+  {
+    id: "default-pro",
+    name: "pro",
+    displayName: "Pro",
+    monthlyPrice: 9900,
+    yearlyPrice: 95000,
+    features: [
+      "Up to 10 users",
+      "Unlimited customers",
+      "Online booking widget",
+      "Equipment tracking",
+      "Advanced reporting",
+      "Priority support",
+      "API access",
+    ],
+  },
+  {
+    id: "default-enterprise",
+    name: "enterprise",
+    displayName: "Enterprise",
+    monthlyPrice: 19900,
+    yearlyPrice: 191000,
+    features: [
+      "Unlimited users",
+      "Unlimited customers",
+      "Multi-location support",
+      "Custom integrations",
+      "Dedicated support",
+      "White-label options",
+      "SLA guarantee",
+    ],
+  },
+];
+
 export async function loader() {
-  const plans = await db
-    .select()
-    .from(subscriptionPlans)
-    .where(eq(subscriptionPlans.isActive, true));
+  try {
+    const plans = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.isActive, true));
 
-  // Sort plans by monthly price (ascending)
-  plans.sort((a, b) => a.monthlyPrice - b.monthlyPrice);
+    // Sort plans by monthly price (ascending)
+    plans.sort((a, b) => a.monthlyPrice - b.monthlyPrice);
 
-  return { plans };
+    // If no plans in database, use defaults
+    if (plans.length === 0) {
+      return { plans: DEFAULT_PLANS };
+    }
+
+    return { plans };
+  } catch (error) {
+    // If database query fails, return default plans so page still renders
+    console.error("Failed to fetch subscription plans from database:", error);
+    return { plans: DEFAULT_PLANS };
+  }
 }
 
 export default function PricingPage() {
