@@ -34,6 +34,14 @@ export async function action({ request }: ActionFunctionArgs) {
     return await runRentalsMigration();
   }
 
+  if (migration === "add-discount-codes-table") {
+    return await runDiscountCodesMigration();
+  }
+
+  if (migration === "add-sale-price-columns") {
+    return await runSalePriceMigration();
+  }
+
   return { error: "Unknown migration" };
 }
 
@@ -109,6 +117,125 @@ async function runRentalsMigration() {
   }
 }
 
+async function runDiscountCodesMigration() {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    return { error: "DATABASE_URL not set" };
+  }
+
+  const client = postgres(connectionString);
+  const results: string[] = [];
+
+  try {
+    const allTenants = await db.select().from(tenants);
+
+    for (const tenant of allTenants) {
+      const schemaName = tenant.schemaName;
+
+      try {
+        const tableExists = await client`
+          SELECT EXISTS (
+            SELECT 1 FROM information_schema.tables
+            WHERE table_schema = ${schemaName} AND table_name = 'discount_codes'
+          ) as exists
+        `;
+
+        if (tableExists[0]?.exists) {
+          results.push(`${tenant.subdomain}: discount_codes table already exists`);
+          continue;
+        }
+
+        await client.unsafe(`
+          CREATE TABLE IF NOT EXISTS "${schemaName}".discount_codes (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            code TEXT NOT NULL UNIQUE,
+            description TEXT,
+            discount_type TEXT NOT NULL DEFAULT 'percentage',
+            discount_value DECIMAL(10, 2) NOT NULL,
+            min_booking_amount DECIMAL(10, 2),
+            max_uses INTEGER,
+            used_count INTEGER NOT NULL DEFAULT 0,
+            valid_from TIMESTAMPTZ,
+            valid_to TIMESTAMPTZ,
+            is_active BOOLEAN NOT NULL DEFAULT true,
+            applicable_to TEXT NOT NULL DEFAULT 'all',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+          )
+        `);
+
+        await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_discount_codes_code_idx" ON "${schemaName}".discount_codes(code)`);
+        await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_discount_codes_active_idx" ON "${schemaName}".discount_codes(is_active)`);
+
+        results.push(`${tenant.subdomain}: Created discount_codes table successfully`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        results.push(`${tenant.subdomain}: ERROR - ${message}`);
+      }
+    }
+
+    return { success: true, results };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return { error: `Migration failed: ${message}` };
+  } finally {
+    await client.end();
+  }
+}
+
+async function runSalePriceMigration() {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    return { error: "DATABASE_URL not set" };
+  }
+
+  const client = postgres(connectionString);
+  const results: string[] = [];
+
+  try {
+    const allTenants = await db.select().from(tenants);
+
+    for (const tenant of allTenants) {
+      const schemaName = tenant.schemaName;
+
+      try {
+        // Check if sale_price column exists
+        const columnExists = await client`
+          SELECT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = ${schemaName}
+            AND table_name = 'products'
+            AND column_name = 'sale_price'
+          ) as exists
+        `;
+
+        if (columnExists[0]?.exists) {
+          results.push(`${tenant.subdomain}: Sale price columns already exist`);
+          continue;
+        }
+
+        await client.unsafe(`
+          ALTER TABLE "${schemaName}".products
+          ADD COLUMN IF NOT EXISTS sale_price DECIMAL(10, 2),
+          ADD COLUMN IF NOT EXISTS sale_start_date TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS sale_end_date TIMESTAMPTZ
+        `);
+
+        results.push(`${tenant.subdomain}: Added sale price columns successfully`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        results.push(`${tenant.subdomain}: ERROR - ${message}`);
+      }
+    }
+
+    return { success: true, results };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return { error: `Migration failed: ${message}` };
+  } finally {
+    await client.end();
+  }
+}
+
 export default function AdminMigrationsPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -126,6 +253,42 @@ export default function AdminMigrationsPage() {
 
         <Form method="post">
           <input type="hidden" name="migration" value="add-rentals-table" />
+          <button
+            type="submit"
+            disabled={isRunning}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+          >
+            {isRunning ? "Running Migration..." : "Run Migration"}
+          </button>
+        </Form>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Add Discount Codes Table</h2>
+        <p className="text-gray-600 mb-4">
+          Creates the discount_codes table for all existing tenant schemas. Required for discount code functionality.
+        </p>
+
+        <Form method="post">
+          <input type="hidden" name="migration" value="add-discount-codes-table" />
+          <button
+            type="submit"
+            disabled={isRunning}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+          >
+            {isRunning ? "Running Migration..." : "Run Migration"}
+          </button>
+        </Form>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Add Sale Price Columns</h2>
+        <p className="text-gray-600 mb-4">
+          Adds sale_price, sale_start_date, and sale_end_date columns to the products table. Required for sale pricing in POS.
+        </p>
+
+        <Form method="post">
+          <input type="hidden" name="migration" value="add-sale-price-columns" />
           <button
             type="submit"
             disabled={isRunning}

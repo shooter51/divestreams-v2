@@ -24,9 +24,9 @@ describe("admin-auth.server", () => {
       expect(getAdminPassword()).toBe("TestAdmin123");
     });
 
-    it("throws error when ADMIN_PASSWORD is not set", () => {
+    it("returns null when ADMIN_PASSWORD is not set", () => {
       process.env.ADMIN_PASSWORD = "";
-      expect(() => getAdminPassword()).toThrow("ADMIN_PASSWORD environment variable is not set");
+      expect(getAdminPassword()).toBeNull();
     });
   });
 

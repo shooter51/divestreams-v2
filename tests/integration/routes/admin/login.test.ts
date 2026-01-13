@@ -8,6 +8,7 @@ vi.mock("../../../../lib/auth/admin-auth.server", () => ({
   createAdminSessionCookie: vi.fn(),
   isAdminAuthenticated: vi.fn(),
   isAdminSubdomain: vi.fn(),
+  getAdminPassword: vi.fn(() => "TestAdmin123"),
 }));
 
 import {
