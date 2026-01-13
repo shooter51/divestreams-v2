@@ -1,11 +1,11 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { getTourById } from "../../../../lib/db/queries.server";
-import { getTenantDb } from "../../../../lib/db/tenant.server";
-import { tourSchema, validateFormData, getFormValues } from "../../../../lib/validation";
-import { ImageManager, type Image } from "../../../../app/components/ui";
+import { requireTenant } from "../../../../../lib/auth/tenant-auth.server";
+import { getTourById } from "../../../../../lib/db/queries.server";
+import { getTenantDb } from "../../../../../lib/db/tenant.server";
+import { tourSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
+import { ImageManager, type Image } from "../../../../components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Edit Tour - DiveStreams" }];
 
