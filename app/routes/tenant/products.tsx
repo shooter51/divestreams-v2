@@ -16,12 +16,45 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const { tenant } = await requireTenant(request);
   const { schema: tables } = getTenantDb(tenant.schemaName);
 
-  const products = await db
-    .select()
-    .from(tables.products)
-    .orderBy(tables.products.category, tables.products.name);
+  try {
+    const products = await db
+      .select()
+      .from(tables.products)
+      .orderBy(tables.products.category, tables.products.name);
 
-  return { tenant, products };
+    return { tenant, products, migrationNeeded: false };
+  } catch (error) {
+    // If sale_price columns don't exist yet, try without them
+    console.error("Products query failed, trying basic query:", error);
+    try {
+      const products = await db
+        .select({
+          id: tables.products.id,
+          name: tables.products.name,
+          sku: tables.products.sku,
+          category: tables.products.category,
+          description: tables.products.description,
+          price: tables.products.price,
+          costPrice: tables.products.costPrice,
+          currency: tables.products.currency,
+          taxRate: tables.products.taxRate,
+          trackInventory: tables.products.trackInventory,
+          stockQuantity: tables.products.stockQuantity,
+          lowStockThreshold: tables.products.lowStockThreshold,
+          imageUrl: tables.products.imageUrl,
+          isActive: tables.products.isActive,
+          createdAt: tables.products.createdAt,
+          updatedAt: tables.products.updatedAt,
+        })
+        .from(tables.products)
+        .orderBy(tables.products.category, tables.products.name);
+
+      return { tenant, products, migrationNeeded: true };
+    } catch (fallbackError) {
+      console.error("Basic products query also failed:", fallbackError);
+      return { tenant, products: [], migrationNeeded: true };
+    }
+  }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
