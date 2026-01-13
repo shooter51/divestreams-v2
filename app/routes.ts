@@ -74,6 +74,9 @@ export default [
       route("equipment/:id/edit", "routes/tenant/equipment/$id/edit.tsx"),
       route("equipment/:id", "routes/tenant/equipment/$id.tsx"),
 
+      // Products (Inventory)
+      route("products", "routes/tenant/products.tsx"),
+
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
 
@@ -106,5 +109,6 @@ export default [
     route("tenants/:id", "routes/admin/tenants.$id.tsx"),
     route("plans", "routes/admin/plans.tsx"),
     route("plans/:id", "routes/admin/plans.$id.tsx"),
+    route("migrations", "routes/admin/migrations.tsx"),
   ]),
 ] satisfies RouteConfig;
