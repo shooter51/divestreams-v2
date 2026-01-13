@@ -1,0 +1,299 @@
+import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
+import { eq } from "drizzle-orm";
+import { requireTenant } from "../../../../../lib/auth/tenant-auth.server";
+import { getDiveSiteById } from "../../../../../lib/db/queries.server";
+import { getTenantDb } from "../../../../../lib/db/tenant.server";
+import { diveSiteSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
+
+export const meta: MetaFunction = () => [{ title: "Edit Dive Site - DiveStreams" }];
+
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { tenant } = await requireTenant(request);
+  const siteId = params.id;
+
+  if (!siteId) {
+    throw new Response("Dive Site ID required", { status: 400 });
+  }
+
+  const siteData = await getDiveSiteById(tenant.schemaName, siteId);
+
+  if (!siteData) {
+    throw new Response("Dive site not found", { status: 404 });
+  }
+
+  const site = {
+    id: siteData.id,
+    name: siteData.name,
+    description: siteData.description || "",
+    maxDepth: siteData.maxDepth || 0,
+    difficulty: siteData.difficulty || "intermediate",
+    latitude: siteData.latitude,
+    longitude: siteData.longitude,
+    visibility: siteData.visibility || "",
+    currentStrength: siteData.currentStrength || "",
+    highlights: siteData.highlights || [],
+    isActive: siteData.isActive,
+  };
+
+  return { site };
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const { tenant } = await requireTenant(request);
+  const siteId = params.id;
+
+  if (!siteId) {
+    throw new Response("Dive Site ID required", { status: 400 });
+  }
+
+  const formData = await request.formData();
+
+  // Convert highlights array
+  const highlightsRaw = formData.get("highlights") as string;
+  if (highlightsRaw) {
+    formData.set("highlights", JSON.stringify(highlightsRaw.split(",").map((s) => s.trim()).filter(Boolean)));
+  }
+
+  const validation = validateFormData(formData, diveSiteSchema);
+
+  if (!validation.success) {
+    return { errors: validation.errors, values: getFormValues(formData) };
+  }
+
+  // Update dive site in database
+  const { db, schema } = getTenantDb(tenant.schemaName);
+
+  await db
+    .update(schema.diveSites)
+    .set({
+      name: validation.data.name,
+      description: validation.data.description,
+      maxDepth: validation.data.maxDepth,
+      difficulty: validation.data.difficulty,
+      latitude: validation.data.latitude,
+      longitude: validation.data.longitude,
+      visibility: validation.data.visibility,
+      currentStrength: validation.data.currentStrength,
+      highlights: validation.data.highlights,
+      isActive: validation.data.isActive,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.diveSites.id, siteId));
+
+  return redirect(`/app/dive-sites/${siteId}`);
+}
+
+export default function EditDiveSitePage() {
+  const { site } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+
+  return (
+    <div className="max-w-2xl">
+      <div className="mb-6">
+        <Link to={`/app/dive-sites/${site.id}`} className="text-blue-600 hover:underline text-sm">
+          ← Back to Dive Site
+        </Link>
+        <h1 className="text-2xl font-bold mt-2">Edit Dive Site</h1>
+      </div>
+
+      <form method="post" className="space-y-6">
+        {/* Basic Info */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Basic Information</h2>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium mb-1">
+                Site Name *
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                defaultValue={actionData?.values?.name || site.name}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              {actionData?.errors?.name && (
+                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium mb-1">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows={3}
+                defaultValue={actionData?.values?.description || site.description}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Dive Details */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Dive Details</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="maxDepth" className="block text-sm font-medium mb-1">
+                Maximum Depth (meters) *
+              </label>
+              <input
+                type="number"
+                id="maxDepth"
+                name="maxDepth"
+                required
+                min="1"
+                max="100"
+                defaultValue={actionData?.values?.maxDepth || site.maxDepth}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="difficulty" className="block text-sm font-medium mb-1">
+                Difficulty Level *
+              </label>
+              <select
+                id="difficulty"
+                name="difficulty"
+                required
+                defaultValue={actionData?.values?.difficulty || site.difficulty}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="expert">Expert</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="visibility" className="block text-sm font-medium mb-1">
+                Typical Visibility
+              </label>
+              <input
+                type="text"
+                id="visibility"
+                name="visibility"
+                placeholder="e.g., 15-25m"
+                defaultValue={actionData?.values?.visibility || site.visibility}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="currentStrength" className="block text-sm font-medium mb-1">
+                Current Strength
+              </label>
+              <select
+                id="currentStrength"
+                name="currentStrength"
+                defaultValue={actionData?.values?.currentStrength || site.currentStrength}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select...</option>
+                <option value="none">None</option>
+                <option value="mild">Mild</option>
+                <option value="moderate">Moderate</option>
+                <option value="strong">Strong</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Coordinates */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">GPS Coordinates</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="latitude" className="block text-sm font-medium mb-1">
+                Latitude
+              </label>
+              <input
+                type="number"
+                id="latitude"
+                name="latitude"
+                step="0.000001"
+                min="-90"
+                max="90"
+                defaultValue={actionData?.values?.latitude || site.latitude || ""}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="longitude" className="block text-sm font-medium mb-1">
+                Longitude
+              </label>
+              <input
+                type="number"
+                id="longitude"
+                name="longitude"
+                step="0.000001"
+                min="-180"
+                max="180"
+                defaultValue={actionData?.values?.longitude || site.longitude || ""}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Highlights */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Highlights & Features</h2>
+          <div>
+            <label htmlFor="highlights" className="block text-sm font-medium mb-1">
+              Key Attractions
+            </label>
+            <input
+              type="text"
+              id="highlights"
+              name="highlights"
+              placeholder="e.g., Sharks, Corals, Wall dive (comma-separated)"
+              defaultValue={actionData?.values?.highlights || site.highlights?.join(", ")}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              name="isActive"
+              value="true"
+              defaultChecked={actionData?.values?.isActive !== "false" && site.isActive}
+              className="rounded"
+            />
+            <span className="font-medium">Active</span>
+          </label>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+          >
+            {isSubmitting ? "Saving..." : "Save Changes"}
+          </button>
+          <Link
+            to={`/app/dive-sites/${site.id}`}
+            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </Link>
+        </div>
+      </form>
+    </div>
+  );
+}

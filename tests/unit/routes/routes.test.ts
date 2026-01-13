@@ -182,13 +182,19 @@ describe("Route Configuration", () => {
     // More specific routes should come before dynamic routes
     const routePatterns = [
       { specific: "bookings/new", dynamic: "bookings/:id" },
+      { specific: "bookings/:id/edit", dynamic: "bookings/:id" },
       { specific: "customers/new", dynamic: "customers/:id" },
+      { specific: "customers/:id/edit", dynamic: "customers/:id" },
       { specific: "tours/new", dynamic: "tours/:id" },
       { specific: "tours/:id/edit", dynamic: "tours/:id" },
       { specific: "trips/new", dynamic: "trips/:id" },
+      { specific: "trips/:id/edit", dynamic: "trips/:id" },
       { specific: "dive-sites/new", dynamic: "dive-sites/:id" },
+      { specific: "dive-sites/:id/edit", dynamic: "dive-sites/:id" },
       { specific: "boats/new", dynamic: "boats/:id" },
+      { specific: "boats/:id/edit", dynamic: "boats/:id" },
       { specific: "equipment/new", dynamic: "equipment/:id" },
+      { specific: "equipment/:id/edit", dynamic: "equipment/:id" },
     ];
 
     for (const { specific, dynamic } of routePatterns) {

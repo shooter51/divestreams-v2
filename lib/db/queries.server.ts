@@ -383,6 +383,29 @@ export async function getTours(
   }
 }
 
+/**
+ * Get all active tours for dropdown selection
+ */
+export async function getAllTours(schemaName: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const tours = await client.unsafe(`
+      SELECT id, name
+      FROM "${schemaName}".tours
+      WHERE is_active = true
+      ORDER BY name
+    `);
+
+    return tours.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
 export async function getTourById(schemaName: string, id: string) {
   const client = getClient(schemaName);
 
@@ -792,6 +815,30 @@ export async function getBoats(
     return boats.map((row: any) => ({
       ...mapBoat(row),
       tripCount: Number(row.trip_count || 0),
+    }));
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Get all active boats for dropdown selection
+ */
+export async function getAllBoats(schemaName: string) {
+  const client = getClient(schemaName);
+
+  try {
+    const boats = await client.unsafe(`
+      SELECT id, name, capacity
+      FROM "${schemaName}".boats
+      WHERE is_active = true
+      ORDER BY name
+    `);
+
+    return boats.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      capacity: row.capacity,
     }));
   } finally {
     await client.end();

@@ -23,6 +23,7 @@ export default [
       // Bookings
       route("bookings", "routes/tenant/bookings/index.tsx"),
       route("bookings/new", "routes/tenant/bookings/new.tsx"),
+      route("bookings/:id/edit", "routes/tenant/bookings/$id/edit.tsx"),
       route("bookings/:id", "routes/tenant/bookings/$id.tsx"),
 
       // Calendar
@@ -31,6 +32,7 @@ export default [
       // Customers
       route("customers", "routes/tenant/customers/index.tsx"),
       route("customers/new", "routes/tenant/customers/new.tsx"),
+      route("customers/:id/edit", "routes/tenant/customers/$id/edit.tsx"),
       route("customers/:id", "routes/tenant/customers/$id.tsx"),
 
       // Tours & Trips
@@ -46,21 +48,25 @@ export default [
       route("images/reorder", "routes/tenant/images/reorder.tsx"),
       route("trips", "routes/tenant/trips/index.tsx"),
       route("trips/new", "routes/tenant/trips/new.tsx"),
+      route("trips/:id/edit", "routes/tenant/trips/$id/edit.tsx"),
       route("trips/:id", "routes/tenant/trips/$id.tsx"),
 
       // Dive Sites
       route("dive-sites", "routes/tenant/dive-sites/index.tsx"),
       route("dive-sites/new", "routes/tenant/dive-sites/new.tsx"),
+      route("dive-sites/:id/edit", "routes/tenant/dive-sites/$id/edit.tsx"),
       route("dive-sites/:id", "routes/tenant/dive-sites/$id.tsx"),
 
       // Boats
       route("boats", "routes/tenant/boats/index.tsx"),
       route("boats/new", "routes/tenant/boats/new.tsx"),
+      route("boats/:id/edit", "routes/tenant/boats/$id/edit.tsx"),
       route("boats/:id", "routes/tenant/boats/$id.tsx"),
 
       // Equipment
       route("equipment", "routes/tenant/equipment/index.tsx"),
       route("equipment/new", "routes/tenant/equipment/new.tsx"),
+      route("equipment/:id/edit", "routes/tenant/equipment/$id/edit.tsx"),
       route("equipment/:id", "routes/tenant/equipment/$id.tsx"),
 
       // Reports
