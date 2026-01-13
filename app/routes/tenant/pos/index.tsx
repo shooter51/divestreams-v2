@@ -3,69 +3,30 @@
  *
  * Main checkout interface for retail sales.
  * Supports product search, cart management, and payment processing.
+ *
+ * PREMIUM FEATURE: POS is only available to premium subscribers.
  */
 
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useFetcher, Link } from "react-router";
 import { useState, useCallback, useMemo } from "react";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import {
-  getProducts,
-  getProductCategories,
-  getPOSSummary,
-  createPOSTransaction,
-  adjustProductStock,
-  type Product,
-} from "../../../../lib/db/queries.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { products, transactions } from "../../../../lib/db/schema";
+import { eq, sql, count, and, gte } from "drizzle-orm";
+import { PremiumGate } from "../../../components/ui/UpgradePrompt";
 
 export const meta: MetaFunction = () => [{ title: "POS - DiveStreams" }];
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
-
-  const [products, categories, summary] = await Promise.all([
-    getProducts(tenant.schemaName),
-    getProductCategories(tenant.schemaName),
-    getPOSSummary(tenant.schemaName),
-  ]);
-
-  return { products, categories, summary };
-}
-
-export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
-  const formData = await request.formData();
-  const intent = formData.get("intent");
-
-  if (intent === "checkout") {
-    const items = JSON.parse(formData.get("items") as string);
-    const paymentMethod = formData.get("paymentMethod") as string;
-    const total = Number(formData.get("total"));
-
-    // Create transaction
-    const transaction = await createPOSTransaction(tenant.schemaName, {
-      type: "sale",
-      amount: total,
-      paymentMethod,
-      items: items.map((item: CartItem) => ({
-        description: item.name,
-        quantity: item.quantity,
-        unitPrice: item.price,
-        total: item.price * item.quantity,
-      })),
-    });
-
-    // Adjust stock for each item
-    for (const item of items) {
-      if (item.trackInventory) {
-        await adjustProductStock(tenant.schemaName, item.id, -item.quantity);
-      }
-    }
-
-    return { success: true, transactionId: transaction.id };
-  }
-
-  return { error: "Invalid action" };
+interface Product {
+  id: string;
+  name: string;
+  sku: string | null;
+  price: number;
+  category: string;
+  trackInventory: boolean;
+  stockQuantity: number;
+  lowStockThreshold: number;
 }
 
 interface CartItem {
@@ -74,6 +35,128 @@ interface CartItem {
   price: number;
   quantity: number;
   trackInventory: boolean;
+}
+
+interface POSSummary {
+  totalSales: number;
+  transactionCount: number;
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const ctx = await requireOrgContext(request);
+
+  // Check if POS feature is available
+  if (!ctx.limits.hasPOS) {
+    return {
+      isPremium: false,
+      requiresUpgrade: true,
+      products: [] as Product[],
+      categories: [] as string[],
+      summary: { totalSales: 0, transactionCount: 0 } as POSSummary,
+    };
+  }
+
+  // Get products for POS
+  const productList = await db
+    .select()
+    .from(products)
+    .where(eq(products.organizationId, ctx.org.id))
+    .orderBy(products.name);
+
+  // Get unique categories
+  const categories = [...new Set(productList.map((p) => p.category).filter(Boolean))];
+
+  // Get today's sales summary
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [salesData] = await db
+    .select({
+      totalSales: sql<number>`COALESCE(SUM(${transactions.amount}), 0)`,
+      transactionCount: count(),
+    })
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.organizationId, ctx.org.id),
+        eq(transactions.type, "sale"),
+        gte(transactions.createdAt, today)
+      )
+    );
+
+  const summary: POSSummary = {
+    totalSales: Number(salesData?.totalSales || 0),
+    transactionCount: salesData?.transactionCount || 0,
+  };
+
+  return {
+    isPremium: true,
+    requiresUpgrade: false,
+    products: productList.map((p) => ({
+      id: p.id,
+      name: p.name,
+      sku: p.sku,
+      price: Number(p.price),
+      category: p.category || "other",
+      trackInventory: p.trackInventory ?? false,
+      stockQuantity: p.stockQuantity ?? 0,
+      lowStockThreshold: p.lowStockThreshold ?? 5,
+    })),
+    categories,
+    summary,
+  };
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const ctx = await requireOrgContext(request);
+
+  // Enforce premium check on actions too
+  if (!ctx.limits.hasPOS) {
+    return { error: "POS is a premium feature. Please upgrade to continue." };
+  }
+
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "checkout") {
+    const items = JSON.parse(formData.get("items") as string) as CartItem[];
+    const paymentMethod = formData.get("paymentMethod") as string;
+    const total = Number(formData.get("total"));
+
+    // Create transaction
+    const [transaction] = await db
+      .insert(transactions)
+      .values({
+        organizationId: ctx.org.id,
+        type: "sale",
+        amount: String(total),
+        paymentMethod,
+        items: items.map((item) => ({
+          description: item.name,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          total: item.price * item.quantity,
+        })),
+        createdAt: new Date(),
+      })
+      .returning({ id: transactions.id });
+
+    // Adjust stock for each item
+    for (const item of items) {
+      if (item.trackInventory) {
+        await db
+          .update(products)
+          .set({
+            stockQuantity: sql`${products.stockQuantity} - ${item.quantity}`,
+          })
+          .where(eq(products.id, item.id));
+      }
+    }
+
+    return { success: true, transactionId: transaction.id };
+  }
+
+  return { error: "Invalid action" };
 }
 
 function formatCurrency(amount: number): string {
@@ -93,7 +176,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function POSPage() {
-  const { products, categories, summary } = useLoaderData<typeof loader>();
+  const { isPremium, requiresUpgrade, products, categories, summary } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const fetcher = useFetcher();
 
@@ -177,6 +260,42 @@ export default function POSPage() {
     },
     [cart, total, fetcher]
   );
+
+  // If not premium, show the upgrade gate
+  if (requiresUpgrade) {
+    return (
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Point of Sale</h1>
+            <p className="text-sm text-gray-500">Premium Feature</p>
+          </div>
+        </div>
+
+        <PremiumGate feature="Point of Sale" isPremium={isPremium}>
+          <div className="bg-white rounded-xl p-8 shadow-sm min-h-[400px] flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <svg
+                className="w-16 h-16 mx-auto mb-4 text-gray-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                />
+              </svg>
+              <p className="text-lg font-medium text-gray-500">POS Terminal</p>
+              <p className="text-sm">Process sales, manage inventory, and track transactions</p>
+            </div>
+          </div>
+        </PremiumGate>
+      </div>
+    );
+  }
 
   // Show receipt after successful transaction
   if (showReceipt && fetcher.data?.success) {

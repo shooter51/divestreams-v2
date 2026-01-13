@@ -1,12 +1,15 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { getBookings } from "../../../../lib/db/queries.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
+import { eq, or, ilike, sql, count, and, gte } from "drizzle-orm";
+import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 
 export const meta: MetaFunction = () => [{ title: "Bookings - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const status = url.searchParams.get("status") || "";
@@ -14,46 +17,114 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  const { bookings: rawBookings, total } = await getBookings(tenant.schemaName, {
-    status: status || undefined,
-    limit,
-    offset,
-  });
+  // Build query with organization filter
+  const baseCondition = eq(bookings.organizationId, ctx.org.id);
 
-  // Transform to expected format
-  const bookings = rawBookings.map((b) => ({
+  // Add status filter if provided
+  const statusCondition = status ? eq(bookings.status, status) : undefined;
+
+  // Combine conditions
+  let whereCondition = baseCondition;
+  if (statusCondition) {
+    whereCondition = sql`${baseCondition} AND ${statusCondition}`;
+  }
+
+  // Get bookings with customer and trip info
+  const bookingList = await db
+    .select({
+      id: bookings.id,
+      bookingNumber: bookings.bookingNumber,
+      status: bookings.status,
+      participants: bookings.participants,
+      total: bookings.total,
+      paidAmount: bookings.paidAmount,
+      createdAt: bookings.createdAt,
+      customerId: bookings.customerId,
+      customerFirstName: customers.firstName,
+      customerLastName: customers.lastName,
+      customerEmail: customers.email,
+      tripId: bookings.tripId,
+      tripDate: trips.date,
+      tripTime: trips.startTime,
+      tourName: tours.name,
+    })
+    .from(bookings)
+    .leftJoin(customers, eq(bookings.customerId, customers.id))
+    .leftJoin(trips, eq(bookings.tripId, trips.id))
+    .leftJoin(tours, eq(trips.tourId, tours.id))
+    .where(whereCondition)
+    .orderBy(sql`${bookings.createdAt} DESC`)
+    .limit(limit)
+    .offset(offset);
+
+  // Get total count for pagination
+  const [{ value: total }] = await db
+    .select({ value: count() })
+    .from(bookings)
+    .where(whereCondition);
+
+  // Transform to UI format
+  const bookingData = bookingList.map((b) => ({
     id: b.id,
     bookingNumber: b.bookingNumber,
     customer: {
       id: b.customerId,
-      firstName: b.customerFirstName,
-      lastName: b.customerLastName,
-      email: b.customerEmail,
+      firstName: b.customerFirstName || "",
+      lastName: b.customerLastName || "",
+      email: b.customerEmail || "",
     },
     trip: {
       id: b.tripId,
-      tourName: b.tourName,
-      date: b.tripDate instanceof Date ? b.tripDate.toLocaleDateString() : String(b.tripDate),
-      startTime: b.tripTime,
+      tourName: b.tourName || "Unknown Tour",
+      date: b.tripDate ? (typeof b.tripDate === 'object' && 'toLocaleDateString' in b.tripDate ? (b.tripDate as Date).toLocaleDateString() : String(b.tripDate)) : "",
+      startTime: b.tripTime || "",
     },
     participants: b.participants,
-    total: b.total.toFixed(2),
+    total: Number(b.total || 0).toFixed(2),
     status: b.status,
-    paidAmount: b.paidAmount.toFixed(2),
+    paidAmount: Number(b.paidAmount || 0).toFixed(2),
     createdAt: b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "",
   }));
 
-  // Calculate stats
+  // Calculate stats from the current page data
   const today = new Date().toLocaleDateString();
   const stats = {
-    today: bookings.filter((b) => b.trip.date === today).length,
-    upcoming: bookings.filter((b) => b.status === "confirmed").length,
-    pendingPayment: bookings.filter(
+    today: bookingData.filter((b) => b.trip.date === today).length,
+    upcoming: bookingData.filter((b) => b.status === "confirmed").length,
+    pendingPayment: bookingData.filter(
       (b) => b.status !== "cancelled" && b.status !== "canceled" && parseFloat(b.paidAmount) < parseFloat(b.total)
     ).length,
   };
 
-  return { bookings, total, page, search, status, stats };
+  // Get monthly booking count for limit tracking
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const [{ value: monthlyCount }] = await db
+    .select({ value: count() })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, startOfMonth)
+      )
+    );
+
+  return {
+    bookings: bookingData,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+    search,
+    status,
+    stats,
+    // Freemium data
+    canAddBooking: ctx.canAddBooking,
+    usage: monthlyCount,
+    limit: ctx.limits.bookingsPerMonth,
+    isPremium: ctx.isPremium,
+  };
 }
 
 const statusColors: Record<string, string> = {
@@ -65,7 +136,19 @@ const statusColors: Record<string, string> = {
 };
 
 export default function BookingsPage() {
-  const { bookings, total, page, search, status, stats } = useLoaderData<typeof loader>();
+  const {
+    bookings,
+    total,
+    page,
+    totalPages,
+    search,
+    status,
+    stats,
+    canAddBooking,
+    usage,
+    limit,
+    isPremium
+  } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleFilter = (e: React.FormEvent<HTMLFormElement>) => {
@@ -79,16 +162,48 @@ export default function BookingsPage() {
     setSearchParams(params);
   };
 
+  // Check if at limit (for free tier)
+  const isAtLimit = !isPremium && usage >= limit;
+
   return (
     <div>
+      {/* Show upgrade banner when at limit */}
+      {isAtLimit && (
+        <div className="mb-6">
+          <UpgradePrompt
+            feature="bookings this month"
+            currentCount={usage}
+            limit={limit}
+            variant="banner"
+          />
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Bookings</h1>
-          <p className="text-gray-500">{total} bookings</p>
+          <p className="text-gray-500">
+            {total} total bookings
+            {!isPremium && (
+              <span className="ml-2 text-sm text-gray-400">
+                ({usage}/{limit} this month)
+              </span>
+            )}
+          </p>
         </div>
         <Link
           to="/app/bookings/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className={`px-4 py-2 rounded-lg ${
+            canAddBooking
+              ? "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+          onClick={(e) => {
+            if (!canAddBooking) {
+              e.preventDefault();
+            }
+          }}
+          aria-disabled={!canAddBooking}
         >
           New Booking
         </Link>
@@ -220,6 +335,31 @@ export default function BookingsPage() {
             )}
           </tbody>
         </table>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-3 border-t flex justify-between items-center">
+            <span className="text-sm text-gray-500">
+              Page {page} of {totalPages}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page - 1) })}
+                disabled={page <= 1}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page + 1) })}
+                disabled={page >= totalPages}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

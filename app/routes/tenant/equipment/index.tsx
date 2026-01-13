@@ -1,24 +1,61 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { getEquipment } from "../../../../lib/db/queries.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { equipment } from "../../../../lib/db/schema";
+import { eq, or, ilike, sql, count } from "drizzle-orm";
+import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 
 export const meta: MetaFunction = () => [{ title: "Equipment - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("q") || "";
   const category = url.searchParams.get("category") || "";
   const status = url.searchParams.get("status") || "";
 
-  // Get all equipment first for stats, then filter for display
-  const allEquipment = await getEquipment(tenant.schemaName, {});
-  const equipment = await getEquipment(tenant.schemaName, {
-    search: search || undefined,
-    category: category || undefined,
-    status: status || undefined,
-  });
+  // Build query with organization filter
+  const baseCondition = eq(equipment.organizationId, ctx.org.id);
+
+  // Build filter conditions
+  let whereCondition = baseCondition;
+
+  if (search) {
+    const searchCondition = or(
+      ilike(equipment.name, `%${search}%`),
+      ilike(equipment.brand, `%${search}%`),
+      ilike(equipment.model, `%${search}%`)
+    );
+    whereCondition = sql`${baseCondition} AND ${searchCondition}`;
+  }
+
+  if (category) {
+    const categoryCondition = eq(equipment.category, category);
+    whereCondition = search
+      ? sql`${whereCondition} AND ${categoryCondition}`
+      : sql`${baseCondition} AND ${categoryCondition}`;
+  }
+
+  if (status) {
+    const statusCondition = eq(equipment.status, status);
+    whereCondition = search || category
+      ? sql`${whereCondition} AND ${statusCondition}`
+      : sql`${baseCondition} AND ${statusCondition}`;
+  }
+
+  // Get filtered equipment
+  const equipmentList = await db
+    .select()
+    .from(equipment)
+    .where(whereCondition)
+    .orderBy(equipment.name);
+
+  // Get stats from all equipment (not filtered)
+  const allEquipment = await db
+    .select()
+    .from(equipment)
+    .where(baseCondition);
 
   const stats = {
     total: allEquipment.length,
@@ -28,7 +65,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
     retired: allEquipment.filter((e) => e.status === "retired").length,
   };
 
-  return { equipment, stats, search, category, status };
+  // Count rentable equipment
+  const rentableCount = allEquipment.filter((e) => e.isRentable).length;
+
+  return {
+    equipment: equipmentList,
+    stats,
+    search,
+    category,
+    status,
+    // Freemium data for equipment rentals
+    hasEquipmentRentals: ctx.limits.hasEquipmentRentals,
+    isPremium: ctx.isPremium,
+    rentableCount,
+  };
 }
 
 const categoryLabels: Record<string, string> = {
@@ -57,7 +107,16 @@ const conditionColors: Record<string, string> = {
 };
 
 export default function EquipmentPage() {
-  const { equipment, stats, search, category, status } = useLoaderData<typeof loader>();
+  const {
+    equipment,
+    stats,
+    search,
+    category,
+    status,
+    hasEquipmentRentals,
+    isPremium,
+    rentableCount
+  } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -79,17 +138,48 @@ export default function EquipmentPage() {
 
   return (
     <div>
+      {/* Show rental upgrade prompt if trying to use rentals without premium */}
+      {!isPremium && rentableCount > 0 && (
+        <div className="mb-6">
+          <UpgradePrompt
+            feature="Equipment Rentals"
+            variant="inline"
+          />
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Equipment Inventory</h1>
           <p className="text-gray-500">{stats.total} items total</p>
         </div>
-        <Link
-          to="/app/equipment/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Add Equipment
-        </Link>
+        <div className="flex gap-3">
+          {/* Rental management button - premium only */}
+          {hasEquipmentRentals ? (
+            <Link
+              to="/app/equipment/rentals"
+              className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
+            >
+              Manage Rentals
+            </Link>
+          ) : (
+            <button
+              className="px-4 py-2 border rounded-lg text-gray-400 cursor-not-allowed text-sm relative group"
+              disabled
+            >
+              Manage Rentals
+              <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity">
+                Premium feature
+              </span>
+            </button>
+          )}
+          <Link
+            to="/app/equipment/new"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Add Equipment
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
@@ -119,7 +209,12 @@ export default function EquipmentPage() {
           onClick={() => setFilter("status", "rented")}
         >
           <p className="text-2xl font-bold text-blue-600">{stats.rented}</p>
-          <p className="text-gray-500 text-sm">Rented</p>
+          <p className="text-gray-500 text-sm">
+            Rented
+            {!hasEquipmentRentals && stats.rented > 0 && (
+              <span className="ml-1 text-xs text-amber-500">(Premium)</span>
+            )}
+          </p>
         </div>
         <div
           className={`bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-yellow-500 ${
@@ -214,8 +309,8 @@ export default function EquipmentPage() {
                     <span className="text-sm">{item.size || "-"}</span>
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`text-sm ${conditionColors[item.condition]}`}>
-                      {item.condition}
+                    <span className={`text-sm ${item.condition ? conditionColors[item.condition] : ''}`}>
+                      {item.condition || "Unknown"}
                     </span>
                   </td>
                   <td className="py-3 px-4">
@@ -229,7 +324,14 @@ export default function EquipmentPage() {
                   </td>
                   <td className="py-3 px-4 text-right">
                     {item.isRentable ? (
-                      <span className="text-sm">${item.rentalPrice}/day</span>
+                      <div>
+                        <span className="text-sm">${Number(item.rentalPrice || 0).toFixed(2)}/day</span>
+                        {!hasEquipmentRentals && (
+                          <span className="ml-1 text-xs text-amber-500" title="Premium feature required for rentals">
+                            *
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-sm text-gray-400">N/A</span>
                     )}
@@ -238,6 +340,16 @@ export default function EquipmentPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Premium rental notice */}
+      {!isPremium && rentableCount > 0 && (
+        <div className="mt-4 text-center text-sm text-gray-500">
+          <span className="text-amber-500">*</span> Equipment rentals require a premium subscription.{" "}
+          <Link to="/app/settings/billing" className="text-blue-600 hover:underline">
+            Upgrade now
+          </Link>
         </div>
       )}
     </div>
