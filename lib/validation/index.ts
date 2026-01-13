@@ -52,10 +52,10 @@ export const tourSchema = z.object({
   name: z.string().min(1, "Tour name required").max(200),
   description: z.string().optional(),
   type: z.enum(["single_dive", "multi_dive", "course", "snorkel", "night_dive", "other"]),
-  duration: z.number().int().positive().optional(), // minutes
-  maxParticipants: z.number().int().positive("Max participants required"),
-  minParticipants: z.number().int().positive().default(1),
-  price: z.number().positive("Price required"),
+  duration: z.coerce.number().int().positive().optional(), // minutes
+  maxParticipants: z.coerce.number().int().positive("Max participants required"),
+  minParticipants: z.coerce.number().int().positive().default(1),
+  price: z.coerce.number().positive("Price required"),
   currency: z.string().default("USD"),
   includesEquipment: z.boolean().default(false),
   includesMeals: z.boolean().default(false),
@@ -63,7 +63,7 @@ export const tourSchema = z.object({
   inclusions: z.array(z.string()).optional(),
   exclusions: z.array(z.string()).optional(),
   minCertLevel: z.string().optional(),
-  minAge: z.number().int().positive().optional(),
+  minAge: z.coerce.number().int().positive().optional(),
   requirements: z.array(z.string()).optional(),
   images: z.array(z.string()).optional(),
   isActive: z.boolean().default(true),
@@ -81,8 +81,8 @@ export const tripSchema = z.object({
   date: z.string().min(1, "Date required"), // ISO date
   startTime: z.string().min(1, "Start time required"), // HH:mm
   endTime: z.string().optional(),
-  maxParticipants: z.number().int().positive().optional(),
-  price: z.number().positive().optional(),
+  maxParticipants: z.coerce.number().int().positive().optional(),
+  price: z.coerce.number().positive().optional(),
   weatherNotes: z.string().optional(),
   notes: z.string().optional(),
   staffIds: z.array(z.string().uuid()).optional(),
@@ -97,7 +97,7 @@ export type TripInput = z.infer<typeof tripSchema>;
 export const bookingSchema = z.object({
   tripId: z.string().uuid("Trip required"),
   customerId: z.string().uuid("Customer required"),
-  participants: z.number().int().positive().default(1),
+  participants: z.coerce.number().int().positive().default(1),
   participantDetails: z
     .array(
       z.object({
@@ -112,7 +112,7 @@ export const bookingSchema = z.object({
       z.object({
         item: z.string(),
         size: z.string().optional(),
-        price: z.number(),
+        price: z.coerce.number(),
       })
     )
     .optional(),
@@ -131,10 +131,10 @@ export const diveSiteSchema = z.object({
   name: z.string().min(1, "Site name required").max(200),
   location: z.string().min(1, "Location required").max(200),
   description: z.string().optional(),
-  latitude: z.number().min(-90).max(90).optional(),
-  longitude: z.number().min(-180).max(180).optional(),
-  maxDepth: z.number().int().positive("Max depth required"),
-  minDepth: z.number().int().positive().optional(),
+  latitude: z.coerce.number().min(-90).max(90).optional(),
+  longitude: z.coerce.number().min(-180).max(180).optional(),
+  maxDepth: z.coerce.number().int().positive("Max depth required"),
+  minDepth: z.coerce.number().int().positive().optional(),
   difficulty: z.enum(["beginner", "intermediate", "advanced", "expert"]),
   visibility: z.string().optional(),
   currentStrength: z.string().optional(),
@@ -153,7 +153,7 @@ export type DiveSiteInput = z.infer<typeof diveSiteSchema>;
 export const boatSchema = z.object({
   name: z.string().min(1, "Boat name required").max(200),
   description: z.string().optional(),
-  capacity: z.number().int().positive("Capacity required"),
+  capacity: z.coerce.number().int().positive("Capacity required"),
   type: z.string().optional(),
   registrationNumber: z.string().optional(),
   images: z.array(z.string()).optional(),
@@ -176,13 +176,13 @@ export const equipmentSchema = z.object({
   size: z.string().optional(),
   status: z.enum(["available", "rented", "maintenance", "retired"]).default("available"),
   condition: z.enum(["excellent", "good", "fair", "poor"]).default("good"),
-  rentalPrice: z.number().positive().optional(),
+  rentalPrice: z.coerce.number().positive().optional(),
   isRentable: z.boolean().default(true),
   lastServiceDate: z.string().optional(),
   nextServiceDate: z.string().optional(),
   serviceNotes: z.string().optional(),
   purchaseDate: z.string().optional(),
-  purchasePrice: z.number().positive().optional(),
+  purchasePrice: z.coerce.number().positive().optional(),
   notes: z.string().optional(),
 });
 
@@ -222,7 +222,7 @@ export const shopSettingsSchema = z.object({
   booking: z
     .object({
       requireDeposit: z.boolean().optional(),
-      depositPercent: z.number().min(0).max(100).optional(),
+      depositPercent: z.coerce.number().min(0).max(100).optional(),
       cancellationPolicy: z.string().optional(),
     })
     .optional(),
@@ -230,7 +230,7 @@ export const shopSettingsSchema = z.object({
     .object({
       emailBookingConfirmation: z.boolean().optional(),
       emailReminders: z.boolean().optional(),
-      reminderDaysBefore: z.number().int().positive().optional(),
+      reminderDaysBefore: z.coerce.number().int().positive().optional(),
     })
     .optional(),
 });
