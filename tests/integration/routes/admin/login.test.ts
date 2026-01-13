@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { Mock } from "vitest";
 import { loader, action } from "../../../../app/routes/admin/login";
 
 // Mock the admin-auth module
@@ -27,7 +28,7 @@ describe("admin/login route", () => {
 
       const request = new Request("https://demo.divestreams.com/login");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(isAdminSubdomain).toHaveBeenCalledWith(request);
       expect(response).toBeInstanceOf(Response);
@@ -41,7 +42,7 @@ describe("admin/login route", () => {
 
       const request = new Request("https://admin.divestreams.com/login");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(isAdminSubdomain).toHaveBeenCalledWith(request);
       expect(isAdminAuthenticated).toHaveBeenCalledWith(request);
@@ -56,7 +57,7 @@ describe("admin/login route", () => {
 
       const request = new Request("https://admin.divestreams.com/login");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(isAdminSubdomain).toHaveBeenCalledWith(request);
       expect(isAdminAuthenticated).toHaveBeenCalledWith(request);
@@ -74,7 +75,7 @@ describe("admin/login route", () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       expect(response).toEqual({ error: "Password is required" });
     });
@@ -87,7 +88,7 @@ describe("admin/login route", () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       expect(response).toEqual({ error: "Password is required" });
     });
@@ -103,7 +104,7 @@ describe("admin/login route", () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       expect(validateAdminPassword).toHaveBeenCalledWith("wrongpassword");
       expect(response).toEqual({ error: "Invalid password" });
@@ -122,7 +123,7 @@ describe("admin/login route", () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       expect(validateAdminPassword).toHaveBeenCalledWith("TestAdmin123");
       expect(createAdminSessionCookie).toHaveBeenCalled();
@@ -144,7 +145,7 @@ describe("admin/login route", () => {
         body: formData,
       });
 
-      await action({ request, params: {}, context: {} });
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       // Verify cookie creation function was called
       expect(createAdminSessionCookie).toHaveBeenCalledTimes(1);
@@ -159,7 +160,7 @@ describe("admin/login route", () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       // The route checks for truthy password, whitespace is truthy
       // but if validation fails, it should return invalid password

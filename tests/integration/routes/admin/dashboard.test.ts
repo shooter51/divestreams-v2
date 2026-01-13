@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { Mock } from "vitest";
 import { loader, action } from "../../../../app/routes/admin/index";
 
 // Mock the database module
@@ -105,7 +106,7 @@ describe("admin/dashboard (index) route", () => {
 
       const request = new Request("https://admin.divestreams.com/dashboard");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(response.tenants).toHaveLength(3);
       expect(response.search).toBe("");
@@ -126,7 +127,7 @@ describe("admin/dashboard (index) route", () => {
 
       const request = new Request("https://admin.divestreams.com/dashboard?q=ocean");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(response.search).toBe("ocean");
       expect(response.tenants).toHaveLength(1);
@@ -145,7 +146,7 @@ describe("admin/dashboard (index) route", () => {
 
       const request = new Request("https://admin.divestreams.com/dashboard");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(response.tenants[0].createdAt).toBe("2025-01-01");
       expect(response.tenants[0].trialEndsAt).toBe("2025-01-15");
@@ -164,7 +165,7 @@ describe("admin/dashboard (index) route", () => {
 
       const request = new Request("https://admin.divestreams.com/dashboard");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(response.tenants[0].trialEndsAt).toBeNull();
     });
@@ -182,7 +183,7 @@ describe("admin/dashboard (index) route", () => {
 
       const request = new Request("https://admin.divestreams.com/dashboard");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(response.tenants).toHaveLength(0);
     });
@@ -202,7 +203,7 @@ describe("admin/dashboard (index) route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(deleteTenant).toHaveBeenCalledWith("tenant-1");
         expect(response).toEqual({ success: true });
@@ -217,7 +218,7 @@ describe("admin/dashboard (index) route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(deleteTenant).not.toHaveBeenCalled();
         expect(response).toBeNull();
@@ -244,7 +245,7 @@ describe("admin/dashboard (index) route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(db.update).toHaveBeenCalled();
         expect(response).toEqual({ success: true });
@@ -269,7 +270,7 @@ describe("admin/dashboard (index) route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(db.update).toHaveBeenCalled();
         expect(response).toEqual({ success: true });
@@ -285,7 +286,7 @@ describe("admin/dashboard (index) route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(db.update).not.toHaveBeenCalled();
         expect(response).toBeNull();
@@ -302,7 +303,7 @@ describe("admin/dashboard (index) route", () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       expect(response).toBeNull();
     });
@@ -316,7 +317,7 @@ describe("admin/dashboard (index) route", () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       expect(response).toBeNull();
     });

@@ -1,10 +1,9 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
+import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq } from "drizzle-orm";
 import { requireTenant } from "../../../../../lib/auth/tenant-auth.server";
 import { getBookingWithFullDetails } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
-import { bookingSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 
 export const meta: MetaFunction = () => [{ title: "Edit Booking - DiveStreams" }];
 
@@ -74,7 +73,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function EditBookingPage() {
   const { booking } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -128,7 +126,7 @@ export default function EditBookingPage() {
                   required
                   min="1"
                   max="20"
-                  defaultValue={actionData?.values?.participants || booking.participants}
+                  defaultValue={booking.participants}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -141,7 +139,7 @@ export default function EditBookingPage() {
                   id="status"
                   name="status"
                   required
-                  defaultValue={actionData?.values?.status || booking.status}
+                  defaultValue={booking.status}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="pending">Pending</option>
@@ -162,7 +160,7 @@ export default function EditBookingPage() {
                 name="specialRequests"
                 rows={3}
                 placeholder="Any special requirements or requests from the customer..."
-                defaultValue={actionData?.values?.specialRequests || booking.specialRequests}
+                defaultValue={booking.specialRequests}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -176,7 +174,7 @@ export default function EditBookingPage() {
                 name="internalNotes"
                 rows={3}
                 placeholder="Notes visible only to staff..."
-                defaultValue={actionData?.values?.internalNotes || booking.internalNotes}
+                defaultValue={booking.internalNotes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>

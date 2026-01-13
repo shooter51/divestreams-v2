@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { Mock } from "vitest";
 import { loader } from "../../../../app/routes/tenant/bookings/index";
 
 // Mock the tenant-auth module
@@ -32,7 +33,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings");
-      await loader({ request, params: {}, context: {} });
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireTenant).toHaveBeenCalledWith(request);
     });
@@ -41,7 +42,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings");
-      await loader({ request, params: {}, context: {} });
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(getBookings).toHaveBeenCalledWith("tenant_demo", {
         status: undefined,
@@ -54,7 +55,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings?status=confirmed");
-      await loader({ request, params: {}, context: {} });
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(getBookings).toHaveBeenCalledWith("tenant_demo", {
         status: "confirmed",
@@ -67,7 +68,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: [], total: 100 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings?page=3");
-      await loader({ request, params: {}, context: {} });
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(getBookings).toHaveBeenCalledWith("tenant_demo", {
         status: undefined,
@@ -100,7 +101,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: mockBookings, total: 1 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.bookings).toHaveLength(1);
       expect(result.bookings[0]).toMatchObject({
@@ -149,7 +150,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: mockBookings, total: 1 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.stats).toBeDefined();
       expect(result.stats.today).toBe(1);
@@ -197,7 +198,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: mockBookings, total: 2 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.stats.pendingPayment).toBe(1);
     });
@@ -206,7 +207,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.bookings).toEqual([]);
       expect(result.total).toBe(0);
@@ -219,7 +220,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: [], total: 100 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings?page=2");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.page).toBe(2);
       expect(result.total).toBe(100);
@@ -229,7 +230,7 @@ describe("tenant/bookings route", () => {
       (getBookings as Mock).mockResolvedValue({ bookings: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings?search=john&status=pending");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.search).toBe("john");
       expect(result.status).toBe("pending");

@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
+import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq } from "drizzle-orm";
 import { requireTenant } from "../../../../../lib/auth/tenant-auth.server";
 import { getTripWithFullDetails, getAllBoats, getAllTours } from "../../../../../lib/db/queries.server";
@@ -99,7 +99,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function EditTripPage() {
   const { trip, boats, tours } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -126,7 +125,7 @@ export default function EditTripPage() {
                 id="tourId"
                 name="tourId"
                 required
-                defaultValue={actionData?.values?.tourId || trip.tourId}
+                defaultValue={trip.tourId}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 {tours.map((tour) => (
@@ -145,7 +144,7 @@ export default function EditTripPage() {
                 id="boatId"
                 name="boatId"
                 required
-                defaultValue={actionData?.values?.boatId || trip.boatId}
+                defaultValue={trip.boatId}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 {boats.map((boat) => (
@@ -165,7 +164,7 @@ export default function EditTripPage() {
                 id="date"
                 name="date"
                 required
-                defaultValue={actionData?.values?.date || trip.date}
+                defaultValue={trip.date ?? ""}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -180,7 +179,7 @@ export default function EditTripPage() {
                   id="startTime"
                   name="startTime"
                   required
-                  defaultValue={actionData?.values?.startTime || trip.startTime}
+                  defaultValue={trip.startTime}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -194,7 +193,7 @@ export default function EditTripPage() {
                   id="endTime"
                   name="endTime"
                   required
-                  defaultValue={actionData?.values?.endTime || trip.endTime}
+                  defaultValue={trip.endTime}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -217,7 +216,7 @@ export default function EditTripPage() {
                 required
                 min="1"
                 max="100"
-                defaultValue={actionData?.values?.maxParticipants || trip.maxParticipants}
+                defaultValue={trip.maxParticipants}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -233,7 +232,7 @@ export default function EditTripPage() {
                 required
                 step="0.01"
                 min="0"
-                defaultValue={actionData?.values?.price || trip.price}
+                defaultValue={trip.price}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -251,7 +250,7 @@ export default function EditTripPage() {
               id="status"
               name="status"
               required
-              defaultValue={actionData?.values?.status || trip.status}
+              defaultValue={trip.status}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="open">Open</option>
@@ -276,7 +275,7 @@ export default function EditTripPage() {
                 name="weatherNotes"
                 rows={2}
                 placeholder="Weather conditions, forecast..."
-                defaultValue={actionData?.values?.weatherNotes || trip.weatherNotes}
+                defaultValue={trip.weatherNotes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -290,7 +289,7 @@ export default function EditTripPage() {
                 name="notes"
                 rows={3}
                 placeholder="Notes visible only to staff..."
-                defaultValue={actionData?.values?.notes || trip.notes}
+                defaultValue={trip.notes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>

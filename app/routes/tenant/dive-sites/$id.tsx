@@ -236,7 +236,7 @@ export default function DiveSiteDetailPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Site Images</h2>
             <ImageManager
-              entityType="dive-site"
+              entityType="diveSite"
               entityId={diveSite.id}
               images={images}
               maxImages={5}

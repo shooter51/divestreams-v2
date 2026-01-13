@@ -1,5 +1,8 @@
-import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { Mock } from "vitest";
 import { loader, action } from "../../../../app/routes/admin/tenants.new";
+
+type ActionErrorResponse = { errors: Record<string, string> };
 
 // Mock the database module
 vi.mock("../../../../lib/db", () => ({
@@ -75,7 +78,7 @@ describe("admin/tenants.new route", () => {
 
       const request = new Request("https://admin.divestreams.com/tenants/new");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(response.plans).toHaveLength(3);
       expect(response.plans[0].displayName).toBe("Starter");
@@ -92,7 +95,7 @@ describe("admin/tenants.new route", () => {
 
       const request = new Request("https://admin.divestreams.com/tenants/new");
 
-      const response = await loader({ request, params: {}, context: {} });
+      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(response.plans).toHaveLength(0);
     });
@@ -111,10 +114,10 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect(response.errors.subdomain).toBe("Subdomain is required");
+        expect((response as ActionErrorResponse).errors.subdomain).toBe("Subdomain is required");
       });
 
       it("returns error when subdomain format is invalid", async () => {
@@ -128,10 +131,10 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect(response.errors.subdomain).toBe("Invalid subdomain format");
+        expect((response as ActionErrorResponse).errors.subdomain).toBe("Invalid subdomain format");
       });
 
       it("returns error when subdomain has invalid characters", async () => {
@@ -145,10 +148,10 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect(response.errors.subdomain).toBe("Invalid subdomain format");
+        expect((response as ActionErrorResponse).errors.subdomain).toBe("Invalid subdomain format");
       });
 
       it("returns error when name is missing", async () => {
@@ -162,10 +165,10 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect(response.errors.name).toBe("Name is required");
+        expect((response as ActionErrorResponse).errors.name).toBe("Name is required");
       });
 
       it("returns error when email is missing", async () => {
@@ -179,10 +182,10 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect(response.errors.email).toBe("Email is required");
+        expect((response as ActionErrorResponse).errors.email).toBe("Email is required");
       });
 
       it("returns multiple errors when multiple fields are invalid", async () => {
@@ -196,12 +199,12 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect(response.errors.subdomain).toBe("Subdomain is required");
-        expect(response.errors.name).toBe("Name is required");
-        expect(response.errors.email).toBe("Email is required");
+        expect((response as ActionErrorResponse).errors.subdomain).toBe("Subdomain is required");
+        expect((response as ActionErrorResponse).errors.name).toBe("Name is required");
+        expect((response as ActionErrorResponse).errors.email).toBe("Email is required");
       });
 
       it("accepts valid single-character subdomain", async () => {
@@ -221,7 +224,7 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(isSubdomainAvailable).toHaveBeenCalledWith("a");
         expect(response).toBeInstanceOf(Response);
@@ -244,7 +247,7 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(isSubdomainAvailable).toHaveBeenCalledWith("my-dive-shop");
         expect(response).toBeInstanceOf(Response);
@@ -265,11 +268,11 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(isSubdomainAvailable).toHaveBeenCalledWith("existingshop");
         expect(response).toHaveProperty("errors");
-        expect(response.errors.subdomain).toBe("This subdomain is already taken");
+        expect((response as ActionErrorResponse).errors.subdomain).toBe("This subdomain is already taken");
       });
 
       it("converts subdomain to lowercase before checking availability", async () => {
@@ -289,7 +292,7 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        await action({ request, params: {}, context: {} });
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(isSubdomainAvailable).toHaveBeenCalledWith("myshop");
       });
@@ -313,7 +316,7 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(createTenant).toHaveBeenCalledWith({
           subdomain: "testshop",
@@ -350,7 +353,7 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        await action({ request, params: {}, context: {} });
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(createTenant).toHaveBeenCalledWith({
           subdomain: "fullshop",
@@ -382,7 +385,7 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        await action({ request, params: {}, context: {} });
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(seedDemoData).toHaveBeenCalledWith("tenant_demoshop");
       });
@@ -404,7 +407,7 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        await action({ request, params: {}, context: {} });
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(seedDemoData).not.toHaveBeenCalled();
       });
@@ -430,7 +433,7 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
@@ -457,10 +460,10 @@ describe("admin/tenants.new route", () => {
           body: formData,
         });
 
-        const response = await action({ request, params: {}, context: {} });
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect(response.errors.form).toBe("Failed to create tenant. Please try again.");
+        expect((response as ActionErrorResponse).errors.form).toBe("Failed to create tenant. Please try again.");
         expect(consoleSpy).toHaveBeenCalled();
 
         consoleSpy.mockRestore();

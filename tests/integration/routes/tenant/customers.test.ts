@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { Mock } from "vitest";
 import { loader } from "../../../../app/routes/tenant/customers/index";
 
 // Mock the tenant-auth module
@@ -32,7 +33,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/customers");
-      await loader({ request, params: {}, context: {} });
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireTenant).toHaveBeenCalledWith(request);
     });
@@ -41,7 +42,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/customers");
-      await loader({ request, params: {}, context: {} });
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(getCustomers).toHaveBeenCalledWith("tenant_demo", {
         search: undefined,
@@ -54,7 +55,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/customers?search=john");
-      await loader({ request, params: {}, context: {} });
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(getCustomers).toHaveBeenCalledWith("tenant_demo", {
         search: "john",
@@ -67,7 +68,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: [], total: 100 });
 
       const request = new Request("https://demo.divestreams.com/app/customers?page=3");
-      await loader({ request, params: {}, context: {} });
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(getCustomers).toHaveBeenCalledWith("tenant_demo", {
         search: undefined,
@@ -94,7 +95,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: mockCustomers, total: 1 });
 
       const request = new Request("https://demo.divestreams.com/app/customers");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.customers).toHaveLength(1);
       expect(result.customers[0]).toMatchObject({
@@ -113,7 +114,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/customers");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.customers).toEqual([]);
       expect(result.total).toBe(0);
@@ -123,7 +124,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: [], total: 100 });
 
       const request = new Request("https://demo.divestreams.com/app/customers?page=2");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.page).toBe(2);
       expect(result.total).toBe(100);
@@ -134,7 +135,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: [], total: 45 });
 
       const request = new Request("https://demo.divestreams.com/app/customers");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.totalPages).toBe(3); // 45 / 20 = 2.25, rounds up to 3
     });
@@ -143,7 +144,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/customers?search=smith");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.search).toBe("smith");
     });
@@ -166,7 +167,7 @@ describe("tenant/customers route", () => {
       (getCustomers as Mock).mockResolvedValue({ customers: mockCustomers, total: 1 });
 
       const request = new Request("https://demo.divestreams.com/app/customers");
-      const result = await loader({ request, params: {}, context: {} });
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.customers[0].certifications).toBeNull();
     });

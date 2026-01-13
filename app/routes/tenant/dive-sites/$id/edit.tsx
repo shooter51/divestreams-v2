@@ -110,8 +110,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       description: validation.data.description,
       maxDepth: validation.data.maxDepth,
       difficulty: validation.data.difficulty,
-      latitude: validation.data.latitude,
-      longitude: validation.data.longitude,
+      latitude: validation.data.latitude?.toString(),
+      longitude: validation.data.longitude?.toString(),
       visibility: validation.data.visibility,
       currentStrength: validation.data.currentStrength,
       highlights: validation.data.highlights,
@@ -288,7 +288,7 @@ export default function EditDiveSitePage() {
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Site Images</h2>
           <ImageManager
-            entityType="dive-site"
+            entityType="diveSite"
             entityId={site.id}
             images={images}
             maxImages={5}

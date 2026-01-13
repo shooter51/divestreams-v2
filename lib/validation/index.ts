@@ -136,6 +136,8 @@ export const diveSiteSchema = z.object({
   maxDepth: z.number().int().positive("Max depth required"),
   minDepth: z.number().int().positive().optional(),
   difficulty: z.enum(["beginner", "intermediate", "advanced", "expert"]),
+  visibility: z.string().optional(),
+  currentStrength: z.string().optional(),
   conditions: z.string().optional(),
   highlights: z.array(z.string()).optional(),
   images: z.array(z.string()).optional(),

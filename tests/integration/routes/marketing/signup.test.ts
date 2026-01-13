@@ -1,5 +1,11 @@
-import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { Mock } from "vitest";
 import { action } from "../../../../app/routes/marketing/signup";
+
+type ActionErrorResponse = {
+  errors: Record<string, string>;
+  values: { shopName: string; subdomain: string; email: string; phone: string };
+};
 
 // Mock the tenant module
 vi.mock("../../../../lib/db/tenant.server", () => ({
@@ -34,9 +40,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.shopName).toBe("Shop name is required");
+        expect((result as ActionErrorResponse).errors.shopName).toBe("Shop name is required");
       });
 
       it("returns error when shop name is too short", async () => {
@@ -50,9 +56,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.shopName).toBe("Shop name is required");
+        expect((result as ActionErrorResponse).errors.shopName).toBe("Shop name is required");
       });
 
       it("returns error when subdomain is too short", async () => {
@@ -66,9 +72,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.subdomain).toBe("Subdomain must be at least 3 characters");
+        expect((result as ActionErrorResponse).errors.subdomain).toBe("Subdomain must be at least 3 characters");
       });
 
       it("returns error when subdomain has invalid characters", async () => {
@@ -82,9 +88,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.subdomain).toBe("Only lowercase letters, numbers, and hyphens allowed");
+        expect((result as ActionErrorResponse).errors.subdomain).toBe("Only lowercase letters, numbers, and hyphens allowed");
       });
 
       it("returns error when subdomain is reserved", async () => {
@@ -98,9 +104,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.subdomain).toBe("This subdomain is reserved");
+        expect((result as ActionErrorResponse).errors.subdomain).toBe("This subdomain is reserved");
       });
 
       it("returns error when subdomain is already taken", async () => {
@@ -116,9 +122,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.subdomain).toBe("This subdomain is already taken");
+        expect((result as ActionErrorResponse).errors.subdomain).toBe("This subdomain is already taken");
       });
 
       it("returns error when email is missing", async () => {
@@ -132,9 +138,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.email).toBe("Valid email is required");
+        expect((result as ActionErrorResponse).errors.email).toBe("Valid email is required");
       });
 
       it("returns error when email is invalid", async () => {
@@ -148,9 +154,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.email).toBe("Valid email is required");
+        expect((result as ActionErrorResponse).errors.email).toBe("Valid email is required");
       });
 
       it("returns multiple errors when multiple fields are invalid", async () => {
@@ -164,11 +170,11 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.shopName).toBeDefined();
-        expect(result.errors.subdomain).toBeDefined();
-        expect(result.errors.email).toBeDefined();
+        expect((result as ActionErrorResponse).errors.shopName).toBeDefined();
+        expect((result as ActionErrorResponse).errors.subdomain).toBeDefined();
+        expect((result as ActionErrorResponse).errors.email).toBeDefined();
       });
 
       it("returns submitted values with errors", async () => {
@@ -183,10 +189,10 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         // FormData returns null for empty fields, not empty strings
-        expect(result.values).toMatchObject({
+        expect((result as ActionErrorResponse).values).toMatchObject({
           subdomain: "myshop",
           email: "owner@example.com",
           phone: "+1-555-1234",
@@ -208,7 +214,7 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(result).toBeInstanceOf(Response);
         expect((result as Response).status).toBe(302);
@@ -227,7 +233,7 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(result).toBeInstanceOf(Response);
       });
@@ -245,7 +251,7 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(result).toBeInstanceOf(Response);
       });
@@ -261,9 +267,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.subdomain).toBe("Only lowercase letters, numbers, and hyphens allowed");
+        expect((result as ActionErrorResponse).errors.subdomain).toBe("Only lowercase letters, numbers, and hyphens allowed");
       });
 
       it("rejects subdomain ending with hyphen", async () => {
@@ -277,9 +283,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.subdomain).toBe("Only lowercase letters, numbers, and hyphens allowed");
+        expect((result as ActionErrorResponse).errors.subdomain).toBe("Only lowercase letters, numbers, and hyphens allowed");
       });
 
       it("accepts single character subdomain that meets minimum length requirement", async () => {
@@ -293,9 +299,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.subdomain).toBe("Subdomain must be at least 3 characters");
+        expect((result as ActionErrorResponse).errors.subdomain).toBe("Subdomain must be at least 3 characters");
       });
     });
 
@@ -313,7 +319,7 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        await action({ request, params: {}, context: {} });
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(createTenant).toHaveBeenCalledWith({
           subdomain: "paradisedive",
@@ -337,7 +343,7 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        await action({ request, params: {}, context: {} });
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(createTenant).toHaveBeenCalledWith({
           subdomain: "paradisedive",
@@ -360,7 +366,7 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        await action({ request, params: {}, context: {} });
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(createTenant).toHaveBeenCalledWith(
           expect.objectContaining({ subdomain: "paradisedive" })
@@ -380,7 +386,7 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(result).toBeInstanceOf(Response);
         expect((result as Response).status).toBe(302);
@@ -402,10 +408,10 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.errors.form).toBe("Failed to create account. Please try again.");
-        expect(result.values).toBeDefined();
+        expect((result as ActionErrorResponse).errors.form).toBe("Failed to create account. Please try again.");
+        expect((result as ActionErrorResponse).values).toBeDefined();
       });
 
       it("preserves submitted values when creation fails", async () => {
@@ -422,9 +428,9 @@ describe("marketing/signup route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {} });
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(result.values).toEqual({
+        expect((result as ActionErrorResponse).values).toEqual({
           shopName: "Paradise Dive Center",
           subdomain: "paradisedive",
           email: "owner@paradisedive.com",
