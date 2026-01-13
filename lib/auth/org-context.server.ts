@@ -1,0 +1,407 @@
+/**
+ * Organization Context Helper
+ *
+ * Provides organization context and freemium enforcement for all tenant routes.
+ * This is the most important helper - it ensures proper multi-tenant isolation
+ * and enforces freemium limits on all operations.
+ */
+
+import { redirect } from "react-router";
+import { eq, and } from "drizzle-orm";
+import { auth } from "./index";
+import { db } from "../db";
+import {
+  organization,
+  member,
+} from "../db/schema/auth";
+import { subscription } from "../db/schema/subscription";
+import type {
+  Organization,
+  Member,
+  User,
+  Session,
+} from "../db/schema/auth";
+import type { Subscription } from "../db/schema/subscription";
+
+// ============================================================================
+// FREE TIER LIMITS
+// ============================================================================
+
+/**
+ * Free tier limits for the freemium model
+ */
+export const FREE_TIER_LIMITS = {
+  customers: 50,
+  bookingsPerMonth: 20,
+  tours: 3,
+  teamMembers: 1,
+  hasPOS: false,
+  hasEquipmentRentals: false,
+  hasAdvancedReports: false,
+  hasEmailNotifications: false,
+} as const;
+
+/**
+ * Premium tier has unlimited access
+ */
+export const PREMIUM_LIMITS = {
+  customers: Infinity,
+  bookingsPerMonth: Infinity,
+  tours: Infinity,
+  teamMembers: Infinity,
+  hasPOS: true,
+  hasEquipmentRentals: true,
+  hasAdvancedReports: true,
+  hasEmailNotifications: true,
+} as const;
+
+/**
+ * Type for tier limits - supports both free and premium values
+ */
+export interface TierLimits {
+  customers: number;
+  bookingsPerMonth: number;
+  tours: number;
+  teamMembers: number;
+  hasPOS: boolean;
+  hasEquipmentRentals: boolean;
+  hasAdvancedReports: boolean;
+  hasEmailNotifications: boolean;
+}
+
+// ============================================================================
+// ORGANIZATION CONTEXT TYPE
+// ============================================================================
+
+/**
+ * Usage statistics for the current organization
+ */
+export interface OrgUsage {
+  customers: number;
+  tours: number;
+  bookingsThisMonth: number;
+}
+
+/**
+ * Full organization context for tenant routes
+ */
+export interface OrgContext {
+  /** Current authenticated user */
+  user: User;
+  /** Current session */
+  session: Session;
+  /** Current organization (from subdomain) */
+  org: Organization;
+  /** User's membership in the organization */
+  membership: Member;
+  /** Organization's subscription */
+  subscription: Subscription | null;
+  /** Effective limits based on subscription */
+  limits: TierLimits;
+  /** Current usage statistics */
+  usage: OrgUsage;
+  /** Whether the user can add a new customer */
+  canAddCustomer: boolean;
+  /** Whether the user can add a new tour */
+  canAddTour: boolean;
+  /** Whether the user can add a new booking */
+  canAddBooking: boolean;
+  /** Whether the organization has a premium subscription */
+  isPremium: boolean;
+}
+
+// ============================================================================
+// SUBDOMAIN HELPERS
+// ============================================================================
+
+/**
+ * Extract subdomain from request host
+ *
+ * Handles:
+ * - localhost: subdomain.localhost:5173
+ * - production: subdomain.divestreams.com
+ *
+ * @returns The subdomain or null if none
+ */
+export function getSubdomainFromRequest(request: Request): string | null {
+  const url = new URL(request.url);
+  const host = url.host;
+
+  // Handle localhost development
+  // Format: subdomain.localhost:5173
+  if (host.includes("localhost")) {
+    const parts = host.split(".");
+    if (parts.length >= 2 && parts[0] !== "localhost") {
+      return parts[0].toLowerCase();
+    }
+    return null;
+  }
+
+  // Handle production
+  // Format: subdomain.divestreams.com
+  const parts = host.split(".");
+  if (parts.length >= 3) {
+    const subdomain = parts[0].toLowerCase();
+    // Ignore www as it's not a tenant subdomain
+    if (subdomain === "www") {
+      return null;
+    }
+    return subdomain;
+  }
+
+  return null;
+}
+
+/**
+ * Check if the current request is for the admin subdomain
+ */
+export function isAdminSubdomain(request: Request): boolean {
+  const subdomain = getSubdomainFromRequest(request);
+  return subdomain === "admin";
+}
+
+// ============================================================================
+// ORGANIZATION CONTEXT
+// ============================================================================
+
+/**
+ * Get the full organization context for the current request
+ *
+ * This is the main function for tenant routes. It:
+ * 1. Extracts the subdomain from the request
+ * 2. Gets the authenticated session
+ * 3. Finds the organization by slug
+ * 4. Verifies user membership
+ * 5. Gets subscription status
+ * 6. Calculates limits and usage
+ *
+ * @returns The full organization context or null if not applicable
+ */
+export async function getOrgContext(
+  request: Request
+): Promise<OrgContext | null> {
+  // Get subdomain from request
+  const subdomain = getSubdomainFromRequest(request);
+
+  // No subdomain or admin subdomain - not a tenant route
+  if (!subdomain || subdomain === "admin") {
+    return null;
+  }
+
+  // Get session from Better Auth
+  const sessionData = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (!sessionData || !sessionData.user) {
+    return null;
+  }
+
+  // Find organization by slug (subdomain)
+  const [org] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.slug, subdomain))
+    .limit(1);
+
+  if (!org) {
+    return null;
+  }
+
+  // Find user's membership in this organization
+  const [membership] = await db
+    .select()
+    .from(member)
+    .where(
+      and(
+        eq(member.userId, sessionData.user.id),
+        eq(member.organizationId, org.id)
+      )
+    )
+    .limit(1);
+
+  if (!membership) {
+    return null;
+  }
+
+  // Get organization subscription
+  const [sub] = await db
+    .select()
+    .from(subscription)
+    .where(eq(subscription.organizationId, org.id))
+    .limit(1);
+
+  // Determine if premium
+  const isPremium =
+    sub?.plan === "premium" && sub?.status === "active";
+
+  // Set limits based on subscription
+  const limits = isPremium ? PREMIUM_LIMITS : FREE_TIER_LIMITS;
+
+  // Get usage statistics
+  // TODO: Implement real counts from database
+  // For now, return 0 as placeholder - these will be implemented
+  // when the respective API routes are built
+  const usage: OrgUsage = {
+    customers: 0, // TODO: Count from customers table where organizationId = org.id
+    tours: 0, // TODO: Count from tours table where organizationId = org.id
+    bookingsThisMonth: 0, // TODO: Count from bookings table for current month
+  };
+
+  // Calculate whether user can add more resources
+  const canAddCustomer = isPremium || usage.customers < limits.customers;
+  const canAddTour = isPremium || usage.tours < limits.tours;
+  const canAddBooking =
+    isPremium || usage.bookingsThisMonth < limits.bookingsPerMonth;
+
+  return {
+    user: sessionData.user as User,
+    session: sessionData.session as Session,
+    org,
+    membership,
+    subscription: sub || null,
+    limits,
+    usage,
+    canAddCustomer,
+    canAddTour,
+    canAddBooking,
+    isPremium,
+  };
+}
+
+// ============================================================================
+// REQUIREMENT HELPERS
+// ============================================================================
+
+/**
+ * Require organization context or redirect to login
+ *
+ * Use this in loaders for routes that require authentication
+ *
+ * @throws Redirect to login page if not authenticated
+ */
+export async function requireOrgContext(request: Request): Promise<OrgContext> {
+  const context = await getOrgContext(request);
+
+  if (!context) {
+    // Get the subdomain for the redirect
+    const subdomain = getSubdomainFromRequest(request);
+    const url = new URL(request.url);
+
+    // If we have a subdomain, redirect to tenant login
+    if (subdomain && subdomain !== "admin") {
+      throw redirect(`/login?redirect=${encodeURIComponent(url.pathname)}`);
+    }
+
+    // Otherwise redirect to main login
+    throw redirect("/login");
+  }
+
+  return context;
+}
+
+/**
+ * Valid organization roles
+ */
+export type OrgRole = "owner" | "admin" | "staff" | "customer";
+
+/**
+ * Require specific role(s) for the current user
+ *
+ * @throws 403 Response if user doesn't have required role
+ */
+export function requireRole(
+  context: OrgContext,
+  allowedRoles: OrgRole[]
+): void {
+  const userRole = context.membership.role as OrgRole;
+
+  if (!allowedRoles.includes(userRole)) {
+    throw new Response("Forbidden: Insufficient permissions", {
+      status: 403,
+      statusText: "Forbidden",
+    });
+  }
+}
+
+/**
+ * Premium feature names for error messages
+ */
+export type PremiumFeature =
+  | "pos"
+  | "equipment_rentals"
+  | "advanced_reports"
+  | "email_notifications"
+  | "unlimited_customers"
+  | "unlimited_tours"
+  | "unlimited_bookings"
+  | "unlimited_team";
+
+/**
+ * Require premium subscription for a feature
+ *
+ * @throws 403 Response if organization doesn't have premium
+ */
+export function requirePremium(
+  context: OrgContext,
+  feature: PremiumFeature
+): void {
+  if (!context.isPremium) {
+    const featureNames: Record<PremiumFeature, string> = {
+      pos: "Point of Sale",
+      equipment_rentals: "Equipment Rentals",
+      advanced_reports: "Advanced Reports",
+      email_notifications: "Email Notifications",
+      unlimited_customers: "Unlimited Customers",
+      unlimited_tours: "Unlimited Tours",
+      unlimited_bookings: "Unlimited Monthly Bookings",
+      unlimited_team: "Unlimited Team Members",
+    };
+
+    throw new Response(
+      `Premium Required: ${featureNames[feature]} is only available on premium plans. Please upgrade to continue.`,
+      {
+        status: 403,
+        statusText: "Premium Required",
+      }
+    );
+  }
+}
+
+/**
+ * Check if user can perform an action based on limits
+ *
+ * Returns a user-friendly error message if the limit is reached
+ */
+export function checkLimit(
+  context: OrgContext,
+  resource: "customer" | "tour" | "booking"
+): { allowed: boolean; message?: string } {
+  switch (resource) {
+    case "customer":
+      if (!context.canAddCustomer) {
+        return {
+          allowed: false,
+          message: `Customer limit reached (${context.limits.customers}). Upgrade to premium for unlimited customers.`,
+        };
+      }
+      break;
+    case "tour":
+      if (!context.canAddTour) {
+        return {
+          allowed: false,
+          message: `Tour limit reached (${context.limits.tours}). Upgrade to premium for unlimited tours.`,
+        };
+      }
+      break;
+    case "booking":
+      if (!context.canAddBooking) {
+        return {
+          allowed: false,
+          message: `Monthly booking limit reached (${context.limits.bookingsPerMonth}). Upgrade to premium for unlimited bookings.`,
+        };
+      }
+      break;
+  }
+  return { allowed: true };
+}
