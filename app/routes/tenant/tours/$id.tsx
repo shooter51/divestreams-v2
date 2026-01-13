@@ -6,6 +6,8 @@ import {
   getTourById,
   getTourStats,
   getUpcomingTripsForTour,
+  updateTourActiveStatus,
+  deleteTour,
 } from "../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
@@ -119,17 +121,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
+  const tourId = params.id!;
 
   if (intent === "toggle-active") {
-    // TODO: Toggle tour active status
+    // Get current tour status and toggle it
+    const tour = await getTourById(tenant.schemaName, tourId);
+    if (tour) {
+      await updateTourActiveStatus(tenant.schemaName, tourId, !tour.isActive);
+    }
     return { toggled: true };
   }
 
   if (intent === "delete") {
-    // TODO: Delete tour
+    await deleteTour(tenant.schemaName, tourId);
     return { deleted: true };
   }
 

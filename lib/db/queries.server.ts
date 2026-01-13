@@ -464,6 +464,44 @@ export async function createTour(schemaName: string, data: {
   }
 }
 
+/**
+ * Update tour active status
+ */
+export async function updateTourActiveStatus(schemaName: string, id: string, isActive: boolean) {
+  const client = getClient(schemaName);
+
+  try {
+    const result = await client.unsafe(`
+      UPDATE "${schemaName}".tours
+      SET is_active = ${isActive}, updated_at = NOW()
+      WHERE id = '${id}'
+      RETURNING *
+    `);
+    return result[0] ? mapTour(result[0]) : null;
+  } finally {
+    await client.end();
+  }
+}
+
+/**
+ * Delete tour (soft delete by setting is_active = false)
+ */
+export async function deleteTour(schemaName: string, id: string) {
+  const client = getClient(schemaName);
+
+  try {
+    // Soft delete - just mark as inactive
+    await client.unsafe(`
+      UPDATE "${schemaName}".tours
+      SET is_active = false, updated_at = NOW()
+      WHERE id = '${id}'
+    `);
+    return true;
+  } finally {
+    await client.end();
+  }
+}
+
 export async function getTrips(
   schemaName: string,
   options: { fromDate?: string; toDate?: string; status?: string; limit?: number } = {}
