@@ -442,6 +442,35 @@ export function createTenantSchema(schemaName: string) {
     index("transactions_date_idx").on(table.createdAt),
   ]);
 
+  // Equipment rentals tracking
+  const rentals = schema.table("rentals", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    transactionId: uuid("transaction_id").references(() => transactions.id),
+    customerId: uuid("customer_id").notNull().references(() => customers.id),
+    equipmentId: uuid("equipment_id").notNull().references(() => equipment.id),
+
+    rentedAt: timestamp("rented_at").notNull().defaultNow(),
+    dueAt: timestamp("due_at").notNull(),
+    returnedAt: timestamp("returned_at"),
+
+    dailyRate: decimal("daily_rate", { precision: 10, scale: 2 }).notNull(),
+    totalCharge: decimal("total_charge", { precision: 10, scale: 2 }).notNull(),
+
+    status: text("status").notNull().default("active"), // active, returned, overdue
+
+    // Rental agreement
+    agreementNumber: text("agreement_number").notNull(),
+    agreementSignedAt: timestamp("agreement_signed_at"),
+    agreementSignedBy: text("agreement_signed_by"),
+
+    notes: text("notes"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  }, (table) => [
+    index("rentals_customer_idx").on(table.customerId),
+    index("rentals_equipment_idx").on(table.equipmentId),
+    index("rentals_status_idx").on(table.status),
+  ]);
+
   // Products for POS (retail items)
   const products = schema.table("products", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -508,6 +537,7 @@ export function createTenantSchema(schemaName: string) {
     bookings,
     equipment,
     transactions,
+    rentals,
     products,
     images,
   };
