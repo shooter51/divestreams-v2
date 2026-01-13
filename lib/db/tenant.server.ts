@@ -389,6 +389,27 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
     )
   `);
 
+  // Rentals table (for equipment rentals)
+  await client.unsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}".rentals (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      transaction_id UUID REFERENCES "${schemaName}".transactions(id),
+      customer_id UUID NOT NULL REFERENCES "${schemaName}".customers(id),
+      equipment_id UUID NOT NULL REFERENCES "${schemaName}".equipment(id),
+      rented_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      due_at TIMESTAMPTZ NOT NULL,
+      returned_at TIMESTAMPTZ,
+      daily_rate DECIMAL(10, 2) NOT NULL,
+      total_charge DECIMAL(10, 2) NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      agreement_number TEXT NOT NULL,
+      agreement_signed_at TIMESTAMPTZ,
+      agreement_signed_by TEXT,
+      notes TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   // Products table (for POS retail items)
   await client.unsafe(`
     CREATE TABLE IF NOT EXISTS "${schemaName}".products (
@@ -445,6 +466,9 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_transactions_customer_idx" ON "${schemaName}".transactions(customer_id)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_products_category_idx" ON "${schemaName}".products(category)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_products_sku_idx" ON "${schemaName}".products(sku)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_rentals_customer_idx" ON "${schemaName}".rentals(customer_id)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_rentals_equipment_idx" ON "${schemaName}".rentals(equipment_id)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_rentals_status_idx" ON "${schemaName}".rentals(status)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_images_entity_idx" ON "${schemaName}".images(entity_type, entity_id)`);
 }
 
