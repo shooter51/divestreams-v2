@@ -18,12 +18,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const { tenant } = await requireTenant(request);
   const { schema: tables } = getTenantDb(tenant.schemaName);
 
-  const discountCodes = await db
-    .select()
-    .from(tables.discountCodes)
-    .orderBy(tables.discountCodes.createdAt);
+  try {
+    const discountCodes = await db
+      .select()
+      .from(tables.discountCodes)
+      .orderBy(tables.discountCodes.createdAt);
 
-  return { tenant, discountCodes };
+    return { tenant, discountCodes, migrationNeeded: false };
+  } catch (error) {
+    console.error("Discount codes query failed - table may not exist:", error);
+    return { tenant, discountCodes: [], migrationNeeded: true };
+  }
 }
 
 export async function action({ request }: ActionFunctionArgs) {

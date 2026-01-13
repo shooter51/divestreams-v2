@@ -14,21 +14,38 @@ type TenantTables = ReturnType<typeof createTenantSchema>;
  * Includes sale price fields for displaying sale indicators
  */
 export async function getPOSProducts(tables: TenantTables) {
-  return db
-    .select({
-      id: tables.products.id,
-      name: tables.products.name,
-      category: tables.products.category,
-      price: tables.products.price,
-      salePrice: tables.products.salePrice,
-      saleStartDate: tables.products.saleStartDate,
-      saleEndDate: tables.products.saleEndDate,
-      stockQuantity: tables.products.stockQuantity,
-      imageUrl: tables.products.imageUrl,
-    })
-    .from(tables.products)
-    .where(eq(tables.products.isActive, true))
-    .orderBy(tables.products.category, tables.products.name);
+  try {
+    return await db
+      .select({
+        id: tables.products.id,
+        name: tables.products.name,
+        category: tables.products.category,
+        price: tables.products.price,
+        salePrice: tables.products.salePrice,
+        saleStartDate: tables.products.saleStartDate,
+        saleEndDate: tables.products.saleEndDate,
+        stockQuantity: tables.products.stockQuantity,
+        imageUrl: tables.products.imageUrl,
+      })
+      .from(tables.products)
+      .where(eq(tables.products.isActive, true))
+      .orderBy(tables.products.category, tables.products.name);
+  } catch (error) {
+    // Fallback if sale_price columns don't exist yet
+    console.error("POS products query failed, trying without sale fields:", error);
+    return db
+      .select({
+        id: tables.products.id,
+        name: tables.products.name,
+        category: tables.products.category,
+        price: tables.products.price,
+        stockQuantity: tables.products.stockQuantity,
+        imageUrl: tables.products.imageUrl,
+      })
+      .from(tables.products)
+      .where(eq(tables.products.isActive, true))
+      .orderBy(tables.products.category, tables.products.name);
+  }
 }
 
 /**
