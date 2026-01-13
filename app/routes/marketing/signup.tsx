@@ -1,6 +1,7 @@
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation } from "react-router";
 import { createTenant, isSubdomainAvailable } from "../../../lib/db/tenant.server";
+import { triggerWelcomeEmail } from "../../../lib/email/triggers";
 import { getTenantUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => {
@@ -59,6 +60,19 @@ export async function action({ request }: ActionFunctionArgs) {
       email,
       phone: phone || undefined,
     });
+
+    // Queue welcome email
+    try {
+      await triggerWelcomeEmail({
+        userEmail: email,
+        userName: shopName,
+        shopName: tenant.name,
+        subdomain: tenant.subdomain,
+        tenantId: tenant.id,
+      });
+    } catch (emailError) {
+      console.error("Failed to queue welcome email:", emailError);
+    }
 
     // Redirect to the new tenant's onboarding
     return redirect(getTenantUrl(tenant.subdomain, "/app"));

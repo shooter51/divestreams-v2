@@ -4,6 +4,7 @@ import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
 import { createTenant, isSubdomainAvailable } from "../../../lib/db/tenant.server";
 import { seedDemoData } from "../../../lib/db/seed-demo-data.server";
+import { triggerWelcomeEmail } from "../../../lib/email/triggers";
 import { eq } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Create Tenant - DiveStreams Admin" }];
@@ -58,6 +59,19 @@ export async function action({ request }: ActionFunctionArgs) {
       currency: currency || "USD",
       planId: planId || undefined,
     });
+
+    // Queue welcome email
+    try {
+      await triggerWelcomeEmail({
+        userEmail: email,
+        userName: name,
+        shopName: tenant.name,
+        subdomain: tenant.subdomain,
+        tenantId: tenant.id,
+      });
+    } catch (emailError) {
+      console.error("Failed to queue welcome email:", emailError);
+    }
 
     // Seed demo data if requested
     if (populateDemoData) {
