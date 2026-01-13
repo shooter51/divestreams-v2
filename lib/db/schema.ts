@@ -432,6 +432,30 @@ export function createTenantSchema(schemaName: string) {
     index("transactions_date_idx").on(table.createdAt),
   ]);
 
+  // Images (polymorphic - can belong to any entity)
+  const images = schema.table("images", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    entityType: text("entity_type").notNull(), // 'tour', 'dive_site', 'boat', 'equipment', 'staff'
+    entityId: uuid("entity_id").notNull(),
+
+    url: text("url").notNull(), // Full CDN URL
+    thumbnailUrl: text("thumbnail_url"), // 200x200 thumbnail
+
+    filename: text("filename").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+
+    alt: text("alt"), // Accessibility text
+    sortOrder: integer("sort_order").notNull().default(0),
+    isPrimary: boolean("is_primary").notNull().default(false),
+
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  }, (table) => [
+    index("images_entity_idx").on(table.entityType, table.entityId),
+  ]);
+
   return {
     schema,
     users,
@@ -446,6 +470,7 @@ export function createTenantSchema(schemaName: string) {
     bookings,
     equipment,
     transactions,
+    images,
   };
 }
 
