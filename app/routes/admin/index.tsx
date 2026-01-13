@@ -11,43 +11,54 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("q") || "";
 
-  let query = db
-    .select({
-      id: tenants.id,
-      subdomain: tenants.subdomain,
-      name: tenants.name,
-      email: tenants.email,
-      subscriptionStatus: tenants.subscriptionStatus,
-      isActive: tenants.isActive,
-      createdAt: tenants.createdAt,
-      trialEndsAt: tenants.trialEndsAt,
-      planId: tenants.planId,
-      planName: subscriptionPlans.displayName,
-    })
-    .from(tenants)
-    .leftJoin(subscriptionPlans, eq(tenants.planId, subscriptionPlans.id))
-    .orderBy(desc(tenants.createdAt));
+  try {
+    let query = db
+      .select({
+        id: tenants.id,
+        subdomain: tenants.subdomain,
+        name: tenants.name,
+        email: tenants.email,
+        subscriptionStatus: tenants.subscriptionStatus,
+        isActive: tenants.isActive,
+        createdAt: tenants.createdAt,
+        trialEndsAt: tenants.trialEndsAt,
+        planId: tenants.planId,
+        planName: subscriptionPlans.displayName,
+      })
+      .from(tenants)
+      .leftJoin(subscriptionPlans, eq(tenants.planId, subscriptionPlans.id))
+      .orderBy(desc(tenants.createdAt));
 
-  if (search) {
-    query = query.where(
-      or(
-        ilike(tenants.subdomain, `%${search}%`),
-        ilike(tenants.name, `%${search}%`),
-        ilike(tenants.email, `%${search}%`)
-      )
-    ) as typeof query;
+    if (search) {
+      query = query.where(
+        or(
+          ilike(tenants.subdomain, `%${search}%`),
+          ilike(tenants.name, `%${search}%`),
+          ilike(tenants.email, `%${search}%`)
+        )
+      ) as typeof query;
+    }
+
+    const allTenants = await query;
+
+    return {
+      tenants: allTenants.map((t) => ({
+        ...t,
+        createdAt: t.createdAt.toISOString().split("T")[0],
+        trialEndsAt: t.trialEndsAt?.toISOString().split("T")[0] || null,
+      })),
+      search,
+      error: null,
+    };
+  } catch (error) {
+    // If database query fails, return empty tenants list so page still renders
+    console.error("Failed to fetch tenants from database:", error);
+    return {
+      tenants: [],
+      search,
+      error: "Failed to load tenants. Please check the database connection.",
+    };
   }
-
-  const allTenants = await query;
-
-  return {
-    tenants: allTenants.map((t) => ({
-      ...t,
-      createdAt: t.createdAt.toISOString().split("T")[0],
-      trialEndsAt: t.trialEndsAt?.toISOString().split("T")[0] || null,
-    })),
-    search,
-  };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -80,7 +91,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminTenantsPage() {
-  const { tenants: tenantList, search } = useLoaderData<typeof loader>();
+  const { tenants: tenantList, search, error } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const fetcher = useFetcher();
 
@@ -109,6 +120,12 @@ export default function AdminTenantsPage() {
 
   return (
     <div>
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Tenants</h1>
