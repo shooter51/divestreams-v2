@@ -6,7 +6,7 @@
 
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
-import { requireTenant } from "../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../lib/auth/tenant-auth.server";
 
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
