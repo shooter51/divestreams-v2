@@ -1,10 +1,11 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
-import { eq } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { requireTenant } from "../../../../../lib/auth/tenant-auth.server";
 import { getEquipmentById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
+import { ImageManager, type Image } from "../../../../../app/components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Edit Equipment - DiveStreams" }];
 
@@ -16,7 +17,32 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Equipment ID required", { status: 400 });
   }
 
-  const equipmentData = await getEquipmentById(tenant.schemaName, equipmentId);
+  // Get tenant database for images query
+  const { db, schema } = getTenantDb(tenant.schemaName);
+
+  const [equipmentData, equipmentImages] = await Promise.all([
+    getEquipmentById(tenant.schemaName, equipmentId),
+    db
+      .select({
+        id: schema.images.id,
+        url: schema.images.url,
+        thumbnailUrl: schema.images.thumbnailUrl,
+        filename: schema.images.filename,
+        width: schema.images.width,
+        height: schema.images.height,
+        alt: schema.images.alt,
+        sortOrder: schema.images.sortOrder,
+        isPrimary: schema.images.isPrimary,
+      })
+      .from(schema.images)
+      .where(
+        and(
+          eq(schema.images.entityType, "equipment"),
+          eq(schema.images.entityId, equipmentId)
+        )
+      )
+      .orderBy(asc(schema.images.sortOrder)),
+  ]);
 
   if (!equipmentData) {
     throw new Response("Equipment not found", { status: 404 });
@@ -42,7 +68,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     notes: equipmentData.notes || "",
   };
 
-  return { equipment };
+  // Format images for the component
+  const images: Image[] = equipmentImages.map((img) => ({
+    id: img.id,
+    url: img.url,
+    thumbnailUrl: img.thumbnailUrl || img.url,
+    filename: img.filename,
+    width: img.width ?? undefined,
+    height: img.height ?? undefined,
+    alt: img.alt ?? undefined,
+    sortOrder: img.sortOrder,
+    isPrimary: img.isPrimary,
+  }));
+
+  return { equipment, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -90,7 +129,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function EditEquipmentPage() {
-  const { equipment } = useLoaderData<typeof loader>();
+  const { equipment, images } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -202,6 +241,17 @@ export default function EditEquipmentPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Images */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Equipment Images</h2>
+          <ImageManager
+            entityType="equipment"
+            entityId={equipment.id}
+            images={images}
+            maxImages={5}
+          />
         </div>
 
         {/* Status & Condition */}

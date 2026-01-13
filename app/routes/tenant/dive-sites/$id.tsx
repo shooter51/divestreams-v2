@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
+import { eq, and, asc } from "drizzle-orm";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import {
   getDiveSiteById,
@@ -7,6 +8,8 @@ import {
   getRecentTripsForDiveSite,
   getToursUsingDiveSite,
 } from "../../../../lib/db/queries.server";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { ImageManager, type Image } from "../../../../app/components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Dive Site Details - DiveStreams" }];
 
@@ -25,11 +28,34 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Dive site not found", { status: 404 });
   }
 
-  // Fetch stats, recent trips, and related tours in parallel
-  const [stats, recentTrips, toursUsingSite] = await Promise.all([
+  // Get tenant database for images query
+  const { db, schema } = getTenantDb(tenant.schemaName);
+
+  // Fetch stats, recent trips, related tours, and images in parallel
+  const [stats, recentTrips, toursUsingSite, siteImages] = await Promise.all([
     getDiveSiteStats(tenant.schemaName, siteId),
     getRecentTripsForDiveSite(tenant.schemaName, siteId, 5),
     getToursUsingDiveSite(tenant.schemaName, siteId, 5),
+    db
+      .select({
+        id: schema.images.id,
+        url: schema.images.url,
+        thumbnailUrl: schema.images.thumbnailUrl,
+        filename: schema.images.filename,
+        width: schema.images.width,
+        height: schema.images.height,
+        alt: schema.images.alt,
+        sortOrder: schema.images.sortOrder,
+        isPrimary: schema.images.isPrimary,
+      })
+      .from(schema.images)
+      .where(
+        and(
+          eq(schema.images.entityType, "dive-site"),
+          eq(schema.images.entityId, siteId)
+        )
+      )
+      .orderBy(asc(schema.images.sortOrder)),
   ]);
 
   // Format the dive site data for the view
@@ -57,7 +83,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       : "",
   };
 
-  return { diveSite, recentTrips, stats, toursUsingSite };
+  // Format images for the component
+  const images: Image[] = siteImages.map((img) => ({
+    id: img.id,
+    url: img.url,
+    thumbnailUrl: img.thumbnailUrl || img.url,
+    filename: img.filename,
+    width: img.width ?? undefined,
+    height: img.height ?? undefined,
+    alt: img.alt ?? undefined,
+    sortOrder: img.sortOrder,
+    isPrimary: img.isPrimary,
+  }));
+
+  return { diveSite, recentTrips, stats, toursUsingSite, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -86,7 +125,7 @@ const difficultyColors: Record<string, string> = {
 };
 
 export default function DiveSiteDetailPage() {
-  const { diveSite, recentTrips, stats, toursUsingSite } = useLoaderData<typeof loader>();
+  const { diveSite, recentTrips, stats, toursUsingSite, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   const handleDelete = () => {
@@ -176,6 +215,17 @@ export default function DiveSiteDetailPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-3">Description</h2>
             <p className="text-gray-700">{diveSite.description}</p>
+          </div>
+
+          {/* Images */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Site Images</h2>
+            <ImageManager
+              entityType="dive-site"
+              entityId={diveSite.id}
+              images={images}
+              maxImages={5}
+            />
           </div>
 
           {/* Conditions */}

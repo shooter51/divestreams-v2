@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { eq, and, asc } from "drizzle-orm";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import {
   getEquipmentById,
@@ -9,6 +10,8 @@ import {
   updateEquipmentStatus,
   deleteEquipment,
 } from "../../../../lib/db/queries.server";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { ImageManager, type Image } from "../../../../app/components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
 
@@ -20,19 +23,55 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Equipment ID required", { status: 400 });
   }
 
+  // Get tenant database for images query
+  const { db, schema } = getTenantDb(tenant.schemaName);
+
   // Fetch all data in parallel
-  const [equipment, rentalHistory, stats, serviceHistory] = await Promise.all([
+  const [equipment, rentalHistory, stats, serviceHistory, equipmentImages] = await Promise.all([
     getEquipmentById(tenant.schemaName, equipmentId),
     getEquipmentRentalHistory(tenant.schemaName, equipmentId),
     getEquipmentRentalStats(tenant.schemaName, equipmentId),
     getEquipmentServiceHistory(tenant.schemaName, equipmentId),
+    db
+      .select({
+        id: schema.images.id,
+        url: schema.images.url,
+        thumbnailUrl: schema.images.thumbnailUrl,
+        filename: schema.images.filename,
+        width: schema.images.width,
+        height: schema.images.height,
+        alt: schema.images.alt,
+        sortOrder: schema.images.sortOrder,
+        isPrimary: schema.images.isPrimary,
+      })
+      .from(schema.images)
+      .where(
+        and(
+          eq(schema.images.entityType, "equipment"),
+          eq(schema.images.entityId, equipmentId)
+        )
+      )
+      .orderBy(asc(schema.images.sortOrder)),
   ]);
 
   if (!equipment) {
     throw new Response("Equipment not found", { status: 404 });
   }
 
-  return { equipment, rentalHistory, serviceHistory, stats };
+  // Format images for the component
+  const images: Image[] = equipmentImages.map((img) => ({
+    id: img.id,
+    url: img.url,
+    thumbnailUrl: img.thumbnailUrl || img.url,
+    filename: img.filename,
+    width: img.width ?? undefined,
+    height: img.height ?? undefined,
+    alt: img.alt ?? undefined,
+    sortOrder: img.sortOrder,
+    isPrimary: img.isPrimary,
+  }));
+
+  return { equipment, rentalHistory, serviceHistory, stats, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -97,7 +136,7 @@ const conditionColors: Record<string, string> = {
 };
 
 export default function EquipmentDetailPage() {
-  const { equipment, rentalHistory, serviceHistory, stats } =
+  const { equipment, rentalHistory, serviceHistory, stats, images } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
@@ -185,6 +224,17 @@ export default function EquipmentDetailPage() {
               <p className="text-2xl font-bold">{stats.avgRentalsPerMonth}</p>
               <p className="text-gray-500 text-sm">Avg/Month</p>
             </div>
+          </div>
+
+          {/* Images */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Equipment Images</h2>
+            <ImageManager
+              entityType="equipment"
+              entityId={equipment.id}
+              images={images}
+              maxImages={5}
+            />
           </div>
 
           {/* Change Status */}

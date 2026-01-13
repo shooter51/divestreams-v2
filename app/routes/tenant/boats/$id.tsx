@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { eq, and, asc } from "drizzle-orm";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import {
   getBoatById,
@@ -9,6 +10,8 @@ import {
   updateBoatActiveStatus,
   deleteBoat,
 } from "../../../../lib/db/queries.server";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { ImageManager, type Image } from "../../../../app/components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Boat Details - DiveStreams" }];
 
@@ -20,19 +23,55 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Boat ID required", { status: 400 });
   }
 
+  // Get tenant database for images query
+  const { db, schema } = getTenantDb(tenant.schemaName);
+
   // Fetch all data in parallel
-  const [boat, recentTrips, upcomingTrips, stats] = await Promise.all([
+  const [boat, recentTrips, upcomingTrips, stats, boatImages] = await Promise.all([
     getBoatById(tenant.schemaName, boatId),
     getBoatRecentTrips(tenant.schemaName, boatId),
     getBoatUpcomingTrips(tenant.schemaName, boatId),
     getBoatStats(tenant.schemaName, boatId),
+    db
+      .select({
+        id: schema.images.id,
+        url: schema.images.url,
+        thumbnailUrl: schema.images.thumbnailUrl,
+        filename: schema.images.filename,
+        width: schema.images.width,
+        height: schema.images.height,
+        alt: schema.images.alt,
+        sortOrder: schema.images.sortOrder,
+        isPrimary: schema.images.isPrimary,
+      })
+      .from(schema.images)
+      .where(
+        and(
+          eq(schema.images.entityType, "boat"),
+          eq(schema.images.entityId, boatId)
+        )
+      )
+      .orderBy(asc(schema.images.sortOrder)),
   ]);
 
   if (!boat) {
     throw new Response("Boat not found", { status: 404 });
   }
 
-  return { boat, recentTrips, upcomingTrips, stats };
+  // Format images for the component
+  const images: Image[] = boatImages.map((img) => ({
+    id: img.id,
+    url: img.url,
+    thumbnailUrl: img.thumbnailUrl || img.url,
+    filename: img.filename,
+    width: img.width ?? undefined,
+    height: img.height ?? undefined,
+    alt: img.alt ?? undefined,
+    sortOrder: img.sortOrder,
+    isPrimary: img.isPrimary,
+  }));
+
+  return { boat, recentTrips, upcomingTrips, stats, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -68,7 +107,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function BoatDetailPage() {
-  const { boat, recentTrips, upcomingTrips, stats } = useLoaderData<typeof loader>();
+  const { boat, recentTrips, upcomingTrips, stats, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   const handleDelete = () => {
@@ -165,6 +204,17 @@ export default function BoatDetailPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-3">Description</h2>
             <p className="text-gray-700">{boat.description}</p>
+          </div>
+
+          {/* Images */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Boat Images</h2>
+            <ImageManager
+              entityType="boat"
+              entityId={boat.id}
+              images={images}
+              maxImages={5}
+            />
           </div>
 
           {/* Amenities */}
