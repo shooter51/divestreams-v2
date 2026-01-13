@@ -1,36 +1,107 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
-import { getTours } from "../../../../lib/db/queries.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { tours, trips } from "../../../../lib/db/schema";
+import { eq, or, ilike, sql, count } from "drizzle-orm";
+import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 
 export const meta: MetaFunction = () => [{ title: "Tours - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const typeFilter = url.searchParams.get("type") || "";
 
-  const rawTours = await getTours(tenant.schemaName, {
-    search: search || undefined,
-    type: typeFilter || undefined,
-  });
+  // Build query with organization filter
+  const baseCondition = eq(tours.organizationId, ctx.org.id);
+
+  // Add search filter if provided
+  const searchCondition = search
+    ? or(
+        ilike(tours.name, `%${search}%`),
+        ilike(tours.description, `%${search}%`)
+      )
+    : undefined;
+
+  // Add type filter if provided
+  const typeCondition = typeFilter
+    ? eq(tours.type, typeFilter)
+    : undefined;
+
+  // Combine conditions
+  let whereCondition = baseCondition;
+  if (searchCondition && typeCondition) {
+    whereCondition = sql`${baseCondition} AND ${searchCondition} AND ${typeCondition}`;
+  } else if (searchCondition) {
+    whereCondition = sql`${baseCondition} AND ${searchCondition}`;
+  } else if (typeCondition) {
+    whereCondition = sql`${baseCondition} AND ${typeCondition}`;
+  }
+
+  // Get tours with trip count
+  const tourList = await db
+    .select({
+      id: tours.id,
+      name: tours.name,
+      description: tours.description,
+      type: tours.type,
+      duration: tours.duration,
+      maxParticipants: tours.maxParticipants,
+      price: tours.price,
+      currency: tours.currency,
+      minCertLevel: tours.minCertLevel,
+      isActive: tours.isActive,
+      createdAt: tours.createdAt,
+    })
+    .from(tours)
+    .where(whereCondition)
+    .orderBy(tours.name);
+
+  // Get trip counts for each tour
+  const tripCounts = await db
+    .select({
+      tourId: trips.tourId,
+      count: count(),
+    })
+    .from(trips)
+    .where(eq(trips.organizationId, ctx.org.id))
+    .groupBy(trips.tourId);
+
+  const tripCountMap = new Map(tripCounts.map(tc => [tc.tourId, tc.count]));
 
   // Transform to UI format
-  const tours = rawTours.map((t) => ({
+  const tourData = tourList.map((t) => ({
     id: t.id,
     name: t.name,
     type: t.type || "other",
     duration: t.duration || 0,
     maxParticipants: t.maxParticipants || 0,
-    price: t.price?.toFixed(2) || "0.00",
+    price: t.price ? Number(t.price).toFixed(2) : "0.00",
     currency: t.currency || "USD",
     minCertLevel: t.minCertLevel,
     isActive: t.isActive ?? true,
-    tripCount: t.tripCount || 0,
+    tripCount: tripCountMap.get(t.id) || 0,
   }));
 
-  return { tours, total: tours.length, search, typeFilter };
+  // Get total count for usage tracking (without filters)
+  const [{ value: totalTours }] = await db
+    .select({ value: count() })
+    .from(tours)
+    .where(eq(tours.organizationId, ctx.org.id));
+
+  return {
+    tours: tourData,
+    total: tourData.length,
+    search,
+    typeFilter,
+    // Freemium data
+    canAddTour: ctx.canAddTour,
+    usage: totalTours,
+    limit: ctx.limits.tours,
+    isPremium: ctx.isPremium,
+  };
 }
 
 const tourTypes: Record<string, { label: string; color: string }> = {
@@ -43,7 +114,16 @@ const tourTypes: Record<string, { label: string; color: string }> = {
 };
 
 export default function ToursPage() {
-  const { tours, total, search, typeFilter } = useLoaderData<typeof loader>();
+  const {
+    tours,
+    total,
+    search,
+    typeFilter,
+    canAddTour,
+    usage,
+    limit,
+    isPremium
+  } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,16 +145,48 @@ export default function ToursPage() {
     return `${hours}h ${mins}min`;
   };
 
+  // Check if at limit (for free tier)
+  const isAtLimit = !isPremium && usage >= limit;
+
   return (
     <div>
+      {/* Show upgrade banner when at limit */}
+      {isAtLimit && (
+        <div className="mb-6">
+          <UpgradePrompt
+            feature="tours"
+            currentCount={usage}
+            limit={limit}
+            variant="banner"
+          />
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Tours</h1>
-          <p className="text-gray-500">{total} tour templates</p>
+          <p className="text-gray-500">
+            {total} tour templates
+            {!isPremium && (
+              <span className="ml-2 text-sm text-gray-400">
+                ({usage}/{limit} used)
+              </span>
+            )}
+          </p>
         </div>
         <Link
           to="/app/tours/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className={`px-4 py-2 rounded-lg ${
+            canAddTour
+              ? "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+          onClick={(e) => {
+            if (!canAddTour) {
+              e.preventDefault();
+            }
+          }}
+          aria-disabled={!canAddTour}
         >
           Create Tour
         </Link>
