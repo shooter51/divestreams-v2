@@ -137,9 +137,38 @@ async function processEmailJob(job: { name: string; data: unknown }) {
 async function processBookingJob(job: { name: string; data: unknown }) {
   console.log(`Processing booking job: ${job.name}`, job.data);
   switch (job.name) {
-    case "send-reminders":
-      // Find bookings happening tomorrow and send reminders
+    case "send-reminders": {
+      // Calculate tomorrow's date
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+
+      const tomorrowEnd = new Date(tomorrow);
+      tomorrowEnd.setHours(23, 59, 59, 999);
+
+      const tomorrowDateStr = tomorrow.toISOString().split("T")[0];
+
+      console.log(`[send-reminders] Processing booking reminders for ${tomorrowDateStr}`);
+      console.log(`[send-reminders] Date range: ${tomorrow.toISOString()} to ${tomorrowEnd.toISOString()}`);
+
+      // TODO: Full multi-tenant implementation
+      // 1. Query public.tenants for all active tenants
+      // 2. For each tenant, set search_path to tenant schema
+      // 3. Query bookings JOIN trips WHERE trip_date = tomorrow AND booking.status = 'confirmed'
+      // 4. For each booking, queue a "booking-reminder" email job:
+      //    await emailQueue.add("booking-reminder", {
+      //      to: booking.customer_email,
+      //      customerName: booking.customer_name,
+      //      tripName: trip.name,
+      //      tripDate: trip.date,
+      //      tripTime: trip.departure_time,
+      //      bookingNumber: booking.booking_number,
+      //      shopName: tenant.business_name,
+      //    });
+
+      console.log(`[send-reminders] Reminder job scaffold complete. Full multi-tenant implementation pending.`);
       break;
+    }
     case "mark-no-shows":
       // Mark no-shows for trips that have completed
       break;
