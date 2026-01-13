@@ -309,6 +309,50 @@ Settings → Team Management
 - Show upgrade prompts throughout UI
 - No grace period or overage
 
+### UI Enforcement (All Pages)
+
+Every page must check subscription status and enforce limits:
+
+| Page | Free Tier Behavior |
+|------|-------------------|
+| Customers | Show count (X/50), block "Add" button at limit, upgrade prompt |
+| Tours | Show count (X/3), block "Add" button at limit, upgrade prompt |
+| Bookings | Show monthly count (X/20), block new bookings at limit |
+| POS | Show "Premium Feature" overlay, upgrade CTA |
+| Equipment Rentals | Show "Premium Feature" overlay, upgrade CTA |
+| Reports | Show basic stats only, blur/lock advanced reports with upgrade CTA |
+| Team/Settings | Hide "Invite" button, show "Upgrade to add team members" |
+| Email Settings | Show "Premium Feature" message |
+
+**Implementation pattern:**
+```typescript
+// In every loader
+const subscription = await getOrgSubscription(orgId);
+const limits = getFreeTierLimits(subscription.plan);
+const usage = await getOrgUsage(orgId);
+
+return {
+  ...data,
+  subscription,
+  limits,
+  usage,
+  canAddCustomer: usage.customers < limits.customers,
+  canAddTour: usage.tours < limits.tours,
+  // etc.
+};
+```
+
+**Upgrade prompt component:**
+```
+┌─────────────────────────────────────────────────┐
+│ ⭐ Upgrade to Premium                           │
+│                                                 │
+│ You've reached 50/50 customers on the Free plan │
+│                                                 │
+│ [Upgrade Now]  [Learn More]                     │
+└─────────────────────────────────────────────────┘
+```
+
 ---
 
 ## Stale Tenant Cleanup (Free Accounts Only)
