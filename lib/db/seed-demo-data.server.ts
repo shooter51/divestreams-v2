@@ -1,12 +1,11 @@
 import { db } from "./index";
-import { createTenantSchema } from "./schema";
-import { sql } from "drizzle-orm";
+import * as schema from "./schema";
 
 /**
- * Seeds a tenant schema with demo data for testing/demos
+ * Seeds an organization with demo data for testing/demos
+ * @param organizationId - The organization ID to seed data for
  */
-export async function seedDemoData(schemaName: string): Promise<void> {
-  const tenantSchema = createTenantSchema(schemaName);
+export async function seedDemoData(organizationId: string): Promise<void> {
 
   // Demo Customers
   const customers = [
@@ -141,8 +140,9 @@ export async function seedDemoData(schemaName: string): Promise<void> {
   const customerIds: string[] = [];
   for (const customer of customers) {
     const [inserted] = await db
-      .insert(tenantSchema.customers)
+      .insert(schema.customers)
       .values({
+        organizationId,
         email: customer.email,
         firstName: customer.firstName,
         lastName: customer.lastName,
@@ -158,7 +158,7 @@ export async function seedDemoData(schemaName: string): Promise<void> {
         notes: customer.notes,
         tags: customer.tags,
       })
-      .returning({ id: tenantSchema.customers.id });
+      .returning({ id: schema.customers.id });
     customerIds.push(inserted.id);
   }
 
@@ -229,8 +229,9 @@ export async function seedDemoData(schemaName: string): Promise<void> {
   const diveSiteIds: string[] = [];
   for (const site of diveSites) {
     const [inserted] = await db
-      .insert(tenantSchema.diveSites)
+      .insert(schema.diveSites)
       .values({
+        organizationId,
         name: site.name,
         description: site.description,
         latitude: site.latitude,
@@ -242,7 +243,7 @@ export async function seedDemoData(schemaName: string): Promise<void> {
         visibility: site.visibility,
         highlights: site.highlights,
       })
-      .returning({ id: tenantSchema.diveSites.id });
+      .returning({ id: schema.diveSites.id });
     diveSiteIds.push(inserted.id);
   }
 
@@ -269,8 +270,9 @@ export async function seedDemoData(schemaName: string): Promise<void> {
   const boatIds: string[] = [];
   for (const boat of boats) {
     const [inserted] = await db
-      .insert(tenantSchema.boats)
+      .insert(schema.boats)
       .values({
+        organizationId,
         name: boat.name,
         description: boat.description,
         capacity: boat.capacity,
@@ -278,7 +280,7 @@ export async function seedDemoData(schemaName: string): Promise<void> {
         registrationNumber: boat.registrationNumber,
         amenities: boat.amenities,
       })
-      .returning({ id: tenantSchema.boats.id });
+      .returning({ id: schema.boats.id });
     boatIds.push(inserted.id);
   }
 
@@ -307,7 +309,8 @@ export async function seedDemoData(schemaName: string): Promise<void> {
   ];
 
   for (const item of equipmentItems) {
-    await db.insert(tenantSchema.equipment).values({
+    await db.insert(schema.equipment).values({
+      organizationId,
       category: item.category,
       name: item.name,
       brand: item.brand,
@@ -399,8 +402,9 @@ export async function seedDemoData(schemaName: string): Promise<void> {
   const tourIds: string[] = [];
   for (const tour of tours) {
     const [inserted] = await db
-      .insert(tenantSchema.tours)
+      .insert(schema.tours)
       .values({
+        organizationId,
         name: tour.name,
         description: tour.description,
         type: tour.type,
@@ -417,18 +421,18 @@ export async function seedDemoData(schemaName: string): Promise<void> {
         minAge: tour.minAge,
         requirements: tour.requirements,
       })
-      .returning({ id: tenantSchema.tours.id });
+      .returning({ id: schema.tours.id });
     tourIds.push(inserted.id);
   }
 
   // Link tours to dive sites
-  await db.insert(tenantSchema.tourDiveSites).values([
-    { tourId: tourIds[0], diveSiteId: diveSiteIds[0], order: 1 }, // Discover -> Coral Garden
-    { tourId: tourIds[1], diveSiteId: diveSiteIds[0], order: 1 }, // Two Tank -> Coral Garden
-    { tourId: tourIds[1], diveSiteId: diveSiteIds[4], order: 2 }, // Two Tank -> Manta Point
-    { tourId: tourIds[2], diveSiteId: diveSiteIds[0], order: 1 }, // Night Dive -> Coral Garden
-    { tourId: tourIds[3], diveSiteId: diveSiteIds[2], order: 1 }, // Wreck -> Shipwreck Bay
-    { tourId: tourIds[4], diveSiteId: diveSiteIds[0], order: 1 }, // Snorkel -> Coral Garden
+  await db.insert(schema.tourDiveSites).values([
+    { organizationId, tourId: tourIds[0], diveSiteId: diveSiteIds[0], order: 1 }, // Discover -> Coral Garden
+    { organizationId, tourId: tourIds[1], diveSiteId: diveSiteIds[0], order: 1 }, // Two Tank -> Coral Garden
+    { organizationId, tourId: tourIds[1], diveSiteId: diveSiteIds[4], order: 2 }, // Two Tank -> Manta Point
+    { organizationId, tourId: tourIds[2], diveSiteId: diveSiteIds[0], order: 1 }, // Night Dive -> Coral Garden
+    { organizationId, tourId: tourIds[3], diveSiteId: diveSiteIds[2], order: 1 }, // Wreck -> Shipwreck Bay
+    { organizationId, tourId: tourIds[4], diveSiteId: diveSiteIds[0], order: 1 }, // Snorkel -> Coral Garden
   ]);
 
   // Demo Trips (scheduled in the coming weeks)
@@ -462,8 +466,9 @@ export async function seedDemoData(schemaName: string): Promise<void> {
     const dateStr = tripDate.toISOString().split("T")[0];
 
     const [inserted] = await db
-      .insert(tenantSchema.trips)
+      .insert(schema.trips)
       .values({
+        organizationId,
         tourId: tourIds[trip.tourIdx],
         boatId: boatIds[trip.boatIdx],
         date: dateStr,
@@ -471,7 +476,7 @@ export async function seedDemoData(schemaName: string): Promise<void> {
         endTime: trip.endTime,
         status: "scheduled",
       })
-      .returning({ id: tenantSchema.trips.id });
+      .returning({ id: schema.trips.id });
     tripIds.push(inserted.id);
   }
 
@@ -499,7 +504,8 @@ export async function seedDemoData(schemaName: string): Promise<void> {
     const total = subtotal + tax;
     const paidAmount = booking.paymentStatus === "paid" ? total : booking.paymentStatus === "partial" ? total * 0.5 : 0;
 
-    await db.insert(tenantSchema.bookings).values({
+    await db.insert(schema.bookings).values({
+      organizationId,
       bookingNumber: `BK-${String(1000 + i).padStart(4, "0")}`,
       tripId: tripIds[booking.tripIdx],
       customerId: customerIds[booking.customerIdx],
@@ -514,5 +520,5 @@ export async function seedDemoData(schemaName: string): Promise<void> {
     });
   }
 
-  console.log(`Demo data seeded for schema: ${schemaName}`);
+  console.log(`Demo data seeded for organization: ${organizationId}`);
 }

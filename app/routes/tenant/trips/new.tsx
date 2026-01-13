@@ -1,6 +1,6 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { tripSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getTours, getBoats, getStaff, createTrip } from "../../../../lib/db/queries.server";
 
@@ -45,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
 
   // Convert staff array

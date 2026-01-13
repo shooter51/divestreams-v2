@@ -3,7 +3,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { boats as boatsTable, trips } from "../../../../lib/db/schema";
-import { eq, ilike, sql, count } from "drizzle-orm";
+import { eq, ilike, sql, count, and } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Boats - DiveStreams" }];
 
@@ -28,7 +28,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       })
       .from(boatsTable)
       .where(
-        sql`${boatsTable.organizationId} = ${ctx.org.id} AND ${boatsTable.name} ILIKE ${'%' + search + '%'}`
+        and(
+          eq(boatsTable.organizationId, ctx.org.id),
+          ilike(boatsTable.name, `%${search}%`)
+        )
       );
   } else {
     rawBoats = await db

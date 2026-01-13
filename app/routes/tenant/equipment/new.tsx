@@ -1,18 +1,18 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createEquipment } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Add Equipment - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  await requireTenant(request);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
 
   const validation = validateFormData(formData, equipmentSchema);

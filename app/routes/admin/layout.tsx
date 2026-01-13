@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { Outlet, Link, useLocation, redirect } from "react-router";
-import { requireAdmin, isAdminSubdomain } from "../../../lib/auth/admin-auth.server";
+import { Outlet, Link, useLocation, redirect, useLoaderData } from "react-router";
+import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
+import { isAdminSubdomain } from "../../../lib/auth/org-context.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Only allow access on admin subdomain
@@ -8,15 +9,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect("https://divestreams.com");
   }
 
-  requireAdmin(request);
-  return null;
+  const context = await requirePlatformContext(request);
+
+  return {
+    user: {
+      name: context.user.name,
+      email: context.user.email,
+    },
+    isOwner: context.isOwner,
+    isAdmin: context.isAdmin,
+  };
 }
 
 export default function AdminLayout() {
   const location = useLocation();
+  const { user, isOwner } = useLoaderData<typeof loader>();
 
   const navItems = [
-    { href: "/dashboard", label: "Tenants", icon: "🏢" },
+    { href: "/dashboard", label: "Organizations", icon: "🏢" },
     { href: "/plans", label: "Plans", icon: "💳" },
     { href: "/migrations", label: "Migrations", icon: "🔧" },
   ];
@@ -52,14 +62,24 @@ export default function AdminLayout() {
               })}
             </nav>
           </div>
-          <form action="/logout" method="post">
-            <button
-              type="submit"
-              className="text-gray-300 hover:text-white text-sm"
-            >
-              Logout
-            </button>
-          </form>
+          <div className="flex items-center gap-4">
+            <div className="text-sm">
+              <span className="text-gray-400">{user.email}</span>
+              {isOwner && (
+                <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-500/20 text-yellow-300 rounded">
+                  Owner
+                </span>
+              )}
+            </div>
+            <form action="/logout" method="post">
+              <button
+                type="submit"
+                className="text-gray-300 hover:text-white text-sm"
+              >
+                Logout
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 

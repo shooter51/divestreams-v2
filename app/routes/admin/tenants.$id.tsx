@@ -1,124 +1,213 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { db } from "../../../lib/db";
-import { tenants, subscriptionPlans } from "../../../lib/db/schema";
-import { eq } from "drizzle-orm";
-import { deleteTenant } from "../../../lib/db/tenant.server";
+import { organization, member, user } from "../../../lib/db/schema/auth";
+import { subscription } from "../../../lib/db/schema/subscription";
+import { customers, tours, bookings } from "../../../lib/db/schema";
+import { eq, and, count, sql } from "drizzle-orm";
+import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 
-export const meta: MetaFunction = () => [{ title: "Edit Tenant - DiveStreams Admin" }];
+export const meta: MetaFunction = () => [{ title: "Organization Details - DiveStreams Admin" }];
 
-export async function loader({ params }: LoaderFunctionArgs) {
-  const tenantId = params.id;
-  if (!tenantId) throw new Response("Not found", { status: 404 });
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  // Require platform admin access
+  await requirePlatformContext(request);
 
-  const [tenant] = await db
+  const slug = params.id; // Using slug instead of id
+  if (!slug) throw new Response("Not found", { status: 404 });
+
+  // Find organization by slug
+  const [org] = await db
     .select()
-    .from(tenants)
-    .where(eq(tenants.id, tenantId))
+    .from(organization)
+    .where(eq(organization.slug, slug))
     .limit(1);
 
-  if (!tenant) throw new Response("Not found", { status: 404 });
+  if (!org) throw new Response("Not found", { status: 404 });
 
-  const plans = await db
+  // Get members with user info
+  const members = await db
+    .select({
+      id: member.id,
+      userId: member.userId,
+      role: member.role,
+      createdAt: member.createdAt,
+      userEmail: user.email,
+      userName: user.name,
+    })
+    .from(member)
+    .innerJoin(user, eq(member.userId, user.id))
+    .where(eq(member.organizationId, org.id));
+
+  // Get subscription
+  const [sub] = await db
     .select()
-    .from(subscriptionPlans)
-    .where(eq(subscriptionPlans.isActive, true));
+    .from(subscription)
+    .where(eq(subscription.organizationId, org.id))
+    .limit(1);
+
+  // Get usage stats
+  const [customerCount] = await db
+    .select({ count: count() })
+    .from(customers)
+    .where(eq(customers.organizationId, org.id));
+
+  const [tourCount] = await db
+    .select({ count: count() })
+    .from(tours)
+    .where(eq(tours.organizationId, org.id));
+
+  const [bookingCount] = await db
+    .select({ count: count() })
+    .from(bookings)
+    .where(eq(bookings.organizationId, org.id));
 
   return {
-    tenant: {
-      ...tenant,
-      trialEndsAt: tenant.trialEndsAt?.toISOString().split("T")[0] || "",
-      currentPeriodEnd: tenant.currentPeriodEnd?.toISOString().split("T")[0] || "",
+    organization: {
+      ...org,
+      createdAt: org.createdAt.toISOString().split("T")[0],
+      metadata: org.metadata ? JSON.parse(org.metadata) : null,
     },
-    plans,
+    members: members.map((m) => ({
+      ...m,
+      createdAt: m.createdAt.toISOString().split("T")[0],
+    })),
+    subscription: sub
+      ? {
+          ...sub,
+          currentPeriodStart: sub.currentPeriodStart?.toISOString().split("T")[0] || null,
+          currentPeriodEnd: sub.currentPeriodEnd?.toISOString().split("T")[0] || null,
+          createdAt: sub.createdAt.toISOString().split("T")[0],
+        }
+      : null,
+    usage: {
+      customers: customerCount?.count || 0,
+      tours: tourCount?.count || 0,
+      bookings: bookingCount?.count || 0,
+      members: members.length,
+    },
   };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const tenantId = params.id;
-  if (!tenantId) throw new Response("Not found", { status: 404 });
+  // Require platform admin access
+  await requirePlatformContext(request);
+
+  const slug = params.id;
+  if (!slug) throw new Response("Not found", { status: 404 });
 
   const formData = await request.formData();
   const intent = formData.get("intent");
 
+  // Find organization
+  const [org] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.slug, slug))
+    .limit(1);
+
+  if (!org) throw new Response("Not found", { status: 404 });
+
   if (intent === "delete") {
-    await deleteTenant(tenantId);
+    // Delete the organization (cascades via FK)
+    await db.delete(organization).where(eq(organization.id, org.id));
     return redirect("/dashboard");
   }
 
-  // Update tenant
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const phone = formData.get("phone") as string;
-  const timezone = formData.get("timezone") as string;
-  const currency = formData.get("currency") as string;
-  const planId = formData.get("planId") as string;
-  const subscriptionStatus = formData.get("subscriptionStatus") as string;
-  const trialEndsAt = formData.get("trialEndsAt") as string;
-  const isActive = formData.get("isActive") === "on";
-
-  const errors: Record<string, string> = {};
-  if (!name) errors.name = "Name is required";
-  if (!email) errors.email = "Email is required";
-
-  if (Object.keys(errors).length > 0) {
-    return { errors };
-  }
-
-  try {
+  if (intent === "updateName") {
+    const name = formData.get("name") as string;
+    if (!name) {
+      return { errors: { name: "Name is required" } };
+    }
     await db
-      .update(tenants)
-      .set({
-        name,
-        email,
-        phone: phone || null,
-        timezone: timezone || "UTC",
-        currency: currency || "USD",
-        planId: planId || null,
-        subscriptionStatus: subscriptionStatus || "trialing",
-        trialEndsAt: trialEndsAt ? new Date(trialEndsAt) : null,
-        isActive,
-        updatedAt: new Date(),
-      })
-      .where(eq(tenants.id, tenantId));
-
+      .update(organization)
+      .set({ name, updatedAt: new Date() })
+      .where(eq(organization.id, org.id));
     return { success: true };
-  } catch (error) {
-    console.error("Failed to update tenant:", error);
-    return { errors: { form: "Failed to update tenant. Please try again." } };
   }
+
+  if (intent === "updateSubscription") {
+    const plan = formData.get("plan") as string;
+    const status = formData.get("status") as string;
+
+    // Check if subscription exists
+    const [existingSub] = await db
+      .select()
+      .from(subscription)
+      .where(eq(subscription.organizationId, org.id))
+      .limit(1);
+
+    if (existingSub) {
+      await db
+        .update(subscription)
+        .set({
+          plan: plan as "free" | "premium",
+          status: status as "active" | "trialing" | "past_due" | "canceled",
+          updatedAt: new Date(),
+        })
+        .where(eq(subscription.id, existingSub.id));
+    } else {
+      await db.insert(subscription).values({
+        id: crypto.randomUUID(),
+        organizationId: org.id,
+        plan: plan as "free" | "premium",
+        status: status as "active" | "trialing" | "past_due" | "canceled",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+    return { success: true };
+  }
+
+  if (intent === "removeMember") {
+    const memberId = formData.get("memberId") as string;
+    if (memberId) {
+      await db.delete(member).where(eq(member.id, memberId));
+      return { success: true };
+    }
+  }
+
+  if (intent === "updateRole") {
+    const memberId = formData.get("memberId") as string;
+    const role = formData.get("role") as string;
+    if (memberId && role) {
+      await db
+        .update(member)
+        .set({ role, updatedAt: new Date() })
+        .where(eq(member.id, memberId));
+      return { success: true };
+    }
+  }
+
+  return null;
 }
 
-const timezones = [
-  "UTC",
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "America/Anchorage",
-  "Pacific/Honolulu",
-  "Europe/London",
-  "Europe/Paris",
-  "Europe/Berlin",
-  "Asia/Tokyo",
-  "Asia/Shanghai",
-  "Asia/Dubai",
-  "Australia/Sydney",
-  "Pacific/Auckland",
-];
+const roleColors: Record<string, string> = {
+  owner: "bg-purple-100 text-purple-700",
+  admin: "bg-blue-100 text-blue-700",
+  staff: "bg-green-100 text-green-700",
+  customer: "bg-gray-100 text-gray-700",
+};
 
-const currencies = ["USD", "EUR", "GBP", "AUD", "CAD", "JPY", "THB", "MXN", "BRL"];
+const statusColors: Record<string, string> = {
+  active: "bg-green-100 text-green-700",
+  trialing: "bg-blue-100 text-blue-700",
+  past_due: "bg-yellow-100 text-yellow-700",
+  canceled: "bg-red-100 text-red-700",
+};
 
-const statuses = ["trialing", "active", "past_due", "canceled"];
-
-export default function EditTenantPage() {
-  const { tenant, plans } = useLoaderData<typeof loader>();
+export default function OrganizationDetailsPage() {
+  const { organization: org, members, subscription: sub, usage } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
   const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete "${tenant.name}"? This will remove all their data and cannot be undone.`)) {
+    if (
+      confirm(
+        `Are you sure you want to delete "${org.name}"? This will remove all their data and cannot be undone.`
+      )
+    ) {
       const form = document.createElement("form");
       form.method = "post";
       const input = document.createElement("input");
@@ -132,254 +221,281 @@ export default function EditTenantPage() {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-4xl">
       <div className="mb-6">
         <Link to="/dashboard" className="text-blue-600 hover:underline text-sm">
-          &larr; Back to Tenants
+          &larr; Back to Organizations
         </Link>
-        <h1 className="text-2xl font-bold mt-2">Edit Tenant</h1>
-        <p className="text-gray-600">{tenant.subdomain}.divestreams.com</p>
+        <h1 className="text-2xl font-bold mt-2">{org.name}</h1>
+        <p className="text-gray-600">{org.slug}.divestreams.com</p>
       </div>
 
-      <form method="post" className="bg-white rounded-xl p-6 shadow-sm space-y-6">
-        {actionData?.errors?.form && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-            {actionData.errors.form}
-          </div>
-        )}
+      {actionData?.success && (
+        <div className="mb-6 bg-green-50 text-green-600 p-3 rounded-lg text-sm">
+          Changes saved successfully
+        </div>
+      )}
 
-        {actionData?.success && (
-          <div className="bg-green-50 text-green-600 p-3 rounded-lg text-sm">
-            Tenant updated successfully
-          </div>
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Info */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Organization Details */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Organization Details</h2>
+            <form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="updateName" />
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-600">
+                  Slug (cannot be changed)
+                </label>
+                <div className="flex items-center">
+                  <input
+                    type="text"
+                    value={org.slug}
+                    disabled
+                    className="flex-1 px-3 py-2 border rounded-l-lg bg-gray-50 text-gray-600"
+                  />
+                  <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-lg text-gray-600">
+                    .divestreams.com
+                  </span>
+                </div>
+              </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <label className="block text-sm font-medium mb-1 text-gray-600">
-              Subdomain (cannot be changed)
-            </label>
-            <div className="flex items-center">
-              <input
-                type="text"
-                value={tenant.subdomain}
-                disabled
-                className="flex-1 px-3 py-2 border rounded-l-lg bg-gray-50 text-gray-600"
-              />
-              <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-lg text-gray-600">
-                .divestreams.com
-              </span>
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium mb-1">
+                  Organization Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  defaultValue={org.name}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 text-sm"
+              >
+                {isSubmitting ? "Saving..." : "Update Name"}
+              </button>
+            </form>
+
+            <div className="mt-6 pt-6 border-t">
+              <p className="text-sm text-gray-600">
+                Created: {org.createdAt}
+              </p>
+              {org.logo && (
+                <div className="mt-2">
+                  <p className="text-sm text-gray-600 mb-1">Logo:</p>
+                  <img src={org.logo} alt="Logo" className="w-16 h-16 rounded object-cover" />
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="col-span-2">
-            <label htmlFor="name" className="block text-sm font-medium mb-1">
-              Business Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              defaultValue={tenant.name}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            {actionData?.errors?.name && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+          {/* Subscription Management */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Subscription</h2>
+            <form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="updateSubscription" />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="plan" className="block text-sm font-medium mb-1">
+                    Plan
+                  </label>
+                  <select
+                    id="plan"
+                    name="plan"
+                    defaultValue={sub?.plan || "free"}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="free">Free</option>
+                    <option value="premium">Premium</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="status" className="block text-sm font-medium mb-1">
+                    Status
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    defaultValue={sub?.status || "active"}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="trialing">Trialing</option>
+                    <option value="past_due">Past Due</option>
+                    <option value="canceled">Canceled</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 text-sm"
+              >
+                Update Subscription
+              </button>
+            </form>
+
+            {sub?.stripeCustomerId && (
+              <div className="mt-4 pt-4 border-t text-sm space-y-1">
+                <p>
+                  <span className="text-gray-600">Stripe Customer:</span>{" "}
+                  <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">
+                    {sub.stripeCustomerId}
+                  </code>
+                </p>
+                {sub.stripeSubscriptionId && (
+                  <p>
+                    <span className="text-gray-600">Stripe Subscription:</span>{" "}
+                    <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">
+                      {sub.stripeSubscriptionId}
+                    </code>
+                  </p>
+                )}
+                {sub.currentPeriodEnd && (
+                  <p>
+                    <span className="text-gray-600">Period Ends:</span> {sub.currentPeriodEnd}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Owner Email *
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              defaultValue={tenant.email}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            {actionData?.errors?.email && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.email}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium mb-1">
-              Phone
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              defaultValue={tenant.phone || ""}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="timezone" className="block text-sm font-medium mb-1">
-              Timezone
-            </label>
-            <select
-              id="timezone"
-              name="timezone"
-              defaultValue={tenant.timezone}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              {timezones.map((tz) => (
-                <option key={tz} value={tz}>
-                  {tz}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="currency" className="block text-sm font-medium mb-1">
-              Currency
-            </label>
-            <select
-              id="currency"
-              name="currency"
-              defaultValue={tenant.currency}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              {currencies.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="planId" className="block text-sm font-medium mb-1">
-              Subscription Plan
-            </label>
-            <select
-              id="planId"
-              name="planId"
-              defaultValue={tenant.planId || ""}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">No plan</option>
-              {plans.map((plan) => (
-                <option key={plan.id} value={plan.id}>
-                  {plan.displayName} (${(plan.monthlyPrice / 100).toFixed(0)}/mo)
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="subscriptionStatus" className="block text-sm font-medium mb-1">
-              Status
-            </label>
-            <select
-              id="subscriptionStatus"
-              name="subscriptionStatus"
-              defaultValue={tenant.subscriptionStatus}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="trialEndsAt" className="block text-sm font-medium mb-1">
-              Trial Ends At
-            </label>
-            <input
-              type="date"
-              id="trialEndsAt"
-              name="trialEndsAt"
-              defaultValue={tenant.trialEndsAt}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="col-span-2">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                name="isActive"
-                defaultChecked={tenant.isActive}
-                className="rounded"
-              />
-              <span className="text-sm font-medium">Active</span>
-            </label>
-            <p className="text-xs text-gray-600 mt-1">
-              Inactive tenants cannot access their dashboard
-            </p>
+          {/* Members */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Members ({members.length})</h2>
+            <div className="space-y-3">
+              {members.length === 0 ? (
+                <p className="text-gray-500 text-sm">No members</p>
+              ) : (
+                members.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between py-2 border-b last:border-0"
+                  >
+                    <div>
+                      <p className="font-medium text-sm">{m.userName || m.userEmail}</p>
+                      <p className="text-xs text-gray-500">{m.userEmail}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          roleColors[m.role] || "bg-gray-100"
+                        }`}
+                      >
+                        {m.role}
+                      </span>
+                      {m.role !== "owner" && (
+                        <form method="post" className="inline">
+                          <input type="hidden" name="intent" value="removeMember" />
+                          <input type="hidden" name="memberId" value={m.id} />
+                          <button
+                            type="submit"
+                            className="text-xs text-red-600 hover:underline"
+                            onClick={(e) => {
+                              if (!confirm("Remove this member?")) {
+                                e.preventDefault();
+                              }
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-4 border-t">
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
-            >
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </button>
-            <Link to="/dashboard" className="px-6 py-2 border rounded-lg hover:bg-gray-50">
-              Cancel
-            </Link>
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Quick Stats */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Usage Stats</h2>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Members</span>
+                <span className="font-medium">{usage.members}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Customers</span>
+                <span className="font-medium">{usage.customers}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Tours</span>
+                <span className="font-medium">{usage.tours}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Bookings</span>
+                <span className="font-medium">{usage.bookings}</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex gap-3">
-            <a
-              href={`https://${tenant.subdomain}.divestreams.com/app`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Open Dashboard &rarr;
-            </a>
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="text-sm text-red-600 hover:underline"
-            >
-              Delete Tenant
-            </button>
+          {/* Quick Actions */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Quick Actions</h2>
+            <div className="space-y-2">
+              <a
+                href={`https://${org.slug}.divestreams.com/app`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full text-center py-2 px-4 border rounded-lg hover:bg-gray-50 text-sm"
+              >
+                Open Dashboard
+              </a>
+              <button
+                onClick={handleDelete}
+                className="w-full py-2 px-4 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 text-sm"
+              >
+                Delete Organization
+              </button>
+            </div>
           </div>
-        </div>
-      </form>
 
-      {/* Stripe Info */}
-      {(tenant.stripeCustomerId || tenant.stripeSubscriptionId) && (
-        <div className="mt-6 bg-white rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Stripe Integration</h2>
-          <div className="text-sm space-y-2">
-            {tenant.stripeCustomerId && (
-              <p>
-                <span className="text-gray-600">Customer ID:</span>{" "}
-                <code className="bg-gray-100 px-2 py-1 rounded">{tenant.stripeCustomerId}</code>
-              </p>
-            )}
-            {tenant.stripeSubscriptionId && (
-              <p>
-                <span className="text-gray-600">Subscription ID:</span>{" "}
-                <code className="bg-gray-100 px-2 py-1 rounded">{tenant.stripeSubscriptionId}</code>
-              </p>
-            )}
-            {tenant.currentPeriodEnd && (
-              <p>
-                <span className="text-gray-600">Current Period Ends:</span> {tenant.currentPeriodEnd}
-              </p>
-            )}
+          {/* Status */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Current Status</h2>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Plan:</span>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    sub?.plan === "premium"
+                      ? "bg-purple-100 text-purple-700"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {sub?.plan || "free"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Status:</span>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    statusColors[sub?.status || "active"] || "bg-gray-100"
+                  }`}
+                >
+                  {sub?.status || "active"}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

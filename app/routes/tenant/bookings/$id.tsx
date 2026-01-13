@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Booking Details - DiveStreams" }];

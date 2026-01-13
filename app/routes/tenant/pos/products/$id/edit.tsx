@@ -4,7 +4,7 @@
 
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, Link, useNavigation, redirect } from "react-router";
-import { requireTenant } from "../../../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../../../lib/auth/org-context.server";
 import { getProductById, updateProduct } from "../../../../../../lib/db/queries.server";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [

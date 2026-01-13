@@ -71,7 +71,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const currentPlanData = finalPlans.find(p => p.id === currentPlan) || finalPlans[0];
 
   // Parse metadata if it exists
-  const metadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
+  let metadata: { stripeCustomerId?: string } = {};
+  if (ctx.org.metadata) {
+    try {
+      metadata = JSON.parse(ctx.org.metadata) as { stripeCustomerId?: string };
+    } catch (error) {
+      console.error("Failed to parse organization metadata:", error);
+      // Fallback to empty object on parse error
+      metadata = {};
+    }
+  }
 
   // Type definitions for billing UI data
   type PaymentMethod = {

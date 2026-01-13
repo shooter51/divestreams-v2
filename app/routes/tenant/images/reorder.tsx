@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, inArray } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 interface ReorderItem {

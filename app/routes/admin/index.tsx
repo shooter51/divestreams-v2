@@ -1,82 +1,121 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, useSearchParams } from "react-router";
 import { db } from "../../../lib/db";
-import { tenants, subscriptionPlans } from "../../../lib/db/schema";
-import { eq, ilike, or, desc } from "drizzle-orm";
-import { deleteTenant } from "../../../lib/db/tenant.server";
+import { organization, member } from "../../../lib/db/schema/auth";
+import { subscription } from "../../../lib/db/schema/subscription";
+import { eq, ilike, or, desc, sql, count, ne } from "drizzle-orm";
+import { requirePlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
 
-export const meta: MetaFunction = () => [{ title: "Tenants - DiveStreams Admin" }];
+export const meta: MetaFunction = () => [{ title: "Organizations - DiveStreams Admin" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Require platform admin access
+  await requirePlatformContext(request);
+
   const url = new URL(request.url);
   const search = url.searchParams.get("q") || "";
 
   try {
-    let query = db
+    // Get all organizations except the platform org
+    let baseQuery = db
       .select({
-        id: tenants.id,
-        subdomain: tenants.subdomain,
-        name: tenants.name,
-        email: tenants.email,
-        subscriptionStatus: tenants.subscriptionStatus,
-        isActive: tenants.isActive,
-        createdAt: tenants.createdAt,
-        trialEndsAt: tenants.trialEndsAt,
-        planId: tenants.planId,
-        planName: subscriptionPlans.displayName,
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug,
+        logo: organization.logo,
+        createdAt: organization.createdAt,
       })
-      .from(tenants)
-      .leftJoin(subscriptionPlans, eq(tenants.planId, subscriptionPlans.id))
-      .orderBy(desc(tenants.createdAt));
+      .from(organization)
+      .where(ne(organization.slug, PLATFORM_ORG_SLUG))
+      .orderBy(desc(organization.createdAt));
 
+    // Apply search filter if provided
+    let orgs;
     if (search) {
-      query = query.where(
-        or(
-          ilike(tenants.subdomain, `%${search}%`),
-          ilike(tenants.name, `%${search}%`),
-          ilike(tenants.email, `%${search}%`)
+      orgs = await db
+        .select({
+          id: organization.id,
+          name: organization.name,
+          slug: organization.slug,
+          logo: organization.logo,
+          createdAt: organization.createdAt,
+        })
+        .from(organization)
+        .where(
+          sql`${ne(organization.slug, PLATFORM_ORG_SLUG)} AND (
+            ${ilike(organization.slug, `%${search}%`)} OR
+            ${ilike(organization.name, `%${search}%`)}
+          )`
         )
-      ) as typeof query;
+        .orderBy(desc(organization.createdAt));
+    } else {
+      orgs = await baseQuery;
     }
 
-    const allTenants = await query;
+    // Get member counts and subscription info for each organization
+    const orgsWithDetails = await Promise.all(
+      orgs.map(async (org) => {
+        // Get member count
+        const [memberCount] = await db
+          .select({ count: count() })
+          .from(member)
+          .where(eq(member.organizationId, org.id));
+
+        // Get owner email
+        const [owner] = await db
+          .select({
+            email: sql<string>`(SELECT email FROM "user" WHERE id = ${member.userId})`,
+          })
+          .from(member)
+          .where(
+            sql`${eq(member.organizationId, org.id)} AND ${eq(member.role, "owner")}`
+          )
+          .limit(1);
+
+        // Get subscription status
+        const [sub] = await db
+          .select()
+          .from(subscription)
+          .where(eq(subscription.organizationId, org.id))
+          .limit(1);
+
+        return {
+          ...org,
+          createdAt: org.createdAt.toISOString().split("T")[0],
+          memberCount: memberCount?.count || 0,
+          ownerEmail: owner?.email || "—",
+          subscriptionStatus: sub?.status || "free",
+          subscriptionPlan: sub?.plan || "free",
+        };
+      })
+    );
 
     return {
-      tenants: allTenants.map((t) => ({
-        ...t,
-        createdAt: t.createdAt.toISOString().split("T")[0],
-        trialEndsAt: t.trialEndsAt?.toISOString().split("T")[0] || null,
-      })),
+      organizations: orgsWithDetails,
       search,
       error: null,
     };
   } catch (error) {
-    // If database query fails, return empty tenants list so page still renders
-    console.error("Failed to fetch tenants from database:", error);
+    console.error("Failed to fetch organizations from database:", error);
     return {
-      tenants: [],
+      organizations: [],
       search,
-      error: "Failed to load tenants. Please check the database connection.",
+      error: "Failed to load organizations. Please check the database connection.",
     };
   }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Require platform admin access
+  await requirePlatformContext(request);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
-  const tenantId = formData.get("tenantId") as string;
+  const orgId = formData.get("orgId") as string;
 
-  if (intent === "delete" && tenantId) {
-    await deleteTenant(tenantId);
-    return { success: true };
-  }
-
-  if (intent === "toggleActive" && tenantId) {
-    const isActive = formData.get("isActive") === "true";
-    await db
-      .update(tenants)
-      .set({ isActive: !isActive, updatedAt: new Date() })
-      .where(eq(tenants.id, tenantId));
+  if (intent === "delete" && orgId) {
+    // Delete the organization (cascades to members, subscriptions via FK)
+    await db.delete(organization).where(eq(organization.id, orgId));
     return { success: true };
   }
 
@@ -84,14 +123,20 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
+  free: "bg-gray-100 text-gray-700",
   trialing: "bg-blue-100 text-blue-700",
   active: "bg-green-100 text-green-700",
   past_due: "bg-yellow-100 text-yellow-700",
   canceled: "bg-red-100 text-red-700",
 };
 
-export default function AdminTenantsPage() {
-  const { tenants: tenantList, search, error } = useLoaderData<typeof loader>();
+const planColors: Record<string, string> = {
+  free: "bg-gray-100 text-gray-600",
+  premium: "bg-purple-100 text-purple-700",
+};
+
+export default function AdminOrganizationsPage() {
+  const { organizations, search, error } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const fetcher = useFetcher();
 
@@ -107,15 +152,8 @@ export default function AdminTenantsPage() {
 
   const handleDelete = (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete "${name}"? This will remove all their data and cannot be undone.`)) {
-      fetcher.submit({ intent: "delete", tenantId: id }, { method: "post" });
+      fetcher.submit({ intent: "delete", orgId: id }, { method: "post" });
     }
-  };
-
-  const handleToggleActive = (id: string, isActive: boolean) => {
-    fetcher.submit(
-      { intent: "toggleActive", tenantId: id, isActive: String(isActive) },
-      { method: "post" }
-    );
   };
 
   return (
@@ -128,14 +166,14 @@ export default function AdminTenantsPage() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Tenants</h1>
-          <p className="text-gray-600">{tenantList.length} total</p>
+          <h1 className="text-2xl font-bold">Organizations</h1>
+          <p className="text-gray-600">{organizations.length} total</p>
         </div>
         <Link
           to="/tenants/new"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
-          Create Tenant
+          Create Organization
         </Link>
       </div>
 
@@ -144,7 +182,7 @@ export default function AdminTenantsPage() {
         <input
           type="search"
           name="q"
-          placeholder="Search by subdomain, name, or email..."
+          placeholder="Search by slug or name..."
           defaultValue={search}
           className="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
         />
@@ -155,9 +193,10 @@ export default function AdminTenantsPage() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Subdomain</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Slug</th>
               <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Name</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Email</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Owner</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Members</th>
               <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Plan</th>
               <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Status</th>
               <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Created</th>
@@ -165,54 +204,68 @@ export default function AdminTenantsPage() {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {tenantList.length === 0 ? (
+            {organizations.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                  No tenants found
+                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                  No organizations found
                 </td>
               </tr>
             ) : (
-              tenantList.map((tenant) => (
-                <tr key={tenant.id} className={!tenant.isActive ? "opacity-50" : ""}>
+              organizations.map((org) => (
+                <tr key={org.id}>
                   <td className="px-4 py-3">
                     <a
-                      href={`https://${tenant.subdomain}.divestreams.com/app`}
+                      href={`https://${org.slug}.divestreams.com/app`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline font-medium"
                     >
-                      {tenant.subdomain}
+                      {org.slug}
                     </a>
                   </td>
-                  <td className="px-4 py-3">{tenant.name}</td>
-                  <td className="px-4 py-3 text-gray-700">{tenant.email}</td>
-                  <td className="px-4 py-3">{tenant.planName || "—"}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {org.logo && (
+                        <img
+                          src={org.logo}
+                          alt=""
+                          className="w-6 h-6 rounded object-cover"
+                        />
+                      )}
+                      {org.name}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-gray-700 text-sm">{org.ownerEmail}</td>
+                  <td className="px-4 py-3 text-gray-700">{org.memberCount}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
-                        statusColors[tenant.subscriptionStatus] || "bg-gray-100"
+                        planColors[org.subscriptionPlan] || "bg-gray-100"
                       }`}
                     >
-                      {tenant.subscriptionStatus}
+                      {org.subscriptionPlan}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-700 text-sm">{tenant.createdAt}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        statusColors[org.subscriptionStatus] || "bg-gray-100"
+                      }`}
+                    >
+                      {org.subscriptionStatus}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-700 text-sm">{org.createdAt}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
                       <Link
-                        to={`/tenants/${tenant.id}`}
+                        to={`/tenants/${org.slug}`}
                         className="text-sm text-blue-600 hover:underline"
                       >
-                        Edit
+                        View
                       </Link>
                       <button
-                        onClick={() => handleToggleActive(tenant.id, tenant.isActive)}
-                        className="text-sm text-gray-600 hover:underline"
-                      >
-                        {tenant.isActive ? "Deactivate" : "Activate"}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(tenant.id, tenant.name)}
+                        onClick={() => handleDelete(org.id, org.name)}
                         className="text-sm text-red-600 hover:underline"
                       >
                         Delete

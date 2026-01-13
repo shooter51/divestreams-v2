@@ -1,12 +1,19 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation } from "react-router";
-import {
-  validateAdminPassword,
-  createAdminSessionCookie,
-  isAdminAuthenticated,
-  isAdminSubdomain,
-  getAdminPassword,
-} from "../../../lib/auth/admin-auth.server";
+import { redirect, useActionData, useNavigation, useSearchParams } from "react-router";
+import { useState } from "react";
+import { auth } from "../../../lib/auth";
+import { getPlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
+import { isAdminSubdomain } from "../../../lib/auth/org-context.server";
+import { db } from "../../../lib/db";
+import { organization, member } from "../../../lib/db/schema/auth";
+import { eq, and } from "drizzle-orm";
+
+type ActionData = {
+  error?: string;
+  notPlatformMember?: {
+    email: string;
+  };
+};
 
 export const meta: MetaFunction = () => [{ title: "Admin Login - DiveStreams" }];
 
@@ -16,52 +23,158 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect("https://divestreams.com");
   }
 
-  // If already authenticated, redirect to dashboard
-  if (isAdminAuthenticated(request)) {
+  // If already authenticated as platform admin, redirect to dashboard
+  const context = await getPlatformContext(request);
+  if (context) {
     return redirect("/dashboard");
   }
+
   return null;
 }
 
+// Email validation regex
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const password = formData.get("password") as string;
+  const email = formData.get("email");
+  const password = formData.get("password");
+  const redirectTo = formData.get("redirectTo");
 
-  // Check if admin password is configured
-  if (!getAdminPassword()) {
-    return { error: "Admin login is not configured. Please set ADMIN_PASSWORD environment variable." };
+  // Validate redirectTo and default to /dashboard
+  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/dashboard";
+
+  // Validate email and password with null checks
+  if (typeof email !== "string" || !email || !emailRegex.test(email)) {
+    return { error: "Please enter a valid email address" };
   }
 
-  if (!password) {
+  if (typeof password !== "string" || !password) {
     return { error: "Password is required" };
   }
 
-  if (!validateAdminPassword(password)) {
-    return { error: "Invalid password" };
-  }
+  try {
+    // Call Better Auth sign in API
+    const response = await auth.api.signInEmail({
+      body: { email, password },
+      asResponse: true,
+    });
 
-  // Create session cookie and redirect
-  return redirect("/dashboard", {
-    headers: {
-      "Set-Cookie": createAdminSessionCookie(),
-    },
-  });
+    // Get cookies FIRST before reading body
+    const cookies = response.headers.get("set-cookie");
+
+    // Get user data from response
+    const userData = await response.json();
+
+    if (!response.ok) {
+      return { error: userData.message || "Invalid email or password" };
+    }
+
+    const userId = userData?.user?.id;
+
+    if (!userId) {
+      return { error: "Failed to get user information" };
+    }
+
+    // Find the platform organization
+    const [platformOrg] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.slug, PLATFORM_ORG_SLUG))
+      .limit(1);
+
+    if (!platformOrg) {
+      console.error("Platform organization not found");
+      return { error: "Platform configuration error. Please contact support." };
+    }
+
+    // Check if user is a member of the platform organization
+    const [platformMembership] = await db
+      .select()
+      .from(member)
+      .where(
+        and(
+          eq(member.userId, userId),
+          eq(member.organizationId, platformOrg.id)
+        )
+      )
+      .limit(1);
+
+    if (!platformMembership) {
+      // User is NOT a platform member - they cannot access admin
+      return Response.json(
+        {
+          notPlatformMember: { email },
+        } as ActionData,
+        {
+          headers: cookies ? { "Set-Cookie": cookies } : {},
+        }
+      );
+    }
+
+    // User is a platform member, redirect to dashboard
+    return redirect(validatedRedirectTo, {
+      headers: cookies ? { "Set-Cookie": cookies } : {},
+    });
+  } catch (error) {
+    console.error("Admin login error:", error);
+    return { error: "An error occurred during login. Please try again." };
+  }
 }
 
 export default function AdminLoginPage() {
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
+  const [searchParams] = useSearchParams();
+  const [showPassword, setShowPassword] = useState(false);
+
   const isSubmitting = navigation.state === "submitting";
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
+
+  // Show "Not a platform member" error
+  if (actionData?.notPlatformMember) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
+            <p className="text-gray-600 mt-2">
+              The account <span className="font-medium">{actionData.notPlatformMember.email}</span> does not have platform admin access.
+            </p>
+          </div>
+          <p className="text-sm text-gray-500 text-center mb-6">
+            Only authorized platform administrators can access this area. If you believe this is an error, please contact the platform owner.
+          </p>
+          <a
+            href="/login"
+            className="block w-full text-center bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+          >
+            Try a different account
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
         <div className="text-center mb-8">
+          <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-white text-xl font-bold">DS</span>
+          </div>
           <h1 className="text-2xl font-bold text-gray-900">DiveStreams Admin</h1>
-          <p className="text-gray-600 mt-2">Enter your admin password to continue</p>
+          <p className="text-gray-600 mt-2">Sign in with your platform admin account</p>
         </div>
 
         <form method="post" className="space-y-6">
+          <input type="hidden" name="redirectTo" value={redirectTo} />
+
           {actionData?.error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
               {actionData.error}
@@ -69,29 +182,76 @@ export default function AdminLoginPage() {
           )}
 
           <div>
+            <label htmlFor="email" className="block text-sm font-medium mb-2">
+              Email address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              required
+              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+              placeholder="admin@example.com"
+            />
+          </div>
+
+          <div>
             <label htmlFor="password" className="block text-sm font-medium mb-2">
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              autoComplete="current-password"
-              autoFocus
-              required
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter admin password"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                autoComplete="current-password"
+                required
+                className="w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
+            className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 disabled:bg-gray-400 transition-colors"
           >
-            {isSubmitting ? "Signing in..." : "Sign In"}
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-xs text-gray-500">
+          Platform admin access only. Regular users should sign in at their organization's subdomain.
+        </p>
       </div>
     </div>
   );

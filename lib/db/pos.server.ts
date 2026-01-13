@@ -4,16 +4,31 @@
 
 import { eq, and, sql } from "drizzle-orm";
 import { db } from "./index";
-import { createTenantSchema } from "./schema";
+import * as schema from "./schema";
 import type { CartItem, Payment } from "../validation/pos";
 
-type TenantTables = ReturnType<typeof createTenantSchema>;
+// Type for the tables object that getTenantDb returns
+// This provides the same interface as the old createTenantSchema
+type TenantTables = typeof schema;
+
+// POS Product type with optional sale fields
+type POSProduct = {
+  id: string;
+  name: string;
+  category: string;
+  price: string;
+  salePrice: string | null;
+  saleStartDate: Date | null;
+  saleEndDate: Date | null;
+  stockQuantity: number;
+  imageUrl: string | null;
+};
 
 /**
  * Get active products for POS display
  * Includes sale price fields for displaying sale indicators
  */
-export async function getPOSProducts(tables: TenantTables) {
+export async function getPOSProducts(tables: TenantTables): Promise<POSProduct[]> {
   try {
     return await db
       .select({
@@ -33,7 +48,7 @@ export async function getPOSProducts(tables: TenantTables) {
   } catch (error) {
     // Fallback if sale_price columns don't exist yet
     console.error("POS products query failed, trying without sale fields:", error);
-    return db
+    const basicProducts = await db
       .select({
         id: tables.products.id,
         name: tables.products.name,
@@ -45,6 +60,14 @@ export async function getPOSProducts(tables: TenantTables) {
       .from(tables.products)
       .where(eq(tables.products.isActive, true))
       .orderBy(tables.products.category, tables.products.name);
+
+    // Add null sale fields to match the expected type
+    return basicProducts.map(p => ({
+      ...p,
+      salePrice: null,
+      saleStartDate: null,
+      saleEndDate: null,
+    }));
   }
 }
 
@@ -173,6 +196,7 @@ export async function generateAgreementNumber(tables: TenantTables): Promise<str
  */
 export async function processPOSCheckout(
   tables: TenantTables,
+  organizationId: string,
   data: {
     items: CartItem[];
     customerId?: string;
@@ -239,6 +263,7 @@ export async function processPOSCheckout(
   const [transaction] = await db
     .insert(tables.transactions)
     .values({
+      organizationId,
       type: "sale",
       bookingId: null,
       customerId: data.customerId || null,
@@ -264,6 +289,7 @@ export async function processPOSCheckout(
 
       // Create rental record
       await db.insert(tables.rentals).values({
+        organizationId,
         transactionId: transaction.id,
         customerId: data.customerId,
         equipmentId: rental.equipmentId,
@@ -292,6 +318,7 @@ export async function processPOSCheckout(
     const bookingNumber = `BK-${Date.now().toString(36).toUpperCase()}`;
 
     await db.insert(tables.bookings).values({
+      organizationId,
       bookingNumber,
       tripId: booking.tripId,
       customerId: data.customerId,

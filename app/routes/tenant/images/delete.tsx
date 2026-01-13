@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { deleteFromB2 } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 

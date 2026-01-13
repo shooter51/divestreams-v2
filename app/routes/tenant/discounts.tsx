@@ -39,12 +39,24 @@ export async function action({ request }: ActionFunctionArgs) {
     const code = (formData.get("code") as string).toUpperCase().trim();
     const description = formData.get("description") as string || null;
     const discountType = formData.get("discountType") as string;
-    const discountValue = formData.get("discountValue") as string;
+    const discountValueStr = formData.get("discountValue") as string;
     const minBookingAmount = formData.get("minBookingAmount") as string || null;
     const maxUses = formData.get("maxUses") as string || null;
     const validFrom = formData.get("validFrom") as string || null;
     const validTo = formData.get("validTo") as string || null;
     const applicableTo = formData.get("applicableTo") as string || "all";
+
+    // Validate discount value
+    const discountValue = parseFloat(discountValueStr);
+    if (isNaN(discountValue) || discountValue <= 0) {
+      return { error: "Discount value must be a positive number" };
+    }
+    if (discountType === "percentage" && discountValue > 100) {
+      return { error: "Percentage discount cannot exceed 100%" };
+    }
+    if (discountType === "fixed" && discountValue > 100000) {
+      return { error: "Fixed discount amount is too large (max $100,000)" };
+    }
 
     // Check if code already exists for this organization
     const existing = await db
@@ -67,7 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
       code,
       description,
       discountType,
-      discountValue,
+      discountValue: discountValueStr,
       minBookingAmount: minBookingAmount || null,
       maxUses: maxUses ? parseInt(maxUses) : null,
       validFrom: validFrom ? new Date(validFrom) : null,
@@ -84,13 +96,25 @@ export async function action({ request }: ActionFunctionArgs) {
     const code = (formData.get("code") as string).toUpperCase().trim();
     const description = formData.get("description") as string || null;
     const discountType = formData.get("discountType") as string;
-    const discountValue = formData.get("discountValue") as string;
+    const discountValueStr = formData.get("discountValue") as string;
     const minBookingAmount = formData.get("minBookingAmount") as string || null;
     const maxUses = formData.get("maxUses") as string || null;
     const validFrom = formData.get("validFrom") as string || null;
     const validTo = formData.get("validTo") as string || null;
     const applicableTo = formData.get("applicableTo") as string || "all";
     const isActive = formData.get("isActive") === "true";
+
+    // Validate discount value
+    const discountValue = parseFloat(discountValueStr);
+    if (isNaN(discountValue) || discountValue <= 0) {
+      return { error: "Discount value must be a positive number" };
+    }
+    if (discountType === "percentage" && discountValue > 100) {
+      return { error: "Percentage discount cannot exceed 100%" };
+    }
+    if (discountType === "fixed" && discountValue > 100000) {
+      return { error: "Fixed discount amount is too large (max $100,000)" };
+    }
 
     // Check if code already exists for this organization (for a different discount)
     const existing = await db
@@ -114,7 +138,7 @@ export async function action({ request }: ActionFunctionArgs) {
         code,
         description,
         discountType,
-        discountValue,
+        discountValue: discountValueStr,
         minBookingAmount: minBookingAmount || null,
         maxUses: maxUses ? parseInt(maxUses) : null,
         validFrom: validFrom ? new Date(validFrom) : null,

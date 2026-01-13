@@ -405,3 +405,53 @@ export function checkLimit(
   }
   return { allowed: true };
 }
+
+// ============================================================================
+// BACKWARD COMPATIBILITY HELPERS
+// ============================================================================
+
+/**
+ * Legacy tenant context for backward compatibility during migration.
+ * This provides an interface similar to the old requireTenant() function.
+ *
+ * @deprecated Use requireOrgContext instead. This is only for migration.
+ */
+export interface LegacyTenantContext {
+  tenant: {
+    id: string;
+    subdomain: string;
+    schemaName: string;
+    name: string;
+    subscriptionStatus: string;
+    trialEndsAt: Date | null;
+  };
+  organizationId: string;
+}
+
+/**
+ * Get legacy tenant context for backward compatibility.
+ * This wraps the new Better Auth organization context in the old format.
+ *
+ * @deprecated Use requireOrgContext instead. This is only for migration.
+ */
+export async function requireTenant(
+  request: Request
+): Promise<LegacyTenantContext> {
+  const context = await requireOrgContext(request);
+
+  // Map new organization-based context to old tenant format
+  // Note: schemaName is now derived from org.slug for backward compatibility
+  // with raw SQL queries. Once all queries are migrated to use organizationId,
+  // this can be removed.
+  return {
+    tenant: {
+      id: context.org.id,
+      subdomain: context.org.slug,
+      schemaName: `tenant_${context.org.slug}`, // Legacy schema name format
+      name: context.org.name,
+      subscriptionStatus: context.subscription?.status ?? "free",
+      trialEndsAt: context.subscription?.trialEndsAt ?? null,
+    },
+    organizationId: context.org.id,
+  };
+}

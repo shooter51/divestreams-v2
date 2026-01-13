@@ -6,7 +6,6 @@
  */
 
 import { desc, eq, gte, lte, count, sum, and, sql } from "drizzle-orm";
-import type { TenantSchema } from "./schema";
 import postgres from "postgres";
 
 // Get the raw postgres client for a schema

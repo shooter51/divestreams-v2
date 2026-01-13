@@ -1,18 +1,18 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createDiveSite } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  await requireTenant(request);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
 
   // Convert highlights array

@@ -1,13 +1,13 @@
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { tourSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createTour } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
 
   // Parse inclusions/exclusions from comma-separated strings

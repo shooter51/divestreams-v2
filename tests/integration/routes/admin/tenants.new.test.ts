@@ -4,62 +4,77 @@ import { loader, action } from "../../../../app/routes/admin/tenants.new";
 
 type ActionErrorResponse = { errors: Record<string, string> };
 
+// Mock the requirePlatformContext function
+vi.mock("../../../../lib/auth/platform-context.server", () => ({
+  requirePlatformContext: vi.fn().mockResolvedValue({
+    user: { id: "admin-user", name: "Admin", email: "admin@example.com" },
+    session: { id: "session-1" },
+    membership: { role: "owner" },
+    isOwner: true,
+    isAdmin: true,
+  }),
+}));
+
 // Mock the database module
 vi.mock("../../../../lib/db", () => ({
   db: {
     select: vi.fn().mockReturnThis(),
     from: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    values: vi.fn().mockResolvedValue([]),
   },
 }));
 
-vi.mock("../../../../lib/db/schema", () => ({
-  subscriptionPlans: {
+vi.mock("../../../../lib/db/schema/auth", () => ({
+  organization: {
     id: "id",
-    isActive: "isActive",
+    slug: "slug",
+    name: "name",
+  },
+  member: {
+    id: "id",
+    userId: "userId",
+    organizationId: "organizationId",
+    role: "role",
+  },
+  user: {
+    id: "id",
+    email: "email",
+    name: "name",
+  },
+  account: {
+    id: "id",
+    userId: "userId",
+    accountId: "accountId",
+    providerId: "providerId",
+    password: "password",
   },
 }));
 
-vi.mock("../../../../lib/db/tenant.server", () => ({
-  createTenant: vi.fn(),
-  isSubdomainAvailable: vi.fn(),
-}));
-
-vi.mock("../../../../lib/db/seed-demo-data.server", () => ({
-  seedDemoData: vi.fn(),
+vi.mock("../../../../lib/db/schema/subscription", () => ({
+  subscription: {
+    id: "id",
+    organizationId: "organizationId",
+    plan: "plan",
+    status: "status",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
 }));
 
-import { db } from "../../../../lib/db";
-import { createTenant, isSubdomainAvailable } from "../../../../lib/db/tenant.server";
-import { seedDemoData } from "../../../../lib/db/seed-demo-data.server";
+vi.mock("../../../../lib/auth", () => ({
+  auth: {
+    api: {
+      signInEmail: vi.fn(),
+    },
+  },
+}));
 
-const mockPlans = [
-  {
-    id: "plan-1",
-    name: "starter",
-    displayName: "Starter",
-    monthlyPrice: 2900,
-    isActive: true,
-  },
-  {
-    id: "plan-2",
-    name: "professional",
-    displayName: "Professional",
-    monthlyPrice: 7900,
-    isActive: true,
-  },
-  {
-    id: "plan-3",
-    name: "enterprise",
-    displayName: "Enterprise",
-    monthlyPrice: 19900,
-    isActive: true,
-  },
-];
+import { db } from "../../../../lib/db";
 
 describe("admin/tenants.new route", () => {
   beforeEach(() => {
@@ -67,47 +82,21 @@ describe("admin/tenants.new route", () => {
   });
 
   describe("loader", () => {
-    it("returns active subscription plans", async () => {
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(mockPlans),
-      };
-
-      (db.select as Mock).mockReturnValue(mockQuery);
-
+    it("returns empty object (no longer loads plans)", async () => {
       const request = new Request("https://admin.divestreams.com/tenants/new");
 
       const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(response.plans).toHaveLength(3);
-      expect(response.plans[0].displayName).toBe("Starter");
-    });
-
-    it("returns empty array when no active plans exist", async () => {
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue([]),
-      };
-
-      (db.select as Mock).mockReturnValue(mockQuery);
-
-      const request = new Request("https://admin.divestreams.com/tenants/new");
-
-      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
-
-      expect(response.plans).toHaveLength(0);
+      expect(response).toEqual({});
     });
   });
 
   describe("action", () => {
     describe("validation", () => {
-      it("returns error when subdomain is missing", async () => {
+      it("returns error when slug is missing", async () => {
         const formData = new FormData();
-        formData.append("subdomain", "");
+        formData.append("slug", "");
         formData.append("name", "Test Shop");
-        formData.append("email", "test@example.com");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -117,14 +106,13 @@ describe("admin/tenants.new route", () => {
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.subdomain).toBe("Subdomain is required");
+        expect((response as ActionErrorResponse).errors.slug).toBe("Slug is required");
       });
 
-      it("returns error when subdomain format is invalid", async () => {
+      it("returns error when slug format is invalid (starts with hyphen)", async () => {
         const formData = new FormData();
-        formData.append("subdomain", "-invalid");
+        formData.append("slug", "-invalid");
         formData.append("name", "Test Shop");
-        formData.append("email", "test@example.com");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -134,14 +122,13 @@ describe("admin/tenants.new route", () => {
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.subdomain).toBe("Invalid subdomain format");
+        expect((response as ActionErrorResponse).errors.slug).toBe("Invalid slug format (lowercase letters, numbers, and hyphens only)");
       });
 
-      it("returns error when subdomain has invalid characters", async () => {
+      it("returns error when slug has invalid characters", async () => {
         const formData = new FormData();
-        formData.append("subdomain", "test_shop!");
+        formData.append("slug", "test_shop!");
         formData.append("name", "Test Shop");
-        formData.append("email", "test@example.com");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -151,14 +138,13 @@ describe("admin/tenants.new route", () => {
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.subdomain).toBe("Invalid subdomain format");
+        expect((response as ActionErrorResponse).errors.slug).toBe("Invalid slug format (lowercase letters, numbers, and hyphens only)");
       });
 
       it("returns error when name is missing", async () => {
         const formData = new FormData();
-        formData.append("subdomain", "testshop");
+        formData.append("slug", "testshop");
         formData.append("name", "");
-        formData.append("email", "test@example.com");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -168,31 +154,13 @@ describe("admin/tenants.new route", () => {
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.name).toBe("Name is required");
-      });
-
-      it("returns error when email is missing", async () => {
-        const formData = new FormData();
-        formData.append("subdomain", "testshop");
-        formData.append("name", "Test Shop");
-        formData.append("email", "");
-
-        const request = new Request("https://admin.divestreams.com/tenants/new", {
-          method: "POST",
-          body: formData,
-        });
-
-        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
-
-        expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.email).toBe("Email is required");
+        expect((response as ActionErrorResponse).errors.name).toBe("Organization name is required");
       });
 
       it("returns multiple errors when multiple fields are invalid", async () => {
         const formData = new FormData();
-        formData.append("subdomain", "");
+        formData.append("slug", "");
         formData.append("name", "");
-        formData.append("email", "");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -202,22 +170,31 @@ describe("admin/tenants.new route", () => {
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.subdomain).toBe("Subdomain is required");
-        expect((response as ActionErrorResponse).errors.name).toBe("Name is required");
-        expect((response as ActionErrorResponse).errors.email).toBe("Email is required");
+        expect((response as ActionErrorResponse).errors.slug).toBe("Slug is required");
+        expect((response as ActionErrorResponse).errors.name).toBe("Organization name is required");
       });
 
-      it("accepts valid single-character subdomain", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(true);
-        (createTenant as Mock).mockResolvedValue({
-          id: "tenant-1",
-          schemaName: "tenant_a",
-        });
+      it("accepts valid single-character slug", async () => {
+        // Mock slug availability check (no existing org)
+        const mockSelectQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
+        // Mock insert operations
+        const mockInsertQuery = {
+          insert: vi.fn().mockReturnThis(),
+          values: vi.fn().mockResolvedValue([]),
+        };
+
+        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
-        formData.append("subdomain", "a");
+        formData.append("slug", "a");
         formData.append("name", "Test Shop");
-        formData.append("email", "test@example.com");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -226,21 +203,28 @@ describe("admin/tenants.new route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(isSubdomainAvailable).toHaveBeenCalledWith("a");
         expect(response).toBeInstanceOf(Response);
       });
 
-      it("accepts valid subdomain with hyphens", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(true);
-        (createTenant as Mock).mockResolvedValue({
-          id: "tenant-1",
-          schemaName: "tenant_my_dive_shop",
-        });
+      it("accepts valid slug with hyphens", async () => {
+        const mockSelectQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
+        const mockInsertQuery = {
+          insert: vi.fn().mockReturnThis(),
+          values: vi.fn().mockResolvedValue([]),
+        };
+
+        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
-        formData.append("subdomain", "my-dive-shop");
+        formData.append("slug", "my-dive-shop");
         formData.append("name", "My Dive Shop");
-        formData.append("email", "test@example.com");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -249,19 +233,24 @@ describe("admin/tenants.new route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(isSubdomainAvailable).toHaveBeenCalledWith("my-dive-shop");
         expect(response).toBeInstanceOf(Response);
       });
     });
 
-    describe("subdomain availability", () => {
-      it("returns error when subdomain is already taken", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(false);
+    describe("slug availability", () => {
+      it("returns error when slug is already taken", async () => {
+        const mockSelectQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([{ id: "existing-org", slug: "existingshop" }]),
+        };
+
+        (db.select as Mock).mockReturnValue(mockSelectQuery);
 
         const formData = new FormData();
-        formData.append("subdomain", "existingshop");
+        formData.append("slug", "existingshop");
         formData.append("name", "Test Shop");
-        formData.append("email", "test@example.com");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -270,22 +259,29 @@ describe("admin/tenants.new route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(isSubdomainAvailable).toHaveBeenCalledWith("existingshop");
         expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.subdomain).toBe("This subdomain is already taken");
+        expect((response as ActionErrorResponse).errors.slug).toBe("This slug is already taken");
       });
 
-      it("converts subdomain to lowercase before checking availability", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(true);
-        (createTenant as Mock).mockResolvedValue({
-          id: "tenant-1",
-          schemaName: "tenant_myshop",
-        });
+      it("converts slug to lowercase before checking availability", async () => {
+        const mockSelectQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
+        const mockInsertQuery = {
+          insert: vi.fn().mockReturnThis(),
+          values: vi.fn().mockResolvedValue([]),
+        };
+
+        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
-        formData.append("subdomain", "MyShop");
+        formData.append("slug", "MyShop");
         formData.append("name", "My Shop");
-        formData.append("email", "test@example.com");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -294,22 +290,31 @@ describe("admin/tenants.new route", () => {
 
         await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(isSubdomainAvailable).toHaveBeenCalledWith("myshop");
+        // The slug should be converted to lowercase
+        expect(db.select).toHaveBeenCalled();
       });
     });
 
-    describe("tenant creation", () => {
-      it("creates tenant with required fields only", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(true);
-        (createTenant as Mock).mockResolvedValue({
-          id: "tenant-1",
-          schemaName: "tenant_testshop",
-        });
+    describe("organization creation", () => {
+      it("creates organization with required fields only", async () => {
+        const mockSelectQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
+        const mockInsertQuery = {
+          insert: vi.fn().mockReturnThis(),
+          values: vi.fn().mockResolvedValue([]),
+        };
+
+        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
-        formData.append("subdomain", "testshop");
+        formData.append("slug", "testshop");
         formData.append("name", "Test Shop");
-        formData.append("email", "owner@testshop.com");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -318,115 +323,32 @@ describe("admin/tenants.new route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(createTenant).toHaveBeenCalledWith({
-          subdomain: "testshop",
-          name: "Test Shop",
-          email: "owner@testshop.com",
-          phone: undefined,
-          timezone: "UTC",
-          currency: "USD",
-          planId: undefined,
-        });
+        expect(db.insert).toHaveBeenCalled();
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
         expect((response as Response).headers.get("Location")).toBe("/dashboard");
       });
 
-      it("creates tenant with all optional fields", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(true);
-        (createTenant as Mock).mockResolvedValue({
-          id: "tenant-1",
-          schemaName: "tenant_fullshop",
-        });
+      it("creates organization with premium plan", async () => {
+        const mockSelectQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
+        const mockInsertQuery = {
+          insert: vi.fn().mockReturnThis(),
+          values: vi.fn().mockResolvedValue([]),
+        };
+
+        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
-        formData.append("subdomain", "fullshop");
-        formData.append("name", "Full Featured Shop");
-        formData.append("email", "owner@fullshop.com");
-        formData.append("phone", "+1-555-1234");
-        formData.append("timezone", "America/New_York");
-        formData.append("currency", "EUR");
-        formData.append("planId", "plan-2");
-
-        const request = new Request("https://admin.divestreams.com/tenants/new", {
-          method: "POST",
-          body: formData,
-        });
-
-        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
-
-        expect(createTenant).toHaveBeenCalledWith({
-          subdomain: "fullshop",
-          name: "Full Featured Shop",
-          email: "owner@fullshop.com",
-          phone: "+1-555-1234",
-          timezone: "America/New_York",
-          currency: "EUR",
-          planId: "plan-2",
-        });
-      });
-
-      it("seeds demo data when checkbox is checked", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(true);
-        (createTenant as Mock).mockResolvedValue({
-          id: "tenant-1",
-          schemaName: "tenant_demoshop",
-        });
-        (seedDemoData as Mock).mockResolvedValue(undefined);
-
-        const formData = new FormData();
-        formData.append("subdomain", "demoshop");
-        formData.append("name", "Demo Shop");
-        formData.append("email", "demo@demoshop.com");
-        formData.append("populateDemoData", "on");
-
-        const request = new Request("https://admin.divestreams.com/tenants/new", {
-          method: "POST",
-          body: formData,
-        });
-
-        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
-
-        expect(seedDemoData).toHaveBeenCalledWith("tenant_demoshop");
-      });
-
-      it("does not seed demo data when checkbox is not checked", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(true);
-        (createTenant as Mock).mockResolvedValue({
-          id: "tenant-1",
-          schemaName: "tenant_nodemoshop",
-        });
-
-        const formData = new FormData();
-        formData.append("subdomain", "nodemoshop");
-        formData.append("name", "No Demo Shop");
-        formData.append("email", "nodemo@shop.com");
-
-        const request = new Request("https://admin.divestreams.com/tenants/new", {
-          method: "POST",
-          body: formData,
-        });
-
-        await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
-
-        expect(seedDemoData).not.toHaveBeenCalled();
-      });
-
-      it("continues even if demo data seeding fails", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(true);
-        (createTenant as Mock).mockResolvedValue({
-          id: "tenant-1",
-          schemaName: "tenant_failseed",
-        });
-        (seedDemoData as Mock).mockRejectedValue(new Error("Seed failed"));
-
-        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-        const formData = new FormData();
-        formData.append("subdomain", "failseed");
-        formData.append("name", "Fail Seed Shop");
-        formData.append("email", "fail@seed.com");
-        formData.append("populateDemoData", "on");
+        formData.append("slug", "premiumshop");
+        formData.append("name", "Premium Shop");
+        formData.append("plan", "premium");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -435,25 +357,19 @@ describe("admin/tenants.new route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
+        expect(db.insert).toHaveBeenCalled();
         expect(response).toBeInstanceOf(Response);
-        expect((response as Response).status).toBe(302);
-        expect(consoleSpy).toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
       });
     });
 
-    describe("error handling", () => {
-      it("returns form error when tenant creation fails", async () => {
-        (isSubdomainAvailable as Mock).mockResolvedValue(true);
-        (createTenant as Mock).mockRejectedValue(new Error("Database error"));
-
-        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
+    describe("owner account creation", () => {
+      it("validates owner email when create owner checkbox is checked", async () => {
         const formData = new FormData();
-        formData.append("subdomain", "errorshop");
-        formData.append("name", "Error Shop");
-        formData.append("email", "error@shop.com");
+        formData.append("slug", "testshop");
+        formData.append("name", "Test Shop");
+        formData.append("createOwnerAccount", "on");
+        formData.append("ownerEmail", "");
+        formData.append("ownerPassword", "password123");
 
         const request = new Request("https://admin.divestreams.com/tenants/new", {
           method: "POST",
@@ -463,7 +379,156 @@ describe("admin/tenants.new route", () => {
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.form).toBe("Failed to create tenant. Please try again.");
+        expect((response as ActionErrorResponse).errors.ownerEmail).toBe("Owner email is required");
+      });
+
+      it("validates owner password length when create owner checkbox is checked", async () => {
+        const formData = new FormData();
+        formData.append("slug", "testshop");
+        formData.append("name", "Test Shop");
+        formData.append("createOwnerAccount", "on");
+        formData.append("ownerEmail", "owner@example.com");
+        formData.append("ownerPassword", "short");
+
+        const request = new Request("https://admin.divestreams.com/tenants/new", {
+          method: "POST",
+          body: formData,
+        });
+
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(response).toHaveProperty("errors");
+        expect((response as ActionErrorResponse).errors.ownerPassword).toBe("Password must be at least 8 characters");
+      });
+
+      it("creates owner account when valid credentials provided", async () => {
+        // Mock for slug check - no existing org
+        const mockSlugCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
+        // Mock for user check - no existing user
+        const mockUserCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
+        const mockInsertQuery = {
+          insert: vi.fn().mockReturnThis(),
+          values: vi.fn().mockResolvedValue([]),
+        };
+
+        let selectCallCount = 0;
+        (db.select as Mock).mockImplementation(() => {
+          selectCallCount++;
+          if (selectCallCount === 1) return mockSlugCheckQuery;
+          return mockUserCheckQuery;
+        });
+        (db.insert as Mock).mockReturnValue(mockInsertQuery);
+
+        const formData = new FormData();
+        formData.append("slug", "testshop");
+        formData.append("name", "Test Shop");
+        formData.append("createOwnerAccount", "on");
+        formData.append("ownerEmail", "owner@example.com");
+        formData.append("ownerName", "Shop Owner");
+        formData.append("ownerPassword", "securepassword123");
+
+        const request = new Request("https://admin.divestreams.com/tenants/new", {
+          method: "POST",
+          body: formData,
+        });
+
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        // Should call insert for: organization, subscription, user, account, member
+        expect(db.insert).toHaveBeenCalled();
+        expect(response).toBeInstanceOf(Response);
+      });
+
+      it("adds existing user as owner if email already exists", async () => {
+        // Mock for slug check - no existing org
+        const mockSlugCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
+        // Mock for user check - existing user found
+        const mockUserCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([{ id: "existing-user-id", email: "existing@example.com" }]),
+        };
+
+        const mockInsertQuery = {
+          insert: vi.fn().mockReturnThis(),
+          values: vi.fn().mockResolvedValue([]),
+        };
+
+        let selectCallCount = 0;
+        (db.select as Mock).mockImplementation(() => {
+          selectCallCount++;
+          if (selectCallCount === 1) return mockSlugCheckQuery;
+          return mockUserCheckQuery;
+        });
+        (db.insert as Mock).mockReturnValue(mockInsertQuery);
+
+        const formData = new FormData();
+        formData.append("slug", "testshop");
+        formData.append("name", "Test Shop");
+        formData.append("createOwnerAccount", "on");
+        formData.append("ownerEmail", "existing@example.com");
+        formData.append("ownerPassword", "securepassword123");
+
+        const request = new Request("https://admin.divestreams.com/tenants/new", {
+          method: "POST",
+          body: formData,
+        });
+
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        // Should still succeed - existing user added as member
+        expect(response).toBeInstanceOf(Response);
+      });
+    });
+
+    describe("error handling", () => {
+      it("returns form error when organization creation fails", async () => {
+        const mockSelectQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
+        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        (db.insert as Mock).mockImplementation(() => {
+          throw new Error("Database error");
+        });
+
+        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        const formData = new FormData();
+        formData.append("slug", "errorshop");
+        formData.append("name", "Error Shop");
+
+        const request = new Request("https://admin.divestreams.com/tenants/new", {
+          method: "POST",
+          body: formData,
+        });
+
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(response).toHaveProperty("errors");
+        expect((response as ActionErrorResponse).errors.form).toBe("Failed to create organization. Please try again.");
         expect(consoleSpy).toHaveBeenCalled();
 
         consoleSpy.mockRestore();

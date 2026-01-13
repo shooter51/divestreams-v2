@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { getTourById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { tourSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
@@ -122,7 +122,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       name: validation.data.name,
       description: validation.data.description,
       type: validation.data.type,
-      duration: validation.data.duration,
+      duration: validation.data.duration as number | undefined,
       maxParticipants: validation.data.maxParticipants,
       minParticipants: validation.data.minParticipants,
       price: validation.data.price.toString(),
@@ -133,7 +133,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       inclusions: validation.data.inclusions,
       exclusions: validation.data.exclusions,
       minCertLevel: validation.data.minCertLevel,
-      minAge: validation.data.minAge,
+      minAge: validation.data.minAge as number | undefined,
       requirements: validation.data.requirements,
       isActive: validation.data.isActive,
       updatedAt: new Date(),

@@ -18,6 +18,7 @@ import {
   passwordResetEmail,
   welcomeEmail,
 } from "../email";
+import { cleanupStaleTenants } from "./stale-tenant-cleanup";
 
 // Redis connection
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
@@ -209,6 +210,12 @@ async function processMaintenanceJob(job: { name: string; data: unknown }) {
     case "check-trial-expirations":
       // Check for trials expiring soon
       break;
+    case "cleanup-stale-tenants": {
+      // Clean up inactive free-tier organizations
+      const results = await cleanupStaleTenants();
+      console.log(`[cleanup-stale-tenants] Results:`, results);
+      break;
+    }
     default:
       console.warn(`Unknown maintenance job: ${job.name}`);
   }

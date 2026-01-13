@@ -1,25 +1,29 @@
 import { Outlet, Link, useLoaderData, useLocation } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
-import { requireTenant, type TenantContext } from "../../../lib/auth/tenant-auth.server";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
 
   // Calculate trial days left on the server to ensure accurate countdown
   // This ensures the value is fresh on every request, not cached client-side
   let trialDaysLeft = 0;
-  if (tenant.trialEndsAt) {
+  const trialEndsAt = ctx.subscription?.trialEndsAt;
+  if (trialEndsAt) {
     const now = new Date();
-    const trialEnd = new Date(tenant.trialEndsAt);
+    const trialEnd = new Date(trialEndsAt);
     const msLeft = trialEnd.getTime() - now.getTime();
     trialDaysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
   }
 
+  // Determine subscription status from subscription table
+  const subscriptionStatus = ctx.subscription?.status ?? "free";
+
   return {
     tenant: {
-      name: tenant.name,
-      subdomain: tenant.subdomain,
-      subscriptionStatus: tenant.subscriptionStatus,
+      name: ctx.org.name,
+      subdomain: ctx.org.slug,
+      subscriptionStatus,
       trialDaysLeft,
     },
   };

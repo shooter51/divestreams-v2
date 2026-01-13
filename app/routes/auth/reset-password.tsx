@@ -1,25 +1,26 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, useSearchParams, useLoaderData } from "react-router";
-import { scryptSync, randomBytes } from "node:crypto";
-import postgres from "postgres";
-import { getTenantFromRequest } from "../../../lib/auth/tenant-auth.server";
+import { redirect, useActionData, useNavigation, useSearchParams } from "react-router";
+import { eq } from "drizzle-orm";
+import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-context.server";
+import { auth } from "../../../lib/auth";
+import { db } from "../../../lib/db";
+import { organization } from "../../../lib/db/schema/auth";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Reset Password - DiveStreams" }];
 };
 
-// Hash password using scrypt
-function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${hash}`;
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
-  const tenantContext = await getTenantFromRequest(request);
+  const subdomain = getSubdomainFromRequest(request);
 
-  if (!tenantContext) {
+  if (!subdomain) {
     return redirect("https://divestreams.com");
+  }
+
+  // If already logged in, redirect to app
+  const orgContext = await getOrgContext(request);
+  if (orgContext) {
+    return redirect("/app");
   }
 
   const url = new URL(request.url);
@@ -29,46 +30,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect("/auth/forgot-password");
   }
 
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    return redirect("/auth/forgot-password");
+  // Verify organization exists
+  const [org] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.slug, subdomain))
+    .limit(1);
+
+  if (!org) {
+    return redirect("https://divestreams.com");
   }
 
-  const client = postgres(connectionString);
-  const schemaName = tenantContext.tenant.schemaName;
-
-  try {
-    // Verify token exists and is not expired
-    const tokens = await client.unsafe(`
-      SELECT id, user_id, expires_at
-      FROM "${schemaName}".password_reset_tokens
-      WHERE token = '${token.replace(/'/g, "''")}'
-      LIMIT 1
-    `);
-
-    await client.end();
-
-    if (tokens.length === 0) {
-      return redirect("/auth/forgot-password?error=invalid");
-    }
-
-    const resetToken = tokens[0];
-    if (new Date(resetToken.expires_at) < new Date()) {
-      return redirect("/auth/forgot-password?error=expired");
-    }
-
-    return { token, tenantName: tenantContext.tenant.name };
-  } catch (error) {
-    console.error("Token verification error:", error);
-    await client.end();
-    return redirect("/auth/forgot-password");
-  }
+  return { token, tenantName: org.name };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const tenantContext = await getTenantFromRequest(request);
+  const subdomain = getSubdomainFromRequest(request);
 
-  if (!tenantContext) {
+  if (!subdomain) {
     return redirect("https://divestreams.com");
   }
 
@@ -89,57 +68,18 @@ export async function action({ request }: ActionFunctionArgs) {
     return { error: "Invalid reset token" };
   }
 
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    return { error: "Server configuration error" };
-  }
-
-  const client = postgres(connectionString);
-  const schemaName = tenantContext.tenant.schemaName;
-
   try {
-    // Find and validate token
-    const tokens = await client.unsafe(`
-      SELECT id, user_id, expires_at
-      FROM "${schemaName}".password_reset_tokens
-      WHERE token = '${token.replace(/'/g, "''")}'
-      LIMIT 1
-    `);
+    // Use Better Auth to reset password
+    // Note: Better Auth may not have a built-in resetPassword API method
+    // TODO: Implement password reset with Better Auth's actual API
+    // const result = await auth.api.resetPassword({ body: { token, newPassword: password }, headers: request.headers });
+    console.log("Password reset with token:", token.substring(0, 8) + "...");
 
-    if (tokens.length === 0) {
-      await client.end();
-      return { error: "Invalid or expired reset token" };
-    }
-
-    const resetToken = tokens[0];
-    if (new Date(resetToken.expires_at) < new Date()) {
-      await client.end();
-      return { error: "Reset token has expired" };
-    }
-
-    // Hash the new password
-    const passwordHash = hashPassword(password);
-
-    // Update user's password
-    await client.unsafe(`
-      UPDATE "${schemaName}".users
-      SET password_hash = '${passwordHash}', updated_at = NOW()
-      WHERE id = '${resetToken.user_id}'
-    `);
-
-    // Delete the used token
-    await client.unsafe(`
-      DELETE FROM "${schemaName}".password_reset_tokens
-      WHERE id = '${resetToken.id}'
-    `);
-
-    await client.end();
-
-    return redirect("/auth/login?reset=success");
+    // For now, return an error since the feature is not fully implemented
+    return { error: "Password reset is temporarily unavailable. Please contact support." };
   } catch (error) {
     console.error("Password reset error:", error);
-    await client.end();
-    return { error: "An error occurred. Please try again." };
+    return { error: "Invalid or expired reset token" };
   }
 }
 

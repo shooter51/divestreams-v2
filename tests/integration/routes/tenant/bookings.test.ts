@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
 import { loader } from "../../../../app/routes/tenant/bookings/index";
 
-// Mock the tenant-auth module
-vi.mock("../../../../lib/auth/tenant-auth.server", () => ({
-  requireTenant: vi.fn(),
+// Mock the org-context module
+vi.mock("../../../../lib/auth/org-context.server", () => ({
+  requireOrgContext: vi.fn(),
 }));
 
 // Mock the queries module
@@ -12,30 +12,37 @@ vi.mock("../../../../lib/db/queries.server", () => ({
   getBookings: vi.fn(),
 }));
 
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getBookings } from "../../../../lib/db/queries.server";
 
 describe("tenant/bookings route", () => {
-  const mockTenant = {
-    id: "tenant-uuid",
-    subdomain: "demo",
-    name: "Demo Dive Shop",
-    schemaName: "tenant_demo",
+  const mockOrgContext = {
+    user: { id: "user-1", name: "Test User", email: "test@example.com" },
+    session: { id: "session-1" },
+    org: { id: "org-uuid", name: "Demo Dive Shop", slug: "demo" },
+    membership: { role: "owner" },
+    subscription: null,
+    limits: { customers: 50, tours: 3, bookingsPerMonth: 20 },
+    usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
+    canAddCustomer: true,
+    canAddTour: true,
+    canAddBooking: true,
+    isPremium: false,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (requireTenant as Mock).mockResolvedValue({ tenant: mockTenant });
+    (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
   });
 
   describe("loader", () => {
-    it("requires tenant authentication", async () => {
+    it("requires organization context", async () => {
       (getBookings as Mock).mockResolvedValue({ bookings: [], total: 0 });
 
       const request = new Request("https://demo.divestreams.com/app/bookings");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(requireTenant).toHaveBeenCalledWith(request);
+      expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("fetches bookings with default pagination", async () => {

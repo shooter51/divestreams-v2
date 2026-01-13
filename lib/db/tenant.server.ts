@@ -2,13 +2,11 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { eq, sql } from "drizzle-orm";
 import { db, migrationDb } from "./index";
-import { tenants, subscriptionPlans, createTenantSchema, type Tenant } from "./schema";
+import { tenants, subscriptionPlans, type Tenant } from "./schema";
+import * as schema from "./schema";
 
 // Re-export Tenant type
 export type { Tenant } from "./schema";
-
-// Cache for tenant database connections
-const tenantConnections = new Map<string, ReturnType<typeof drizzle>>();
 
 // Get tenant by subdomain
 export async function getTenantBySubdomain(subdomain: string): Promise<Tenant | null> {
@@ -22,44 +20,15 @@ export async function getTenantById(id: string): Promise<Tenant | null> {
   return result[0] ?? null;
 }
 
-// Cache for tenant schema instances
-const tenantSchemas = new Map<string, ReturnType<typeof createTenantSchema>>();
-
 // Get drizzle instance and schema for a specific tenant
-export function getTenantDb(schemaName: string) {
-  // Get or create schema
-  let tenantSchema = tenantSchemas.get(schemaName);
-  if (!tenantSchema) {
-    tenantSchema = createTenantSchema(schemaName);
-    tenantSchemas.set(schemaName, tenantSchema);
-  }
-
-  // Get or create db connection
-  if (tenantConnections.has(schemaName)) {
-    return {
-      db: tenantConnections.get(schemaName)!,
-      schema: tenantSchema,
-    };
-  }
-
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL environment variable is not set");
-  }
-
-  // Create a connection with the search_path set to the tenant schema
-  const client = postgres(connectionString, {
-    connection: {
-      search_path: schemaName,
-    },
-  });
-
-  const tenantDb = drizzle(client, { schema: tenantSchema });
-
-  tenantConnections.set(schemaName, tenantDb);
+// Note: With the new organization-based architecture, all tenants share the same schema
+// The schemaName parameter is kept for backwards compatibility but queries should
+// filter by organizationId instead of using separate schemas
+export function getTenantDb(_schemaName: string) {
+  // Return the shared schema - organization filtering is done at query level
   return {
-    db: tenantDb,
-    schema: tenantSchema,
+    db: db,
+    schema: schema,
   };
 }
 
@@ -511,14 +480,11 @@ export async function deleteTenant(tenantId: string): Promise<void> {
   const client = postgres(connectionString);
 
   try {
-    // Drop the schema
+    // Drop the schema (legacy - for old schema-per-tenant setups)
     await client.unsafe(`DROP SCHEMA IF EXISTS "${tenant.schemaName}" CASCADE`);
 
     // Delete the tenant record
     await db.delete(tenants).where(eq(tenants.id, tenantId));
-
-    // Remove from connection cache
-    tenantConnections.delete(tenant.schemaName);
   } finally {
     await client.end();
   }

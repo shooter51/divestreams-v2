@@ -1,42 +1,58 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, useLoaderData } from "react-router";
-import { scryptSync, timingSafeEqual } from "node:crypto";
-import { randomUUID } from "node:crypto";
-import postgres from "postgres";
-import { getTenantFromRequest } from "../../../lib/auth/tenant-auth.server";
+import { eq } from "drizzle-orm";
+import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-context.server";
+import { auth } from "../../../lib/auth";
+import { db } from "../../../lib/db";
+import { organization } from "../../../lib/db/schema/auth";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Login - DiveStreams" }];
 };
 
-// Verify password against hash
-function verifyPassword(password: string, hash: string): boolean {
-  const [salt, storedHash] = hash.split(":");
-  if (!salt || !storedHash) return false;
-
-  const computedHash = scryptSync(password, salt, 64).toString("hex");
-  const storedBuffer = Buffer.from(storedHash, "hex");
-  const computedBuffer = Buffer.from(computedHash, "hex");
-
-  if (storedBuffer.length !== computedBuffer.length) return false;
-  return timingSafeEqual(storedBuffer, computedBuffer);
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
-  const tenantContext = await getTenantFromRequest(request);
+  const subdomain = getSubdomainFromRequest(request);
 
-  if (!tenantContext) {
-    // No tenant context - redirect to main site
+  if (!subdomain) {
+    // No subdomain - redirect to main site
     return redirect("https://divestreams.com");
   }
 
-  return { tenantName: tenantContext.tenant.name };
+  // Check if already logged in
+  const orgContext = await getOrgContext(request);
+  if (orgContext) {
+    return redirect("/app");
+  }
+
+  // Get organization name for display
+  const [org] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.slug, subdomain))
+    .limit(1);
+
+  if (!org) {
+    return redirect("https://divestreams.com");
+  }
+
+  return { tenantName: org.name };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const tenantContext = await getTenantFromRequest(request);
+  const subdomain = getSubdomainFromRequest(request);
 
-  if (!tenantContext) {
+  if (!subdomain) {
+    return redirect("https://divestreams.com");
+  }
+
+  // Get organization
+  const [org] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.slug, subdomain))
+    .limit(1);
+
+  if (!org) {
     return redirect("https://divestreams.com");
   }
 
@@ -57,77 +73,22 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors };
   }
 
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    return { errors: { form: "Server configuration error" } };
-  }
-
-  const client = postgres(connectionString);
-  const schemaName = tenantContext.tenant.schemaName;
-
   try {
-    // Look up user by email
-    const users = await client.unsafe(`
-      SELECT id, email, name, role, password_hash, is_active
-      FROM "${schemaName}".users
-      WHERE email = '${email.replace(/'/g, "''")}'
-      LIMIT 1
-    `);
-
-    if (users.length === 0) {
-      return { errors: { form: "Invalid email or password" } };
-    }
-
-    const user = users[0];
-
-    if (!user.is_active) {
-      return { errors: { form: "Account is deactivated" } };
-    }
-
-    if (!user.password_hash) {
-      return { errors: { form: "Password not set. Contact administrator." } };
-    }
-
-    // Verify password
-    if (!verifyPassword(password, user.password_hash)) {
-      return { errors: { form: "Invalid email or password" } };
-    }
-
-    // Create session
-    const sessionId = randomUUID();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-
-    await client.unsafe(`
-      INSERT INTO "${schemaName}".sessions (id, user_id, expires_at, ip_address, user_agent)
-      VALUES (
-        '${sessionId}',
-        '${user.id}',
-        '${expiresAt.toISOString()}',
-        '${request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown"}',
-        '${(request.headers.get("user-agent") || "unknown").replace(/'/g, "''").substring(0, 500)}'
-      )
-    `);
-
-    // Update last login
-    await client.unsafe(`
-      UPDATE "${schemaName}".users
-      SET last_login_at = NOW()
-      WHERE id = '${user.id}'
-    `);
-
-    await client.end();
-
-    // Set session cookie and redirect to dashboard
-    return redirect("/app", {
-      headers: {
-        "Set-Cookie": `session=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=${7 * 24 * 60 * 60}`,
-      },
+    // Sign in using Better Auth
+    const result = await auth.api.signInEmail({
+      body: { email, password },
+      headers: request.headers,
     });
 
+    if (!result || !result.user) {
+      return { errors: { form: "Invalid email or password" } };
+    }
+
+    // Redirect to app - Better Auth sets session cookie automatically
+    return redirect("/app");
   } catch (error) {
     console.error("Login error:", error);
-    await client.end();
-    return { errors: { form: "An error occurred. Please try again." } };
+    return { errors: { form: "Invalid email or password" } };
   }
 }
 

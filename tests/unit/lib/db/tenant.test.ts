@@ -230,36 +230,37 @@ describe("Tenant Server Module", () => {
   // ============================================================================
 
   describe("getTenantDb", () => {
-    it("should throw error when DATABASE_URL is not set", () => {
-      delete process.env.DATABASE_URL;
+    it("should return shared db and schema for any schemaName", () => {
+      // With organization-based multi-tenancy, getTenantDb returns the shared schema
+      // regardless of the schemaName parameter (kept for backwards compatibility)
+      const result = getTenantDb("tenant_testshop");
 
-      expect(() => getTenantDb("tenant_testshop")).toThrow(
-        "DATABASE_URL environment variable is not set"
-      );
+      expect(result).toBeDefined();
+      expect(result.db).toBeDefined();
+      expect(result.schema).toBeDefined();
     });
 
-    it("should return cached connection for same schema", () => {
-      process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test";
+    it("should return the same db and schema for different schemaNames", () => {
+      // All tenants now share the same schema (organization filtering at query level)
+      const result1 = getTenantDb("tenant_shop1");
+      const result2 = getTenantDb("tenant_shop2");
 
-      const result1 = getTenantDb("tenant_testshop");
-      const result2 = getTenantDb("tenant_testshop");
-
-      // Both should return the same cached db and schema instances
+      // Both should return the same shared db and schema instances
       expect(result1.db).toBe(result2.db);
       expect(result1.schema).toBe(result2.schema);
     });
 
-    it("should create new connection for different schema", () => {
-      process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test";
+    it("should return schema with expected tables", () => {
+      const result = getTenantDb("tenant_testshop");
 
-      const result1 = getTenantDb("tenant_shop1");
-      const result2 = getTenantDb("tenant_shop2");
-
-      // Different schemas should get different connections
-      // Both are empty objects from our mock, so we can't directly compare
-      // but the function should have been called twice
-      expect(result1).toBeDefined();
-      expect(result2).toBeDefined();
+      // Verify schema contains expected business tables
+      expect(result.schema.customers).toBeDefined();
+      expect(result.schema.boats).toBeDefined();
+      expect(result.schema.diveSites).toBeDefined();
+      expect(result.schema.tours).toBeDefined();
+      expect(result.schema.trips).toBeDefined();
+      expect(result.schema.bookings).toBeDefined();
+      expect(result.schema.equipment).toBeDefined();
     });
   });
 

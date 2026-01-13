@@ -1,6 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { isAdminSubdomain, isAdminAuthenticated } from "../../../lib/auth/admin-auth.server";
+import { isAdminSubdomain } from "../../../lib/auth/org-context.server";
+import { getPlatformContext } from "../../../lib/auth/platform-context.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,7 +16,8 @@ export const meta: MetaFunction = () => {
 export async function loader({ request }: LoaderFunctionArgs) {
   // If on admin subdomain, redirect to admin dashboard or login
   if (isAdminSubdomain(request)) {
-    if (isAdminAuthenticated(request)) {
+    const platformContext = await getPlatformContext(request);
+    if (platformContext) {
       throw redirect("/dashboard");
     } else {
       throw redirect("/login");

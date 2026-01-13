@@ -4,7 +4,7 @@
 
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { Form, Link, useActionData, useNavigation, redirect } from "react-router";
-import { requireTenant } from "../../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { createProduct } from "../../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "New Product - DiveStreams" }];

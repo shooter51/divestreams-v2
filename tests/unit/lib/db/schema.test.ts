@@ -1,14 +1,25 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   tenants,
   subscriptionPlans,
   tenantsRelations,
-  createTenantSchema,
+  customers,
+  boats,
+  diveSites,
+  tours,
+  tourDiveSites,
+  trips,
+  bookings,
+  equipment,
+  transactions,
+  rentals,
+  products,
+  discountCodes,
+  images,
   type Tenant,
   type NewTenant,
   type SubscriptionPlan,
   type NewSubscriptionPlan,
-  type TenantSchema,
 } from "../../../../lib/db/schema";
 
 describe("schema.ts", () => {
@@ -45,7 +56,7 @@ describe("schema.ts", () => {
     });
   });
 
-  describe("tenants table", () => {
+  describe("tenants table (legacy)", () => {
     it("defines core tenant fields", () => {
       expect(tenants.id).toBeDefined();
       expect(tenants.subdomain).toBeDefined();
@@ -93,156 +104,134 @@ describe("schema.ts", () => {
     });
   });
 
-  describe("createTenantSchema factory", () => {
-    it("creates a schema with the given name", () => {
-      const schemaName = "test_tenant_schema";
-      const tenantSchema = createTenantSchema(schemaName);
-
-      expect(tenantSchema.schema).toBeDefined();
-    });
-
-    it("creates all required tenant tables", () => {
-      const tenantSchema = createTenantSchema("test_schema");
-
-      expect(tenantSchema.users).toBeDefined();
-      expect(tenantSchema.sessions).toBeDefined();
-      expect(tenantSchema.accounts).toBeDefined();
-      expect(tenantSchema.customers).toBeDefined();
-      expect(tenantSchema.boats).toBeDefined();
-      expect(tenantSchema.diveSites).toBeDefined();
-      expect(tenantSchema.tours).toBeDefined();
-      expect(tenantSchema.tourDiveSites).toBeDefined();
-      expect(tenantSchema.trips).toBeDefined();
-      expect(tenantSchema.bookings).toBeDefined();
-      expect(tenantSchema.equipment).toBeDefined();
-      expect(tenantSchema.transactions).toBeDefined();
-    });
-
-    describe("users table", () => {
-      it("defines user authentication fields", () => {
-        const schema = createTenantSchema("test");
-        const users = schema.users;
-
-        expect(users).toBeDefined();
-      });
-    });
-
-    describe("sessions table", () => {
-      it("defines session tracking fields", () => {
-        const schema = createTenantSchema("test");
-        const sessions = schema.sessions;
-
-        expect(sessions).toBeDefined();
-      });
-    });
-
-    describe("accounts table", () => {
-      it("defines OAuth provider fields", () => {
-        const schema = createTenantSchema("test");
-        const accounts = schema.accounts;
-
-        expect(accounts).toBeDefined();
-      });
-    });
-
+  describe("business tables (organization-based)", () => {
     describe("customers table", () => {
       it("defines customer profile fields", () => {
-        const schema = createTenantSchema("test");
-        const customers = schema.customers;
-
         expect(customers).toBeDefined();
+        expect(customers.id).toBeDefined();
+        expect(customers.organizationId).toBeDefined();
+        expect(customers.email).toBeDefined();
+        expect(customers.firstName).toBeDefined();
+        expect(customers.lastName).toBeDefined();
+      });
+
+      it("has organizationId for multi-tenancy", () => {
+        expect(customers.organizationId).toBeDefined();
       });
     });
 
     describe("boats table", () => {
       it("defines boat information fields", () => {
-        const schema = createTenantSchema("test");
-        const boats = schema.boats;
-
         expect(boats).toBeDefined();
+        expect(boats.id).toBeDefined();
+        expect(boats.organizationId).toBeDefined();
+        expect(boats.name).toBeDefined();
+        expect(boats.capacity).toBeDefined();
       });
     });
 
     describe("diveSites table", () => {
       it("defines dive site information fields", () => {
-        const schema = createTenantSchema("test");
-        const diveSites = schema.diveSites;
-
         expect(diveSites).toBeDefined();
+        expect(diveSites.id).toBeDefined();
+        expect(diveSites.organizationId).toBeDefined();
+        expect(diveSites.name).toBeDefined();
       });
     });
 
     describe("tours table", () => {
       it("defines tour/product fields", () => {
-        const schema = createTenantSchema("test");
-        const tours = schema.tours;
-
         expect(tours).toBeDefined();
+        expect(tours.id).toBeDefined();
+        expect(tours.organizationId).toBeDefined();
+        expect(tours.name).toBeDefined();
+        expect(tours.price).toBeDefined();
       });
     });
 
     describe("tourDiveSites junction table", () => {
       it("defines tour to dive site relationship", () => {
-        const schema = createTenantSchema("test");
-        const tourDiveSites = schema.tourDiveSites;
-
         expect(tourDiveSites).toBeDefined();
+        expect(tourDiveSites.id).toBeDefined();
+        expect(tourDiveSites.tourId).toBeDefined();
+        expect(tourDiveSites.diveSiteId).toBeDefined();
       });
     });
 
     describe("trips table", () => {
       it("defines scheduled trip fields", () => {
-        const schema = createTenantSchema("test");
-        const trips = schema.trips;
-
         expect(trips).toBeDefined();
+        expect(trips.id).toBeDefined();
+        expect(trips.organizationId).toBeDefined();
+        expect(trips.tourId).toBeDefined();
+        expect(trips.date).toBeDefined();
       });
     });
 
     describe("bookings table", () => {
       it("defines booking fields", () => {
-        const schema = createTenantSchema("test");
-        const bookings = schema.bookings;
-
         expect(bookings).toBeDefined();
+        expect(bookings.id).toBeDefined();
+        expect(bookings.organizationId).toBeDefined();
+        expect(bookings.tripId).toBeDefined();
+        expect(bookings.customerId).toBeDefined();
       });
     });
 
     describe("equipment table", () => {
       it("defines equipment inventory fields", () => {
-        const schema = createTenantSchema("test");
-        const equipment = schema.equipment;
-
         expect(equipment).toBeDefined();
+        expect(equipment.id).toBeDefined();
+        expect(equipment.organizationId).toBeDefined();
+        expect(equipment.name).toBeDefined();
+        expect(equipment.category).toBeDefined();
       });
     });
 
     describe("transactions table", () => {
       it("defines payment transaction fields", () => {
-        const schema = createTenantSchema("test");
-        const transactions = schema.transactions;
-
         expect(transactions).toBeDefined();
+        expect(transactions.id).toBeDefined();
+        expect(transactions.organizationId).toBeDefined();
+        expect(transactions.amount).toBeDefined();
       });
     });
-  });
 
-  describe("schema isolation", () => {
-    it("creates independent schemas for different tenants", () => {
-      const schema1 = createTenantSchema("tenant_one");
-      const schema2 = createTenantSchema("tenant_two");
-
-      // Each call should create a distinct schema object
-      expect(schema1).not.toBe(schema2);
+    describe("rentals table", () => {
+      it("defines rental fields", () => {
+        expect(rentals).toBeDefined();
+        expect(rentals.id).toBeDefined();
+        expect(rentals.organizationId).toBeDefined();
+        expect(rentals.equipmentId).toBeDefined();
+      });
     });
 
-    it("each schema has independent tables", () => {
-      const schema1 = createTenantSchema("tenant_one");
-      const schema2 = createTenantSchema("tenant_two");
+    describe("products table", () => {
+      it("defines product fields", () => {
+        expect(products).toBeDefined();
+        expect(products.id).toBeDefined();
+        expect(products.organizationId).toBeDefined();
+        expect(products.name).toBeDefined();
+        expect(products.price).toBeDefined();
+      });
+    });
 
-      expect(schema1.customers).not.toBe(schema2.customers);
-      expect(schema1.bookings).not.toBe(schema2.bookings);
-      expect(schema1.tours).not.toBe(schema2.tours);
+    describe("discountCodes table", () => {
+      it("defines discount code fields", () => {
+        expect(discountCodes).toBeDefined();
+        expect(discountCodes.id).toBeDefined();
+        expect(discountCodes.organizationId).toBeDefined();
+        expect(discountCodes.code).toBeDefined();
+      });
+    });
+
+    describe("images table", () => {
+      it("defines image fields", () => {
+        expect(images).toBeDefined();
+        expect(images.id).toBeDefined();
+        expect(images.organizationId).toBeDefined();
+        expect(images.url).toBeDefined();
+      });
     });
   });
 
@@ -289,12 +278,6 @@ describe("schema.ts", () => {
         limits: { users: 2, customers: 100, toursPerMonth: 50, storageGb: 1 },
       };
       expect(mockNewPlan.name).toBe("starter");
-    });
-
-    it("exports TenantSchema type", () => {
-      const schema: TenantSchema = createTenantSchema("test");
-      expect(schema.users).toBeDefined();
-      expect(schema.customers).toBeDefined();
     });
   });
 
@@ -349,63 +332,20 @@ describe("schema.ts", () => {
     });
   });
 
-  describe("tenant schema table structure validation", () => {
-    const schema = createTenantSchema("validation_test");
-
-    it("users table has all expected columns", () => {
-      expect(schema.users).toBeDefined();
-    });
-
-    it("sessions table has user reference", () => {
-      expect(schema.sessions).toBeDefined();
-    });
-
-    it("accounts table has user reference", () => {
-      expect(schema.accounts).toBeDefined();
-    });
-
-    it("customers table has email index", () => {
-      expect(schema.customers).toBeDefined();
-    });
-
-    it("bookings table has trip and customer references", () => {
-      expect(schema.bookings).toBeDefined();
-    });
-
-    it("trips table has tour and boat references", () => {
-      expect(schema.trips).toBeDefined();
-    });
-
-    it("tourDiveSites junction table has proper references", () => {
-      expect(schema.tourDiveSites).toBeDefined();
-    });
-
-    it("transactions table has proper references", () => {
-      expect(schema.transactions).toBeDefined();
-    });
-  });
-
-  describe("multi-tenant support validation", () => {
-    it("can create multiple tenant schemas without conflict", () => {
-      const schemas = Array.from({ length: 5 }, (_, i) =>
-        createTenantSchema(`tenant_${i}`)
-      );
-
-      expect(schemas.length).toBe(5);
-      schemas.forEach((schema) => {
-        expect(schema.users).toBeDefined();
-        expect(schema.customers).toBeDefined();
-        expect(schema.bookings).toBeDefined();
-      });
-    });
-
-    it("schema names are preserved in creation", () => {
-      const schemaName = "unique_tenant_schema_123";
-      const schema = createTenantSchema(schemaName);
-
-      // The schema should be created successfully
-      expect(schema).toBeDefined();
-      expect(schema.schema).toBeDefined();
+  describe("organization-based multi-tenancy", () => {
+    it("all business tables have organizationId", () => {
+      expect(customers.organizationId).toBeDefined();
+      expect(boats.organizationId).toBeDefined();
+      expect(diveSites.organizationId).toBeDefined();
+      expect(tours.organizationId).toBeDefined();
+      expect(trips.organizationId).toBeDefined();
+      expect(bookings.organizationId).toBeDefined();
+      expect(equipment.organizationId).toBeDefined();
+      expect(transactions.organizationId).toBeDefined();
+      expect(rentals.organizationId).toBeDefined();
+      expect(products.organizationId).toBeDefined();
+      expect(discountCodes.organizationId).toBeDefined();
+      expect(images.organizationId).toBeDefined();
     });
   });
 });

@@ -1,20 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   getSubdomainFromRequest,
-  hasPermission,
-  requirePermission,
-  PERMISSIONS,
-  type UserRole,
-  type Permission,
-} from "../../../../lib/auth/tenant-auth.server";
+  FREE_TIER_LIMITS,
+  PREMIUM_LIMITS,
+  checkLimit,
+  type OrgContext,
+} from "../../../../lib/auth/org-context.server";
 
-// Mock the tenant database module
-vi.mock("../../../../lib/db/tenant.server", () => ({
-  getTenantBySubdomain: vi.fn(),
-  getTenantDb: vi.fn(),
-}));
-
-describe("tenant-auth.server", () => {
+describe("org-context.server - tenant context helpers", () => {
   describe("getSubdomainFromRequest", () => {
     it("extracts subdomain from localhost URL", () => {
       const request = new Request("http://demo.localhost:5173/app");
@@ -57,116 +50,102 @@ describe("tenant-auth.server", () => {
     });
   });
 
-  describe("PERMISSIONS", () => {
-    it("defines booking permissions correctly", () => {
-      expect(PERMISSIONS["bookings:read"]).toContain("owner");
-      expect(PERMISSIONS["bookings:read"]).toContain("manager");
-      expect(PERMISSIONS["bookings:read"]).toContain("staff");
-      expect(PERMISSIONS["bookings:delete"]).not.toContain("staff");
-    });
-
-    it("defines settings permissions correctly", () => {
-      expect(PERMISSIONS["settings:write"]).toContain("owner");
-      expect(PERMISSIONS["settings:write"]).not.toContain("manager");
-      expect(PERMISSIONS["settings:write"]).not.toContain("staff");
-    });
-
-    it("defines user management permissions correctly", () => {
-      expect(PERMISSIONS["users:write"]).toContain("owner");
-      expect(PERMISSIONS["users:write"]).not.toContain("manager");
+  describe("FREE_TIER_LIMITS", () => {
+    it("has expected free tier limits", () => {
+      expect(FREE_TIER_LIMITS.customers).toBe(50);
+      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(20);
+      expect(FREE_TIER_LIMITS.tours).toBe(3);
+      expect(FREE_TIER_LIMITS.teamMembers).toBe(1);
+      expect(FREE_TIER_LIMITS.hasPOS).toBe(false);
+      expect(FREE_TIER_LIMITS.hasEquipmentRentals).toBe(false);
+      expect(FREE_TIER_LIMITS.hasAdvancedReports).toBe(false);
+      expect(FREE_TIER_LIMITS.hasEmailNotifications).toBe(false);
     });
   });
 
-  describe("hasPermission", () => {
-    it("returns true when owner has permission", () => {
-      expect(hasPermission("owner", "settings:write")).toBe(true);
-      expect(hasPermission("owner", "users:delete")).toBe(true);
-      expect(hasPermission("owner", "bookings:read")).toBe(true);
-    });
-
-    it("returns true when manager has permission", () => {
-      expect(hasPermission("manager", "bookings:write")).toBe(true);
-      expect(hasPermission("manager", "customers:delete")).toBe(true);
-      expect(hasPermission("manager", "reports:read")).toBe(true);
-    });
-
-    it("returns false when manager lacks permission", () => {
-      expect(hasPermission("manager", "settings:write")).toBe(false);
-      expect(hasPermission("manager", "users:delete")).toBe(false);
-    });
-
-    it("returns true when staff has permission", () => {
-      expect(hasPermission("staff", "bookings:read")).toBe(true);
-      expect(hasPermission("staff", "customers:write")).toBe(true);
-    });
-
-    it("returns false when staff lacks permission", () => {
-      expect(hasPermission("staff", "bookings:delete")).toBe(false);
-      expect(hasPermission("staff", "tours:write")).toBe(false);
-      expect(hasPermission("staff", "settings:read")).toBe(false);
-      expect(hasPermission("staff", "transactions:read")).toBe(false);
+  describe("PREMIUM_LIMITS", () => {
+    it("has unlimited premium tier limits", () => {
+      expect(PREMIUM_LIMITS.customers).toBe(Infinity);
+      expect(PREMIUM_LIMITS.bookingsPerMonth).toBe(Infinity);
+      expect(PREMIUM_LIMITS.tours).toBe(Infinity);
+      expect(PREMIUM_LIMITS.teamMembers).toBe(Infinity);
+      expect(PREMIUM_LIMITS.hasPOS).toBe(true);
+      expect(PREMIUM_LIMITS.hasEquipmentRentals).toBe(true);
+      expect(PREMIUM_LIMITS.hasAdvancedReports).toBe(true);
+      expect(PREMIUM_LIMITS.hasEmailNotifications).toBe(true);
     });
   });
 
-  describe("requirePermission", () => {
-    it("does not throw when permission is granted", () => {
-      expect(() => requirePermission("owner", "settings:write")).not.toThrow();
-      expect(() => requirePermission("manager", "bookings:delete")).not.toThrow();
-      expect(() => requirePermission("staff", "customers:read")).not.toThrow();
+  describe("checkLimit", () => {
+    // Create mock context for testing
+    function createMockContext(overrides: Partial<OrgContext> = {}): OrgContext {
+      return {
+        user: { id: "user-1", name: "Test", email: "test@example.com" } as any,
+        session: { id: "session-1" } as any,
+        org: { id: "org-1", name: "Test Org", slug: "test" } as any,
+        membership: { role: "owner" } as any,
+        subscription: null,
+        limits: FREE_TIER_LIMITS,
+        usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
+        canAddCustomer: true,
+        canAddTour: true,
+        canAddBooking: true,
+        isPremium: false,
+        ...overrides,
+      };
+    }
+
+    it("allows adding customer when under limit", () => {
+      const context = createMockContext({ canAddCustomer: true });
+      const result = checkLimit(context, "customer");
+      expect(result.allowed).toBe(true);
     });
 
-    it("throws 403 response when permission is denied", () => {
-      expect(() => requirePermission("staff", "settings:write")).toThrow();
-      expect(() => requirePermission("manager", "users:delete")).toThrow();
+    it("blocks adding customer when at limit", () => {
+      const context = createMockContext({ canAddCustomer: false });
+      const result = checkLimit(context, "customer");
+      expect(result.allowed).toBe(false);
+      expect(result.message).toContain("Customer limit reached");
     });
 
-    it("throws Response with status 403", () => {
-      try {
-        requirePermission("staff", "tours:delete");
-        expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error).toBeInstanceOf(Response);
-        expect((error as Response).status).toBe(403);
-      }
-    });
-  });
-
-  describe("Permission coverage", () => {
-    const allPermissions: Permission[] = [
-      "bookings:read",
-      "bookings:write",
-      "bookings:delete",
-      "customers:read",
-      "customers:write",
-      "customers:delete",
-      "tours:read",
-      "tours:write",
-      "tours:delete",
-      "equipment:read",
-      "equipment:write",
-      "equipment:delete",
-      "transactions:read",
-      "transactions:write",
-      "reports:read",
-      "settings:read",
-      "settings:write",
-      "users:read",
-      "users:write",
-      "users:delete",
-    ];
-
-    it("owner has access to all permissions", () => {
-      for (const permission of allPermissions) {
-        expect(hasPermission("owner", permission)).toBe(true);
-      }
+    it("allows adding tour when under limit", () => {
+      const context = createMockContext({ canAddTour: true });
+      const result = checkLimit(context, "tour");
+      expect(result.allowed).toBe(true);
     });
 
-    it("all defined permissions have at least one role", () => {
-      for (const permission of allPermissions) {
-        const roles: UserRole[] = ["owner", "manager", "staff"];
-        const hasAnyRole = roles.some((role) => hasPermission(role, permission));
-        expect(hasAnyRole).toBe(true);
-      }
+    it("blocks adding tour when at limit", () => {
+      const context = createMockContext({ canAddTour: false });
+      const result = checkLimit(context, "tour");
+      expect(result.allowed).toBe(false);
+      expect(result.message).toContain("Tour limit reached");
+    });
+
+    it("allows adding booking when under limit", () => {
+      const context = createMockContext({ canAddBooking: true });
+      const result = checkLimit(context, "booking");
+      expect(result.allowed).toBe(true);
+    });
+
+    it("blocks adding booking when at limit", () => {
+      const context = createMockContext({ canAddBooking: false });
+      const result = checkLimit(context, "booking");
+      expect(result.allowed).toBe(false);
+      expect(result.message).toContain("Monthly booking limit reached");
+    });
+
+    it("always allows for premium users", () => {
+      const context = createMockContext({
+        isPremium: true,
+        canAddCustomer: true,
+        canAddTour: true,
+        canAddBooking: true,
+        limits: PREMIUM_LIMITS,
+      });
+
+      expect(checkLimit(context, "customer").allowed).toBe(true);
+      expect(checkLimit(context, "tour").allowed).toBe(true);
+      expect(checkLimit(context, "booking").allowed).toBe(true);
     });
   });
 });

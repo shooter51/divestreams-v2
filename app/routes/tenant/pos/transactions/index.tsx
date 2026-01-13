@@ -6,7 +6,7 @@
 
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { getPOSTransactions, getPOSSummary, type POSTransaction } from "../../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Transactions - DiveStreams" }];

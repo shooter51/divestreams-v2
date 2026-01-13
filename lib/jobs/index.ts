@@ -5,6 +5,9 @@
  */
 
 import { Queue } from "bullmq";
+
+// Re-export cleanup function for manual triggering
+export { cleanupStaleTenants } from "./stale-tenant-cleanup";
 import type { ConnectionOptions } from "bullmq";
 import IORedis from "ioredis";
 
@@ -129,6 +132,18 @@ export async function scheduleMaintenanceChecks() {
     {
       repeat: {
         pattern: "0 9 * * *", // Every day at 9 AM
+      },
+    }
+  );
+
+  // Clean up stale free-tier tenants daily at 3 AM
+  // Sends warning emails at 60/75 days, soft-deletes at 90 days
+  await queue.add(
+    "cleanup-stale-tenants",
+    {},
+    {
+      repeat: {
+        pattern: "0 3 * * *", // Every day at 3 AM
       },
     }
   );

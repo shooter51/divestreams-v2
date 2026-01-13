@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { getDiveSiteById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../../lib/validation";

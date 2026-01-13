@@ -7,7 +7,7 @@
 
 import type { LoaderFunctionArgs } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {

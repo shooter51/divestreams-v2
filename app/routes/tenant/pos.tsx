@@ -7,7 +7,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
-import { requireTenant } from "../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import {
   getPOSProducts,
@@ -37,7 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const [products, equipment, trips] = await Promise.all([
     getPOSProducts(tables),
     getPOSEquipment(tables),
-    getPOSTrips(tables, tenant.timezone),
+    getPOSTrips(tables, "UTC"), // Default timezone - could be stored in organization settings
   ]);
 
   // Generate agreement number - handle case where rentals table may not exist yet
@@ -80,7 +80,7 @@ export async function action({ request }: ActionFunctionArgs) {
       // For now, use a placeholder - the transactions table allows null userId
       const userId = data.userId || null;
 
-      const result = await processPOSCheckout(tables, {
+      const result = await processPOSCheckout(tables, tenant.subdomain, {
         items: data.items,
         customerId: data.customerId,
         userId,

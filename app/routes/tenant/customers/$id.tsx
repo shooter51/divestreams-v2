@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
-import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
@@ -222,7 +222,7 @@ export default function CustomerDetailPage() {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Certification</h2>
             {Array.isArray(customer.certifications) && customer.certifications.length > 0 ? (
-              customer.certifications.map((cert: { agency: string; level: string; number?: string; date?: string }, i: number) => (
+              customer.certifications.map((cert: { agency: string; level: string; number?: string; date?: string | null }, i: number) => (
                 <div key={i} className="text-sm">
                   <p className="font-medium">{cert.agency} {cert.level}</p>
                   {cert.number && <p className="text-gray-500">#{cert.number}</p>}

@@ -5,7 +5,7 @@
 import { useState, useRef } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Form } from "react-router";
-import { requireTenant } from "../../../lib/auth/tenant-auth.server";
+import { requireTenant } from "../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import { db } from "../../../lib/db/index";
 import { eq } from "drizzle-orm";
@@ -78,6 +78,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const saleEndDate = formData.get("saleEndDate") as string || null;
 
     await db.insert(tables.products).values({
+      organizationId: tenant.subdomain, // Using subdomain as org identifier
       name,
       category,
       price,
@@ -227,6 +228,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       try {
         await db.insert(tables.products).values({
+          organizationId: tenant.subdomain, // Using subdomain as org identifier
           name: row.name,
           sku: row.sku,
           category: validCategories.includes(category) ? category : "other",
@@ -327,11 +329,34 @@ function formatDateForInput(dateVal: Date | string | null): string {
   return date.toISOString().slice(0, 16);
 }
 
+// Extended product type that includes optional sale fields
+type ProductWithSaleFields = {
+  id: string;
+  name: string;
+  sku: string | null;
+  category: string;
+  description: string | null;
+  price: string;
+  costPrice: string | null;
+  currency: string;
+  taxRate: string | null;
+  trackInventory: boolean;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  imageUrl: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  salePrice?: string | null;
+  saleStartDate?: Date | string | null;
+  saleEndDate?: Date | string | null;
+};
+
 export default function ProductsPage() {
   const { products } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showForm, setShowForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<typeof products[0] | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductWithSaleFields | null>(null);
   const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string } | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importResult, setImportResult] = useState<{
@@ -526,7 +551,7 @@ export default function ProductsPage() {
       )}
 
       {/* Products List */}
-      {Object.entries(productsByCategory).map(([category, categoryProducts]) => (
+      {Object.entries(productsByCategory).map(([category, categoryProducts]: [string, typeof products]) => (
         <div key={category} className="mb-8">
           <h2 className="text-lg font-semibold capitalize mb-3 text-gray-700">
             {category} ({categoryProducts.length})
@@ -545,7 +570,9 @@ export default function ProductsPage() {
               </thead>
               <tbody className="divide-y">
                 {categoryProducts.map((product) => {
-                  const onSale = isOnSale(product);
+                  // Cast product to include optional sale fields for type checking
+                  const productWithSale = product as typeof product & { salePrice?: string | null; saleStartDate?: Date | string | null; saleEndDate?: Date | string | null };
+                  const onSale = isOnSale(productWithSale);
                   return (
                   <tr key={product.id} className={!product.isActive ? "bg-gray-50 opacity-60" : ""}>
                     <td className="px-4 py-3">
@@ -568,7 +595,7 @@ export default function ProductsPage() {
                       {onSale ? (
                         <div>
                           <span className="font-bold text-red-600">
-                            ${Number(product.salePrice).toFixed(2)}
+                            ${Number(productWithSale.salePrice).toFixed(2)}
                           </span>
                           <span className="text-sm text-gray-400 line-through ml-2">
                             ${Number(product.price).toFixed(2)}
@@ -613,7 +640,7 @@ export default function ProductsPage() {
                         </button>
                         <button
                           onClick={() => {
-                            setEditingProduct(product);
+                            setEditingProduct(product as ProductWithSaleFields);
                             setShowForm(true);
                           }}
                           className="px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"

@@ -8,6 +8,13 @@
       "when": 1768187107625,
       "tag": "0000_broken_hitman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1768346785644,
+      "tag": "0001_bright_silverclaw",
+      "breakpoints": true
     }
   ]
 }
