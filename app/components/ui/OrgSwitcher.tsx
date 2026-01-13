@@ -1,0 +1,194 @@
+import { useState } from "react";
+
+type Org = {
+  id: string;
+  name: string;
+  slug: string;
+  logo?: string | null;
+};
+
+type Props = {
+  currentOrg: Org;
+  userOrgs: Org[];
+};
+
+/**
+ * OrgSwitcher component for switching between organizations.
+ * If user belongs to only one org, just displays the org name.
+ * If multiple orgs, shows a dropdown to switch between them.
+ */
+export function OrgSwitcher({ currentOrg, userOrgs }: Props) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // If user only has one org, just show the name without dropdown
+  if (userOrgs.length <= 1) {
+    return (
+      <div className="flex items-center gap-2">
+        <OrgAvatar org={currentOrg} size="sm" />
+        <span className="font-medium text-gray-900">{currentOrg.name}</span>
+      </div>
+    );
+  }
+
+  const handleOrgSwitch = (org: Org) => {
+    if (org.id === currentOrg.id) {
+      setIsOpen(false);
+      return;
+    }
+
+    // Get current protocol and host
+    const protocol = window.location.protocol;
+    const currentHost = window.location.host;
+
+    // Parse current host to replace subdomain
+    const hostParts = currentHost.split(".");
+
+    // Replace subdomain with new org's slug
+    // Handle both "subdomain.domain.com" and "subdomain.domain.com:port"
+    if (hostParts.length >= 2) {
+      hostParts[0] = org.slug;
+    }
+
+    const newHost = hostParts.join(".");
+    const newUrl = `${protocol}//${newHost}/app`;
+
+    // Navigate to new org's subdomain
+    window.location.href = newUrl;
+  };
+
+  return (
+    <div className="relative">
+      {/* Trigger button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+      >
+        <OrgAvatar org={currentOrg} size="sm" />
+        <span className="font-medium text-gray-900">{currentOrg.name}</span>
+        <ChevronDownIcon className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      {/* Dropdown */}
+      {isOpen && (
+        <>
+          {/* Overlay to close dropdown on click outside */}
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+
+          {/* Dropdown menu */}
+          <div className="absolute left-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+            <div className="px-3 py-2 border-b border-gray-100">
+              <p className="text-xs text-gray-500 uppercase font-medium">Switch Organization</p>
+            </div>
+
+            <div className="max-h-64 overflow-y-auto">
+              {userOrgs.map((org) => {
+                const isCurrentOrg = org.id === currentOrg.id;
+
+                return (
+                  <button
+                    key={org.id}
+                    onClick={() => handleOrgSwitch(org)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
+                      isCurrentOrg
+                        ? "bg-blue-50"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <OrgAvatar org={org} size="md" />
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium truncate ${isCurrentOrg ? "text-blue-700" : "text-gray-900"}`}>
+                        {org.name}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{org.slug}</p>
+                    </div>
+                    {isCurrentOrg && (
+                      <CheckIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Organization avatar - shows logo or initial
+ */
+function OrgAvatar({ org, size = "md" }: { org: Org; size?: "sm" | "md" }) {
+  const sizeClasses = size === "sm" ? "w-6 h-6 text-xs" : "w-8 h-8 text-sm";
+
+  if (org.logo) {
+    return (
+      <img
+        src={org.logo}
+        alt={org.name}
+        className={`${sizeClasses} rounded-md object-cover`}
+      />
+    );
+  }
+
+  // Generate a color based on org name for consistent avatar colors
+  const colors = [
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-purple-500",
+    "bg-orange-500",
+    "bg-pink-500",
+    "bg-teal-500",
+    "bg-indigo-500",
+    "bg-red-500",
+  ];
+  const colorIndex = org.name.charCodeAt(0) % colors.length;
+  const bgColor = colors[colorIndex];
+
+  const initial = org.name.charAt(0).toUpperCase();
+
+  return (
+    <div
+      className={`${sizeClasses} ${bgColor} rounded-md flex items-center justify-center text-white font-medium`}
+    >
+      {initial}
+    </div>
+  );
+}
+
+/**
+ * Chevron down icon
+ */
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+/**
+ * Check icon for selected org
+ */
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
