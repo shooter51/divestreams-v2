@@ -63,12 +63,22 @@ export const tenants = pgTable("tenants", {
 
   // Settings
   settings: jsonb("settings").$type<{
+    website?: string;
+    address?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      country?: string;
+      postalCode?: string;
+    };
     branding?: {
       logo?: string;
       primaryColor?: string;
       secondaryColor?: string;
     };
     booking?: {
+      minAdvanceBooking?: number; // hours
+      maxAdvanceBooking?: number; // days
       requireDeposit?: boolean;
       depositPercent?: number;
       cancellationPolicy?: string;

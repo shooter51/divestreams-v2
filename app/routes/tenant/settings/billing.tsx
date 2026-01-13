@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, Link } from "react-router";
+import { redirect, useLoaderData, useFetcher, Link } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
 import {
   getSubscriptionPlanById,
@@ -8,6 +8,11 @@ import {
   getMonthlyBookingCount,
   getTeamMemberCount,
 } from "../../../../lib/db/queries.server";
+import {
+  createCheckoutSession,
+  createBillingPortalSession,
+  cancelSubscription,
+} from "../../../../lib/stripe/index";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
@@ -134,24 +139,66 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
+  const url = new URL(request.url);
+  const baseUrl = `${url.protocol}//${url.host}`;
+
   if (intent === "upgrade") {
-    const planId = formData.get("planId");
-    // TODO: Redirect to Stripe checkout
-    return { redirectToCheckout: true, planId };
+    const planId = formData.get("planId") as string;
+    const billingPeriod = (formData.get("billingPeriod") as "monthly" | "yearly") || "monthly";
+
+    // Map planId to plan name (in case they differ)
+    const planName = planId as "starter" | "pro" | "enterprise";
+
+    try {
+      const checkoutUrl = await createCheckoutSession(
+        tenant.id,
+        planName,
+        billingPeriod,
+        `${baseUrl}/app/settings/billing?success=true`,
+        `${baseUrl}/app/settings/billing?canceled=true`
+      );
+
+      if (checkoutUrl) {
+        return redirect(checkoutUrl);
+      }
+
+      return { error: "Could not create checkout session. Stripe may not be configured." };
+    } catch (error) {
+      console.error("Checkout error:", error);
+      return { error: "Failed to create checkout session" };
+    }
   }
 
   if (intent === "cancel") {
-    // TODO: Handle subscription cancellation
-    return { cancelled: true };
+    try {
+      await cancelSubscription(tenant.id);
+      return { cancelled: true, message: "Subscription cancelled. You will retain access until the end of your billing period." };
+    } catch (error) {
+      console.error("Cancel error:", error);
+      return { error: "Failed to cancel subscription" };
+    }
   }
 
   if (intent === "update-payment") {
-    // TODO: Open Stripe portal for payment method update
-    return { redirectToPortal: true };
+    try {
+      const portalUrl = await createBillingPortalSession(
+        tenant.id,
+        `${baseUrl}/app/settings/billing`
+      );
+
+      if (portalUrl) {
+        return redirect(portalUrl);
+      }
+
+      return { error: "Could not open billing portal. Please add a payment method first." };
+    } catch (error) {
+      console.error("Portal error:", error);
+      return { error: "Failed to open billing portal" };
+    }
   }
 
   return null;

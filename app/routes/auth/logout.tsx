@@ -1,15 +1,27 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 
+// Clear session cookie by setting it to expire immediately
+function clearSessionCookie(): string {
+  return "session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Secure";
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
-  // For GET requests, just redirect to login
-  // TODO: Clear session
-  return redirect("/auth/login");
+  // For GET requests, clear session and redirect to login
+  return redirect("/auth/login", {
+    headers: {
+      "Set-Cookie": clearSessionCookie(),
+    },
+  });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  // TODO: Clear session cookie
-  return redirect("/auth/login");
+  // Clear session cookie and redirect to login
+  return redirect("/auth/login", {
+    headers: {
+      "Set-Cookie": clearSessionCookie(),
+    },
+  });
 }
 
 export default function Logout() {

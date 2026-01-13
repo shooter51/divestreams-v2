@@ -1,61 +1,99 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { requireTenant } from "../../../../lib/auth/tenant-auth.server";
+import { updateTenant } from "../../../../lib/db/tenant.server";
 
 export const meta: MetaFunction = () => [{ title: "Shop Profile - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
 
-  // Mock tenant profile data
+  // Build profile from actual tenant data
   const profile = {
-    name: "Coral Bay Diving",
-    subdomain: "coralbay",
-    email: "info@coralbaydiving.com",
-    phone: "+1 (555) 123-4567",
-    website: "https://coralbaydiving.com",
-    timezone: "America/Los_Angeles",
-    currency: "USD",
+    name: tenant.name,
+    subdomain: tenant.subdomain,
+    email: tenant.email,
+    phone: tenant.phone || "",
+    website: tenant.settings?.website || "",
+    timezone: tenant.timezone,
+    currency: tenant.currency,
     address: {
-      street: "123 Ocean Drive",
-      city: "Coral Bay",
-      state: "CA",
-      country: "United States",
-      postalCode: "90210",
-    },
-    businessHours: {
-      monday: { open: "08:00", close: "18:00", closed: false },
-      tuesday: { open: "08:00", close: "18:00", closed: false },
-      wednesday: { open: "08:00", close: "18:00", closed: false },
-      thursday: { open: "08:00", close: "18:00", closed: false },
-      friday: { open: "08:00", close: "18:00", closed: false },
-      saturday: { open: "08:00", close: "16:00", closed: false },
-      sunday: { open: "", close: "", closed: true },
+      street: tenant.settings?.address?.street || "",
+      city: tenant.settings?.address?.city || "",
+      state: tenant.settings?.address?.state || "",
+      country: tenant.settings?.address?.country || "",
+      postalCode: tenant.settings?.address?.postalCode || "",
     },
     bookingSettings: {
-      minAdvanceBooking: 24, // hours
-      maxAdvanceBooking: 90, // days
-      cancellationPolicy: "24h",
-      requireDeposit: true,
-      depositPercent: 25,
+      minAdvanceBooking: tenant.settings?.booking?.minAdvanceBooking ?? 24,
+      maxAdvanceBooking: tenant.settings?.booking?.maxAdvanceBooking ?? 90,
+      cancellationPolicy: tenant.settings?.booking?.cancellationPolicy || "24h",
+      requireDeposit: tenant.settings?.booking?.requireDeposit ?? false,
+      depositPercent: tenant.settings?.booking?.depositPercent ?? 25,
     },
   };
 
-  return { profile };
+  return { profile, tenantId: tenant.id };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, db } = await requireTenant(request);
+  const { tenant } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   if (intent === "update-profile") {
-    // TODO: Update tenant profile
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const phone = (formData.get("phone") as string) || undefined;
+    const website = (formData.get("website") as string) || undefined;
+    const timezone = formData.get("timezone") as string;
+    const currency = formData.get("currency") as string;
+
+    const address = {
+      street: (formData.get("street") as string) || undefined,
+      city: (formData.get("city") as string) || undefined,
+      state: (formData.get("state") as string) || undefined,
+      country: (formData.get("country") as string) || undefined,
+      postalCode: (formData.get("postalCode") as string) || undefined,
+    };
+
+    await updateTenant(tenant.id, {
+      name,
+      email,
+      phone,
+      timezone,
+      currency,
+      settings: {
+        ...tenant.settings,
+        website,
+        address,
+      },
+    });
+
     return { success: true, message: "Profile updated successfully" };
   }
 
   if (intent === "update-booking-settings") {
-    // TODO: Update booking settings
+    const minAdvanceBooking = Number(formData.get("minAdvanceBooking")) || 24;
+    const maxAdvanceBooking = Number(formData.get("maxAdvanceBooking")) || 90;
+    const cancellationPolicy = (formData.get("cancellationPolicy") as string) || "24h";
+    const requireDeposit = formData.get("requireDeposit") === "true";
+    const depositPercent = Number(formData.get("depositPercent")) || 25;
+
+    await updateTenant(tenant.id, {
+      settings: {
+        ...tenant.settings,
+        booking: {
+          ...tenant.settings?.booking,
+          minAdvanceBooking,
+          maxAdvanceBooking,
+          cancellationPolicy,
+          requireDeposit,
+          depositPercent,
+        },
+      },
+    });
+
     return { success: true, message: "Booking settings updated" };
   }
 

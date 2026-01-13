@@ -140,12 +140,24 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
       name TEXT NOT NULL,
       phone TEXT,
       avatar_url TEXT,
+      password_hash TEXT,
       role TEXT NOT NULL DEFAULT 'staff',
       permissions JSONB,
       is_active BOOLEAN NOT NULL DEFAULT true,
       last_login_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // Password reset tokens table
+  await client.unsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}".password_reset_tokens (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES "${schemaName}".users(id) ON DELETE CASCADE,
+      token TEXT NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 

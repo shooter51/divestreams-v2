@@ -216,3 +216,37 @@ export async function getSubscriptionStatus(tenantId: string) {
     cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
   };
 }
+
+// Cancel subscription at period end
+export async function cancelSubscription(tenantId: string): Promise<boolean> {
+  if (!stripe) return false;
+
+  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+
+  if (!tenant?.stripeSubscriptionId) {
+    // No subscription to cancel - just mark as canceled
+    await db
+      .update(tenants)
+      .set({
+        subscriptionStatus: "canceled",
+        updatedAt: new Date(),
+      })
+      .where(eq(tenants.id, tenantId));
+    return true;
+  }
+
+  // Cancel at period end (user keeps access until billing period ends)
+  await stripe.subscriptions.update(tenant.stripeSubscriptionId, {
+    cancel_at_period_end: true,
+  });
+
+  await db
+    .update(tenants)
+    .set({
+      subscriptionStatus: "canceled",
+      updatedAt: new Date(),
+    })
+    .where(eq(tenants.id, tenantId));
+
+  return true;
+}
