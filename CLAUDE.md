@@ -20,37 +20,123 @@ Multi-tenant SaaS platform for dive shop and dive tour management. Built with Re
 **Containers:**
 | Container | Image | Purpose |
 |-----------|-------|---------|
-| divestreams-app | divestreams-v2-app | Main React Router application (port 3000 internal) |
-| divestreams-worker | divestreams-v2-worker | Background job processor |
+| divestreams-app | ghcr.io/shooter51/divestreams-app:latest | Main React Router application (port 3000 internal) |
 | divestreams-db | postgres:16-alpine | PostgreSQL database |
 | divestreams-redis | redis:7-alpine | Redis cache/queue |
-| divestreams-caddy | divestreams-v2-caddy | Reverse proxy with SSL (ports 80/443) |
+| divestreams-caddy | caddy:2-alpine | Reverse proxy with SSL (ports 80/443) |
 
 ### Deployment Process
 **IMPORTANT: Always follow these steps in order:**
 
-1. **Build Docker image for linux/amd64:**
+1. **Build Docker image for linux/amd64 and push:**
    ```bash
    docker buildx build --platform linux/amd64 -t ghcr.io/shooter51/divestreams-app:latest --push .
    ```
 
-2. **Push is automatic with --push flag above.** If needed separately:
-   ```bash
-   gh auth token | docker login ghcr.io -u shooter51 --password-stdin
-   docker push ghcr.io/shooter51/divestreams-app:latest
-   ```
-
-3. **Deploy from registry to VPS:**
+2. **Deploy to VPS:**
    ```
    mcp__hostinger-mcp__VPS_updateProjectV1(virtualMachineId: 1239852, projectName: "divestreams-v2")
    ```
-   Or for fresh deployment, use createNewProjectV1 with inline docker-compose YAML that references:
-   `image: ghcr.io/shooter51/divestreams-app:latest`
 
-**Note:** VPS has Docker logged into GHCR. If auth expires, SSH in and run:
+### Fresh Deployment (if project doesn't exist)
+Use `mcp__hostinger-mcp__VPS_createNewProjectV1` with this docker-compose YAML:
+
+```yaml
+services:
+  app:
+    image: ghcr.io/shooter51/divestreams-app:latest
+    container_name: divestreams-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_prod}@postgres:5432/divestreams
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_URL=https://divestreams.com
+      - APP_URL=https://divestreams.com
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-DiveAdmin2024!}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - divestreams-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: divestreams-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: divestreams
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-divestreams_prod}
+      POSTGRES_DB: divestreams
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U divestreams"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - divestreams-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: divestreams-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - divestreams-network
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: divestreams-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    command: caddy reverse-proxy --from divestreams.com --to app:3000
+    depends_on:
+      - app
+    networks:
+      - divestreams-network
+
+networks:
+  divestreams-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+```
+
+**Environment variables to pass:**
+```
+AUTH_SECRET=divestreams-prod-secret-key-2024
+DB_PASSWORD=divestreams_prod
+NODE_ENV=production
+ADMIN_PASSWORD=DiveAdmin2024!
+```
+
+### VPS Docker Auth
+VPS has Docker logged into GHCR. If auth expires, SSH in and run:
 ```bash
 ssh root@72.62.166.128
-echo "TOKEN" | docker login ghcr.io -u shooter51 --password-stdin
+gh auth token | docker login ghcr.io -u shooter51 --password-stdin
 ```
 
 ### Git Remotes
