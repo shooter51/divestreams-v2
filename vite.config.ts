@@ -11,12 +11,15 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: (id) => {
-        // Exclude postgres and better-auth from client bundle
-        if (id === "postgres" || id.startsWith("postgres/")) return true;
-        if (id === "better-auth" || id.startsWith("better-auth/")) return true;
-        return false;
-      },
+      external: [
+        "postgres",
+        "better-auth",
+        // Common subpaths
+        "postgres/src/index.js",
+        "postgres/src/connection.js",
+        "postgres/src/types.js",
+        "postgres/src/large.js",
+      ],
     },
   },
   optimizeDeps: {
