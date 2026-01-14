@@ -27,19 +27,31 @@ Multi-tenant SaaS platform for dive shop and dive tour management. Built with Re
 | divestreams-caddy | divestreams-v2-caddy | Reverse proxy with SSL (ports 80/443) |
 
 ### Deployment Process
-1. Commit and push changes to GitHub
-2. Use Hostinger MCP tool to update the VPS project:
+**IMPORTANT: Always follow these steps in order:**
+
+1. **Build Docker image for linux/amd64:**
+   ```bash
+   docker buildx build --platform linux/amd64 -t ghcr.io/shooter51/divestreams-app:latest --push .
+   ```
+
+2. **Push is automatic with --push flag above.** If needed separately:
+   ```bash
+   gh auth token | docker login ghcr.io -u shooter51 --password-stdin
+   docker push ghcr.io/shooter51/divestreams-app:latest
+   ```
+
+3. **Deploy from registry to VPS:**
    ```
    mcp__hostinger-mcp__VPS_updateProjectV1(virtualMachineId: 1239852, projectName: "divestreams-v2")
    ```
-   Or recreate from GitHub:
-   ```
-   mcp__hostinger-mcp__VPS_createNewProjectV1(
-     virtualMachineId: 1239852,
-     project_name: "divestreams-v2",
-     content: "https://github.com/shooter51/divestreams-v2"
-   )
-   ```
+   Or for fresh deployment, use createNewProjectV1 with inline docker-compose YAML that references:
+   `image: ghcr.io/shooter51/divestreams-app:latest`
+
+**Note:** VPS has Docker logged into GHCR. If auth expires, SSH in and run:
+```bash
+ssh root@72.62.166.128
+echo "TOKEN" | docker login ghcr.io -u shooter51 --password-stdin
+```
 
 ### Git Remotes
 - **origin**: `git@github-tommie:tommiePinball/divestreams-v2.git` (SSH)
