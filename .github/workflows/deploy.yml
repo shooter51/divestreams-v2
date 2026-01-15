@@ -150,7 +150,7 @@ jobs:
         run: |
           echo "Deploying to staging (VPS 1271895)"
           curl -X POST \
-            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1271895/docker-compose/divestreams-staging/update" \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1271895/docker/divestreams-staging/update" \
             -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --fail-with-body
@@ -222,7 +222,7 @@ jobs:
         run: |
           echo "Deploying to production (VPS 1239852)"
           curl -X POST \
-            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1239852/docker-compose/divestreams-v2/update" \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1239852/docker/divestreams-v2/update" \
             -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --fail-with-body
