@@ -2,6 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
 import { loader, action } from "../../../../../app/routes/tenant/settings/integrations";
 
+// Helper type for action results in tests
+type ActionResult = Record<string, unknown>;
+
 // Mock dependencies
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
@@ -209,7 +212,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(createApiKey).toHaveBeenCalledWith("org-uuid", "Production Server");
       expect(result.success).toBe(true);
@@ -226,7 +229,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(result.error).toBe("API key name is required");
     });
@@ -243,7 +246,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(revokeApiKey).toHaveBeenCalledWith("key-to-revoke", "org-uuid");
       expect(result.success).toBe(true);
@@ -262,7 +265,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(result.error).toBe("API key not found");
     });
@@ -287,7 +290,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(createWebhook).toHaveBeenCalledWith(
         "org-uuid",
@@ -310,7 +313,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(result.error).toBe("Webhook URL is required");
     });
@@ -325,7 +328,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(result.error).toBe("At least one event must be selected");
     });
@@ -345,7 +348,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(updateWebhook).toHaveBeenCalled();
       expect(result.success).toBe(true);
@@ -364,7 +367,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(deleteWebhook).toHaveBeenCalledWith("wh-to-delete", "org-uuid");
       expect(result.success).toBe(true);
@@ -384,7 +387,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(createTestDelivery).toHaveBeenCalledWith("wh-test", "org-uuid");
       expect(deliverWebhook).toHaveBeenCalledWith("delivery-id");
@@ -404,7 +407,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(regenerateWebhookSecret).toHaveBeenCalledWith("wh-1", "org-uuid");
       expect(result.success).toBe(true);
@@ -425,7 +428,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(disconnectIntegration).toHaveBeenCalledWith("org-uuid", "google-calendar");
       expect(result.success).toBe(true);
@@ -443,7 +446,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(result.error).toBe("Integration not found");
     });
@@ -462,7 +465,7 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(connectTwilio).toHaveBeenCalled();
       expect(result.success).toBe(true);
@@ -480,9 +483,9 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
-      expect(result.error).toBe("Account SID, Auth Token, and Phone Number are required");
+      expect(result?.error).toBe("Account SID, Auth Token, and Phone Number are required");
     });
 
     it("sends test SMS", async () => {
@@ -497,10 +500,10 @@ describe("tenant/settings/integrations route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {} } as Parameters<typeof action>[0]) as ActionResult;
 
       expect(sendSMS).toHaveBeenCalled();
-      expect(result.success).toBe(true);
+      expect(result?.success).toBe(true);
     });
   });
 });

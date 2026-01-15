@@ -9,14 +9,14 @@ export default defineConfig(({ isSsrBuild }) => ({
     noExternal: [],
     external: ["postgres", "better-auth"],
   },
-  resolve: {
-    alias: isSsrBuild
-      ? {}
-      : {
+  resolve: isSsrBuild
+    ? {}
+    : {
+        alias: {
           // Stub server-only modules for client build
           postgres: "./lib/stubs/postgres-stub.js",
         },
-  },
+      },
   optimizeDeps: {
     exclude: ["postgres", "better-auth"],
   },

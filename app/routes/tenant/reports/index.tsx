@@ -84,11 +84,12 @@ function getDateRangeFromPreset(preset: DateRangePreset, customStart?: string, c
       const end = customEnd ? new Date(customEnd + "T23:59:59.999") : new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1);
       return { start, end };
     }
-    default:
+    default: {
       // Default to this month
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
       return { start: startOfMonth, end: endOfMonth };
+    }
   }
 }
 

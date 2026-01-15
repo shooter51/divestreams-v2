@@ -58,7 +58,7 @@ function calculatePreviewDates(
       case "weekly":
         currentDate = addDays(currentDate, 1);
         break;
-      case "biweekly":
+      case "biweekly": {
         // Track week parity for biweekly
         const startWeek = Math.floor(new Date(startDate + "T00:00:00").getTime() / (7 * 24 * 60 * 60 * 1000));
         currentDate = addDays(currentDate, 1);
@@ -67,6 +67,7 @@ function calculatePreviewDates(
           currentDate = addDays(currentDate, 7);
         }
         break;
+      }
       case "monthly":
         currentDate = addMonths(currentDate, 1);
         break;
