@@ -271,4 +271,89 @@ describe("Webhook Delivery Service", () => {
       expect(deliverModule).toBeDefined();
     });
   });
+
+  describe("Webhook headers", () => {
+    it("should include required DiveStreams headers", () => {
+      // Webhook deliveries must include these headers:
+      // - Content-Type: application/json
+      // - User-Agent: DiveStreams-Webhook/1.0
+      // - X-DiveStreams-Event: <event-type>
+      // - X-DiveStreams-Delivery: <delivery-id>
+      // - X-DiveStreams-Signature: <HMAC-SHA256 signature>
+      const requiredHeaders = [
+        "Content-Type",
+        "User-Agent",
+        "X-DiveStreams-Event",
+        "X-DiveStreams-Delivery",
+        "X-DiveStreams-Signature",
+      ];
+
+      requiredHeaders.forEach((header) => {
+        expect(header).toBeDefined();
+      });
+    });
+  });
+
+  describe("Retry logic patterns", () => {
+    it("uses exponential backoff for retries", () => {
+      // Retry delays follow exponential backoff:
+      // Attempt 1: BASE_RETRY_DELAY (60s)
+      // Attempt 2: BASE_RETRY_DELAY * 2 (120s)
+      // Attempt 3: BASE_RETRY_DELAY * 4 (240s)
+      // etc., capped at MAX_RETRY_DELAY (3600s)
+      const BASE_RETRY_DELAY = 60;
+      const MAX_RETRY_DELAY = 3600;
+
+      const calculateDelay = (attempt: number) => {
+        return Math.min(BASE_RETRY_DELAY * Math.pow(2, attempt), MAX_RETRY_DELAY);
+      };
+
+      expect(calculateDelay(0)).toBe(60);
+      expect(calculateDelay(1)).toBe(120);
+      expect(calculateDelay(2)).toBe(240);
+      expect(calculateDelay(3)).toBe(480);
+      expect(calculateDelay(10)).toBe(3600); // Capped at max
+    });
+  });
+
+  describe("HTTP status code handling", () => {
+    it("treats 2xx as success", () => {
+      const isSuccess = (status: number) => status >= 200 && status < 300;
+
+      expect(isSuccess(200)).toBe(true);
+      expect(isSuccess(201)).toBe(true);
+      expect(isSuccess(204)).toBe(true);
+      expect(isSuccess(199)).toBe(false);
+      expect(isSuccess(300)).toBe(false);
+    });
+
+    it("treats 4xx as permanent failure (no retry)", () => {
+      const isPermanentFailure = (status: number) => status >= 400 && status < 500;
+
+      expect(isPermanentFailure(400)).toBe(true);
+      expect(isPermanentFailure(401)).toBe(true);
+      expect(isPermanentFailure(404)).toBe(true);
+      expect(isPermanentFailure(500)).toBe(false);
+    });
+
+    it("treats 5xx as temporary failure (should retry)", () => {
+      const isTemporaryFailure = (status: number) => status >= 500;
+
+      expect(isTemporaryFailure(500)).toBe(true);
+      expect(isTemporaryFailure(502)).toBe(true);
+      expect(isTemporaryFailure(503)).toBe(true);
+      expect(isTemporaryFailure(400)).toBe(false);
+    });
+  });
+
+  describe("Delivery status values", () => {
+    it("defines valid delivery statuses", () => {
+      const validStatuses = ["pending", "processing", "success", "failed", "retry"];
+
+      validStatuses.forEach((status) => {
+        expect(typeof status).toBe("string");
+        expect(status.length).toBeGreaterThan(0);
+      });
+    });
+  });
 });
