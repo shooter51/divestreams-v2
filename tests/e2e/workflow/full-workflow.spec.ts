@@ -402,8 +402,8 @@ test.describe.serial("Full E2E Workflow", () => {
     expect(page.url().includes("/login")).toBeTruthy();
   });
 
-  test("5.7 Admin settings requires auth", async ({ page }) => {
-    await page.goto(getAdminUrl("/settings"));
+  test("5.7 Admin dashboard requires auth", async ({ page }) => {
+    await page.goto(getAdminUrl("/"));
     await page.waitForTimeout(1000);
     expect(page.url().includes("/login")).toBeTruthy();
   });
