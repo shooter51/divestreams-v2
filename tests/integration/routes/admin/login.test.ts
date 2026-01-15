@@ -32,6 +32,11 @@ vi.mock("../../../../lib/db", () => ({
   },
 }));
 
+// Mock getAppUrl
+vi.mock("../../../../lib/utils/url", () => ({
+  getAppUrl: vi.fn().mockReturnValue("http://localhost:5173"),
+}));
+
 vi.mock("../../../../lib/db/schema/auth", () => ({
   organization: {
     id: "id",
@@ -72,7 +77,8 @@ describe("admin/login route", () => {
       expect(isAdminSubdomain).toHaveBeenCalledWith(request);
       expect(response).toBeInstanceOf(Response);
       expect((response as Response).status).toBe(302);
-      expect((response as Response).headers.get("Location")).toBe("https://divestreams.com");
+      // Uses getAppUrl() which returns APP_URL env var or default
+      expect((response as Response).headers.get("Location")).toBe("http://localhost:5173");
     });
 
     it("redirects to dashboard when already authenticated as platform admin", async () => {

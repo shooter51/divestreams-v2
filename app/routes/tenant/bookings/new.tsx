@@ -113,7 +113,7 @@ export async function action({ request }: ActionFunctionArgs) {
       tripTime: trip.startTime || "",
       participants,
       totalCents: Math.round(total * 100), // Convert to cents for email formatting
-      bookingNumber: booking.booking_number,
+      bookingNumber: booking.bookingNumber,
       shopName: tenant.name,
       tenantId: tenant.id,
     });

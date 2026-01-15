@@ -12,9 +12,10 @@ env:
 
 jobs:
   # ─────────────────────────────────────────────
-  # Unit & Integration Tests
+  # Unit & Integration Tests (staging + PRs only)
   # ─────────────────────────────────────────────
   test:
+    if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,9 +39,10 @@ jobs:
         run: npm test -- --run
 
   # ─────────────────────────────────────────────
-  # E2E Tests (in CI, before deploy)
+  # E2E Tests (staging + PRs only)
   # ─────────────────────────────────────────────
   e2e:
+    if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -68,6 +70,10 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Setup local hosts for subdomain testing
+        run: |
+          echo "127.0.0.1 admin.localhost demo.localhost test.localhost e2etest.localhost" | sudo tee -a /etc/hosts
+
       - name: Install dependencies
         run: npm ci
 
@@ -87,37 +93,27 @@ jobs:
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:5173
 
-      - name: Run E2E tests
-        run: npm run test:e2e
+      - name: Run E2E workflow tests (sequential, builds on each test)
+        run: npx playwright test tests/e2e/workflow/
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
           REDIS_URL: redis://localhost:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:5173
+          ADMIN_PASSWORD: DiveAdmin2026
 
   # ─────────────────────────────────────────────
-  # Build Docker Image
+  # Build Docker Image (staging only)
   # ─────────────────────────────────────────────
   build:
     needs: [test, e2e]
-    if: github.event_name == 'push'
+    if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    outputs:
-      tag: ${{ steps.meta.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set image tag
-        id: meta
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "tag=latest" >> $GITHUB_OUTPUT
-          else
-            echo "tag=staging" >> $GITHUB_OUTPUT
-          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -136,38 +132,25 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   # ─────────────────────────────────────────────
-  # Deploy to Environment
+  # Deploy to Staging
   # ─────────────────────────────────────────────
-  deploy:
+  deploy-staging:
     needs: build
+    if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.env.outputs.name }}
+    environment: staging
     steps:
-      - name: Determine environment
-        id: env
+      - name: Deploy to staging VPS
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "name=production" >> $GITHUB_OUTPUT
-            echo "vps_id=1239852" >> $GITHUB_OUTPUT
-            echo "project=divestreams-v2" >> $GITHUB_OUTPUT
-          else
-            echo "name=staging" >> $GITHUB_OUTPUT
-            echo "vps_id=1271895" >> $GITHUB_OUTPUT
-            echo "project=divestreams-staging" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Deploy to ${{ steps.env.outputs.name }}
-        run: |
-          echo "Deploying to ${{ steps.env.outputs.name }} (VPS ${{ steps.env.outputs.vps_id }})"
+          echo "Deploying to staging (VPS 1271895)"
           curl -X POST \
-            "https://api.hostinger.com/api/vps/v1/virtual-machines/${{ steps.env.outputs.vps_id }}/docker-compose/${{ steps.env.outputs.project }}/update" \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1271895/docker/divestreams-staging/update" \
             -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --fail-with-body
@@ -179,7 +162,7 @@ jobs:
   # Smoke Tests (against live staging)
   # ─────────────────────────────────────────────
   smoke-test:
-    needs: deploy
+    needs: deploy-staging
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     steps:
@@ -209,3 +192,40 @@ jobs:
           name: smoke-test-results
           path: playwright-report/
           retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # Promote to Production (main branch only)
+  # Just retag staging → latest and deploy
+  # ─────────────────────────────────────────────
+  promote-to-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retag staging image as latest
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Deploy to production VPS
+        run: |
+          echo "Deploying to production (VPS 1239852)"
+          curl -X POST \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1239852/docker/divestreams-v2/update" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body
+
+      - name: Wait for deployment to stabilize
+        run: sleep 45

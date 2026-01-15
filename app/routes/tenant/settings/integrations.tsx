@@ -67,7 +67,7 @@ interface ApiKeyDisplay {
   createdAt: Date;
 }
 
-type ZapierTriggerType = "booking.created" | "booking.updated" | "booking.cancelled" | "customer.created" | "customer.updated" | "trip.created" | "trip.updated";
+type ZapierTriggerType = "booking.created" | "booking.updated" | "booking.cancelled" | "customer.created" | "customer.updated" | "payment.received" | "payment.refunded" | "trip.completed" | "trip.created";
 
 interface XeroSettings {
   tenantId?: string;
@@ -86,15 +86,9 @@ interface MailchimpAudience {
   memberCount: number;
 }
 
-interface WhatsAppCredentials {
-  apiType: "meta" | "twilio";
-  phoneNumberId?: string;
-  accessToken?: string;
-  businessAccountId?: string;
-  accountSid?: string;
-  authToken?: string;
-  phoneNumber?: string;
-}
+type WhatsAppCredentials =
+  | { provider: "meta"; phoneNumberId: string; businessAccountId: string; accessToken: string }
+  | { provider: "twilio"; accountSid: string; authToken: string; phoneNumber: string };
 
 interface StripeSettings {
   liveMode?: boolean;

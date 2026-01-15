@@ -41,6 +41,20 @@ export default defineConfig({
     timeout: 120000,
     stdout: "pipe",
     stderr: "pipe",
+    env: {
+      ...process.env,
+      // Ensure critical vars are passed to dev server
+      DATABASE_URL: process.env.DATABASE_URL || "",
+      REDIS_URL: process.env.REDIS_URL || "",
+      AUTH_SECRET: process.env.AUTH_SECRET || "test-secret",
+      ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "DiveAdmin2026",
+      // URL utilities need these to allow localhost in CI
+      APP_URL: process.env.APP_URL || "http://localhost:5173",
+      CI: process.env.CI || "true",
+      GITHUB_ACTIONS: process.env.GITHUB_ACTIONS || "",
+      // Extra indicator for Playwright
+      PLAYWRIGHT_TEST_BASE_URL: "http://localhost:5173",
+    },
   },
   // Output directory for test artifacts
   outputDir: "test-results/",
