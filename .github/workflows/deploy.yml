@@ -74,6 +74,11 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Setup database schema
+        run: npm run db:push
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+
       - name: Build application
         run: npm run build
         env:
