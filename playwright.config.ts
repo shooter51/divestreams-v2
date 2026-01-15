@@ -41,6 +41,14 @@ export default defineConfig({
     timeout: 120000,
     stdout: "pipe",
     stderr: "pipe",
+    env: {
+      ...process.env,
+      // Ensure critical vars are passed to dev server
+      DATABASE_URL: process.env.DATABASE_URL || "",
+      REDIS_URL: process.env.REDIS_URL || "",
+      AUTH_SECRET: process.env.AUTH_SECRET || "test-secret",
+      ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "DiveAdmin2026",
+    },
   },
   // Output directory for test artifacts
   outputDir: "test-results/",
