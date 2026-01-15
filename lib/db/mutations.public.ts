@@ -303,7 +303,7 @@ export async function getBookingDetails(
     paymentStatus: b.paymentStatus,
     participants: Number(b.participants),
     subtotal: b.subtotal,
-    tax: b.tax,
+    tax: b.tax ?? "0",
     total: b.total,
     currency: b.currency,
     specialRequests: b.specialRequests,

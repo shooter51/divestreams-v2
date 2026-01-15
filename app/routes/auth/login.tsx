@@ -138,8 +138,8 @@ export default function LoginPage() {
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
-              {actionData?.errors?.email && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.email}</p>
+              {actionData?.errors && 'email' in actionData.errors && (
+                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).email}</p>
               )}
             </div>
 
@@ -154,8 +154,8 @@ export default function LoginPage() {
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
-              {actionData?.errors?.password && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.password}</p>
+              {actionData?.errors && 'password' in actionData.errors && (
+                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).password}</p>
               )}
             </div>
           </div>

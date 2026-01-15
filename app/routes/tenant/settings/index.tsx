@@ -67,7 +67,14 @@ export default function SettingsPage() {
   const fetcher = useFetcher<typeof action>();
   const isSeeding = fetcher.state === "submitting";
 
-  const settingsLinks = [
+  const settingsLinks: Array<{
+    href: string;
+    title: string;
+    description: string;
+    icon: string;
+    preview: string | null;
+    disabled?: boolean;
+  }> = [
     {
       href: "/app/settings/profile",
       title: "Shop Profile",

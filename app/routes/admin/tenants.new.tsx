@@ -163,7 +163,12 @@ export async function action({ request }: ActionFunctionArgs) {
 async function hashPassword(password: string): Promise<string> {
   const { scrypt, randomBytes } = await import("crypto");
   const { promisify } = await import("util");
-  const scryptAsync = promisify(scrypt);
+  const scryptAsync = promisify(scrypt) as (
+    password: string,
+    salt: string,
+    keylen: number,
+    options: { N: number; r: number; p: number; maxmem: number }
+  ) => Promise<Buffer>;
 
   const salt = randomBytes(16).toString("hex");
   const key = await scryptAsync(
@@ -171,7 +176,7 @@ async function hashPassword(password: string): Promise<string> {
     salt,
     64, // dkLen
     { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 }
-  ) as Buffer;
+  );
 
   return `${salt}:${key.toString("hex")}`;
 }

@@ -23,7 +23,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const search = url.searchParams.get("search") || undefined;
 
   const [products, categories] = await Promise.all([
-    getProducts(organizationId, { category, search, isActive: undefined }),
+    getProducts(organizationId, { category, search, activeOnly: false }),
     getProductCategories(organizationId),
   ]);
 

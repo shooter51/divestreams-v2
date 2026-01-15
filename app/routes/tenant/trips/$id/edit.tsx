@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { getTripWithFullDetails, getAllBoats, getAllTours } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
@@ -232,7 +232,7 @@ export default function EditTripPage() {
                 required
                 step="0.01"
                 min="0"
-                defaultValue={trip.price}
+                defaultValue={trip.price ?? ""}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
