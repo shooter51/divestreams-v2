@@ -135,8 +135,9 @@ test.describe.serial("Full E2E Workflow", () => {
     await expect(page.getByRole("heading", { name: /create your account/i })).toBeVisible();
     await expect(page.getByLabel(/full name/i)).toBeVisible();
     await expect(page.getByLabel(/email address/i)).toBeVisible();
-    await expect(page.getByLabel("Password *")).toBeVisible();
-    await expect(page.getByLabel("Confirm password *")).toBeVisible();
+    // Use locator for password field by id to avoid matching both password fields
+    await expect(page.locator("#password")).toBeVisible();
+    await expect(page.locator("#confirmPassword")).toBeVisible();
   });
 
   test("3.4 Create tenant user via signup @critical", async ({ page }) => {
@@ -145,8 +146,8 @@ test.describe.serial("Full E2E Workflow", () => {
     // Fill signup form
     await page.getByLabel(/full name/i).fill(testData.user.name);
     await page.getByLabel(/email address/i).fill(testData.user.email);
-    await page.getByLabel("Password *").fill(testData.user.password);
-    await page.getByLabel("Confirm password *").fill(testData.user.password);
+    await page.locator("#password").fill(testData.user.password);
+    await page.locator("#confirmPassword").fill(testData.user.password);
 
     // Submit
     await page.getByRole("button", { name: /create account/i }).click();
