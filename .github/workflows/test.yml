@@ -117,6 +117,14 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Configure hosts for subdomains
+        run: |
+          echo "127.0.0.1 localhost" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 admin.localhost" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 e2etest.localhost" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 demo.localhost" | sudo tee -a /etc/hosts
+          cat /etc/hosts
+
       - name: Run E2E tests
         run: npm run test:e2e -- --project=chromium
         env:
@@ -125,6 +133,7 @@ jobs:
           SESSION_SECRET: test-session-secret
           REDIS_URL: redis://localhost:6379
           BASE_URL: http://localhost:5173
+          APP_URL: http://localhost:5173
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
