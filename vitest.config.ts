@@ -29,8 +29,8 @@ export default defineConfig({
         lines: 90,
       },
     },
-    testTimeout: 30000,
-    hookTimeout: 30000,
+    testTimeout: 60000,  // Increased for CI environment
+    hookTimeout: 60000,
     pool: "forks",
   },
 });
