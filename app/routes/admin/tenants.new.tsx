@@ -90,7 +90,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Create owner account if requested
     if (createOwnerAccount && ownerEmail && ownerPassword) {
       // Check if user already exists
-      let [existingUser] = await db
+      const [existingUser] = await db
         .select()
         .from(user)
         .where(eq(user.email, ownerEmail))

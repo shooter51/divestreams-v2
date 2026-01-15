@@ -384,7 +384,7 @@ export async function sendCustomMessage(
  */
 function normalizePhoneNumber(phone: string): string | null {
   // Remove all non-digit characters except leading +
-  let cleaned = phone.replace(/[^\d+]/g, "");
+  const cleaned = phone.replace(/[^\d+]/g, "");
 
   // If it starts with +, validate it's E.164
   if (cleaned.startsWith("+")) {

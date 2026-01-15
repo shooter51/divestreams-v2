@@ -524,7 +524,7 @@ export async function listTenants(options?: {
   isActive?: boolean;
   subscriptionStatus?: string;
 }) {
-  let query = db.select().from(tenants);
+  const query = db.select().from(tenants);
 
   // Note: filtering would be added here with proper query building
   // For now, return all and filter in memory
