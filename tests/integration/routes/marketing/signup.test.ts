@@ -18,6 +18,11 @@ vi.mock("../../../../lib/utils/url", () => ({
   getTenantUrl: vi.fn((subdomain, path) => `https://${subdomain}.divestreams.com${path}`),
 }));
 
+// Mock the email triggers (prevents hanging on email send)
+vi.mock("../../../../lib/email/triggers", () => ({
+  triggerWelcomeEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { createTenant, isSubdomainAvailable } from "../../../../lib/db/tenant.server";
 import { getTenantUrl } from "../../../../lib/utils/url";
 
