@@ -17,7 +17,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   try {
     // Get all organizations except the platform org
-    let baseQuery = db
+    const baseQuery = db
       .select({
         id: organization.id,
         name: organization.name,

@@ -179,7 +179,7 @@ export async function getCustomers(
 ) {
   const { search, limit = 50, offset = 0 } = options;
 
-  let whereConditions = [eq(schema.customers.organizationId, organizationId)];
+  const whereConditions = [eq(schema.customers.organizationId, organizationId)];
   if (search) {
     whereConditions.push(sql`(
       ${schema.customers.firstName} ILIKE ${'%' + search + '%'} OR
@@ -320,7 +320,7 @@ export async function getTours(
 ) {
   const { activeOnly = false, search, type } = options;
 
-  let whereConditions = [eq(schema.tours.organizationId, organizationId)];
+  const whereConditions = [eq(schema.tours.organizationId, organizationId)];
   if (activeOnly) whereConditions.push(eq(schema.tours.isActive, true));
   if (type) whereConditions.push(eq(schema.tours.type, type));
   if (search) {
@@ -447,7 +447,7 @@ export async function getTrips(
 ) {
   const { fromDate, toDate, status, limit = 50 } = options;
 
-  let whereConditions = [eq(schema.trips.organizationId, organizationId)];
+  const whereConditions = [eq(schema.trips.organizationId, organizationId)];
   if (fromDate) whereConditions.push(gte(schema.trips.date, fromDate));
   if (toDate) whereConditions.push(lte(schema.trips.date, toDate));
   if (status) whereConditions.push(eq(schema.trips.status, status));
@@ -647,7 +647,7 @@ export async function getBookings(
 ) {
   const { status, tripId, customerId, limit = 50, offset = 0 } = options;
 
-  let whereConditions = [eq(schema.bookings.organizationId, organizationId)];
+  const whereConditions = [eq(schema.bookings.organizationId, organizationId)];
   if (status) whereConditions.push(eq(schema.bookings.status, status));
   if (tripId) whereConditions.push(eq(schema.bookings.tripId, tripId));
   if (customerId) whereConditions.push(eq(schema.bookings.customerId, customerId));
@@ -786,7 +786,7 @@ export async function getEquipment(
 ) {
   const { category, status, search, isRentable, limit = 100 } = options;
 
-  let whereConditions = [eq(schema.equipment.organizationId, organizationId)];
+  const whereConditions = [eq(schema.equipment.organizationId, organizationId)];
   if (category) whereConditions.push(eq(schema.equipment.category, category));
   if (status) whereConditions.push(eq(schema.equipment.status, status));
   if (isRentable !== undefined) whereConditions.push(eq(schema.equipment.isRentable, isRentable));
@@ -861,7 +861,7 @@ export async function getBoats(
 ) {
   const { activeOnly = false, search } = options;
 
-  let whereConditions = [eq(schema.boats.organizationId, organizationId)];
+  const whereConditions = [eq(schema.boats.organizationId, organizationId)];
   if (activeOnly) whereConditions.push(eq(schema.boats.isActive, true));
   if (search) {
     whereConditions.push(sql`${schema.boats.name} ILIKE ${'%' + search + '%'}`);
@@ -942,7 +942,7 @@ export async function getDiveSites(
 ) {
   const { activeOnly = false, search, difficulty } = options;
 
-  let whereConditions = [eq(schema.diveSites.organizationId, organizationId)];
+  const whereConditions = [eq(schema.diveSites.organizationId, organizationId)];
   if (activeOnly) whereConditions.push(eq(schema.diveSites.isActive, true));
   if (difficulty) whereConditions.push(eq(schema.diveSites.difficulty, difficulty));
   if (search) {
@@ -1663,7 +1663,7 @@ export async function getProducts(
 ): Promise<Product[]> {
   const { category, search, activeOnly = true, limit = 100 } = options;
 
-  let whereConditions = [eq(schema.products.organizationId, organizationId)];
+  const whereConditions = [eq(schema.products.organizationId, organizationId)];
   if (activeOnly) whereConditions.push(eq(schema.products.isActive, true));
   if (category) whereConditions.push(eq(schema.products.category, category));
   if (search) {
