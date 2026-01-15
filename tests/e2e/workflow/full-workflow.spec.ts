@@ -178,7 +178,7 @@ test.describe.serial("Full E2E Workflow", () => {
   test("1.3 Marketing features section exists", async ({ page }) => {
     await page.goto(getMarketingUrl("/"));
     const features = await page.getByText(/feature|benefit/i).first().isVisible().catch(() => false);
-    expect(features || true).toBeTruthy();
+    expect(features).toBeTruthy();
   });
 
   test("1.4 Marketing pricing section exists", async ({ page }) => {
@@ -471,7 +471,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const addButton = await page.getByRole("link", { name: /add boat/i }).isVisible().catch(() => false);
-    expect(addButton || true).toBeTruthy();
+    expect(addButton).toBeTruthy();
   });
 
   test("6.3 Navigate to new boat form", async ({ page }) => {
@@ -489,7 +489,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/boat name/i).isVisible().catch(() => false);
-    expect(nameField || true).toBeTruthy();
+    expect(nameField).toBeTruthy();
   });
 
   test("6.5 New boat form has type field", async ({ page }) => {
@@ -498,7 +498,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const typeField = await page.getByLabel(/boat type/i).isVisible().catch(() => false);
-    expect(typeField || true).toBeTruthy();
+    expect(typeField).toBeTruthy();
   });
 
   test("6.6 New boat form has capacity field", async ({ page }) => {
@@ -507,7 +507,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const capacityField = await page.getByLabel(/capacity/i).isVisible().catch(() => false);
-    expect(capacityField || true).toBeTruthy();
+    expect(capacityField).toBeTruthy();
   });
 
   test("6.7 New boat form has registration field", async ({ page }) => {
@@ -516,7 +516,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const regField = await page.getByLabel(/registration/i).isVisible().catch(() => false);
-    expect(regField || true).toBeTruthy();
+    expect(regField).toBeTruthy();
   });
 
   test("6.8 Create new boat @critical", async ({ page }) => {
@@ -590,7 +590,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-    expect(searchInput || true).toBeTruthy();
+    expect(searchInput).toBeTruthy();
   });
 
   test("6.11 Boats page has stats cards", async ({ page }) => {
@@ -599,7 +599,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const hasStats = await page.getByText(/total|active|capacity/i).first().isVisible().catch(() => false);
-    expect(hasStats || true).toBeTruthy();
+    expect(hasStats).toBeTruthy();
   });
 
   test("6.12 Navigate to boat detail page", async ({ page }) => {
@@ -674,7 +674,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const createButton = await page.getByRole("link", { name: /create tour/i }).isVisible().catch(() => false);
-    expect(createButton || true).toBeTruthy();
+    expect(createButton).toBeTruthy();
   });
 
   test("7.3 Navigate to new tour form", async ({ page }) => {
@@ -692,7 +692,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
-    expect(nameField || true).toBeTruthy();
+    expect(nameField).toBeTruthy();
   });
 
   test("7.5 New tour form has price field", async ({ page }) => {
@@ -701,7 +701,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const priceField = await page.getByLabel(/price/i).isVisible().catch(() => false);
-    expect(priceField || true).toBeTruthy();
+    expect(priceField).toBeTruthy();
   });
 
   test("7.6 New tour form has duration field", async ({ page }) => {
@@ -710,7 +710,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const durationField = await page.getByLabel(/duration/i).isVisible().catch(() => false);
-    expect(durationField || true).toBeTruthy();
+    expect(durationField).toBeTruthy();
   });
 
   test("7.7 New tour form has max participants field", async ({ page }) => {
@@ -719,7 +719,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const maxPaxField = await page.getByLabel(/max.*participant/i).isVisible().catch(() => false);
-    expect(maxPaxField || true).toBeTruthy();
+    expect(maxPaxField).toBeTruthy();
   });
 
   test("7.8 Create new tour @critical", async ({ page }) => {
@@ -788,7 +788,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-    expect(searchInput || true).toBeTruthy();
+    expect(searchInput).toBeTruthy();
   });
 
   test("7.11 Tours page has type filter", async ({ page }) => {
@@ -797,7 +797,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const typeFilter = await page.locator("select").first().isVisible().catch(() => false);
-    expect(typeFilter || true).toBeTruthy();
+    expect(typeFilter).toBeTruthy();
   });
 
   test("7.12 Navigate to tour detail page", async ({ page }) => {
@@ -870,7 +870,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const addButton = await page.getByRole("link", { name: /add|create|new/i }).isVisible().catch(() => false);
-    expect(addButton || true).toBeTruthy();
+    expect(addButton).toBeTruthy();
   });
 
   test("8.3 Navigate to new dive site form", async ({ page }) => {
@@ -886,7 +886,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
-    expect(nameField || true).toBeTruthy();
+    expect(nameField).toBeTruthy();
   });
 
   test("8.5 New dive site form has depth field", async ({ page }) => {
@@ -895,7 +895,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const depthField = await page.getByLabel(/depth/i).isVisible().catch(() => false);
-    expect(depthField || true).toBeTruthy();
+    expect(depthField).toBeTruthy();
   });
 
   test("8.6 Create new dive site", async ({ page }) => {
@@ -1008,7 +1008,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const addButton = await page.getByRole("link", { name: /add customer/i }).isVisible().catch(() => false);
-    expect(addButton || true).toBeTruthy();
+    expect(addButton).toBeTruthy();
   });
 
   test("9.3 Navigate to new customer form", async ({ page }) => {
@@ -1024,7 +1024,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const firstNameField = await page.getByLabel(/first name/i).isVisible().catch(() => false);
-    expect(firstNameField || true).toBeTruthy();
+    expect(firstNameField).toBeTruthy();
   });
 
   test("9.5 New customer form has last name field", async ({ page }) => {
@@ -1033,7 +1033,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const lastNameField = await page.getByLabel(/last name/i).isVisible().catch(() => false);
-    expect(lastNameField || true).toBeTruthy();
+    expect(lastNameField).toBeTruthy();
   });
 
   test("9.6 New customer form has email field", async ({ page }) => {
@@ -1042,7 +1042,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const emailField = await page.getByLabel(/email/i).isVisible().catch(() => false);
-    expect(emailField || true).toBeTruthy();
+    expect(emailField).toBeTruthy();
   });
 
   test("9.7 New customer form has phone field", async ({ page }) => {
@@ -1051,7 +1051,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const phoneField = await page.getByLabel(/phone/i).isVisible().catch(() => false);
-    expect(phoneField || true).toBeTruthy();
+    expect(phoneField).toBeTruthy();
   });
 
   test("9.8 Create new customer @critical", async ({ page }) => {
@@ -1147,7 +1147,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-    expect(searchInput || true).toBeTruthy();
+    expect(searchInput).toBeTruthy();
   });
 
   test("9.11 Customers page has table headers", async ({ page }) => {
@@ -1156,7 +1156,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const nameHeader = await page.getByText(/^name$/i).isVisible().catch(() => false);
-    expect(nameHeader || true).toBeTruthy();
+    expect(nameHeader).toBeTruthy();
   });
 
   test("9.12 Navigate to customer detail page", async ({ page }) => {
@@ -1229,7 +1229,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const addButton = await page.getByRole("link", { name: /add|new/i }).isVisible().catch(() => false);
-    expect(addButton || true).toBeTruthy();
+    expect(addButton).toBeTruthy();
   });
 
   test("10.3 Navigate to new equipment form", async ({ page }) => {
@@ -1245,7 +1245,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
-    expect(nameField || true).toBeTruthy();
+    expect(nameField).toBeTruthy();
   });
 
   test("10.5 New equipment form has category field", async ({ page }) => {
@@ -1254,7 +1254,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const categoryField = await page.getByLabel(/category/i).isVisible().catch(() => false);
-    expect(categoryField || true).toBeTruthy();
+    expect(categoryField).toBeTruthy();
   });
 
   test("10.6 New equipment form has quantity field", async ({ page }) => {
@@ -1263,7 +1263,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const quantityField = await page.getByLabel(/quantity/i).isVisible().catch(() => false);
-    expect(quantityField || true).toBeTruthy();
+    expect(quantityField).toBeTruthy();
   });
 
   test("10.7 New equipment form has price field", async ({ page }) => {
@@ -1272,7 +1272,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const priceField = await page.getByLabel(/price/i).isVisible().catch(() => false);
-    expect(priceField || true).toBeTruthy();
+    expect(priceField).toBeTruthy();
   });
 
   test("10.8 Create new equipment @critical", async ({ page }) => {
@@ -1337,7 +1337,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const categoryFilter = await page.locator("select").first().isVisible().catch(() => false);
-    expect(categoryFilter || true).toBeTruthy();
+    expect(categoryFilter).toBeTruthy();
   });
 
   test("10.11 Equipment page has search", async ({ page }) => {
@@ -1346,7 +1346,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-    expect(searchInput || true).toBeTruthy();
+    expect(searchInput).toBeTruthy();
   });
 
   test("10.12 Navigate to equipment detail page", async ({ page }) => {
@@ -1383,7 +1383,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const rentalsTab = await page.getByRole("button", { name: /rental/i }).isVisible().catch(() => false);
-    expect(rentalsTab || true).toBeTruthy();
+    expect(rentalsTab).toBeTruthy();
   });
 
   test("10.15 Equipment handles invalid ID gracefully", async ({ page }) => {
@@ -1412,7 +1412,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const scheduleButton = await page.getByRole("link", { name: /schedule|new|add/i }).isVisible().catch(() => false);
-    expect(scheduleButton || true).toBeTruthy();
+    expect(scheduleButton).toBeTruthy();
   });
 
   test("11.3 Navigate to new trip form", async ({ page }) => {
@@ -1428,7 +1428,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const tourField = await page.getByLabel(/tour/i).isVisible().catch(() => false);
-    expect(tourField || true).toBeTruthy();
+    expect(tourField).toBeTruthy();
   });
 
   test("11.5 New trip form has date field", async ({ page }) => {
@@ -1437,7 +1437,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const dateField = await page.getByLabel(/date/i).isVisible().catch(() => false);
-    expect(dateField || true).toBeTruthy();
+    expect(dateField).toBeTruthy();
   });
 
   test("11.6 New trip form has boat selection", async ({ page }) => {
@@ -1446,7 +1446,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const boatField = await page.getByLabel(/boat/i).isVisible().catch(() => false);
-    expect(boatField || true).toBeTruthy();
+    expect(boatField).toBeTruthy();
   });
 
   test("11.7 Create new trip", async ({ page }) => {
@@ -1529,7 +1529,7 @@ test.describe.serial("Full E2E Workflow", () => {
     if (!await isAuthenticated(page)) return;
     const dateFilter = await page.getByLabel(/date/i).isVisible().catch(() => false);
     const filterBtn = await page.getByRole("button", { name: /filter/i }).isVisible().catch(() => false);
-    expect(dateFilter || filterBtn || true).toBeTruthy();
+    expect(dateFilter || filterBtn).toBeTruthy();
   });
 
   test("11.10 Trips page has status filter", async ({ page }) => {
@@ -1538,7 +1538,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const statusFilter = await page.getByLabel(/status/i).isVisible().catch(() => false);
-    expect(statusFilter || true).toBeTruthy();
+    expect(statusFilter).toBeTruthy();
   });
 
   test("11.11 Navigate to trip detail page", async ({ page }) => {
@@ -1627,7 +1627,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const newButton = await page.getByRole("link", { name: /new booking|add/i }).isVisible().catch(() => false);
-    expect(newButton || true).toBeTruthy();
+    expect(newButton).toBeTruthy();
   });
 
   test("12.3 Navigate to new booking form", async ({ page }) => {
@@ -1643,7 +1643,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const customerField = await page.getByLabel(/customer/i).isVisible().catch(() => false);
-    expect(customerField || true).toBeTruthy();
+    expect(customerField).toBeTruthy();
   });
 
   test("12.5 New booking form has trip selection", async ({ page }) => {
@@ -1652,7 +1652,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const tripField = await page.getByLabel(/trip/i).isVisible().catch(() => false);
-    expect(tripField || true).toBeTruthy();
+    expect(tripField).toBeTruthy();
   });
 
   test("12.6 New booking form has participants field", async ({ page }) => {
@@ -1661,7 +1661,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const participantsField = await page.getByLabel(/participant|guest/i).isVisible().catch(() => false);
-    expect(participantsField || true).toBeTruthy();
+    expect(participantsField).toBeTruthy();
   });
 
   test("12.7 Create new booking", async ({ page }) => {
@@ -1739,7 +1739,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const statusTabs = await page.getByRole("button", { name: /confirmed|pending|all/i }).first().isVisible().catch(() => false);
-    expect(statusTabs || true).toBeTruthy();
+    expect(statusTabs).toBeTruthy();
   });
 
   test("12.10 Bookings page has search", async ({ page }) => {
@@ -1748,7 +1748,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-    expect(searchInput || true).toBeTruthy();
+    expect(searchInput).toBeTruthy();
   });
 
   test("12.11 Navigate to booking detail page", async ({ page }) => {
@@ -1836,7 +1836,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /discount|promo/i }).isVisible().catch(() => false);
-    expect(heading || true).toBeTruthy();
+    expect(heading).toBeTruthy();
   });
 
   test("13.3 Navigate to new discount form", async ({ page }) => {
@@ -1852,7 +1852,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const codeField = await page.getByLabel(/code/i).isVisible().catch(() => false);
-    expect(codeField || true).toBeTruthy();
+    expect(codeField).toBeTruthy();
   });
 
   test("13.5 New discount form has percentage field", async ({ page }) => {
@@ -1861,7 +1861,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const percentageField = await page.getByLabel(/percent|amount/i).isVisible().catch(() => false);
-    expect(percentageField || true).toBeTruthy();
+    expect(percentageField).toBeTruthy();
   });
 
   test("13.6 Create new discount", async ({ page }) => {
@@ -1919,7 +1919,7 @@ test.describe.serial("Full E2E Workflow", () => {
     if (!await isAuthenticated(page)) return;
     const hasDiscounts = await page.locator("table, [class*='grid']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no discount/i).isVisible().catch(() => false);
-    expect(hasDiscounts || emptyState || true).toBeTruthy();
+    expect(hasDiscounts || emptyState).toBeTruthy();
 
     // Try to capture UUID of a discount for later tests
     const discountUuid = await extractEntityUuid(page, testData.discount.code, "/app/discounts");
@@ -1981,7 +1981,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /point of sale|pos/i }).isVisible().catch(() => false);
-    expect(heading || true).toBeTruthy();
+    expect(heading).toBeTruthy();
   });
 
   test("14.3 POS has product tabs", async ({ page }) => {
@@ -1990,7 +1990,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const retailTab = await page.getByRole("button", { name: /retail/i }).isVisible().catch(() => false);
-    expect(retailTab || true).toBeTruthy();
+    expect(retailTab).toBeTruthy();
   });
 
   test("14.4 POS has rentals tab", async ({ page }) => {
@@ -1999,7 +1999,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const rentalsTab = await page.getByRole("button", { name: /rental/i }).isVisible().catch(() => false);
-    expect(rentalsTab || true).toBeTruthy();
+    expect(rentalsTab).toBeTruthy();
   });
 
   test("14.5 POS has trips tab", async ({ page }) => {
@@ -2008,7 +2008,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const tripsTab = await page.getByRole("button", { name: /trip/i }).isVisible().catch(() => false);
-    expect(tripsTab || true).toBeTruthy();
+    expect(tripsTab).toBeTruthy();
   });
 
   test("14.6 POS has cart section", async ({ page }) => {
@@ -2018,7 +2018,7 @@ test.describe.serial("Full E2E Workflow", () => {
     if (!await isAuthenticated(page)) return;
     const cartSection = await page.locator("[class*='cart']").isVisible().catch(() => false);
     const totalSection = await page.getByText(/total/i).isVisible().catch(() => false);
-    expect(cartSection || totalSection || true).toBeTruthy();
+    expect(cartSection || totalSection).toBeTruthy();
   });
 
   test("14.7 POS has card payment button", async ({ page }) => {
@@ -2027,7 +2027,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const cardBtn = await page.getByRole("button", { name: /card/i }).isVisible().catch(() => false);
-    expect(cardBtn || true).toBeTruthy();
+    expect(cardBtn).toBeTruthy();
   });
 
   test("14.8 POS has cash payment button", async ({ page }) => {
@@ -2036,7 +2036,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const cashBtn = await page.getByRole("button", { name: /cash/i }).isVisible().catch(() => false);
-    expect(cashBtn || true).toBeTruthy();
+    expect(cashBtn).toBeTruthy();
   });
 
   test("14.9 POS has customer selection", async ({ page }) => {
@@ -2045,7 +2045,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const customerSelect = await page.getByText(/select customer|customer/i).first().isVisible().catch(() => false);
-    expect(customerSelect || true).toBeTruthy();
+    expect(customerSelect).toBeTruthy();
   });
 
   test("14.10 POS has barcode scanner option", async ({ page }) => {
@@ -2054,7 +2054,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const scanBtn = await page.getByRole("button", { name: /scan/i }).isVisible().catch(() => false);
-    expect(scanBtn || true).toBeTruthy();
+    expect(scanBtn).toBeTruthy();
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -2075,7 +2075,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /reports/i }).isVisible().catch(() => false);
-    expect(heading || true).toBeTruthy();
+    expect(heading).toBeTruthy();
   });
 
   test("15.3 Reports has revenue metrics", async ({ page }) => {
@@ -2084,7 +2084,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const revenueCard = await page.getByText(/revenue|this month|total/i).first().isVisible().catch(() => false);
-    expect(revenueCard || true).toBeTruthy();
+    expect(revenueCard).toBeTruthy();
   });
 
   test("15.4 Reports has date range selector", async ({ page }) => {
@@ -2093,7 +2093,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const dateSelector = await page.getByRole("button", { name: /date|this month|today/i }).isVisible().catch(() => false);
-    expect(dateSelector || true).toBeTruthy();
+    expect(dateSelector).toBeTruthy();
   });
 
   test("15.5 Reports has booking stats", async ({ page }) => {
@@ -2102,7 +2102,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const bookingStats = await page.getByText(/booking|trip/i).first().isVisible().catch(() => false);
-    expect(bookingStats || true).toBeTruthy();
+    expect(bookingStats).toBeTruthy();
   });
 
   test("15.6 Reports has customer insights", async ({ page }) => {
@@ -2111,7 +2111,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const customerStats = await page.getByText(/customer|total customers/i).first().isVisible().catch(() => false);
-    expect(customerStats || true).toBeTruthy();
+    expect(customerStats).toBeTruthy();
   });
 
   test("15.7 Reports has charts", async ({ page }) => {
@@ -2120,7 +2120,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const hasChart = await page.locator("canvas, svg, [class*='chart']").first().isVisible().catch(() => false);
-    expect(hasChart || true).toBeTruthy();
+    expect(hasChart).toBeTruthy();
   });
 
   test("15.8 Reports has export option", async ({ page }) => {
@@ -2129,7 +2129,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const exportBtn = await page.getByRole("button", { name: /export|download/i }).isVisible().catch(() => false);
-    expect(exportBtn || true).toBeTruthy();
+    expect(exportBtn).toBeTruthy();
   });
 
   test("15.9 Reports page navigation from dashboard", async ({ page }) => {
@@ -2153,7 +2153,7 @@ test.describe.serial("Full E2E Workflow", () => {
     if (!await isAuthenticated(page)) return;
     // Verify reports page loads with some content
     const hasContent = await page.locator("main, [role='main'], .container, .content").isVisible().catch(() => false);
-    expect(hasContent || true).toBeTruthy();
+    expect(hasContent).toBeTruthy();
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -2174,7 +2174,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /settings/i }).isVisible().catch(() => false);
-    expect(heading || true).toBeTruthy();
+    expect(heading).toBeTruthy();
   });
 
   test("16.3 Settings has profile section", async ({ page }) => {
@@ -2183,7 +2183,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const profileLink = await page.getByText(/shop profile|profile/i).isVisible().catch(() => false);
-    expect(profileLink || true).toBeTruthy();
+    expect(profileLink).toBeTruthy();
   });
 
   test("16.4 Settings profile page route", async ({ page }) => {
@@ -2227,7 +2227,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/business name|shop name/i).isVisible().catch(() => false);
-    expect(nameField || true).toBeTruthy();
+    expect(nameField).toBeTruthy();
   });
 
   test("16.10 Settings has email field", async ({ page }) => {
@@ -2236,7 +2236,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const emailField = await page.getByLabel(/email/i).isVisible().catch(() => false);
-    expect(emailField || true).toBeTruthy();
+    expect(emailField).toBeTruthy();
   });
 
   test("16.11 Settings has timezone field", async ({ page }) => {
@@ -2245,7 +2245,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const timezoneField = await page.getByLabel(/timezone/i).isVisible().catch(() => false);
-    expect(timezoneField || true).toBeTruthy();
+    expect(timezoneField).toBeTruthy();
   });
 
   test("16.12 Settings has currency field", async ({ page }) => {
@@ -2254,7 +2254,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const currencyField = await page.getByLabel(/currency/i).isVisible().catch(() => false);
-    expect(currencyField || true).toBeTruthy();
+    expect(currencyField).toBeTruthy();
   });
 
   test("16.13 Settings has save button", async ({ page }) => {
@@ -2263,7 +2263,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const saveBtn = await page.getByRole("button", { name: /save/i }).isVisible().catch(() => false);
-    expect(saveBtn || true).toBeTruthy();
+    expect(saveBtn).toBeTruthy();
   });
 
   test("16.14 Settings team shows invite option", async ({ page }) => {
@@ -2272,7 +2272,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const inviteBtn = await page.getByRole("button", { name: /invite|add/i }).isVisible().catch(() => false);
-    expect(inviteBtn || true).toBeTruthy();
+    expect(inviteBtn).toBeTruthy();
   });
 
   test("16.15 Settings billing shows plan info", async ({ page }) => {
@@ -2281,7 +2281,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const planInfo = await page.getByText(/plan|subscription|trial/i).first().isVisible().catch(() => false);
-    expect(planInfo || true).toBeTruthy();
+    expect(planInfo).toBeTruthy();
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -2302,7 +2302,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const monthView = await page.getByRole("button", { name: /month/i }).isVisible().catch(() => false);
-    expect(monthView || true).toBeTruthy();
+    expect(monthView).toBeTruthy();
   });
 
   test("17.3 Calendar has week view", async ({ page }) => {
@@ -2311,7 +2311,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const weekView = await page.getByRole("button", { name: /week/i }).isVisible().catch(() => false);
-    expect(weekView || true).toBeTruthy();
+    expect(weekView).toBeTruthy();
   });
 
   test("17.4 Calendar has navigation", async ({ page }) => {
@@ -2321,7 +2321,7 @@ test.describe.serial("Full E2E Workflow", () => {
     if (!await isAuthenticated(page)) return;
     const prevBtn = await page.getByRole("button", { name: /prev|</i }).isVisible().catch(() => false);
     const nextBtn = await page.getByRole("button", { name: /next|>/i }).isVisible().catch(() => false);
-    expect(prevBtn || nextBtn || true).toBeTruthy();
+    expect(prevBtn || nextBtn).toBeTruthy();
   });
 
   test("17.5 Calendar has today button", async ({ page }) => {
@@ -2330,7 +2330,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const todayBtn = await page.getByRole("button", { name: /today/i }).isVisible().catch(() => false);
-    expect(todayBtn || true).toBeTruthy();
+    expect(todayBtn).toBeTruthy();
   });
 
   test("17.6 Calendar shows grid", async ({ page }) => {
@@ -2339,7 +2339,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const calendarGrid = await page.locator("[class*='calendar'], [class*='fc']").isVisible().catch(() => false);
-    expect(calendarGrid || true).toBeTruthy();
+    expect(calendarGrid).toBeTruthy();
   });
 
   test("17.7 Calendar has trip filter", async ({ page }) => {
@@ -2348,7 +2348,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const tripFilter = await page.getByRole("combobox", { name: /tour|trip/i }).isVisible().catch(() => false);
-    expect(tripFilter || true).toBeTruthy();
+    expect(tripFilter).toBeTruthy();
   });
 
   test("17.8 Calendar has boat filter", async ({ page }) => {
@@ -2357,7 +2357,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const boatFilter = await page.getByRole("combobox", { name: /boat/i }).isVisible().catch(() => false);
-    expect(boatFilter || true).toBeTruthy();
+    expect(boatFilter).toBeTruthy();
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -2374,7 +2374,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.goto(getTenantUrl("/embed/booking"));
     await page.waitForTimeout(1500);
     const hasTours = await page.getByText(/tour|trip|booking/i).first().isVisible().catch(() => false);
-    expect(hasTours || true).toBeTruthy();
+    expect(hasTours).toBeTruthy();
   });
 
   test("18.3 Embed widget has date picker", async ({ page }) => {
@@ -2382,35 +2382,35 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     const datePicker = await page.getByLabel(/date/i).isVisible().catch(() => false);
     const dateBtn = await page.getByRole("button", { name: /select date/i }).isVisible().catch(() => false);
-    expect(datePicker || dateBtn || true).toBeTruthy();
+    expect(datePicker || dateBtn).toBeTruthy();
   });
 
   test("18.4 Embed widget shows pricing", async ({ page }) => {
     await page.goto(getTenantUrl("/embed/booking"));
     await page.waitForTimeout(1500);
     const pricing = await page.getByText(/\$|price|per person/i).first().isVisible().catch(() => false);
-    expect(pricing || true).toBeTruthy();
+    expect(pricing).toBeTruthy();
   });
 
   test("18.5 Embed widget has book button", async ({ page }) => {
     await page.goto(getTenantUrl("/embed/booking"));
     await page.waitForTimeout(1500);
     const bookBtn = await page.getByRole("button", { name: /book|reserve/i }).isVisible().catch(() => false);
-    expect(bookBtn || true).toBeTruthy();
+    expect(bookBtn).toBeTruthy();
   });
 
   test("18.6 Embed widget has customer form", async ({ page }) => {
     await page.goto(getTenantUrl("/embed/booking"));
     await page.waitForTimeout(1500);
     const customerForm = await page.getByLabel(/name|email/i).first().isVisible().catch(() => false);
-    expect(customerForm || true).toBeTruthy();
+    expect(customerForm).toBeTruthy();
   });
 
   test("18.7 Embed widget shows shop branding", async ({ page }) => {
     await page.goto(getTenantUrl("/embed/booking"));
     await page.waitForTimeout(1500);
     const branding = await page.getByText(/dive|shop/i).first().isVisible().catch(() => false);
-    expect(branding || true).toBeTruthy();
+    expect(branding).toBeTruthy();
   });
 
   test("18.8 Embed widget is responsive", async ({ page }) => {
@@ -2470,7 +2470,7 @@ test.describe.serial("Full E2E Workflow", () => {
 
     if (page.url().includes("/tenants/new")) {
       const subdomainField = await page.getByLabel(/subdomain/i).isVisible().catch(() => false);
-      expect(subdomainField || true).toBeTruthy();
+      expect(subdomainField).toBeTruthy();
     }
   });
 
@@ -2484,7 +2484,7 @@ test.describe.serial("Full E2E Workflow", () => {
 
     if (page.url().includes("/plans")) {
       const plansHeading = await page.getByRole("heading", { name: /plan/i }).isVisible().catch(() => false);
-      expect(plansHeading || true).toBeTruthy();
+      expect(plansHeading).toBeTruthy();
     }
   });
 
@@ -2506,7 +2506,7 @@ test.describe.serial("Full E2E Workflow", () => {
 
     if (page.url().includes("/dashboard")) {
       const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-      expect(searchInput || true).toBeTruthy();
+      expect(searchInput).toBeTruthy();
     }
   });
 
@@ -2519,7 +2519,7 @@ test.describe.serial("Full E2E Workflow", () => {
     if (page.url().includes("/dashboard")) {
       const logoutOption = await page.getByRole("link", { name: /logout|sign out/i }).isVisible().catch(() => false);
       const logoutBtn = await page.getByRole("button", { name: /logout|sign out/i }).isVisible().catch(() => false);
-      expect(logoutOption || logoutBtn || true).toBeTruthy();
+      expect(logoutOption || logoutBtn).toBeTruthy();
     }
   });
 
@@ -2543,7 +2543,7 @@ test.describe.serial("Full E2E Workflow", () => {
 
     if (!page.url().includes("/login")) {
       const subscriptionInfo = await page.getByText(/subscription|plan|status/i).first().isVisible().catch(() => false);
-      expect(subscriptionInfo || true).toBeTruthy();
+      expect(subscriptionInfo).toBeTruthy();
     }
   });
 
@@ -2555,7 +2555,7 @@ test.describe.serial("Full E2E Workflow", () => {
 
     if (page.url().includes("/dashboard")) {
       const stats = await page.getByText(/total|active|revenue/i).first().isVisible().catch(() => false);
-      expect(stats || true).toBeTruthy();
+      expect(stats).toBeTruthy();
     }
   });
 
@@ -2567,7 +2567,7 @@ test.describe.serial("Full E2E Workflow", () => {
 
     if (page.url().includes("/dashboard")) {
       const filterOptions = await page.getByRole("combobox").first().isVisible().catch(() => false);
-      expect(filterOptions || true).toBeTruthy();
+      expect(filterOptions).toBeTruthy();
     }
   });
 
@@ -2581,7 +2581,7 @@ test.describe.serial("Full E2E Workflow", () => {
 
     if (page.url().includes("/plans")) {
       const createBtn = await page.getByRole("link", { name: /create|new|add/i }).isVisible().catch(() => false);
-      expect(createBtn || true).toBeTruthy();
+      expect(createBtn).toBeTruthy();
     }
   });
 
@@ -2639,7 +2639,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const welcome = await page.getByText(/welcome|dashboard|overview/i).first().isVisible().catch(() => false);
-    expect(welcome || true).toBeTruthy();
+    expect(welcome).toBeTruthy();
   });
 
   test("20.3 Dashboard shows quick stats", async ({ page }) => {
@@ -2648,7 +2648,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const stats = await page.getByText(/today|booking|customer|revenue/i).first().isVisible().catch(() => false);
-    expect(stats || true).toBeTruthy();
+    expect(stats).toBeTruthy();
   });
 
   test("20.4 Dashboard shows upcoming trips", async ({ page }) => {
@@ -2657,7 +2657,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const upcomingTrips = await page.getByText(/upcoming|scheduled|trip/i).first().isVisible().catch(() => false);
-    expect(upcomingTrips || true).toBeTruthy();
+    expect(upcomingTrips).toBeTruthy();
   });
 
   test("20.5 Navigation sidebar exists", async ({ page }) => {
@@ -2666,7 +2666,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const sidebar = await page.locator("nav, aside, [class*='sidebar']").first().isVisible().catch(() => false);
-    expect(sidebar || true).toBeTruthy();
+    expect(sidebar).toBeTruthy();
   });
 
   test("20.6 Navigation has all main links", async ({ page }) => {
@@ -2676,7 +2676,7 @@ test.describe.serial("Full E2E Workflow", () => {
     if (!await isAuthenticated(page)) return;
     const dashboardLink = await page.getByRole("link", { name: /dashboard/i }).isVisible().catch(() => false);
     const bookingsLink = await page.getByRole("link", { name: /booking/i }).isVisible().catch(() => false);
-    expect(dashboardLink || bookingsLink || true).toBeTruthy();
+    expect(dashboardLink || bookingsLink).toBeTruthy();
   });
 
   test("20.7 User profile dropdown exists", async ({ page }) => {
@@ -2685,7 +2685,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const profile = await page.locator("[class*='avatar'], [class*='profile']").first().isVisible().catch(() => false);
-    expect(profile || true).toBeTruthy();
+    expect(profile).toBeTruthy();
   });
 
   test("20.8 Logout option exists", async ({ page }) => {
@@ -2694,7 +2694,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const logout = await page.getByText(/logout|sign out/i).first().isVisible().catch(() => false);
-    expect(logout || true).toBeTruthy();
+    expect(logout).toBeTruthy();
   });
 
   test("20.9 404 page for invalid routes", async ({ page }) => {
@@ -2710,7 +2710,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const quickAction = await page.getByRole("link", { name: /new booking|schedule|add/i }).first().isVisible().catch(() => false);
-    expect(quickAction || true).toBeTruthy();
+    expect(quickAction).toBeTruthy();
   });
 
   test("20.11 Mobile navigation toggle exists", async ({ page }) => {
@@ -2721,7 +2721,7 @@ test.describe.serial("Full E2E Workflow", () => {
     if (!await isAuthenticated(page)) return;
     const menuToggle = await page.getByRole("button", { name: /menu/i }).isVisible().catch(() => false);
     const hamburger = await page.locator("[class*='hamburger'], [class*='menu-toggle']").first().isVisible().catch(() => false);
-    expect(menuToggle || hamburger || true).toBeTruthy();
+    expect(menuToggle || hamburger).toBeTruthy();
   });
 
   test("20.12 Responsive layout on mobile", async ({ page }) => {
@@ -2748,7 +2748,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const helpLink = await page.getByRole("link", { name: /help|support/i }).isVisible().catch(() => false);
-    expect(helpLink || true).toBeTruthy();
+    expect(helpLink).toBeTruthy();
   });
 
   test("20.15 Search functionality exists", async ({ page }) => {
@@ -2757,7 +2757,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const globalSearch = await page.getByPlaceholder(/search/i).first().isVisible().catch(() => false);
-    expect(globalSearch || true).toBeTruthy();
+    expect(globalSearch).toBeTruthy();
   });
 
   test("20.16 Notifications icon exists", async ({ page }) => {
@@ -2766,7 +2766,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const notifications = await page.locator("[class*='notification'], [class*='bell']").first().isVisible().catch(() => false);
-    expect(notifications || true).toBeTruthy();
+    expect(notifications).toBeTruthy();
   });
 
   test("20.17 Breadcrumb navigation exists", async ({ page }) => {
@@ -2775,7 +2775,7 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const breadcrumb = await page.locator("[class*='breadcrumb']").isVisible().catch(() => false);
-    expect(breadcrumb || true).toBeTruthy();
+    expect(breadcrumb).toBeTruthy();
   });
 
   test("20.18 Page titles are descriptive", async ({ page }) => {
