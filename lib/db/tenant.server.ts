@@ -3,6 +3,8 @@ import postgres from "postgres";
 import { eq, sql } from "drizzle-orm";
 import { db, migrationDb } from "./index";
 import { tenants, subscriptionPlans, type Tenant } from "./schema";
+import { organization } from "./schema/auth";
+import { subscription } from "./schema/subscription";
 import * as schema from "./schema";
 
 // Re-export Tenant type
@@ -60,7 +62,10 @@ export async function createTenant(data: {
   const client = postgres(connectionString);
 
   try {
-    // Create the tenant record first
+    // Generate organization ID for Better Auth
+    const orgId = crypto.randomUUID();
+
+    // Create the tenant record first (legacy)
     const [tenant] = await db
       .insert(tenants)
       .values({
@@ -77,7 +82,25 @@ export async function createTenant(data: {
       })
       .returning();
 
-    // Create the tenant schema
+    // Create the Better Auth organization record (required for login)
+    await db.insert(organization).values({
+      id: orgId,
+      slug: data.subdomain.toLowerCase(),
+      name: data.name,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Create subscription record for the organization
+    await db.insert(subscription).values({
+      organizationId: orgId,
+      plan: "free",
+      status: "trialing",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Create the tenant schema (legacy schema-per-tenant)
     await client.unsafe(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
 
     // Create all tables in the tenant schema
@@ -89,6 +112,8 @@ export async function createTenant(data: {
     try {
       await client.unsafe(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);
       await db.delete(tenants).where(eq(tenants.subdomain, data.subdomain.toLowerCase()));
+      // Also clean up organization record
+      await db.delete(organization).where(eq(organization.slug, data.subdomain.toLowerCase()));
     } catch {
       // Ignore cleanup errors
     }
@@ -547,6 +572,20 @@ export async function updateTenant(
 
 // Check if subdomain is available
 export async function isSubdomainAvailable(subdomain: string): Promise<boolean> {
-  const existing = await getTenantBySubdomain(subdomain.toLowerCase());
-  return existing === null;
+  const normalizedSubdomain = subdomain.toLowerCase();
+
+  // Check legacy tenants table
+  const existingTenant = await getTenantBySubdomain(normalizedSubdomain);
+  if (existingTenant) {
+    return false;
+  }
+
+  // Also check Better Auth organization table
+  const [existingOrg] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.slug, normalizedSubdomain))
+    .limit(1);
+
+  return existingOrg === undefined;
 }
