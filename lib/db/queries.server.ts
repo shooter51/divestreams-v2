@@ -179,7 +179,7 @@ export async function getCustomers(
 ) {
   const { search, limit = 50, offset = 0 } = options;
 
-  let whereConditions = [eq(schema.customers.organizationId, organizationId)];
+  const whereConditions = [eq(schema.customers.organizationId, organizationId)];
   if (search) {
     whereConditions.push(sql`(
       ${schema.customers.firstName} ILIKE ${'%' + search + '%'} OR
@@ -320,7 +320,7 @@ export async function getTours(
 ) {
   const { activeOnly = false, search, type } = options;
 
-  let whereConditions = [eq(schema.tours.organizationId, organizationId)];
+  const whereConditions = [eq(schema.tours.organizationId, organizationId)];
   if (activeOnly) whereConditions.push(eq(schema.tours.isActive, true));
   if (type) whereConditions.push(eq(schema.tours.type, type));
   if (search) {
@@ -447,7 +447,7 @@ export async function getTrips(
 ) {
   const { fromDate, toDate, status, limit = 50 } = options;
 
-  let whereConditions = [eq(schema.trips.organizationId, organizationId)];
+  const whereConditions = [eq(schema.trips.organizationId, organizationId)];
   if (fromDate) whereConditions.push(gte(schema.trips.date, fromDate));
   if (toDate) whereConditions.push(lte(schema.trips.date, toDate));
   if (status) whereConditions.push(eq(schema.trips.status, status));
@@ -647,7 +647,7 @@ export async function getBookings(
 ) {
   const { status, tripId, customerId, limit = 50, offset = 0 } = options;
 
-  let whereConditions = [eq(schema.bookings.organizationId, organizationId)];
+  const whereConditions = [eq(schema.bookings.organizationId, organizationId)];
   if (status) whereConditions.push(eq(schema.bookings.status, status));
   if (tripId) whereConditions.push(eq(schema.bookings.tripId, tripId));
   if (customerId) whereConditions.push(eq(schema.bookings.customerId, customerId));
@@ -786,7 +786,7 @@ export async function getEquipment(
 ) {
   const { category, status, search, isRentable, limit = 100 } = options;
 
-  let whereConditions = [eq(schema.equipment.organizationId, organizationId)];
+  const whereConditions = [eq(schema.equipment.organizationId, organizationId)];
   if (category) whereConditions.push(eq(schema.equipment.category, category));
   if (status) whereConditions.push(eq(schema.equipment.status, status));
   if (isRentable !== undefined) whereConditions.push(eq(schema.equipment.isRentable, isRentable));
@@ -861,7 +861,7 @@ export async function getBoats(
 ) {
   const { activeOnly = false, search } = options;
 
-  let whereConditions = [eq(schema.boats.organizationId, organizationId)];
+  const whereConditions = [eq(schema.boats.organizationId, organizationId)];
   if (activeOnly) whereConditions.push(eq(schema.boats.isActive, true));
   if (search) {
     whereConditions.push(sql`${schema.boats.name} ILIKE ${'%' + search + '%'}`);
@@ -942,7 +942,7 @@ export async function getDiveSites(
 ) {
   const { activeOnly = false, search, difficulty } = options;
 
-  let whereConditions = [eq(schema.diveSites.organizationId, organizationId)];
+  const whereConditions = [eq(schema.diveSites.organizationId, organizationId)];
   if (activeOnly) whereConditions.push(eq(schema.diveSites.isActive, true));
   if (difficulty) whereConditions.push(eq(schema.diveSites.difficulty, difficulty));
   if (search) {
@@ -1212,16 +1212,29 @@ export async function getEquipmentRentalStats(organizationId: string, equipmentI
       eq(schema.rentals.status, "active")
     ));
 
-  // Get total revenue
+  // Get total revenue and days rented
   const revenueResult = await db
-    .select({ total: sql<number>`COALESCE(SUM(CAST(${schema.rentals.totalCharge} AS DECIMAL)), 0)` })
+    .select({
+      total: sql<number>`COALESCE(SUM(CAST(${schema.rentals.totalCharge} AS DECIMAL)), 0)`,
+      daysRented: sql<number>`COALESCE(SUM(EXTRACT(DAY FROM (COALESCE(${schema.rentals.returnedAt}, NOW()) - ${schema.rentals.rentedAt}))), 0)`
+    })
     .from(schema.rentals)
     .where(eq(schema.rentals.equipmentId, equipmentId));
 
+  const totalRentals = Number(rentalsResult[0]?.count || 0);
+  const totalRevenue = Number(revenueResult[0]?.total || 0);
+  const daysRented = Math.round(Number(revenueResult[0]?.daysRented || 0));
+
+  // Calculate average rentals per month (based on equipment age - simplified to 1 month minimum)
+  const avgRentalsPerMonth = totalRentals > 0 ? Math.round(totalRentals / Math.max(1, Math.ceil(daysRented / 30)) * 10) / 10 : 0;
+
   return {
-    totalRentals: Number(rentalsResult[0]?.count || 0),
+    totalRentals,
     activeRentals: Number(activeResult[0]?.count || 0),
-    totalRevenue: Number(revenueResult[0]?.total || 0),
+    totalRevenue,
+    rentalRevenue: totalRevenue.toFixed(2),
+    daysRented,
+    avgRentalsPerMonth,
   };
 }
 
@@ -1256,7 +1269,18 @@ export async function getEquipmentRentalHistory(organizationId: string, equipmen
   }));
 }
 
-export async function getEquipmentServiceHistory(organizationId: string, equipmentId: string, limit = 10) {
+export interface EquipmentServiceRecord {
+  id: string;
+  date: Date;
+  type: string;
+  description: string;
+  technician: string | null;
+  performedBy: string | null;
+  notes: string | null;
+  cost: number | null;
+}
+
+export async function getEquipmentServiceHistory(organizationId: string, equipmentId: string, limit = 10): Promise<EquipmentServiceRecord[]> {
   // Service history would be stored in equipment.serviceNotes or a separate service_records table
   // For now, return empty array as a stub
   // TODO: Implement when service_records table is added
@@ -1309,8 +1333,11 @@ export async function getBoatRecentTrips(organizationId: string, boatId: string,
 
   const result = [];
   for (const trip of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+    const bookingsResult = await db
+      .select({
+        total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+        revenue: sql<number>`COALESCE(SUM(CAST(${schema.bookings.total} AS NUMERIC)), 0)`
+      })
       .from(schema.bookings)
       .where(and(
         eq(schema.bookings.tripId, trip.id),
@@ -1321,7 +1348,8 @@ export async function getBoatRecentTrips(organizationId: string, boatId: string,
       id: trip.id,
       date: formatDateString(trip.date),
       tourName: trip.tourName,
-      participants: Number(participantsResult[0]?.total || 0),
+      participants: Number(bookingsResult[0]?.total || 0),
+      revenue: `$${Number(bookingsResult[0]?.revenue || 0).toFixed(2)}`,
       status: trip.status,
     });
   }
@@ -1390,9 +1418,12 @@ export async function getBoatStats(organizationId: string, boatId: string) {
       eq(schema.trips.status, "completed")
     ));
 
-  // Get total passengers
-  const passengersResult = await db
-    .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+  // Get total passengers and revenue
+  const bookingsResult = await db
+    .select({
+      total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+      revenue: sql<number>`COALESCE(SUM(CAST(${schema.bookings.total} AS NUMERIC)), 0)`
+    })
     .from(schema.bookings)
     .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
     .where(and(
@@ -1400,10 +1431,24 @@ export async function getBoatStats(organizationId: string, boatId: string) {
       sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
     ));
 
+  // Get boat capacity for avg occupancy calculation
+  const [boat] = await db
+    .select({ capacity: schema.boats.capacity })
+    .from(schema.boats)
+    .where(eq(schema.boats.id, boatId))
+    .limit(1);
+
+  const totalTrips = Number(tripCountResult[0]?.count || 0);
+  const totalPassengers = Number(bookingsResult[0]?.total || 0);
+  const capacity = Number(boat?.capacity || 10);
+  const avgOccupancy = totalTrips > 0 ? Math.round((totalPassengers / (totalTrips * capacity)) * 100) : 0;
+
   return {
-    totalTrips: Number(tripCountResult[0]?.count || 0),
+    totalTrips,
     completedTrips: Number(completedResult[0]?.count || 0),
-    totalPassengers: Number(passengersResult[0]?.total || 0),
+    totalPassengers,
+    totalRevenue: `$${Number(bookingsResult[0]?.revenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    avgOccupancy,
   };
 }
 
@@ -1618,7 +1663,7 @@ export async function getProducts(
 ): Promise<Product[]> {
   const { category, search, activeOnly = true, limit = 100 } = options;
 
-  let whereConditions = [eq(schema.products.organizationId, organizationId)];
+  const whereConditions = [eq(schema.products.organizationId, organizationId)];
   if (activeOnly) whereConditions.push(eq(schema.products.isActive, true));
   if (category) whereConditions.push(eq(schema.products.category, category));
   if (search) {
@@ -1753,12 +1798,20 @@ export async function deleteProduct(organizationId: string, id: string): Promise
 
 export async function createPOSTransaction(organizationId: string, data: {
   customerId?: string;
-  items: Array<{ productId: string; quantity: number; price: number }>;
+  items: Array<{ productId: string; name?: string; quantity: number; price: number }>;
   subtotal: number;
   tax: number;
   total: number;
   paymentMethod: string;
 }) {
+  // Transform items to match the transactions table schema
+  const transactionItems = data.items.map(item => ({
+    description: item.name || `Product ${item.productId.substring(0, 8)}`,
+    quantity: item.quantity,
+    unitPrice: item.price,
+    total: item.quantity * item.price,
+  }));
+
   const [transaction] = await db
     .insert(schema.transactions)
     .values({
@@ -1768,7 +1821,7 @@ export async function createPOSTransaction(organizationId: string, data: {
       amount: String(data.total),
       currency: "USD",
       paymentMethod: data.paymentMethod,
-      items: data.items,
+      items: transactionItems,
     })
     .returning();
 
@@ -1827,6 +1880,87 @@ export async function getLowStockProducts(organizationId: string): Promise<Produ
     .orderBy(schema.products.stockQuantity);
 
   return products.map(mapProduct);
+}
+
+export type POSTransaction = {
+  id: string;
+  type: string;
+  amount: number;
+  paymentMethod: string;
+  customerName: string | null;
+  items: unknown[] | null;
+  createdAt: Date;
+};
+
+export async function getPOSTransactions(
+  organizationId: string,
+  options: {
+    type?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    limit?: number;
+  } = {}
+): Promise<POSTransaction[]> {
+  const { type, dateFrom, dateTo, limit = 50 } = options;
+
+  const conditions = [eq(schema.transactions.organizationId, organizationId)];
+
+  if (type) {
+    conditions.push(eq(schema.transactions.type, type));
+  }
+  if (dateFrom) {
+    conditions.push(sql`DATE(${schema.transactions.createdAt}) >= ${dateFrom}`);
+  }
+  if (dateTo) {
+    conditions.push(sql`DATE(${schema.transactions.createdAt}) <= ${dateTo}`);
+  }
+
+  const transactions = await db
+    .select({
+      id: schema.transactions.id,
+      type: schema.transactions.type,
+      amount: schema.transactions.amount,
+      paymentMethod: schema.transactions.paymentMethod,
+      items: schema.transactions.items,
+      createdAt: schema.transactions.createdAt,
+      customerFirstName: schema.customers.firstName,
+      customerLastName: schema.customers.lastName,
+    })
+    .from(schema.transactions)
+    .leftJoin(schema.customers, eq(schema.transactions.customerId, schema.customers.id))
+    .where(and(...conditions))
+    .orderBy(desc(schema.transactions.createdAt))
+    .limit(limit);
+
+  return transactions.map((t) => ({
+    id: t.id,
+    type: t.type,
+    amount: Number(t.amount),
+    paymentMethod: t.paymentMethod || "unknown",
+    customerName: t.customerFirstName && t.customerLastName
+      ? `${t.customerFirstName} ${t.customerLastName}`
+      : null,
+    items: t.items as unknown[] | null,
+    createdAt: t.createdAt,
+  }));
+}
+
+export async function adjustProductStock(
+  organizationId: string,
+  productId: string,
+  adjustment: number
+): Promise<boolean> {
+  await db
+    .update(schema.products)
+    .set({
+      stockQuantity: sql`${schema.products.stockQuantity} + ${adjustment}`,
+      updatedAt: new Date(),
+    })
+    .where(and(
+      eq(schema.products.organizationId, organizationId),
+      eq(schema.products.id, productId)
+    ));
+  return true;
 }
 
 // ============================================================================
@@ -1911,22 +2045,22 @@ export async function getBookingWithFullDetails(organizationId: string, id: stri
 
   return {
     ...booking,
-    customer: customer ? {
-      id: customer.id,
-      firstName: customer.firstName,
-      lastName: customer.lastName,
-      email: customer.email,
-      phone: customer.phone,
-    } : null,
-    trip: trip ? {
-      id: trip.id,
-      tourId: trip.tourId,
-      tourName: trip.tourName,
-      date: trip.date,
-      startTime: trip.startTime,
-      endTime: trip.endTime,
-      boatName: trip.boatName,
-    } : null,
+    customer: {
+      id: customer?.id || booking.customerId,
+      firstName: customer?.firstName || "Unknown",
+      lastName: customer?.lastName || "Customer",
+      email: customer?.email || "",
+      phone: customer?.phone || "",
+    },
+    trip: {
+      id: trip?.id || booking.tripId,
+      tourId: trip?.tourId || "",
+      tourName: trip?.tourName || "Unknown Trip",
+      date: trip?.date || "",
+      startTime: trip?.startTime || "",
+      endTime: trip?.endTime || "",
+      boatName: trip?.boatName || "",
+    },
     pricing: {
       basePrice: basePrice.toFixed(2),
       participants: booking.participants,
@@ -2031,9 +2165,10 @@ export async function getTripWithFullDetails(organizationId: string, id: string)
 
   return {
     ...trip,
-    tour: tour ? { id: tour.id, name: tour.name } : { id: trip.tourId, name: trip.tourName },
-    boat: boat ? { id: boat.id, name: boat.name } : null,
-    staff: [], // No trip-specific staff assignments in schema yet
+    tour: tour ? { id: tour.id, name: tour.name } : { id: trip.tourId, name: trip.tourName || "" },
+    boat: boat ? { id: boat.id, name: boat.name } : { id: "", name: "No boat assigned" },
+    staff: [] as Array<{ id: string; name: string; role: string }>, // No trip-specific staff assignments in schema yet
+    weatherNotes: trip.weatherNotes || null,
   };
 }
 
@@ -2166,6 +2301,9 @@ function mapCustomer(row: any) {
     state: row.state,
     postalCode: row.postalCode || row.postal_code,
     country: row.country,
+    preferredLanguage: row.preferredLanguage || row.preferred_language || "en",
+    tags: row.tags || [],
+    marketingOptIn: row.marketingOptIn ?? row.marketing_opt_in ?? false,
     notes: row.notes,
     totalDives: row.totalDives || row.total_dives || 0,
     totalSpent: Number(row.totalSpent || row.total_spent || 0),
@@ -2191,6 +2329,9 @@ function mapTour(row: any) {
     includesTransport: row.includesTransport || row.includes_transport,
     minCertLevel: row.minCertLevel || row.min_cert_level,
     minAge: row.minAge || row.min_age,
+    inclusions: row.inclusions || [],
+    exclusions: row.exclusions || [],
+    requirements: row.requirements || [],
     isActive: row.isActive || row.is_active,
     createdAt: row.createdAt || row.created_at,
     updatedAt: row.updatedAt || row.updated_at,
@@ -2209,6 +2350,7 @@ function mapTrip(row: any) {
     maxParticipants: row.maxParticipants || row.max_participants,
     price: row.price ? Number(row.price) : null,
     notes: row.notes,
+    weatherNotes: row.weatherNotes || row.weather_notes || null,
     tourName: row.tourName || row.tour_name,
     tourType: row.tourType || row.tour_type,
     boatName: row.boatName || row.boat_name,
@@ -2267,6 +2409,8 @@ function mapEquipment(row: any) {
     lastServiceDate: row.lastServiceDate || row.last_service_date,
     nextServiceDate: row.nextServiceDate || row.next_service_date,
     serviceNotes: row.serviceNotes || row.service_notes,
+    purchaseDate: row.purchaseDate || row.purchase_date,
+    purchasePrice: row.purchasePrice || row.purchase_price ? Number(row.purchasePrice || row.purchase_price) : null,
     notes: row.notes,
     createdAt: row.createdAt || row.created_at,
     updatedAt: row.updatedAt || row.updated_at,

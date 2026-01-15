@@ -307,7 +307,7 @@ export async function processPOSCheckout(
   const rentalItems = data.items.filter((item): item is CartItem & { type: "rental" } => item.type === "rental");
 
   if (rentalItems.length > 0 && data.customerId) {
-    const agreementNumber = await generateAgreementNumber(tables);
+    const agreementNumber = await generateAgreementNumber(tables, organizationId);
 
     for (const rental of rentalItems) {
       const dueAt = new Date();

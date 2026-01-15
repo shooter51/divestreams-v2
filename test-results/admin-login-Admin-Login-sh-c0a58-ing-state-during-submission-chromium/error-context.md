@@ -7,18 +7,18 @@
     - heading "DiveStreams Admin" [level=1] [ref=e7]
     - paragraph [ref=e8]: Sign in with your platform admin account
   - generic [ref=e9]:
-    - generic [ref=e10]:
-      - generic [ref=e11]: Email address
-      - textbox "Email address" [active] [ref=e12]:
+    - generic [ref=e10]: An error occurred during login. Please try again.
+    - generic [ref=e11]:
+      - generic [ref=e12]: Email address
+      - textbox "Email address" [active] [ref=e13]:
         - /placeholder: admin@example.com
-    - generic [ref=e13]:
-      - generic [ref=e14]: Password
-      - generic [ref=e15]:
-        - textbox "Password" [ref=e16]:
+    - generic [ref=e14]:
+      - generic [ref=e15]: Password
+      - generic [ref=e16]:
+        - textbox "Password" [ref=e17]:
           - /placeholder: Enter your password
-          - text: anypassword
-        - button [ref=e17]:
-          - img [ref=e18]
-    - button "Sign In" [ref=e21]
-  - paragraph [ref=e22]: Platform admin access only. Regular users should sign in at their organization's subdomain.
+        - button [ref=e18]:
+          - img [ref=e19]
+    - button "Sign In" [ref=e22]
+  - paragraph [ref=e23]: Platform admin access only. Regular users should sign in at their organization's subdomain.
 ```

@@ -5,6 +5,7 @@ import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-co
 import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
+import { getAppUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Login - DiveStreams" }];
@@ -15,7 +16,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (!subdomain) {
     // No subdomain - redirect to main site
-    return redirect("https://divestreams.com");
+    return redirect(getAppUrl());
   }
 
   // Check if already logged in
@@ -32,7 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .limit(1);
 
   if (!org) {
-    return redirect("https://divestreams.com");
+    return redirect(getAppUrl());
   }
 
   return { tenantName: org.name };
@@ -42,7 +43,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const subdomain = getSubdomainFromRequest(request);
 
   if (!subdomain) {
-    return redirect("https://divestreams.com");
+    return redirect(getAppUrl());
   }
 
   // Get organization
@@ -53,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
     .limit(1);
 
   if (!org) {
-    return redirect("https://divestreams.com");
+    return redirect(getAppUrl());
   }
 
   const formData = await request.formData();
@@ -137,8 +138,8 @@ export default function LoginPage() {
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
-              {actionData?.errors?.email && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.email}</p>
+              {actionData?.errors && 'email' in actionData.errors && (
+                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).email}</p>
               )}
             </div>
 
@@ -153,8 +154,8 @@ export default function LoginPage() {
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
-              {actionData?.errors?.password && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.password}</p>
+              {actionData?.errors && 'password' in actionData.errors && (
+                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).password}</p>
               )}
             </div>
           </div>

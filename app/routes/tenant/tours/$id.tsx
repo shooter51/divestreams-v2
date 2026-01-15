@@ -332,24 +332,24 @@ export default function TourDetailPage() {
                   >
                     <div>
                       <p className="font-medium">
-                        {trip.date} at {trip.startTime}
+                        {trip.date} at {trip.time}
                       </p>
                       <p className="text-sm text-gray-500">{trip.boatName}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">
-                        {trip.spotsBooked}/{trip.maxSpots} spots
+                        {trip.bookedParticipants}/{trip.maxParticipants} spots
                       </p>
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
-                          trip.status === "full"
+                          trip.bookedParticipants >= trip.maxParticipants
                             ? "bg-red-100 text-red-700"
-                            : trip.status === "confirmed"
+                            : trip.bookedParticipants > 0
                             ? "bg-green-100 text-green-700"
                             : "bg-blue-100 text-blue-700"
                         }`}
                       >
-                        {trip.status}
+                        {trip.bookedParticipants >= trip.maxParticipants ? "Full" : trip.bookedParticipants > 0 ? "Booked" : "Open"}
                       </span>
                     </div>
                   </Link>

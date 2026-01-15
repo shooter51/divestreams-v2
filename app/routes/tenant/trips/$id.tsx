@@ -235,8 +235,8 @@ export default function TripDetailPage() {
 
   const applyTemplate = (template: typeof messageTemplates[0]) => {
     // Replace placeholders with actual values
-    let subject = template.subject;
-    let body = template.body
+    const subject = template.subject;
+    const body = template.body
       .replace(/{tripDate}/g, tripDate)
       .replace(/{tripTime}/g, trip.startTime)
       .replace(/{shopName}/g, trip.tour.name.split(" - ")[0] || "Our Team");

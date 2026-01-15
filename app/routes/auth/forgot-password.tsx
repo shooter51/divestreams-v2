@@ -5,6 +5,7 @@ import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-co
 import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
+import { getAppUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Forgot Password - DiveStreams" }];
@@ -14,7 +15,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const subdomain = getSubdomainFromRequest(request);
 
   if (!subdomain) {
-    return redirect("https://divestreams.com");
+    return redirect(getAppUrl());
   }
 
   // If already logged in, redirect to app
@@ -31,7 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .limit(1);
 
   if (!org) {
-    return redirect("https://divestreams.com");
+    return redirect(getAppUrl());
   }
 
   return { tenantName: org.name };
@@ -41,7 +42,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const subdomain = getSubdomainFromRequest(request);
 
   if (!subdomain) {
-    return redirect("https://divestreams.com");
+    return redirect(getAppUrl());
   }
 
   const formData = await request.formData();

@@ -7,7 +7,63 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireTenant } from "../../../../../lib/auth/org-context.server";
-import { getPOSTransactions, getPOSSummary, type POSTransaction } from "../../../../../lib/db/queries.server";
+import { getPOSSummary } from "../../../../../lib/db/queries.server";
+import { db } from "../../../../../lib/db";
+import * as schema from "../../../../../lib/db/schema";
+import { eq, and, desc, gte, lte } from "drizzle-orm";
+
+// Define the POSTransaction type locally
+interface POSTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  paymentMethod: string | null;
+  customerName: string | null;
+  items: Array<{ description: string; quantity: number; unitPrice: number; total: number }> | null;
+  createdAt: Date;
+}
+
+// Local query function for POS transactions
+async function getPOSTransactions(
+  organizationId: string,
+  options: { type?: string; dateFrom?: string; dateTo?: string; limit?: number } = {}
+): Promise<POSTransaction[]> {
+  const { type, dateFrom, dateTo, limit = 100 } = options;
+
+  const conditions = [eq(schema.transactions.organizationId, organizationId)];
+  if (type) conditions.push(eq(schema.transactions.type, type));
+  if (dateFrom) conditions.push(gte(schema.transactions.createdAt, new Date(dateFrom)));
+  if (dateTo) conditions.push(lte(schema.transactions.createdAt, new Date(dateTo)));
+
+  const transactions = await db
+    .select({
+      id: schema.transactions.id,
+      type: schema.transactions.type,
+      amount: schema.transactions.amount,
+      paymentMethod: schema.transactions.paymentMethod,
+      items: schema.transactions.items,
+      createdAt: schema.transactions.createdAt,
+      customerFirstName: schema.customers.firstName,
+      customerLastName: schema.customers.lastName,
+    })
+    .from(schema.transactions)
+    .leftJoin(schema.customers, eq(schema.transactions.customerId, schema.customers.id))
+    .where(and(...conditions))
+    .orderBy(desc(schema.transactions.createdAt))
+    .limit(limit);
+
+  return transactions.map((tx) => ({
+    id: tx.id,
+    type: tx.type,
+    amount: Number(tx.amount),
+    paymentMethod: tx.paymentMethod,
+    customerName: tx.customerFirstName && tx.customerLastName
+      ? `${tx.customerFirstName} ${tx.customerLastName}`
+      : null,
+    items: tx.items as POSTransaction["items"],
+    createdAt: tx.createdAt,
+  }));
+}
 
 export const meta: MetaFunction = () => [{ title: "Transactions - DiveStreams" }];
 
@@ -88,12 +144,8 @@ export default function TransactionsPage() {
           <p className="text-2xl font-bold">{summary.transactionCount}</p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Cash</p>
-          <p className="text-2xl font-bold">{formatCurrency(summary.cashSales)}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Card</p>
-          <p className="text-2xl font-bold">{formatCurrency(summary.cardSales)}</p>
+          <p className="text-sm text-gray-500">Avg Transaction</p>
+          <p className="text-2xl font-bold">{formatCurrency(summary.averageTransaction)}</p>
         </div>
       </div>
 

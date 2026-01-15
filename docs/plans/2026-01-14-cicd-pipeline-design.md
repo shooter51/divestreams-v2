@@ -19,7 +19,7 @@ Two-environment CI/CD pipeline using GitHub Actions with branch-based deployment
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        GitHub Repository                         │
-│                    (tommiePinball/divestreams-v2)                │
+│                    (shooter51/divestreams-v2)                │
 └─────────────────────┬───────────────────────┬───────────────────┘
                       │                       │
               push to staging           merge PR to main
@@ -451,7 +451,7 @@ docker compose up -d
 
 ## Monitoring
 
-- **GitHub Actions:** Check workflow runs at `https://github.com/tommiePinball/divestreams-v2/actions`
+- **GitHub Actions:** Check workflow runs at `https://github.com/shooter51/divestreams-v2/actions`
 - **Staging logs:** `docker logs divestreams-staging-app` on VPS 1271895
 - **Production logs:** `docker logs divestreams-app` on VPS 1239852
 - **Hostinger:** Use MCP tools to check project status

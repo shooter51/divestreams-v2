@@ -70,7 +70,17 @@ describe("URL Utilities", () => {
     });
   });
 
-  describe("Localhost rejection", () => {
+  describe("Localhost rejection (production mode)", () => {
+    beforeEach(() => {
+      // Clear all CI/test indicators to simulate production
+      delete process.env.CI;
+      delete process.env.VITEST;
+      delete process.env.GITHUB_ACTIONS;
+      delete process.env.PLAYWRIGHT_TEST_BASE_URL;
+      process.env.NODE_ENV = "production";
+      vi.resetModules();
+    });
+
     it("should reject localhost APP_URL and use production", async () => {
       process.env.APP_URL = "http://localhost:5173";
       const { getAppUrl } = await import("../../../../lib/utils/url");
@@ -93,6 +103,34 @@ describe("URL Utilities", () => {
       process.env.APP_URL = "https://localhost:5173";
       const { getAppUrl } = await import("../../../../lib/utils/url");
       expect(getAppUrl()).toBe("https://divestreams.com");
+    });
+  });
+
+  describe("Localhost in CI/test environments", () => {
+    afterEach(() => {
+      delete process.env.CI;
+      delete process.env.NODE_ENV;
+    });
+
+    it("should allow localhost when CI=true", async () => {
+      process.env.CI = "true";
+      process.env.APP_URL = "http://localhost:5173";
+      const { getAppUrl } = await import("../../../../lib/utils/url");
+      expect(getAppUrl()).toBe("http://localhost:5173");
+    });
+
+    it("should allow localhost when NODE_ENV=test", async () => {
+      process.env.NODE_ENV = "test";
+      process.env.APP_URL = "http://localhost:3000";
+      const { getBaseDomain } = await import("../../../../lib/utils/url");
+      expect(getBaseDomain()).toBe("localhost:3000");
+    });
+
+    it("should generate tenant URL with localhost in CI", async () => {
+      process.env.CI = "true";
+      process.env.APP_URL = "http://localhost:5173";
+      const { getTenantUrl } = await import("../../../../lib/utils/url");
+      expect(getTenantUrl("demo")).toBe("http://demo.localhost:5173");
     });
   });
 

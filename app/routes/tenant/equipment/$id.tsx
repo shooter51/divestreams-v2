@@ -78,16 +78,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     updatedAt: formatDate(equipment.updatedAt),
   };
 
-  // Format rental history dates
+  // Format rental history dates - add derived fields for UI
   const formattedRentalHistory = rentalHistory.map((rental) => ({
     ...rental,
-    date: formatDate(rental.date),
+    date: formatDate(rental.rentedAt),
+    bookingNumber: `R-${rental.id.substring(0, 8).toUpperCase()}`,
+    returned: rental.returnedAt !== null,
   }));
 
   // Format service history dates
   const formattedServiceHistory = serviceHistory.map((service) => ({
     ...service,
-    date: formatDate(service.date),
+    date: formatDate(service.date || new Date()),
   }));
 
   // Format images for the component

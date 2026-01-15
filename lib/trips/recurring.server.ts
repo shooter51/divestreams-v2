@@ -527,7 +527,7 @@ export async function getRecurringSeriesInstances(
   const { futureOnly = false, limit = 100 } = options;
   const today = new Date().toISOString().split("T")[0];
 
-  let whereConditions = [
+  const whereConditions = [
     eq(trips.organizationId, organizationId),
     or(
       eq(trips.id, templateId),
