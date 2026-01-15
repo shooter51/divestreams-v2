@@ -93,8 +93,8 @@ jobs:
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:5173
 
-      - name: Run E2E tests (marketing pages only - no auth required)
-        run: npx playwright test tests/e2e/marketing/
+      - name: Run E2E workflow tests (sequential, builds on each test)
+        run: npx playwright test tests/e2e/workflow/
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
           REDIS_URL: redis://localhost:6379
