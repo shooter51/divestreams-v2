@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
@@ -6,11 +7,12 @@ import { getEquipmentById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../../app/components/ui";
+import { BarcodeScannerModal } from "../../../../components/BarcodeScannerModal";
 
 export const meta: MetaFunction = () => [{ title: "Edit Equipment - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const equipmentId = params.id;
 
   if (!equipmentId) {
@@ -18,10 +20,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Get tenant database for images query
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   const [equipmentData, equipmentImages] = await Promise.all([
-    getEquipmentById(tenant.schemaName, equipmentId),
+    getEquipmentById(organizationId, equipmentId),
     db
       .select({
         id: schema.images.id,
@@ -37,6 +39,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, "equipment"),
           eq(schema.images.entityId, equipmentId)
         )
@@ -55,6 +58,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     brand: equipmentData.brand || "",
     model: equipmentData.model || "",
     serialNumber: equipmentData.serialNumber || "",
+    barcode: equipmentData.barcode || "",
     size: equipmentData.size || "",
     condition: equipmentData.condition,
     status: equipmentData.status,
@@ -85,7 +89,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const equipmentId = params.id;
 
   if (!equipmentId) {
@@ -100,7 +104,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   // Update equipment in database
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
+
+  // Get barcode directly from formData since it may not be in validation schema
+  const barcode = formData.get("barcode") as string || null;
 
   await db
     .update(schema.equipment)
@@ -110,6 +117,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       brand: validation.data.brand,
       model: validation.data.model,
       serialNumber: validation.data.serialNumber,
+      barcode,
       size: validation.data.size,
       condition: validation.data.condition,
       status: validation.data.status,
@@ -123,7 +131,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       notes: validation.data.notes,
       updatedAt: new Date(),
     })
-    .where(eq(schema.equipment.id, equipmentId));
+    .where(and(eq(schema.equipment.organizationId, organizationId), eq(schema.equipment.id, equipmentId)));
 
   return redirect(`/app/equipment/${equipmentId}`);
 }
@@ -133,6 +141,8 @@ export default function EditEquipmentPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [barcodeValue, setBarcodeValue] = useState(equipment.barcode || "");
 
   return (
     <div className="max-w-2xl">
@@ -239,6 +249,33 @@ export default function EditEquipmentPage() {
                 defaultValue={actionData?.values?.serialNumber || equipment.serialNumber}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+
+            <div>
+              <label htmlFor="barcode" className="block text-sm font-medium mb-1">
+                Barcode
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  id="barcode"
+                  name="barcode"
+                  value={barcodeValue}
+                  onChange={(e) => setBarcodeValue(e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="EAN-13, UPC, etc."
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowBarcodeScanner(true)}
+                  className="px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+                  title="Scan Barcode"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -402,6 +439,17 @@ export default function EditEquipmentPage() {
           </Link>
         </div>
       </form>
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        onScan={(barcode) => {
+          setBarcodeValue(barcode);
+          setShowBarcodeScanner(false);
+        }}
+        title="Scan Equipment Barcode"
+      />
     </div>
   );
 }

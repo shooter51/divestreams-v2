@@ -1,6 +1,73 @@
 import { db } from "./index";
 import * as schema from "./schema";
 
+// ============================================================================
+// DEMO IMAGE URLS - Using Unsplash for realistic diving photos
+// ============================================================================
+
+const DEMO_IMAGES = {
+  diveSites: {
+    coralGarden: [
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200", // Coral reef
+      "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=1200", // Underwater coral
+      "https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=1200", // Fish on reef
+    ],
+    theWall: [
+      "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1200", // Deep blue wall
+      "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200", // Diver on wall
+    ],
+    shipwreck: [
+      "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=1200", // Shipwreck underwater
+      "https://images.unsplash.com/photo-1580019542155-247062e19ce4?w=1200", // Wreck dive
+    ],
+    blueHole: [
+      "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=1200", // Blue underwater cave
+      "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=1200", // Light in cave
+    ],
+    mantaPoint: [
+      "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=1200", // Manta ray
+      "https://images.unsplash.com/photo-1596414086775-0e7a7e6d381c?w=1200", // Ray underwater
+    ],
+  },
+  boats: {
+    catamaran: [
+      "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?w=1200", // Dive boat
+      "https://images.unsplash.com/photo-1544551763-92ab472cad5d?w=1200", // Boat on water
+    ],
+    speedboat: [
+      "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=1200", // Speedboat
+    ],
+  },
+  tours: {
+    discoverScuba: [
+      "https://images.unsplash.com/photo-1544551763-8dd44758c2dd?w=1200", // Beginner diver
+      "https://images.unsplash.com/photo-1682687982501-1e58ab814714?w=1200", // Pool training
+    ],
+    twoTankDive: [
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200", // Reef diving
+      "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=1200", // Underwater
+      "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200", // Group dive
+    ],
+    nightDive: [
+      "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=1200", // Dark underwater
+      "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=1200", // Light beam
+    ],
+    wreckExplorer: [
+      "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=1200", // Wreck
+      "https://images.unsplash.com/photo-1580019542155-247062e19ce4?w=1200", // Inside wreck
+    ],
+    snorkelSafari: [
+      "https://images.unsplash.com/photo-1544551763-92ab472cad5d?w=1200", // Snorkeling
+      "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=1200", // Marine life
+    ],
+  },
+  products: [
+    "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400", // Dive gear
+    "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400", // T-shirt
+    "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400", // Accessories
+  ],
+};
+
 /**
  * Seeds an organization with demo data for testing/demos
  * @param organizationId - The organization ID to seed data for
@@ -175,6 +242,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       currentStrength: "mild",
       visibility: "20-30m",
       highlights: ["Coral formations", "Tropical fish", "Sea turtles", "Easy entry"],
+      images: DEMO_IMAGES.diveSites.coralGarden,
     },
     {
       name: "The Wall",
@@ -187,6 +255,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       currentStrength: "strong",
       visibility: "25-40m",
       highlights: ["Wall dive", "Eagle rays", "Sharks", "Barracuda"],
+      images: DEMO_IMAGES.diveSites.theWall,
     },
     {
       name: "Shipwreck Bay",
@@ -199,6 +268,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       currentStrength: "moderate",
       visibility: "15-25m",
       highlights: ["Wreck penetration", "Moray eels", "Lobsters", "Groupers"],
+      images: DEMO_IMAGES.diveSites.shipwreck,
     },
     {
       name: "Blue Hole",
@@ -211,6 +281,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       currentStrength: "calm",
       visibility: "30-50m",
       highlights: ["Cave diving", "Stalactites", "Crystal clear water", "Light effects"],
+      images: DEMO_IMAGES.diveSites.blueHole,
     },
     {
       name: "Manta Point",
@@ -223,6 +294,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       currentStrength: "moderate",
       visibility: "20-35m",
       highlights: ["Manta rays", "Cleaning station", "Reef sharks", "Schooling fish"],
+      images: DEMO_IMAGES.diveSites.mantaPoint,
     },
   ];
 
@@ -242,6 +314,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         currentStrength: site.currentStrength,
         visibility: site.visibility,
         highlights: site.highlights,
+        images: site.images,
       })
       .returning({ id: schema.diveSites.id });
     diveSiteIds.push(inserted.id);
@@ -256,6 +329,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       type: "catamaran",
       registrationNumber: "DV-2024-001",
       amenities: ["Rinse tanks", "Camera table", "Shaded deck", "Hot drinks", "Restroom"],
+      images: DEMO_IMAGES.boats.catamaran,
     },
     {
       name: "Reef Runner",
@@ -264,6 +338,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       type: "speedboat",
       registrationNumber: "DV-2024-002",
       amenities: ["Shade cover", "Cooler", "First aid kit"],
+      images: DEMO_IMAGES.boats.speedboat,
     },
   ];
 
@@ -279,6 +354,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         type: boat.type,
         registrationNumber: boat.registrationNumber,
         amenities: boat.amenities,
+        images: boat.images,
       })
       .returning({ id: schema.boats.id });
     boatIds.push(inserted.id);
@@ -308,18 +384,23 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     { category: "torch", name: "BigBlue AL1200", brand: "BigBlue", rentalPrice: "15.00" },
   ];
 
+  const equipmentIds: string[] = [];
   for (const item of equipmentItems) {
-    await db.insert(schema.equipment).values({
-      organizationId,
-      category: item.category,
-      name: item.name,
-      brand: item.brand,
-      size: item.size,
-      rentalPrice: item.rentalPrice,
-      isRentable: true,
-      status: "available",
-      condition: "good",
-    });
+    const [inserted] = await db
+      .insert(schema.equipment)
+      .values({
+        organizationId,
+        category: item.category,
+        name: item.name,
+        brand: item.brand,
+        size: item.size,
+        rentalPrice: item.rentalPrice,
+        isRentable: true,
+        status: "available",
+        condition: "good",
+      })
+      .returning({ id: schema.equipment.id });
+    equipmentIds.push(inserted.id);
   }
 
   // Demo Tours
@@ -337,6 +418,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       includesTransport: false,
       inclusions: ["All equipment", "Professional instructor", "Pool session", "One reef dive", "Photos"],
       minAge: 10,
+      images: DEMO_IMAGES.tours.discoverScuba,
     },
     {
       name: "Two Tank Morning Dive",
@@ -352,6 +434,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       inclusions: ["Two tank dives", "Light snacks", "Drinks", "Towels"],
       exclusions: ["Equipment rental", "Gratuity"],
       minCertLevel: "Open Water",
+      images: DEMO_IMAGES.tours.twoTankDive,
     },
     {
       name: "Night Dive Adventure",
@@ -367,6 +450,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       inclusions: ["Torch rental", "Light sticks", "Hot drinks after dive"],
       minCertLevel: "Advanced Open Water",
       requirements: ["Minimum 20 logged dives", "Must bring own primary light"],
+      images: DEMO_IMAGES.tours.nightDive,
     },
     {
       name: "Wreck Explorer",
@@ -382,6 +466,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       inclusions: ["Wreck briefing", "Experienced guide"],
       minCertLevel: "Advanced Open Water",
       requirements: ["Wreck certification for penetration"],
+      images: DEMO_IMAGES.tours.wreckExplorer,
     },
     {
       name: "Snorkel Safari",
@@ -396,6 +481,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       includesTransport: false,
       inclusions: ["Snorkel equipment", "Light lunch", "Drinks", "Three snorkel spots"],
       minAge: 6,
+      images: DEMO_IMAGES.tours.snorkelSafari,
     },
   ];
 
@@ -420,6 +506,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         minCertLevel: tour.minCertLevel,
         minAge: tour.minAge,
         requirements: tour.requirements,
+        images: tour.images,
       })
       .returning({ id: schema.tours.id });
     tourIds.push(inserted.id);
@@ -520,5 +607,441 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     });
   }
 
+  // ============================================================================
+  // PRODUCTS (POS Retail Items)
+  // ============================================================================
+
+  const products = [
+    {
+      name: "DiveStreams T-Shirt",
+      sku: "APP-TSHIRT-001",
+      category: "apparel",
+      description: "Comfortable cotton t-shirt with our dive shop logo",
+      price: "29.99",
+      costPrice: "12.00",
+      stockQuantity: 50,
+      imageUrl: DEMO_IMAGES.products[1],
+    },
+    {
+      name: "DiveStreams Hoodie",
+      sku: "APP-HOODIE-001",
+      category: "apparel",
+      description: "Warm hoodie perfect for after-dive comfort",
+      price: "59.99",
+      costPrice: "28.00",
+      stockQuantity: 25,
+      imageUrl: DEMO_IMAGES.products[1],
+    },
+    {
+      name: "Reef Safe Sunscreen",
+      sku: "ACC-SUN-001",
+      category: "accessories",
+      description: "Eco-friendly reef-safe SPF 50 sunscreen",
+      price: "18.99",
+      costPrice: "8.50",
+      stockQuantity: 100,
+      imageUrl: DEMO_IMAGES.products[2],
+    },
+    {
+      name: "Defog Solution",
+      sku: "ACC-DEFOG-001",
+      category: "accessories",
+      description: "Professional-grade mask defog solution",
+      price: "8.99",
+      costPrice: "3.00",
+      stockQuantity: 75,
+      imageUrl: DEMO_IMAGES.products[2],
+    },
+    {
+      name: "Dive Log Book",
+      sku: "ACC-LOG-001",
+      category: "accessories",
+      description: "Waterproof dive log book with 100 pages",
+      price: "24.99",
+      costPrice: "10.00",
+      stockQuantity: 30,
+      imageUrl: DEMO_IMAGES.products[2],
+    },
+    {
+      name: "SMB (Surface Marker Buoy)",
+      sku: "EQUIP-SMB-001",
+      category: "equipment",
+      description: "High-visibility orange SMB with valve",
+      price: "45.00",
+      costPrice: "22.00",
+      stockQuantity: 20,
+      imageUrl: DEMO_IMAGES.products[0],
+    },
+    {
+      name: "Dive Knife",
+      sku: "EQUIP-KNIFE-001",
+      category: "equipment",
+      description: "Stainless steel dive knife with sheath",
+      price: "39.99",
+      costPrice: "18.00",
+      stockQuantity: 15,
+      imageUrl: DEMO_IMAGES.products[0],
+    },
+    {
+      name: "Underwater Slate",
+      sku: "ACC-SLATE-001",
+      category: "accessories",
+      description: "Glow-in-dark underwater writing slate with pencil",
+      price: "14.99",
+      costPrice: "5.50",
+      stockQuantity: 40,
+      imageUrl: DEMO_IMAGES.products[2],
+    },
+    {
+      name: "Dry Bag (20L)",
+      sku: "ACC-BAG-001",
+      category: "accessories",
+      description: "Waterproof dry bag for gear storage",
+      price: "34.99",
+      costPrice: "14.00",
+      stockQuantity: 35,
+      imageUrl: DEMO_IMAGES.products[2],
+    },
+    {
+      name: "Mask Strap",
+      sku: "ACC-STRAP-001",
+      category: "accessories",
+      description: "Neoprene comfort mask strap",
+      price: "12.99",
+      costPrice: "4.00",
+      stockQuantity: 60,
+      imageUrl: DEMO_IMAGES.products[2],
+    },
+  ];
+
+  for (const product of products) {
+    await db.insert(schema.products).values({
+      organizationId,
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      description: product.description,
+      price: product.price,
+      costPrice: product.costPrice,
+      stockQuantity: product.stockQuantity,
+      imageUrl: product.imageUrl,
+      trackInventory: true,
+      isActive: true,
+    });
+  }
+
+  // ============================================================================
+  // DISCOUNT CODES
+  // ============================================================================
+
+  const discountCodes = [
+    {
+      code: "WELCOME10",
+      description: "10% off for new customers",
+      discountType: "percentage",
+      discountValue: "10.00",
+      minBookingAmount: "50.00",
+      maxUses: 100,
+      applicableTo: "all",
+    },
+    {
+      code: "SUMMER2024",
+      description: "Summer special - $25 off any booking over $150",
+      discountType: "fixed",
+      discountValue: "25.00",
+      minBookingAmount: "150.00",
+      maxUses: 50,
+      applicableTo: "tours",
+    },
+    {
+      code: "DIVEPRO",
+      description: "15% off for certified divemasters and instructors",
+      discountType: "percentage",
+      discountValue: "15.00",
+      applicableTo: "all",
+    },
+    {
+      code: "GROUP5",
+      description: "5% off for groups of 5 or more",
+      discountType: "percentage",
+      discountValue: "5.00",
+      minBookingAmount: "300.00",
+      applicableTo: "tours",
+    },
+    {
+      code: "EARLYBIRD",
+      description: "Early bird special - 20% off bookings made 30+ days in advance",
+      discountType: "percentage",
+      discountValue: "20.00",
+      maxUses: 25,
+      applicableTo: "tours",
+    },
+  ];
+
+  // Calculate validity dates for discount codes
+  const validFrom = new Date();
+  const validTo = new Date();
+  validTo.setMonth(validTo.getMonth() + 6); // Valid for 6 months
+
+  for (const discount of discountCodes) {
+    await db.insert(schema.discountCodes).values({
+      organizationId,
+      code: discount.code,
+      description: discount.description,
+      discountType: discount.discountType,
+      discountValue: discount.discountValue,
+      minBookingAmount: discount.minBookingAmount,
+      maxUses: discount.maxUses,
+      applicableTo: discount.applicableTo,
+      validFrom,
+      validTo,
+      isActive: true,
+    });
+  }
+
+  // ============================================================================
+  // TRANSACTIONS (for paid bookings)
+  // ============================================================================
+
+  // Create transactions for the paid/partial bookings
+  const transactionData = [
+    { bookingIdx: 0, amount: 264.00, method: "card" }, // BK-1000 - paid
+    { bookingIdx: 1, amount: 132.00, method: "card" }, // BK-1001 - paid
+    { bookingIdx: 2, amount: 107.25, method: "cash" }, // BK-1002 - partial (50%)
+    { bookingIdx: 4, amount: 264.00, method: "stripe" }, // BK-1004 - paid
+    { bookingIdx: 5, amount: 93.50, method: "card" }, // BK-1005 - paid
+    { bookingIdx: 6, amount: 132.00, method: "cash" }, // BK-1006 - partial (50%)
+  ];
+
+  for (let i = 0; i < transactionData.length; i++) {
+    const txn = transactionData[i];
+    const booking = bookings[txn.bookingIdx];
+    const tripData = trips[booking.tripIdx];
+    const price = tourPrices[tripData.tourIdx];
+
+    await db.insert(schema.transactions).values({
+      organizationId,
+      type: "payment",
+      customerId: customerIds[booking.customerIdx],
+      amount: txn.amount.toFixed(2),
+      paymentMethod: txn.method,
+      items: [
+        {
+          description: tours[tripData.tourIdx].name,
+          quantity: booking.participants,
+          unitPrice: price,
+          total: price * booking.participants,
+        },
+      ],
+      notes: `Payment for booking BK-${String(1000 + txn.bookingIdx).padStart(4, "0")}`,
+    });
+  }
+
+  // ============================================================================
+  // IMAGES TABLE (Polymorphic images for enhanced image management)
+  // ============================================================================
+
+  // Add images to the images table for dive sites
+  const imageEntries: Array<{
+    entityType: string;
+    entityId: string;
+    url: string;
+    filename: string;
+    sortOrder: number;
+    isPrimary: boolean;
+  }> = [];
+
+  // Dive site images
+  diveSiteIds.forEach((siteId, siteIdx) => {
+    const siteImages = diveSites[siteIdx].images || [];
+    siteImages.forEach((url, imgIdx) => {
+      imageEntries.push({
+        entityType: "dive_site",
+        entityId: siteId,
+        url,
+        filename: `dive-site-${siteIdx + 1}-${imgIdx + 1}.jpg`,
+        sortOrder: imgIdx,
+        isPrimary: imgIdx === 0,
+      });
+    });
+  });
+
+  // Boat images
+  boatIds.forEach((boatId, boatIdx) => {
+    const boatImages = boats[boatIdx].images || [];
+    boatImages.forEach((url, imgIdx) => {
+      imageEntries.push({
+        entityType: "boat",
+        entityId: boatId,
+        url,
+        filename: `boat-${boatIdx + 1}-${imgIdx + 1}.jpg`,
+        sortOrder: imgIdx,
+        isPrimary: imgIdx === 0,
+      });
+    });
+  });
+
+  // Tour images
+  tourIds.forEach((tourId, tourIdx) => {
+    const tourImages = tours[tourIdx].images || [];
+    tourImages.forEach((url, imgIdx) => {
+      imageEntries.push({
+        entityType: "tour",
+        entityId: tourId,
+        url,
+        filename: `tour-${tourIdx + 1}-${imgIdx + 1}.jpg`,
+        sortOrder: imgIdx,
+        isPrimary: imgIdx === 0,
+      });
+    });
+  });
+
+  // Insert all images
+  for (const img of imageEntries) {
+    await db.insert(schema.images).values({
+      organizationId,
+      entityType: img.entityType,
+      entityId: img.entityId,
+      url: img.url,
+      thumbnailUrl: img.url.replace("w=1200", "w=200"), // Generate thumbnail URL
+      filename: img.filename,
+      mimeType: "image/jpeg",
+      sizeBytes: 150000 + Math.floor(Math.random() * 100000), // Random size 150-250KB
+      width: 1200,
+      height: 800,
+      alt: `${img.entityType.replace("_", " ")} image`,
+      sortOrder: img.sortOrder,
+      isPrimary: img.isPrimary,
+    });
+  }
+
+  // ============================================================================
+  // RENTALS (Equipment Rentals)
+  // ============================================================================
+
+  // Create some rental records - mix of active, returned, and overdue
+  const rentalRecords = [
+    {
+      customerIdx: 0, // John Smith
+      equipmentIdx: 0, // BCD M
+      daysAgo: 2,
+      durationDays: 3,
+      status: "active",
+      dailyRate: "15.00",
+    },
+    {
+      customerIdx: 0, // John Smith
+      equipmentIdx: 3, // Regulator
+      daysAgo: 2,
+      durationDays: 3,
+      status: "active",
+      dailyRate: "20.00",
+    },
+    {
+      customerIdx: 2, // Marco Rossi
+      equipmentIdx: 14, // Dive computer (Suunto)
+      daysAgo: 1,
+      durationDays: 5,
+      status: "active",
+      dailyRate: "25.00",
+    },
+    {
+      customerIdx: 4, // Emma Wilson
+      equipmentIdx: 7, // Wetsuit M
+      daysAgo: 5,
+      durationDays: 3,
+      status: "returned",
+      dailyRate: "10.00",
+    },
+    {
+      customerIdx: 4, // Emma Wilson
+      equipmentIdx: 10, // Mask
+      daysAgo: 5,
+      durationDays: 3,
+      status: "returned",
+      dailyRate: "5.00",
+    },
+    {
+      customerIdx: 1, // Sarah Jones
+      equipmentIdx: 6, // Wetsuit S
+      daysAgo: 7,
+      durationDays: 3,
+      status: "overdue", // Was due 4 days ago
+      dailyRate: "10.00",
+    },
+    {
+      customerIdx: 3, // Yuki Tanaka
+      equipmentIdx: 15, // Dive computer (Shearwater)
+      daysAgo: 0, // Today
+      durationDays: 7,
+      status: "active",
+      dailyRate: "35.00",
+    },
+    {
+      customerIdx: 6, // Lisa Chen
+      equipmentIdx: 19, // Torch
+      daysAgo: 3,
+      durationDays: 1,
+      status: "returned",
+      dailyRate: "15.00",
+    },
+  ];
+
+  let rentalCount = 0;
+  for (const rental of rentalRecords) {
+    const rentedAt = new Date();
+    rentedAt.setDate(rentedAt.getDate() - rental.daysAgo);
+
+    const dueAt = new Date(rentedAt);
+    dueAt.setDate(dueAt.getDate() + rental.durationDays);
+
+    // For returned rentals, set returnedAt
+    let returnedAt: Date | null = null;
+    if (rental.status === "returned") {
+      returnedAt = new Date(dueAt);
+      returnedAt.setDate(returnedAt.getDate() - 1); // Returned a day before due
+    }
+
+    // Calculate total charge
+    const dailyRate = parseFloat(rental.dailyRate);
+    const actualDays = rental.status === "returned"
+      ? rental.durationDays - 1
+      : rental.durationDays;
+    const totalCharge = dailyRate * actualDays;
+
+    // Generate agreement number
+    const agreementNum = `RNT-${String(2024001 + rentalCount).padStart(7, "0")}`;
+
+    await db.insert(schema.rentals).values({
+      organizationId,
+      customerId: customerIds[rental.customerIdx],
+      equipmentId: equipmentIds[rental.equipmentIdx],
+      rentedAt,
+      dueAt,
+      returnedAt,
+      dailyRate: rental.dailyRate,
+      totalCharge: totalCharge.toFixed(2),
+      status: rental.status,
+      agreementNumber: agreementNum,
+      agreementSignedAt: rentedAt,
+      agreementSignedBy: customers[rental.customerIdx].firstName + " " + customers[rental.customerIdx].lastName,
+      notes: rental.status === "overdue" ? "OVERDUE - Customer contacted" : null,
+    });
+
+    rentalCount++;
+  }
+
   console.log(`Demo data seeded for organization: ${organizationId}`);
+  console.log(`  - ${customers.length} customers`);
+  console.log(`  - ${diveSites.length} dive sites`);
+  console.log(`  - ${boats.length} boats`);
+  console.log(`  - ${equipmentItems.length} equipment items`);
+  console.log(`  - ${tours.length} tours`);
+  console.log(`  - ${trips.length} scheduled trips`);
+  console.log(`  - ${bookings.length} bookings`);
+  console.log(`  - ${products.length} products`);
+  console.log(`  - ${discountCodes.length} discount codes`);
+  console.log(`  - ${transactionData.length} transactions`);
+  console.log(`  - ${imageEntries.length} images`);
+  console.log(`  - ${rentalCount} rentals`);
 }

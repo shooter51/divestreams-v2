@@ -10,7 +10,7 @@ import { ImageManager, type Image } from "../../../../../app/components/ui";
 export const meta: MetaFunction = () => [{ title: "Edit Boat - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const boatId = params.id;
 
   if (!boatId) {
@@ -18,10 +18,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Get tenant database for images query
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   const [boatData, boatImages] = await Promise.all([
-    getBoatById(tenant.schemaName, boatId),
+    getBoatById(organizationId, boatId),
     db
       .select({
         id: schema.images.id,
@@ -37,6 +37,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, "boat"),
           eq(schema.images.entityId, boatId)
         )
@@ -76,7 +77,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const boatId = params.id;
 
   if (!boatId) {
@@ -98,7 +99,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   // Update boat in database
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   await db
     .update(schema.boats)
@@ -112,7 +113,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       isActive: validation.data.isActive,
       updatedAt: new Date(),
     })
-    .where(eq(schema.boats.id, boatId));
+    .where(and(eq(schema.boats.organizationId, organizationId), eq(schema.boats.id, boatId)));
 
   return redirect(`/app/boats/${boatId}`);
 }

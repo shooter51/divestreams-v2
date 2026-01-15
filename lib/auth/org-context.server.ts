@@ -15,6 +15,7 @@ import {
   member,
 } from "../db/schema/auth";
 import { subscription } from "../db/schema/subscription";
+import { subscriptionPlans } from "../db/schema";
 import type {
   Organization,
   Member,
@@ -231,12 +232,45 @@ export async function getOrgContext(
     .where(eq(subscription.organizationId, org.id))
     .limit(1);
 
-  // Determine if premium
-  const isPremium =
-    sub?.plan === "premium" && sub?.status === "active";
+  // Fetch the plan details from subscriptionPlans table
+  // Match by plan name (e.g., "free", "professional", "enterprise")
+  const planName = sub?.plan || "free";
+  const [planDetails] = await db
+    .select()
+    .from(subscriptionPlans)
+    .where(
+      and(
+        eq(subscriptionPlans.name, planName),
+        eq(subscriptionPlans.isActive, true)
+      )
+    )
+    .limit(1);
 
-  // Set limits based on subscription
-  const limits = isPremium ? PREMIUM_LIMITS : FREE_TIER_LIMITS;
+  // Determine if premium (any paid plan with active status)
+  const isPremium =
+    planName !== "free" && sub?.status === "active";
+
+  // Set limits based on subscription plan from database
+  // Fall back to free tier limits if plan not found
+  const dbLimits = planDetails?.limits as {
+    users?: number;
+    customers?: number;
+    toursPerMonth?: number;
+    storageGb?: number;
+  } | undefined;
+
+  const limits: TierLimits = planDetails
+    ? {
+        customers: dbLimits?.customers ?? FREE_TIER_LIMITS.customers,
+        bookingsPerMonth: dbLimits?.toursPerMonth ?? FREE_TIER_LIMITS.bookingsPerMonth,
+        tours: dbLimits?.toursPerMonth ?? FREE_TIER_LIMITS.tours,
+        teamMembers: dbLimits?.users ?? FREE_TIER_LIMITS.teamMembers,
+        hasPOS: isPremium,
+        hasEquipmentRentals: isPremium,
+        hasAdvancedReports: isPremium,
+        hasEmailNotifications: isPremium,
+      }
+    : FREE_TIER_LIMITS;
 
   // Get usage statistics
   // TODO: Implement real counts from database
@@ -288,9 +322,9 @@ export async function requireOrgContext(request: Request): Promise<OrgContext> {
     const subdomain = getSubdomainFromRequest(request);
     const url = new URL(request.url);
 
-    // If we have a subdomain, redirect to tenant login
+    // If we have a subdomain, redirect to tenant login at /auth/login
     if (subdomain && subdomain !== "admin") {
-      throw redirect(`/login?redirect=${encodeURIComponent(url.pathname)}`);
+      throw redirect(`/auth/login?redirect=${encodeURIComponent(url.pathname)}`);
     }
 
     // Otherwise redirect to main login

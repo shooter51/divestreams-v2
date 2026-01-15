@@ -9,12 +9,13 @@ import { requireTenant } from "../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import { db } from "../../../lib/db/index";
 import { eq } from "drizzle-orm";
+import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
-  const { schema: tables } = getTenantDb(tenant.schemaName);
+  const { tenant, organizationId } = await requireTenant(request);
+  const { schema: tables } = getTenantDb(organizationId);
 
   try {
     const products = await db
@@ -58,8 +59,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
-  const { schema: tables } = getTenantDb(tenant.schemaName);
+  const { tenant, organizationId } = await requireTenant(request);
+  const { schema: tables } = getTenantDb(organizationId);
 
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -69,6 +70,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const category = formData.get("category") as string;
     const price = formData.get("price") as string;
     const sku = formData.get("sku") as string || null;
+    const barcode = formData.get("barcode") as string || null;
     const description = formData.get("description") as string || null;
     const stockQuantity = parseInt(formData.get("stockQuantity") as string) || 0;
     const lowStockThreshold = parseInt(formData.get("lowStockThreshold") as string) || 5;
@@ -83,6 +85,7 @@ export async function action({ request }: ActionFunctionArgs) {
       category,
       price,
       sku,
+      barcode,
       description,
       stockQuantity,
       lowStockThreshold,
@@ -103,6 +106,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const category = formData.get("category") as string;
     const price = formData.get("price") as string;
     const sku = formData.get("sku") as string || null;
+    const barcode = formData.get("barcode") as string || null;
     const description = formData.get("description") as string || null;
     const stockQuantity = parseInt(formData.get("stockQuantity") as string) || 0;
     const lowStockThreshold = parseInt(formData.get("lowStockThreshold") as string) || 5;
@@ -119,6 +123,7 @@ export async function action({ request }: ActionFunctionArgs) {
         category,
         price,
         sku,
+        barcode,
         description,
         stockQuantity,
         lowStockThreshold,
@@ -158,6 +163,49 @@ export async function action({ request }: ActionFunctionArgs) {
     const id = formData.get("id") as string;
     await db.delete(tables.products).where(eq(tables.products.id, id));
     return { success: true, message: "Product deleted" };
+  }
+
+  if (intent === "bulk-update-stock") {
+    const productIds = JSON.parse(formData.get("productIds") as string) as string[];
+    const updateType = formData.get("updateType") as "set" | "adjust";
+    const value = parseInt(formData.get("value") as string) || 0;
+
+    if (productIds.length === 0) {
+      return { error: "No products selected" };
+    }
+
+    let updatedCount = 0;
+
+    for (const productId of productIds) {
+      if (updateType === "set") {
+        // Set stock to specific value
+        await db
+          .update(tables.products)
+          .set({ stockQuantity: Math.max(0, value), updatedAt: new Date() })
+          .where(eq(tables.products.id, productId));
+        updatedCount++;
+      } else {
+        // Adjust by value
+        const [product] = await db
+          .select()
+          .from(tables.products)
+          .where(eq(tables.products.id, productId));
+
+        if (product) {
+          const newQuantity = Math.max(0, product.stockQuantity + value);
+          await db
+            .update(tables.products)
+            .set({ stockQuantity: newQuantity, updatedAt: new Date() })
+            .where(eq(tables.products.id, productId));
+          updatedCount++;
+        }
+      }
+    }
+
+    return {
+      success: true,
+      message: `Updated stock for ${updatedCount} product${updatedCount !== 1 ? 's' : ''}`
+    };
   }
 
   if (intent === "import-csv") {
@@ -334,6 +382,7 @@ type ProductWithSaleFields = {
   id: string;
   name: string;
   sku: string | null;
+  barcode?: string | null;
   category: string;
   description: string | null;
   price: string;
@@ -365,8 +414,45 @@ export default function ProductsPage() {
     errors: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [showBulkUpdate, setShowBulkUpdate] = useState(false);
+  const [bulkUpdateType, setBulkUpdateType] = useState<"set" | "adjust">("adjust");
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [barcodeValue, setBarcodeValue] = useState("");
 
   const isSubmitting = fetcher.state === "submitting";
+
+  // Toggle product selection
+  const toggleProductSelection = (productId: string) => {
+    const newSelected = new Set(selectedProducts);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
+    } else {
+      newSelected.add(productId);
+    }
+    setSelectedProducts(newSelected);
+  };
+
+  // Select/deselect all products
+  const toggleSelectAll = () => {
+    if (selectedProducts.size === products.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(products.map(p => p.id)));
+    }
+  };
+
+  // Handle bulk stock update
+  const handleBulkUpdate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    formData.append("intent", "bulk-update-stock");
+    formData.append("productIds", JSON.stringify(Array.from(selectedProducts)));
+    formData.append("updateType", bulkUpdateType);
+    fetcher.submit(formData, { method: "post" });
+    setShowBulkUpdate(false);
+    setSelectedProducts(new Set());
+  };
 
   // Handle CSV export
   const handleExportCSV = () => {
@@ -471,6 +557,14 @@ export default function ProductsPage() {
           <p className="text-gray-600">Manage your retail products and stock levels</p>
         </div>
         <div className="flex gap-2">
+          {selectedProducts.size > 0 && (
+            <button
+              onClick={() => setShowBulkUpdate(true)}
+              className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+            >
+              Bulk Update ({selectedProducts.size})
+            </button>
+          )}
           <button
             onClick={handleExportCSV}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
@@ -487,6 +581,7 @@ export default function ProductsPage() {
           <button
             onClick={() => {
               setEditingProduct(null);
+              setBarcodeValue("");
               setShowForm(true);
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -560,6 +655,14 @@ export default function ProductsPage() {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-4 py-3 text-left w-8">
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.size === products.length && products.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded"
+                    />
+                  </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Product</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">SKU</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Price</th>
@@ -575,6 +678,14 @@ export default function ProductsPage() {
                   const onSale = isOnSale(productWithSale);
                   return (
                   <tr key={product.id} className={!product.isActive ? "bg-gray-50 opacity-60" : ""}>
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.has(product.id)}
+                        onChange={() => toggleProductSelection(product.id)}
+                        className="w-4 h-4 rounded"
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{product.name}</span>
@@ -641,6 +752,7 @@ export default function ProductsPage() {
                         <button
                           onClick={() => {
                             setEditingProduct(product as ProductWithSaleFields);
+                            setBarcodeValue((product as ProductWithSaleFields).barcode || "");
                             setShowForm(true);
                           }}
                           className="px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
@@ -720,6 +832,30 @@ export default function ProductsPage() {
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="Optional"
                     />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium mb-1">Barcode</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        name="barcode"
+                        value={barcodeValue || editingProduct?.barcode || ""}
+                        onChange={(e) => setBarcodeValue(e.target.value)}
+                        className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="EAN-13, UPC-A, etc."
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowBarcodeScanner(true)}
+                        className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                        </svg>
+                        Scan
+                      </button>
+                    </div>
                   </div>
 
                   <div>
@@ -844,6 +980,7 @@ export default function ProductsPage() {
                     onClick={() => {
                       setShowForm(false);
                       setEditingProduct(null);
+                      setBarcodeValue("");
                     }}
                     className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
                   >
@@ -989,6 +1126,107 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Update Modal */}
+      {showBulkUpdate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md p-6">
+            <h2 className="text-lg font-bold mb-4">
+              Bulk Update Stock ({selectedProducts.size} products)
+            </h2>
+
+            <form onSubmit={handleBulkUpdate} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Update Type</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="updateTypeRadio"
+                      checked={bulkUpdateType === "adjust"}
+                      onChange={() => setBulkUpdateType("adjust")}
+                      className="w-4 h-4"
+                    />
+                    <span>Adjust by amount (+/-)</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="updateTypeRadio"
+                      checked={bulkUpdateType === "set"}
+                      onChange={() => setBulkUpdateType("set")}
+                      className="w-4 h-4"
+                    />
+                    <span>Set to value</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  {bulkUpdateType === "adjust" ? "Adjustment Amount" : "New Stock Value"}
+                </label>
+                <input
+                  type="number"
+                  name="value"
+                  required
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-center text-xl"
+                  placeholder={bulkUpdateType === "adjust" ? "e.g., 10 or -5" : "e.g., 50"}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {bulkUpdateType === "adjust"
+                    ? "Use positive numbers to add stock, negative to remove"
+                    : "All selected products will be set to this quantity"
+                  }
+                </p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-3">
+                <h4 className="text-sm font-medium mb-2">Selected Products:</h4>
+                <div className="max-h-32 overflow-y-auto text-sm text-gray-600">
+                  {products
+                    .filter(p => selectedProducts.has(p.id))
+                    .map(p => (
+                      <div key={p.id} className="flex justify-between py-1">
+                        <span>{p.name}</span>
+                        <span className="text-gray-400">Current: {p.stockQuantity}</span>
+                      </div>
+                    ))
+                  }
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowBulkUpdate(false)}
+                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:bg-amber-300"
+                >
+                  {isSubmitting ? "Updating..." : "Update Stock"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        onScan={(barcode) => {
+          setBarcodeValue(barcode);
+          setShowBarcodeScanner(false);
+        }}
+        title="Scan Product Barcode"
+      />
     </div>
   );
 }

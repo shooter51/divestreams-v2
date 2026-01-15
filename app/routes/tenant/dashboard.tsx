@@ -233,9 +233,10 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold mb-4">Upcoming Trips</h2>
           <div className="space-y-3">
             {upcomingTrips.map((trip) => (
-              <div
+              <Link
                 key={trip.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                to={`/app/trips/${trip.id}`}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
               >
                 <div>
                   <p className="font-medium">{trip.name}</p>
@@ -249,15 +250,15 @@ export default function DashboardPage() {
                   </p>
                   <p className="text-sm text-gray-500">participants</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
-          <a
-            href="/app/trips"
+          <Link
+            to="/app/trips"
             className="block text-center text-blue-600 mt-4 text-sm hover:underline"
           >
             View all trips →
-          </a>
+          </Link>
         </div>
 
         {/* Recent Bookings */}
@@ -265,9 +266,10 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold mb-4">Recent Bookings</h2>
           <div className="space-y-3">
             {recentBookings.map((booking) => (
-              <div
+              <Link
                 key={booking.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                to={`/app/bookings/${booking.id}`}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
               >
                 <div>
                   <p className="font-medium">{booking.customer}</p>
@@ -285,15 +287,15 @@ export default function DashboardPage() {
                     {booking.status}
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
-          <a
-            href="/app/bookings"
+          <Link
+            to="/app/bookings"
             className="block text-center text-blue-600 mt-4 text-sm hover:underline"
           >
             View all bookings →
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { createCustomer } from "../../../../lib/db/queries.server";
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
 
   const firstName = formData.get("firstName") as string;
@@ -41,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
     : undefined;
 
   try {
-    await createCustomer(tenant.schemaName, {
+    await createCustomer(organizationId, {
       email,
       firstName,
       lastName,

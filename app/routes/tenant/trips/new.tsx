@@ -1,21 +1,97 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
+import { useState, useEffect } from "react";
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { tripSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getTours, getBoats, getStaff, createTrip } from "../../../../lib/db/queries.server";
+import { createRecurringTrip, type RecurrencePattern } from "../../../../lib/trips/recurring.server";
+
+// Client-side helper to preview recurrence dates
+function calculatePreviewDates(
+  startDate: string,
+  pattern: RecurrencePattern,
+  selectedDays: number[],
+  maxCount: number = 10
+): string[] {
+  if (!startDate) return [];
+
+  const dates: string[] = [];
+  let currentDate = startDate;
+
+  const addDays = (dateStr: string, days: number): string => {
+    const date = new Date(dateStr + "T00:00:00");
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split("T")[0];
+  };
+
+  const addMonths = (dateStr: string, months: number): string => {
+    const date = new Date(dateStr + "T00:00:00");
+    date.setMonth(date.getMonth() + months);
+    return date.toISOString().split("T")[0];
+  };
+
+  const getDayOfWeek = (dateStr: string): number => {
+    return new Date(dateStr + "T00:00:00").getDay();
+  };
+
+  // For weekly patterns with selected days, find the effective days
+  const effectiveDays = (pattern === "weekly" || pattern === "biweekly") && selectedDays.length > 0
+    ? selectedDays
+    : [getDayOfWeek(startDate)];
+
+  while (dates.length < maxCount) {
+    // Check if current date should be included
+    if (pattern === "weekly" || pattern === "biweekly") {
+      const dayOfWeek = getDayOfWeek(currentDate);
+      if (effectiveDays.includes(dayOfWeek)) {
+        dates.push(currentDate);
+      }
+    } else {
+      dates.push(currentDate);
+    }
+
+    // Move to next date
+    switch (pattern) {
+      case "daily":
+        currentDate = addDays(currentDate, 1);
+        break;
+      case "weekly":
+        currentDate = addDays(currentDate, 1);
+        break;
+      case "biweekly":
+        // Track week parity for biweekly
+        const startWeek = Math.floor(new Date(startDate + "T00:00:00").getTime() / (7 * 24 * 60 * 60 * 1000));
+        currentDate = addDays(currentDate, 1);
+        const nextWeek = Math.floor(new Date(currentDate + "T00:00:00").getTime() / (7 * 24 * 60 * 60 * 1000));
+        if ((nextWeek - startWeek) % 2 !== 0) {
+          currentDate = addDays(currentDate, 7);
+        }
+        break;
+      case "monthly":
+        currentDate = addMonths(currentDate, 1);
+        break;
+    }
+
+    // Safety: don't loop forever (max 1 year out)
+    if (dates.length === 0 && currentDate > addDays(startDate, 365)) break;
+    if (currentDate > addDays(startDate, 365)) break;
+  }
+
+  return dates.slice(0, maxCount);
+}
 
 export const meta: MetaFunction = () => [{ title: "Schedule Trip - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const url = new URL(request.url);
   const tourId = url.searchParams.get("tourId");
 
   // Fetch real data from tenant database
   const [toursData, boatsData, staffData] = await Promise.all([
-    getTours(tenant.schemaName, { activeOnly: true }),
-    getBoats(tenant.schemaName, { activeOnly: true }),
-    getStaff(tenant.schemaName, { activeOnly: true }),
+    getTours(organizationId, { activeOnly: true }),
+    getBoats(organizationId, { activeOnly: true }),
+    getStaff(organizationId, { activeOnly: true }),
   ]);
 
   // Map to expected format for the form
@@ -45,7 +121,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
 
   // Convert staff array
@@ -54,25 +130,83 @@ export async function action({ request }: ActionFunctionArgs) {
     formData.set("staffIds", JSON.stringify(staffIds));
   }
 
+  // Convert recurrence days array
+  const recurrenceDays = formData.getAll("recurrenceDays");
+  if (recurrenceDays.length > 0) {
+    formData.set("recurrenceDays", JSON.stringify(recurrenceDays.map(Number)));
+  }
+
   const validation = validateFormData(formData, tripSchema);
 
   if (!validation.success) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  await createTrip(tenant.schemaName, {
-    tourId: formData.get("tourId") as string,
-    boatId: (formData.get("boatId") as string) || undefined,
-    date: formData.get("date") as string,
-    startTime: formData.get("startTime") as string,
-    endTime: (formData.get("endTime") as string) || undefined,
-    maxParticipants: formData.get("maxParticipants") ? Number(formData.get("maxParticipants")) : undefined,
-    price: formData.get("price") ? Number(formData.get("price")) : undefined,
-    notes: (formData.get("notes") as string) || undefined,
-  });
+  const isRecurring = formData.get("isRecurring") === "true";
+
+  if (isRecurring) {
+    const recurrencePattern = formData.get("recurrencePattern") as RecurrencePattern;
+
+    // For weekly/biweekly, if no days selected, use the start date's day
+    let parsedRecurrenceDays: number[] | undefined;
+    if (formData.get("recurrenceDays")) {
+      try {
+        parsedRecurrenceDays = JSON.parse(formData.get("recurrenceDays") as string);
+      } catch {
+        // If parsing fails, calculate from start date
+        const startDate = formData.get("date") as string;
+        const dayOfWeek = new Date(startDate + "T00:00:00").getDay();
+        parsedRecurrenceDays = [dayOfWeek];
+      }
+    } else if (recurrencePattern === "weekly" || recurrencePattern === "biweekly") {
+      const startDate = formData.get("date") as string;
+      const dayOfWeek = new Date(startDate + "T00:00:00").getDay();
+      parsedRecurrenceDays = [dayOfWeek];
+    }
+
+    await createRecurringTrip({
+      organizationId,
+      tourId: formData.get("tourId") as string,
+      boatId: (formData.get("boatId") as string) || null,
+      startDate: formData.get("date") as string,
+      startTime: formData.get("startTime") as string,
+      endTime: (formData.get("endTime") as string) || null,
+      maxParticipants: formData.get("maxParticipants") ? Number(formData.get("maxParticipants")) : null,
+      price: formData.get("price") ? Number(formData.get("price")) : null,
+      notes: (formData.get("notes") as string) || null,
+      staffIds: staffIds.length > 0 ? staffIds as string[] : null,
+      weatherNotes: (formData.get("weatherNotes") as string) || null,
+      recurrencePattern,
+      recurrenceDays: parsedRecurrenceDays || null,
+      recurrenceEndDate: (formData.get("recurrenceEndDate") as string) || null,
+      recurrenceCount: formData.get("recurrenceCount") ? Number(formData.get("recurrenceCount")) : null,
+    });
+  } else {
+    await createTrip(organizationId, {
+      tourId: formData.get("tourId") as string,
+      boatId: (formData.get("boatId") as string) || undefined,
+      date: formData.get("date") as string,
+      startTime: formData.get("startTime") as string,
+      endTime: (formData.get("endTime") as string) || undefined,
+      maxParticipants: formData.get("maxParticipants") ? Number(formData.get("maxParticipants")) : undefined,
+      price: formData.get("price") ? Number(formData.get("price")) : undefined,
+      notes: (formData.get("notes") as string) || undefined,
+    });
+  }
 
   return redirect("/app/trips");
 }
+
+// Day names for weekly selection
+const DAYS_OF_WEEK = [
+  { value: 0, label: "Sun" },
+  { value: 1, label: "Mon" },
+  { value: 2, label: "Tue" },
+  { value: 3, label: "Wed" },
+  { value: 4, label: "Thu" },
+  { value: 5, label: "Fri" },
+  { value: 6, label: "Sat" },
+];
 
 export default function NewTripPage() {
   const { tours, boats, staff, selectedTour } = useLoaderData<typeof loader>();
@@ -81,10 +215,36 @@ export default function NewTripPage() {
   const isSubmitting = navigation.state === "submitting";
   const [searchParams] = useSearchParams();
 
+  // Recurring trip state
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrencePattern, setRecurrencePattern] = useState<RecurrencePattern>("weekly");
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [recurrenceEndType, setRecurrenceEndType] = useState<"never" | "date" | "count">("never");
+  const [previewDates, setPreviewDates] = useState<string[]>([]);
+  const [startDate, setStartDate] = useState("");
+
   // Get tomorrow's date as default
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const defaultDate = tomorrow.toISOString().split("T")[0];
+
+  // Calculate preview dates when recurrence settings change
+  useEffect(() => {
+    if (!isRecurring || !startDate) {
+      setPreviewDates([]);
+      return;
+    }
+
+    const dates = calculatePreviewDates(startDate, recurrencePattern, selectedDays, 10);
+    setPreviewDates(dates);
+  }, [isRecurring, startDate, recurrencePattern, selectedDays]);
+
+  // Toggle day selection for weekly patterns
+  const toggleDay = (day: number) => {
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()
+    );
+  };
 
   return (
     <div className="max-w-2xl">
@@ -140,17 +300,18 @@ export default function NewTripPage() {
 
         {/* Date & Time */}
         <div className="bg-white rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Date & Time</h2>
+          <h2 className="font-semibold mb-4">{isRecurring ? "Start Date & Time" : "Date & Time"}</h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label htmlFor="date" className="block text-sm font-medium mb-1">
-                Date *
+                {isRecurring ? "First Trip Date *" : "Date *"}
               </label>
               <input
                 type="date"
                 id="date"
                 name="date"
-                defaultValue={actionData?.values?.date || defaultDate}
+                value={startDate || actionData?.values?.date || defaultDate}
+                onChange={(e) => setStartDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
@@ -188,6 +349,173 @@ export default function NewTripPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Recurring Trip Options */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-semibold">Recurring Trip</h2>
+              <p className="text-sm text-gray-500">Schedule this trip to repeat automatically</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                name="isRecurring"
+                value="true"
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {isRecurring && (
+            <div className="space-y-4 pt-4 border-t">
+              {/* Recurrence Pattern */}
+              <div>
+                <label htmlFor="recurrencePattern" className="block text-sm font-medium mb-1">
+                  Repeat
+                </label>
+                <select
+                  id="recurrencePattern"
+                  name="recurrencePattern"
+                  value={recurrencePattern}
+                  onChange={(e) => setRecurrencePattern(e.target.value as RecurrencePattern)}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="biweekly">Every 2 Weeks</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </div>
+
+              {/* Day Selection for Weekly/Biweekly */}
+              {(recurrencePattern === "weekly" || recurrencePattern === "biweekly") && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    On these days
+                  </label>
+                  <div className="flex gap-2">
+                    {DAYS_OF_WEEK.map((day) => (
+                      <button
+                        key={day.value}
+                        type="button"
+                        onClick={() => toggleDay(day.value)}
+                        className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
+                          selectedDays.includes(day.value)
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {day.label}
+                      </button>
+                    ))}
+                    {/* Hidden inputs for selected days */}
+                    {selectedDays.map((day) => (
+                      <input key={day} type="hidden" name="recurrenceDays" value={day} />
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {selectedDays.length === 0 ? "Will use the start date's day of week" : `Selected: ${selectedDays.map(d => DAYS_OF_WEEK[d].label).join(", ")}`}
+                  </p>
+                </div>
+              )}
+
+              {/* End Type */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Ends
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="recurrenceEndType"
+                      value="never"
+                      checked={recurrenceEndType === "never"}
+                      onChange={() => setRecurrenceEndType("never")}
+                      className="rounded"
+                    />
+                    <span className="text-sm">Never (generate up to 3 months)</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="recurrenceEndType"
+                      value="date"
+                      checked={recurrenceEndType === "date"}
+                      onChange={() => setRecurrenceEndType("date")}
+                      className="rounded"
+                    />
+                    <span className="text-sm">On date</span>
+                    {recurrenceEndType === "date" && (
+                      <input
+                        type="date"
+                        name="recurrenceEndDate"
+                        min={startDate || defaultDate}
+                        className="ml-2 px-2 py-1 border rounded text-sm"
+                      />
+                    )}
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="recurrenceEndType"
+                      value="count"
+                      checked={recurrenceEndType === "count"}
+                      onChange={() => setRecurrenceEndType("count")}
+                      className="rounded"
+                    />
+                    <span className="text-sm">After</span>
+                    {recurrenceEndType === "count" && (
+                      <>
+                        <input
+                          type="number"
+                          name="recurrenceCount"
+                          min="1"
+                          max="52"
+                          defaultValue="10"
+                          className="ml-2 w-16 px-2 py-1 border rounded text-sm"
+                        />
+                        <span className="text-sm">occurrences</span>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* Preview Dates */}
+              {previewDates.length > 0 && (
+                <div className="pt-4 border-t">
+                  <label className="block text-sm font-medium mb-2">
+                    Upcoming Dates Preview
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {previewDates.map((date, idx) => (
+                      <span
+                        key={date}
+                        className={`text-xs px-2 py-1 rounded ${
+                          idx === 0 ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    ))}
+                    {previewDates.length === 10 && (
+                      <span className="text-xs text-gray-500 self-center">...and more</span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Boat */}

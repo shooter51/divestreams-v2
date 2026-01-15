@@ -12,15 +12,15 @@ import { getPOSTransactions, getPOSSummary, type POSTransaction } from "../../..
 export const meta: MetaFunction = () => [{ title: "Transactions - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const url = new URL(request.url);
   const type = url.searchParams.get("type") || undefined;
   const dateFrom = url.searchParams.get("dateFrom") || undefined;
   const dateTo = url.searchParams.get("dateTo") || undefined;
 
   const [transactions, summary] = await Promise.all([
-    getPOSTransactions(tenant.schemaName, { type, dateFrom, dateTo, limit: 100 }),
-    getPOSSummary(tenant.schemaName),
+    getPOSTransactions(organizationId, { type, dateFrom, dateTo, limit: 100 }),
+    getPOSSummary(organizationId),
   ]);
 
   return { transactions, summary };

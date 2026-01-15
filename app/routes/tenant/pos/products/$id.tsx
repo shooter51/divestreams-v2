@@ -12,8 +12,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => [
 ];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
-  const product = await getProductById(tenant.schemaName, params.id!);
+  const { organizationId } = await requireTenant(request);
+  const product = await getProductById(organizationId, params.id!);
 
   if (!product) {
     throw new Response("Product not found", { status: 404 });
@@ -23,18 +23,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   if (intent === "delete") {
-    await deleteProduct(tenant.schemaName, params.id!);
+    await deleteProduct(organizationId, params.id!);
     return redirect("/app/pos/products");
   }
 
   if (intent === "adjustStock") {
     const adjustment = parseInt(formData.get("adjustment") as string);
-    await adjustProductStock(tenant.schemaName, params.id!, adjustment);
+    await adjustProductStock(organizationId, params.id!, adjustment);
     return { success: true };
   }
 

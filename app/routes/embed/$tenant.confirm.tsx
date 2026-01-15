@@ -6,7 +6,7 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
-import { getTenantBySubdomain } from "../../../lib/db/tenant.server";
+import { getOrganizationBySlug } from "../../../lib/db/queries.public";
 import { getBookingDetails } from "../../../lib/db/mutations.public";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
@@ -27,12 +27,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     throw new Response("Booking not found", { status: 404 });
   }
 
-  const tenant = await getTenantBySubdomain(subdomain);
-  if (!tenant || !tenant.isActive) {
+  const org = await getOrganizationBySlug(subdomain);
+  if (!org) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  const booking = await getBookingDetails(tenant.schemaName, bookingId, bookingNumber);
+  const booking = await getBookingDetails(org.id, bookingId, bookingNumber);
   if (!booking) {
     throw new Response("Booking not found", { status: 404 });
   }
@@ -40,7 +40,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return {
     booking,
     tenantSlug: subdomain,
-    tenantName: tenant.name,
+    tenantName: org.name,
   };
 }
 
@@ -73,7 +73,7 @@ function formatPrice(price: string | number, currency: string): string {
 export default function BookingConfirmationPage() {
   const { booking, tenantSlug, tenantName } = useLoaderData<typeof loader>();
   const { branding } = useOutletContext<{
-    tenant: { subdomain: string };
+    organization: { slug: string };
     branding: { primaryColor: string };
   }>();
 

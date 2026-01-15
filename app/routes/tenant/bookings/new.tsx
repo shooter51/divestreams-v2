@@ -8,7 +8,7 @@ import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
 export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const url = new URL(request.url);
   const customerId = url.searchParams.get("customerId");
   const tripId = url.searchParams.get("tripId");
@@ -18,9 +18,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Fetch real data from tenant database
   const [customersResult, tripsData, equipmentData] = await Promise.all([
-    getCustomers(tenant.schemaName, { limit: 100 }),
-    getTrips(tenant.schemaName, { fromDate: today, status: "scheduled", limit: 50 }),
-    getEquipment(tenant.schemaName, { isRentable: true, status: "available" }),
+    getCustomers(organizationId, { limit: 100 }),
+    getTrips(organizationId, { fromDate: today, status: "scheduled", limit: 50 }),
+    getEquipment(organizationId, { isRentable: true, status: "available" }),
   ]);
 
   // Map customers to expected format
@@ -60,7 +60,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { tenant, organizationId } = await requireTenant(request);
   const formData = await request.formData();
 
   const validation = validateFormData(formData, bookingSchema);
@@ -73,8 +73,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Get customer and trip details for pricing and email
   const [customer, trip] = await Promise.all([
-    getCustomerById(tenant.schemaName, data.customerId),
-    getTripById(tenant.schemaName, data.tripId),
+    getCustomerById(organizationId, data.customerId),
+    getTripById(organizationId, data.tripId),
   ]);
 
   if (!customer) {
@@ -92,7 +92,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const total = subtotal; // Could add tax/discounts here
 
   // Create the booking
-  const booking = await createBooking(tenant.schemaName, {
+  const booking = await createBooking(organizationId, {
     tripId: data.tripId,
     customerId: data.customerId,
     participants,

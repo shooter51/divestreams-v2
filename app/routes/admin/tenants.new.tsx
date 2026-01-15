@@ -6,6 +6,7 @@ import { subscription } from "../../../lib/db/schema/subscription";
 import { eq } from "drizzle-orm";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { auth } from "../../../lib/auth";
+import { seedDemoData } from "../../../lib/db/seed-demo-data.server";
 
 export const meta: MetaFunction = () => [{ title: "Create Organization - DiveStreams Admin" }];
 
@@ -29,6 +30,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const ownerPassword = formData.get("ownerPassword") as string;
   const plan = formData.get("plan") as string || "free";
   const createOwnerAccount = formData.get("createOwnerAccount") === "on";
+  const seedDemo = formData.get("seedDemoData") === "on";
 
   // Validation
   const errors: Record<string, string> = {};
@@ -62,6 +64,7 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     // Generate IDs
     const orgId = crypto.randomUUID();
+    console.log(`[TENANT CREATE] Creating organization: slug=${slug}, name=${name}, orgId=${orgId}`);
 
     // Create the organization
     await db.insert(organization).values({
@@ -71,16 +74,18 @@ export async function action({ request }: ActionFunctionArgs) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    console.log(`[TENANT CREATE] Organization created successfully: ${orgId}`);
 
-    // Create subscription record
+    // Create subscription record (let DB generate UUID)
+    console.log(`[TENANT CREATE] Creating subscription for org: ${orgId}`);
     await db.insert(subscription).values({
-      id: crypto.randomUUID(),
       organizationId: orgId,
       plan: plan as "free" | "premium",
       status: "active",
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    console.log(`[TENANT CREATE] Subscription created successfully`);
 
     // Create owner account if requested
     if (createOwnerAccount && ownerEmail && ownerPassword) {
@@ -133,44 +138,42 @@ export async function action({ request }: ActionFunctionArgs) {
       });
     }
 
+    // Seed demo data if requested
+    if (seedDemo) {
+      console.log(`[TENANT CREATE] Seeding demo data for org: ${orgId}`);
+      try {
+        await seedDemoData(orgId);
+        console.log(`[TENANT CREATE] Demo data seeded successfully`);
+      } catch (seedError) {
+        console.error(`[TENANT CREATE] Failed to seed demo data:`, seedError);
+        // Don't fail the whole operation, org was created successfully
+      }
+    }
+
+    console.log(`[TENANT CREATE] Success! Redirecting to /dashboard`);
     return redirect("/dashboard");
   } catch (error) {
-    console.error("Failed to create organization:", error);
-    return { errors: { form: "Failed to create organization. Please try again." } };
+    console.error("[TENANT CREATE] Failed to create organization:", error);
+    return { errors: { form: `Failed to create organization: ${error instanceof Error ? error.message : String(error)}` } };
   }
 }
 
-// Simple password hashing using Web Crypto API (compatible with Better Auth)
+// Hash password using scrypt (same format as Better Auth)
+// Better Auth uses: N=16384, r=16, p=1, dkLen=64, format: "salt:hash"
 async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const { scrypt, randomBytes } = await import("crypto");
+  const { promisify } = await import("util");
+  const scryptAsync = promisify(scrypt);
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    data,
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits"]
-  );
+  const salt = randomBytes(16).toString("hex");
+  const key = await scryptAsync(
+    password.normalize("NFKC"),
+    salt,
+    64, // dkLen
+    { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 }
+  ) as Buffer;
 
-  const hash = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: 100000,
-      hash: "SHA-256",
-    },
-    key,
-    256
-  );
-
-  // Combine salt and hash, then encode as base64
-  const combined = new Uint8Array(salt.length + hash.byteLength);
-  combined.set(salt);
-  combined.set(new Uint8Array(hash), salt.length);
-
-  return btoa(String.fromCharCode(...combined));
+  return `${salt}:${key.toString("hex")}`;
 }
 
 export default function CreateOrganizationPage() {
@@ -257,6 +260,23 @@ export default function CreateOrganizationPage() {
               <option value="free">Free</option>
               <option value="premium">Premium</option>
             </select>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <input
+              type="checkbox"
+              id="seedDemoData"
+              name="seedDemoData"
+              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <div>
+              <label htmlFor="seedDemoData" className="font-medium text-gray-900">
+                Seed Demo Data
+              </label>
+              <p className="text-xs text-gray-500">
+                Populate with sample customers, tours, bookings, products, and images
+              </p>
+            </div>
           </div>
         </div>
 

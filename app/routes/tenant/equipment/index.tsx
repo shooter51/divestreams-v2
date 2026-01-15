@@ -1,10 +1,12 @@
-import type { MetaFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link, useSearchParams } from "react-router";
+import { useState } from "react";
+import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { equipment } from "../../../../lib/db/schema";
-import { eq, or, ilike, sql, count } from "drizzle-orm";
+import { eq, or, ilike, sql, count, and } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
+import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
 
 export const meta: MetaFunction = () => [{ title: "Equipment - DiveStreams" }];
 
@@ -81,6 +83,39 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+export async function action({ request }: ActionFunctionArgs) {
+  const ctx = await requireOrgContext(request);
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "barcode-lookup") {
+    const barcode = formData.get("barcode") as string;
+    if (!barcode) {
+      return { error: "No barcode provided" };
+    }
+
+    // Look up equipment by barcode
+    const [foundEquipment] = await db
+      .select()
+      .from(equipment)
+      .where(
+        and(
+          eq(equipment.organizationId, ctx.org.id),
+          eq(equipment.barcode, barcode)
+        )
+      )
+      .limit(1);
+
+    if (foundEquipment) {
+      return { found: true, equipmentId: foundEquipment.id, equipmentName: foundEquipment.name };
+    } else {
+      return { found: false, error: `No equipment found with barcode: ${barcode}` };
+    }
+  }
+
+  return null;
+}
+
 const categoryLabels: Record<string, string> = {
   bcd: "BCD",
   regulator: "Regulator",
@@ -118,6 +153,31 @@ export default function EquipmentPage() {
     rentableCount
   } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [barcodeError, setBarcodeError] = useState<string | null>(null);
+  const fetcher = useFetcher<{ found?: boolean; equipmentId?: string; equipmentName?: string; error?: string }>();
+
+  // Handle barcode scan result
+  const handleBarcodeScan = (barcode: string) => {
+    setShowBarcodeScanner(false);
+    setBarcodeError(null);
+    fetcher.submit(
+      { intent: "barcode-lookup", barcode },
+      { method: "post" }
+    );
+  };
+
+  // Navigate to equipment details when barcode lookup succeeds
+  if (fetcher.data?.found && fetcher.data.equipmentId) {
+    window.location.href = `/app/equipment/${fetcher.data.equipmentId}`;
+  }
+
+  // Show error if barcode lookup failed
+  if (fetcher.data?.error && !barcodeError) {
+    setBarcodeError(fetcher.data.error);
+    // Clear error after 5 seconds
+    setTimeout(() => setBarcodeError(null), 5000);
+  }
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -154,6 +214,16 @@ export default function EquipmentPage() {
           <p className="text-gray-500">{stats.total} items total</p>
         </div>
         <div className="flex gap-3">
+          {/* Scan Barcode button */}
+          <button
+            onClick={() => setShowBarcodeScanner(true)}
+            className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+            </svg>
+            Scan Barcode
+          </button>
           {/* Rental management button - premium only */}
           {hasEquipmentRentals ? (
             <Link
@@ -350,6 +420,25 @@ export default function EquipmentPage() {
           <Link to="/app/settings/billing" className="text-blue-600 hover:underline">
             Upgrade now
           </Link>
+        </div>
+      )}
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        onScan={handleBarcodeScan}
+        title="Scan Equipment Barcode"
+        showConfirmation={false}
+      />
+
+      {/* Barcode Error Toast */}
+      {barcodeError && (
+        <div className="fixed bottom-4 left-4 bg-amber-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          {barcodeError}
         </div>
       )}
     </div>

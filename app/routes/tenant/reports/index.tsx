@@ -9,12 +9,13 @@
  */
 
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, tours, equipment } from "../../../../lib/db/schema";
-import { eq, gte, and, sql, count, sum } from "drizzle-orm";
+import { eq, gte, and, sql, count, sum, lte } from "drizzle-orm";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
+import { useState, useRef, useEffect } from "react";
 
 export const meta: MetaFunction = () => [{ title: "Reports - DiveStreams" }];
 
@@ -45,71 +46,170 @@ type EquipmentUtilizationItem = {
   maintenance: number;
 };
 
+// Date range preset types
+type DateRangePreset = "today" | "this_week" | "this_month" | "this_year" | "custom";
+
+// Helper function to calculate date range from preset
+function getDateRangeFromPreset(preset: DateRangePreset, customStart?: string, customEnd?: string): { start: Date; end: Date } {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  switch (preset) {
+    case "today":
+      return {
+        start: today,
+        end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1), // End of today
+      };
+    case "this_week": {
+      const dayOfWeek = today.getDay();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - dayOfWeek); // Sunday
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      return { start: startOfWeek, end: endOfWeek };
+    }
+    case "this_month": {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+      return { start: startOfMonth, end: endOfMonth };
+    }
+    case "this_year": {
+      const startOfYear = new Date(today.getFullYear(), 0, 1);
+      const endOfYear = new Date(today.getFullYear(), 11, 31, 23, 59, 59, 999);
+      return { start: startOfYear, end: endOfYear };
+    }
+    case "custom": {
+      const start = customStart ? new Date(customStart) : today;
+      const end = customEnd ? new Date(customEnd + "T23:59:59.999") : new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1);
+      return { start, end };
+    }
+    default:
+      // Default to this month
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+      return { start: startOfMonth, end: endOfMonth };
+  }
+}
+
+// Helper to get previous period for comparison
+function getPreviousPeriod(preset: DateRangePreset, start: Date, end: Date): { start: Date; end: Date } {
+  const duration = end.getTime() - start.getTime();
+  return {
+    start: new Date(start.getTime() - duration - 1),
+    end: new Date(start.getTime() - 1),
+  };
+}
+
+// Helper to format date range label
+function getDateRangeLabel(preset: DateRangePreset, customStart?: string, customEnd?: string): string {
+  switch (preset) {
+    case "today":
+      return "Today";
+    case "this_week":
+      return "This Week";
+    case "this_month":
+      return "This Month";
+    case "this_year":
+      return "This Year";
+    case "custom":
+      if (customStart && customEnd) {
+        return `${customStart} to ${customEnd}`;
+      }
+      return "Custom Range";
+    default:
+      return "This Month";
+  }
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  const url = new URL(request.url);
 
-  // Advanced reports require premium subscription
-  // For now, provide basic stats for all users
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
+  // Parse date range from URL params
+  const rangeParam = url.searchParams.get("range") as DateRangePreset | null;
+  const customStart = url.searchParams.get("start") || undefined;
+  const customEnd = url.searchParams.get("end") || undefined;
 
-  const lastMonth = new Date(startOfMonth);
-  lastMonth.setMonth(lastMonth.getMonth() - 1);
+  // Default to "this_month" if no range specified
+  const selectedRange: DateRangePreset = rangeParam || "this_month";
+
+  // Calculate date range
+  const { start: dateStart, end: dateEnd } = getDateRangeFromPreset(selectedRange, customStart, customEnd);
+  const { start: prevStart, end: prevEnd } = getPreviousPeriod(selectedRange, dateStart, dateEnd);
+
+  // For YTD calculation
+  const startOfYear = new Date(new Date().getFullYear(), 0, 1);
 
   // Default values for all queries
-  let currentMonth = 0;
-  let lastMonthTotal = 0;
+  let currentPeriodRevenue = 0;
+  let previousPeriodRevenue = 0;
   let changePercent = 0;
-  let bookingsThisMonth = 0;
+  let bookingsInPeriod = 0;
   let avgBookingValue = 0;
   let totalCustomers = 0;
-  let newThisMonth = 0;
+  let newCustomersInPeriod = 0;
+  let yearToDateRevenue = 0;
 
   try {
-    // Get basic revenue overview
-    const [currentMonthResult] = await db
+    // Get revenue for selected period
+    const [currentPeriodResult] = await db
       .select({ total: sql<number>`COALESCE(SUM(${bookings.total}), 0)` })
       .from(bookings)
       .where(
         and(
           eq(bookings.organizationId, ctx.org.id),
-          gte(bookings.createdAt, startOfMonth)
+          gte(bookings.createdAt, dateStart),
+          lte(bookings.createdAt, dateEnd)
         )
       );
 
-    const [lastMonthResult] = await db
+    // Get revenue for previous period (for comparison)
+    const [previousPeriodResult] = await db
       .select({ total: sql<number>`COALESCE(SUM(${bookings.total}), 0)` })
       .from(bookings)
       .where(
         and(
           eq(bookings.organizationId, ctx.org.id),
-          gte(bookings.createdAt, lastMonth),
-          sql`${bookings.createdAt} < ${startOfMonth}`
+          gte(bookings.createdAt, prevStart),
+          lte(bookings.createdAt, prevEnd)
         )
       );
 
-    currentMonth = Number(currentMonthResult?.total || 0);
-    lastMonthTotal = Number(lastMonthResult?.total || 0);
-    changePercent = lastMonthTotal > 0
-      ? Math.round(((currentMonth - lastMonthTotal) / lastMonthTotal) * 100)
+    // Get Year to Date revenue
+    const [ytdResult] = await db
+      .select({ total: sql<number>`COALESCE(SUM(${bookings.total}), 0)` })
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.organizationId, ctx.org.id),
+          gte(bookings.createdAt, startOfYear)
+        )
+      );
+
+    currentPeriodRevenue = Number(currentPeriodResult?.total || 0);
+    previousPeriodRevenue = Number(previousPeriodResult?.total || 0);
+    yearToDateRevenue = Number(ytdResult?.total || 0);
+    changePercent = previousPeriodRevenue > 0
+      ? Math.round(((currentPeriodRevenue - previousPeriodRevenue) / previousPeriodRevenue) * 100)
       : 0;
 
-    // Get booking count this month
+    // Get booking count for selected period
     const [bookingCountResult] = await db
       .select({ count: count() })
       .from(bookings)
       .where(
         and(
           eq(bookings.organizationId, ctx.org.id),
-          gte(bookings.createdAt, startOfMonth)
+          gte(bookings.createdAt, dateStart),
+          lte(bookings.createdAt, dateEnd)
         )
       );
 
-    bookingsThisMonth = bookingCountResult?.count || 0;
-    avgBookingValue = bookingsThisMonth > 0 ? Math.round(currentMonth / bookingsThisMonth) : 0;
+    bookingsInPeriod = bookingCountResult?.count || 0;
+    avgBookingValue = bookingsInPeriod > 0 ? Math.round(currentPeriodRevenue / bookingsInPeriod) : 0;
 
-    // Get customer count
+    // Get total customer count (not filtered by date range)
     const [customerCountResult] = await db
       .select({ count: count() })
       .from(customers)
@@ -117,36 +217,37 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     totalCustomers = customerCountResult?.count || 0;
 
-    // Get new customers this month
+    // Get new customers in selected period
     const [newCustomerResult] = await db
       .select({ count: count() })
       .from(customers)
       .where(
         and(
           eq(customers.organizationId, ctx.org.id),
-          gte(customers.createdAt, startOfMonth)
+          gte(customers.createdAt, dateStart),
+          lte(customers.createdAt, dateEnd)
         )
       );
 
-    newThisMonth = newCustomerResult?.count || 0;
+    newCustomersInPeriod = newCustomerResult?.count || 0;
   } catch (error) {
     console.error("Error fetching report data:", error);
     // Return defaults - all zeros already set above
   }
 
   const revenueOverview = {
-    currentMonth,
-    lastMonth: lastMonthTotal,
-    yearToDate: currentMonth + lastMonthTotal, // Simplified for now
+    currentPeriod: currentPeriodRevenue,
+    previousPeriod: previousPeriodRevenue,
+    yearToDate: yearToDateRevenue,
     avgBookingValue,
     changePercent,
   };
 
   const customerStats = {
     totalCustomers,
-    newThisMonth,
+    newInPeriod: newCustomersInPeriod,
     repeatCustomers: 0, // Would need more complex query
-    avgBookingsPerCustomer: totalCustomers > 0 ? Math.round(bookingsThisMonth / totalCustomers * 10) / 10 : 0,
+    avgBookingsPerCustomer: totalCustomers > 0 ? Math.round(bookingsInPeriod / totalCustomers * 10) / 10 : 0,
   };
 
   // Only fetch advanced reporting data for premium users
@@ -177,6 +278,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // Basic stats - available to all users
     customerStats,
     isPremium: ctx.isPremium,
+    // Date range info
+    dateRange: {
+      preset: selectedRange,
+      start: customStart,
+      end: customEnd,
+      label: getDateRangeLabel(selectedRange, customStart, customEnd),
+    },
   };
 }
 
@@ -204,6 +312,178 @@ function formatPercent(value: number): string {
   return `${sign}${value}%`;
 }
 
+// Date Range Selector Component
+function DateRangeSelector({
+  currentPreset,
+  currentStart,
+  currentEnd,
+}: {
+  currentPreset: string;
+  currentStart?: string;
+  currentEnd?: string;
+}) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isOpen, setIsOpen] = useState(false);
+  const [showCustom, setShowCustom] = useState(currentPreset === "custom");
+  const [customStartDate, setCustomStartDate] = useState(currentStart || "");
+  const [customEndDate, setCustomEndDate] = useState(currentEnd || "");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const presets = [
+    { value: "today", label: "Today" },
+    { value: "this_week", label: "This Week" },
+    { value: "this_month", label: "This Month" },
+    { value: "this_year", label: "This Year" },
+  ];
+
+  const handlePresetSelect = (preset: string) => {
+    if (preset === "custom") {
+      setShowCustom(true);
+    } else {
+      setSearchParams({ range: preset });
+      setIsOpen(false);
+      setShowCustom(false);
+    }
+  };
+
+  const handleCustomApply = () => {
+    if (customStartDate && customEndDate) {
+      setSearchParams({
+        range: "custom",
+        start: customStartDate,
+        end: customEndDate,
+      });
+      setIsOpen(false);
+    }
+  };
+
+  const getCurrentLabel = () => {
+    if (currentPreset === "custom" && currentStart && currentEnd) {
+      return `${currentStart} to ${currentEnd}`;
+    }
+    const preset = presets.find((p) => p.value === currentPreset);
+    return preset?.label || "This Month";
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        aria-label="Select date range"
+      >
+        <svg
+          className="w-5 h-5 text-gray-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+        <span className="text-sm font-medium text-gray-700">{getCurrentLabel()}</span>
+        <svg
+          className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div className="p-2">
+            <p className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Presets
+            </p>
+            {presets.map((preset) => (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => handlePresetSelect(preset.value)}
+                className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 ${
+                  currentPreset === preset.value ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700"
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+
+            <hr className="my-2" />
+
+            <button
+              type="button"
+              onClick={() => setShowCustom(!showCustom)}
+              className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 ${
+                currentPreset === "custom" ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700"
+              }`}
+            >
+              Custom Range
+            </button>
+
+            {showCustom && (
+              <div className="p-3 space-y-3">
+                <div>
+                  <label htmlFor="start-date" className="block text-xs font-medium text-gray-600 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    id="start-date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label="Start date"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="end-date" className="block text-xs font-medium text-gray-600 mb-1">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    id="end-date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label="End date"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCustomApply}
+                  disabled={!customStartDate || !customEndDate}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Apply
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ReportsPage() {
   const {
     revenueOverview,
@@ -213,6 +493,7 @@ export default function ReportsPage() {
     customerStats,
     equipmentUtilization,
     isPremium,
+    dateRange,
   } = useLoaderData<typeof loader>();
 
   // Calculate total bookings
@@ -221,29 +502,78 @@ export default function ReportsPage() {
   // Get max revenue for scaling the chart bars
   const maxRevenue = Math.max(...revenueData.map((d) => d.revenue), 1);
 
+  // Get period label for display
+  const periodLabel = dateRange.label;
+  const comparisonLabel = dateRange.preset === "today" ? "vs yesterday" :
+    dateRange.preset === "this_week" ? "vs last week" :
+    dateRange.preset === "this_month" ? "vs last month" :
+    dateRange.preset === "this_year" ? "vs last year" :
+    "vs previous period";
+
+  // Build export URL with current date range params
+  const buildExportUrl = (type: "csv" | "pdf") => {
+    const params = new URLSearchParams();
+    if (dateRange.start) params.set("startDate", dateRange.start);
+    if (dateRange.end) params.set("endDate", dateRange.end);
+    const queryString = params.toString();
+    return `/app/reports/export/${type}${queryString ? `?${queryString}` : ""}`;
+  };
+
+  const handleExportCSV = () => {
+    window.location.href = buildExportUrl("csv");
+  };
+
+  const handleExportPDF = () => {
+    window.location.href = buildExportUrl("pdf");
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Reports</h1>
-        <div className="text-sm text-gray-500">Last 30 days</div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportCSV}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export CSV
+          </button>
+          <button
+            onClick={handleExportPDF}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export PDF
+          </button>
+          <DateRangeSelector
+            currentPreset={dateRange.preset}
+            currentStart={dateRange.start}
+            currentEnd={dateRange.end}
+          />
+        </div>
       </div>
 
       {/* Revenue Overview Cards */}
       <div className="grid grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm mb-1">This Month</p>
-          <p className="text-2xl font-bold">{formatCurrency(revenueOverview.currentMonth)}</p>
+          <p className="text-gray-500 text-sm mb-1">{periodLabel}</p>
+          <p className="text-2xl font-bold">{formatCurrency(revenueOverview.currentPeriod)}</p>
           <p
             className={`text-sm mt-1 ${
               revenueOverview.changePercent >= 0 ? "text-green-600" : "text-red-600"
             }`}
           >
-            {formatPercent(revenueOverview.changePercent)} vs last month
+            {formatPercent(revenueOverview.changePercent)} {comparisonLabel}
           </p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm mb-1">Last Month</p>
-          <p className="text-2xl font-bold">{formatCurrency(revenueOverview.lastMonth)}</p>
+          <p className="text-gray-500 text-sm mb-1">Previous Period</p>
+          <p className="text-2xl font-bold">{formatCurrency(revenueOverview.previousPeriod)}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <p className="text-gray-500 text-sm mb-1">Year to Date</p>
@@ -392,8 +722,8 @@ export default function ReportsPage() {
               <p className="text-sm text-blue-600">Total Customers</p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-2xl font-bold text-green-700">{customerStats.newThisMonth}</p>
-              <p className="text-sm text-green-600">New This Month</p>
+              <p className="text-2xl font-bold text-green-700">{customerStats.newInPeriod}</p>
+              <p className="text-sm text-green-600">New {periodLabel}</p>
             </div>
             <div className="p-4 bg-purple-50 rounded-lg">
               <p className="text-2xl font-bold text-purple-700">{customerStats.repeatCustomers}</p>

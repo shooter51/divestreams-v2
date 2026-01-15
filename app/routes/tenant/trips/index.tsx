@@ -42,6 +42,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       tourName: tours.name,
       tourPrice: tours.price,
       boatName: boats.name,
+      // Recurring trip fields
+      isRecurring: tripsTable.isRecurring,
+      recurrencePattern: tripsTable.recurrencePattern,
+      recurringTemplateId: tripsTable.recurringTemplateId,
     })
     .from(tripsTable)
     .leftJoin(tours, eq(tripsTable.tourId, tours.id))
@@ -85,6 +89,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
         status: bookedParticipants >= maxParticipants && maxParticipants > 0 ? "full" : t.status,
         revenue: (bookedParticipants * Number(t.tourPrice || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 }),
         staff: [], // Staff would need separate query
+        // Recurring trip info
+        isRecurring: t.isRecurring,
+        recurrencePattern: t.recurrencePattern,
+        recurringTemplateId: t.recurringTemplateId,
+        isTemplate: t.isRecurring && !t.recurringTemplateId, // Template has no parent
       };
     });
 
@@ -210,7 +219,20 @@ export default function TripsPage() {
                           <p className="text-xs text-gray-500">{trip.endTime}</p>
                         </div>
                         <div>
-                          <p className="font-semibold">{trip.tour.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold">{trip.tour.name}</p>
+                            {trip.isRecurring && (
+                              <span
+                                className="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700"
+                                title={`Recurring ${trip.recurrencePattern || ""} trip${trip.isTemplate ? " (template)" : ""}`}
+                              >
+                                <svg className="w-3 h-3 inline mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                {trip.recurrencePattern}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-500">
                             {trip.boat.name}
                             {trip.staff.length > 0 && (

@@ -8,7 +8,7 @@ import { getTenantDb } from "../../../../../lib/db/tenant.server";
 export const meta: MetaFunction = () => [{ title: "Edit Trip - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const tripId = params.id;
 
   if (!tripId) {
@@ -16,9 +16,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   const [tripData, boats, tours] = await Promise.all([
-    getTripWithFullDetails(tenant.schemaName, tripId),
-    getAllBoats(tenant.schemaName),
-    getAllTours(tenant.schemaName),
+    getTripWithFullDetails(organizationId, tripId),
+    getAllBoats(organizationId),
+    getAllTours(organizationId),
   ]);
 
   if (!tripData) {
@@ -54,7 +54,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const tripId = params.id;
 
   if (!tripId) {
@@ -75,7 +75,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const notes = formData.get("notes") as string;
 
   // Update trip in database
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   await db
     .update(schema.trips)
@@ -92,7 +92,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       notes,
       updatedAt: new Date(),
     })
-    .where(eq(schema.trips.id, tripId));
+    .where(and(eq(schema.trips.organizationId, organizationId), eq(schema.trips.id, tripId)));
 
   return redirect(`/app/trips/${tripId}`);
 }

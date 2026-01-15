@@ -17,27 +17,27 @@ import {
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const url = new URL(request.url);
   const category = url.searchParams.get("category") || undefined;
   const search = url.searchParams.get("search") || undefined;
 
   const [products, categories] = await Promise.all([
-    getProducts(tenant.schemaName, { category, search, isActive: undefined }),
-    getProductCategories(tenant.schemaName),
+    getProducts(organizationId, { category, search, isActive: undefined }),
+    getProductCategories(organizationId),
   ]);
 
   return { products, categories };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   if (intent === "delete") {
     const id = formData.get("id") as string;
-    await deleteProduct(tenant.schemaName, id);
+    await deleteProduct(organizationId, id);
     return { success: true };
   }
 

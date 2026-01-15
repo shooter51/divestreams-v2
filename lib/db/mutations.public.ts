@@ -2,18 +2,13 @@
  * Public Mutations for Booking Widget
  *
  * These mutations are used by the embed widget to create bookings.
+ * All mutations filter by organizationId to support organization-based multi-tenancy.
  */
 
-import postgres from "postgres";
+import { db } from "./index";
+import { eq, and, sql } from "drizzle-orm";
+import * as schema from "./schema";
 import { nanoid } from "nanoid";
-
-function getClient(schemaName: string) {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL not set");
-  }
-  return postgres(connectionString);
-}
 
 // Generate a unique booking number
 function generateBookingNumber(): string {
@@ -45,155 +40,163 @@ export interface WidgetBookingResult {
 }
 
 export async function createWidgetBooking(
-  schemaName: string,
+  organizationId: string,
   input: CreateWidgetBookingInput
 ): Promise<WidgetBookingResult> {
-  const client = getClient(schemaName);
-
-  try {
-    // Get trip details and verify availability
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        t.tour_id,
-        COALESCE(t.max_participants, tr.max_participants) as max_participants,
-        COALESCE(t.price, tr.price) as price,
-        tr.currency,
-        t.date,
-        t.status,
-        (
-          SELECT COALESCE(SUM(b.participants), 0)
-          FROM "${schemaName}".bookings b
-          WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')
-        ) as booked_participants
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE t.id = '${input.tripId}'
-        AND t.status = 'scheduled'
-        AND tr.is_active = true
-    `);
-
-    if (trips.length === 0) {
-      throw new Error("Trip not found or not available");
-    }
-
-    const trip = trips[0];
-    const maxParticipants = Number(trip.max_participants);
-    const bookedParticipants = Number(trip.booked_participants || 0);
-    const availableSpots = maxParticipants - bookedParticipants;
-
-    if (input.participants > availableSpots) {
-      throw new Error(`Only ${availableSpots} spots available`);
-    }
-
-    // Check if trip is in the future
-    const tripDate = new Date(trip.date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (tripDate < today) {
-      throw new Error("Cannot book past trips");
-    }
-
-    // Find or create customer
-    const existingCustomers = await client.unsafe(`
-      SELECT id FROM "${schemaName}".customers
-      WHERE email = '${input.email.replace(/'/g, "''")}'
-      LIMIT 1
-    `);
-
-    let customerId: string;
-
-    if (existingCustomers.length > 0) {
-      customerId = existingCustomers[0].id;
-
-      // Update customer info
-      await client.unsafe(`
-        UPDATE "${schemaName}".customers
-        SET
-          first_name = '${input.firstName.replace(/'/g, "''")}',
-          last_name = '${input.lastName.replace(/'/g, "''")}',
-          phone = ${input.phone ? `'${input.phone.replace(/'/g, "''")}'` : "phone"},
-          updated_at = NOW()
-        WHERE id = '${customerId}'
-      `);
-    } else {
-      // Create new customer
-      const newCustomer = await client.unsafe(`
-        INSERT INTO "${schemaName}".customers (
-          email,
-          first_name,
-          last_name,
-          phone
-        ) VALUES (
-          '${input.email.replace(/'/g, "''")}',
-          '${input.firstName.replace(/'/g, "''")}',
-          '${input.lastName.replace(/'/g, "''")}',
-          ${input.phone ? `'${input.phone.replace(/'/g, "''")}'` : "NULL"}
-        )
-        RETURNING id
-      `);
-
-      customerId = newCustomer[0].id;
-    }
-
-    // Calculate pricing
-    const pricePerPerson = parseFloat(trip.price);
-    const subtotal = pricePerPerson * input.participants;
-    const tax = 0; // Tax calculation can be added later
-    const total = subtotal + tax;
-
-    // Generate booking number
-    const bookingNumber = generateBookingNumber();
-
-    // Create booking
-    const bookings = await client.unsafe(`
-      INSERT INTO "${schemaName}".bookings (
-        booking_number,
-        trip_id,
-        customer_id,
-        participants,
-        status,
-        subtotal,
-        tax,
-        total,
-        currency,
-        payment_status,
-        special_requests,
-        source
-      ) VALUES (
-        '${bookingNumber}',
-        '${input.tripId}',
-        '${customerId}',
-        ${input.participants},
-        'pending',
-        ${subtotal.toFixed(2)},
-        ${tax.toFixed(2)},
-        ${total.toFixed(2)},
-        '${trip.currency}',
-        'pending',
-        ${input.specialRequests ? `'${input.specialRequests.replace(/'/g, "''")}'` : "NULL"},
-        'widget'
+  // Get trip details and verify availability
+  const tripData = await db
+    .select({
+      id: schema.trips.id,
+      tourId: schema.trips.tourId,
+      tripMaxParticipants: schema.trips.maxParticipants,
+      tourMaxParticipants: schema.tours.maxParticipants,
+      tripPrice: schema.trips.price,
+      tourPrice: schema.tours.price,
+      currency: schema.tours.currency,
+      date: schema.trips.date,
+      status: schema.trips.status,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(
+      and(
+        eq(schema.trips.organizationId, organizationId),
+        eq(schema.trips.id, input.tripId),
+        eq(schema.trips.status, "scheduled"),
+        eq(schema.tours.isActive, true)
       )
-      RETURNING id, booking_number, trip_id, customer_id, participants, total, currency, status, payment_status
-    `);
+    )
+    .limit(1);
 
-    const booking = bookings[0];
-
-    return {
-      id: booking.id,
-      bookingNumber: booking.booking_number,
-      tripId: booking.trip_id,
-      customerId: booking.customer_id,
-      participants: Number(booking.participants),
-      total: booking.total,
-      currency: booking.currency,
-      status: booking.status,
-      paymentStatus: booking.payment_status,
-    };
-  } finally {
-    await client.end();
+  if (tripData.length === 0) {
+    throw new Error("Trip not found or not available");
   }
+
+  const trip = tripData[0];
+
+  // Get current booking count for the trip
+  const bookingCount = await db
+    .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
+    .from(schema.bookings)
+    .where(
+      and(
+        eq(schema.bookings.tripId, input.tripId),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      )
+    );
+
+  const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
+  const bookedParticipants = Number(bookingCount[0]?.total || 0);
+  const availableSpots = maxParticipants - bookedParticipants;
+
+  if (input.participants > availableSpots) {
+    throw new Error(`Only ${availableSpots} spots available`);
+  }
+
+  // Check if trip is in the future
+  const tripDate = new Date(trip.date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (tripDate < today) {
+    throw new Error("Cannot book past trips");
+  }
+
+  // Find or create customer
+  const existingCustomers = await db
+    .select({ id: schema.customers.id })
+    .from(schema.customers)
+    .where(
+      and(
+        eq(schema.customers.organizationId, organizationId),
+        eq(schema.customers.email, input.email.toLowerCase())
+      )
+    )
+    .limit(1);
+
+  let customerId: string;
+
+  if (existingCustomers.length > 0) {
+    customerId = existingCustomers[0].id;
+
+    // Update customer info
+    await db
+      .update(schema.customers)
+      .set({
+        firstName: input.firstName,
+        lastName: input.lastName,
+        phone: input.phone || undefined,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.customers.id, customerId));
+  } else {
+    // Create new customer
+    const newCustomer = await db
+      .insert(schema.customers)
+      .values({
+        organizationId,
+        email: input.email.toLowerCase(),
+        firstName: input.firstName,
+        lastName: input.lastName,
+        phone: input.phone || null,
+      })
+      .returning({ id: schema.customers.id });
+
+    customerId = newCustomer[0].id;
+  }
+
+  // Calculate pricing
+  const pricePerPerson = parseFloat(trip.tripPrice || trip.tourPrice);
+  const subtotal = pricePerPerson * input.participants;
+  const tax = 0; // Tax calculation can be added later
+  const total = subtotal + tax;
+
+  // Generate booking number
+  const bookingNumber = generateBookingNumber();
+
+  // Create booking
+  const newBooking = await db
+    .insert(schema.bookings)
+    .values({
+      organizationId,
+      bookingNumber,
+      tripId: input.tripId,
+      customerId,
+      participants: input.participants,
+      status: "pending",
+      subtotal: subtotal.toFixed(2),
+      tax: tax.toFixed(2),
+      total: total.toFixed(2),
+      currency: trip.currency,
+      paymentStatus: "pending",
+      specialRequests: input.specialRequests || null,
+      source: "widget",
+    })
+    .returning({
+      id: schema.bookings.id,
+      bookingNumber: schema.bookings.bookingNumber,
+      tripId: schema.bookings.tripId,
+      customerId: schema.bookings.customerId,
+      participants: schema.bookings.participants,
+      total: schema.bookings.total,
+      currency: schema.bookings.currency,
+      status: schema.bookings.status,
+      paymentStatus: schema.bookings.paymentStatus,
+    });
+
+  const booking = newBooking[0];
+
+  return {
+    id: booking.id,
+    bookingNumber: booking.bookingNumber,
+    tripId: booking.tripId,
+    customerId: booking.customerId,
+    participants: Number(booking.participants),
+    total: booking.total,
+    currency: booking.currency,
+    status: booking.status,
+    paymentStatus: booking.paymentStatus,
+  };
 }
 
 // Get booking details for confirmation page
@@ -227,83 +230,98 @@ export interface BookingDetails {
 }
 
 export async function getBookingDetails(
-  schemaName: string,
+  organizationId: string,
   bookingId: string,
   bookingNumber: string
 ): Promise<BookingDetails | null> {
-  const client = getClient(schemaName);
+  // Get booking with customer and trip info
+  const bookings = await db
+    .select({
+      id: schema.bookings.id,
+      bookingNumber: schema.bookings.bookingNumber,
+      status: schema.bookings.status,
+      paymentStatus: schema.bookings.paymentStatus,
+      participants: schema.bookings.participants,
+      subtotal: schema.bookings.subtotal,
+      tax: schema.bookings.tax,
+      total: schema.bookings.total,
+      currency: schema.bookings.currency,
+      specialRequests: schema.bookings.specialRequests,
+      createdAt: schema.bookings.createdAt,
+      // Customer
+      customerFirstName: schema.customers.firstName,
+      customerLastName: schema.customers.lastName,
+      customerEmail: schema.customers.email,
+      customerPhone: schema.customers.phone,
+      // Trip
+      tripId: schema.trips.id,
+      tripDate: schema.trips.date,
+      tripStartTime: schema.trips.startTime,
+      tripEndTime: schema.trips.endTime,
+      // Tour
+      tourId: schema.tours.id,
+      tourName: schema.tours.name,
+      tourDescription: schema.tours.description,
+    })
+    .from(schema.bookings)
+    .innerJoin(schema.customers, eq(schema.bookings.customerId, schema.customers.id))
+    .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(
+      and(
+        eq(schema.bookings.organizationId, organizationId),
+        eq(schema.bookings.id, bookingId),
+        eq(schema.bookings.bookingNumber, bookingNumber)
+      )
+    )
+    .limit(1);
 
-  try {
-    const bookings = await client.unsafe(`
-      SELECT
-        b.id,
-        b.booking_number,
-        b.status,
-        b.payment_status,
-        b.participants,
-        b.subtotal,
-        b.tax,
-        b.total,
-        b.currency,
-        b.special_requests,
-        b.created_at,
-        c.first_name,
-        c.last_name,
-        c.email,
-        c.phone,
-        t.id as trip_id,
-        t.date,
-        t.start_time,
-        t.end_time,
-        tr.name as tour_name,
-        tr.description as tour_description,
-        (
-          SELECT url FROM "${schemaName}".images
-          WHERE entity_type = 'tour' AND entity_id = tr.id AND is_primary = true
-          LIMIT 1
-        ) as primary_image
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".customers c ON b.customer_id = c.id
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE b.id = '${bookingId}' AND b.booking_number = '${bookingNumber}'
-    `);
-
-    if (bookings.length === 0) {
-      return null;
-    }
-
-    const b = bookings[0];
-
-    return {
-      id: b.id,
-      bookingNumber: b.booking_number,
-      status: b.status,
-      paymentStatus: b.payment_status,
-      participants: Number(b.participants),
-      subtotal: b.subtotal,
-      tax: b.tax,
-      total: b.total,
-      currency: b.currency,
-      specialRequests: b.special_requests,
-      customer: {
-        firstName: b.first_name,
-        lastName: b.last_name,
-        email: b.email,
-        phone: b.phone,
-      },
-      trip: {
-        id: b.trip_id,
-        date: b.date,
-        startTime: b.start_time,
-        endTime: b.end_time,
-        tourName: b.tour_name,
-        tourDescription: b.tour_description,
-        primaryImage: b.primary_image,
-      },
-      createdAt: b.created_at,
-    };
-  } finally {
-    await client.end();
+  if (bookings.length === 0) {
+    return null;
   }
+
+  const b = bookings[0];
+
+  // Get primary image for the tour
+  const images = await db
+    .select({ url: schema.images.url })
+    .from(schema.images)
+    .where(
+      and(
+        eq(schema.images.organizationId, organizationId),
+        eq(schema.images.entityType, "tour"),
+        eq(schema.images.entityId, b.tourId),
+        eq(schema.images.isPrimary, true)
+      )
+    )
+    .limit(1);
+
+  return {
+    id: b.id,
+    bookingNumber: b.bookingNumber,
+    status: b.status,
+    paymentStatus: b.paymentStatus,
+    participants: Number(b.participants),
+    subtotal: b.subtotal,
+    tax: b.tax,
+    total: b.total,
+    currency: b.currency,
+    specialRequests: b.specialRequests,
+    customer: {
+      firstName: b.customerFirstName,
+      lastName: b.customerLastName,
+      email: b.customerEmail,
+      phone: b.customerPhone,
+    },
+    trip: {
+      id: b.tripId,
+      date: b.tripDate,
+      startTime: b.tripStartTime,
+      endTime: b.tripEndTime,
+      tourName: b.tourName,
+      tourDescription: b.tourDescription,
+      primaryImage: images[0]?.url || null,
+    },
+    createdAt: b.createdAt.toISOString(),
+  };
 }

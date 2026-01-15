@@ -1,0 +1,249 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - link "DiveStreams" [ref=e4] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e5]:
+      - link "Features" [ref=e6] [cursor=pointer]:
+        - /url: /features
+      - link "Pricing" [ref=e7] [cursor=pointer]:
+        - /url: /pricing
+      - link "Start Free Trial" [ref=e8] [cursor=pointer]:
+        - /url: /signup
+  - generic [ref=e9]:
+    - heading "Privacy Policy" [level=1] [ref=e10]
+    - paragraph [ref=e11]: "Last updated: January 12, 2026"
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - heading "1. Introduction" [level=2] [ref=e15]
+      - generic [ref=e16]:
+        - paragraph [ref=e17]: DiveStreams ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our dive shop management platform ("Service").
+        - paragraph [ref=e18]: Please read this Privacy Policy carefully. By using the Service, you consent to the data practices described in this policy. If you do not agree with the terms of this Privacy Policy, please do not access or use the Service.
+    - generic [ref=e19]:
+      - heading "2. Information We Collect" [level=2] [ref=e20]
+      - generic [ref=e21]:
+        - heading "2.1 Information You Provide" [level=3] [ref=e22]
+        - paragraph [ref=e23]: "We collect information you voluntarily provide when you:"
+        - list [ref=e24]:
+          - listitem [ref=e25]:
+            - strong [ref=e26]: "Create an account:"
+            - text: Name, email address, phone number, business name, and billing information
+          - listitem [ref=e27]:
+            - strong [ref=e28]: "Use our Service:"
+            - text: Customer data, booking information, equipment records, and business data you enter
+          - listitem [ref=e29]:
+            - strong [ref=e30]: "Contact us:"
+            - text: Communications you send via email, support tickets, or other channels
+          - listitem [ref=e31]:
+            - strong [ref=e32]: "Subscribe:"
+            - text: Payment card details (processed securely through Stripe)
+        - heading "2.2 Information Collected Automatically" [level=3] [ref=e33]
+        - paragraph [ref=e34]: "When you access the Service, we automatically collect:"
+        - list [ref=e35]:
+          - listitem [ref=e36]:
+            - strong [ref=e37]: "Device information:"
+            - text: Browser type, operating system, device type, and unique device identifiers
+          - listitem [ref=e38]:
+            - strong [ref=e39]: "Log data:"
+            - text: IP address, access times, pages viewed, and referring URL
+          - listitem [ref=e40]:
+            - strong [ref=e41]: "Usage data:"
+            - text: Features used, actions taken, and time spent on the Service
+          - listitem [ref=e42]:
+            - strong [ref=e43]: "Location data:"
+            - text: General geographic location based on IP address
+        - heading "2.3 Information from Third Parties" [level=3] [ref=e44]
+        - paragraph [ref=e45]: "We may receive information from third-party services you connect to DiveStreams, such as:"
+        - list [ref=e46]:
+          - listitem [ref=e47]: Payment processors (transaction status and billing information)
+          - listitem [ref=e48]: Email service providers (delivery status)
+          - listitem [ref=e49]: Analytics services (aggregated usage patterns)
+    - generic [ref=e50]:
+      - heading "3. How We Use Your Information" [level=2] [ref=e51]
+      - generic [ref=e52]:
+        - paragraph [ref=e53]: "We use the collected information to:"
+        - list [ref=e54]:
+          - listitem [ref=e55]: Provide, maintain, and improve the Service
+          - listitem [ref=e56]: Process transactions and send related information
+          - listitem [ref=e57]: Send administrative messages, updates, and security alerts
+          - listitem [ref=e58]: Respond to your comments, questions, and support requests
+          - listitem [ref=e59]: Monitor and analyze usage patterns and trends
+          - listitem [ref=e60]: Detect, prevent, and address technical issues and fraud
+          - listitem [ref=e61]: Personalize and improve your experience
+          - listitem [ref=e62]: Send promotional communications (with your consent)
+          - listitem [ref=e63]: Comply with legal obligations
+    - generic [ref=e64]:
+      - heading "4. Cookies and Tracking Technologies" [level=2] [ref=e65]
+      - generic [ref=e66]:
+        - paragraph [ref=e67]: We use cookies and similar tracking technologies to collect and store information about your interactions with the Service.
+        - heading "Types of Cookies We Use:" [level=3] [ref=e68]
+        - list [ref=e69]:
+          - listitem [ref=e70]:
+            - strong [ref=e71]: "Essential cookies:"
+            - text: Required for the Service to function properly (authentication, security)
+          - listitem [ref=e72]:
+            - strong [ref=e73]: "Functional cookies:"
+            - text: Remember your preferences and settings
+          - listitem [ref=e74]:
+            - strong [ref=e75]: "Analytics cookies:"
+            - text: Help us understand how you use the Service
+          - listitem [ref=e76]:
+            - strong [ref=e77]: "Marketing cookies:"
+            - text: Used to deliver relevant advertisements (only with consent)
+        - paragraph [ref=e78]: You can control cookies through your browser settings. However, disabling certain cookies may affect the functionality of the Service.
+    - generic [ref=e79]:
+      - heading "5. How We Share Your Information" [level=2] [ref=e80]
+      - generic [ref=e81]:
+        - paragraph [ref=e82]: "We may share your information in the following circumstances:"
+        - list [ref=e83]:
+          - listitem [ref=e84]:
+            - strong [ref=e85]: "Service providers:"
+            - text: With third-party vendors who perform services on our behalf (hosting, payment processing, email delivery, analytics)
+          - listitem [ref=e86]:
+            - strong [ref=e87]: "Business transfers:"
+            - text: In connection with a merger, acquisition, or sale of assets
+          - listitem [ref=e88]:
+            - strong [ref=e89]: "Legal requirements:"
+            - text: When required by law or to respond to legal process
+          - listitem [ref=e90]:
+            - strong [ref=e91]: "Protection of rights:"
+            - text: To protect the rights, property, and safety of DiveStreams, our users, or others
+          - listitem [ref=e92]:
+            - strong [ref=e93]: "With your consent:"
+            - text: When you explicitly authorize the sharing
+        - paragraph [ref=e94]:
+          - strong [ref=e95]: We do not sell your personal information to third parties.
+    - generic [ref=e96]:
+      - heading "6. Third-Party Services" [level=2] [ref=e97]
+      - generic [ref=e98]:
+        - paragraph [ref=e99]: "Our Service integrates with third-party services that have their own privacy policies:"
+        - list [ref=e100]:
+          - listitem [ref=e101]:
+            - strong [ref=e102]: "Stripe:"
+            - text: Payment processing (
+            - link "Stripe Privacy Policy" [ref=e103] [cursor=pointer]:
+              - /url: https://stripe.com/privacy
+            - text: )
+          - listitem [ref=e104]:
+            - strong [ref=e105]: "SendGrid:"
+            - text: Email delivery
+          - listitem [ref=e106]:
+            - strong [ref=e107]: "Google Analytics:"
+            - text: Usage analytics (if enabled)
+        - paragraph [ref=e108]: We encourage you to review the privacy policies of these third-party services.
+    - generic [ref=e109]:
+      - heading "7. Data Security" [level=2] [ref=e110]
+      - generic [ref=e111]:
+        - paragraph [ref=e112]: "We implement appropriate technical and organizational security measures to protect your information, including:"
+        - list [ref=e113]:
+          - listitem [ref=e114]: Encryption of data in transit (TLS/SSL) and at rest
+          - listitem [ref=e115]: Regular security assessments and penetration testing
+          - listitem [ref=e116]: Access controls and authentication requirements
+          - listitem [ref=e117]: Secure data centers with physical security measures
+          - listitem [ref=e118]: Employee training on data protection practices
+        - paragraph [ref=e119]: While we strive to protect your information, no method of transmission over the Internet or electronic storage is 100% secure. We cannot guarantee absolute security.
+    - generic [ref=e120]:
+      - heading "8. Data Retention" [level=2] [ref=e121]
+      - generic [ref=e122]:
+        - paragraph [ref=e123]: "We retain your information for as long as your account is active or as needed to provide the Service. We may also retain information as necessary to:"
+        - list [ref=e124]:
+          - listitem [ref=e125]: Comply with legal obligations
+          - listitem [ref=e126]: Resolve disputes
+          - listitem [ref=e127]: Enforce our agreements
+          - listitem [ref=e128]: Maintain business records
+        - paragraph [ref=e129]: After account deletion, we will delete or anonymize your data within 90 days, except where retention is required by law.
+    - generic [ref=e130]:
+      - heading "9. Your Rights and Choices" [level=2] [ref=e131]
+      - generic [ref=e132]:
+        - paragraph [ref=e133]: "Depending on your location, you may have the following rights:"
+        - list [ref=e134]:
+          - listitem [ref=e135]:
+            - strong [ref=e136]: "Access:"
+            - text: Request a copy of the personal information we hold about you
+          - listitem [ref=e137]:
+            - strong [ref=e138]: "Correction:"
+            - text: Request correction of inaccurate or incomplete information
+          - listitem [ref=e139]:
+            - strong [ref=e140]: "Deletion:"
+            - text: Request deletion of your personal information
+          - listitem [ref=e141]:
+            - strong [ref=e142]: "Portability:"
+            - text: Request a machine-readable copy of your data
+          - listitem [ref=e143]:
+            - strong [ref=e144]: "Restriction:"
+            - text: Request restriction of processing in certain circumstances
+          - listitem [ref=e145]:
+            - strong [ref=e146]: "Objection:"
+            - text: Object to processing based on legitimate interests
+          - listitem [ref=e147]:
+            - strong [ref=e148]: "Withdraw consent:"
+            - text: Withdraw consent where processing is based on consent
+        - paragraph [ref=e149]:
+          - text: To exercise these rights, please contact us at
+          - link "privacy@divestreams.com" [ref=e150] [cursor=pointer]:
+            - /url: mailto:privacy@divestreams.com
+          - text: . We will respond to your request within 30 days.
+    - generic [ref=e151]:
+      - heading "10. International Data Transfers" [level=2] [ref=e152]
+      - generic [ref=e153]:
+        - paragraph [ref=e154]: Your information may be transferred to and processed in countries other than your country of residence. These countries may have different data protection laws.
+        - paragraph [ref=e155]: When we transfer data internationally, we implement appropriate safeguards, such as standard contractual clauses, to ensure adequate protection of your information.
+    - generic [ref=e156]:
+      - heading "11. Children's Privacy" [level=2] [ref=e157]
+      - paragraph [ref=e159]: The Service is not intended for children under 18 years of age. We do not knowingly collect personal information from children. If we learn we have collected information from a child, we will delete it promptly.
+    - generic [ref=e160]:
+      - heading "12. California Privacy Rights" [level=2] [ref=e161]
+      - generic [ref=e162]:
+        - paragraph [ref=e163]: "If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA):"
+        - list [ref=e164]:
+          - listitem [ref=e165]: Right to know what personal information is collected, used, shared, or sold
+          - listitem [ref=e166]: Right to delete personal information held by businesses
+          - listitem [ref=e167]: Right to opt-out of the sale of personal information
+          - listitem [ref=e168]: Right to non-discrimination for exercising your rights
+        - paragraph [ref=e169]:
+          - text: To exercise your CCPA rights, contact us at
+          - link "privacy@divestreams.com" [ref=e170] [cursor=pointer]:
+            - /url: mailto:privacy@divestreams.com
+          - text: .
+    - generic [ref=e171]:
+      - heading "13. Changes to This Privacy Policy" [level=2] [ref=e172]
+      - generic [ref=e173]:
+        - paragraph [ref=e174]: "We may update this Privacy Policy from time to time. We will notify you of any material changes by:"
+        - list [ref=e175]:
+          - listitem [ref=e176]: Posting the new Privacy Policy on this page
+          - listitem [ref=e177]: Updating the "Last updated" date
+          - listitem [ref=e178]: Sending an email notification (for significant changes)
+        - paragraph [ref=e179]: We encourage you to review this Privacy Policy periodically for any changes.
+    - generic [ref=e180]:
+      - heading "14. Contact Us" [level=2] [ref=e181]
+      - generic [ref=e182]:
+        - paragraph [ref=e183]: "If you have questions about this Privacy Policy or our data practices, please contact us:"
+        - paragraph [ref=e184]:
+          - strong [ref=e185]: DiveStreams
+          - text: "Email:"
+          - link "privacy@divestreams.com" [ref=e186] [cursor=pointer]:
+            - /url: mailto:privacy@divestreams.com
+          - text: "Support:"
+          - link "support@divestreams.com" [ref=e187] [cursor=pointer]:
+            - /url: mailto:support@divestreams.com
+        - paragraph [ref=e188]:
+          - text: For data protection inquiries in the European Union, you may also contact our Data Protection Officer at
+          - link "dpo@divestreams.com" [ref=e189] [cursor=pointer]:
+            - /url: mailto:dpo@divestreams.com
+          - text: .
+  - contentinfo [ref=e190]:
+    - generic [ref=e191]:
+      - generic [ref=e192]: DiveStreams
+      - generic [ref=e193]:
+        - link "Pricing" [ref=e194] [cursor=pointer]:
+          - /url: /pricing
+        - link "Features" [ref=e195] [cursor=pointer]:
+          - /url: /features
+        - link "Terms" [ref=e196] [cursor=pointer]:
+          - /url: /terms
+        - link "Privacy" [ref=e197] [cursor=pointer]:
+          - /url: /privacy
+    - generic [ref=e198]: © 2026 DiveStreams. All rights reserved.
+```

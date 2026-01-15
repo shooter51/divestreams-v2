@@ -12,8 +12,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => [
 ];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
-  const product = await getProductById(tenant.schemaName, params.id!);
+  const { organizationId } = await requireTenant(request);
+  const product = await getProductById(organizationId, params.id!);
 
   if (!product) {
     throw new Response("Product not found", { status: 404 });
@@ -23,7 +23,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
 
   const name = formData.get("name") as string;
@@ -34,7 +34,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return { error: "Name, category, and price are required" };
   }
 
-  await updateProduct(tenant.schemaName, params.id!, {
+  await updateProduct(organizationId, params.id!, {
     name,
     category,
     price,

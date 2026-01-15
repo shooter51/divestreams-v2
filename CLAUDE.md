@@ -38,6 +38,21 @@ Multi-tenant SaaS platform for dive shop and dive tour management. Built with Re
    mcp__hostinger-mcp__VPS_updateProjectV1(virtualMachineId: 1239852, projectName: "divestreams-v2")
    ```
 
+### Database Migrations
+Migrations run automatically on container startup via `scripts/docker-entrypoint.sh`.
+
+**How it works:**
+1. Container waits for PostgreSQL to be ready
+2. Checks if schema exists (looks for `user` table)
+3. If not, runs all SQL files from `/drizzle` directory
+4. Then starts the application
+
+**To add new migrations:**
+1. Update schema in `lib/db/schema/` files
+2. Run `npm run db:generate` locally to generate migration SQL
+3. Rebuild and deploy the Docker image
+4. Migrations will run on next container restart
+
 ### Fresh Deployment (if project doesn't exist)
 Use `mcp__hostinger-mcp__VPS_createNewProjectV1` with this docker-compose YAML:
 

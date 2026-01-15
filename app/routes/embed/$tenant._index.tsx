@@ -6,8 +6,7 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
-import { getTenantBySubdomain } from "../../../lib/db/tenant.server";
-import { getPublicTours, type PublicTour } from "../../../lib/db/queries.public";
+import { getOrganizationBySlug, getPublicTours, type PublicTour } from "../../../lib/db/queries.public";
 
 export const meta: MetaFunction = () => [{ title: "Available Tours" }];
 
@@ -17,12 +16,12 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  const tenant = await getTenantBySubdomain(subdomain);
-  if (!tenant || !tenant.isActive) {
+  const org = await getOrganizationBySlug(subdomain);
+  if (!org) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  const tours = await getPublicTours(tenant.schemaName);
+  const tours = await getPublicTours(org.id);
 
   return { tours };
 }
@@ -165,8 +164,8 @@ function TourCard({ tour, tenantSlug }: { tour: PublicTour; tenantSlug: string }
 
 export default function EmbedToursPage() {
   const { tours } = useLoaderData<typeof loader>();
-  const { tenant } = useOutletContext<{
-    tenant: { subdomain: string; name: string };
+  const { organization } = useOutletContext<{
+    organization: { slug: string; name: string };
     branding: { primaryColor: string };
   }>();
 
@@ -202,7 +201,7 @@ export default function EmbedToursPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {tours.map((tour) => (
-          <TourCard key={tour.id} tour={tour} tenantSlug={tenant.subdomain} />
+          <TourCard key={tour.id} tour={tour} tenantSlug={organization.slug} />
         ))}
       </div>
     </div>

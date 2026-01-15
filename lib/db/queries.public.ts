@@ -3,16 +3,29 @@
  *
  * These queries are used by the embed widget and do not require authentication.
  * They only return publicly-visible information.
+ *
+ * All queries filter by organizationId to support organization-based multi-tenancy.
  */
 
-import postgres from "postgres";
+import { db } from "./index";
+import { eq, and, asc, gte, sql } from "drizzle-orm";
+import * as schema from "./schema";
+import { organization } from "./schema/auth";
 
-function getClient(schemaName: string) {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL not set");
-  }
-  return postgres(connectionString);
+// ============================================================================
+// Organization Lookup for Embed Routes
+// ============================================================================
+
+/**
+ * Get organization by slug (subdomain) for embed widget
+ */
+export async function getOrganizationBySlug(slug: string) {
+  const result = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.slug, slug))
+    .limit(1);
+  return result[0] ?? null;
 }
 
 // ============================================================================
@@ -39,67 +52,87 @@ export interface PublicTour {
   imageCount: number;
 }
 
-export async function getPublicTours(schemaName: string): Promise<PublicTour[]> {
-  const client = getClient(schemaName);
+export async function getPublicTours(organizationId: string): Promise<PublicTour[]> {
+  // Get active tours for this organization
+  const tours = await db
+    .select({
+      id: schema.tours.id,
+      name: schema.tours.name,
+      description: schema.tours.description,
+      type: schema.tours.type,
+      duration: schema.tours.duration,
+      maxParticipants: schema.tours.maxParticipants,
+      price: schema.tours.price,
+      currency: schema.tours.currency,
+      includesEquipment: schema.tours.includesEquipment,
+      includesMeals: schema.tours.includesMeals,
+      includesTransport: schema.tours.includesTransport,
+      inclusions: schema.tours.inclusions,
+      minCertLevel: schema.tours.minCertLevel,
+      minAge: schema.tours.minAge,
+    })
+    .from(schema.tours)
+    .where(
+      and(
+        eq(schema.tours.organizationId, organizationId),
+        eq(schema.tours.isActive, true)
+      )
+    )
+    .orderBy(schema.tours.name);
 
-  try {
-    const tours = await client.unsafe(`
-      SELECT
-        t.id,
-        t.name,
-        t.description,
-        t.type,
-        t.duration,
-        t.max_participants,
-        t.price,
-        t.currency,
-        t.includes_equipment,
-        t.includes_meals,
-        t.includes_transport,
-        t.inclusions,
-        t.min_cert_level,
-        t.min_age,
-        (
-          SELECT url FROM "${schemaName}".images
-          WHERE entity_type = 'tour' AND entity_id = t.id AND is_primary = true
-          LIMIT 1
-        ) as primary_image,
-        (
-          SELECT thumbnail_url FROM "${schemaName}".images
-          WHERE entity_type = 'tour' AND entity_id = t.id AND is_primary = true
-          LIMIT 1
-        ) as thumbnail_image,
-        (
-          SELECT COUNT(*) FROM "${schemaName}".images
-          WHERE entity_type = 'tour' AND entity_id = t.id
-        ) as image_count
-      FROM "${schemaName}".tours t
-      WHERE t.is_active = true
-      ORDER BY t.name
-    `);
+  // Get images for each tour
+  const toursWithImages = await Promise.all(
+    tours.map(async (tour) => {
+      const images = await db
+        .select({
+          url: schema.images.url,
+          thumbnailUrl: schema.images.thumbnailUrl,
+        })
+        .from(schema.images)
+        .where(
+          and(
+            eq(schema.images.organizationId, organizationId),
+            eq(schema.images.entityType, "tour"),
+            eq(schema.images.entityId, tour.id),
+            eq(schema.images.isPrimary, true)
+          )
+        )
+        .limit(1);
 
-    return tours.map((t: any) => ({
-      id: t.id,
-      name: t.name,
-      description: t.description,
-      type: t.type,
-      duration: Number(t.duration || 0),
-      maxParticipants: Number(t.max_participants),
-      price: t.price,
-      currency: t.currency,
-      includesEquipment: t.includes_equipment || false,
-      includesMeals: t.includes_meals || false,
-      includesTransport: t.includes_transport || false,
-      inclusions: t.inclusions || [],
-      minCertLevel: t.min_cert_level,
-      minAge: t.min_age ? Number(t.min_age) : null,
-      primaryImage: t.primary_image,
-      thumbnailImage: t.thumbnail_image,
-      imageCount: Number(t.image_count || 0),
-    }));
-  } finally {
-    await client.end();
-  }
+      const imageCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.images)
+        .where(
+          and(
+            eq(schema.images.organizationId, organizationId),
+            eq(schema.images.entityType, "tour"),
+            eq(schema.images.entityId, tour.id)
+          )
+        );
+
+      return {
+        id: tour.id,
+        name: tour.name,
+        description: tour.description,
+        type: tour.type,
+        duration: Number(tour.duration || 0),
+        maxParticipants: Number(tour.maxParticipants),
+        price: tour.price,
+        currency: tour.currency,
+        includesEquipment: tour.includesEquipment || false,
+        includesMeals: tour.includesMeals || false,
+        includesTransport: tour.includesTransport || false,
+        inclusions: tour.inclusions || [],
+        minCertLevel: tour.minCertLevel,
+        minAge: tour.minAge ? Number(tour.minAge) : null,
+        primaryImage: images[0]?.url || null,
+        thumbnailImage: images[0]?.thumbnailUrl || null,
+        imageCount: Number(imageCount[0]?.count || 0),
+      };
+    })
+  );
+
+  return toursWithImages;
 }
 
 // ============================================================================
@@ -121,7 +154,7 @@ export interface PublicTrip {
 }
 
 export async function getPublicTrips(
-  schemaName: string,
+  organizationId: string,
   options: {
     tourId?: string;
     fromDate?: string;
@@ -129,71 +162,77 @@ export async function getPublicTrips(
     limit?: number;
   } = {}
 ): Promise<PublicTrip[]> {
-  const client = getClient(schemaName);
   const { tourId, fromDate, toDate, limit = 30 } = options;
 
   // Default to today if no fromDate
   const startDate = fromDate || new Date().toISOString().split("T")[0];
 
-  try {
-    let whereClause = `
-      WHERE t.status = 'scheduled'
-      AND t.date >= '${startDate}'
-      AND tr.is_active = true
-    `;
+  // Build query conditions
+  const conditions = [
+    eq(schema.trips.organizationId, organizationId),
+    eq(schema.trips.status, "scheduled"),
+    gte(schema.trips.date, startDate),
+  ];
 
-    if (tourId) {
-      whereClause += ` AND t.tour_id = '${tourId}'`;
-    }
-    if (toDate) {
-      whereClause += ` AND t.date <= '${toDate}'`;
-    }
+  if (tourId) {
+    conditions.push(eq(schema.trips.tourId, tourId));
+  }
 
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        t.tour_id,
-        tr.name as tour_name,
-        t.date,
-        t.start_time,
-        t.end_time,
-        COALESCE(t.max_participants, tr.max_participants) as max_participants,
-        COALESCE(t.price, tr.price) as price,
-        tr.currency,
-        t.status,
-        (
-          SELECT COALESCE(SUM(b.participants), 0)
-          FROM "${schemaName}".bookings b
-          WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')
-        ) as booked_participants
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      ${whereClause}
-      ORDER BY t.date, t.start_time
-      LIMIT ${limit}
-    `);
+  // Get trips with tour info
+  const trips = await db
+    .select({
+      id: schema.trips.id,
+      tourId: schema.trips.tourId,
+      tourName: schema.tours.name,
+      date: schema.trips.date,
+      startTime: schema.trips.startTime,
+      endTime: schema.trips.endTime,
+      tripMaxParticipants: schema.trips.maxParticipants,
+      tourMaxParticipants: schema.tours.maxParticipants,
+      tripPrice: schema.trips.price,
+      tourPrice: schema.tours.price,
+      currency: schema.tours.currency,
+      status: schema.trips.status,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(and(...conditions, eq(schema.tours.isActive, true)))
+    .orderBy(asc(schema.trips.date), asc(schema.trips.startTime))
+    .limit(limit);
 
-    return trips.map((t: any) => {
-      const maxParticipants = Number(t.max_participants);
-      const bookedParticipants = Number(t.booked_participants || 0);
+  // Get booking counts for each trip
+  const tripsWithAvailability = await Promise.all(
+    trips.map(async (trip) => {
+      const bookingCount = await db
+        .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
+        .from(schema.bookings)
+        .where(
+          and(
+            eq(schema.bookings.tripId, trip.id),
+            sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+          )
+        );
+
+      const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
+      const bookedParticipants = Number(bookingCount[0]?.total || 0);
 
       return {
-        id: t.id,
-        tourId: t.tour_id,
-        tourName: t.tour_name,
-        date: t.date,
-        startTime: t.start_time,
-        endTime: t.end_time,
+        id: trip.id,
+        tourId: trip.tourId,
+        tourName: trip.tourName,
+        date: trip.date,
+        startTime: trip.startTime,
+        endTime: trip.endTime,
         maxParticipants,
         availableSpots: Math.max(0, maxParticipants - bookedParticipants),
-        price: t.price,
-        currency: t.currency,
-        status: bookedParticipants >= maxParticipants ? "full" : t.status,
+        price: trip.tripPrice || trip.tourPrice,
+        currency: trip.currency,
+        status: bookedParticipants >= maxParticipants ? "full" : trip.status,
       };
-    });
-  } finally {
-    await client.end();
-  }
+    })
+  );
+
+  return tripsWithAvailability;
 }
 
 // ============================================================================
@@ -212,121 +251,81 @@ export interface PublicTourDetail extends PublicTour {
 }
 
 export async function getPublicTourById(
-  schemaName: string,
+  organizationId: string,
   tourId: string
 ): Promise<PublicTourDetail | null> {
-  const client = getClient(schemaName);
+  // Get tour details
+  const tours = await db
+    .select()
+    .from(schema.tours)
+    .where(
+      and(
+        eq(schema.tours.organizationId, organizationId),
+        eq(schema.tours.id, tourId),
+        eq(schema.tours.isActive, true)
+      )
+    )
+    .limit(1);
 
-  try {
-    // Get tour details
-    const tours = await client.unsafe(`
-      SELECT
-        t.id,
-        t.name,
-        t.description,
-        t.type,
-        t.duration,
-        t.max_participants,
-        t.price,
-        t.currency,
-        t.includes_equipment,
-        t.includes_meals,
-        t.includes_transport,
-        t.inclusions,
-        t.min_cert_level,
-        t.min_age
-      FROM "${schemaName}".tours t
-      WHERE t.id = '${tourId}' AND t.is_active = true
-    `);
-
-    if (tours.length === 0) {
-      return null;
-    }
-
-    const tour = tours[0];
-
-    // Get images
-    const images = await client.unsafe(`
-      SELECT id, url, thumbnail_url, alt, sort_order
-      FROM "${schemaName}".images
-      WHERE entity_type = 'tour' AND entity_id = '${tourId}'
-      ORDER BY is_primary DESC, sort_order
-    `);
-
-    // Get upcoming trips
-    const today = new Date().toISOString().split("T")[0];
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        t.tour_id,
-        t.date,
-        t.start_time,
-        t.end_time,
-        COALESCE(t.max_participants, tr.max_participants) as max_participants,
-        COALESCE(t.price, tr.price) as price,
-        tr.currency,
-        t.status,
-        (
-          SELECT COALESCE(SUM(b.participants), 0)
-          FROM "${schemaName}".bookings b
-          WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')
-        ) as booked_participants
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE t.tour_id = '${tourId}'
-        AND t.status = 'scheduled'
-        AND t.date >= '${today}'
-      ORDER BY t.date, t.start_time
-      LIMIT 10
-    `);
-
-    return {
-      id: tour.id,
-      name: tour.name,
-      description: tour.description,
-      type: tour.type,
-      duration: Number(tour.duration || 0),
-      maxParticipants: Number(tour.max_participants),
-      price: tour.price,
-      currency: tour.currency,
-      includesEquipment: tour.includes_equipment || false,
-      includesMeals: tour.includes_meals || false,
-      includesTransport: tour.includes_transport || false,
-      inclusions: tour.inclusions || [],
-      minCertLevel: tour.min_cert_level,
-      minAge: tour.min_age ? Number(tour.min_age) : null,
-      primaryImage: images[0]?.url || null,
-      thumbnailImage: images[0]?.thumbnail_url || null,
-      imageCount: images.length,
-      images: images.map((img: any) => ({
-        id: img.id,
-        url: img.url,
-        thumbnailUrl: img.thumbnail_url,
-        alt: img.alt,
-        sortOrder: Number(img.sort_order),
-      })),
-      upcomingTrips: trips.map((t: any) => {
-        const maxParticipants = Number(t.max_participants);
-        const bookedParticipants = Number(t.booked_participants || 0);
-
-        return {
-          id: t.id,
-          tourId: t.tour_id,
-          tourName: tour.name,
-          date: t.date,
-          startTime: t.start_time,
-          endTime: t.end_time,
-          maxParticipants,
-          availableSpots: Math.max(0, maxParticipants - bookedParticipants),
-          price: t.price,
-          currency: t.currency,
-          status: bookedParticipants >= maxParticipants ? "full" : t.status,
-        };
-      }),
-    };
-  } finally {
-    await client.end();
+  if (tours.length === 0) {
+    return null;
   }
+
+  const tour = tours[0];
+
+  // Get images
+  const images = await db
+    .select({
+      id: schema.images.id,
+      url: schema.images.url,
+      thumbnailUrl: schema.images.thumbnailUrl,
+      alt: schema.images.alt,
+      sortOrder: schema.images.sortOrder,
+      isPrimary: schema.images.isPrimary,
+    })
+    .from(schema.images)
+    .where(
+      and(
+        eq(schema.images.organizationId, organizationId),
+        eq(schema.images.entityType, "tour"),
+        eq(schema.images.entityId, tourId)
+      )
+    )
+    .orderBy(sql`${schema.images.isPrimary} DESC`, asc(schema.images.sortOrder));
+
+  // Get upcoming trips
+  const upcomingTrips = await getPublicTrips(organizationId, {
+    tourId,
+    limit: 10,
+  });
+
+  return {
+    id: tour.id,
+    name: tour.name,
+    description: tour.description,
+    type: tour.type,
+    duration: Number(tour.duration || 0),
+    maxParticipants: Number(tour.maxParticipants),
+    price: tour.price,
+    currency: tour.currency,
+    includesEquipment: tour.includesEquipment || false,
+    includesMeals: tour.includesMeals || false,
+    includesTransport: tour.includesTransport || false,
+    inclusions: tour.inclusions || [],
+    minCertLevel: tour.minCertLevel,
+    minAge: tour.minAge ? Number(tour.minAge) : null,
+    primaryImage: images[0]?.url || null,
+    thumbnailImage: images[0]?.thumbnailUrl || null,
+    imageCount: images.length,
+    images: images.map((img) => ({
+      id: img.id,
+      url: img.url,
+      thumbnailUrl: img.thumbnailUrl,
+      alt: img.alt,
+      sortOrder: Number(img.sortOrder),
+    })),
+    upcomingTrips,
+  };
 }
 
 // ============================================================================
@@ -354,84 +353,105 @@ export interface PublicTripDetail {
 }
 
 export async function getPublicTripById(
-  schemaName: string,
+  organizationId: string,
   tripId: string
 ): Promise<PublicTripDetail | null> {
-  const client = getClient(schemaName);
+  // Get trip with tour info
+  const trips = await db
+    .select({
+      id: schema.trips.id,
+      tourId: schema.trips.tourId,
+      tourName: schema.tours.name,
+      tourDescription: schema.tours.description,
+      date: schema.trips.date,
+      startTime: schema.trips.startTime,
+      endTime: schema.trips.endTime,
+      tripMaxParticipants: schema.trips.maxParticipants,
+      tourMaxParticipants: schema.tours.maxParticipants,
+      tripPrice: schema.trips.price,
+      tourPrice: schema.tours.price,
+      currency: schema.tours.currency,
+      status: schema.trips.status,
+      includesEquipment: schema.tours.includesEquipment,
+      includesMeals: schema.tours.includesMeals,
+      includesTransport: schema.tours.includesTransport,
+      minCertLevel: schema.tours.minCertLevel,
+      minAge: schema.tours.minAge,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(
+      and(
+        eq(schema.trips.organizationId, organizationId),
+        eq(schema.trips.id, tripId),
+        eq(schema.trips.status, "scheduled"),
+        eq(schema.tours.isActive, true)
+      )
+    )
+    .limit(1);
 
-  try {
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        t.tour_id,
-        tr.name as tour_name,
-        tr.description as tour_description,
-        t.date,
-        t.start_time,
-        t.end_time,
-        COALESCE(t.max_participants, tr.max_participants) as max_participants,
-        COALESCE(t.price, tr.price) as price,
-        tr.currency,
-        t.status,
-        tr.includes_equipment,
-        tr.includes_meals,
-        tr.includes_transport,
-        tr.min_cert_level,
-        tr.min_age,
-        (
-          SELECT COALESCE(SUM(b.participants), 0)
-          FROM "${schemaName}".bookings b
-          WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')
-        ) as booked_participants,
-        (
-          SELECT url FROM "${schemaName}".images
-          WHERE entity_type = 'tour' AND entity_id = tr.id AND is_primary = true
-          LIMIT 1
-        ) as primary_image
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE t.id = '${tripId}'
-        AND t.status = 'scheduled'
-        AND tr.is_active = true
-    `);
-
-    if (trips.length === 0) {
-      return null;
-    }
-
-    const trip = trips[0];
-    const maxParticipants = Number(trip.max_participants);
-    const bookedParticipants = Number(trip.booked_participants || 0);
-
-    // Check if trip is in the past
-    const tripDate = new Date(trip.date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (tripDate < today) {
-      return null; // Trip is in the past
-    }
-
-    return {
-      id: trip.id,
-      tourId: trip.tour_id,
-      tourName: trip.tour_name,
-      tourDescription: trip.tour_description,
-      date: trip.date,
-      startTime: trip.start_time,
-      endTime: trip.end_time,
-      maxParticipants,
-      availableSpots: Math.max(0, maxParticipants - bookedParticipants),
-      price: trip.price,
-      currency: trip.currency,
-      includesEquipment: trip.includes_equipment || false,
-      includesMeals: trip.includes_meals || false,
-      includesTransport: trip.includes_transport || false,
-      minCertLevel: trip.min_cert_level,
-      minAge: trip.min_age ? Number(trip.min_age) : null,
-      primaryImage: trip.primary_image,
-    };
-  } finally {
-    await client.end();
+  if (trips.length === 0) {
+    return null;
   }
+
+  const trip = trips[0];
+
+  // Check if trip is in the past
+  const tripDate = new Date(trip.date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (tripDate < today) {
+    return null; // Trip is in the past
+  }
+
+  // Get booking count
+  const bookingCount = await db
+    .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
+    .from(schema.bookings)
+    .where(
+      and(
+        eq(schema.bookings.tripId, tripId),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      )
+    );
+
+  const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
+  const bookedParticipants = Number(bookingCount[0]?.total || 0);
+
+  // Get primary image
+  const images = await db
+    .select({
+      url: schema.images.url,
+    })
+    .from(schema.images)
+    .where(
+      and(
+        eq(schema.images.organizationId, organizationId),
+        eq(schema.images.entityType, "tour"),
+        eq(schema.images.entityId, trip.tourId),
+        eq(schema.images.isPrimary, true)
+      )
+    )
+    .limit(1);
+
+  return {
+    id: trip.id,
+    tourId: trip.tourId,
+    tourName: trip.tourName,
+    tourDescription: trip.tourDescription,
+    date: trip.date,
+    startTime: trip.startTime,
+    endTime: trip.endTime,
+    maxParticipants,
+    availableSpots: Math.max(0, maxParticipants - bookedParticipants),
+    price: trip.tripPrice || trip.tourPrice,
+    currency: trip.currency,
+    includesEquipment: trip.includesEquipment || false,
+    includesMeals: trip.includesMeals || false,
+    includesTransport: trip.includesTransport || false,
+    minCertLevel: trip.minCertLevel,
+    minAge: trip.minAge ? Number(trip.minAge) : null,
+    primaryImage: images[0]?.url || null,
+  };
 }

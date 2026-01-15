@@ -28,7 +28,7 @@ type POSProduct = {
  * Get active products for POS display
  * Includes sale price fields for displaying sale indicators
  */
-export async function getPOSProducts(tables: TenantTables): Promise<POSProduct[]> {
+export async function getPOSProducts(tables: TenantTables, organizationId: string): Promise<POSProduct[]> {
   try {
     return await db
       .select({
@@ -43,7 +43,12 @@ export async function getPOSProducts(tables: TenantTables): Promise<POSProduct[]
         imageUrl: tables.products.imageUrl,
       })
       .from(tables.products)
-      .where(eq(tables.products.isActive, true))
+      .where(
+        and(
+          eq(tables.products.organizationId, organizationId),
+          eq(tables.products.isActive, true)
+        )
+      )
       .orderBy(tables.products.category, tables.products.name);
   } catch (error) {
     // Fallback if sale_price columns don't exist yet
@@ -58,7 +63,12 @@ export async function getPOSProducts(tables: TenantTables): Promise<POSProduct[]
         imageUrl: tables.products.imageUrl,
       })
       .from(tables.products)
-      .where(eq(tables.products.isActive, true))
+      .where(
+        and(
+          eq(tables.products.organizationId, organizationId),
+          eq(tables.products.isActive, true)
+        )
+      )
       .orderBy(tables.products.category, tables.products.name);
 
     // Add null sale fields to match the expected type
@@ -74,12 +84,13 @@ export async function getPOSProducts(tables: TenantTables): Promise<POSProduct[]
 /**
  * Get available equipment for rental
  */
-export async function getPOSEquipment(tables: TenantTables) {
+export async function getPOSEquipment(tables: TenantTables, organizationId: string) {
   return db
     .select()
     .from(tables.equipment)
     .where(
       and(
+        eq(tables.equipment.organizationId, organizationId),
         eq(tables.equipment.isRentable, true),
         eq(tables.equipment.status, "available")
       )
@@ -88,9 +99,9 @@ export async function getPOSEquipment(tables: TenantTables) {
 }
 
 /**
- * Get today's trips with availability
+ * Get today's and future trips with availability
  */
-export async function getPOSTrips(tables: TenantTables, _timezone: string) {
+export async function getPOSTrips(tables: TenantTables, organizationId: string, _timezone: string) {
   const today = new Date().toISOString().split("T")[0];
 
   const trips = await db
@@ -110,12 +121,13 @@ export async function getPOSTrips(tables: TenantTables, _timezone: string) {
     )
     .where(
       and(
-        eq(tables.trips.date, today),
+        eq(tables.trips.organizationId, organizationId),
+        sql`${tables.trips.date} >= ${today}`,
         eq(tables.trips.status, "scheduled")
       )
     )
     .groupBy(tables.trips.id, tables.tours.id)
-    .orderBy(tables.trips.startTime);
+    .orderBy(tables.trips.date, tables.trips.startTime);
 
   return trips.map((row) => {
     const maxParticipants = row.trip.maxParticipants || row.tour.maxParticipants;
@@ -135,6 +147,7 @@ export async function getPOSTrips(tables: TenantTables, _timezone: string) {
  */
 export async function searchPOSCustomers(
   tables: TenantTables,
+  organizationId: string,
   query: string,
   limit = 10
 ) {
@@ -149,12 +162,15 @@ export async function searchPOSCustomers(
     })
     .from(tables.customers)
     .where(
-      sql`(
-        ${tables.customers.firstName} ILIKE ${searchTerm} OR
-        ${tables.customers.lastName} ILIKE ${searchTerm} OR
-        ${tables.customers.email} ILIKE ${searchTerm} OR
-        ${tables.customers.phone} ILIKE ${searchTerm}
-      )`
+      and(
+        eq(tables.customers.organizationId, organizationId),
+        sql`(
+          ${tables.customers.firstName} ILIKE ${searchTerm} OR
+          ${tables.customers.lastName} ILIKE ${searchTerm} OR
+          ${tables.customers.email} ILIKE ${searchTerm} OR
+          ${tables.customers.phone} ILIKE ${searchTerm}
+        )`
+      )
     )
     .limit(limit);
 }
@@ -162,14 +178,19 @@ export async function searchPOSCustomers(
 /**
  * Generate next receipt number for today
  */
-export async function generateReceiptNumber(tables: TenantTables): Promise<string> {
+export async function generateReceiptNumber(tables: TenantTables, organizationId: string): Promise<string> {
   const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
   const prefix = `POS-${today}-`;
 
   const count = await db
     .select({ count: sql<number>`COUNT(*)` })
     .from(tables.transactions)
-    .where(sql`DATE(${tables.transactions.createdAt}) = CURRENT_DATE`);
+    .where(
+      and(
+        eq(tables.transactions.organizationId, organizationId),
+        sql`DATE(${tables.transactions.createdAt}) = CURRENT_DATE`
+      )
+    );
 
   const sequence = (Number(count[0]?.count) || 0) + 1;
   return `${prefix}${sequence.toString().padStart(4, "0")}`;
@@ -178,14 +199,19 @@ export async function generateReceiptNumber(tables: TenantTables): Promise<strin
 /**
  * Generate rental agreement number
  */
-export async function generateAgreementNumber(tables: TenantTables): Promise<string> {
+export async function generateAgreementNumber(tables: TenantTables, organizationId: string): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `RA-${year}-`;
 
   const count = await db
     .select({ count: sql<number>`COUNT(*)` })
     .from(tables.rentals)
-    .where(sql`EXTRACT(YEAR FROM ${tables.rentals.createdAt}) = ${year}`);
+    .where(
+      and(
+        eq(tables.rentals.organizationId, organizationId),
+        sql`EXTRACT(YEAR FROM ${tables.rentals.createdAt}) = ${year}`
+      )
+    );
 
   const sequence = (Number(count[0]?.count) || 0) + 1;
   return `${prefix}${sequence.toString().padStart(4, "0")}`;
@@ -208,7 +234,7 @@ export async function processPOSCheckout(
     notes?: string;
   }
 ) {
-  const receiptNumber = await generateReceiptNumber(tables);
+  const receiptNumber = await generateReceiptNumber(tables, organizationId);
 
   // Determine payment method string
   let paymentMethod: string;
@@ -355,11 +381,16 @@ export async function processPOSCheckout(
 /**
  * Get product by ID
  */
-export async function getProductById(tables: TenantTables, id: string) {
+export async function getProductById(tables: TenantTables, organizationId: string, id: string) {
   const [product] = await db
     .select()
     .from(tables.products)
-    .where(eq(tables.products.id, id))
+    .where(
+      and(
+        eq(tables.products.organizationId, organizationId),
+        eq(tables.products.id, id)
+      )
+    )
     .limit(1);
   return product;
 }
@@ -367,11 +398,53 @@ export async function getProductById(tables: TenantTables, id: string) {
 /**
  * Get equipment by ID
  */
-export async function getEquipmentById(tables: TenantTables, id: string) {
+export async function getEquipmentById(tables: TenantTables, organizationId: string, id: string) {
   const [equipment] = await db
     .select()
     .from(tables.equipment)
-    .where(eq(tables.equipment.id, id))
+    .where(
+      and(
+        eq(tables.equipment.organizationId, organizationId),
+        eq(tables.equipment.id, id)
+      )
+    )
+    .limit(1);
+  return equipment;
+}
+
+/**
+ * Get product by barcode
+ * Returns the first active product matching the barcode
+ */
+export async function getProductByBarcode(tables: TenantTables, organizationId: string, barcode: string) {
+  const [product] = await db
+    .select()
+    .from(tables.products)
+    .where(
+      and(
+        eq(tables.products.organizationId, organizationId),
+        eq(tables.products.barcode, barcode),
+        eq(tables.products.isActive, true)
+      )
+    )
+    .limit(1);
+  return product;
+}
+
+/**
+ * Get equipment by barcode
+ * Returns the first equipment item matching the barcode
+ */
+export async function getEquipmentByBarcode(tables: TenantTables, organizationId: string, barcode: string) {
+  const [equipment] = await db
+    .select()
+    .from(tables.equipment)
+    .where(
+      and(
+        eq(tables.equipment.organizationId, organizationId),
+        eq(tables.equipment.barcode, barcode)
+      )
+    )
     .limit(1);
   return equipment;
 }

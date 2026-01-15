@@ -324,6 +324,7 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
       brand TEXT,
       model TEXT,
       serial_number TEXT,
+      barcode TEXT,
       size TEXT,
       status TEXT NOT NULL DEFAULT 'available',
       condition TEXT DEFAULT 'good',
@@ -385,6 +386,7 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name TEXT NOT NULL,
       sku TEXT,
+      barcode TEXT,
       category TEXT NOT NULL,
       description TEXT,
       price DECIMAL(10, 2) NOT NULL,
@@ -457,6 +459,8 @@ async function createTenantTables(client: postgres.Sql, schemaName: string) {
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_transactions_customer_idx" ON "${schemaName}".transactions(customer_id)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_products_category_idx" ON "${schemaName}".products(category)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_products_sku_idx" ON "${schemaName}".products(sku)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_products_barcode_idx" ON "${schemaName}".products(barcode)`);
+  await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_equipment_barcode_idx" ON "${schemaName}".equipment(barcode)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_discount_codes_code_idx" ON "${schemaName}".discount_codes(code)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_discount_codes_active_idx" ON "${schemaName}".discount_codes(is_active)`);
   await client.unsafe(`CREATE INDEX IF NOT EXISTS "${schemaName}_rentals_customer_idx" ON "${schemaName}".rentals(customer_id)`);

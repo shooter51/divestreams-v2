@@ -2,228 +2,225 @@
  * Tenant Database Query Helpers
  *
  * These functions provide typed queries for tenant-specific data.
- * Each function accepts a tenant schema and returns query results.
+ * All functions accept an organizationId and filter data accordingly.
+ *
+ * IMPORTANT: This file was refactored from schema-per-tenant to organization-based
+ * multi-tenancy. All queries now filter by organization_id in the public schema.
  */
 
 import { desc, eq, gte, lte, count, sum, and, sql } from "drizzle-orm";
-import postgres from "postgres";
-
-// Get the raw postgres client for a schema
-function getClient(schemaName: string) {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL not set");
-  }
-  return postgres(connectionString);
-}
+import { db } from "./index";
+import * as schema from "./schema";
 
 // ============================================================================
 // Dashboard Queries
 // ============================================================================
 
-export async function getDashboardStats(schemaName: string) {
-  const client = getClient(schemaName);
+export async function getDashboardStats(organizationId: string) {
+  const today = new Date().toISOString().split("T")[0];
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-  try {
-    const today = new Date().toISOString().split("T")[0];
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  // Today's bookings count
+  const todayBookingsResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.bookings)
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      sql`DATE(${schema.bookings.createdAt}) = ${today}`
+    ));
 
-    // Today's bookings count
-    const todayBookings = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".bookings
-      WHERE DATE(created_at) = '${today}'
-    `);
+  // This week's revenue (sum of paid transactions)
+  const weekRevenueResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(${schema.transactions.amount}), 0)` })
+    .from(schema.transactions)
+    .where(and(
+      eq(schema.transactions.organizationId, organizationId),
+      eq(schema.transactions.type, "sale"),
+      gte(schema.transactions.createdAt, new Date(weekAgo))
+    ));
 
-    // This week's revenue (sum of paid transactions)
-    const weekRevenue = await client.unsafe(`
-      SELECT COALESCE(SUM(amount), 0) as total FROM "${schemaName}".transactions
-      WHERE type = 'sale' AND created_at >= '${weekAgo}'
-    `);
+  // Active trips (scheduled trips today or tomorrow)
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const activeTripsResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.trips)
+    .where(and(
+      eq(schema.trips.organizationId, organizationId),
+      sql`${schema.trips.status} IN ('scheduled', 'in_progress')`,
+      lte(schema.trips.date, tomorrow)
+    ));
 
-    // Active trips (scheduled trips today or tomorrow)
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-    const activeTrips = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".trips
-      WHERE status IN ('scheduled', 'in_progress') AND date <= '${tomorrow}'
-    `);
+  // Total customers
+  const totalCustomersResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.customers)
+    .where(eq(schema.customers.organizationId, organizationId));
 
-    // Total customers
-    const totalCustomers = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".customers
-    `);
-
-    return {
-      todayBookings: Number(todayBookings[0]?.count || 0),
-      weekRevenue: Number(weekRevenue[0]?.total || 0),
-      activeTrips: Number(activeTrips[0]?.count || 0),
-      totalCustomers: Number(totalCustomers[0]?.count || 0),
-    };
-  } finally {
-    await client.end();
-  }
+  return {
+    todayBookings: Number(todayBookingsResult[0]?.count || 0),
+    weekRevenue: Number(weekRevenueResult[0]?.total || 0),
+    activeTrips: Number(activeTripsResult[0]?.count || 0),
+    totalCustomers: Number(totalCustomersResult[0]?.count || 0),
+  };
 }
 
-export async function getUpcomingTrips(schemaName: string, limit = 5) {
-  const client = getClient(schemaName);
+export async function getUpcomingTrips(organizationId: string, limit = 5) {
+  const today = new Date().toISOString().split("T")[0];
 
-  try {
-    const today = new Date().toISOString().split("T")[0];
+  const trips = await db
+    .select({
+      id: schema.trips.id,
+      name: schema.tours.name,
+      date: schema.trips.date,
+      startTime: schema.trips.startTime,
+      maxParticipants: sql<number>`COALESCE(${schema.trips.maxParticipants}, ${schema.tours.maxParticipants})`,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(and(
+      eq(schema.trips.organizationId, organizationId),
+      gte(schema.trips.date, today),
+      eq(schema.trips.status, "scheduled")
+    ))
+    .orderBy(schema.trips.date, schema.trips.startTime)
+    .limit(limit);
 
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        tr.name,
-        t.date,
-        t.start_time,
-        COALESCE(t.max_participants, tr.max_participants) as max_participants,
-        (
-          SELECT COALESCE(SUM(b.participants), 0)
-          FROM "${schemaName}".bookings b
-          WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')
-        ) as current_participants
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE t.date >= '${today}' AND t.status = 'scheduled'
-      ORDER BY t.date, t.start_time
-      LIMIT ${limit}
-    `);
+  // Get participant counts separately
+  const result = [];
+  for (const trip of trips) {
+    const participantsResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.tripId, trip.id),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      ));
 
-    return trips.map((trip: any) => ({
+    result.push({
       id: trip.id,
       name: trip.name,
       date: formatRelativeDate(trip.date),
-      time: formatTime(trip.start_time),
-      participants: Number(trip.current_participants || 0),
-      maxParticipants: Number(trip.max_participants || 0),
-    }));
-  } finally {
-    await client.end();
+      time: formatTime(trip.startTime),
+      participants: Number(participantsResult[0]?.total || 0),
+      maxParticipants: Number(trip.maxParticipants || 0),
+    });
   }
+
+  return result;
 }
 
-export async function getRecentBookings(schemaName: string, limit = 5) {
-  const client = getClient(schemaName);
+export async function getRecentBookings(organizationId: string, limit = 5) {
+  const bookings = await db
+    .select({
+      id: schema.bookings.id,
+      status: schema.bookings.status,
+      total: schema.bookings.total,
+      createdAt: schema.bookings.createdAt,
+      firstName: schema.customers.firstName,
+      lastName: schema.customers.lastName,
+      tourName: schema.tours.name,
+    })
+    .from(schema.bookings)
+    .innerJoin(schema.customers, eq(schema.bookings.customerId, schema.customers.id))
+    .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(eq(schema.bookings.organizationId, organizationId))
+    .orderBy(desc(schema.bookings.createdAt))
+    .limit(limit);
 
-  try {
-    const bookings = await client.unsafe(`
-      SELECT
-        b.id,
-        b.status,
-        b.total,
-        b.created_at,
-        c.first_name,
-        c.last_name,
-        tr.name as trip_name
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".customers c ON b.customer_id = c.id
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      ORDER BY b.created_at DESC
-      LIMIT ${limit}
-    `);
-
-    return bookings.map((booking: any) => ({
-      id: booking.id,
-      customer: `${booking.first_name} ${booking.last_name}`,
-      trip: booking.trip_name,
-      date: formatRelativeTime(booking.created_at),
-      status: booking.status,
-      amount: Number(booking.total || 0),
-    }));
-  } finally {
-    await client.end();
-  }
+  return bookings.map((booking) => ({
+    id: booking.id,
+    customer: `${booking.firstName} ${booking.lastName}`,
+    trip: booking.tourName,
+    date: formatRelativeTime(booking.createdAt),
+    status: booking.status,
+    amount: Number(booking.total || 0),
+  }));
 }
 
 // ============================================================================
 // Customer Queries
 // ============================================================================
 
-export async function getCustomerBookings(schemaName: string, customerId: string, limit = 10) {
-  const client = getClient(schemaName);
+export async function getCustomerBookings(organizationId: string, customerId: string, limit = 10) {
+  const bookings = await db
+    .select({
+      id: schema.bookings.id,
+      bookingNumber: schema.bookings.bookingNumber,
+      status: schema.bookings.status,
+      total: schema.bookings.total,
+      createdAt: schema.bookings.createdAt,
+      tourName: schema.tours.name,
+      tripDate: schema.trips.date,
+    })
+    .from(schema.bookings)
+    .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      eq(schema.bookings.customerId, customerId)
+    ))
+    .orderBy(desc(schema.trips.date))
+    .limit(limit);
 
-  try {
-    const bookings = await client.unsafe(`
-      SELECT
-        b.id,
-        b.booking_number,
-        b.status,
-        b.total,
-        b.created_at,
-        tr.name as trip_name,
-        t.date as trip_date
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE b.customer_id = '${customerId}'
-      ORDER BY t.date DESC
-      LIMIT ${limit}
-    `);
-
-    return bookings.map((b: any) => ({
-      id: b.id,
-      bookingNumber: b.booking_number,
-      tripName: b.trip_name,
-      date: b.trip_date,
-      status: b.status,
-      total: Number(b.total || 0).toFixed(2),
-    }));
-  } finally {
-    await client.end();
-  }
+  return bookings.map((b) => ({
+    id: b.id,
+    bookingNumber: b.bookingNumber,
+    tripName: b.tourName,
+    date: b.tripDate,
+    status: b.status,
+    total: Number(b.total || 0).toFixed(2),
+  }));
 }
 
 export async function getCustomers(
-  schemaName: string,
+  organizationId: string,
   options: { search?: string; limit?: number; offset?: number } = {}
 ) {
-  const client = getClient(schemaName);
   const { search, limit = 50, offset = 0 } = options;
 
-  try {
-    let whereClause = "";
-    if (search) {
-      const searchTerm = search.replace(/'/g, "''");
-      whereClause = `WHERE
-        first_name ILIKE '%${searchTerm}%' OR
-        last_name ILIKE '%${searchTerm}%' OR
-        email ILIKE '%${searchTerm}%'`;
-    }
-
-    const customers = await client.unsafe(`
-      SELECT * FROM "${schemaName}".customers
-      ${whereClause}
-      ORDER BY last_name, first_name
-      LIMIT ${limit} OFFSET ${offset}
-    `);
-
-    const countResult = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".customers ${whereClause}
-    `);
-
-    return {
-      customers: customers.map(mapCustomer),
-      total: Number(countResult[0]?.count || 0),
-    };
-  } finally {
-    await client.end();
+  let whereConditions = [eq(schema.customers.organizationId, organizationId)];
+  if (search) {
+    whereConditions.push(sql`(
+      ${schema.customers.firstName} ILIKE ${'%' + search + '%'} OR
+      ${schema.customers.lastName} ILIKE ${'%' + search + '%'} OR
+      ${schema.customers.email} ILIKE ${'%' + search + '%'}
+    )`);
   }
+
+  const customers = await db
+    .select()
+    .from(schema.customers)
+    .where(and(...whereConditions))
+    .orderBy(schema.customers.lastName, schema.customers.firstName)
+    .limit(limit)
+    .offset(offset);
+
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.customers)
+    .where(and(...whereConditions));
+
+  return {
+    customers: customers.map(mapCustomer),
+    total: Number(countResult[0]?.count || 0),
+  };
 }
 
-export async function getCustomerById(schemaName: string, id: string) {
-  const client = getClient(schemaName);
+export async function getCustomerById(organizationId: string, id: string) {
+  const result = await db
+    .select()
+    .from(schema.customers)
+    .where(and(
+      eq(schema.customers.organizationId, organizationId),
+      eq(schema.customers.id, id)
+    ))
+    .limit(1);
 
-  try {
-    const result = await client.unsafe(`
-      SELECT * FROM "${schemaName}".customers WHERE id = '${id}'
-    `);
-    return result[0] ? mapCustomer(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return result[0] ? mapCustomer(result[0]) : null;
 }
 
-export async function createCustomer(schemaName: string, data: {
+export async function createCustomer(organizationId: string, data: {
   email: string;
   firstName: string;
   lastName: string;
@@ -242,42 +239,34 @@ export async function createCustomer(schemaName: string, data: {
   country?: string;
   notes?: string;
 }) {
-  const client = getClient(schemaName);
+  const [customer] = await db
+    .insert(schema.customers)
+    .values({
+      organizationId,
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone || null,
+      dateOfBirth: data.dateOfBirth || null,
+      emergencyContactName: data.emergencyContactName || null,
+      emergencyContactPhone: data.emergencyContactPhone || null,
+      emergencyContactRelation: data.emergencyContactRelation || null,
+      medicalConditions: data.medicalConditions || null,
+      medications: data.medications || null,
+      certifications: data.certifications || null,
+      address: data.address || null,
+      city: data.city || null,
+      state: data.state || null,
+      postalCode: data.postalCode || null,
+      country: data.country || null,
+      notes: data.notes || null,
+    })
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      INSERT INTO "${schemaName}".customers (
-        email, first_name, last_name, phone, date_of_birth,
-        emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
-        medical_conditions, medications, certifications,
-        address, city, state, postal_code, country, notes
-      ) VALUES (
-        '${data.email.replace(/'/g, "''")}',
-        '${data.firstName.replace(/'/g, "''")}',
-        '${data.lastName.replace(/'/g, "''")}',
-        ${data.phone ? `'${data.phone.replace(/'/g, "''")}'` : "NULL"},
-        ${data.dateOfBirth ? `'${data.dateOfBirth}'` : "NULL"},
-        ${data.emergencyContactName ? `'${data.emergencyContactName.replace(/'/g, "''")}'` : "NULL"},
-        ${data.emergencyContactPhone ? `'${data.emergencyContactPhone.replace(/'/g, "''")}'` : "NULL"},
-        ${data.emergencyContactRelation ? `'${data.emergencyContactRelation.replace(/'/g, "''")}'` : "NULL"},
-        ${data.medicalConditions ? `'${data.medicalConditions.replace(/'/g, "''")}'` : "NULL"},
-        ${data.medications ? `'${data.medications.replace(/'/g, "''")}'` : "NULL"},
-        ${data.certifications ? `'${JSON.stringify(data.certifications).replace(/'/g, "''")}'::jsonb` : "NULL"},
-        ${data.address ? `'${data.address.replace(/'/g, "''")}'` : "NULL"},
-        ${data.city ? `'${data.city.replace(/'/g, "''")}'` : "NULL"},
-        ${data.state ? `'${data.state.replace(/'/g, "''")}'` : "NULL"},
-        ${data.postalCode ? `'${data.postalCode.replace(/'/g, "''")}'` : "NULL"},
-        ${data.country ? `'${data.country.replace(/'/g, "''")}'` : "NULL"},
-        ${data.notes ? `'${data.notes.replace(/'/g, "''")}'` : "NULL"}
-      ) RETURNING *
-    `);
-    return mapCustomer(result[0]);
-  } finally {
-    await client.end();
-  }
+  return mapCustomer(customer);
 }
 
-export async function updateCustomer(schemaName: string, id: string, data: Partial<{
+export async function updateCustomer(organizationId: string, id: string, data: Partial<{
   email: string;
   firstName: string;
   lastName: string;
@@ -296,50 +285,29 @@ export async function updateCustomer(schemaName: string, id: string, data: Parti
   country: string;
   notes: string;
 }>) {
-  const client = getClient(schemaName);
+  const [customer] = await db
+    .update(schema.customers)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(and(
+      eq(schema.customers.organizationId, organizationId),
+      eq(schema.customers.id, id)
+    ))
+    .returning();
 
-  try {
-    const updates: string[] = [];
-    if (data.email !== undefined) updates.push(`email = '${data.email.replace(/'/g, "''")}'`);
-    if (data.firstName !== undefined) updates.push(`first_name = '${data.firstName.replace(/'/g, "''")}'`);
-    if (data.lastName !== undefined) updates.push(`last_name = '${data.lastName.replace(/'/g, "''")}'`);
-    if (data.phone !== undefined) updates.push(`phone = '${data.phone.replace(/'/g, "''")}'`);
-    if (data.dateOfBirth !== undefined) updates.push(`date_of_birth = '${data.dateOfBirth}'`);
-    if (data.emergencyContactName !== undefined) updates.push(`emergency_contact_name = '${data.emergencyContactName.replace(/'/g, "''")}'`);
-    if (data.emergencyContactPhone !== undefined) updates.push(`emergency_contact_phone = '${data.emergencyContactPhone.replace(/'/g, "''")}'`);
-    if (data.emergencyContactRelation !== undefined) updates.push(`emergency_contact_relation = '${data.emergencyContactRelation.replace(/'/g, "''")}'`);
-    if (data.medicalConditions !== undefined) updates.push(`medical_conditions = '${data.medicalConditions.replace(/'/g, "''")}'`);
-    if (data.medications !== undefined) updates.push(`medications = '${data.medications.replace(/'/g, "''")}'`);
-    if (data.certifications !== undefined) updates.push(`certifications = '${JSON.stringify(data.certifications).replace(/'/g, "''")}'::jsonb`);
-    if (data.address !== undefined) updates.push(`address = '${data.address.replace(/'/g, "''")}'`);
-    if (data.city !== undefined) updates.push(`city = '${data.city.replace(/'/g, "''")}'`);
-    if (data.state !== undefined) updates.push(`state = '${data.state.replace(/'/g, "''")}'`);
-    if (data.postalCode !== undefined) updates.push(`postal_code = '${data.postalCode.replace(/'/g, "''")}'`);
-    if (data.country !== undefined) updates.push(`country = '${data.country.replace(/'/g, "''")}'`);
-    if (data.notes !== undefined) updates.push(`notes = '${data.notes.replace(/'/g, "''")}'`);
-    updates.push(`updated_at = NOW()`);
-
-    const result = await client.unsafe(`
-      UPDATE "${schemaName}".customers
-      SET ${updates.join(", ")}
-      WHERE id = '${id}'
-      RETURNING *
-    `);
-    return result[0] ? mapCustomer(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return customer ? mapCustomer(customer) : null;
 }
 
-export async function deleteCustomer(schemaName: string, id: string) {
-  const client = getClient(schemaName);
-
-  try {
-    await client.unsafe(`DELETE FROM "${schemaName}".customers WHERE id = '${id}'`);
-    return true;
-  } finally {
-    await client.end();
-  }
+export async function deleteCustomer(organizationId: string, id: string) {
+  await db
+    .delete(schema.customers)
+    .where(and(
+      eq(schema.customers.organizationId, organizationId),
+      eq(schema.customers.id, id)
+    ));
+  return true;
 }
 
 // ============================================================================
@@ -347,78 +315,71 @@ export async function deleteCustomer(schemaName: string, id: string) {
 // ============================================================================
 
 export async function getTours(
-  schemaName: string,
+  organizationId: string,
   options: { activeOnly?: boolean; search?: string; type?: string } = {}
 ) {
-  const client = getClient(schemaName);
   const { activeOnly = false, search, type } = options;
 
-  try {
-    const conditions: string[] = [];
-    if (activeOnly) conditions.push("t.is_active = true");
-    if (search) {
-      const searchTerm = search.replace(/'/g, "''");
-      conditions.push(`t.name ILIKE '%${searchTerm}%'`);
-    }
-    if (type) conditions.push(`t.type = '${type}'`);
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-    const tours = await client.unsafe(`
-      SELECT
-        t.*,
-        (SELECT COUNT(*) FROM "${schemaName}".trips tr WHERE tr.tour_id = t.id) as trip_count
-      FROM "${schemaName}".tours t
-      ${whereClause}
-      ORDER BY t.name
-    `);
-
-    return tours.map((row: any) => ({
-      ...mapTour(row),
-      tripCount: Number(row.trip_count || 0),
-    }));
-  } finally {
-    await client.end();
+  let whereConditions = [eq(schema.tours.organizationId, organizationId)];
+  if (activeOnly) whereConditions.push(eq(schema.tours.isActive, true));
+  if (type) whereConditions.push(eq(schema.tours.type, type));
+  if (search) {
+    whereConditions.push(sql`${schema.tours.name} ILIKE ${'%' + search + '%'}`);
   }
+
+  const tours = await db
+    .select()
+    .from(schema.tours)
+    .where(and(...whereConditions))
+    .orderBy(schema.tours.name);
+
+  // Get trip counts
+  const result = [];
+  for (const tour of tours) {
+    const tripCountResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.trips)
+      .where(eq(schema.trips.tourId, tour.id));
+
+    result.push({
+      ...mapTour(tour),
+      tripCount: Number(tripCountResult[0]?.count || 0),
+    });
+  }
+
+  return result;
 }
 
-/**
- * Get all active tours for dropdown selection
- */
-export async function getAllTours(schemaName: string) {
-  const client = getClient(schemaName);
+export async function getAllTours(organizationId: string) {
+  const tours = await db
+    .select({
+      id: schema.tours.id,
+      name: schema.tours.name,
+    })
+    .from(schema.tours)
+    .where(and(
+      eq(schema.tours.organizationId, organizationId),
+      eq(schema.tours.isActive, true)
+    ))
+    .orderBy(schema.tours.name);
 
-  try {
-    const tours = await client.unsafe(`
-      SELECT id, name
-      FROM "${schemaName}".tours
-      WHERE is_active = true
-      ORDER BY name
-    `);
-
-    return tours.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-    }));
-  } finally {
-    await client.end();
-  }
+  return tours;
 }
 
-export async function getTourById(schemaName: string, id: string) {
-  const client = getClient(schemaName);
+export async function getTourById(organizationId: string, id: string) {
+  const [tour] = await db
+    .select()
+    .from(schema.tours)
+    .where(and(
+      eq(schema.tours.organizationId, organizationId),
+      eq(schema.tours.id, id)
+    ))
+    .limit(1);
 
-  try {
-    const result = await client.unsafe(`
-      SELECT * FROM "${schemaName}".tours WHERE id = '${id}'
-    `);
-    return result[0] ? mapTour(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return tour ? mapTour(tour) : null;
 }
 
-export async function createTour(schemaName: string, data: {
+export async function createTour(organizationId: string, data: {
   name: string;
   description?: string;
   type: string;
@@ -433,135 +394,130 @@ export async function createTour(schemaName: string, data: {
   minCertLevel?: string;
   minAge?: number;
 }) {
-  const client = getClient(schemaName);
+  const [tour] = await db
+    .insert(schema.tours)
+    .values({
+      organizationId,
+      name: data.name,
+      description: data.description || null,
+      type: data.type,
+      duration: data.duration || null,
+      maxParticipants: data.maxParticipants,
+      minParticipants: data.minParticipants || 1,
+      price: String(data.price),
+      currency: data.currency || "USD",
+      includesEquipment: data.includesEquipment || false,
+      includesMeals: data.includesMeals || false,
+      includesTransport: data.includesTransport || false,
+      minCertLevel: data.minCertLevel || null,
+      minAge: data.minAge || null,
+    })
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      INSERT INTO "${schemaName}".tours (
-        name, description, type, duration, max_participants, min_participants,
-        price, currency, includes_equipment, includes_meals, includes_transport,
-        min_cert_level, min_age
-      ) VALUES (
-        '${data.name.replace(/'/g, "''")}',
-        ${data.description ? `'${data.description.replace(/'/g, "''")}'` : "NULL"},
-        '${data.type}',
-        ${data.duration || "NULL"},
-        ${data.maxParticipants},
-        ${data.minParticipants || 1},
-        ${data.price},
-        '${data.currency || "USD"}',
-        ${data.includesEquipment || false},
-        ${data.includesMeals || false},
-        ${data.includesTransport || false},
-        ${data.minCertLevel ? `'${data.minCertLevel}'` : "NULL"},
-        ${data.minAge || "NULL"}
-      ) RETURNING *
-    `);
-    return mapTour(result[0]);
-  } finally {
-    await client.end();
-  }
+  return mapTour(tour);
 }
 
-/**
- * Update tour active status
- */
-export async function updateTourActiveStatus(schemaName: string, id: string, isActive: boolean) {
-  const client = getClient(schemaName);
+export async function updateTourActiveStatus(organizationId: string, id: string, isActive: boolean) {
+  const [tour] = await db
+    .update(schema.tours)
+    .set({ isActive, updatedAt: new Date() })
+    .where(and(
+      eq(schema.tours.organizationId, organizationId),
+      eq(schema.tours.id, id)
+    ))
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      UPDATE "${schemaName}".tours
-      SET is_active = ${isActive}, updated_at = NOW()
-      WHERE id = '${id}'
-      RETURNING *
-    `);
-    return result[0] ? mapTour(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return tour ? mapTour(tour) : null;
 }
 
-/**
- * Delete tour (soft delete by setting is_active = false)
- */
-export async function deleteTour(schemaName: string, id: string) {
-  const client = getClient(schemaName);
-
-  try {
-    // Soft delete - just mark as inactive
-    await client.unsafe(`
-      UPDATE "${schemaName}".tours
-      SET is_active = false, updated_at = NOW()
-      WHERE id = '${id}'
-    `);
-    return true;
-  } finally {
-    await client.end();
-  }
+export async function deleteTour(organizationId: string, id: string) {
+  await db
+    .update(schema.tours)
+    .set({ isActive: false, updatedAt: new Date() })
+    .where(and(
+      eq(schema.tours.organizationId, organizationId),
+      eq(schema.tours.id, id)
+    ));
+  return true;
 }
 
 export async function getTrips(
-  schemaName: string,
+  organizationId: string,
   options: { fromDate?: string; toDate?: string; status?: string; limit?: number } = {}
 ) {
-  const client = getClient(schemaName);
   const { fromDate, toDate, status, limit = 50 } = options;
 
-  try {
-    const conditions: string[] = [];
-    if (fromDate) conditions.push(`t.date >= '${fromDate}'`);
-    if (toDate) conditions.push(`t.date <= '${toDate}'`);
-    if (status) conditions.push(`t.status = '${status}'`);
+  let whereConditions = [eq(schema.trips.organizationId, organizationId)];
+  if (fromDate) whereConditions.push(gte(schema.trips.date, fromDate));
+  if (toDate) whereConditions.push(lte(schema.trips.date, toDate));
+  if (status) whereConditions.push(eq(schema.trips.status, status));
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const trips = await db
+    .select({
+      trip: schema.trips,
+      tourName: schema.tours.name,
+      tourType: schema.tours.type,
+      boatName: schema.boats.name,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .leftJoin(schema.boats, eq(schema.trips.boatId, schema.boats.id))
+    .where(and(...whereConditions))
+    .orderBy(schema.trips.date, schema.trips.startTime)
+    .limit(limit);
 
-    const trips = await client.unsafe(`
-      SELECT
-        t.*,
-        tr.name as tour_name,
-        tr.type as tour_type,
-        b.name as boat_name,
-        (
-          SELECT COALESCE(SUM(bk.participants), 0)
-          FROM "${schemaName}".bookings bk
-          WHERE bk.trip_id = t.id AND bk.status NOT IN ('canceled', 'no_show')
-        ) as booked_participants
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      LEFT JOIN "${schemaName}".boats b ON t.boat_id = b.id
-      ${whereClause}
-      ORDER BY t.date, t.start_time
-      LIMIT ${limit}
-    `);
+  // Get booked participants for each trip
+  const result = [];
+  for (const row of trips) {
+    const participantsResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.tripId, row.trip.id),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      ));
 
-    return trips.map(mapTrip);
-  } finally {
-    await client.end();
+    result.push(mapTrip({
+      ...row.trip,
+      tour_name: row.tourName,
+      tour_type: row.tourType,
+      boat_name: row.boatName,
+      booked_participants: participantsResult[0]?.total || 0,
+    }));
   }
+
+  return result;
 }
 
-export async function getTripById(schemaName: string, id: string) {
-  const client = getClient(schemaName);
+export async function getTripById(organizationId: string, id: string) {
+  const [result] = await db
+    .select({
+      trip: schema.trips,
+      tourName: schema.tours.name,
+      tourType: schema.tours.type,
+      tourPrice: schema.tours.price,
+      tourMaxParticipants: schema.tours.maxParticipants,
+      boatName: schema.boats.name,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .leftJoin(schema.boats, eq(schema.trips.boatId, schema.boats.id))
+    .where(and(
+      eq(schema.trips.organizationId, organizationId),
+      eq(schema.trips.id, id)
+    ))
+    .limit(1);
 
-  try {
-    const result = await client.unsafe(`
-      SELECT
-        t.*,
-        tr.name as tour_name,
-        tr.type as tour_type,
-        tr.price as tour_price,
-        tr.max_participants as tour_max_participants,
-        b.name as boat_name
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      LEFT JOIN "${schemaName}".boats b ON t.boat_id = b.id
-      WHERE t.id = '${id}'
-    `);
-    return result[0] ? mapTrip(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  if (!result) return null;
+
+  return mapTrip({
+    ...result.trip,
+    tour_name: result.tourName,
+    tour_type: result.tourType,
+    tour_price: result.tourPrice,
+    tour_max_participants: result.tourMaxParticipants,
+    boat_name: result.boatName,
+  });
 }
 
 // ============================================================================
@@ -583,56 +539,64 @@ export interface CalendarTrip {
 }
 
 export async function getCalendarTrips(
-  schemaName: string,
+  organizationId: string,
   options: { fromDate: string; toDate: string }
 ): Promise<CalendarTrip[]> {
-  const client = getClient(schemaName);
   const { fromDate, toDate } = options;
 
-  try {
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        t.tour_id,
-        tr.name as tour_name,
-        tr.type as tour_type,
-        t.date,
-        t.start_time,
-        t.end_time,
-        b.name as boat_name,
-        COALESCE(t.max_participants, tr.max_participants) as max_participants,
-        t.status,
-        (
-          SELECT COALESCE(SUM(bk.participants), 0)
-          FROM "${schemaName}".bookings bk
-          WHERE bk.trip_id = t.id AND bk.status NOT IN ('canceled', 'no_show')
-        ) as booked_participants
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      LEFT JOIN "${schemaName}".boats b ON t.boat_id = b.id
-      WHERE t.date >= '${fromDate}' AND t.date <= '${toDate}'
-      ORDER BY t.date, t.start_time
-    `);
+  const trips = await db
+    .select({
+      id: schema.trips.id,
+      tourId: schema.trips.tourId,
+      tourName: schema.tours.name,
+      tourType: schema.tours.type,
+      date: schema.trips.date,
+      startTime: schema.trips.startTime,
+      endTime: schema.trips.endTime,
+      boatName: schema.boats.name,
+      maxParticipants: sql<number>`COALESCE(${schema.trips.maxParticipants}, ${schema.tours.maxParticipants})`,
+      status: schema.trips.status,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .leftJoin(schema.boats, eq(schema.trips.boatId, schema.boats.id))
+    .where(and(
+      eq(schema.trips.organizationId, organizationId),
+      gte(schema.trips.date, fromDate),
+      lte(schema.trips.date, toDate)
+    ))
+    .orderBy(schema.trips.date, schema.trips.startTime);
 
-    return trips.map((row: any) => ({
-      id: row.id,
-      tourId: row.tour_id,
-      tourName: row.tour_name,
-      tourType: row.tour_type,
-      date: formatDateString(row.date),
-      startTime: formatTimeString(row.start_time),
-      endTime: row.end_time ? formatTimeString(row.end_time) : null,
-      boatName: row.boat_name,
-      maxParticipants: Number(row.max_participants || 0),
-      bookedParticipants: Number(row.booked_participants || 0),
-      status: row.status,
-    }));
-  } finally {
-    await client.end();
+  // Get booked participants for each trip
+  const result: CalendarTrip[] = [];
+  for (const trip of trips) {
+    const participantsResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.tripId, trip.id),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      ));
+
+    result.push({
+      id: trip.id,
+      tourId: trip.tourId,
+      tourName: trip.tourName,
+      tourType: trip.tourType,
+      date: formatDateString(trip.date),
+      startTime: formatTimeString(trip.startTime),
+      endTime: trip.endTime ? formatTimeString(trip.endTime) : null,
+      boatName: trip.boatName,
+      maxParticipants: Number(trip.maxParticipants || 0),
+      bookedParticipants: Number(participantsResult[0]?.total || 0),
+      status: trip.status,
+    });
   }
+
+  return result;
 }
 
-export async function createTrip(schemaName: string, data: {
+export async function createTrip(organizationId: string, data: {
   tourId: string;
   boatId?: string;
   date: string;
@@ -642,46 +606,35 @@ export async function createTrip(schemaName: string, data: {
   price?: number;
   notes?: string;
 }) {
-  const client = getClient(schemaName);
+  const [trip] = await db
+    .insert(schema.trips)
+    .values({
+      organizationId,
+      tourId: data.tourId,
+      boatId: data.boatId || null,
+      date: data.date,
+      startTime: data.startTime,
+      endTime: data.endTime || null,
+      maxParticipants: data.maxParticipants || null,
+      price: data.price ? String(data.price) : null,
+      notes: data.notes || null,
+    })
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      INSERT INTO "${schemaName}".trips (
-        tour_id, boat_id, date, start_time, end_time, max_participants, price, notes
-      ) VALUES (
-        '${data.tourId}',
-        ${data.boatId ? `'${data.boatId}'` : "NULL"},
-        '${data.date}',
-        '${data.startTime}',
-        ${data.endTime ? `'${data.endTime}'` : "NULL"},
-        ${data.maxParticipants || "NULL"},
-        ${data.price || "NULL"},
-        ${data.notes ? `'${data.notes.replace(/'/g, "''")}'` : "NULL"}
-      ) RETURNING *
-    `);
-    return result[0];
-  } finally {
-    await client.end();
-  }
+  return trip;
 }
 
-/**
- * Update trip status
- */
-export async function updateTripStatus(schemaName: string, id: string, status: string) {
-  const client = getClient(schemaName);
+export async function updateTripStatus(organizationId: string, id: string, status: string) {
+  const [trip] = await db
+    .update(schema.trips)
+    .set({ status, updatedAt: new Date() })
+    .where(and(
+      eq(schema.trips.organizationId, organizationId),
+      eq(schema.trips.id, id)
+    ))
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      UPDATE "${schemaName}".trips
-      SET status = '${status}', updated_at = NOW()
-      WHERE id = '${id}'
-      RETURNING *
-    `);
-    return result[0] ? mapTrip(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return trip ? mapTrip(trip) : null;
 }
 
 // ============================================================================
@@ -689,79 +642,93 @@ export async function updateTripStatus(schemaName: string, id: string, status: s
 // ============================================================================
 
 export async function getBookings(
-  schemaName: string,
+  organizationId: string,
   options: { status?: string; tripId?: string; customerId?: string; limit?: number; offset?: number } = {}
 ) {
-  const client = getClient(schemaName);
   const { status, tripId, customerId, limit = 50, offset = 0 } = options;
 
-  try {
-    const conditions: string[] = [];
-    if (status) conditions.push(`b.status = '${status}'`);
-    if (tripId) conditions.push(`b.trip_id = '${tripId}'`);
-    if (customerId) conditions.push(`b.customer_id = '${customerId}'`);
+  let whereConditions = [eq(schema.bookings.organizationId, organizationId)];
+  if (status) whereConditions.push(eq(schema.bookings.status, status));
+  if (tripId) whereConditions.push(eq(schema.bookings.tripId, tripId));
+  if (customerId) whereConditions.push(eq(schema.bookings.customerId, customerId));
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const bookings = await db
+    .select({
+      booking: schema.bookings,
+      firstName: schema.customers.firstName,
+      lastName: schema.customers.lastName,
+      customerEmail: schema.customers.email,
+      customerPhone: schema.customers.phone,
+      tourName: schema.tours.name,
+      tripDate: schema.trips.date,
+      tripTime: schema.trips.startTime,
+    })
+    .from(schema.bookings)
+    .innerJoin(schema.customers, eq(schema.bookings.customerId, schema.customers.id))
+    .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(and(...whereConditions))
+    .orderBy(desc(schema.bookings.createdAt))
+    .limit(limit)
+    .offset(offset);
 
-    const bookings = await client.unsafe(`
-      SELECT
-        b.*,
-        c.first_name,
-        c.last_name,
-        c.email as customer_email,
-        c.phone as customer_phone,
-        tr.name as tour_name,
-        t.date as trip_date,
-        t.start_time as trip_time
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".customers c ON b.customer_id = c.id
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      ${whereClause}
-      ORDER BY b.created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `);
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.bookings)
+    .where(and(...whereConditions));
 
-    const countResult = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".bookings b ${whereClause}
-    `);
-
-    return {
-      bookings: bookings.map(mapBooking),
-      total: Number(countResult[0]?.count || 0),
-    };
-  } finally {
-    await client.end();
-  }
+  return {
+    bookings: bookings.map((row) => mapBooking({
+      ...row.booking,
+      first_name: row.firstName,
+      last_name: row.lastName,
+      customer_email: row.customerEmail,
+      customer_phone: row.customerPhone,
+      tour_name: row.tourName,
+      trip_date: row.tripDate,
+      trip_time: row.tripTime,
+    })),
+    total: Number(countResult[0]?.count || 0),
+  };
 }
 
-export async function getBookingById(schemaName: string, id: string) {
-  const client = getClient(schemaName);
+export async function getBookingById(organizationId: string, id: string) {
+  const [result] = await db
+    .select({
+      booking: schema.bookings,
+      firstName: schema.customers.firstName,
+      lastName: schema.customers.lastName,
+      customerEmail: schema.customers.email,
+      customerPhone: schema.customers.phone,
+      tourName: schema.tours.name,
+      tripDate: schema.trips.date,
+      tripTime: schema.trips.startTime,
+    })
+    .from(schema.bookings)
+    .innerJoin(schema.customers, eq(schema.bookings.customerId, schema.customers.id))
+    .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      eq(schema.bookings.id, id)
+    ))
+    .limit(1);
 
-  try {
-    const result = await client.unsafe(`
-      SELECT
-        b.*,
-        c.first_name,
-        c.last_name,
-        c.email as customer_email,
-        c.phone as customer_phone,
-        tr.name as tour_name,
-        t.date as trip_date,
-        t.start_time as trip_time
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".customers c ON b.customer_id = c.id
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE b.id = '${id}'
-    `);
-    return result[0] ? mapBooking(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  if (!result) return null;
+
+  return mapBooking({
+    ...result.booking,
+    first_name: result.firstName,
+    last_name: result.lastName,
+    customer_email: result.customerEmail,
+    customer_phone: result.customerPhone,
+    tour_name: result.tourName,
+    trip_date: result.tripDate,
+    trip_time: result.tripTime,
+  });
 }
 
-export async function createBooking(schemaName: string, data: {
+export async function createBooking(organizationId: string, data: {
   tripId: string;
   customerId: string;
   participants?: number;
@@ -773,50 +740,40 @@ export async function createBooking(schemaName: string, data: {
   specialRequests?: string;
   source?: string;
 }) {
-  const client = getClient(schemaName);
+  const bookingNumber = `BK${Date.now().toString(36).toUpperCase()}`;
 
-  try {
-    // Generate booking number
-    const bookingNumber = `BK${Date.now().toString(36).toUpperCase()}`;
+  const [booking] = await db
+    .insert(schema.bookings)
+    .values({
+      organizationId,
+      bookingNumber,
+      tripId: data.tripId,
+      customerId: data.customerId,
+      participants: data.participants || 1,
+      subtotal: String(data.subtotal),
+      discount: String(data.discount || 0),
+      tax: String(data.tax || 0),
+      total: String(data.total),
+      currency: data.currency || "USD",
+      specialRequests: data.specialRequests || null,
+      source: data.source || "direct",
+    })
+    .returning();
 
-    const result = await client.unsafe(`
-      INSERT INTO "${schemaName}".bookings (
-        booking_number, trip_id, customer_id, participants,
-        subtotal, discount, tax, total, currency, special_requests, source
-      ) VALUES (
-        '${bookingNumber}',
-        '${data.tripId}',
-        '${data.customerId}',
-        ${data.participants || 1},
-        ${data.subtotal},
-        ${data.discount || 0},
-        ${data.tax || 0},
-        ${data.total},
-        '${data.currency || "USD"}',
-        ${data.specialRequests ? `'${data.specialRequests.replace(/'/g, "''")}'` : "NULL"},
-        '${data.source || "direct"}'
-      ) RETURNING *
-    `);
-    return result[0];
-  } finally {
-    await client.end();
-  }
+  return booking;
 }
 
-export async function updateBookingStatus(schemaName: string, id: string, status: string) {
-  const client = getClient(schemaName);
+export async function updateBookingStatus(organizationId: string, id: string, status: string) {
+  const [booking] = await db
+    .update(schema.bookings)
+    .set({ status, updatedAt: new Date() })
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      eq(schema.bookings.id, id)
+    ))
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      UPDATE "${schemaName}".bookings
-      SET status = '${status}', updated_at = NOW()
-      WHERE id = '${id}'
-      RETURNING *
-    `);
-    return result[0];
-  } finally {
-    await client.end();
-  }
+  return booking;
 }
 
 // ============================================================================
@@ -824,165 +781,132 @@ export async function updateBookingStatus(schemaName: string, id: string, status
 // ============================================================================
 
 export async function getEquipment(
-  schemaName: string,
+  organizationId: string,
   options: { category?: string; status?: string; search?: string; isRentable?: boolean; limit?: number } = {}
 ) {
-  const client = getClient(schemaName);
   const { category, status, search, isRentable, limit = 100 } = options;
 
-  try {
-    const conditions: string[] = [];
-    if (category) conditions.push(`category = '${category}'`);
-    if (status) conditions.push(`status = '${status}'`);
-    if (search) {
-      const searchTerm = search.replace(/'/g, "''");
-      conditions.push(`name ILIKE '%${searchTerm}%'`);
-    }
-    if (isRentable !== undefined) conditions.push(`is_rentable = ${isRentable}`);
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-    const equipment = await client.unsafe(`
-      SELECT * FROM "${schemaName}".equipment
-      ${whereClause}
-      ORDER BY category, name
-      LIMIT ${limit}
-    `);
-
-    return equipment.map(mapEquipment);
-  } finally {
-    await client.end();
+  let whereConditions = [eq(schema.equipment.organizationId, organizationId)];
+  if (category) whereConditions.push(eq(schema.equipment.category, category));
+  if (status) whereConditions.push(eq(schema.equipment.status, status));
+  if (isRentable !== undefined) whereConditions.push(eq(schema.equipment.isRentable, isRentable));
+  if (search) {
+    whereConditions.push(sql`${schema.equipment.name} ILIKE ${'%' + search + '%'}`);
   }
+
+  const equipment = await db
+    .select()
+    .from(schema.equipment)
+    .where(and(...whereConditions))
+    .orderBy(schema.equipment.category, schema.equipment.name)
+    .limit(limit);
+
+  return equipment.map(mapEquipment);
 }
 
-export async function getEquipmentById(schemaName: string, id: string) {
-  const client = getClient(schemaName);
+export async function getEquipmentById(organizationId: string, id: string) {
+  const [equipment] = await db
+    .select()
+    .from(schema.equipment)
+    .where(and(
+      eq(schema.equipment.organizationId, organizationId),
+      eq(schema.equipment.id, id)
+    ))
+    .limit(1);
 
-  try {
-    const result = await client.unsafe(`
-      SELECT * FROM "${schemaName}".equipment WHERE id = '${id}'
-    `);
-    return result[0] ? mapEquipment(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return equipment ? mapEquipment(equipment) : null;
 }
 
-export async function createEquipment(schemaName: string, data: {
+export async function createEquipment(organizationId: string, data: {
   category: string;
   name: string;
   brand?: string;
   model?: string;
   serialNumber?: string;
+  barcode?: string;
   size?: string;
   status?: string;
   condition?: string;
   rentalPrice?: number;
   isRentable?: boolean;
 }) {
-  const client = getClient(schemaName);
+  const [equipment] = await db
+    .insert(schema.equipment)
+    .values({
+      organizationId,
+      category: data.category,
+      name: data.name,
+      brand: data.brand || null,
+      model: data.model || null,
+      serialNumber: data.serialNumber || null,
+      barcode: data.barcode || null,
+      size: data.size || null,
+      status: data.status || "available",
+      condition: data.condition || "good",
+      rentalPrice: data.rentalPrice ? String(data.rentalPrice) : null,
+      isRentable: data.isRentable ?? true,
+    })
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      INSERT INTO "${schemaName}".equipment (
-        category, name, brand, model, serial_number, size,
-        status, condition, rental_price, is_rentable
-      ) VALUES (
-        '${data.category}',
-        '${data.name.replace(/'/g, "''")}',
-        ${data.brand ? `'${data.brand.replace(/'/g, "''")}'` : "NULL"},
-        ${data.model ? `'${data.model.replace(/'/g, "''")}'` : "NULL"},
-        ${data.serialNumber ? `'${data.serialNumber.replace(/'/g, "''")}'` : "NULL"},
-        ${data.size ? `'${data.size}'` : "NULL"},
-        '${data.status || "available"}',
-        '${data.condition || "good"}',
-        ${data.rentalPrice || "NULL"},
-        ${data.isRentable !== false}
-      ) RETURNING *
-    `);
-    return mapEquipment(result[0]);
-  } finally {
-    await client.end();
-  }
+  return mapEquipment(equipment);
 }
 
 // ============================================================================
-// Boats Queries
+// Boat Queries
 // ============================================================================
 
 export async function getBoats(
-  schemaName: string,
+  organizationId: string,
   options: { activeOnly?: boolean; search?: string } = {}
 ) {
-  const client = getClient(schemaName);
   const { activeOnly = false, search } = options;
 
-  try {
-    const conditions: string[] = [];
-    if (activeOnly) conditions.push("b.is_active = true");
-    if (search) {
-      const searchTerm = search.replace(/'/g, "''");
-      conditions.push(`b.name ILIKE '%${searchTerm}%'`);
-    }
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-    const boats = await client.unsafe(`
-      SELECT
-        b.*,
-        (SELECT COUNT(*) FROM "${schemaName}".trips t WHERE t.boat_id = b.id) as trip_count
-      FROM "${schemaName}".boats b
-      ${whereClause}
-      ORDER BY b.name
-    `);
-
-    return boats.map((row: any) => ({
-      ...mapBoat(row),
-      tripCount: Number(row.trip_count || 0),
-    }));
-  } finally {
-    await client.end();
+  let whereConditions = [eq(schema.boats.organizationId, organizationId)];
+  if (activeOnly) whereConditions.push(eq(schema.boats.isActive, true));
+  if (search) {
+    whereConditions.push(sql`${schema.boats.name} ILIKE ${'%' + search + '%'}`);
   }
+
+  const boats = await db
+    .select()
+    .from(schema.boats)
+    .where(and(...whereConditions))
+    .orderBy(schema.boats.name);
+
+  return boats.map(mapBoat);
 }
 
-/**
- * Get all active boats for dropdown selection
- */
-export async function getAllBoats(schemaName: string) {
-  const client = getClient(schemaName);
+export async function getAllBoats(organizationId: string) {
+  const boats = await db
+    .select({
+      id: schema.boats.id,
+      name: schema.boats.name,
+      capacity: schema.boats.capacity,
+    })
+    .from(schema.boats)
+    .where(and(
+      eq(schema.boats.organizationId, organizationId),
+      eq(schema.boats.isActive, true)
+    ))
+    .orderBy(schema.boats.name);
 
-  try {
-    const boats = await client.unsafe(`
-      SELECT id, name, capacity
-      FROM "${schemaName}".boats
-      WHERE is_active = true
-      ORDER BY name
-    `);
-
-    return boats.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      capacity: row.capacity,
-    }));
-  } finally {
-    await client.end();
-  }
+  return boats;
 }
 
-export async function getBoatById(schemaName: string, id: string) {
-  const client = getClient(schemaName);
+export async function getBoatById(organizationId: string, id: string) {
+  const [boat] = await db
+    .select()
+    .from(schema.boats)
+    .where(and(
+      eq(schema.boats.organizationId, organizationId),
+      eq(schema.boats.id, id)
+    ))
+    .limit(1);
 
-  try {
-    const result = await client.unsafe(`
-      SELECT * FROM "${schemaName}".boats WHERE id = '${id}'
-    `);
-    return result[0] ? mapBoat(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return boat ? mapBoat(boat) : null;
 }
 
-export async function createBoat(schemaName: string, data: {
+export async function createBoat(organizationId: string, data: {
   name: string;
   description?: string;
   capacity: number;
@@ -991,27 +915,21 @@ export async function createBoat(schemaName: string, data: {
   amenities?: string[];
   isActive?: boolean;
 }) {
-  const client = getClient(schemaName);
+  const [boat] = await db
+    .insert(schema.boats)
+    .values({
+      organizationId,
+      name: data.name,
+      description: data.description || null,
+      capacity: data.capacity,
+      type: data.type || null,
+      registrationNumber: data.registrationNumber || null,
+      amenities: data.amenities || null,
+      isActive: data.isActive ?? true,
+    })
+    .returning();
 
-  try {
-    const amenitiesJson = data.amenities ? JSON.stringify(data.amenities) : null;
-    const result = await client.unsafe(`
-      INSERT INTO "${schemaName}".boats (
-        name, description, capacity, type, registration_number, amenities, is_active
-      ) VALUES (
-        '${data.name.replace(/'/g, "''")}',
-        ${data.description ? `'${data.description.replace(/'/g, "''")}'` : "NULL"},
-        ${data.capacity},
-        ${data.type ? `'${data.type}'` : "NULL"},
-        ${data.registrationNumber ? `'${data.registrationNumber.replace(/'/g, "''")}'` : "NULL"},
-        ${amenitiesJson ? `'${amenitiesJson}'::jsonb` : "NULL"},
-        ${data.isActive !== false}
-      ) RETURNING *
-    `);
-    return mapBoat(result[0]);
-  } finally {
-    await client.end();
-  }
+  return mapBoat(boat);
 }
 
 // ============================================================================
@@ -1019,281 +937,230 @@ export async function createBoat(schemaName: string, data: {
 // ============================================================================
 
 export async function getDiveSites(
-  schemaName: string,
+  organizationId: string,
   options: { activeOnly?: boolean; search?: string; difficulty?: string } = {}
 ) {
-  const client = getClient(schemaName);
   const { activeOnly = false, search, difficulty } = options;
 
-  try {
-    const conditions: string[] = [];
-    if (activeOnly) conditions.push("ds.is_active = true");
-    if (search) {
-      const searchTerm = search.replace(/'/g, "''");
-      conditions.push(`ds.name ILIKE '%${searchTerm}%'`);
-    }
-    if (difficulty) conditions.push(`ds.difficulty = '${difficulty}'`);
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-    const sites = await client.unsafe(`
-      SELECT ds.*
-      FROM "${schemaName}".dive_sites ds
-      ${whereClause}
-      ORDER BY ds.name
-    `);
-
-    return sites.map((row: any) => ({
-      ...mapDiveSite(row),
-    }));
-  } finally {
-    await client.end();
+  let whereConditions = [eq(schema.diveSites.organizationId, organizationId)];
+  if (activeOnly) whereConditions.push(eq(schema.diveSites.isActive, true));
+  if (difficulty) whereConditions.push(eq(schema.diveSites.difficulty, difficulty));
+  if (search) {
+    whereConditions.push(sql`${schema.diveSites.name} ILIKE ${'%' + search + '%'}`);
   }
+
+  const sites = await db
+    .select()
+    .from(schema.diveSites)
+    .where(and(...whereConditions))
+    .orderBy(schema.diveSites.name);
+
+  return sites.map(mapDiveSite);
 }
 
-export async function getDiveSiteById(schemaName: string, id: string) {
-  const client = getClient(schemaName);
+export async function getDiveSiteById(organizationId: string, id: string) {
+  const [site] = await db
+    .select()
+    .from(schema.diveSites)
+    .where(and(
+      eq(schema.diveSites.organizationId, organizationId),
+      eq(schema.diveSites.id, id)
+    ))
+    .limit(1);
 
-  try {
-    const result = await client.unsafe(`
-      SELECT * FROM "${schemaName}".dive_sites WHERE id = '${id}'
-    `);
-    return result[0] ? mapDiveSite(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return site ? mapDiveSite(site) : null;
 }
 
-/**
- * Update dive site active status
- */
-export async function updateDiveSiteActiveStatus(schemaName: string, id: string, isActive: boolean) {
-  const client = getClient(schemaName);
+export async function updateDiveSiteActiveStatus(organizationId: string, id: string, isActive: boolean) {
+  const [site] = await db
+    .update(schema.diveSites)
+    .set({ isActive, updatedAt: new Date() })
+    .where(and(
+      eq(schema.diveSites.organizationId, organizationId),
+      eq(schema.diveSites.id, id)
+    ))
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      UPDATE "${schemaName}".dive_sites
-      SET is_active = ${isActive}, updated_at = NOW()
-      WHERE id = '${id}'
-      RETURNING *
-    `);
-    return result[0] ? mapDiveSite(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return site ? mapDiveSite(site) : null;
 }
 
-/**
- * Delete dive site (soft delete by setting is_active = false)
- */
-export async function deleteDiveSite(schemaName: string, id: string) {
-  const client = getClient(schemaName);
-
-  try {
-    // Soft delete - just mark as inactive
-    await client.unsafe(`
-      UPDATE "${schemaName}".dive_sites
-      SET is_active = false, updated_at = NOW()
-      WHERE id = '${id}'
-    `);
-    return true;
-  } finally {
-    await client.end();
-  }
+export async function deleteDiveSite(organizationId: string, id: string) {
+  await db
+    .update(schema.diveSites)
+    .set({ isActive: false, updatedAt: new Date() })
+    .where(and(
+      eq(schema.diveSites.organizationId, organizationId),
+      eq(schema.diveSites.id, id)
+    ));
+  return true;
 }
 
 // ============================================================================
 // Tour Detail Queries
 // ============================================================================
 
-export async function getTourStats(schemaName: string, tourId: string) {
-  const client = getClient(schemaName);
+export async function getTourStats(organizationId: string, tourId: string) {
+  // Get trip count
+  const tripCountResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.trips)
+    .where(eq(schema.trips.tourId, tourId));
 
-  try {
-    // Get trip count
-    const tripCountResult = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".trips WHERE tour_id = '${tourId}'
-    `);
+  // Get total revenue from bookings on trips for this tour
+  const revenueResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(CAST(${schema.bookings.total} AS DECIMAL)), 0)` })
+    .from(schema.bookings)
+    .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
+    .where(and(
+      eq(schema.trips.tourId, tourId),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'refunded')`
+    ));
 
-    // Get total revenue from bookings on trips for this tour
-    const revenueResult = await client.unsafe(`
-      SELECT COALESCE(SUM(b.total), 0) as total
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      WHERE t.tour_id = '${tourId}' AND b.status NOT IN ('canceled', 'refunded')
-    `);
-
-    // Get average rating (if you have ratings, otherwise return null)
-    // For now, return null as ratings may not be implemented
-    const avgRating = null;
-
-    return {
-      tripCount: Number(tripCountResult[0]?.count || 0),
-      totalRevenue: Number(revenueResult[0]?.total || 0),
-      averageRating: avgRating,
-    };
-  } finally {
-    await client.end();
-  }
+  return {
+    tripCount: Number(tripCountResult[0]?.count || 0),
+    totalRevenue: Number(revenueResult[0]?.total || 0),
+    averageRating: null,
+  };
 }
 
-export async function getUpcomingTripsForTour(schemaName: string, tourId: string, limit = 5) {
-  const client = getClient(schemaName);
+export async function getUpcomingTripsForTour(organizationId: string, tourId: string, limit = 5) {
+  const today = new Date().toISOString().split("T")[0];
 
-  try {
-    const today = new Date().toISOString().split("T")[0];
+  const trips = await db
+    .select({
+      id: schema.trips.id,
+      date: schema.trips.date,
+      startTime: schema.trips.startTime,
+      boatName: schema.boats.name,
+      maxParticipants: sql<number>`COALESCE(${schema.trips.maxParticipants}, ${schema.tours.maxParticipants})`,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .leftJoin(schema.boats, eq(schema.trips.boatId, schema.boats.id))
+    .where(and(
+      eq(schema.trips.tourId, tourId),
+      gte(schema.trips.date, today),
+      eq(schema.trips.status, "scheduled")
+    ))
+    .orderBy(schema.trips.date, schema.trips.startTime)
+    .limit(limit);
 
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        t.date,
-        t.start_time,
-        t.status,
-        COALESCE(t.max_participants, tr.max_participants) as max_spots,
-        b.name as boat_name,
-        (
-          SELECT COALESCE(SUM(bk.participants), 0)
-          FROM "${schemaName}".bookings bk
-          WHERE bk.trip_id = t.id AND bk.status NOT IN ('canceled', 'no_show')
-        ) as spots_booked
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      LEFT JOIN "${schemaName}".boats b ON t.boat_id = b.id
-      WHERE t.tour_id = '${tourId}' AND t.date >= '${today}'
-      ORDER BY t.date, t.start_time
-      LIMIT ${limit}
-    `);
+  const result = [];
+  for (const trip of trips) {
+    const participantsResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.tripId, trip.id),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      ));
 
-    return trips.map((trip: any) => {
-      const spotsBooked = Number(trip.spots_booked || 0);
-      const maxSpots = Number(trip.max_spots || 0);
-      let status = trip.status;
-
-      // Determine display status
-      if (spotsBooked >= maxSpots && maxSpots > 0) {
-        status = "full";
-      } else if (trip.status === "scheduled" && spotsBooked > 0) {
-        status = "confirmed";
-      } else if (trip.status === "scheduled") {
-        status = "open";
-      }
-
-      return {
-        id: trip.id,
-        date: formatDateString(trip.date),
-        startTime: formatTimeString(trip.start_time),
-        boatName: trip.boat_name || "No boat assigned",
-        spotsBooked,
-        maxSpots,
-        status,
-      };
+    result.push({
+      id: trip.id,
+      date: formatDateString(trip.date),
+      time: formatTimeString(trip.startTime),
+      boatName: trip.boatName,
+      bookedParticipants: Number(participantsResult[0]?.total || 0),
+      maxParticipants: Number(trip.maxParticipants || 0),
     });
-  } finally {
-    await client.end();
   }
+
+  return result;
 }
 
 // ============================================================================
 // Dive Site Detail Queries
 // ============================================================================
 
-export async function getDiveSiteStats(schemaName: string, siteId: string) {
-  const client = getClient(schemaName);
+export async function getDiveSiteStats(organizationId: string, siteId: string) {
+  // Get total trips that visited this site (through tour -> tourDiveSites)
+  const tripCountResult = await db
+    .select({ count: sql<number>`count(DISTINCT ${schema.trips.id})` })
+    .from(schema.trips)
+    .innerJoin(schema.tourDiveSites, eq(schema.trips.tourId, schema.tourDiveSites.tourId))
+    .where(and(
+      eq(schema.tourDiveSites.diveSiteId, siteId),
+      eq(schema.trips.organizationId, organizationId)
+    ));
 
-  try {
-    // Get total trips that visited this site
-    // Check if dive_site_ids array contains this site ID
-    const tripCountResult = await client.unsafe(`
-      SELECT COUNT(DISTINCT t.id) as count
-      FROM "${schemaName}".trips t
-      WHERE t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
-    `).catch(() => [{ count: 0 }]);
+  // Get total divers who visited this site
+  const diversResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+    .from(schema.bookings)
+    .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
+    .innerJoin(schema.tourDiveSites, eq(schema.trips.tourId, schema.tourDiveSites.tourId))
+    .where(and(
+      eq(schema.tourDiveSites.diveSiteId, siteId),
+      eq(schema.trips.organizationId, organizationId),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ));
 
-    // Get total divers (sum of participants from bookings on trips to this site)
-    const diversResult = await client.unsafe(`
-      SELECT COALESCE(SUM(b.participants), 0) as total
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      WHERE b.status NOT IN ('canceled', 'no_show')
-        AND t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
-    `).catch(() => [{ total: 0 }]);
-
-    // Get last visited date
-    const lastVisitedResult = await client.unsafe(`
-      SELECT MAX(t.date) as last_date
-      FROM "${schemaName}".trips t
-      WHERE t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
-    `).catch(() => [{ last_date: null }]);
-
-    return {
-      totalTrips: Number(tripCountResult[0]?.count || 0),
-      totalDivers: Number(diversResult[0]?.total || 0),
-      avgRating: null, // Ratings may not be implemented
-      lastVisited: lastVisitedResult[0]?.last_date ? formatDateString(lastVisitedResult[0].last_date) : null,
-    };
-  } finally {
-    await client.end();
-  }
+  return {
+    totalTrips: Number(tripCountResult[0]?.count || 0),
+    totalDivers: Number(diversResult[0]?.total || 0),
+    avgRating: null,
+  };
 }
 
-export async function getRecentTripsForDiveSite(schemaName: string, siteId: string, limit = 5) {
-  const client = getClient(schemaName);
+export async function getRecentTripsForDiveSite(organizationId: string, siteId: string, limit = 5) {
+  const trips = await db
+    .select({
+      id: schema.trips.id,
+      date: schema.trips.date,
+      tourName: schema.tours.name,
+      conditions: schema.trips.notes,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .innerJoin(schema.tourDiveSites, eq(schema.tours.id, schema.tourDiveSites.tourId))
+    .where(and(
+      eq(schema.tourDiveSites.diveSiteId, siteId),
+      eq(schema.trips.organizationId, organizationId)
+    ))
+    .orderBy(desc(schema.trips.date))
+    .limit(limit);
 
-  try {
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        t.date,
-        t.conditions,
-        tr.name as tour_name,
-        (
-          SELECT COALESCE(SUM(bk.participants), 0)
-          FROM "${schemaName}".bookings bk
-          WHERE bk.trip_id = t.id AND bk.status NOT IN ('canceled', 'no_show')
-        ) as participants
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
-      ORDER BY t.date DESC
-      LIMIT ${limit}
-    `).catch(() => []);
+  const result = [];
+  for (const trip of trips) {
+    const participantsResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.tripId, trip.id),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      ));
 
-    return trips.map((trip: any) => ({
+    result.push({
       id: trip.id,
-      date: formatDateString(trip.date),
-      tourName: trip.tour_name,
-      participants: Number(trip.participants || 0),
-      conditions: trip.conditions || null,
-    }));
-  } finally {
-    await client.end();
+      date: trip.date,
+      tourName: trip.tourName,
+      participants: Number(participantsResult[0]?.total || 0),
+      conditions: trip.conditions,
+    });
   }
+
+  return result;
 }
 
-export async function getToursUsingDiveSite(schemaName: string, siteId: string, limit = 5) {
-  const client = getClient(schemaName);
+export async function getToursUsingDiveSite(organizationId: string, siteId: string, limit = 5) {
+  const tours = await db
+    .select({
+      id: schema.tours.id,
+      name: schema.tours.name,
+    })
+    .from(schema.tours)
+    .innerJoin(schema.tourDiveSites, eq(schema.tours.id, schema.tourDiveSites.tourId))
+    .where(and(
+      eq(schema.tourDiveSites.diveSiteId, siteId),
+      eq(schema.tours.organizationId, organizationId),
+      eq(schema.tours.isActive, true)
+    ))
+    .limit(limit);
 
-  try {
-    // Get tours that have had trips to this dive site
-    const tours = await client.unsafe(`
-      SELECT DISTINCT tr.id, tr.name
-      FROM "${schemaName}".tours tr
-      JOIN "${schemaName}".trips t ON t.tour_id = tr.id
-      WHERE t.dive_site_ids @> ARRAY['${siteId}']::uuid[]
-      ORDER BY tr.name
-      LIMIT ${limit}
-    `).catch(() => []);
-
-    return tours.map((tour: any) => ({
-      id: tour.id,
-      name: tour.name,
-    }));
-  } finally {
-    await client.end();
-  }
+  return tours;
 }
 
-export async function createDiveSite(schemaName: string, data: {
+export async function createDiveSite(organizationId: string, data: {
   name: string;
   description?: string;
   latitude?: number;
@@ -1303,1228 +1170,290 @@ export async function createDiveSite(schemaName: string, data: {
   difficulty?: string;
   currentStrength?: string;
   visibility?: string;
+  highlights?: string[];
 }) {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      INSERT INTO "${schemaName}".dive_sites (
-        name, description, latitude, longitude, max_depth, min_depth,
-        difficulty, current_strength, visibility
-      ) VALUES (
-        '${data.name.replace(/'/g, "''")}',
-        ${data.description ? `'${data.description.replace(/'/g, "''")}'` : "NULL"},
-        ${data.latitude || "NULL"},
-        ${data.longitude || "NULL"},
-        ${data.maxDepth || "NULL"},
-        ${data.minDepth || "NULL"},
-        ${data.difficulty ? `'${data.difficulty}'` : "NULL"},
-        ${data.currentStrength ? `'${data.currentStrength}'` : "NULL"},
-        ${data.visibility ? `'${data.visibility}'` : "NULL"}
-      ) RETURNING *
-    `);
-    return mapDiveSite(result[0]);
-  } finally {
-    await client.end();
-  }
-}
-
-// ============================================================================
-// Users/Staff Queries
-// ============================================================================
-
-export async function getStaff(
-  schemaName: string,
-  options: { activeOnly?: boolean; role?: string } = {}
-) {
-  const client = getClient(schemaName);
-  const { activeOnly = true, role } = options;
-
-  try {
-    const conditions: string[] = [];
-    if (activeOnly) conditions.push("is_active = true");
-    if (role) conditions.push(`role = '${role}'`);
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-    const staff = await client.unsafe(`
-      SELECT id, name, email, role, avatar_url
-      FROM "${schemaName}".users
-      ${whereClause}
-      ORDER BY name
-    `);
-
-    return staff.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      role: row.role,
-      avatarUrl: row.avatar_url,
-    }));
-  } finally {
-    await client.end();
-  }
-}
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const inputDate = new Date(date);
-  inputDate.setHours(0, 0, 0, 0);
-
-  if (inputDate.getTime() === today.getTime()) {
-    return "Today";
-  }
-  if (inputDate.getTime() === tomorrow.getTime()) {
-    return "Tomorrow";
-  }
-
-  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-}
-
-function formatTime(timeStr: string): string {
-  const [hours, minutes] = timeStr.split(":");
-  const h = parseInt(hours, 10);
-  const ampm = h >= 12 ? "PM" : "AM";
-  const hour12 = h % 12 || 12;
-  return `${hour12}:${minutes} ${ampm}`;
-}
-
-function formatRelativeTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 60) return `${diffMins} minutes ago`;
-  if (diffHours < 24) return `${diffHours} hours ago`;
-  if (diffDays === 1) return "Yesterday";
-  return `${diffDays} days ago`;
-}
-
-function formatDateString(dateStr: string | Date): string {
-  if (!dateStr) return "";
-  const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
-  return date.toISOString().split("T")[0]; // Returns YYYY-MM-DD format
-}
-
-function formatTimeString(timeStr: string): string {
-  if (!timeStr) return "";
-  // If already in HH:MM format, return as-is
-  if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
-  // If in HH:MM:SS format, strip seconds
-  if (/^\d{2}:\d{2}:\d{2}$/.test(timeStr)) return timeStr.slice(0, 5);
-  return timeStr;
-}
-
-// Map database row to camelCase object
-function mapCustomer(row: any) {
-  return {
-    id: row.id,
-    email: row.email,
-    firstName: row.first_name,
-    lastName: row.last_name,
-    phone: row.phone,
-    dateOfBirth: row.date_of_birth,
-    emergencyContactName: row.emergency_contact_name,
-    emergencyContactPhone: row.emergency_contact_phone,
-    emergencyContactRelation: row.emergency_contact_relation,
-    medicalConditions: row.medical_conditions,
-    medications: row.medications,
-    certifications: row.certifications,
-    address: row.address,
-    city: row.city,
-    state: row.state,
-    postalCode: row.postal_code,
-    country: row.country,
-    preferredLanguage: row.preferred_language,
-    marketingOptIn: row.marketing_opt_in,
-    notes: row.notes,
-    tags: row.tags,
-    totalDives: row.total_dives,
-    totalSpent: row.total_spent,
-    lastDiveAt: row.last_dive_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function mapTour(row: any) {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    type: row.type,
-    duration: row.duration,
-    maxParticipants: row.max_participants,
-    minParticipants: row.min_participants,
-    price: Number(row.price),
-    currency: row.currency,
-    includesEquipment: row.includes_equipment,
-    includesMeals: row.includes_meals,
-    includesTransport: row.includes_transport,
-    inclusions: row.inclusions,
-    exclusions: row.exclusions,
-    minCertLevel: row.min_cert_level,
-    minAge: row.min_age,
-    requirements: row.requirements,
-    images: row.images,
-    isActive: row.is_active,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function mapTrip(row: any) {
-  return {
-    id: row.id,
-    tourId: row.tour_id,
-    boatId: row.boat_id,
-    date: row.date,
-    startTime: row.start_time,
-    endTime: row.end_time,
-    status: row.status,
-    maxParticipants: row.max_participants || row.tour_max_participants,
-    price: row.price ? Number(row.price) : (row.tour_price ? Number(row.tour_price) : null),
-    weatherNotes: row.weather_notes,
-    conditions: row.conditions,
-    notes: row.notes,
-    staffIds: row.staff_ids,
-    tourName: row.tour_name,
-    tourType: row.tour_type,
-    boatName: row.boat_name,
-    bookedParticipants: Number(row.booked_participants || 0),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function mapBooking(row: any) {
-  return {
-    id: row.id,
-    bookingNumber: row.booking_number,
-    tripId: row.trip_id,
-    customerId: row.customer_id,
-    participants: row.participants,
-    participantDetails: row.participant_details,
-    status: row.status,
-    subtotal: Number(row.subtotal),
-    discount: Number(row.discount || 0),
-    tax: Number(row.tax || 0),
-    total: Number(row.total),
-    currency: row.currency,
-    paymentStatus: row.payment_status,
-    depositAmount: row.deposit_amount ? Number(row.deposit_amount) : null,
-    depositPaidAt: row.deposit_paid_at,
-    paidAmount: Number(row.paid_amount || 0),
-    equipmentRental: row.equipment_rental,
-    waiverSignedAt: row.waiver_signed_at,
-    medicalFormSignedAt: row.medical_form_signed_at,
-    specialRequests: row.special_requests,
-    internalNotes: row.internal_notes,
-    source: row.source,
-    // Joined fields
-    customerFirstName: row.first_name,
-    customerLastName: row.last_name,
-    customerEmail: row.customer_email,
-    customerPhone: row.customer_phone,
-    tourName: row.tour_name,
-    tripDate: row.trip_date,
-    tripTime: row.trip_time,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function mapEquipment(row: any) {
-  return {
-    id: row.id,
-    category: row.category,
-    name: row.name,
-    brand: row.brand,
-    model: row.model,
-    serialNumber: row.serial_number,
-    size: row.size,
-    status: row.status,
-    condition: row.condition,
-    rentalPrice: row.rental_price ? Number(row.rental_price) : null,
-    isRentable: row.is_rentable,
-    lastServiceDate: row.last_service_date,
-    nextServiceDate: row.next_service_date,
-    serviceNotes: row.service_notes,
-    purchaseDate: row.purchase_date,
-    purchasePrice: row.purchase_price ? Number(row.purchase_price) : null,
-    notes: row.notes,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function mapBoat(row: any) {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    capacity: row.capacity,
-    type: row.type,
-    registrationNumber: row.registration_number,
-    images: row.images,
-    amenities: row.amenities,
-    isActive: row.is_active,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function mapDiveSite(row: any) {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    latitude: row.latitude ? Number(row.latitude) : null,
-    longitude: row.longitude ? Number(row.longitude) : null,
-    maxDepth: row.max_depth,
-    minDepth: row.min_depth,
-    difficulty: row.difficulty,
-    currentStrength: row.current_strength,
-    visibility: row.visibility,
-    highlights: row.highlights,
-    images: row.images,
-    isActive: row.is_active,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-// ============================================================================
-// Team / User Queries
-// ============================================================================
-
-export async function getTeamMembers(schemaName: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const users = await client.unsafe(`
-      SELECT
-        id,
-        name,
-        email,
-        role,
-        is_active,
-        avatar_url,
-        last_login_at,
-        created_at
-      FROM "${schemaName}".users
-      WHERE is_active = true
-      ORDER BY
-        CASE role
-          WHEN 'owner' THEN 1
-          WHEN 'manager' THEN 2
-          WHEN 'divemaster' THEN 3
-          ELSE 4
-        END,
-        name
-    `);
-
-    return users.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      role: row.role,
-      status: row.is_active ? "active" : "inactive",
-      avatar: row.avatar_url,
-      lastActive: row.last_login_at ? formatRelativeTime(row.last_login_at) : "Never",
-      joinedAt: row.created_at ? new Date(row.created_at).toISOString().split("T")[0] : null,
-    }));
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getTeamMemberCount(schemaName: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".users WHERE is_active = true
-    `);
-    return Number(result[0]?.count || 0);
-  } finally {
-    await client.end();
-  }
-}
-
-// ============================================================================
-// Subscription Plan Queries (Public Schema)
-// ============================================================================
-
-export async function getSubscriptionPlanById(planId: string) {
-  const client = getClient("public");
-
-  try {
-    const result = await client.unsafe(`
-      SELECT * FROM subscription_plans WHERE id = '${planId}'
-    `);
-
-    if (!result[0]) return null;
-
-    const row = result[0];
-    return {
-      id: row.id,
-      name: row.name,
-      displayName: row.display_name,
-      monthlyPrice: Number(row.monthly_price),
-      yearlyPrice: Number(row.yearly_price),
-      monthlyPriceId: row.monthly_price_id,
-      yearlyPriceId: row.yearly_price_id,
-      features: row.features,
-      limits: row.limits,
-      isActive: row.is_active,
-    };
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getAllSubscriptionPlans() {
-  const client = getClient("public");
-
-  try {
-    const result = await client.unsafe(`
-      SELECT * FROM subscription_plans WHERE is_active = true ORDER BY monthly_price
-    `);
-
-    return result.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      displayName: row.display_name,
-      monthlyPrice: Number(row.monthly_price),
-      yearlyPrice: Number(row.yearly_price),
-      monthlyPriceId: row.monthly_price_id,
-      yearlyPriceId: row.yearly_price_id,
-      features: row.features,
-      limits: row.limits,
-      isActive: row.is_active,
-    }));
-  } finally {
-    await client.end();
-  }
-}
-
-// ============================================================================
-// Billing / Transaction Queries
-// ============================================================================
-
-export async function getBillingHistory(schemaName: string, limit = 10) {
-  const client = getClient(schemaName);
-
-  try {
-    const transactions = await client.unsafe(`
-      SELECT
-        id,
-        type,
-        amount,
-        currency,
-        payment_method,
-        stripe_payment_id,
-        notes,
-        created_at
-      FROM "${schemaName}".transactions
-      WHERE type IN ('sale', 'payment', 'subscription')
-      ORDER BY created_at DESC
-      LIMIT ${limit}
-    `);
-
-    return transactions.map((row: any) => ({
-      id: row.id,
-      date: new Date(row.created_at).toISOString().split("T")[0],
-      description: row.notes || `${row.type.charAt(0).toUpperCase() + row.type.slice(1)} Payment`,
-      amount: Number(row.amount),
-      status: "paid",
-      invoiceUrl: row.stripe_payment_id ? `https://dashboard.stripe.com/payments/${row.stripe_payment_id}` : "#",
-    }));
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getMonthlyBookingCount(schemaName: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const result = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".bookings
-      WHERE created_at >= '${startOfMonth.toISOString()}'
-    `);
-    return Number(result[0]?.count || 0);
-  } finally {
-    await client.end();
-  }
-}
-
-// ============================================================================
-// Integration Status Queries
-// ============================================================================
-
-export interface ConnectedIntegration {
-  id: string;
-  connectedAt: string;
-  status: string;
-  accountName: string;
-  lastSync: string;
-}
-
-export function getConnectedIntegrations(tenant: {
-  stripeCustomerId: string | null;
-  stripeSubscriptionId: string | null;
-  name: string;
-}): ConnectedIntegration[] {
-  const integrations: ConnectedIntegration[] = [];
-
-  // Check Stripe connection
-  if (tenant.stripeCustomerId) {
-    integrations.push({
-      id: "stripe",
-      connectedAt: "Connected",
-      status: "active",
-      accountName: tenant.name,
-      lastSync: "Auto-synced",
-    });
-  }
-
-  // Add more integration checks here as needed
-  // e.g., Google Calendar, Mailchimp, etc.
-
-  return integrations;
-}
-
-// ============================================================================
-// Booking Detail Queries (for booking detail page)
-// ============================================================================
-
-export async function getBookingWithFullDetails(schemaName: string, id: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      SELECT
-        b.*,
-        c.id as customer_id,
-        c.first_name,
-        c.last_name,
-        c.email as customer_email,
-        c.phone as customer_phone,
-        t.id as trip_id,
-        t.date as trip_date,
-        t.start_time,
-        t.end_time,
-        t.boat_id,
-        tr.id as tour_id,
-        tr.name as tour_name,
-        tr.price as tour_price,
-        bo.name as boat_name
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".customers c ON b.customer_id = c.id
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      LEFT JOIN "${schemaName}".boats bo ON t.boat_id = bo.id
-      WHERE b.id = '${id}'
-    `);
-
-    if (!result[0]) return null;
-
-    const row = result[0];
-    return {
-      id: row.id,
-      bookingNumber: row.booking_number,
-      status: row.status,
-      customer: {
-        id: row.customer_id,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        email: row.customer_email,
-        phone: row.customer_phone,
-      },
-      trip: {
-        id: row.trip_id,
-        tourName: row.tour_name,
-        tourId: row.tour_id,
-        date: formatDateStr(row.trip_date),
-        startTime: formatTimeStr(row.start_time),
-        endTime: formatTimeStr(row.end_time),
-        boatName: row.boat_name,
-      },
-      participants: row.participants,
-      participantDetails: row.participant_details || [],
-      equipmentRental: row.equipment_rental || [],
-      pricing: {
-        basePrice: Number(row.tour_price || 0).toFixed(2),
-        participants: row.participants,
-        subtotal: Number(row.subtotal).toFixed(2),
-        equipmentTotal: calcEquipmentTotal(row.equipment_rental),
-        discount: Number(row.discount || 0).toFixed(2),
-        total: Number(row.total).toFixed(2),
-      },
-      paidAmount: Number(row.paid_amount || 0).toFixed(2),
-      balanceDue: (Number(row.total) - Number(row.paid_amount || 0)).toFixed(2),
-      specialRequests: row.special_requests,
-      internalNotes: row.internal_notes,
-      source: row.source,
-      createdAt: formatDateTimeStr(row.created_at),
-      updatedAt: formatDateTimeStr(row.updated_at),
-    };
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getPaymentsByBookingId(schemaName: string, bookingId: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const payments = await client.unsafe(`
-      SELECT
-        t.id,
-        t.amount,
-        t.payment_method,
-        t.notes,
-        t.created_at
-      FROM "${schemaName}".transactions t
-      WHERE t.booking_id = '${bookingId}'
-      ORDER BY t.created_at DESC
-    `);
-
-    return payments.map((p: any) => ({
-      id: p.id,
-      date: formatDateStr(p.created_at),
-      amount: Number(p.amount).toFixed(2),
-      method: fmtPaymentMethod(p.payment_method),
-      note: p.notes,
-    }));
-  } finally {
-    await client.end();
-  }
-}
-
-// ============================================================================
-// Trip Detail Queries (for trip detail page)
-// ============================================================================
-
-export async function getTripWithFullDetails(schemaName: string, id: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      SELECT
-        t.*,
-        tr.id as tour_id,
-        tr.name as tour_name,
-        tr.price as tour_price,
-        COALESCE(t.max_participants, tr.max_participants) as effective_max_participants,
-        b.id as boat_id,
-        b.name as boat_name
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      LEFT JOIN "${schemaName}".boats b ON t.boat_id = b.id
-      WHERE t.id = '${id}'
-    `);
-
-    if (!result[0]) return null;
-
-    const row = result[0];
-
-    // Get staff details if staff_ids exist
-    let staff: { id: string; name: string; role: string }[] = [];
-    if (row.staff_ids && Array.isArray(row.staff_ids) && row.staff_ids.length > 0) {
-      const staffIds = row.staff_ids.map((sid: string) => `'${sid}'`).join(",");
-      const staffResult = await client.unsafe(`
-        SELECT id, name, role FROM "${schemaName}".users WHERE id IN (${staffIds})
-      `);
-      staff = staffResult.map((s: any) => ({
-        id: s.id,
-        name: s.name,
-        role: capFirst(s.role),
-      }));
-    }
-
-    return {
-      id: row.id,
-      tour: {
-        id: row.tour_id,
-        name: row.tour_name,
-      },
-      boat: {
-        id: row.boat_id,
-        name: row.boat_name || "No boat assigned",
-      },
-      date: formatDateStr(row.date),
-      startTime: formatTimeStr(row.start_time),
-      endTime: formatTimeStr(row.end_time),
-      maxParticipants: Number(row.effective_max_participants),
-      status: row.status,
-      price: Number(row.price || row.tour_price || 0).toFixed(2),
-      weatherNotes: row.weather_notes,
-      notes: row.notes,
-      staff,
-      createdAt: formatDateStr(row.created_at),
-    };
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getTripBookings(schemaName: string, tripId: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const bookings = await client.unsafe(`
-      SELECT
-        b.id,
-        b.booking_number,
-        b.participants,
-        b.status,
-        b.total,
-        b.paid_amount,
-        c.id as customer_id,
-        c.first_name,
-        c.last_name
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".customers c ON b.customer_id = c.id
-      WHERE b.trip_id = '${tripId}'
-      ORDER BY b.created_at DESC
-    `);
-
-    return bookings.map((b: any) => ({
-      id: b.id,
-      bookingNumber: b.booking_number,
-      customer: {
-        id: b.customer_id,
-        firstName: b.first_name,
-        lastName: b.last_name,
-      },
-      participants: b.participants,
-      status: b.status,
-      total: Number(b.total).toFixed(2),
-      paidInFull: Number(b.paid_amount || 0) >= Number(b.total),
-    }));
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getTripRevenue(schemaName: string, tripId: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      SELECT
-        COALESCE(SUM(total), 0) as bookings_total,
-        COALESCE(SUM(paid_amount), 0) as paid_total,
-        COALESCE(SUM(total) - SUM(paid_amount), 0) as pending_total
-      FROM "${schemaName}".bookings
-      WHERE trip_id = '${tripId}' AND status NOT IN ('canceled', 'no_show')
-    `);
-
-    const row = result[0] || {};
-    return {
-      bookingsTotal: fmtCurrency(Number(row.bookings_total || 0)),
-      paidTotal: fmtCurrency(Number(row.paid_total || 0)),
-      pendingTotal: fmtCurrency(Number(row.pending_total || 0)),
-    };
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getTripBookedParticipants(schemaName: string, tripId: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      SELECT COALESCE(SUM(participants), 0) as count
-      FROM "${schemaName}".bookings
-      WHERE trip_id = '${tripId}' AND status NOT IN ('canceled', 'no_show')
-    `);
-
-    return Number(result[0]?.count || 0);
-  } finally {
-    await client.end();
-  }
-}
-
-// ============================================================================
-// Additional Detail Page Helpers
-// ============================================================================
-
-function formatDateStr(dateValue: any): string {
-  if (!dateValue) return "";
-  const d = new Date(dateValue);
-  return d.toISOString().split("T")[0];
-}
-
-function formatTimeStr(timeValue: any): string {
-  if (!timeValue) return "";
-  // If already in HH:MM format, return as-is
-  if (typeof timeValue === "string") {
-    if (/^\d{2}:\d{2}$/.test(timeValue)) return timeValue;
-    if (/^\d{2}:\d{2}:\d{2}$/.test(timeValue)) return timeValue.slice(0, 5);
-  }
-  return String(timeValue);
-}
-
-function formatDateTimeStr(dateValue: any): string {
-  if (!dateValue) return "";
-  const d = new Date(dateValue);
-  return d.toISOString();
-}
-
-function calcEquipmentTotal(equipmentRental: any[] | null): string {
-  if (!equipmentRental || !Array.isArray(equipmentRental)) return "0.00";
-  const total = equipmentRental.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
-  return total.toFixed(2);
-}
-
-function fmtPaymentMethod(method: string): string {
-  const methods: Record<string, string> = {
-    cash: "Cash",
-    card: "Credit Card",
-    stripe: "Credit Card",
-    bank_transfer: "Bank Transfer",
-  };
-  return methods[method] || method;
-}
-
-function capFirst(str: string): string {
-  if (!str) return "";
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function fmtCurrency(amount: number): string {
-  return amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const [site] = await db
+    .insert(schema.diveSites)
+    .values({
+      organizationId,
+      name: data.name,
+      description: data.description || null,
+      latitude: data.latitude ? String(data.latitude) : null,
+      longitude: data.longitude ? String(data.longitude) : null,
+      maxDepth: data.maxDepth || null,
+      minDepth: data.minDepth || null,
+      difficulty: data.difficulty || null,
+      currentStrength: data.currentStrength || null,
+      visibility: data.visibility || null,
+      highlights: data.highlights || null,
+    })
+    .returning();
+
+  return mapDiveSite(site);
 }
 
 // ============================================================================
 // Equipment Detail Queries
 // ============================================================================
 
-/**
- * Get rental history for a specific equipment item
- * Searches bookings with equipment_rental JSONB field that references this equipment
- */
-export async function getEquipmentRentalHistory(
-  schemaName: string,
-  equipmentId: string,
-  limit = 10
-) {
-  const client = getClient(schemaName);
+export async function getEquipmentRentalStats(organizationId: string, equipmentId: string) {
+  // Get total rentals
+  const rentalsResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.rentals)
+    .where(eq(schema.rentals.equipmentId, equipmentId));
 
-  try {
-    // Get the equipment name/category to search for in bookings
-    const equipmentResult = await client.unsafe(`
-      SELECT name, category FROM "${schemaName}".equipment WHERE id = '${equipmentId}'
-    `);
+  // Get active rentals
+  const activeResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.rentals)
+    .where(and(
+      eq(schema.rentals.equipmentId, equipmentId),
+      eq(schema.rentals.status, "active")
+    ));
 
-    if (!equipmentResult[0]) {
-      return [];
-    }
+  // Get total revenue
+  const revenueResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(CAST(${schema.rentals.totalCharge} AS DECIMAL)), 0)` })
+    .from(schema.rentals)
+    .where(eq(schema.rentals.equipmentId, equipmentId));
 
-    const equipment = equipmentResult[0];
-
-    // Search bookings where equipment_rental JSONB contains this equipment
-    // The equipment_rental field structure is: [{ item: string, size?: string, price: number }]
-    const rentals = await client.unsafe(`
-      SELECT
-        b.id,
-        b.booking_number,
-        b.created_at as rental_date,
-        b.status,
-        c.first_name,
-        c.last_name,
-        t.date as trip_date
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".customers c ON b.customer_id = c.id
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      WHERE b.equipment_rental IS NOT NULL
-        AND EXISTS (
-          SELECT 1 FROM jsonb_array_elements(b.equipment_rental) elem
-          WHERE elem->>'item' ILIKE '%${equipment.name.replace(/'/g, "''")}%'
-             OR elem->>'item' ILIKE '%${equipment.category.replace(/'/g, "''")}%'
-        )
-      ORDER BY t.date DESC
-      LIMIT ${limit}
-    `);
-
-    return rentals.map((r: any) => ({
-      id: r.id,
-      bookingNumber: r.booking_number,
-      customerName: `${r.first_name} ${r.last_name}`,
-      date: r.trip_date,
-      returned: r.status === "completed" || r.status === "checked_in",
-    }));
-  } finally {
-    await client.end();
-  }
+  return {
+    totalRentals: Number(rentalsResult[0]?.count || 0),
+    activeRentals: Number(activeResult[0]?.count || 0),
+    totalRevenue: Number(revenueResult[0]?.total || 0),
+  };
 }
 
-/**
- * Get equipment rental stats
- */
-export async function getEquipmentRentalStats(schemaName: string, equipmentId: string) {
-  const client = getClient(schemaName);
+export async function getEquipmentRentalHistory(organizationId: string, equipmentId: string, limit = 10) {
+  const rentals = await db
+    .select({
+      id: schema.rentals.id,
+      rentedAt: schema.rentals.rentedAt,
+      returnedAt: schema.rentals.returnedAt,
+      dueAt: schema.rentals.dueAt,
+      status: schema.rentals.status,
+      dailyRate: schema.rentals.dailyRate,
+      totalCharge: schema.rentals.totalCharge,
+      customerFirstName: schema.customers.firstName,
+      customerLastName: schema.customers.lastName,
+    })
+    .from(schema.rentals)
+    .innerJoin(schema.customers, eq(schema.rentals.customerId, schema.customers.id))
+    .where(eq(schema.rentals.equipmentId, equipmentId))
+    .orderBy(desc(schema.rentals.rentedAt))
+    .limit(limit);
 
-  try {
-    // Get the equipment details
-    const equipmentResult = await client.unsafe(`
-      SELECT name, category, rental_price FROM "${schemaName}".equipment WHERE id = '${equipmentId}'
-    `);
-
-    if (!equipmentResult[0]) {
-      return {
-        totalRentals: 0,
-        rentalRevenue: 0,
-        daysRented: 0,
-        avgRentalsPerMonth: 0,
-      };
-    }
-
-    const equipment = equipmentResult[0];
-    const rentalPrice = Number(equipment.rental_price || 0);
-
-    // Count bookings that include this equipment
-    const statsResult = await client.unsafe(`
-      SELECT
-        COUNT(DISTINCT b.id) as total_rentals,
-        COUNT(DISTINCT t.date) as days_rented,
-        MIN(t.date) as first_rental_date
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      WHERE b.equipment_rental IS NOT NULL
-        AND b.status NOT IN ('canceled', 'no_show')
-        AND EXISTS (
-          SELECT 1 FROM jsonb_array_elements(b.equipment_rental) elem
-          WHERE elem->>'item' ILIKE '%${equipment.name.replace(/'/g, "''")}%'
-             OR elem->>'item' ILIKE '%${equipment.category.replace(/'/g, "''")}%'
-        )
-    `);
-
-    const stats = statsResult[0];
-    const totalRentals = Number(stats?.total_rentals || 0);
-    const daysRented = Number(stats?.days_rented || 0);
-
-    // Calculate months since first rental for avg calculation
-    let avgRentalsPerMonth = 0;
-    if (stats?.first_rental_date) {
-      const firstRentalDate = new Date(stats.first_rental_date);
-      const now = new Date();
-      const monthsDiff = Math.max(1,
-        (now.getFullYear() - firstRentalDate.getFullYear()) * 12 +
-        (now.getMonth() - firstRentalDate.getMonth())
-      );
-      avgRentalsPerMonth = Math.round((totalRentals / monthsDiff) * 10) / 10;
-    }
-
-    return {
-      totalRentals,
-      rentalRevenue: totalRentals * rentalPrice,
-      daysRented,
-      avgRentalsPerMonth,
-    };
-  } finally {
-    await client.end();
-  }
+  return rentals.map((r) => ({
+    id: r.id,
+    rentedAt: r.rentedAt,
+    returnedAt: r.returnedAt,
+    dueAt: r.dueAt,
+    status: r.status,
+    dailyRate: Number(r.dailyRate),
+    totalCharge: Number(r.totalCharge),
+    customerName: `${r.customerFirstName} ${r.customerLastName}`,
+  }));
 }
 
-/**
- * Get service history for equipment
- * Note: This uses a simple approach - storing service entries in the equipment notes
- * A production system might have a separate equipment_service_log table
- */
-export async function getEquipmentServiceHistory(schemaName: string, equipmentId: string) {
-  const client = getClient(schemaName);
-
-  try {
-    // For now, we'll return the service info from the equipment record itself
-    // A more complete implementation would have a separate service_log table
-    const result = await client.unsafe(`
-      SELECT
-        last_service_date,
-        next_service_date,
-        service_notes,
-        created_at
-      FROM "${schemaName}".equipment
-      WHERE id = '${equipmentId}'
-    `);
-
-    if (!result[0]) {
-      return [];
-    }
-
-    const eq = result[0];
-    const history = [];
-
-    // If there's a last service date, create an entry for it
-    if (eq.last_service_date) {
-      history.push({
-        id: `s-${equipmentId}-1`,
-        date: eq.last_service_date,
-        type: "Service",
-        notes: eq.service_notes || "Routine service completed",
-        performedBy: "Service Technician",
-      });
-    }
-
-    // Add initial entry (purchase/registration)
-    if (eq.created_at) {
-      history.push({
-        id: `s-${equipmentId}-0`,
-        date: new Date(eq.created_at).toISOString().split("T")[0],
-        type: "Initial Registration",
-        notes: "Equipment added to inventory",
-        performedBy: "System",
-      });
-    }
-
-    return history;
-  } finally {
-    await client.end();
-  }
+export async function getEquipmentServiceHistory(organizationId: string, equipmentId: string, limit = 10) {
+  // Service history would be stored in equipment.serviceNotes or a separate service_records table
+  // For now, return empty array as a stub
+  // TODO: Implement when service_records table is added
+  return [];
 }
 
-/**
- * Update equipment status
- */
-export async function updateEquipmentStatus(schemaName: string, id: string, status: string) {
-  const client = getClient(schemaName);
+export async function updateEquipmentStatus(organizationId: string, id: string, status: string) {
+  const [equipment] = await db
+    .update(schema.equipment)
+    .set({ status, updatedAt: new Date() })
+    .where(and(
+      eq(schema.equipment.organizationId, organizationId),
+      eq(schema.equipment.id, id)
+    ))
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      UPDATE "${schemaName}".equipment
-      SET status = '${status}', updated_at = NOW()
-      WHERE id = '${id}'
-      RETURNING *
-    `);
-    return result[0] ? mapEquipment(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return equipment ? mapEquipment(equipment) : null;
 }
 
-/**
- * Delete equipment
- */
-export async function deleteEquipment(schemaName: string, id: string) {
-  const client = getClient(schemaName);
-
-  try {
-    await client.unsafe(`DELETE FROM "${schemaName}".equipment WHERE id = '${id}'`);
-    return true;
-  } finally {
-    await client.end();
-  }
+export async function deleteEquipment(organizationId: string, id: string) {
+  await db
+    .delete(schema.equipment)
+    .where(and(
+      eq(schema.equipment.organizationId, organizationId),
+      eq(schema.equipment.id, id)
+    ));
+  return true;
 }
 
 // ============================================================================
 // Boat Detail Queries
 // ============================================================================
 
-/**
- * Get recent trips for a boat
- */
-export async function getBoatRecentTrips(schemaName: string, boatId: string, limit = 5) {
-  const client = getClient(schemaName);
+export async function getBoatRecentTrips(organizationId: string, boatId: string, limit = 5) {
+  const trips = await db
+    .select({
+      id: schema.trips.id,
+      date: schema.trips.date,
+      tourName: schema.tours.name,
+      status: schema.trips.status,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(and(
+      eq(schema.trips.boatId, boatId),
+      eq(schema.trips.organizationId, organizationId)
+    ))
+    .orderBy(desc(schema.trips.date))
+    .limit(limit);
 
-  try {
-    const today = new Date().toISOString().split("T")[0];
+  const result = [];
+  for (const trip of trips) {
+    const participantsResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.tripId, trip.id),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      ));
 
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        t.date,
-        tr.name as tour_name,
-        COALESCE(
-          (SELECT COALESCE(SUM(b.participants), 0)
-           FROM "${schemaName}".bookings b
-           WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')),
-          0
-        ) as participants,
-        COALESCE(
-          (SELECT COALESCE(SUM(b.total), 0)
-           FROM "${schemaName}".bookings b
-           WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')),
-          0
-        ) as revenue
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE t.boat_id = '${boatId}'
-        AND t.date < '${today}'
-        AND t.status = 'completed'
-      ORDER BY t.date DESC
-      LIMIT ${limit}
-    `);
-
-    return trips.map((trip: any) => ({
+    result.push({
       id: trip.id,
-      date: trip.date,
-      tourName: trip.tour_name,
-      participants: Number(trip.participants || 0),
-      revenue: `$${Number(trip.revenue || 0).toLocaleString()}`,
-    }));
-  } finally {
-    await client.end();
+      date: formatDateString(trip.date),
+      tourName: trip.tourName,
+      participants: Number(participantsResult[0]?.total || 0),
+      status: trip.status,
+    });
   }
+
+  return result;
 }
 
-/**
- * Get upcoming trips for a boat
- */
-export async function getBoatUpcomingTrips(schemaName: string, boatId: string, limit = 5) {
-  const client = getClient(schemaName);
+export async function getBoatUpcomingTrips(organizationId: string, boatId: string, limit = 5) {
+  const today = new Date().toISOString().split("T")[0];
 
-  try {
-    const today = new Date().toISOString().split("T")[0];
+  const trips = await db
+    .select({
+      id: schema.trips.id,
+      date: schema.trips.date,
+      startTime: schema.trips.startTime,
+      tourName: schema.tours.name,
+      maxParticipants: sql<number>`COALESCE(${schema.trips.maxParticipants}, ${schema.tours.maxParticipants})`,
+    })
+    .from(schema.trips)
+    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+    .where(and(
+      eq(schema.trips.boatId, boatId),
+      eq(schema.trips.organizationId, organizationId),
+      gte(schema.trips.date, today),
+      eq(schema.trips.status, "scheduled")
+    ))
+    .orderBy(schema.trips.date, schema.trips.startTime)
+    .limit(limit);
 
-    const trips = await client.unsafe(`
-      SELECT
-        t.id,
-        t.date,
-        tr.name as tour_name,
-        COALESCE(t.max_participants, tr.max_participants) as max_participants,
-        COALESCE(
-          (SELECT COALESCE(SUM(b.participants), 0)
-           FROM "${schemaName}".bookings b
-           WHERE b.trip_id = t.id AND b.status NOT IN ('canceled', 'no_show')),
-          0
-        ) as booked_participants
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      WHERE t.boat_id = '${boatId}'
-        AND t.date >= '${today}'
-        AND t.status = 'scheduled'
-      ORDER BY t.date, t.start_time
-      LIMIT ${limit}
-    `);
+  const result = [];
+  for (const trip of trips) {
+    const participantsResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.tripId, trip.id),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      ));
 
-    return trips.map((trip: any) => ({
+    result.push({
       id: trip.id,
-      date: trip.date,
-      tourName: trip.tour_name,
-      bookedParticipants: Number(trip.booked_participants || 0),
-      maxParticipants: Number(trip.max_participants || 0),
-    }));
-  } finally {
-    await client.end();
+      date: formatDateString(trip.date),
+      time: formatTimeString(trip.startTime),
+      tourName: trip.tourName,
+      bookedParticipants: Number(participantsResult[0]?.total || 0),
+      maxParticipants: Number(trip.maxParticipants || 0),
+    });
   }
+
+  return result;
 }
 
-/**
- * Get boat stats (total trips, passengers, revenue, avg occupancy)
- */
-export async function getBoatStats(schemaName: string, boatId: string) {
-  const client = getClient(schemaName);
+export async function getBoatStats(organizationId: string, boatId: string) {
+  // Get total trips
+  const tripCountResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.trips)
+    .where(eq(schema.trips.boatId, boatId));
 
-  try {
-    const statsResult = await client.unsafe(`
-      SELECT
-        COUNT(DISTINCT t.id) as total_trips,
-        COALESCE(SUM(bk.participants), 0) as total_passengers,
-        COALESCE(SUM(bk.total), 0) as total_revenue,
-        COALESCE(AVG(
-          CASE WHEN COALESCE(t.max_participants, tr.max_participants) > 0
-          THEN (bk_sum.participants::decimal / COALESCE(t.max_participants, tr.max_participants)) * 100
-          ELSE 0 END
-        ), 0) as avg_occupancy
-      FROM "${schemaName}".trips t
-      JOIN "${schemaName}".tours tr ON t.tour_id = tr.id
-      LEFT JOIN "${schemaName}".bookings bk ON bk.trip_id = t.id AND bk.status NOT IN ('canceled', 'no_show')
-      LEFT JOIN (
-        SELECT trip_id, SUM(participants) as participants
-        FROM "${schemaName}".bookings
-        WHERE status NOT IN ('canceled', 'no_show')
-        GROUP BY trip_id
-      ) bk_sum ON bk_sum.trip_id = t.id
-      WHERE t.boat_id = '${boatId}'
-        AND t.status IN ('completed', 'scheduled', 'in_progress')
-    `);
+  // Get completed trips
+  const completedResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.trips)
+    .where(and(
+      eq(schema.trips.boatId, boatId),
+      eq(schema.trips.status, "completed")
+    ));
 
-    const stats = statsResult[0];
+  // Get total passengers
+  const passengersResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+    .from(schema.bookings)
+    .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
+    .where(and(
+      eq(schema.trips.boatId, boatId),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ));
 
-    return {
-      totalTrips: Number(stats?.total_trips || 0),
-      totalPassengers: Number(stats?.total_passengers || 0),
-      totalRevenue: `$${Number(stats?.total_revenue || 0).toLocaleString()}`,
-      avgOccupancy: Math.round(Number(stats?.avg_occupancy || 0)),
-    };
-  } finally {
-    await client.end();
-  }
+  return {
+    totalTrips: Number(tripCountResult[0]?.count || 0),
+    completedTrips: Number(completedResult[0]?.count || 0),
+    totalPassengers: Number(passengersResult[0]?.total || 0),
+  };
 }
 
-/**
- * Update boat active status
- */
-export async function updateBoatActiveStatus(schemaName: string, id: string, isActive: boolean) {
-  const client = getClient(schemaName);
+export async function updateBoatActiveStatus(organizationId: string, id: string, isActive: boolean) {
+  const [boat] = await db
+    .update(schema.boats)
+    .set({ isActive, updatedAt: new Date() })
+    .where(and(
+      eq(schema.boats.organizationId, organizationId),
+      eq(schema.boats.id, id)
+    ))
+    .returning();
 
-  try {
-    const result = await client.unsafe(`
-      UPDATE "${schemaName}".boats
-      SET is_active = ${isActive}, updated_at = NOW()
-      WHERE id = '${id}'
-      RETURNING *
-    `);
-    return result[0] ? mapBoat(result[0]) : null;
-  } finally {
-    await client.end();
-  }
+  return boat ? mapBoat(boat) : null;
 }
 
-/**
- * Delete boat (soft delete by setting is_active = false)
- */
-export async function deleteBoat(schemaName: string, id: string) {
-  const client = getClient(schemaName);
-
-  try {
-    // Soft delete - just mark as inactive
-    await client.unsafe(`
-      UPDATE "${schemaName}".boats
-      SET is_active = false, updated_at = NOW()
-      WHERE id = '${id}'
-    `);
-    return true;
-  } finally {
-    await client.end();
-  }
+export async function deleteBoat(organizationId: string, id: string) {
+  await db
+    .update(schema.boats)
+    .set({ isActive: false, updatedAt: new Date() })
+    .where(and(
+      eq(schema.boats.organizationId, organizationId),
+      eq(schema.boats.id, id)
+    ));
+  return true;
 }
 
 // ============================================================================
 // Report Queries
 // ============================================================================
 
-export interface RevenueData {
-  period: string;
-  revenue: number;
-  bookings: number;
-}
-
 export interface BookingsByStatus {
   status: string;
   count: number;
+}
+
+export async function getBookingsByStatus(organizationId: string): Promise<BookingsByStatus[]> {
+  const result = await db
+    .select({
+      status: schema.bookings.status,
+      count: sql<number>`count(*)`,
+    })
+    .from(schema.bookings)
+    .where(eq(schema.bookings.organizationId, organizationId))
+    .groupBy(schema.bookings.status);
+
+  return result.map((row) => ({
+    status: row.status,
+    count: Number(row.count),
+  }));
 }
 
 export interface TopTour {
@@ -2534,277 +1463,135 @@ export interface TopTour {
   revenue: number;
 }
 
+export async function getTopTours(organizationId: string, limit: number = 5): Promise<TopTour[]> {
+  const result = await db
+    .select({
+      id: schema.tours.id,
+      name: schema.tours.name,
+      bookings: sql<number>`count(${schema.bookings.id})`,
+      revenue: sql<number>`COALESCE(SUM(CAST(${schema.bookings.total} AS DECIMAL)), 0)`,
+    })
+    .from(schema.tours)
+    .leftJoin(schema.trips, eq(schema.tours.id, schema.trips.tourId))
+    .leftJoin(schema.bookings, eq(schema.trips.id, schema.bookings.tripId))
+    .where(eq(schema.tours.organizationId, organizationId))
+    .groupBy(schema.tours.id, schema.tours.name)
+    .orderBy(sql`count(${schema.bookings.id}) DESC`)
+    .limit(limit);
+
+  return result.map((row) => ({
+    id: row.id,
+    name: row.name,
+    bookings: Number(row.bookings),
+    revenue: Number(row.revenue),
+  }));
+}
+
 export interface CustomerStats {
   totalCustomers: number;
   newThisMonth: number;
-  repeatCustomers: number;
-  avgBookingsPerCustomer: number;
+  activeCustomers: number;
+}
+
+export async function getCustomerReportStats(organizationId: string): Promise<CustomerStats> {
+  const totalResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.customers)
+    .where(eq(schema.customers.organizationId, organizationId));
+
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const newResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.customers)
+    .where(and(
+      eq(schema.customers.organizationId, organizationId),
+      gte(schema.customers.createdAt, startOfMonth)
+    ));
+
+  // Active = has a booking in last 90 days
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+  const activeResult = await db
+    .select({ count: sql<number>`count(DISTINCT ${schema.bookings.customerId})` })
+    .from(schema.bookings)
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      gte(schema.bookings.createdAt, ninetyDaysAgo)
+    ));
+
+  return {
+    totalCustomers: Number(totalResult[0]?.count || 0),
+    newThisMonth: Number(newResult[0]?.count || 0),
+    activeCustomers: Number(activeResult[0]?.count || 0),
+  };
 }
 
 export interface EquipmentUtilization {
   category: string;
   total: number;
-  available: number;
   rented: number;
-  maintenance: number;
+  available: number;
 }
 
-export async function getRevenueReport(
-  schemaName: string,
-  period: "daily" | "weekly" | "monthly" = "daily",
-  days: number = 30
-): Promise<RevenueData[]> {
-  const client = getClient(schemaName);
+export async function getEquipmentUtilization(organizationId: string): Promise<EquipmentUtilization[]> {
+  const result = await db
+    .select({
+      category: schema.equipment.category,
+      total: sql<number>`count(*)`,
+      rented: sql<number>`SUM(CASE WHEN ${schema.equipment.status} = 'rented' THEN 1 ELSE 0 END)`,
+      available: sql<number>`SUM(CASE WHEN ${schema.equipment.status} = 'available' THEN 1 ELSE 0 END)`,
+    })
+    .from(schema.equipment)
+    .where(eq(schema.equipment.organizationId, organizationId))
+    .groupBy(schema.equipment.category);
 
-  try {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
-    const startDateStr = startDate.toISOString().split("T")[0];
-
-    let groupBy: string;
-    let format: string;
-
-    if (period === "daily") {
-      groupBy = "DATE(t.date)";
-      format = "YYYY-MM-DD";
-    } else if (period === "weekly") {
-      groupBy = "DATE_TRUNC('week', t.date)";
-      format = "IYYY-IW";
-    } else {
-      groupBy = "DATE_TRUNC('month', t.date)";
-      format = "YYYY-MM";
-    }
-
-    const result = await client.unsafe(`
-      SELECT
-        TO_CHAR(${groupBy}, '${format}') as period,
-        COALESCE(SUM(b.total), 0) as revenue,
-        COUNT(DISTINCT b.id) as bookings
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      WHERE t.date >= '${startDateStr}'
-        AND b.status NOT IN ('canceled', 'no_show')
-      GROUP BY ${groupBy}
-      ORDER BY ${groupBy}
-    `);
-
-    return result.map((row: any) => ({
-      period: row.period,
-      revenue: Number(row.revenue || 0),
-      bookings: Number(row.bookings || 0),
-    }));
-  } finally {
-    await client.end();
-  }
+  return result.map((row) => ({
+    category: row.category,
+    total: Number(row.total),
+    rented: Number(row.rented || 0),
+    available: Number(row.available || 0),
+  }));
 }
 
-export async function getBookingsByStatus(schemaName: string): Promise<BookingsByStatus[]> {
-  const client = getClient(schemaName);
+export async function getRevenueOverview(organizationId: string) {
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
 
-  try {
-    const result = await client.unsafe(`
-      SELECT
-        status,
-        COUNT(*) as count
-      FROM "${schemaName}".bookings
-      GROUP BY status
-      ORDER BY count DESC
-    `);
+  // This month's revenue
+  const thisMonthResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(${schema.transactions.amount}), 0)` })
+    .from(schema.transactions)
+    .where(and(
+      eq(schema.transactions.organizationId, organizationId),
+      eq(schema.transactions.type, "sale"),
+      gte(schema.transactions.createdAt, startOfMonth)
+    ));
 
-    return result.map((row: any) => ({
-      status: row.status,
-      count: Number(row.count || 0),
-    }));
-  } finally {
-    await client.end();
-  }
-}
+  // Last month's revenue
+  const lastMonthResult = await db
+    .select({ total: sql<number>`COALESCE(SUM(${schema.transactions.amount}), 0)` })
+    .from(schema.transactions)
+    .where(and(
+      eq(schema.transactions.organizationId, organizationId),
+      eq(schema.transactions.type, "sale"),
+      gte(schema.transactions.createdAt, startOfLastMonth),
+      lte(schema.transactions.createdAt, endOfLastMonth)
+    ));
 
-export async function getTopTours(schemaName: string, limit: number = 5): Promise<TopTour[]> {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      SELECT
-        tr.id,
-        tr.name,
-        COUNT(DISTINCT b.id) as bookings,
-        COALESCE(SUM(b.total), 0) as revenue
-      FROM "${schemaName}".tours tr
-      JOIN "${schemaName}".trips t ON t.tour_id = tr.id
-      JOIN "${schemaName}".bookings b ON b.trip_id = t.id
-      WHERE b.status NOT IN ('canceled', 'no_show')
-      GROUP BY tr.id, tr.name
-      ORDER BY revenue DESC
-      LIMIT ${limit}
-    `);
-
-    return result.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      bookings: Number(row.bookings || 0),
-      revenue: Number(row.revenue || 0),
-    }));
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getCustomerReportStats(schemaName: string): Promise<CustomerStats> {
-  const client = getClient(schemaName);
-
-  try {
-    // Get start of current month
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfMonthStr = startOfMonth.toISOString().split("T")[0];
-
-    // Total customers
-    const totalResult = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".customers
-    `);
-
-    // New customers this month
-    const newResult = await client.unsafe(`
-      SELECT COUNT(*) as count FROM "${schemaName}".customers
-      WHERE created_at >= '${startOfMonthStr}'
-    `);
-
-    // Repeat customers (more than one booking)
-    const repeatResult = await client.unsafe(`
-      SELECT COUNT(*) as count FROM (
-        SELECT customer_id
-        FROM "${schemaName}".bookings
-        WHERE status NOT IN ('canceled', 'no_show')
-        GROUP BY customer_id
-        HAVING COUNT(*) > 1
-      ) as repeat_customers
-    `);
-
-    // Average bookings per customer
-    const avgResult = await client.unsafe(`
-      SELECT
-        CASE WHEN COUNT(DISTINCT customer_id) > 0
-        THEN COUNT(*)::decimal / COUNT(DISTINCT customer_id)
-        ELSE 0 END as avg
-      FROM "${schemaName}".bookings
-      WHERE status NOT IN ('canceled', 'no_show')
-    `);
-
-    return {
-      totalCustomers: Number(totalResult[0]?.count || 0),
-      newThisMonth: Number(newResult[0]?.count || 0),
-      repeatCustomers: Number(repeatResult[0]?.count || 0),
-      avgBookingsPerCustomer: Math.round(Number(avgResult[0]?.avg || 0) * 10) / 10,
-    };
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getEquipmentUtilization(schemaName: string): Promise<EquipmentUtilization[]> {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      SELECT
-        category,
-        COUNT(*) as total,
-        SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available,
-        SUM(CASE WHEN status = 'rented' THEN 1 ELSE 0 END) as rented,
-        SUM(CASE WHEN status = 'maintenance' THEN 1 ELSE 0 END) as maintenance
-      FROM "${schemaName}".equipment
-      GROUP BY category
-      ORDER BY total DESC
-    `);
-
-    return result.map((row: any) => ({
-      category: row.category,
-      total: Number(row.total || 0),
-      available: Number(row.available || 0),
-      rented: Number(row.rented || 0),
-      maintenance: Number(row.maintenance || 0),
-    }));
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getRevenueOverview(schemaName: string) {
-  const client = getClient(schemaName);
-
-  try {
-    const now = new Date();
-
-    // This month
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfMonthStr = startOfMonth.toISOString().split("T")[0];
-
-    // Last month
-    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-    const startOfLastMonthStr = startOfLastMonth.toISOString().split("T")[0];
-    const endOfLastMonthStr = endOfLastMonth.toISOString().split("T")[0];
-
-    // This year
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const startOfYearStr = startOfYear.toISOString().split("T")[0];
-
-    // Current month revenue
-    const currentMonthResult = await client.unsafe(`
-      SELECT COALESCE(SUM(b.total), 0) as revenue
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      WHERE t.date >= '${startOfMonthStr}'
-        AND b.status NOT IN ('canceled', 'no_show')
-    `);
-
-    // Last month revenue
-    const lastMonthResult = await client.unsafe(`
-      SELECT COALESCE(SUM(b.total), 0) as revenue
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      WHERE t.date >= '${startOfLastMonthStr}'
-        AND t.date <= '${endOfLastMonthStr}'
-        AND b.status NOT IN ('canceled', 'no_show')
-    `);
-
-    // Year to date revenue
-    const ytdResult = await client.unsafe(`
-      SELECT COALESCE(SUM(b.total), 0) as revenue
-      FROM "${schemaName}".bookings b
-      JOIN "${schemaName}".trips t ON b.trip_id = t.id
-      WHERE t.date >= '${startOfYearStr}'
-        AND b.status NOT IN ('canceled', 'no_show')
-    `);
-
-    // Average booking value
-    const avgResult = await client.unsafe(`
-      SELECT COALESCE(AVG(total), 0) as avg
-      FROM "${schemaName}".bookings
-      WHERE status NOT IN ('canceled', 'no_show')
-    `);
-
-    const currentMonth = Number(currentMonthResult[0]?.revenue || 0);
-    const lastMonth = Number(lastMonthResult[0]?.revenue || 0);
-    const changePercent = lastMonth > 0
-      ? Math.round(((currentMonth - lastMonth) / lastMonth) * 100)
-      : 0;
-
-    return {
-      currentMonth,
-      lastMonth,
-      changePercent,
-      yearToDate: Number(ytdResult[0]?.revenue || 0),
-      avgBookingValue: Math.round(Number(avgResult[0]?.avg || 0)),
-    };
-  } finally {
-    await client.end();
-  }
+  return {
+    thisMonth: Number(thisMonthResult[0]?.total || 0),
+    lastMonth: Number(lastMonthResult[0]?.total || 0),
+  };
 }
 
 // ============================================================================
-// POS (Point of Sale) Queries
+// Product Queries (POS)
 // ============================================================================
 
 export interface Product {
@@ -2817,13 +1604,707 @@ export interface Product {
   costPrice: number | null;
   currency: string;
   taxRate: number;
+  salePrice: number | null;
   trackInventory: boolean;
   stockQuantity: number;
   lowStockThreshold: number;
   imageUrl: string | null;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+}
+
+export async function getProducts(
+  organizationId: string,
+  options: { category?: string; search?: string; activeOnly?: boolean; limit?: number } = {}
+): Promise<Product[]> {
+  const { category, search, activeOnly = true, limit = 100 } = options;
+
+  let whereConditions = [eq(schema.products.organizationId, organizationId)];
+  if (activeOnly) whereConditions.push(eq(schema.products.isActive, true));
+  if (category) whereConditions.push(eq(schema.products.category, category));
+  if (search) {
+    whereConditions.push(sql`${schema.products.name} ILIKE ${'%' + search + '%'}`);
+  }
+
+  const products = await db
+    .select()
+    .from(schema.products)
+    .where(and(...whereConditions))
+    .orderBy(schema.products.category, schema.products.name)
+    .limit(limit);
+
+  return products.map(mapProduct);
+}
+
+export async function getProductById(organizationId: string, id: string): Promise<Product | null> {
+  const [product] = await db
+    .select()
+    .from(schema.products)
+    .where(and(
+      eq(schema.products.organizationId, organizationId),
+      eq(schema.products.id, id)
+    ))
+    .limit(1);
+
+  return product ? mapProduct(product) : null;
+}
+
+export async function getProductCategories(organizationId: string): Promise<string[]> {
+  const result = await db
+    .selectDistinct({ category: schema.products.category })
+    .from(schema.products)
+    .where(eq(schema.products.organizationId, organizationId))
+    .orderBy(schema.products.category);
+
+  return result.map((r) => r.category);
+}
+
+export async function createProduct(organizationId: string, data: {
+  name: string;
+  sku?: string;
+  category: string;
+  description?: string;
+  price: number;
+  costPrice?: number;
+  currency?: string;
+  taxRate?: number;
+  trackInventory?: boolean;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  imageUrl?: string;
+}): Promise<Product> {
+  const [product] = await db
+    .insert(schema.products)
+    .values({
+      organizationId,
+      name: data.name,
+      sku: data.sku || null,
+      category: data.category,
+      description: data.description || null,
+      price: String(data.price),
+      costPrice: data.costPrice ? String(data.costPrice) : null,
+      currency: data.currency || "USD",
+      taxRate: data.taxRate ? String(data.taxRate) : "0",
+      trackInventory: data.trackInventory ?? true,
+      stockQuantity: data.stockQuantity ?? 0,
+      lowStockThreshold: data.lowStockThreshold ?? 5,
+      imageUrl: data.imageUrl || null,
+    })
+    .returning();
+
+  return mapProduct(product);
+}
+
+export async function updateProduct(organizationId: string, id: string, data: {
+  name?: string;
+  sku?: string;
+  category?: string;
+  description?: string;
+  price?: number;
+  costPrice?: number;
+  currency?: string;
+  taxRate?: number;
+  trackInventory?: boolean;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  imageUrl?: string;
+  isActive?: boolean;
+}): Promise<Product | null> {
+  const updateData: any = { updatedAt: new Date() };
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.sku !== undefined) updateData.sku = data.sku;
+  if (data.category !== undefined) updateData.category = data.category;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.price !== undefined) updateData.price = String(data.price);
+  if (data.costPrice !== undefined) updateData.costPrice = String(data.costPrice);
+  if (data.currency !== undefined) updateData.currency = data.currency;
+  if (data.taxRate !== undefined) updateData.taxRate = String(data.taxRate);
+  if (data.trackInventory !== undefined) updateData.trackInventory = data.trackInventory;
+  if (data.stockQuantity !== undefined) updateData.stockQuantity = data.stockQuantity;
+  if (data.lowStockThreshold !== undefined) updateData.lowStockThreshold = data.lowStockThreshold;
+  if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+  if (data.isActive !== undefined) updateData.isActive = data.isActive;
+
+  const [product] = await db
+    .update(schema.products)
+    .set(updateData)
+    .where(and(
+      eq(schema.products.organizationId, organizationId),
+      eq(schema.products.id, id)
+    ))
+    .returning();
+
+  return product ? mapProduct(product) : null;
+}
+
+export async function deleteProduct(organizationId: string, id: string): Promise<boolean> {
+  await db
+    .update(schema.products)
+    .set({ isActive: false, updatedAt: new Date() })
+    .where(and(
+      eq(schema.products.organizationId, organizationId),
+      eq(schema.products.id, id)
+    ));
+  return true;
+}
+
+// ============================================================================
+// POS Transaction Queries
+// ============================================================================
+
+export async function createPOSTransaction(organizationId: string, data: {
+  customerId?: string;
+  items: Array<{ productId: string; quantity: number; price: number }>;
+  subtotal: number;
+  tax: number;
+  total: number;
+  paymentMethod: string;
+}) {
+  const [transaction] = await db
+    .insert(schema.transactions)
+    .values({
+      organizationId,
+      type: "sale",
+      customerId: data.customerId || null,
+      amount: String(data.total),
+      currency: "USD",
+      paymentMethod: data.paymentMethod,
+      items: data.items,
+    })
+    .returning();
+
+  // Update product stock quantities
+  for (const item of data.items) {
+    await db
+      .update(schema.products)
+      .set({
+        stockQuantity: sql`${schema.products.stockQuantity} - ${item.quantity}`,
+      })
+      .where(eq(schema.products.id, item.productId));
+  }
+
+  return transaction;
+}
+
+export async function getPOSSummary(organizationId: string, date?: string): Promise<{
+  totalSales: number;
+  transactionCount: number;
+  averageTransaction: number;
+}> {
+  const targetDate = date || new Date().toISOString().split("T")[0];
+
+  const result = await db
+    .select({
+      totalSales: sql<number>`COALESCE(SUM(CAST(${schema.transactions.amount} AS DECIMAL)), 0)`,
+      transactionCount: sql<number>`count(*)`,
+    })
+    .from(schema.transactions)
+    .where(and(
+      eq(schema.transactions.organizationId, organizationId),
+      eq(schema.transactions.type, "sale"),
+      sql`DATE(${schema.transactions.createdAt}) = ${targetDate}`
+    ));
+
+  const totalSales = Number(result[0]?.totalSales || 0);
+  const transactionCount = Number(result[0]?.transactionCount || 0);
+
+  return {
+    totalSales,
+    transactionCount,
+    averageTransaction: transactionCount > 0 ? totalSales / transactionCount : 0,
+  };
+}
+
+export async function getLowStockProducts(organizationId: string): Promise<Product[]> {
+  const products = await db
+    .select()
+    .from(schema.products)
+    .where(and(
+      eq(schema.products.organizationId, organizationId),
+      eq(schema.products.isActive, true),
+      eq(schema.products.trackInventory, true),
+      sql`${schema.products.stockQuantity} <= ${schema.products.lowStockThreshold}`
+    ))
+    .orderBy(schema.products.stockQuantity);
+
+  return products.map(mapProduct);
+}
+
+// ============================================================================
+// Team Member Queries
+// ============================================================================
+
+export async function getTeamMembers(organizationId: string) {
+  const members = await db
+    .select({
+      id: schema.member.id,
+      userId: schema.member.userId,
+      role: schema.member.role,
+      createdAt: schema.member.createdAt,
+      userName: schema.user.name,
+      userEmail: schema.user.email,
+      userImage: schema.user.image,
+    })
+    .from(schema.member)
+    .innerJoin(schema.user, eq(schema.member.userId, schema.user.id))
+    .where(eq(schema.member.organizationId, organizationId))
+    .orderBy(schema.user.name);
+
+  return members.map((m) => ({
+    id: m.id,
+    userId: m.userId,
+    name: m.userName,
+    email: m.userEmail,
+    role: m.role,
+    avatarUrl: m.userImage,
+    createdAt: m.createdAt,
+  }));
+}
+
+export async function getTeamMemberCount(organizationId: string) {
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.member)
+    .where(eq(schema.member.organizationId, organizationId));
+
+  return Number(result[0]?.count || 0);
+}
+
+// ============================================================================
+// Billing Queries
+// ============================================================================
+
+export async function getBillingHistory(organizationId: string, limit = 10) {
+  // For now return empty - billing is handled by Stripe
+  return [];
+}
+
+export async function getMonthlyBookingCount(organizationId: string) {
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.bookings)
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      gte(schema.bookings.createdAt, startOfMonth)
+    ));
+
+  return Number(result[0]?.count || 0);
+}
+
+// ============================================================================
+// Booking Detail Queries
+// ============================================================================
+
+export async function getBookingWithFullDetails(organizationId: string, id: string) {
+  const booking = await getBookingById(organizationId, id);
+  if (!booking) return null;
+
+  const customer = await getCustomerById(organizationId, booking.customerId);
+  const trip = await getTripById(organizationId, booking.tripId);
+
+  // Calculate pricing structure expected by UI
+  const basePrice = trip?.price || booking.total / (booking.participants || 1);
+  const balanceDue = (booking.total - booking.paidAmount).toFixed(2);
+
+  return {
+    ...booking,
+    customer: customer ? {
+      id: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      phone: customer.phone,
+    } : null,
+    trip: trip ? {
+      id: trip.id,
+      tourId: trip.tourId,
+      tourName: trip.tourName,
+      date: trip.date,
+      startTime: trip.startTime,
+      endTime: trip.endTime,
+      boatName: trip.boatName,
+    } : null,
+    pricing: {
+      basePrice: basePrice.toFixed(2),
+      participants: booking.participants,
+      subtotal: booking.subtotal.toFixed(2),
+      equipmentTotal: "0.00",
+      discount: booking.discount.toFixed(2),
+      total: booking.total.toFixed(2),
+    },
+    paidAmount: booking.paidAmount.toFixed(2),
+    balanceDue,
+    participantDetails: [],
+    equipmentRental: [],
+    internalNotes: null,
+  };
+}
+
+export async function getPaymentsByBookingId(organizationId: string, bookingId: string) {
+  const payments = await db
+    .select()
+    .from(schema.transactions)
+    .where(and(
+      eq(schema.transactions.organizationId, organizationId),
+      eq(schema.transactions.bookingId, bookingId)
+    ))
+    .orderBy(desc(schema.transactions.createdAt));
+
+  return payments.map((p) => ({
+    id: p.id,
+    type: p.type,
+    amount: Number(p.amount),
+    method: p.paymentMethod,
+    date: p.createdAt,
+    note: p.notes,
+  }));
+}
+
+export async function recordPayment(organizationId: string, data: {
+  bookingId: string;
+  amount: number;
+  paymentMethod: string;
+  notes?: string;
+}) {
+  const { bookingId, amount, paymentMethod, notes } = data;
+
+  // Create the transaction record
+  const [transaction] = await db
+    .insert(schema.transactions)
+    .values({
+      organizationId,
+      bookingId,
+      type: "payment",
+      amount: String(amount),
+      paymentMethod,
+      notes,
+    })
+    .returning();
+
+  // Update the booking's paid amount
+  const [booking] = await db
+    .select({ paidAmount: schema.bookings.paidAmount })
+    .from(schema.bookings)
+    .where(eq(schema.bookings.id, bookingId));
+
+  if (booking) {
+    const newPaidAmount = Number(booking.paidAmount || 0) + amount;
+    await db
+      .update(schema.bookings)
+      .set({
+        paidAmount: String(newPaidAmount),
+        paymentStatus: "partial", // Will be updated to "paid" if full
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bookings.id, bookingId));
+
+    // Check if fully paid and update status
+    const [updatedBooking] = await db
+      .select({ total: schema.bookings.total, paidAmount: schema.bookings.paidAmount })
+      .from(schema.bookings)
+      .where(eq(schema.bookings.id, bookingId));
+
+    if (updatedBooking && Number(updatedBooking.paidAmount) >= Number(updatedBooking.total)) {
+      await db
+        .update(schema.bookings)
+        .set({ paymentStatus: "paid" })
+        .where(eq(schema.bookings.id, bookingId));
+    }
+  }
+
+  return transaction;
+}
+
+// ============================================================================
+// Trip Detail Queries
+// ============================================================================
+
+export async function getTripWithFullDetails(organizationId: string, id: string) {
+  const trip = await getTripById(organizationId, id);
+  if (!trip) return null;
+
+  const tour = await getTourById(organizationId, trip.tourId);
+  const boat = trip.boatId ? await getBoatById(organizationId, trip.boatId) : null;
+
+  return {
+    ...trip,
+    tour: tour ? { id: tour.id, name: tour.name } : { id: trip.tourId, name: trip.tourName },
+    boat: boat ? { id: boat.id, name: boat.name } : null,
+    staff: [], // No trip-specific staff assignments in schema yet
+  };
+}
+
+export async function getTripBookings(organizationId: string, tripId: string) {
+  const { bookings } = await getBookings(organizationId, { tripId, limit: 100 });
+  // Transform to structure expected by trip detail page
+  return bookings.map((b) => ({
+    id: b.id,
+    bookingNumber: b.bookingNumber,
+    participants: b.participants,
+    total: b.total,
+    paidInFull: b.paidAmount >= b.total,
+    customer: {
+      id: b.customerId,
+      email: b.customerEmail,
+      firstName: b.firstName,
+      lastName: b.lastName,
+    },
+  }));
+}
+
+export async function getTripRevenue(organizationId: string, tripId: string) {
+  const result = await db
+    .select({
+      total: sql<number>`COALESCE(SUM(CAST(${schema.bookings.total} AS DECIMAL)), 0)`,
+      paid: sql<number>`COALESCE(SUM(CAST(${schema.bookings.paidAmount} AS DECIMAL)), 0)`,
+    })
+    .from(schema.bookings)
+    .where(and(
+      eq(schema.bookings.tripId, tripId),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'refunded')`
+    ));
+
+  const bookingsTotal = Number(result[0]?.total || 0).toFixed(2);
+  const paidTotal = Number(result[0]?.paid || 0);
+  const pendingTotal = (Number(result[0]?.total || 0) - paidTotal).toFixed(2);
+
+  return { bookingsTotal, pendingTotal };
+}
+
+export async function getTripBookedParticipants(organizationId: string, tripId: string) {
+  const result = await db
+    .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+    .from(schema.bookings)
+    .where(and(
+      eq(schema.bookings.tripId, tripId),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ));
+
+  return Number(result[0]?.total || 0);
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+function formatRelativeDate(date: any): string {
+  if (!date) return "";
+  const d = new Date(date);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function formatRelativeTime(date: any): string {
+  if (!date) return "";
+  const d = new Date(date);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function formatTime(time: any): string {
+  if (!time) return "";
+  if (typeof time === "string") {
+    const [hours, minutes] = time.split(":");
+    const h = parseInt(hours);
+    const ampm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
+    return `${h12}:${minutes} ${ampm}`;
+  }
+  return String(time);
+}
+
+function formatDateString(date: any): string {
+  if (!date) return "";
+  if (typeof date === "string") return date;
+  if (date instanceof Date) return date.toISOString().split("T")[0];
+  return String(date);
+}
+
+function formatTimeString(time: any): string {
+  if (!time) return "";
+  if (typeof time === "string") return time;
+  return String(time);
+}
+
+// ============================================================================
+// Mappers
+// ============================================================================
+
+function mapCustomer(row: any) {
+  return {
+    id: row.id,
+    email: row.email,
+    firstName: row.firstName || row.first_name,
+    lastName: row.lastName || row.last_name,
+    phone: row.phone,
+    dateOfBirth: row.dateOfBirth || row.date_of_birth,
+    emergencyContactName: row.emergencyContactName || row.emergency_contact_name,
+    emergencyContactPhone: row.emergencyContactPhone || row.emergency_contact_phone,
+    emergencyContactRelation: row.emergencyContactRelation || row.emergency_contact_relation,
+    medicalConditions: row.medicalConditions || row.medical_conditions,
+    medications: row.medications,
+    certifications: row.certifications,
+    address: row.address,
+    city: row.city,
+    state: row.state,
+    postalCode: row.postalCode || row.postal_code,
+    country: row.country,
+    notes: row.notes,
+    totalDives: row.totalDives || row.total_dives || 0,
+    totalSpent: Number(row.totalSpent || row.total_spent || 0),
+    lastDiveAt: row.lastDiveAt || row.last_dive_at,
+    createdAt: row.createdAt || row.created_at,
+    updatedAt: row.updatedAt || row.updated_at,
+  };
+}
+
+function mapTour(row: any) {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    type: row.type,
+    duration: row.duration,
+    maxParticipants: row.maxParticipants || row.max_participants,
+    minParticipants: row.minParticipants || row.min_participants,
+    price: Number(row.price || 0),
+    currency: row.currency,
+    includesEquipment: row.includesEquipment || row.includes_equipment,
+    includesMeals: row.includesMeals || row.includes_meals,
+    includesTransport: row.includesTransport || row.includes_transport,
+    minCertLevel: row.minCertLevel || row.min_cert_level,
+    minAge: row.minAge || row.min_age,
+    isActive: row.isActive || row.is_active,
+    createdAt: row.createdAt || row.created_at,
+    updatedAt: row.updatedAt || row.updated_at,
+  };
+}
+
+function mapTrip(row: any) {
+  return {
+    id: row.id,
+    tourId: row.tourId || row.tour_id,
+    boatId: row.boatId || row.boat_id,
+    date: row.date,
+    startTime: row.startTime || row.start_time,
+    endTime: row.endTime || row.end_time,
+    status: row.status,
+    maxParticipants: row.maxParticipants || row.max_participants,
+    price: row.price ? Number(row.price) : null,
+    notes: row.notes,
+    tourName: row.tourName || row.tour_name,
+    tourType: row.tourType || row.tour_type,
+    boatName: row.boatName || row.boat_name,
+    bookedParticipants: Number(row.bookedParticipants || row.booked_participants || 0),
+    createdAt: row.createdAt || row.created_at,
+    updatedAt: row.updatedAt || row.updated_at,
+  };
+}
+
+function mapBooking(row: any) {
+  const firstName = row.first_name || row.firstName || '';
+  const lastName = row.last_name || row.lastName || '';
+  return {
+    id: row.id,
+    bookingNumber: row.bookingNumber || row.booking_number,
+    tripId: row.tripId || row.trip_id,
+    customerId: row.customerId || row.customer_id,
+    participants: row.participants,
+    status: row.status,
+    subtotal: Number(row.subtotal || 0),
+    discount: Number(row.discount || 0),
+    tax: Number(row.tax || 0),
+    total: Number(row.total || 0),
+    currency: row.currency,
+    paymentStatus: row.paymentStatus || row.payment_status,
+    paidAmount: Number(row.paidAmount || row.paid_amount || 0),
+    specialRequests: row.specialRequests || row.special_requests,
+    source: row.source,
+    firstName,
+    lastName,
+    customerName: firstName && lastName ? `${firstName} ${lastName}` : row.customerName,
+    customerEmail: row.customerEmail || row.customer_email,
+    customerPhone: row.customerPhone || row.customer_phone,
+    tourName: row.tourName || row.tour_name,
+    tripDate: row.tripDate || row.trip_date,
+    tripTime: row.tripTime || row.trip_time,
+    createdAt: row.createdAt || row.created_at,
+    updatedAt: row.updatedAt || row.updated_at,
+  };
+}
+
+function mapEquipment(row: any) {
+  return {
+    id: row.id,
+    category: row.category,
+    name: row.name,
+    brand: row.brand,
+    model: row.model,
+    serialNumber: row.serialNumber || row.serial_number,
+    barcode: row.barcode,
+    size: row.size,
+    status: row.status,
+    condition: row.condition,
+    rentalPrice: row.rentalPrice || row.rental_price ? Number(row.rentalPrice || row.rental_price) : null,
+    isRentable: row.isRentable || row.is_rentable,
+    lastServiceDate: row.lastServiceDate || row.last_service_date,
+    nextServiceDate: row.nextServiceDate || row.next_service_date,
+    serviceNotes: row.serviceNotes || row.service_notes,
+    notes: row.notes,
+    createdAt: row.createdAt || row.created_at,
+    updatedAt: row.updatedAt || row.updated_at,
+  };
+}
+
+function mapBoat(row: any) {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    capacity: row.capacity,
+    type: row.type,
+    registrationNumber: row.registrationNumber || row.registration_number,
+    amenities: row.amenities,
+    isActive: row.isActive || row.is_active,
+    createdAt: row.createdAt || row.created_at,
+    updatedAt: row.updatedAt || row.updated_at,
+  };
+}
+
+function mapDiveSite(row: any) {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    latitude: row.latitude ? Number(row.latitude) : null,
+    longitude: row.longitude ? Number(row.longitude) : null,
+    maxDepth: row.maxDepth || row.max_depth,
+    minDepth: row.minDepth || row.min_depth,
+    difficulty: row.difficulty,
+    currentStrength: row.currentStrength || row.current_strength,
+    visibility: row.visibility,
+    highlights: row.highlights,
+    isActive: row.isActive || row.is_active,
+    createdAt: row.createdAt || row.created_at,
+    updatedAt: row.updatedAt || row.updated_at,
+  };
 }
 
 function mapProduct(row: any): Product {
@@ -2833,351 +2314,53 @@ function mapProduct(row: any): Product {
     sku: row.sku,
     category: row.category,
     description: row.description,
-    price: Number(row.price) || 0,
-    costPrice: row.cost_price ? Number(row.cost_price) : null,
-    currency: row.currency || "USD",
-    taxRate: Number(row.tax_rate) || 0,
-    trackInventory: row.track_inventory ?? true,
-    stockQuantity: Number(row.stock_quantity) || 0,
-    lowStockThreshold: Number(row.low_stock_threshold) || 5,
-    imageUrl: row.image_url,
-    isActive: row.is_active ?? true,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
+    price: Number(row.price || 0),
+    costPrice: row.costPrice || row.cost_price ? Number(row.costPrice || row.cost_price) : null,
+    currency: row.currency,
+    taxRate: Number(row.taxRate || row.tax_rate || 0),
+    salePrice: row.salePrice || row.sale_price ? Number(row.salePrice || row.sale_price) : null,
+    trackInventory: row.trackInventory || row.track_inventory,
+    stockQuantity: row.stockQuantity || row.stock_quantity || 0,
+    lowStockThreshold: row.lowStockThreshold || row.low_stock_threshold || 5,
+    imageUrl: row.imageUrl || row.image_url,
+    isActive: row.isActive || row.is_active,
   };
 }
 
-export async function getProducts(
-  schemaName: string,
-  options: { category?: string; search?: string; isActive?: boolean; limit?: number } = {}
-): Promise<Product[]> {
-  const client = getClient(schemaName);
-  const { category, search, isActive = true, limit = 100 } = options;
+// ============================================================================
+// Staff Queries
+// ============================================================================
 
-  try {
-    const conditions: string[] = [];
-    if (isActive !== undefined) conditions.push(`is_active = ${isActive}`);
-    if (category) conditions.push(`category = '${category}'`);
-    if (search) {
-      const searchTerm = search.replace(/'/g, "''");
-      conditions.push(`(name ILIKE '%${searchTerm}%' OR sku ILIKE '%${searchTerm}%')`);
-    }
+/**
+ * Get staff members for an organization
+ * Staff are organization members with roles: owner, admin, manager, staff
+ */
+export async function getStaff(
+  organizationId: string,
+  options: { activeOnly?: boolean } = {}
+) {
+  const members = await db
+    .select({
+      id: schema.member.id,
+      userId: schema.member.userId,
+      role: schema.member.role,
+      name: schema.user.name,
+      email: schema.user.email,
+    })
+    .from(schema.member)
+    .innerJoin(schema.user, eq(schema.member.userId, schema.user.id))
+    .where(
+      and(
+        eq(schema.member.organizationId, organizationId),
+        sql`${schema.member.role} IN ('owner', 'admin', 'manager', 'staff')`
+      )
+    );
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-    const products = await client.unsafe(`
-      SELECT * FROM "${schemaName}".products
-      ${whereClause}
-      ORDER BY category, name
-      LIMIT ${limit}
-    `);
-
-    return products.map(mapProduct);
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getProductById(schemaName: string, id: string): Promise<Product | null> {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      SELECT * FROM "${schemaName}".products WHERE id = '${id}'
-    `);
-    return result[0] ? mapProduct(result[0]) : null;
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getProductCategories(schemaName: string): Promise<string[]> {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      SELECT DISTINCT category FROM "${schemaName}".products
-      WHERE is_active = true
-      ORDER BY category
-    `);
-    return result.map((r: any) => r.category);
-  } finally {
-    await client.end();
-  }
-}
-
-export async function createProduct(schemaName: string, data: {
-  name: string;
-  category: string;
-  price: number;
-  sku?: string;
-  description?: string;
-  costPrice?: number;
-  taxRate?: number;
-  trackInventory?: boolean;
-  stockQuantity?: number;
-  lowStockThreshold?: number;
-  imageUrl?: string;
-}): Promise<Product> {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      INSERT INTO "${schemaName}".products (
-        name, category, price, sku, description, cost_price,
-        tax_rate, track_inventory, stock_quantity, low_stock_threshold, image_url
-      ) VALUES (
-        '${data.name.replace(/'/g, "''")}',
-        '${data.category}',
-        ${data.price},
-        ${data.sku ? `'${data.sku.replace(/'/g, "''")}'` : "NULL"},
-        ${data.description ? `'${data.description.replace(/'/g, "''")}'` : "NULL"},
-        ${data.costPrice || "NULL"},
-        ${data.taxRate || 0},
-        ${data.trackInventory !== false},
-        ${data.stockQuantity || 0},
-        ${data.lowStockThreshold || 5},
-        ${data.imageUrl ? `'${data.imageUrl}'` : "NULL"}
-      ) RETURNING *
-    `);
-    return mapProduct(result[0]);
-  } finally {
-    await client.end();
-  }
-}
-
-export async function updateProduct(schemaName: string, id: string, data: {
-  name?: string;
-  category?: string;
-  price?: number;
-  sku?: string;
-  description?: string;
-  costPrice?: number;
-  taxRate?: number;
-  trackInventory?: boolean;
-  stockQuantity?: number;
-  lowStockThreshold?: number;
-  imageUrl?: string;
-  isActive?: boolean;
-}): Promise<Product | null> {
-  const client = getClient(schemaName);
-
-  try {
-    const updates: string[] = ["updated_at = NOW()"];
-    if (data.name !== undefined) updates.push(`name = '${data.name.replace(/'/g, "''")}'`);
-    if (data.category !== undefined) updates.push(`category = '${data.category}'`);
-    if (data.price !== undefined) updates.push(`price = ${data.price}`);
-    if (data.sku !== undefined) updates.push(`sku = ${data.sku ? `'${data.sku.replace(/'/g, "''")}'` : "NULL"}`);
-    if (data.description !== undefined) updates.push(`description = ${data.description ? `'${data.description.replace(/'/g, "''")}'` : "NULL"}`);
-    if (data.costPrice !== undefined) updates.push(`cost_price = ${data.costPrice || "NULL"}`);
-    if (data.taxRate !== undefined) updates.push(`tax_rate = ${data.taxRate}`);
-    if (data.trackInventory !== undefined) updates.push(`track_inventory = ${data.trackInventory}`);
-    if (data.stockQuantity !== undefined) updates.push(`stock_quantity = ${data.stockQuantity}`);
-    if (data.lowStockThreshold !== undefined) updates.push(`low_stock_threshold = ${data.lowStockThreshold}`);
-    if (data.imageUrl !== undefined) updates.push(`image_url = ${data.imageUrl ? `'${data.imageUrl}'` : "NULL"}`);
-    if (data.isActive !== undefined) updates.push(`is_active = ${data.isActive}`);
-
-    const result = await client.unsafe(`
-      UPDATE "${schemaName}".products
-      SET ${updates.join(", ")}
-      WHERE id = '${id}'
-      RETURNING *
-    `);
-    return result[0] ? mapProduct(result[0]) : null;
-  } finally {
-    await client.end();
-  }
-}
-
-export async function deleteProduct(schemaName: string, id: string): Promise<boolean> {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      DELETE FROM "${schemaName}".products WHERE id = '${id}'
-    `);
-    return result.count > 0;
-  } finally {
-    await client.end();
-  }
-}
-
-export async function adjustProductStock(
-  schemaName: string,
-  id: string,
-  adjustment: number,
-  reason?: string
-): Promise<Product | null> {
-  const client = getClient(schemaName);
-
-  try {
-    const result = await client.unsafe(`
-      UPDATE "${schemaName}".products
-      SET stock_quantity = stock_quantity + ${adjustment}, updated_at = NOW()
-      WHERE id = '${id}'
-      RETURNING *
-    `);
-    return result[0] ? mapProduct(result[0]) : null;
-  } finally {
-    await client.end();
-  }
-}
-
-export interface POSTransaction {
-  id: string;
-  type: string;
-  bookingId: string | null;
-  customerId: string | null;
-  customerName: string | null;
-  userId: string | null;
-  staffName: string | null;
-  amount: number;
-  currency: string;
-  paymentMethod: string;
-  stripePaymentId: string | null;
-  items: { description: string; quantity: number; unitPrice: number; total: number }[] | null;
-  notes: string | null;
-  createdAt: Date;
-}
-
-function mapPOSTransaction(row: any): POSTransaction {
-  return {
-    id: row.id,
-    type: row.type,
-    bookingId: row.booking_id,
-    customerId: row.customer_id,
-    customerName: row.customer_name,
-    userId: row.user_id,
-    staffName: row.staff_name,
-    amount: Number(row.amount) || 0,
-    currency: row.currency || "USD",
-    paymentMethod: row.payment_method,
-    stripePaymentId: row.stripe_payment_id,
-    items: row.items ? (typeof row.items === "string" ? JSON.parse(row.items) : row.items) : null,
-    notes: row.notes,
-    createdAt: new Date(row.created_at),
-  };
-}
-
-export async function getPOSTransactions(
-  schemaName: string,
-  options: { limit?: number; type?: string; dateFrom?: string; dateTo?: string } = {}
-): Promise<POSTransaction[]> {
-  const client = getClient(schemaName);
-  const { limit = 50, type, dateFrom, dateTo } = options;
-
-  try {
-    const conditions: string[] = [];
-    if (type) conditions.push(`t.type = '${type}'`);
-    if (dateFrom) conditions.push(`t.created_at >= '${dateFrom}'`);
-    if (dateTo) conditions.push(`t.created_at <= '${dateTo}'`);
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-    const transactions = await client.unsafe(`
-      SELECT
-        t.*,
-        c.first_name || ' ' || c.last_name as customer_name,
-        u.name as staff_name
-      FROM "${schemaName}".transactions t
-      LEFT JOIN "${schemaName}".customers c ON t.customer_id = c.id
-      LEFT JOIN "${schemaName}".users u ON t.user_id = u.id
-      ${whereClause}
-      ORDER BY t.created_at DESC
-      LIMIT ${limit}
-    `);
-
-    return transactions.map(mapPOSTransaction);
-  } finally {
-    await client.end();
-  }
-}
-
-export async function createPOSTransaction(schemaName: string, data: {
-  type: string;
-  amount: number;
-  paymentMethod: string;
-  items: { description: string; quantity: number; unitPrice: number; total: number }[];
-  customerId?: string;
-  userId?: string;
-  bookingId?: string;
-  stripePaymentId?: string;
-  notes?: string;
-}): Promise<POSTransaction> {
-  const client = getClient(schemaName);
-
-  try {
-    const itemsJson = JSON.stringify(data.items).replace(/'/g, "''");
-
-    const result = await client.unsafe(`
-      INSERT INTO "${schemaName}".transactions (
-        type, amount, payment_method, items, customer_id, user_id, booking_id, stripe_payment_id, notes
-      ) VALUES (
-        '${data.type}',
-        ${data.amount},
-        '${data.paymentMethod}',
-        '${itemsJson}'::jsonb,
-        ${data.customerId ? `'${data.customerId}'` : "NULL"},
-        ${data.userId ? `'${data.userId}'` : "NULL"},
-        ${data.bookingId ? `'${data.bookingId}'` : "NULL"},
-        ${data.stripePaymentId ? `'${data.stripePaymentId}'` : "NULL"},
-        ${data.notes ? `'${data.notes.replace(/'/g, "''")}'` : "NULL"}
-      ) RETURNING *
-    `);
-    return mapPOSTransaction(result[0]);
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getPOSSummary(schemaName: string, date?: string): Promise<{
-  totalSales: number;
-  transactionCount: number;
-  cashSales: number;
-  cardSales: number;
-  avgTransaction: number;
-}> {
-  const client = getClient(schemaName);
-  const targetDate = date || new Date().toISOString().split("T")[0];
-
-  try {
-    const summary = await client.unsafe(`
-      SELECT
-        COALESCE(SUM(amount), 0) as total_sales,
-        COUNT(*) as transaction_count,
-        COALESCE(SUM(CASE WHEN payment_method = 'cash' THEN amount ELSE 0 END), 0) as cash_sales,
-        COALESCE(SUM(CASE WHEN payment_method IN ('card', 'stripe') THEN amount ELSE 0 END), 0) as card_sales,
-        COALESCE(AVG(amount), 0) as avg_transaction
-      FROM "${schemaName}".transactions
-      WHERE type = 'sale' AND DATE(created_at) = '${targetDate}'
-    `);
-
-    return {
-      totalSales: Number(summary[0]?.total_sales || 0),
-      transactionCount: Number(summary[0]?.transaction_count || 0),
-      cashSales: Number(summary[0]?.cash_sales || 0),
-      cardSales: Number(summary[0]?.card_sales || 0),
-      avgTransaction: Math.round(Number(summary[0]?.avg_transaction || 0)),
-    };
-  } finally {
-    await client.end();
-  }
-}
-
-export async function getLowStockProducts(schemaName: string): Promise<Product[]> {
-  const client = getClient(schemaName);
-
-  try {
-    const products = await client.unsafe(`
-      SELECT * FROM "${schemaName}".products
-      WHERE is_active = true
-        AND track_inventory = true
-        AND stock_quantity <= low_stock_threshold
-      ORDER BY stock_quantity ASC
-    `);
-
-    return products.map(mapProduct);
-  } finally {
-    await client.end();
-  }
+  return members.map((m) => ({
+    id: m.id,
+    userId: m.userId,
+    name: m.name || m.email,
+    role: m.role,
+    email: m.email,
+  }));
 }

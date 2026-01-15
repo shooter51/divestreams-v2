@@ -15,11 +15,14 @@ import {
 import { relations } from "drizzle-orm";
 
 // ============================================================================
-// RE-EXPORT AUTH AND SUBSCRIPTION SCHEMAS
+// RE-EXPORT AUTH, SUBSCRIPTION, API KEY, WEBHOOKS, AND INTEGRATIONS SCHEMAS
 // ============================================================================
 
 export * from "./schema/auth";
 export * from "./schema/subscription";
+export * from "./schema/api-keys";
+export * from "./schema/webhooks";
+export * from "./schema/integrations";
 
 // Import organization for foreign key references
 import { organization } from "./schema/auth";
@@ -278,6 +281,15 @@ export const trips = pgTable("trips", {
   maxParticipants: integer("max_participants"),
   price: decimal("price", { precision: 10, scale: 2 }),
 
+  // Recurring trip fields
+  isRecurring: boolean("is_recurring").notNull().default(false),
+  recurrencePattern: text("recurrence_pattern"), // daily, weekly, biweekly, monthly
+  recurrenceDays: jsonb("recurrence_days").$type<number[]>(), // [0-6] for Sun-Sat, used with weekly/biweekly
+  recurrenceEndDate: date("recurrence_end_date"), // optional end date for recurrence
+  recurrenceCount: integer("recurrence_count"), // optional max occurrences
+  recurringTemplateId: uuid("recurring_template_id"), // links instances to their template (self-referencing)
+  recurrenceIndex: integer("recurrence_index"), // index of this occurrence in the series (0 = template)
+
   // Conditions
   weatherNotes: text("weather_notes"),
   conditions: jsonb("conditions").$type<{
@@ -298,6 +310,7 @@ export const trips = pgTable("trips", {
   index("trips_org_idx").on(table.organizationId),
   index("trips_org_date_idx").on(table.organizationId, table.date),
   index("trips_org_status_idx").on(table.organizationId, table.status),
+  index("trips_recurring_template_idx").on(table.recurringTemplateId),
 ]);
 
 // Bookings
@@ -372,6 +385,7 @@ export const equipment = pgTable("equipment", {
   brand: text("brand"),
   model: text("model"),
   serialNumber: text("serial_number"),
+  barcode: text("barcode"), // Barcode for quick equipment lookup/check-in/check-out
   size: text("size"),
 
   status: text("status").notNull().default("available"), // available, rented, maintenance, retired
@@ -397,6 +411,7 @@ export const equipment = pgTable("equipment", {
   index("equipment_org_idx").on(table.organizationId),
   index("equipment_org_category_idx").on(table.organizationId, table.category),
   index("equipment_org_status_idx").on(table.organizationId, table.status),
+  index("equipment_org_barcode_idx").on(table.organizationId, table.barcode),
 ]);
 
 // Transactions (for POS and payments)
@@ -470,6 +485,7 @@ export const products = pgTable("products", {
   organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   sku: text("sku"),
+  barcode: text("barcode"), // Barcode for POS scanning (EAN-13, UPC-A, etc.)
   category: text("category").notNull(), // equipment, apparel, accessories, courses, rental
   description: text("description"),
 
@@ -497,6 +513,7 @@ export const products = pgTable("products", {
   index("products_org_idx").on(table.organizationId),
   index("products_org_category_idx").on(table.organizationId, table.category),
   index("products_org_sku_idx").on(table.organizationId, table.sku),
+  index("products_org_barcode_idx").on(table.organizationId, table.barcode),
 ]);
 
 // Discount codes for bookings
@@ -524,6 +541,40 @@ export const discountCodes = pgTable("discount_codes", {
   index("discount_codes_org_idx").on(table.organizationId),
   uniqueIndex("discount_codes_org_code_idx").on(table.organizationId, table.code),
   index("discount_codes_org_active_idx").on(table.organizationId, table.isActive),
+]);
+
+// Customer Communications (email logs)
+export const customerCommunications = pgTable("customer_communications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+
+  type: text("type").notNull().default("email"), // email, sms, note
+  subject: text("subject"),
+  body: text("body").notNull(),
+
+  status: text("status").notNull().default("sent"), // draft, sent, failed, delivered
+  sentAt: timestamp("sent_at"),
+  sentBy: text("sent_by"), // user ID who sent the message
+
+  // For email tracking
+  emailFrom: text("email_from"),
+  emailTo: text("email_to"),
+
+  // Metadata
+  metadata: jsonb("metadata").$type<{
+    templateId?: string;
+    bookingId?: string;
+    tripId?: string;
+    openedAt?: string;
+    clickedAt?: string;
+  }>(),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("customer_communications_org_idx").on(table.organizationId),
+  index("customer_communications_customer_idx").on(table.customerId),
+  index("customer_communications_type_idx").on(table.type),
 ]);
 
 // Images (polymorphic - can belong to any entity)
@@ -564,6 +615,18 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
   bookings: many(bookings),
   transactions: many(transactions),
   rentals: many(rentals),
+  communications: many(customerCommunications),
+}));
+
+export const customerCommunicationsRelations = relations(customerCommunications, ({ one }) => ({
+  organization: one(organization, {
+    fields: [customerCommunications.organizationId],
+    references: [organization.id],
+  }),
+  customer: one(customers, {
+    fields: [customerCommunications.customerId],
+    references: [customers.id],
+  }),
 }));
 
 export const boatsRelations = relations(boats, ({ one, many }) => ({
@@ -712,6 +775,9 @@ export type NewSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
 
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
+
+export type CustomerCommunication = typeof customerCommunications.$inferSelect;
+export type NewCustomerCommunication = typeof customerCommunications.$inferInsert;
 
 export type Boat = typeof boats.$inferSelect;
 export type NewBoat = typeof boats.$inferInsert;

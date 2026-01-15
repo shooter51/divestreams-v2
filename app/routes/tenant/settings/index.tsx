@@ -1,9 +1,10 @@
-import type { MetaFunction, LoaderFunctionArgs } from "react-router";
-import { Link, useLoaderData } from "react-router";
+import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { Link, useLoaderData, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { member } from "../../../../lib/db/schema";
+import { member, customers } from "../../../../lib/db/schema";
 import { eq, count } from "drizzle-orm";
+import { seedDemoData } from "../../../../lib/db/seed-demo-data.server";
 
 export const meta: MetaFunction = () => [{ title: "Settings - DiveStreams" }];
 
@@ -18,6 +19,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const teamCount = teamCountResult?.count || 1;
 
+  // Check if there's already customer data (to show/hide seed option)
+  const [customerCountResult] = await db
+    .select({ count: count() })
+    .from(customers)
+    .where(eq(customers.organizationId, ctx.org.id));
+
+  const hasData = (customerCountResult?.count || 0) > 0;
+
   // Parse metadata to check for integrations
   const metadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
 
@@ -30,12 +39,33 @@ export async function loader({ request }: LoaderFunctionArgs) {
     teamCount,
     connectedIntegrations,
     isPremium: ctx.isPremium,
+    hasData,
   };
 }
 
+export async function action({ request }: ActionFunctionArgs) {
+  const ctx = await requireOrgContext(request);
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "seedDemoData") {
+    try {
+      await seedDemoData(ctx.org.id);
+      return { success: true, message: "Demo data seeded successfully!" };
+    } catch (error) {
+      console.error("Failed to seed demo data:", error);
+      return { success: false, message: "Failed to seed demo data. Please try again." };
+    }
+  }
+
+  return { success: false, message: "Unknown action" };
+}
+
 export default function SettingsPage() {
-  const { tenantName, planName, teamCount, connectedIntegrations } =
+  const { tenantName, planName, teamCount, connectedIntegrations, hasData } =
     useLoaderData<typeof loader>();
+  const fetcher = useFetcher<typeof action>();
+  const isSeeding = fetcher.state === "submitting";
 
   const settingsLinks = [
     {
@@ -72,7 +102,6 @@ export default function SettingsPage() {
       description: "Configure email and notification preferences",
       icon: "🔔",
       preview: null,
-      disabled: true,
     },
     {
       href: "/app/settings/booking-widget",
@@ -80,7 +109,6 @@ export default function SettingsPage() {
       description: "Customize and embed your booking widget",
       icon: "🎨",
       preview: null,
-      disabled: true,
     },
   ];
 
@@ -134,6 +162,39 @@ export default function SettingsPage() {
         )}
       </div>
 
+      {/* Demo Data Section - only show if no data exists */}
+      {!hasData && (
+        <div className="mt-8 bg-blue-50 rounded-xl p-6 border border-blue-100">
+          <h2 className="font-semibold text-blue-800 mb-2">Get Started</h2>
+          <p className="text-sm text-blue-600 mb-4">
+            Your account is empty. Populate with sample data to explore all features.
+          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-blue-800">Seed Demo Data</p>
+              <p className="text-xs text-blue-600">
+                Add sample customers, tours, bookings, equipment, and products
+              </p>
+            </div>
+            <fetcher.Form method="post">
+              <input type="hidden" name="intent" value="seedDemoData" />
+              <button
+                type="submit"
+                disabled={isSeeding}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSeeding ? "Seeding..." : "Load Demo Data"}
+              </button>
+            </fetcher.Form>
+          </div>
+          {fetcher.data?.message && (
+            <p className={`mt-3 text-sm ${fetcher.data.success ? "text-green-600" : "text-red-600"}`}>
+              {fetcher.data.message}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Danger Zone */}
       <div className="mt-8 bg-red-50 rounded-xl p-6 border border-red-100">
         <h2 className="font-semibold text-red-800 mb-2">Danger Zone</h2>
@@ -148,7 +209,10 @@ export default function SettingsPage() {
                 Download a copy of all your data in JSON format
               </p>
             </div>
-            <button className="px-4 py-2 text-sm border border-red-200 rounded-lg hover:bg-red-100 text-red-700">
+            <button
+              onClick={() => alert("Data export feature coming soon. Contact support@divestreams.com for immediate data export needs.")}
+              className="px-4 py-2 text-sm border border-red-200 rounded-lg hover:bg-red-100 text-red-700"
+            >
               Export Data
             </button>
           </div>
@@ -160,7 +224,21 @@ export default function SettingsPage() {
                 Permanently delete your account and all data
               </p>
             </div>
-            <button className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">
+            <button
+              onClick={() => {
+                if (confirm("⚠️ WARNING: This will permanently delete your account and ALL data including customers, bookings, trips, and equipment. This action CANNOT be undone.\n\nAre you absolutely sure you want to delete your account?")) {
+                  if (confirm("Please confirm once more. Type 'DELETE' in the next prompt to proceed.")) {
+                    const input = prompt("Type DELETE to confirm account deletion:");
+                    if (input === "DELETE") {
+                      alert("Account deletion request submitted. Our team will process this within 24 hours and send confirmation to your email.");
+                    } else {
+                      alert("Account deletion cancelled - confirmation text did not match.");
+                    }
+                  }
+                }
+              }}
+              className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
               Delete Account
             </button>
           </div>

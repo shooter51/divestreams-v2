@@ -10,7 +10,7 @@ import { createProduct } from "../../../../../lib/db/queries.server";
 export const meta: MetaFunction = () => [{ title: "New Product - DiveStreams" }];
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
 
   const name = formData.get("name") as string;
@@ -21,7 +21,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return { error: "Name, category, and price are required" };
   }
 
-  const product = await createProduct(tenant.schemaName, {
+  const product = await createProduct(organizationId, {
     name,
     category,
     price,

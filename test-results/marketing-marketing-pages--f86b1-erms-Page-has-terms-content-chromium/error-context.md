@@ -1,0 +1,146 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - link "DiveStreams" [ref=e4] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e5]:
+      - link "Features" [ref=e6] [cursor=pointer]:
+        - /url: /features
+      - link "Pricing" [ref=e7] [cursor=pointer]:
+        - /url: /pricing
+      - link "Start Free Trial" [ref=e8] [cursor=pointer]:
+        - /url: /signup
+  - generic [ref=e9]:
+    - heading "Terms of Service" [level=1] [ref=e10]
+    - paragraph [ref=e11]: "Last updated: January 12, 2026"
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - heading "1. Acceptance of Terms" [level=2] [ref=e15]
+      - generic [ref=e16]:
+        - paragraph [ref=e17]: By accessing or using DiveStreams ("Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service. These Terms apply to all visitors, users, and others who access or use the Service.
+        - paragraph [ref=e18]: DiveStreams reserves the right to update and change these Terms at any time. Any changes will be posted on this page with an updated revision date. Continued use of the Service after any such changes constitutes your acceptance of the new Terms.
+    - generic [ref=e19]:
+      - heading "2. Description of Service" [level=2] [ref=e20]
+      - generic [ref=e21]:
+        - paragraph [ref=e22]: "DiveStreams provides a cloud-based software platform designed for dive shops to manage their operations, including but not limited to:"
+        - list [ref=e23]:
+          - listitem [ref=e24]: Booking and reservation management
+          - listitem [ref=e25]: Customer relationship management
+          - listitem [ref=e26]: Tour and trip scheduling
+          - listitem [ref=e27]: Equipment inventory tracking
+          - listitem [ref=e28]: Payment processing integration
+          - listitem [ref=e29]: Reporting and analytics
+    - generic [ref=e30]:
+      - heading "3. Account Terms" [level=2] [ref=e31]
+      - generic [ref=e32]:
+        - paragraph [ref=e33]: "To access the Service, you must register for an account. When you register, you agree to:"
+        - list [ref=e34]:
+          - listitem [ref=e35]: Provide accurate, current, and complete information about yourself and your business
+          - listitem [ref=e36]: Maintain and promptly update your account information
+          - listitem [ref=e37]: Keep your password secure and confidential
+          - listitem [ref=e38]: Be responsible for all activities that occur under your account
+          - listitem [ref=e39]: Notify DiveStreams immediately of any unauthorized use of your account
+        - paragraph [ref=e40]: You must be at least 18 years old to use this Service. By using the Service, you represent and warrant that you have the legal capacity to enter into a binding agreement.
+    - generic [ref=e41]:
+      - heading "4. Subscription and Payment Terms" [level=2] [ref=e42]
+      - generic [ref=e43]:
+        - paragraph [ref=e44]:
+          - strong [ref=e45]: "Free Trial:"
+          - text: DiveStreams offers a 14-day free trial for new accounts. No credit card is required to start your trial. At the end of the trial period, you must subscribe to a paid plan to continue using the Service.
+        - paragraph [ref=e46]:
+          - strong [ref=e47]: "Billing:"
+          - text: Paid subscriptions are billed in advance on a monthly or annual basis, depending on the plan you select. Payment is due at the beginning of each billing cycle.
+        - paragraph [ref=e48]:
+          - strong [ref=e49]: "Price Changes:"
+          - text: DiveStreams reserves the right to change subscription prices at any time. We will provide at least 30 days notice before any price change takes effect. Price changes will apply at the start of your next billing cycle.
+        - paragraph [ref=e50]:
+          - strong [ref=e51]: "Refunds:"
+          - text: Payments are non-refundable except as required by law. No refunds or credits will be provided for partial months of service, upgrade/downgrade refunds, or refunds for months unused with an open account.
+    - generic [ref=e52]:
+      - heading "5. Cancellation and Termination" [level=2] [ref=e53]
+      - generic [ref=e54]:
+        - paragraph [ref=e55]:
+          - strong [ref=e56]: "Cancellation by You:"
+          - text: You may cancel your subscription at any time through your account settings or by contacting support. Cancellation will take effect at the end of your current billing period. You will retain access to the Service until then.
+        - paragraph [ref=e57]:
+          - strong [ref=e58]: "Termination by DiveStreams:"
+          - text: "We may suspend or terminate your account and access to the Service at any time, with or without cause, and with or without notice. Reasons for termination may include, but are not limited to:"
+        - list [ref=e59]:
+          - listitem [ref=e60]: Breach of these Terms
+          - listitem [ref=e61]: Non-payment of fees
+          - listitem [ref=e62]: Fraudulent, illegal, or unauthorized use of the Service
+          - listitem [ref=e63]: Extended periods of inactivity
+        - paragraph [ref=e64]:
+          - strong [ref=e65]: "Data Export:"
+          - text: Upon cancellation or termination, you will have 30 days to export your data. After this period, your data may be permanently deleted and cannot be recovered.
+    - generic [ref=e66]:
+      - heading "6. User Conduct and Restrictions" [level=2] [ref=e67]
+      - generic [ref=e68]:
+        - paragraph [ref=e69]: "You agree not to use the Service to:"
+        - list [ref=e70]:
+          - listitem [ref=e71]: Violate any applicable laws, regulations, or third-party rights
+          - listitem [ref=e72]: Upload or transmit viruses, malware, or other harmful code
+          - listitem [ref=e73]: Attempt to gain unauthorized access to the Service or its systems
+          - listitem [ref=e74]: Interfere with or disrupt the Service or servers
+          - listitem [ref=e75]: Use the Service for any fraudulent or illegal purpose
+          - listitem [ref=e76]: Resell, sublicense, or redistribute the Service without authorization
+          - listitem [ref=e77]: Scrape, crawl, or use automated means to access the Service without permission
+    - generic [ref=e78]:
+      - heading "7. Intellectual Property" [level=2] [ref=e79]
+      - generic [ref=e80]:
+        - paragraph [ref=e81]: The Service and its original content, features, and functionality are owned by DiveStreams and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
+        - paragraph [ref=e82]: You retain ownership of any data and content you upload to the Service. By uploading content, you grant DiveStreams a worldwide, non-exclusive, royalty-free license to use, store, and process your content solely for the purpose of providing the Service.
+    - generic [ref=e83]:
+      - heading "8. Limitation of Liability" [level=2] [ref=e84]
+      - generic [ref=e85]:
+        - paragraph [ref=e86]: "TO THE MAXIMUM EXTENT PERMITTED BY LAW, DIVESTREAMS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM:"
+        - list [ref=e87]:
+          - listitem [ref=e88]: Your access to or use of (or inability to access or use) the Service
+          - listitem [ref=e89]: Any conduct or content of any third party on the Service
+          - listitem [ref=e90]: Any content obtained from the Service
+          - listitem [ref=e91]: Unauthorized access, use, or alteration of your transmissions or content
+        - paragraph [ref=e92]: IN NO EVENT SHALL DIVESTREAMS' TOTAL LIABILITY TO YOU EXCEED THE AMOUNT YOU HAVE PAID TO DIVESTREAMS IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
+    - generic [ref=e93]:
+      - heading "9. Disclaimer of Warranties" [level=2] [ref=e94]
+      - generic [ref=e95]:
+        - paragraph [ref=e96]: THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR COURSE OF PERFORMANCE.
+        - paragraph [ref=e97]: DiveStreams does not warrant that the Service will be uninterrupted, secure, or error-free, or that defects will be corrected. We do not guarantee any specific results from use of the Service.
+    - generic [ref=e98]:
+      - heading "10. Indemnification" [level=2] [ref=e99]
+      - paragraph [ref=e101]: You agree to defend, indemnify, and hold harmless DiveStreams, its officers, directors, employees, and agents from any claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from your use of the Service or your violation of these Terms.
+    - generic [ref=e102]:
+      - heading "11. Governing Law and Dispute Resolution" [level=2] [ref=e103]
+      - generic [ref=e104]:
+        - paragraph [ref=e105]: These Terms shall be governed by and construed in accordance with the laws of the State of California, United States, without regard to its conflict of law provisions.
+        - paragraph [ref=e106]: Any disputes arising from these Terms or the Service shall be resolved through binding arbitration in accordance with the rules of the American Arbitration Association. The arbitration shall be held in San Francisco, California.
+    - generic [ref=e107]:
+      - heading "12. Modifications to the Service" [level=2] [ref=e108]
+      - paragraph [ref=e110]: DiveStreams reserves the right to modify, suspend, or discontinue the Service (or any part thereof) at any time, with or without notice. We shall not be liable to you or any third party for any modification, suspension, or discontinuation of the Service.
+    - generic [ref=e111]:
+      - heading "13. Contact Information" [level=2] [ref=e112]
+      - generic [ref=e113]:
+        - paragraph [ref=e114]: "If you have any questions about these Terms, please contact us at:"
+        - paragraph [ref=e115]:
+          - strong [ref=e116]: DiveStreams
+          - text: "Email:"
+          - link "legal@divestreams.com" [ref=e117] [cursor=pointer]:
+            - /url: mailto:legal@divestreams.com
+          - text: "Support:"
+          - link "support@divestreams.com" [ref=e118] [cursor=pointer]:
+            - /url: mailto:support@divestreams.com
+  - contentinfo [ref=e119]:
+    - generic [ref=e120]:
+      - generic [ref=e121]: DiveStreams
+      - generic [ref=e122]:
+        - link "Pricing" [ref=e123] [cursor=pointer]:
+          - /url: /pricing
+        - link "Features" [ref=e124] [cursor=pointer]:
+          - /url: /features
+        - link "Terms" [ref=e125] [cursor=pointer]:
+          - /url: /terms
+        - link "Privacy" [ref=e126] [cursor=pointer]:
+          - /url: /privacy
+    - generic [ref=e127]: © 2026 DiveStreams. All rights reserved.
+```

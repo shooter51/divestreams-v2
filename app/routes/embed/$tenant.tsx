@@ -7,10 +7,10 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { Outlet, useLoaderData, useRouteError, isRouteErrorResponse } from "react-router";
-import { getTenantBySubdomain } from "../../../lib/db/tenant.server";
+import { getOrganizationBySlug } from "../../../lib/db/queries.public";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
-  { title: data?.tenant?.name ? `Book with ${data.tenant.name}` : "Book Now" },
+  { title: data?.organization?.name ? `Book with ${data.organization.name}` : "Book Now" },
 ];
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -19,22 +19,33 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  const tenant = await getTenantBySubdomain(subdomain);
-  if (!tenant || !tenant.isActive) {
+  const org = await getOrganizationBySlug(subdomain);
+  if (!org) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  // Get branding settings
-  const branding = tenant.settings?.branding || {};
+  // Get branding settings from organization metadata
+  const metadata = org.metadata as {
+    settings?: {
+      branding?: {
+        primaryColor?: string;
+        secondaryColor?: string;
+        logo?: string;
+      };
+      currency?: string;
+      timezone?: string;
+    };
+  } | null;
+
+  const branding = metadata?.settings?.branding || {};
 
   return {
-    tenant: {
-      id: tenant.id,
-      name: tenant.name,
-      subdomain: tenant.subdomain,
-      schemaName: tenant.schemaName,
-      currency: tenant.currency,
-      timezone: tenant.timezone,
+    organization: {
+      id: org.id,
+      name: org.name,
+      slug: org.slug,
+      currency: metadata?.settings?.currency || "USD",
+      timezone: metadata?.settings?.timezone || "UTC",
     },
     branding: {
       primaryColor: branding.primaryColor || "#0066cc",
@@ -45,7 +56,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 export default function EmbedLayout() {
-  const { tenant, branding } = useLoaderData<typeof loader>();
+  const { organization, branding } = useLoaderData<typeof loader>();
 
   return (
     <div
@@ -61,18 +72,18 @@ export default function EmbedLayout() {
           {branding.logo ? (
             <img
               src={branding.logo}
-              alt={tenant.name}
+              alt={organization.name}
               className="h-8 object-contain"
             />
           ) : (
-            <h1 className="text-lg font-semibold">{tenant.name}</h1>
+            <h1 className="text-lg font-semibold">{organization.name}</h1>
           )}
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-6">
-        <Outlet context={{ tenant, branding }} />
+        <Outlet context={{ organization, branding }} />
       </main>
 
       {/* Footer */}

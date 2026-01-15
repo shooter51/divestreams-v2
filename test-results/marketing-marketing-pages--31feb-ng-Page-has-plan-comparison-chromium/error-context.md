@@ -1,0 +1,116 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - link "DiveStreams" [ref=e4] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e5]:
+      - link "Features" [ref=e6] [cursor=pointer]:
+        - /url: /features
+      - link "Pricing" [ref=e7] [cursor=pointer]:
+        - /url: /pricing
+      - link "Start Free Trial" [ref=e8] [cursor=pointer]:
+        - /url: /signup
+  - generic [ref=e9]:
+    - heading "Simple, Transparent Pricing" [level=1] [ref=e10]
+    - paragraph [ref=e11]: Start with a 14-day free trial. No credit card required.
+    - generic [ref=e12]:
+      - button "Monthly" [ref=e13]
+      - button "Yearly (Save 20%)" [ref=e14]
+  - generic [ref=e16]:
+    - generic [ref=e17]:
+      - heading "Starter" [level=3] [ref=e18]
+      - paragraph [ref=e19]: Perfect for small dive shops getting started
+      - generic [ref=e20]: $49/month
+      - list [ref=e21]:
+        - listitem [ref=e22]:
+          - img [ref=e23]
+          - text: Up to 3 users
+        - listitem [ref=e25]:
+          - img [ref=e26]
+          - text: 1,000 customers
+        - listitem [ref=e28]:
+          - img [ref=e29]
+          - text: Booking management
+        - listitem [ref=e31]:
+          - img [ref=e32]
+          - text: Basic reporting
+        - listitem [ref=e34]:
+          - img [ref=e35]
+          - text: Email support
+      - link "Start Free Trial" [ref=e37] [cursor=pointer]:
+        - /url: /signup
+    - generic [ref=e38]:
+      - generic [ref=e39]: Most Popular
+      - heading "Pro" [level=3] [ref=e40]
+      - paragraph [ref=e41]: For growing shops that need more power
+      - generic [ref=e42]: $99/month
+      - list [ref=e43]:
+        - listitem [ref=e44]:
+          - img [ref=e45]
+          - text: Up to 10 users
+        - listitem [ref=e47]:
+          - img [ref=e48]
+          - text: Unlimited customers
+        - listitem [ref=e50]:
+          - img [ref=e51]
+          - text: Online booking widget
+        - listitem [ref=e53]:
+          - img [ref=e54]
+          - text: Equipment tracking
+        - listitem [ref=e56]:
+          - img [ref=e57]
+          - text: Advanced reporting
+        - listitem [ref=e59]:
+          - img [ref=e60]
+          - text: Priority support
+        - listitem [ref=e62]:
+          - img [ref=e63]
+          - text: API access
+      - link "Start Free Trial" [ref=e65] [cursor=pointer]:
+        - /url: /signup
+    - generic [ref=e66]:
+      - heading "Enterprise" [level=3] [ref=e67]
+      - paragraph [ref=e68]: For large operations and multiple locations
+      - generic [ref=e69]: $199/month
+      - list [ref=e70]:
+        - listitem [ref=e71]:
+          - img [ref=e72]
+          - text: Unlimited users
+        - listitem [ref=e74]:
+          - img [ref=e75]
+          - text: Unlimited customers
+        - listitem [ref=e77]:
+          - img [ref=e78]
+          - text: Multi-location support
+        - listitem [ref=e80]:
+          - img [ref=e81]
+          - text: Custom integrations
+        - listitem [ref=e83]:
+          - img [ref=e84]
+          - text: Dedicated support
+        - listitem [ref=e86]:
+          - img [ref=e87]
+          - text: White-label options
+        - listitem [ref=e89]:
+          - img [ref=e90]
+          - text: SLA guarantee
+      - link "Contact Sales" [ref=e92] [cursor=pointer]:
+        - /url: /signup
+  - generic [ref=e93]:
+    - heading "Frequently Asked Questions" [level=2] [ref=e94]
+    - generic [ref=e95]:
+      - generic [ref=e96]:
+        - heading "Can I change plans later?" [level=3] [ref=e97]
+        - paragraph [ref=e98]: Yes, you can upgrade or downgrade your plan at any time. Changes take effect on your next billing cycle.
+      - generic [ref=e99]:
+        - heading "What happens after my trial ends?" [level=3] [ref=e100]
+        - paragraph [ref=e101]: After 14 days, you'll be asked to select a plan and add payment information. If you don't, your account will be paused until you subscribe.
+      - generic [ref=e102]:
+        - heading "Do you offer discounts for yearly billing?" [level=3] [ref=e103]
+        - paragraph [ref=e104]: Yes! Save 20% when you choose annual billing. That's like getting 2+ months free.
+      - generic [ref=e105]:
+        - heading "Can I cancel anytime?" [level=3] [ref=e106]
+        - paragraph [ref=e107]: Absolutely. There are no long-term contracts. Cancel anytime and you won't be charged again.
+```

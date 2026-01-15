@@ -15,7 +15,7 @@ import { ImageManager, type Image } from "../../../../app/components/ui";
 export const meta: MetaFunction = () => [{ title: "Tour Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const tourId = params.id;
 
   if (!tourId) {
@@ -23,19 +23,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Fetch tour data from database
-  const tourData = await getTourById(tenant.schemaName, tourId);
+  const tourData = await getTourById(organizationId, tourId);
 
   if (!tourData) {
     throw new Response("Tour not found", { status: 404 });
   }
 
   // Get tenant database for images query
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   // Fetch stats, upcoming trips, and images in parallel
   const [stats, upcomingTrips, tourImages] = await Promise.all([
-    getTourStats(tenant.schemaName, tourId),
-    getUpcomingTripsForTour(tenant.schemaName, tourId, 5),
+    getTourStats(organizationId, tourId),
+    getUpcomingTripsForTour(organizationId, tourId, 5),
     db
       .select({
         id: schema.images.id,
@@ -51,6 +51,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, "tour"),
           eq(schema.images.entityId, tourId)
         )
@@ -121,22 +122,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const tourId = params.id!;
 
   if (intent === "toggle-active") {
     // Get current tour status and toggle it
-    const tour = await getTourById(tenant.schemaName, tourId);
+    const tour = await getTourById(organizationId, tourId);
     if (tour) {
-      await updateTourActiveStatus(tenant.schemaName, tourId, !tour.isActive);
+      await updateTourActiveStatus(organizationId, tourId, !tour.isActive);
     }
     return { toggled: true };
   }
 
   if (intent === "delete") {
-    await deleteTour(tenant.schemaName, tourId);
+    await deleteTour(organizationId, tourId);
     return { deleted: true };
   }
 

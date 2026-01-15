@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { getCustomerById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
@@ -9,14 +9,14 @@ import { customerSchema, validateFormData, getFormValues } from "../../../../../
 export const meta: MetaFunction = () => [{ title: "Edit Customer - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const customerId = params.id;
 
   if (!customerId) {
     throw new Response("Customer ID required", { status: 400 });
   }
 
-  const customerData = await getCustomerById(tenant.schemaName, customerId);
+  const customerData = await getCustomerById(organizationId, customerId);
 
   if (!customerData) {
     throw new Response("Customer not found", { status: 404 });
@@ -57,7 +57,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const customerId = params.id;
 
   if (!customerId) {
@@ -72,7 +72,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   // Update customer in database
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   await db
     .update(schema.customers)
@@ -97,7 +97,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       marketingOptIn: validation.data.marketingOptIn,
       updatedAt: new Date(),
     })
-    .where(eq(schema.customers.id, customerId));
+    .where(and(eq(schema.customers.organizationId, organizationId), eq(schema.customers.id, customerId)));
 
   return redirect(`/app/customers/${customerId}`);
 }

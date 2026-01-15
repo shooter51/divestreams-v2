@@ -16,7 +16,7 @@ import { ImageManager, type Image } from "../../../../app/components/ui";
 export const meta: MetaFunction = () => [{ title: "Boat Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const boatId = params.id;
 
   if (!boatId) {
@@ -24,14 +24,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Get tenant database for images query
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   // Fetch all data in parallel
   const [boat, recentTrips, upcomingTrips, stats, boatImages] = await Promise.all([
-    getBoatById(tenant.schemaName, boatId),
-    getBoatRecentTrips(tenant.schemaName, boatId),
-    getBoatUpcomingTrips(tenant.schemaName, boatId),
-    getBoatStats(tenant.schemaName, boatId),
+    getBoatById(organizationId, boatId),
+    getBoatRecentTrips(organizationId, boatId),
+    getBoatUpcomingTrips(organizationId, boatId),
+    getBoatStats(organizationId, boatId),
     db
       .select({
         id: schema.images.id,
@@ -47,6 +47,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, "boat"),
           eq(schema.images.entityId, boatId)
         )
@@ -102,7 +103,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const boatId = params.id;
@@ -113,15 +114,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "toggle-active") {
     // Get current boat to toggle its status
-    const boat = await getBoatById(tenant.schemaName, boatId);
+    const boat = await getBoatById(organizationId, boatId);
     if (boat) {
-      await updateBoatActiveStatus(tenant.schemaName, boatId, !boat.isActive);
+      await updateBoatActiveStatus(organizationId, boatId, !boat.isActive);
     }
     return { toggled: true };
   }
 
   if (intent === "delete") {
-    await deleteBoat(tenant.schemaName, boatId);
+    await deleteBoat(organizationId, boatId);
     return redirect("/app/boats");
   }
 
@@ -382,12 +383,18 @@ export default function BoatDetailPage() {
               >
                 Schedule Trip
               </Link>
-              <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg">
+              <Link
+                to={`/app/calendar?boatId=${boat.id}`}
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+              >
                 View Calendar
-              </button>
-              <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg">
+              </Link>
+              <Link
+                to={`/app/reports?boat=${boat.id}`}
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+              >
                 Export Report
-              </button>
+              </Link>
             </div>
           </div>
 

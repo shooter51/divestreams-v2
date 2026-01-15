@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { useState } from "react";
-import { requireOrgContext, requirePremium } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { member, user, invitation } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";

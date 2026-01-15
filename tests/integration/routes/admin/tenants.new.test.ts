@@ -62,9 +62,13 @@ vi.mock("../../../../lib/db/schema/subscription", () => ({
   },
 }));
 
-vi.mock("drizzle-orm", () => ({
-  eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
-}));
+vi.mock("drizzle-orm", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("drizzle-orm")>();
+  return {
+    ...actual,
+    eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
+  };
+});
 
 vi.mock("../../../../lib/auth", () => ({
   auth: {
@@ -528,7 +532,7 @@ describe("admin/tenants.new route", () => {
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
         expect(response).toHaveProperty("errors");
-        expect((response as ActionErrorResponse).errors.form).toBe("Failed to create organization. Please try again.");
+        expect((response as ActionErrorResponse).errors.form).toBe("Failed to create organization: Database error");
         expect(consoleSpy).toHaveBeenCalled();
 
         consoleSpy.mockRestore();

@@ -54,7 +54,7 @@ import { auth } from "../../../../lib/auth";
 import { db } from "../../../../lib/db";
 
 // Type for auth.api.signInEmail mock
-const signInEmailMock = auth.api.signInEmail as unknown as Mock;
+const signInEmailMock = auth.api.signInEmail as Mock;
 
 describe("admin/login route", () => {
   beforeEach(() => {

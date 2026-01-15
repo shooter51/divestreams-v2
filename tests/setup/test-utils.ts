@@ -12,15 +12,8 @@ process.env.REDIS_URL = "redis://localhost:6379";
 process.env.SMTP_HOST = "localhost";
 process.env.SMTP_PORT = "1025";
 
-// Mock crypto for session tokens
-vi.mock("crypto", async () => {
-  const actual = await vi.importActual("crypto");
-  return {
-    ...actual,
-    randomBytes: vi.fn(() => Buffer.from("mockedrandomstring123456")),
-    randomUUID: vi.fn(() => "00000000-0000-0000-0000-000000000000"),
-  };
-});
+// Note: crypto module is NOT mocked - it's used directly
+// Some tests rely on real crypto functions (api-keys, webhooks)
 
 // Clean up after each test
 afterEach(() => {

@@ -7,16 +7,14 @@ vi.mock("../../../../lib/db/index", () => ({
   },
 }));
 
-vi.mock("../../../../lib/db/schema", () => ({
-  customers: { id: "customers_id_col" },
-  diveSites: { id: "dive_sites_id_col" },
-  boats: { id: "boats_id_col" },
-  equipment: { id: "equipment_id_col" },
-  tours: { id: "tours_id_col" },
-  tourDiveSites: { id: "tour_dive_sites_id_col" },
-  trips: { id: "trips_id_col" },
-  bookings: { id: "bookings_id_col" },
-}));
+// Use importOriginal to get all schema exports - avoids missing mock issues
+// when the actual code adds new tables
+vi.mock("../../../../lib/db/schema", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../../../lib/db/schema")>();
+  return {
+    ...actual,
+  };
+});
 
 import { seedDemoData } from "../../../../lib/db/seed-demo-data.server";
 import { db } from "../../../../lib/db/index";

@@ -12,7 +12,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
 
   // Convert amenities array
@@ -31,7 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const amenitiesStr = formData.get("amenities") as string;
   const amenities = amenitiesStr ? JSON.parse(amenitiesStr) as string[] : undefined;
 
-  await createBoat(tenant.schemaName, {
+  await createBoat(organizationId, {
     name: formData.get("name") as string,
     description: (formData.get("description") as string) || undefined,
     capacity: Number(formData.get("capacity")),

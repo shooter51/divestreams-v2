@@ -1,0 +1,48 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - link "DiveStreams" [ref=e4] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e5]:
+      - link "Features" [ref=e6] [cursor=pointer]:
+        - /url: /features
+      - link "Pricing" [ref=e7] [cursor=pointer]:
+        - /url: /pricing
+  - generic [ref=e9]:
+    - heading "Start Your Free Trial" [level=1] [ref=e10]
+    - paragraph [ref=e11]: 14 days free. No credit card required.
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: Dive Shop Name
+          - textbox "Dive Shop Name" [ref=e16]:
+            - /placeholder: Paradise Dive Center
+        - generic [ref=e17]:
+          - generic [ref=e18]: Choose Your URL
+          - generic [ref=e19]:
+            - textbox "Choose Your URL" [ref=e20]:
+              - /placeholder: paradise
+            - generic [ref=e21]: .divestreams.com
+        - generic [ref=e22]:
+          - generic [ref=e23]: Email Address
+          - textbox "Email Address" [ref=e24]:
+            - /placeholder: owner@diveshop.com
+        - generic [ref=e25]:
+          - generic [ref=e26]: Phone Number (optional)
+          - textbox "Phone Number (optional)" [ref=e27]:
+            - /placeholder: +1 (555) 123-4567
+      - button "Start Free Trial" [ref=e28]
+      - paragraph [ref=e29]:
+        - text: By signing up, you agree to our
+        - link "Terms of Service" [ref=e30] [cursor=pointer]:
+          - /url: /terms
+        - text: and
+        - link "Privacy Policy" [ref=e31] [cursor=pointer]:
+          - /url: /privacy
+    - paragraph [ref=e32]:
+      - text: Already have an account?
+      - link "Sign in" [ref=e33] [cursor=pointer]:
+        - /url: /auth/login
+```

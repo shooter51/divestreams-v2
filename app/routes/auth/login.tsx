@@ -74,18 +74,30 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    // Sign in using Better Auth
-    const result = await auth.api.signInEmail({
+    // Sign in using Better Auth - use asResponse to get full response with cookies
+    const response = await auth.api.signInEmail({
       body: { email, password },
-      headers: request.headers,
+      asResponse: true,
     });
 
-    if (!result || !result.user) {
-      return { errors: { form: "Invalid email or password" } };
+    // Get cookies FIRST before reading body
+    const cookies = response.headers.get("set-cookie");
+
+    // Parse response to check success
+    const userData = await response.json();
+
+    if (!response.ok || !userData?.user) {
+      return { errors: { form: userData?.message || "Invalid email or password" } };
     }
 
-    // Redirect to app - Better Auth sets session cookie automatically
-    return redirect("/app");
+    // Get redirect URL from query params
+    const url = new URL(request.url);
+    const redirectTo = url.searchParams.get("redirect") || "/app";
+
+    // Redirect to app WITH the session cookies
+    return redirect(redirectTo, {
+      headers: cookies ? { "Set-Cookie": cookies } : {},
+    });
   } catch (error) {
     console.error("Login error:", error);
     return { errors: { form: "Invalid email or password" } };

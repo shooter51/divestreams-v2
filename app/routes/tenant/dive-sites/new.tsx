@@ -12,7 +12,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
 
   // Convert highlights array
@@ -27,7 +27,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  await createDiveSite(tenant.schemaName, {
+  await createDiveSite(organizationId, {
     name: formData.get("name") as string,
     description: (formData.get("description") as string) || undefined,
     latitude: formData.get("latitude") ? Number(formData.get("latitude")) : undefined,

@@ -6,8 +6,7 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
-import { getTenantBySubdomain } from "../../../lib/db/tenant.server";
-import { getPublicTourById, type PublicTourDetail } from "../../../lib/db/queries.public";
+import { getOrganizationBySlug, getPublicTourById, type PublicTourDetail } from "../../../lib/db/queries.public";
 import { useState } from "react";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
@@ -20,12 +19,12 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
-  const tenant = await getTenantBySubdomain(subdomain);
-  if (!tenant || !tenant.isActive) {
+  const org = await getOrganizationBySlug(subdomain);
+  if (!org) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  const tour = await getPublicTourById(tenant.schemaName, tourId);
+  const tour = await getPublicTourById(org.id, tourId);
   if (!tour) {
     throw new Response("Tour not found", { status: 404 });
   }
@@ -135,7 +134,7 @@ function ImageGallery({ images }: { images: PublicTourDetail["images"] }) {
 export default function TourDetailPage() {
   const { tour, tenantSlug } = useLoaderData<typeof loader>();
   const { branding } = useOutletContext<{
-    tenant: { subdomain: string };
+    organization: { slug: string };
     branding: { primaryColor: string };
   }>();
 

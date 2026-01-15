@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
@@ -8,14 +8,14 @@ import { getTenantDb } from "../../../../../lib/db/tenant.server";
 export const meta: MetaFunction = () => [{ title: "Edit Booking - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const bookingId = params.id;
 
   if (!bookingId) {
     throw new Response("Booking ID required", { status: 400 });
   }
 
-  const bookingData = await getBookingWithFullDetails(tenant.schemaName, bookingId);
+  const bookingData = await getBookingWithFullDetails(organizationId, bookingId);
 
   if (!bookingData) {
     throw new Response("Booking not found", { status: 404 });
@@ -39,7 +39,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const bookingId = params.id;
 
   if (!bookingId) {
@@ -55,7 +55,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const internalNotes = formData.get("internalNotes") as string;
 
   // Update booking in database
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   await db
     .update(schema.bookings)
@@ -66,7 +66,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       internalNotes,
       updatedAt: new Date(),
     })
-    .where(eq(schema.bookings.id, bookingId));
+    .where(and(eq(schema.bookings.organizationId, organizationId), eq(schema.bookings.id, bookingId)));
 
   return redirect(`/app/bookings/${bookingId}`);
 }

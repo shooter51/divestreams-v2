@@ -15,6 +15,9 @@ export default [
   // Health check
   route("api/health", "routes/api/health.tsx"),
 
+  // Debug endpoint (temporary)
+  route("api/debug-orgs", "routes/api/debug-orgs.tsx"),
+
   // Better Auth API (catch-all for /api/auth/*)
   route("api/auth/*", "routes/api/auth.$.tsx"),
 
@@ -85,6 +88,8 @@ export default [
 
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
+      route("reports/export/csv", "routes/tenant/reports/export.csv.tsx"),
+      route("reports/export/pdf", "routes/tenant/reports/export.pdf.tsx"),
 
       // Settings
       route("settings", "routes/tenant/settings/index.tsx"),
@@ -92,6 +97,8 @@ export default [
       route("settings/billing", "routes/tenant/settings/billing.tsx"),
       route("settings/team", "routes/tenant/settings/team.tsx"),
       route("settings/integrations", "routes/tenant/settings/integrations.tsx"),
+      route("settings/notifications", "routes/tenant/settings/notifications.tsx"),
+      route("settings/booking-widget", "routes/tenant/settings/booking-widget.tsx"),
     ]),
   ]),
 

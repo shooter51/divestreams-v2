@@ -16,7 +16,9 @@ import {
   searchPOSCustomers,
   processPOSCheckout,
   generateAgreementNumber,
+  getProductByBarcode,
 } from "../../../lib/db/pos.server";
+import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { Cart } from "../../components/pos/Cart";
 import { ProductGrid } from "../../components/pos/ProductGrid";
 import {
@@ -31,19 +33,19 @@ import type { CartItem } from "../../../lib/validation/pos";
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { tenant, organizationId } = await requireTenant(request);
   const { schema: tables } = getTenantDb(tenant.schemaName);
 
   const [products, equipment, trips] = await Promise.all([
-    getPOSProducts(tables),
-    getPOSEquipment(tables),
-    getPOSTrips(tables, "UTC"), // Default timezone - could be stored in organization settings
+    getPOSProducts(tables, organizationId),
+    getPOSEquipment(tables, organizationId),
+    getPOSTrips(tables, organizationId, "UTC"), // Default timezone - could be stored in organization settings
   ]);
 
   // Generate agreement number - handle case where rentals table may not exist yet
   let agreementNumber = `RA-${new Date().getFullYear()}-0001`;
   try {
-    agreementNumber = await generateAgreementNumber(tables);
+    agreementNumber = await generateAgreementNumber(tables, organizationId);
   } catch (error) {
     console.error("Could not generate agreement number:", error);
     // Use default - rentals table may not exist yet
@@ -51,6 +53,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     tenant,
+    organizationId,
     products,
     equipment,
     trips,
@@ -60,7 +63,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { tenant, organizationId } = await requireTenant(request);
   const { schema: tables } = getTenantDb(tenant.schemaName);
 
   const formData = await request.formData();
@@ -68,8 +71,25 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "search-customers") {
     const query = formData.get("query") as string;
-    const customers = await searchPOSCustomers(tables, query);
+    const customers = await searchPOSCustomers(tables, organizationId, query);
     return { customers };
+  }
+
+  if (intent === "scan-barcode") {
+    const barcode = formData.get("barcode") as string;
+    const product = await getProductByBarcode(tables, organizationId, barcode);
+
+    if (product) {
+      return {
+        scannedProduct: {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          stockQuantity: product.stockQuantity,
+        },
+      };
+    }
+    return { barcodeNotFound: true, scannedBarcode: barcode };
   }
 
   if (intent === "checkout") {
@@ -80,7 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
       // For now, use a placeholder - the transactions table allows null userId
       const userId = data.userId || null;
 
-      const result = await processPOSCheckout(tables, tenant.subdomain, {
+      const result = await processPOSCheckout(tables, organizationId, {
         items: data.items,
         customerId: data.customerId,
         userId,
@@ -121,8 +141,10 @@ export default function POSPage() {
   const [checkoutMethod, setCheckoutMethod] = useState<"card" | "cash" | "split" | null>(null);
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
   const [showRentalAgreement, setShowRentalAgreement] = useState(false);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [customerSearchResults, setCustomerSearchResults] = useState<Array<{ id: string; firstName: string; lastName: string; email: string; phone?: string | null }>>([]);
   const [pendingCheckout, setPendingCheckout] = useState<"card" | "cash" | "split" | null>(null);
+  const [barcodeError, setBarcodeError] = useState<string | null>(null);
 
   // Cart calculations
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
@@ -253,13 +275,42 @@ export default function POSPage() {
     fetcher.submit(formData, { method: "POST" });
   }, [fetcher]);
 
-  // Update search results when fetcher returns
+  // Barcode scanning
+  const handleBarcodeScan = useCallback((barcode: string) => {
+    setBarcodeError(null);
+    setShowBarcodeScanner(false);
+
+    const formData = new FormData();
+    formData.append("intent", "scan-barcode");
+    formData.append("barcode", barcode);
+    fetcher.submit(formData, { method: "POST" });
+  }, [fetcher]);
+
+  // Update search results and handle barcode results when fetcher returns
   useEffect(() => {
-    const fetcherData = fetcher.data as { customers?: Array<{ id: string; firstName: string; lastName: string; email: string; phone?: string | null }> } | undefined;
+    const fetcherData = fetcher.data as {
+      customers?: Array<{ id: string; firstName: string; lastName: string; email: string; phone?: string | null }>;
+      scannedProduct?: { id: string; name: string; price: string; stockQuantity: number };
+      barcodeNotFound?: boolean;
+      scannedBarcode?: string;
+    } | undefined;
+
     if (fetcherData?.customers) {
       setCustomerSearchResults(fetcherData.customers);
     }
-  }, [fetcher.data]);
+
+    if (fetcherData?.scannedProduct) {
+      // Auto-add product to cart
+      addProduct(fetcherData.scannedProduct);
+      setBarcodeError(null);
+    }
+
+    if (fetcherData?.barcodeNotFound) {
+      setBarcodeError(`Product not found for barcode: ${fetcherData.scannedBarcode}`);
+      // Clear error after 3 seconds
+      setTimeout(() => setBarcodeError(null), 3000);
+    }
+  }, [fetcher.data, addProduct]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
@@ -272,6 +323,15 @@ export default function POSPage() {
             className="px-4 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200"
           >
             New Sale
+          </button>
+          <button
+            onClick={() => setShowBarcodeScanner(true)}
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+            </svg>
+            Scan Barcode
           </button>
         </div>
         <div className="text-sm text-gray-600">
@@ -396,6 +456,24 @@ export default function POSPage() {
         onSearch={handleCustomerSearch}
         isSearching={fetcher.state === "submitting"}
       />
+
+      <BarcodeScannerModal
+        isOpen={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        onScan={handleBarcodeScan}
+        title="Scan Product Barcode"
+        showConfirmation={false}
+      />
+
+      {/* Barcode Error Toast */}
+      {barcodeError && (
+        <div className="fixed bottom-4 left-4 bg-amber-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          {barcodeError}
+        </div>
+      )}
 
       {/* Success Toast */}
       {(fetcher.data as { success?: boolean; receiptNumber?: string } | undefined)?.success && (

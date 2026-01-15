@@ -29,6 +29,14 @@ export async function action({ request }: ActionFunctionArgs) {
     return { success: true };
   }
 
+  if (intent === "delete" && planId) {
+    // Delete the plan
+    await db
+      .delete(subscriptionPlans)
+      .where(eq(subscriptionPlans.id, planId));
+    return { success: true, deleted: true };
+  }
+
   return null;
 }
 
@@ -41,6 +49,15 @@ export default function AdminPlansPage() {
       { intent: "toggleActive", planId: id, isActive: String(isActive) },
       { method: "post" }
     );
+  };
+
+  const handleDelete = (id: string, name: string) => {
+    if (confirm(`Are you sure you want to delete the "${name}" plan? This cannot be undone.`)) {
+      fetcher.submit(
+        { intent: "delete", planId: id },
+        { method: "post" }
+      );
+    }
   };
 
   const formatPrice = (cents: number) => {
@@ -104,7 +121,7 @@ export default function AdminPlansPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-3">
                       <Link
                         to={`/plans/${plan.id}`}
                         className="text-sm text-blue-600 hover:underline"
@@ -116,6 +133,12 @@ export default function AdminPlansPage() {
                         className="text-sm text-gray-600 hover:underline"
                       >
                         {plan.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(plan.id, plan.displayName)}
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Delete
                       </button>
                     </div>
                   </td>

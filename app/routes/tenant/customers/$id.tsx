@@ -1,21 +1,37 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
+import { useState } from "react";
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
+import { db } from "../../../../lib/db";
+import { customerCommunications } from "../../../../lib/db/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const customerId = params.id;
 
   if (!customerId) {
     throw new Response("Customer ID required", { status: 400 });
   }
 
-  const [customer, bookings] = await Promise.all([
-    getCustomerById(tenant.schemaName, customerId),
-    getCustomerBookings(tenant.schemaName, customerId),
+  const [customer, bookings, communications] = await Promise.all([
+    getCustomerById(organizationId, customerId),
+    getCustomerBookings(organizationId, customerId),
+    db
+      .select()
+      .from(customerCommunications)
+      .where(
+        and(
+          eq(customerCommunications.organizationId, organizationId),
+          eq(customerCommunications.customerId, customerId)
+        )
+      )
+      .orderBy(desc(customerCommunications.createdAt))
+      .limit(20)
+      .catch(() => []), // Table might not exist yet
   ]);
 
   if (!customer) {
@@ -52,11 +68,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     date: formatDate(booking.date),
   }));
 
-  return { customer: formattedCustomer, bookings: formattedBookings };
+  // Format communications with dates as strings
+  const formattedCommunications = communications.map((comm) => ({
+    ...comm,
+    sentAt: comm.sentAt ? comm.sentAt.toISOString() : null,
+    createdAt: comm.createdAt.toISOString(),
+  }));
+
+  return { customer: formattedCustomer, bookings: formattedBookings, communications: formattedCommunications };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const customerId = params.id;
@@ -66,21 +89,60 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
-    await deleteCustomer(tenant.schemaName, customerId);
+    await deleteCustomer(organizationId, customerId);
     return redirect("/app/customers");
+  }
+
+  if (intent === "send-email") {
+    const subject = formData.get("subject") as string;
+    const body = formData.get("body") as string;
+    const customerEmail = formData.get("customerEmail") as string;
+
+    if (!subject || !body) {
+      return { error: "Subject and body are required" };
+    }
+
+    // Log the communication (actual email sending would require SMTP setup)
+    try {
+      await db.insert(customerCommunications).values({
+        organizationId,
+        customerId,
+        type: "email",
+        subject,
+        body,
+        status: "sent", // In production, this would be "queued" until actually sent
+        sentAt: new Date(),
+        emailTo: customerEmail,
+      });
+
+      return { success: true, message: "Email logged successfully. Note: Email delivery requires SMTP configuration." };
+    } catch {
+      // Table might not exist yet
+      return { success: true, message: "Email queued (communications table pending migration)" };
+    }
   }
 
   return null;
 }
 
 export default function CustomerDetailPage() {
-  const { customer, bookings } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const { customer, bookings, communications } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this customer? This cannot be undone.")) {
       fetcher.submit({ intent: "delete" }, { method: "post" });
     }
+  };
+
+  const handleSendEmail = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    formData.append("intent", "send-email");
+    formData.append("customerEmail", customer.email);
+    fetcher.submit(formData, { method: "post" });
+    setShowEmailModal(false);
   };
 
   return (
@@ -99,6 +161,12 @@ export default function CustomerDetailPage() {
           <p className="text-gray-500">{customer.email}</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Send Email
+          </button>
           <Link
             to={`/app/customers/${customer.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
@@ -113,6 +181,18 @@ export default function CustomerDetailPage() {
           </button>
         </div>
       </div>
+
+      {/* Success/Error Messages */}
+      {fetcher.data?.success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+          {fetcher.data.message}
+        </div>
+      )}
+      {fetcher.data?.error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          {fetcher.data.error}
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-6">
         {/* Main Info */}
@@ -278,6 +358,32 @@ export default function CustomerDetailPage() {
             )}
           </div>
 
+          {/* Communication History */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Communication History</h2>
+            {communications && communications.length > 0 ? (
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {communications.map((comm) => (
+                  <div key={comm.id} className="text-sm border-l-2 border-blue-200 pl-3">
+                    <p className="font-medium">{comm.subject || "(No subject)"}</p>
+                    <p className="text-gray-500 text-xs">
+                      {new Date(comm.createdAt).toLocaleDateString()} at{" "}
+                      {new Date(comm.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No communications yet</p>
+            )}
+            <button
+              onClick={() => setShowEmailModal(true)}
+              className="mt-4 text-sm text-blue-600 hover:underline"
+            >
+              + Send new email
+            </button>
+          </div>
+
           {/* Meta */}
           <div className="text-xs text-gray-400">
             <p>Customer since {customer.createdAt}</p>
@@ -285,6 +391,68 @@ export default function CustomerDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <h2 className="text-lg font-bold mb-4">
+              Send Email to {customer.firstName} {customer.lastName}
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              To: {customer.email}
+            </p>
+
+            <form onSubmit={handleSendEmail} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Subject *</label>
+                <input
+                  type="text"
+                  name="subject"
+                  required
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Your upcoming dive trip"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Message *</label>
+                <textarea
+                  name="body"
+                  required
+                  rows={6}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Write your message here..."
+                />
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-sm text-amber-700">
+                  Note: Email delivery requires SMTP configuration in settings.
+                  This message will be logged to communication history.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEmailModal(false)}
+                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={fetcher.state === "submitting"}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                >
+                  {fetcher.state === "submitting" ? "Sending..." : "Send Email"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

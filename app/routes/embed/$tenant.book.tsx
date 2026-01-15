@@ -8,8 +8,7 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, useOutletContext, Form, useActionData, useNavigation, Link } from "react-router";
 import { redirect } from "react-router";
-import { getTenantBySubdomain } from "../../../lib/db/tenant.server";
-import { getPublicTripById, type PublicTripDetail } from "../../../lib/db/queries.public";
+import { getOrganizationBySlug, getPublicTripById, type PublicTripDetail } from "../../../lib/db/queries.public";
 import { createWidgetBooking } from "../../../lib/db/mutations.public";
 import { useState } from "react";
 
@@ -27,12 +26,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     throw new Response("Trip not specified", { status: 400 });
   }
 
-  const tenant = await getTenantBySubdomain(subdomain);
-  if (!tenant || !tenant.isActive) {
+  const org = await getOrganizationBySlug(subdomain);
+  if (!org) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  const trip = await getPublicTripById(tenant.schemaName, tripId);
+  const trip = await getPublicTripById(org.id, tripId);
   if (!trip) {
     throw new Response("Trip not found or no longer available", { status: 404 });
   }
@@ -44,7 +43,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return {
     trip,
     tenantSlug: subdomain,
-    schemaName: tenant.schemaName,
+    organizationId: org.id,
   };
 }
 
@@ -54,8 +53,8 @@ export async function action({ params, request }: ActionFunctionArgs) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  const tenant = await getTenantBySubdomain(subdomain);
-  if (!tenant || !tenant.isActive) {
+  const org = await getOrganizationBySlug(subdomain);
+  if (!org) {
     throw new Response("Shop not found", { status: 404 });
   }
 
@@ -80,7 +79,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
   }
 
   // Check trip availability
-  const trip = await getPublicTripById(tenant.schemaName, tripId);
+  const trip = await getPublicTripById(org.id, tripId);
   if (!trip) {
     errors.form = "This trip is no longer available";
   } else if (trip.availableSpots < participants) {
@@ -93,7 +92,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
 
   try {
     // Create the booking
-    const booking = await createWidgetBooking(tenant.schemaName, {
+    const booking = await createWidgetBooking(org.id, {
       tripId,
       participants,
       firstName,
@@ -145,7 +144,7 @@ export default function BookingFormPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const { branding } = useOutletContext<{
-    tenant: { subdomain: string };
+    organization: { slug: string };
     branding: { primaryColor: string };
   }>();
 

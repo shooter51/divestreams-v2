@@ -16,7 +16,7 @@ import { ImageManager, type Image } from "../../../../app/components/ui";
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const equipmentId = params.id;
 
   if (!equipmentId) {
@@ -24,14 +24,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Get tenant database for images query
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   // Fetch all data in parallel
   const [equipment, rentalHistory, stats, serviceHistory, equipmentImages] = await Promise.all([
-    getEquipmentById(tenant.schemaName, equipmentId),
-    getEquipmentRentalHistory(tenant.schemaName, equipmentId),
-    getEquipmentRentalStats(tenant.schemaName, equipmentId),
-    getEquipmentServiceHistory(tenant.schemaName, equipmentId),
+    getEquipmentById(organizationId, equipmentId),
+    getEquipmentRentalHistory(organizationId, equipmentId),
+    getEquipmentRentalStats(organizationId, equipmentId),
+    getEquipmentServiceHistory(organizationId, equipmentId),
     db
       .select({
         id: schema.images.id,
@@ -47,6 +47,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, "equipment"),
           eq(schema.images.entityId, equipmentId)
         )
@@ -106,7 +107,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const equipmentId = params.id;
@@ -118,7 +119,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "update-status") {
     const newStatus = formData.get("status") as string;
     if (newStatus) {
-      await updateEquipmentStatus(tenant.schemaName, equipmentId, newStatus);
+      await updateEquipmentStatus(organizationId, equipmentId, newStatus);
     }
     return { statusUpdated: true };
   }
@@ -129,12 +130,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "retire") {
-    await updateEquipmentStatus(tenant.schemaName, equipmentId, "retired");
+    await updateEquipmentStatus(organizationId, equipmentId, "retired");
     return { retired: true };
   }
 
   if (intent === "delete") {
-    await deleteEquipment(tenant.schemaName, equipmentId);
+    await deleteEquipment(organizationId, equipmentId);
     return redirect("/app/equipment");
   }
 

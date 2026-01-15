@@ -16,7 +16,7 @@ import { ImageManager, type Image } from "../../../../app/components/ui";
 export const meta: MetaFunction = () => [{ title: "Dive Site Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const siteId = params.id;
 
   if (!siteId) {
@@ -24,20 +24,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Fetch dive site data from database
-  const siteData = await getDiveSiteById(tenant.schemaName, siteId);
+  const siteData = await getDiveSiteById(organizationId, siteId);
 
   if (!siteData) {
     throw new Response("Dive site not found", { status: 404 });
   }
 
   // Get tenant database for images query
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   // Fetch stats, recent trips, related tours, and images in parallel
   const [stats, recentTrips, toursUsingSite, siteImages] = await Promise.all([
-    getDiveSiteStats(tenant.schemaName, siteId),
-    getRecentTripsForDiveSite(tenant.schemaName, siteId, 5),
-    getToursUsingDiveSite(tenant.schemaName, siteId, 5),
+    getDiveSiteStats(organizationId, siteId),
+    getRecentTripsForDiveSite(organizationId, siteId, 5),
+    getToursUsingDiveSite(organizationId, siteId, 5),
     db
       .select({
         id: schema.images.id,
@@ -53,6 +53,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, "dive-site"),
           eq(schema.images.entityId, siteId)
         )
@@ -117,22 +118,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const siteId = params.id!;
 
   if (intent === "toggle-active") {
     // Get current site status and toggle it
-    const site = await getDiveSiteById(tenant.schemaName, siteId);
+    const site = await getDiveSiteById(organizationId, siteId);
     if (site) {
-      await updateDiveSiteActiveStatus(tenant.schemaName, siteId, !site.isActive);
+      await updateDiveSiteActiveStatus(organizationId, siteId, !site.isActive);
     }
     return { toggled: true };
   }
 
   if (intent === "delete") {
-    await deleteDiveSite(tenant.schemaName, siteId);
+    await deleteDiveSite(organizationId, siteId);
     return { deleted: true };
   }
 
@@ -357,10 +358,76 @@ export default function DiveSiteDetailPage() {
               >
                 Schedule Trip Here
               </Link>
-              <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg">
-                View on Map
-              </button>
-              <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg">
+              {diveSite.coordinates ? (
+                <a
+                  href={`https://www.google.com/maps?q=${diveSite.coordinates.lat},${diveSite.coordinates.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                >
+                  View on Map
+                </a>
+              ) : (
+                <button
+                  disabled
+                  className="w-full text-left px-3 py-2 text-sm text-gray-400 cursor-not-allowed rounded-lg"
+                >
+                  View on Map (no coordinates)
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  const printWindow = window.open("", "_blank");
+                  if (!printWindow) return;
+                  printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                      <title>${diveSite.name} - Dive Site Info</title>
+                      <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+                        h1 { margin-bottom: 5px; }
+                        .subtitle { color: #666; margin-bottom: 20px; }
+                        .section { margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+                        .section h2 { font-size: 16px; margin: 0 0 10px 0; }
+                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                        .item label { font-size: 12px; color: #666; display: block; }
+                        .item span { font-weight: bold; }
+                        .tag { display: inline-block; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; margin-right: 5px; font-size: 14px; }
+                        @media print { body { padding: 0; } }
+                      </style>
+                    </head>
+                    <body>
+                      <h1>${diveSite.name}</h1>
+                      <p class="subtitle">Dive Site Information</p>
+
+                      <div class="section">
+                        <h2>Details</h2>
+                        <div class="grid">
+                          <div class="item"><label>Max Depth</label><span>${diveSite.maxDepth}m</span></div>
+                          <div class="item"><label>Difficulty</label><span>${diveSite.difficulty}</span></div>
+                          ${diveSite.coordinates ? `<div class="item"><label>Coordinates</label><span>${diveSite.coordinates.lat}, ${diveSite.coordinates.lng}</span></div>` : ""}
+                          <div class="item"><label>Conditions</label><span>${diveSite.conditions || "Variable"}</span></div>
+                        </div>
+                      </div>
+
+                      ${diveSite.description ? `<div class="section"><h2>Description</h2><p>${diveSite.description}</p></div>` : ""}
+
+                      ${diveSite.highlights && diveSite.highlights.length > 0 ? `
+                        <div class="section">
+                          <h2>Highlights</h2>
+                          <div>${diveSite.highlights.map((h: string) => `<span class="tag">${h}</span>`).join("")}</div>
+                        </div>
+                      ` : ""}
+
+                      <script>window.onload = function() { window.print(); }</script>
+                    </body>
+                    </html>
+                  `);
+                  printWindow.document.close();
+                }}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+              >
                 Export Site Info
               </button>
             </div>

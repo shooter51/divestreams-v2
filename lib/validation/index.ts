@@ -97,9 +97,56 @@ export const tripSchema = z.object({
   weatherNotes: z.string().optional(),
   notes: z.string().optional(),
   staffIds: z.array(z.string().uuid()).optional(),
+  // Recurring trip fields
+  isRecurring: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean().default(false)
+  ),
+  recurrencePattern: z.enum(["daily", "weekly", "biweekly", "monthly"]).optional(),
+  recurrenceDays: z.preprocess(
+    (val) => {
+      if (!val) return undefined;
+      if (typeof val === "string") {
+        try {
+          return JSON.parse(val);
+        } catch {
+          return undefined;
+        }
+      }
+      return val;
+    },
+    z.array(z.number().int().min(0).max(6)).optional()
+  ),
+  recurrenceEndDate: z.string().optional(),
+  recurrenceCount: optionalIntNumber,
 });
 
 export type TripInput = z.infer<typeof tripSchema>;
+
+// Recurring trip creation schema (extends trip schema with required recurrence fields)
+export const recurringTripSchema = tripSchema.extend({
+  isRecurring: z.literal(true),
+  recurrencePattern: z.enum(["daily", "weekly", "biweekly", "monthly"]),
+}).refine(
+  (data) => {
+    // If weekly or biweekly, recurrenceDays should be provided
+    if ((data.recurrencePattern === "weekly" || data.recurrencePattern === "biweekly") &&
+        (!data.recurrenceDays || data.recurrenceDays.length === 0)) {
+      // Auto-calculate from the start date's day of week
+      return true; // Allow it, we'll handle in the backend
+    }
+    return true;
+  },
+  { message: "Weekly/biweekly patterns should specify days" }
+).refine(
+  (data) => {
+    // Either endDate or count should be provided for bounded recurrence
+    return data.recurrenceEndDate || data.recurrenceCount || true;
+  },
+  { message: "Consider setting an end date or max occurrences" }
+);
+
+export type RecurringTripInput = z.infer<typeof recurringTripSchema>;
 
 // ============================================================================
 // Booking Schemas

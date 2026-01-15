@@ -3,16 +3,36 @@ import { redirect, useLoaderData, useFetcher, Link, useSearchParams } from "reac
 import { useEffect, useState } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { member, bookings } from "../../../../lib/db/schema";
-import { eq, sql, count, gte, and } from "drizzle-orm";
+import { member, bookings, subscriptionPlans } from "../../../../lib/db/schema";
+import { eq, sql, count, gte, and, asc } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
 
-  // Define subscription plans (static for now, could move to database)
-  const finalPlans = [
+  // Fetch subscription plans from database
+  const dbPlans = await db
+    .select()
+    .from(subscriptionPlans)
+    .where(eq(subscriptionPlans.isActive, true))
+    .orderBy(asc(subscriptionPlans.monthlyPrice));
+
+  // Map database plans to billing page format
+  const finalPlans = dbPlans.length > 0 ? dbPlans.map((plan, index) => ({
+    id: plan.name, // Plan name (e.g., "free", "professional", "enterprise")
+    name: plan.displayName, // Display name for UI
+    price: plan.monthlyPrice / 100, // cents to dollars
+    yearlyPrice: plan.yearlyPrice / 100,
+    features: plan.features as string[],
+    limits: {
+      bookings: (plan.limits as { toursPerMonth?: number })?.toursPerMonth ?? -1,
+      team: (plan.limits as { users?: number })?.users ?? -1
+    },
+    popular: index === 1, // Second plan (usually pro) is popular
+    isFree: plan.monthlyPrice === 0,
+  })) : [
+    // Fallback if no plans in database
     {
       id: "free",
       name: "Free",
@@ -20,6 +40,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       yearlyPrice: 0,
       features: ["Up to 25 tours/month", "50 customers", "1 team member", "Basic features"],
       limits: { bookings: 25, team: 1 },
+      isFree: true,
     },
     {
       id: "professional",
@@ -29,6 +50,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       features: ["Unlimited tours", "Unlimited customers", "10 team members", "Advanced reporting", "POS system", "API access"],
       limits: { bookings: -1, team: 10 },
       popular: true,
+      isFree: false,
     },
     {
       id: "enterprise",
@@ -37,6 +59,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       yearlyPrice: 950,
       features: ["Everything in Pro", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options"],
       limits: { bookings: -1, team: -1 },
+      isFree: false,
     },
   ];
 
@@ -67,8 +90,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const nextBillingDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   // Get plan price based on subscription
-  const currentPlan = ctx.subscription?.plan || "free";
-  const currentPlanData = finalPlans.find(p => p.id === currentPlan) || finalPlans[0];
+  // subscription.plan stores the plan name (e.g., "free", "professional", "enterprise")
+  const subscriptionPlanName = ctx.subscription?.plan || "free";
+
+  // Find the matching plan from database
+  // Try exact match first, then fall back to free plan logic
+  let currentPlanData = finalPlans.find(p => p.id === subscriptionPlanName);
+
+  // If no exact match and subscription is "free" or "premium" (legacy values),
+  // map to appropriate plan
+  if (!currentPlanData) {
+    if (subscriptionPlanName === "free" || subscriptionPlanName === "premium") {
+      // "free" -> first free plan, "premium" -> first paid plan
+      currentPlanData = subscriptionPlanName === "free"
+        ? finalPlans.find(p => p.isFree) || finalPlans[0]
+        : finalPlans.find(p => !p.isFree) || finalPlans[1] || finalPlans[0];
+    } else {
+      // Fallback to first plan
+      currentPlanData = finalPlans[0];
+    }
+  }
+
+  const currentPlan = currentPlanData?.id || "free";
 
   // Parse metadata if it exists
   let metadata: { stripeCustomerId?: string } = {};
@@ -101,9 +144,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const billing = {
     currentPlan,
+    currentPlanName: currentPlanData?.name || "Free",
     billingCycle: "monthly" as const,
     nextBillingDate,
-    amount: currentPlanData.price,
+    amount: currentPlanData?.price || 0,
     subscriptionStatus: ctx.subscription?.status || "active",
     trialEndsAt: undefined as string | undefined,
     paymentMethod: null as PaymentMethod | null, // Would need Stripe integration
@@ -173,6 +217,7 @@ export default function BillingPage() {
     message: string;
   } | null>(null);
 
+  // Find current plan data for features display
   const currentPlanData = plans.find((p) => p.id === billing.currentPlan);
   const isTrialing = billing.subscriptionStatus === "trialing";
   const trialDaysLeft = billing.trialEndsAt
@@ -276,7 +321,7 @@ export default function BillingPage() {
           <div>
             <h2 className="font-semibold mb-1">Current Plan</h2>
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">{currentPlanData?.name}</span>
+              <span className="text-2xl font-bold">{billing.currentPlanName}</span>
               <span
                 className={`text-xs px-2 py-1 rounded-full ${
                   billing.subscriptionStatus === "active"

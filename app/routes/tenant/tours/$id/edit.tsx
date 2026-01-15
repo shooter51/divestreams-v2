@@ -10,21 +10,21 @@ import { ImageManager, type Image } from "../../../../components/ui";
 export const meta: MetaFunction = () => [{ title: "Edit Tour - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const tourId = params.id;
 
   if (!tourId) {
     throw new Response("Tour ID required", { status: 400 });
   }
 
-  const tourData = await getTourById(tenant.schemaName, tourId);
+  const tourData = await getTourById(organizationId, tourId);
 
   if (!tourData) {
     throw new Response("Tour not found", { status: 404 });
   }
 
   // Get images
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
   const tourImages = await db
     .select({
       id: schema.images.id,
@@ -40,6 +40,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     .from(schema.images)
     .where(
       and(
+        eq(schema.images.organizationId, organizationId),
         eq(schema.images.entityType, "tour"),
         eq(schema.images.entityId, tourId)
       )
@@ -83,7 +84,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const tourId = params.id;
 
   if (!tourId) {
@@ -114,7 +115,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   // Update tour in database
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   await db
     .update(schema.tours)
@@ -138,7 +139,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       isActive: validation.data.isActive,
       updatedAt: new Date(),
     })
-    .where(eq(schema.tours.id, tourId));
+    .where(and(eq(schema.tours.organizationId, organizationId), eq(schema.tours.id, tourId)));
 
   return redirect(`/app/tours/${tourId}`);
 }

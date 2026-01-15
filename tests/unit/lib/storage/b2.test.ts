@@ -184,8 +184,8 @@ describe("B2 Storage Service", () => {
       const { getImageKey } = await import("../../../../lib/storage/b2");
       const key1 = getImageKey("t", "e", "id", "file.jpg");
 
-      // Wait 1ms to ensure different timestamp
-      await new Promise(resolve => setTimeout(resolve, 1));
+      // Wait 5ms to ensure different timestamp (Date.now() has ms resolution)
+      await new Promise(resolve => setTimeout(resolve, 5));
 
       const key2 = getImageKey("t", "e", "id", "file.jpg");
 

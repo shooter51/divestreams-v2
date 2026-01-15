@@ -7,7 +7,7 @@ import { createTour } from "../../../../lib/db/queries.server";
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
 
   // Parse inclusions/exclusions from comma-separated strings
@@ -43,7 +43,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  await createTour(tenant.schemaName, {
+  await createTour(organizationId, {
     name: formData.get("name") as string,
     description: (formData.get("description") as string) || undefined,
     type: formData.get("type") as string,

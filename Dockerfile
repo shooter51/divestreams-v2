@@ -22,5 +22,12 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/lib ./lib
 
+# Copy migration files and scripts
+COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/scripts/run-migrations.mjs ./scripts/run-migrations.mjs
+COPY --from=builder /app/scripts/setup-admin.mjs ./scripts/setup-admin.mjs
+COPY --from=builder /app/scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
+RUN chmod +x ./scripts/docker-entrypoint.sh
+
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+ENTRYPOINT ["./scripts/docker-entrypoint.sh"]

@@ -10,7 +10,7 @@ import { ImageManager, type Image } from "../../../../../app/components/ui";
 export const meta: MetaFunction = () => [{ title: "Edit Dive Site - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const siteId = params.id;
 
   if (!siteId) {
@@ -18,10 +18,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Get tenant database for images query
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   const [siteData, siteImages] = await Promise.all([
-    getDiveSiteById(tenant.schemaName, siteId),
+    getDiveSiteById(organizationId, siteId),
     db
       .select({
         id: schema.images.id,
@@ -37,6 +37,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, "dive-site"),
           eq(schema.images.entityId, siteId)
         )
@@ -79,7 +80,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const siteId = params.id;
 
   if (!siteId) {
@@ -101,7 +102,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   // Update dive site in database
-  const { db, schema } = getTenantDb(tenant.schemaName);
+  const { db, schema } = getTenantDb(organizationId);
 
   await db
     .update(schema.diveSites)
@@ -118,7 +119,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       isActive: validation.data.isActive,
       updatedAt: new Date(),
     })
-    .where(eq(schema.diveSites.id, siteId));
+    .where(and(eq(schema.diveSites.organizationId, organizationId), eq(schema.diveSites.id, siteId)));
 
   return redirect(`/app/dive-sites/${siteId}`);
 }

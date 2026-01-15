@@ -1,8 +1,10 @@
+import { useState } from "react";
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createEquipment } from "../../../../lib/db/queries.server";
+import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
 
 export const meta: MetaFunction = () => [{ title: "Add Equipment - DiveStreams" }];
 
@@ -12,7 +14,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const { organizationId } = await requireTenant(request);
   const formData = await request.formData();
 
   const validation = validateFormData(formData, equipmentSchema);
@@ -21,12 +23,13 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  await createEquipment(tenant.schemaName, {
+  await createEquipment(organizationId, {
     category: formData.get("category") as string,
     name: formData.get("name") as string,
     brand: (formData.get("brand") as string) || undefined,
     model: (formData.get("model") as string) || undefined,
     serialNumber: (formData.get("serialNumber") as string) || undefined,
+    barcode: (formData.get("barcode") as string) || undefined,
     size: (formData.get("size") as string) || undefined,
     status: (formData.get("status") as string) || undefined,
     condition: (formData.get("condition") as string) || undefined,
@@ -41,6 +44,8 @@ export default function NewEquipmentPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [barcodeValue, setBarcodeValue] = useState(actionData?.values?.barcode || "");
 
   return (
     <div className="max-w-2xl">
@@ -146,6 +151,35 @@ export default function NewEquipmentPage() {
                 />
               </div>
 
+              <div>
+                <label htmlFor="barcode" className="block text-sm font-medium mb-1">
+                  Barcode
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    id="barcode"
+                    name="barcode"
+                    value={barcodeValue}
+                    onChange={(e) => setBarcodeValue(e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="EAN-13, UPC, etc."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowBarcodeScanner(true)}
+                    className="px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+                    title="Scan Barcode"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="size" className="block text-sm font-medium mb-1">
                   Size
@@ -357,6 +391,17 @@ export default function NewEquipmentPage() {
           </Link>
         </div>
       </form>
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        onScan={(barcode) => {
+          setBarcodeValue(barcode);
+          setShowBarcodeScanner(false);
+        }}
+        title="Scan Equipment Barcode"
+      />
     </div>
   );
 }
