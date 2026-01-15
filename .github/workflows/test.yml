@@ -138,15 +138,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
 
-      - name: Build application with coverage instrumentation
-        run: npm run build
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
-          REDIS_URL: redis://localhost:6379
-          AUTH_SECRET: test-secret-for-ci
-          APP_URL: http://localhost:5173
-          E2E_COVERAGE: "true"
-
+      # Note: No build step needed - playwright starts instrumented dev server
       - name: Run E2E tests with coverage
         run: npm run test:coverage:e2e
         env:
