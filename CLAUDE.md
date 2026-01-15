@@ -155,10 +155,10 @@ gh auth token | docker login ghcr.io -u shooter51 --password-stdin
 ```
 
 ### Git Remotes
-- **origin**: `git@github-tommie:tommiePinball/divestreams-v2.git` (SSH)
-- **shooter51**: `https://github.com/shooter51/divestreams-v2.git` (HTTPS)
+- **origin**: `https://github.com/shooter51/divestreams-v2.git` (HTTPS - primary)
+- **shooter51**: `https://github.com/shooter51/divestreams-v2.git` (HTTPS - alias)
 
-Use `shooter51` remote for deployment (public HTTPS URL works with Hostinger).
+Use `origin` or `shooter51` remote for deployment.
 
 ### Environment Variables (Production)
 Set in `/docker/divestreams-v2/.env` on VPS:

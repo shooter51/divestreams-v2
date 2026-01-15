@@ -2,11 +2,12 @@ import type { LoaderFunctionArgs } from "react-router";
 import { Outlet, Link, useLocation, redirect, useLoaderData } from "react-router";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { isAdminSubdomain } from "../../../lib/auth/org-context.server";
+import { getAppUrl } from "../../../lib/utils/url";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Only allow access on admin subdomain
   if (!isAdminSubdomain(request)) {
-    throw redirect("https://divestreams.com");
+    throw redirect(getAppUrl());
   }
 
   const context = await requirePlatformContext(request);

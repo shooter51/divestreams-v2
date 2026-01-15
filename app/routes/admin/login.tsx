@@ -7,6 +7,7 @@ import { isAdminSubdomain } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
+import { getAppUrl } from "../../../lib/utils/url";
 
 type ActionData = {
   error?: string;
@@ -20,7 +21,7 @@ export const meta: MetaFunction = () => [{ title: "Admin Login - DiveStreams" }]
 export async function loader({ request }: LoaderFunctionArgs) {
   // Only allow access on admin subdomain
   if (!isAdminSubdomain(request)) {
-    return redirect("https://divestreams.com");
+    return redirect(getAppUrl());
   }
 
   // If already authenticated as platform admin, redirect to dashboard
