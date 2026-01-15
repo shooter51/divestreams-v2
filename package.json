@@ -7,6 +7,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
+    "dev:coverage": "E2E_COVERAGE=true react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "lint": "eslint .",
@@ -15,7 +16,13 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
+    "test:e2e:coverage": "E2E_COVERAGE=true playwright test",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:unit": "vitest run --coverage",
+    "test:coverage:e2e": "E2E_COVERAGE=true playwright test tests/e2e/workflow/",
+    "test:coverage:all": "npm run test:coverage:unit && npm run test:coverage:e2e && npm run coverage:merge",
+    "coverage:merge": "tsx scripts/merge-coverage.ts",
+    "coverage:report": "npx nyc report --reporter=text --reporter=html --report-dir=coverage/combined",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -54,6 +61,7 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@playwright/test": "^1.57.0",
     "@react-router/dev": "7.12.0",
     "@tailwindcss/vite": "^4.1.13",
@@ -71,10 +79,12 @@
     "eslint": "^9.0.0",
     "happy-dom": "^20.1.0",
     "msw": "^2.12.7",
+    "nyc": "^17.1.0",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.53.0",
     "vite": "^7.1.7",
+    "vite-plugin-istanbul": "^7.2.1",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.0.0"
   }

@@ -1,16 +1,21 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const collectCoverage = process.env.E2E_COVERAGE === "true";
+
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: true,
+  fullyParallel: false, // Sequential for coverage collection
   forbidOnly: !!process.env.CI,
   retries: 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1, // Single worker for coverage
   reporter: [["html", { open: "never" }], ["list"]],
   timeout: 30000,
   expect: {
     timeout: 10000,
   },
+  // Global setup/teardown for coverage
+  globalSetup: collectCoverage ? "./tests/e2e/coverage/global-setup.ts" : undefined,
+  globalTeardown: collectCoverage ? "./tests/e2e/coverage/global-teardown.ts" : undefined,
   use: {
     baseURL: process.env.BASE_URL || "http://localhost:5173",
     trace: "on-first-retry",
@@ -35,7 +40,7 @@ export default defineConfig({
     // },
   ],
   webServer: {
-    command: "npm run dev",
+    command: collectCoverage ? "npm run dev:coverage" : "npm run dev",
     url: "http://localhost:5173",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
@@ -54,6 +59,8 @@ export default defineConfig({
       GITHUB_ACTIONS: process.env.GITHUB_ACTIONS || "",
       // Extra indicator for Playwright
       PLAYWRIGHT_TEST_BASE_URL: "http://localhost:5173",
+      // Coverage instrumentation
+      E2E_COVERAGE: process.env.E2E_COVERAGE || "",
     },
   },
   // Output directory for test artifacts
