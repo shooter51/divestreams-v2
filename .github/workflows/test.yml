@@ -22,18 +22,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
-        run: npm run test:unit
+      - name: Run unit tests with coverage
+        run: npm run test:coverage:unit
         env:
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
           DATABASE_URL: postgresql://test:test@localhost:5432/test
 
-      - name: Upload coverage
+      - name: Upload unit coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ./coverage/coverage-final.json
+          files: ./coverage/unit/coverage-final.json
+          flags: unit
           fail_ci_if_error: false
+
+      - name: Upload unit coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage
+          path: coverage/unit/
+          retention-days: 7
 
   integration:
     name: Integration Tests
@@ -130,16 +138,17 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
 
-      - name: Build application
+      - name: Build application with coverage instrumentation
         run: npm run build
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
           REDIS_URL: redis://localhost:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:5173
+          E2E_COVERAGE: "true"
 
-      - name: Run E2E tests
-        run: npx playwright test tests/e2e/workflow/ --project=chromium
+      - name: Run E2E tests with coverage
+        run: npm run test:coverage:e2e
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
@@ -147,6 +156,19 @@ jobs:
           REDIS_URL: redis://localhost:6379
           BASE_URL: http://localhost:5173
           APP_URL: http://localhost:5173
+          E2E_COVERAGE: "true"
+
+      - name: Generate E2E coverage report
+        if: always()
+        run: npx nyc report --reporter=json --reporter=text-summary --report-dir=coverage/e2e || true
+
+      - name: Upload E2E coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/e2e/coverage-final.json
+          flags: e2e
+          fail_ci_if_error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -154,4 +176,60 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report/
+          retention-days: 7
+
+      - name: Upload E2E coverage artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-coverage
+          path: coverage/e2e/
+          retention-days: 7
+
+  coverage-report:
+    name: Combined Coverage Report
+    runs-on: ubuntu-latest
+    needs: [unit, e2e]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download unit coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-coverage
+          path: coverage/unit/
+        continue-on-error: true
+
+      - name: Download E2E coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-coverage
+          path: coverage/e2e/
+        continue-on-error: true
+
+      - name: Merge coverage reports
+        run: npm run coverage:merge || echo "Coverage merge failed - continuing"
+
+      - name: Upload combined coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/combined/coverage-final.json
+          flags: combined
+          fail_ci_if_error: false
+
+      - name: Upload combined coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-coverage
+          path: coverage/combined/
           retention-days: 7
