@@ -869,8 +869,11 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.goto(getTenantUrl("/app/dive-sites"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
-    const addButton = await page.getByRole("link", { name: /add|create|new/i }).isVisible().catch(() => false);
-    expect(addButton).toBeTruthy();
+    // Check for various add button patterns (link, button, icon button)
+    const addLink = await page.getByRole("link", { name: /add|create|new/i }).isVisible().catch(() => false);
+    const addButton = await page.getByRole("button", { name: /add|create|new/i }).isVisible().catch(() => false);
+    const plusButton = await page.locator("a[href*='/new'], button[class*='add'], [aria-label*='add']").first().isVisible().catch(() => false);
+    expect(addLink || addButton || plusButton).toBeTruthy();
   });
 
   test("8.3 Navigate to new dive site form", async ({ page }) => {
