@@ -72,8 +72,11 @@ describe("URL Utilities", () => {
 
   describe("Localhost rejection (production mode)", () => {
     beforeEach(() => {
-      // Clear both CI and NODE_ENV to simulate production
+      // Clear all CI/test indicators to simulate production
       delete process.env.CI;
+      delete process.env.VITEST;
+      delete process.env.GITHUB_ACTIONS;
+      delete process.env.PLAYWRIGHT_TEST_BASE_URL;
       process.env.NODE_ENV = "production";
       vi.resetModules();
     });

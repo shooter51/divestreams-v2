@@ -16,11 +16,18 @@ const PRODUCTION_URL = "https://divestreams.com";
  * 2. Production URL (https://divestreams.com) - default for production
  *
  * Note: localhost values are rejected in production to prevent URL leaks.
- * In CI/test environments (CI=true or NODE_ENV=test), localhost is allowed.
+ * In CI/test environments, localhost is allowed.
  */
 function getBaseUrl(): string {
   const appUrl = process.env.APP_URL;
-  const isTestEnv = process.env.CI === "true" || process.env.NODE_ENV === "test";
+
+  // Detect test/CI environment - check multiple indicators
+  const isTestEnv =
+    process.env.CI === "true" ||
+    process.env.NODE_ENV === "test" ||
+    process.env.GITHUB_ACTIONS === "true" ||
+    process.env.VITEST === "true" ||
+    process.env.PLAYWRIGHT_TEST_BASE_URL !== undefined;
 
   // In test/CI environments, allow localhost URLs
   if (appUrl && (isTestEnv || !appUrl.includes("localhost"))) {

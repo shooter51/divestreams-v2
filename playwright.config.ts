@@ -51,6 +51,9 @@ export default defineConfig({
       // URL utilities need these to allow localhost in CI
       APP_URL: process.env.APP_URL || "http://localhost:5173",
       CI: process.env.CI || "true",
+      GITHUB_ACTIONS: process.env.GITHUB_ACTIONS || "",
+      // Extra indicator for Playwright
+      PLAYWRIGHT_TEST_BASE_URL: "http://localhost:5173",
     },
   },
   // Output directory for test artifacts
