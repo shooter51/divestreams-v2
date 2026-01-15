@@ -53,40 +53,80 @@ test.describe.serial("Full E2E Workflow", () => {
   test("2.2 Signup form has required fields", async ({ page }) => {
     await page.goto("http://localhost:5173/signup");
 
-    await expect(page.getByLabel(/shop name|dive shop/i)).toBeVisible();
-    await expect(page.getByLabel(/subdomain|url/i)).toBeVisible();
-    await expect(page.getByLabel(/email/i)).toBeVisible();
+    // Use exact label text from the form
+    await expect(page.getByLabel("Dive Shop Name")).toBeVisible();
+    await expect(page.getByLabel("Choose Your URL")).toBeVisible();
+    await expect(page.getByLabel("Email Address")).toBeVisible();
   });
 
   test("2.3 Create tenant via signup @critical", async ({ page }) => {
     await page.goto("http://localhost:5173/signup");
 
-    // Fill out the signup form
-    await page.getByLabel(/shop name|dive shop/i).fill(testData.tenant.shopName);
-    await page.getByLabel(/subdomain|url/i).fill(testData.tenant.subdomain);
-    await page.getByLabel(/email/i).fill(testData.tenant.email);
+    // Fill out the signup form using exact labels
+    await page.getByLabel("Dive Shop Name").fill(testData.tenant.shopName);
+    await page.getByLabel("Choose Your URL").fill(testData.tenant.subdomain);
+    await page.getByLabel("Email Address").fill(testData.tenant.email);
 
     // Submit the form
-    await page.getByRole("button", { name: /start|create|submit/i }).click();
+    await page.getByRole("button", { name: "Start Free Trial" }).click();
 
-    // Wait for either:
-    // 1. Redirect to the new tenant (successful creation)
-    // 2. Error message saying subdomain is taken (tenant exists from previous run)
-    // 3. Stay on signup page showing an error
-    const result = await Promise.race([
-      page.waitForURL(
-        (url) => url.href.includes(testData.tenant.subdomain) || url.href.includes("success"),
-        { timeout: 15000 }
-      ).then(() => "redirected"),
-      page.getByText(/already taken/i).waitFor({ timeout: 15000 }).then(() => "exists"),
-    ]).catch(() => "unknown");
+    // Wait for navigation or form response
+    await page.waitForLoadState("networkidle");
 
-    // If tenant already exists from a previous run, that's OK for the workflow
-    if (result === "exists") {
-      console.log("Tenant already exists, continuing with existing tenant");
+    const currentUrl = page.url();
+    console.log("After submit, current URL:", currentUrl);
+
+    // Success case: redirected to tenant app
+    if (currentUrl.includes(testData.tenant.subdomain)) {
+      console.log("Tenant created successfully, redirected to:", currentUrl);
+      return;
     }
-    // Either tenant was created or already exists - both are valid states
-    expect(["redirected", "exists"]).toContain(result);
+
+    // Tenant already exists: check for error message
+    const alreadyTaken = await page.locator("text=already taken").isVisible().catch(() => false);
+    if (alreadyTaken) {
+      console.log("Tenant already exists from previous run - this is OK");
+      return;
+    }
+
+    // Check for any form error message (red error boxes)
+    const formError = await page.locator(".text-red-500, .text-red-600, .bg-red-50").first().textContent().catch(() => null);
+    if (formError) {
+      console.log("Form error found:", formError);
+      // If subdomain is already taken, that's acceptable
+      if (formError.toLowerCase().includes("already taken") || formError.toLowerCase().includes("already exists")) {
+        console.log("Tenant exists from previous run - continuing");
+        return;
+      }
+    }
+
+    // Check for failed to create error
+    const failedError = await page.locator("text=Failed to create").isVisible().catch(() => false);
+    if (failedError) {
+      console.log("Error: Failed to create tenant - possible database issue");
+    }
+
+    // Still on signup page with no recognized error - wait longer for redirect
+    try {
+      await page.waitForURL((url) => url.href.includes(testData.tenant.subdomain), { timeout: 10000 });
+      console.log("Redirect detected after wait:", page.url());
+      return;
+    } catch {
+      // Log page content for debugging
+      const bodyText = await page.locator("body").textContent();
+      console.log("Final URL:", page.url());
+      console.log("Page body excerpt:", bodyText?.substring(0, 500));
+    }
+
+    // If we get here, check if the error indicates subdomain is taken (acceptable)
+    const pageText = await page.locator("body").textContent();
+    if (pageText?.toLowerCase().includes("already taken")) {
+      console.log("Subdomain already taken - tenant exists from previous run");
+      return;
+    }
+
+    // Force fail with diagnostic info
+    expect(currentUrl).toContain(testData.tenant.subdomain);
   });
 
   // ═══════════════════════════════════════════════════════════════
