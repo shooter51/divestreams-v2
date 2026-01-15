@@ -48,6 +48,9 @@ export default defineConfig({
       REDIS_URL: process.env.REDIS_URL || "",
       AUTH_SECRET: process.env.AUTH_SECRET || "test-secret",
       ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "DiveAdmin2026",
+      // URL utilities need these to allow localhost in CI
+      APP_URL: process.env.APP_URL || "http://localhost:5173",
+      CI: process.env.CI || "true",
     },
   },
   // Output directory for test artifacts
