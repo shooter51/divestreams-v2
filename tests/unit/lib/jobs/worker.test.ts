@@ -23,7 +23,7 @@ class MockWorker {
   name: string;
   opts: any;
   processor: (job: any) => Promise<void>;
-  eventHandlers: Record<string, Function[]> = {};
+  eventHandlers: Record<string, ((...args: unknown[]) => void)[]> = {};
 
   constructor(name: string, processor: (job: any) => Promise<void>, opts: any) {
     this.name = name;
@@ -32,7 +32,7 @@ class MockWorker {
     createdWorkers.push(this);
   }
 
-  on(event: string, handler: Function) {
+  on(event: string, handler: (...args: unknown[]) => void) {
     if (!this.eventHandlers[event]) {
       this.eventHandlers[event] = [];
     }
