@@ -126,7 +126,7 @@ jobs:
           cat /etc/hosts
 
       - name: Run E2E tests
-        run: npm run test:e2e -- --project=chromium
+        run: npx playwright test tests/e2e/workflow/ --project=chromium
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
