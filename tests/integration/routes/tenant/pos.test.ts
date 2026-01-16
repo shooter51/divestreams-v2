@@ -165,6 +165,63 @@ describe("tenant/pos route", () => {
       // Should use default agreement number pattern
       expect(result.agreementNumber).toMatch(/^RA-\d{4}-0001$/);
     });
+
+    it("returns stripeConnected false when Stripe not configured", async () => {
+      (getPOSProducts as Mock).mockResolvedValue([]);
+      (getPOSEquipment as Mock).mockResolvedValue([]);
+      (getPOSTrips as Mock).mockResolvedValue([]);
+      (generateAgreementNumber as Mock).mockResolvedValue("RA-2024-0001");
+      (getStripeSettings as Mock).mockResolvedValue(null);
+
+      const request = new Request("https://demo.divestreams.com/app/pos");
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
+
+      expect(result.stripeConnected).toBe(false);
+      expect(result.stripePublishableKey).toBeNull();
+      expect(result.hasTerminalReaders).toBe(false);
+    });
+
+    it("returns stripeConnected true when Stripe is configured", async () => {
+      (getPOSProducts as Mock).mockResolvedValue([]);
+      (getPOSEquipment as Mock).mockResolvedValue([]);
+      (getPOSTrips as Mock).mockResolvedValue([]);
+      (generateAgreementNumber as Mock).mockResolvedValue("RA-2024-0001");
+      (getStripeSettings as Mock).mockResolvedValue({
+        connected: true,
+        chargesEnabled: true,
+        accountId: "acct_123",
+      });
+      (getStripePublishableKey as Mock).mockResolvedValue("pk_test_123");
+      (listTerminalReaders as Mock).mockResolvedValue([
+        { id: "tmr_1", label: "Reader 1", deviceType: "bbpos_wisepos_e", status: "online" },
+      ]);
+
+      const request = new Request("https://demo.divestreams.com/app/pos");
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
+
+      expect(result.stripeConnected).toBe(true);
+      expect(result.stripePublishableKey).toBe("pk_test_123");
+      expect(result.hasTerminalReaders).toBe(true);
+    });
+
+    it("returns hasTerminalReaders false when no readers registered", async () => {
+      (getPOSProducts as Mock).mockResolvedValue([]);
+      (getPOSEquipment as Mock).mockResolvedValue([]);
+      (getPOSTrips as Mock).mockResolvedValue([]);
+      (generateAgreementNumber as Mock).mockResolvedValue("RA-2024-0001");
+      (getStripeSettings as Mock).mockResolvedValue({
+        connected: true,
+        chargesEnabled: true,
+      });
+      (getStripePublishableKey as Mock).mockResolvedValue("pk_test_123");
+      (listTerminalReaders as Mock).mockResolvedValue([]);
+
+      const request = new Request("https://demo.divestreams.com/app/pos");
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
+
+      expect(result.stripeConnected).toBe(true);
+      expect(result.hasTerminalReaders).toBe(false);
+    });
   });
 
   describe("action", () => {
@@ -348,6 +405,124 @@ describe("tenant/pos route", () => {
       const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       expect(result).toEqual({ error: "Invalid intent" });
+    });
+
+    describe("create-payment-intent intent", () => {
+      it("creates payment intent when Stripe is connected", async () => {
+        (createPOSPaymentIntent as Mock).mockResolvedValue({
+          clientSecret: "pi_123_secret_abc",
+          paymentIntentId: "pi_123",
+        });
+
+        const formData = new FormData();
+        formData.append("intent", "create-payment-intent");
+        formData.append("amount", "5000");
+        formData.append("customerId", "cust-1");
+
+        const request = new Request("https://demo.divestreams.com/app/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(createPOSPaymentIntent).toHaveBeenCalledWith(
+          "org-uuid",
+          5000,
+          expect.objectContaining({
+            customerId: "cust-1",
+          })
+        );
+        expect(result).toEqual({
+          clientSecret: "pi_123_secret_abc",
+          paymentIntentId: "pi_123",
+        });
+      });
+
+      it("returns error when Stripe is not connected", async () => {
+        (createPOSPaymentIntent as Mock).mockResolvedValue(null);
+
+        const formData = new FormData();
+        formData.append("intent", "create-payment-intent");
+        formData.append("amount", "5000");
+
+        const request = new Request("https://demo.divestreams.com/app/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "Stripe not connected. Please connect Stripe in Settings → Integrations." });
+      });
+
+      it("returns error when amount is missing or invalid", async () => {
+        const formData = new FormData();
+        formData.append("intent", "create-payment-intent");
+
+        const request = new Request("https://demo.divestreams.com/app/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "Invalid payment amount" });
+      });
+
+      it("handles payment intent creation errors", async () => {
+        (createPOSPaymentIntent as Mock).mockRejectedValue(new Error("Card declined"));
+
+        const formData = new FormData();
+        formData.append("intent", "create-payment-intent");
+        formData.append("amount", "5000");
+
+        const request = new Request("https://demo.divestreams.com/app/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "Card declined" });
+      });
+    });
+
+    describe("connection-token intent", () => {
+      it("creates connection token when Stripe is connected", async () => {
+        (createTerminalConnectionToken as Mock).mockResolvedValue({
+          secret: "pst_test_secret_123",
+        });
+
+        const formData = new FormData();
+        formData.append("intent", "connection-token");
+
+        const request = new Request("https://demo.divestreams.com/app/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(createTerminalConnectionToken).toHaveBeenCalledWith("org-uuid");
+        expect(result).toEqual({ secret: "pst_test_secret_123" });
+      });
+
+      it("returns error when Stripe is not connected", async () => {
+        (createTerminalConnectionToken as Mock).mockResolvedValue(null);
+
+        const formData = new FormData();
+        formData.append("intent", "connection-token");
+
+        const request = new Request("https://demo.divestreams.com/app/pos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "Stripe not connected" });
+      });
     });
   });
 });
