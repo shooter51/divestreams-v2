@@ -581,7 +581,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/boats/${boatId}`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/boats") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/boats")).toBeTruthy();
   });
 
   test("6.13 Navigate to boat edit page", async ({ page }) => {
@@ -595,7 +595,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/boats/${boatId}/edit`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/boats") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/boats")).toBeTruthy();
   });
 
   test("6.14 Boat edit has save button", async ({ page }) => {
@@ -617,7 +617,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/boats/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/boats") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/boats")).toBeTruthy();
   });
 
   // Phase 7: Tours CRUD
@@ -746,7 +746,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/tours") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/tours")).toBeTruthy();
   });
 
   test("7.13 Navigate to tour edit page", async ({ page }) => {
@@ -759,7 +759,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/tours") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/tours")).toBeTruthy();
   });
 
   test("7.14 Tour edit save button exists", async ({ page }) => {
@@ -781,7 +781,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/tours/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/tours") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/tours")).toBeTruthy();
   });
 
   // Phase 8: Dive Sites
@@ -809,7 +809,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/dive-sites/new"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/dive-sites") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
 
   test("8.4 New dive site form has name field", async ({ page }) => {
@@ -872,7 +872,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/dive-sites/${diveSiteId}`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/dive-sites") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
 
   test("8.9 Navigate to dive site edit page", async ({ page }) => {
@@ -885,14 +885,14 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/dive-sites/${diveSiteId}/edit`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/dive-sites") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
 
   test("8.10 Dive sites handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/dive-sites/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/dive-sites") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
 
   // Phase 9: Customers CRUD
@@ -918,7 +918,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/customers/new"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/customers") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/customers")).toBeTruthy();
   });
 
   test("9.4 New customer form has first name field", async ({ page }) => {
@@ -1027,7 +1027,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/customers") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/customers")).toBeTruthy();
   });
 
   test("9.13 Navigate to customer edit page", async ({ page }) => {
@@ -1040,7 +1040,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/customers") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/customers")).toBeTruthy();
   });
 
   test("9.14 Customer detail shows customer info", async ({ page }) => {
@@ -1062,7 +1062,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/customers/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/customers") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/customers")).toBeTruthy();
   });
 
   // Phase 10: Equipment CRUD
@@ -1091,7 +1091,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/equipment/new"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/equipment") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
   test("10.4 New equipment form has name field", async ({ page }) => {
@@ -1194,7 +1194,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/equipment/${equipmentId}`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/equipment") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
   test("10.13 Navigate to equipment edit page", async ({ page }) => {
@@ -1207,7 +1207,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     }
     await page.goto(getTenantUrl(`/app/equipment/${equipmentId}/edit`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/equipment") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
   test("10.14 Equipment rentals tab exists", async ({ page }) => {
@@ -1223,7 +1223,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/equipment/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/equipment") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
   // Phase 13: Discounts
@@ -1391,7 +1391,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/trips/new"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/trips") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/trips")).toBeTruthy();
   });
 
   test("11.4 New trip form has date field", async ({ page }) => {
@@ -1485,7 +1485,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     }
     await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/trips") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/trips")).toBeTruthy();
   });
 
   test("11.12 Navigate to trip edit page", async ({ page }) => {
@@ -1498,7 +1498,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     }
     await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/trips") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/trips")).toBeTruthy();
   });
 
   test("11.13 Trip detail has manifest section", async ({ page }) => {
@@ -1535,7 +1535,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/trips/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/trips") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/trips")).toBeTruthy();
   });
 
   // Phase 12: Bookings CRUD (depends on trips, customers)
@@ -1561,7 +1561,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/bookings/new"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/bookings") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/bookings")).toBeTruthy();
   });
 
   test("12.4 New booking form has trip selector", async ({ page }) => {
@@ -1653,7 +1653,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     }
     await page.goto(getTenantUrl(`/app/bookings/${bookingId}`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/bookings") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/bookings")).toBeTruthy();
   });
 
   test("12.12 Navigate to booking edit page", async ({ page }) => {
@@ -1666,7 +1666,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     }
     await page.goto(getTenantUrl(`/app/bookings/${bookingId}/edit`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/bookings") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/bookings")).toBeTruthy();
   });
 
   test("12.13 Booking detail shows payment info", async ({ page }) => {
@@ -1703,7 +1703,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/bookings/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/bookings") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/bookings")).toBeTruthy();
   });
 });
 
@@ -2191,7 +2191,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/dashboard"));
     await page.waitForTimeout(1500);
     const dashboard = await page.getByRole("heading", { name: /dashboard|admin/i }).isVisible().catch(() => false);
-    expect(dashboard || page.url().includes("/dashboard") || page.url().includes("/login")).toBeTruthy();
+    expect(dashboard || page.url().includes("/dashboard")).toBeTruthy();
   });
 
   test("19.3 Admin tenants list loads", async ({ page }) => {
@@ -2199,7 +2199,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/tenants"));
     await page.waitForTimeout(1500);
     const tenantsList = await page.getByRole("heading", { name: /tenant/i }).isVisible().catch(() => false);
-    expect(tenantsList || page.url().includes("/tenants") || page.url().includes("/login")).toBeTruthy();
+    expect(tenantsList || page.url().includes("/tenants")).toBeTruthy();
   });
 
   test("19.4 Admin plans list loads", async ({ page }) => {
@@ -2207,14 +2207,14 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/plans"));
     await page.waitForTimeout(1500);
     const plansList = await page.getByRole("heading", { name: /plan/i }).isVisible().catch(() => false);
-    expect(plansList || page.url().includes("/plans") || page.url().includes("/login")).toBeTruthy();
+    expect(plansList || page.url().includes("/plans")).toBeTruthy();
   });
 
   test("19.5 Admin can view tenant details", async ({ page }) => {
     await loginToAdmin(page);
     await page.goto(getAdminUrl(`/tenants/${testData.tenant.subdomain}`));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/tenants") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/tenants")).toBeTruthy();
   });
 
   test("19.6 Admin tenants page has search", async ({ page }) => {
@@ -2222,7 +2222,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/tenants"));
     await page.waitForTimeout(1500);
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-    expect(searchInput || page.url().includes("/tenants") || page.url().includes("/login")).toBeTruthy();
+    expect(searchInput || page.url().includes("/tenants")).toBeTruthy();
   });
 
   test("19.7 Admin tenants page has status filter", async ({ page }) => {
@@ -2230,7 +2230,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/tenants"));
     await page.waitForTimeout(1500);
     const statusFilter = await page.locator("select").first().isVisible().catch(() => false);
-    expect(statusFilter || page.url().includes("/tenants") || page.url().includes("/login")).toBeTruthy();
+    expect(statusFilter || page.url().includes("/tenants")).toBeTruthy();
   });
 
   test("19.8 Admin plans page has create button", async ({ page }) => {
@@ -2238,14 +2238,14 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/plans"));
     await page.waitForTimeout(1500);
     const createButton = await page.getByRole("link", { name: /create|new|add/i }).isVisible().catch(() => false);
-    expect(createButton || page.url().includes("/plans") || page.url().includes("/login")).toBeTruthy();
+    expect(createButton || page.url().includes("/plans")).toBeTruthy();
   });
 
   test("19.9 Admin can navigate to new plan form", async ({ page }) => {
     await loginToAdmin(page);
     await page.goto(getAdminUrl("/plans/new"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/plans") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/plans")).toBeTruthy();
   });
 
   test("19.10 Admin plan detail page loads", async ({ page }) => {
@@ -2261,7 +2261,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
         await page.waitForTimeout(1500);
       }
     }
-    expect(page.url().includes("/plans") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/plans")).toBeTruthy();
   });
 
   test("19.11 Admin dashboard has stats cards", async ({ page }) => {
@@ -2269,7 +2269,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/dashboard"));
     await page.waitForTimeout(1500);
     const statsCards = await page.getByText(/total|active|tenant/i).first().isVisible().catch(() => false);
-    expect(statsCards || page.url().includes("/dashboard") || page.url().includes("/login")).toBeTruthy();
+    expect(statsCards || page.url().includes("/dashboard")).toBeTruthy();
   });
 
   test("19.12 Admin dashboard has recent activity", async ({ page }) => {
@@ -2277,7 +2277,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/dashboard"));
     await page.waitForTimeout(1500);
     const recentActivity = await page.getByText(/recent|activity|latest/i).first().isVisible().catch(() => false);
-    expect(recentActivity || page.url().includes("/dashboard") || page.url().includes("/login")).toBeTruthy();
+    expect(recentActivity || page.url().includes("/dashboard")).toBeTruthy();
   });
 
   test("19.13 Admin navigation has logout", async ({ page }) => {
@@ -2285,7 +2285,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/dashboard"));
     await page.waitForTimeout(1500);
     const logoutButton = await page.getByRole("button", { name: /logout|sign out/i }).isVisible().catch(() => false);
-    expect(logoutButton || page.url().includes("/dashboard") || page.url().includes("/login")).toBeTruthy();
+    expect(logoutButton || page.url().includes("/dashboard")).toBeTruthy();
   });
 
   test("19.14 Admin tenants table shows data", async ({ page }) => {
@@ -2294,14 +2294,14 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.waitForTimeout(1500);
     const hasTable = await page.locator("table").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no tenant/i).isVisible().catch(() => false);
-    expect(hasTable || emptyState || page.url().includes("/login")).toBeTruthy();
+    expect(hasTable || emptyState).toBeTruthy();
   });
 
   test("19.15 Admin handles invalid routes", async ({ page }) => {
     await loginToAdmin(page);
     await page.goto(getAdminUrl("/nonexistent-page-12345"));
     await page.waitForTimeout(1500);
-    expect(page.url().includes("/admin") || page.url().includes("/login")).toBeTruthy();
+    expect(page.url().includes("/admin")).toBeTruthy();
   });
 });
 
