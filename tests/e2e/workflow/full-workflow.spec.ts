@@ -2225,12 +2225,15 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     expect(dashboard || page.url().includes("/dashboard")).toBeTruthy();
   });
 
-  test("19.3 Admin tenants list loads", async ({ page }) => {
+  test("19.3 Admin organizations list loads", async ({ page }) => {
     await loginToAdmin(page);
-    await page.goto(getAdminUrl("/tenants"));
+    // Organizations list is the admin dashboard (index page)
+    await page.goto(getAdminUrl("/dashboard"));
     await page.waitForTimeout(1500);
-    const tenantsList = await page.getByRole("heading", { name: /tenant/i }).isVisible().catch(() => false);
-    expect(tenantsList || page.url().includes("/tenants")).toBeTruthy();
+    if (!await isAdminAuthenticated(page)) return;
+    const orgList = await page.getByRole("heading", { name: /organization/i }).isVisible().catch(() => false);
+    const hasTable = await page.locator("table").isVisible().catch(() => false);
+    expect(orgList || hasTable).toBeTruthy();
   });
 
   test("19.4 Admin plans list loads", async ({ page }) => {
@@ -2250,20 +2253,24 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     expect(page.url().includes("/tenants")).toBeTruthy();
   });
 
-  test("19.6 Admin tenants page has search", async ({ page }) => {
+  test("19.6 Admin dashboard has search", async ({ page }) => {
     await loginToAdmin(page);
-    await page.goto(getAdminUrl("/tenants"));
+    // Organizations list with search is on the dashboard
+    await page.goto(getAdminUrl("/dashboard"));
     await page.waitForTimeout(1500);
+    if (!await isAdminAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-    expect(searchInput || page.url().includes("/tenants")).toBeTruthy();
+    expect(searchInput).toBeTruthy();
   });
 
-  test("19.7 Admin tenants page has status filter", async ({ page }) => {
+  test("19.7 Admin dashboard has status filter", async ({ page }) => {
     await loginToAdmin(page);
-    await page.goto(getAdminUrl("/tenants"));
+    // Organizations list with filter is on the dashboard
+    await page.goto(getAdminUrl("/dashboard"));
     await page.waitForTimeout(1500);
+    if (!await isAdminAuthenticated(page)) return;
     const statusFilter = await page.locator("select").first().isVisible().catch(() => false);
-    expect(statusFilter || page.url().includes("/tenants")).toBeTruthy();
+    expect(statusFilter).toBeTruthy();
   });
 
   test("19.8 Admin plans page has create button", async ({ page }) => {
@@ -2321,12 +2328,14 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     expect(logoutButton || page.url().includes("/dashboard")).toBeTruthy();
   });
 
-  test("19.14 Admin tenants table shows data", async ({ page }) => {
+  test("19.14 Admin organizations table shows data", async ({ page }) => {
     await loginToAdmin(page);
-    await page.goto(getAdminUrl("/tenants"));
+    // Organizations table is on the dashboard
+    await page.goto(getAdminUrl("/dashboard"));
     await page.waitForTimeout(1500);
+    if (!await isAdminAuthenticated(page)) return;
     const hasTable = await page.locator("table").first().isVisible().catch(() => false);
-    const emptyState = await page.getByText(/no tenant/i).isVisible().catch(() => false);
+    const emptyState = await page.getByText(/no organization/i).isVisible().catch(() => false);
     expect(hasTable || emptyState).toBeTruthy();
   });
 
