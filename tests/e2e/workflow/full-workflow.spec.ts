@@ -163,7 +163,10 @@ async function extractEntityUuid(page: Page, entityName: string, basePath: strin
   }
 }
 
-test.describe.serial("Full E2E Workflow", () => {
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK A: Foundation Tests (Health checks, signup, authentication)
+// ═══════════════════════════════════════════════════════════════════════════
+test.describe.serial("Block A: Foundation", () => {
   // ═══════════════════════════════════════════════════════════════
   // PHASE 1: Health Check & Marketing (5 tests)
   // ═══════════════════════════════════════════════════════════════
@@ -336,7 +339,12 @@ test.describe.serial("Full E2E Workflow", () => {
     const hasError = await page.locator('[class*="bg-red"], [class*="text-red"]').isVisible().catch(() => false);
     expect(hasError || page.url().includes("/login")).toBeTruthy();
   });
+});
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK B: Route Verification Tests (Independent - no data dependencies)
+// ═══════════════════════════════════════════════════════════════════════════
+test.describe.serial("Block B: Route Verification", () => {
   // ═══════════════════════════════════════════════════════════════
   // PHASE 4: Tenant Routes Existence (10 tests)
   // ═══════════════════════════════════════════════════════════════
@@ -401,7 +409,12 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1000);
     expect(page.url().includes("/reports") || page.url().includes("/login")).toBeTruthy();
   });
+});
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK C: Admin Unauthenticated Tests (Independent - tests admin login page)
+// ═══════════════════════════════════════════════════════════════════════════
+test.describe.serial("Block C: Admin Unauthenticated", () => {
   // ═══════════════════════════════════════════════════════════════
   // PHASE 5: Admin Panel - Unauthenticated (8 tests)
   // ═══════════════════════════════════════════════════════════════
@@ -455,7 +468,12 @@ test.describe.serial("Full E2E Workflow", () => {
     const hasError = await page.locator('[class*="bg-red"], [class*="text-red"]').isVisible().catch(() => false);
     expect(hasError || page.url().includes("/login")).toBeTruthy();
   });
+});
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK D: Independent CRUD Operations (Each phase can fail independently)
+// ═══════════════════════════════════════════════════════════════════════════
+test.describe.serial("Block D: Independent CRUD Operations", () => {
   // ═══════════════════════════════════════════════════════════════
   // PHASE 6: Boats CRUD - Create, Test, Delete (15 tests)
   // ═══════════════════════════════════════════════════════════════
@@ -1415,7 +1433,12 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     expect(page.url().includes("/equipment") || page.url().includes("/login")).toBeTruthy();
   });
+});
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK E: Dependent CRUD Operations (Trips/Bookings - need Boats/Tours first)
+// ═══════════════════════════════════════════════════════════════════════════
+test.describe.serial("Block E: Dependent CRUD Operations", () => {
   // ═══════════════════════════════════════════════════════════════
   // PHASE 11: Trips CRUD (15 tests) - Depends on Tours/Boats
   // ═══════════════════════════════════════════════════════════════
@@ -1846,7 +1869,12 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.waitForTimeout(1500);
     expect(page.url().includes("/bookings") || page.url().includes("/login")).toBeTruthy();
   });
+});
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK F: Feature Tests (Discounts, POS, Reports, Settings, Calendar, Embed)
+// ═══════════════════════════════════════════════════════════════════════════
+test.describe.serial("Block F: Feature Tests", () => {
   // ═══════════════════════════════════════════════════════════════
   // PHASE 13: Discounts (10 tests)
   // ═══════════════════════════════════════════════════════════════
@@ -2538,7 +2566,12 @@ test.describe.serial("Full E2E Workflow", () => {
     const isVisible = await page.locator("body").isVisible();
     expect(isVisible).toBeTruthy();
   });
+});
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK G: Admin Authenticated Operations (Admin panel with login)
+// ═══════════════════════════════════════════════════════════════════════════
+test.describe.serial("Block G: Admin Authenticated", () => {
   // ═══════════════════════════════════════════════════════════════
   // PHASE 19: Admin Authenticated Operations (15 tests)
   // ═══════════════════════════════════════════════════════════════
@@ -2739,7 +2772,12 @@ test.describe.serial("Full E2E Workflow", () => {
     }
     expect(page.url().includes("/plans") || page.url().includes("/login")).toBeTruthy();
   });
+});
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK H: Dashboard Coverage Tests (Additional route coverage)
+// ═══════════════════════════════════════════════════════════════════════════
+test.describe.serial("Block H: Dashboard Coverage", () => {
   // ═══════════════════════════════════════════════════════════════
   // PHASE 20: Additional Route Coverage (18 tests)
   // ═══════════════════════════════════════════════════════════════
