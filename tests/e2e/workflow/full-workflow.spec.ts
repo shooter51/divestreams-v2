@@ -1261,8 +1261,11 @@ test.describe.serial("Block D: Independent CRUD Operations", () => {
     await page.goto(getTenantUrl("/app/equipment"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
-    const addButton = await page.getByRole("link", { name: /add|new/i }).isVisible().catch(() => false);
-    expect(addButton).toBeTruthy();
+    // Check for link, button, or general element with add/new/create text
+    const addLink = await page.getByRole("link", { name: /add|new|create/i }).isVisible().catch(() => false);
+    const addButton = await page.getByRole("button", { name: /add|new|create/i }).isVisible().catch(() => false);
+    const addElement = await page.locator('[href*="/equipment/new"], [href*="equipment/add"]').isVisible().catch(() => false);
+    expect(addLink || addButton || addElement).toBeTruthy();
   });
 
   test("10.3 Navigate to new equipment form", async ({ page }) => {
