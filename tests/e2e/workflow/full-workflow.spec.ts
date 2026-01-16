@@ -281,14 +281,21 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.locator("#password").fill(testData.user.password);
     await page.locator("#confirmPassword").fill(testData.user.password);
     await page.getByRole("button", { name: /create account/i }).click();
-    await page.waitForTimeout(3000);
-    const currentUrl = page.url();
-    const formError = await page.locator('[class*="bg-red"]').textContent().catch(() => null);
-    if (formError?.toLowerCase().includes("already")) {
-      console.log("User may already exist - continuing");
+    // Wait for redirect to /app or error to appear
+    try {
+      await page.waitForURL(/\/app/, { timeout: 10000 });
+      // Success - user created and redirected
       return;
+    } catch {
+      // Check for acceptable errors
+      const formError = await page.locator('[class*="bg-red"]').textContent().catch(() => null);
+      if (formError?.toLowerCase().includes("already") || formError?.toLowerCase().includes("exists")) {
+        console.log("User already exists from previous run - this is OK");
+        return;
+      }
+      // Any other error is a real failure
+      throw new Error(`Signup failed: ${formError || 'Unknown error - did not redirect to /app'}`);
     }
-    expect(currentUrl.includes("/app") || !!formError).toBeTruthy();
   });
 
   test("3.5 Login with tenant user @critical", async ({ page }) => {
@@ -296,10 +303,14 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.getByLabel(/email/i).fill(testData.user.email);
     await page.getByLabel(/password/i).fill(testData.user.password);
     await page.getByRole("button", { name: /sign in/i }).click();
-    await page.waitForTimeout(2000);
-    const currentUrl = page.url();
-    const formError = await page.locator('[class*="bg-red"]').textContent().catch(() => null);
-    expect(currentUrl.includes("/app") || !!formError).toBeTruthy();
+    // Wait for redirect to /app - login must succeed for remaining tests to work
+    try {
+      await page.waitForURL(/\/app/, { timeout: 10000 });
+      // Success - logged in and redirected
+    } catch {
+      const formError = await page.locator('[class*="bg-red"]').textContent().catch(() => null);
+      throw new Error(`Login failed: ${formError || 'Unknown error - did not redirect to /app'}`);
+    }
   });
 
   test("3.6 Login validates required email", async ({ page }) => {
