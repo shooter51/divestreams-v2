@@ -53,15 +53,11 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    // Use Better Auth to send password reset email
-    // Note: Better Auth may not have a built-in forgetPassword API method
-    // For now, we'll show success to prevent email enumeration
-    // TODO: Implement password reset with Better Auth's actual API
-    // await auth.api.forgetPassword({ body: { email }, headers: request.headers });
-    console.log("Password reset requested for:", email);
+    await auth.api.requestPasswordReset({
+      body: { email, redirectTo: "/auth/reset-password" },
+    });
   } catch (error) {
     // Don't reveal if email exists - always show success
-    console.error("Forgot password error:", error);
   }
 
   // Always return success to prevent email enumeration

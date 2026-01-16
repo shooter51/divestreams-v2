@@ -11,6 +11,7 @@ import {
   member,
   invitation,
 } from "../db/schema";
+import { sendEmail } from "../email";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -28,6 +29,18 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false, // Can enable later
+    sendResetPassword: async ({ user, url }) => {
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your DiveStreams password",
+        html: `
+          <p>Hi ${user.name || "there"},</p>
+          <p>Click the link below to reset your password:</p>
+          <p><a href="${url}">${url}</a></p>
+          <p>This link expires in 1 hour.</p>
+        `,
+      });
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days

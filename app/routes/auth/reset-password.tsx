@@ -70,16 +70,12 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    // Use Better Auth to reset password
-    // Note: Better Auth may not have a built-in resetPassword API method
-    // TODO: Implement password reset with Better Auth's actual API
-    // const result = await auth.api.resetPassword({ body: { token, newPassword: password }, headers: request.headers });
-    console.log("Password reset with token:", token.substring(0, 8) + "...");
+    await auth.api.resetPassword({
+      body: { token, newPassword: password },
+    });
 
-    // For now, return an error since the feature is not fully implemented
-    return { error: "Password reset is temporarily unavailable. Please contact support." };
+    return redirect("/auth/login?reset=success");
   } catch (error) {
-    console.error("Password reset error:", error);
     return { error: "Invalid or expired reset token" };
   }
 }
