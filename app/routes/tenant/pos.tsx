@@ -21,6 +21,13 @@ import {
 import { db } from "../../../lib/db/index";
 import { organizationSettings } from "../../../lib/db/schema";
 import { eq } from "drizzle-orm";
+import {
+  getStripeSettings,
+  getStripePublishableKey,
+  createPOSPaymentIntent,
+  createTerminalConnectionToken,
+  listTerminalReaders,
+} from "../../../lib/integrations/stripe.server";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { Cart } from "../../components/pos/Cart";
 import { ProductGrid } from "../../components/pos/ProductGrid";
@@ -70,6 +77,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // Use default - rentals table may not exist yet
   }
 
+  // Check Stripe integration status for card payments
+  const [stripeSettings, stripePublishableKey, terminalReaders] = await Promise.all([
+    getStripeSettings(organizationId),
+    getStripePublishableKey(organizationId),
+    listTerminalReaders(organizationId),
+  ]);
+
+  const stripeConnected = stripeSettings?.connected && stripeSettings?.chargesEnabled;
+  const hasTerminalReaders = terminalReaders && terminalReaders.length > 0;
+
   return {
     tenant,
     organizationId,
@@ -78,6 +95,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     trips,
     agreementNumber,
     taxRate,
+    // Stripe card payment info
+    stripeConnected: stripeConnected || false,
+    stripePublishableKey: stripeConnected ? stripePublishableKey : null,
+    hasTerminalReaders: hasTerminalReaders || false,
+    terminalReaders: terminalReaders || [],
   };
 }
 
@@ -99,6 +121,46 @@ export async function action({ request }: ActionFunctionArgs) {
     const query = formData.get("query") as string;
     const customers = await searchPOSCustomers(tables, organizationId, query);
     return { customers };
+  }
+
+  if (intent === "create-payment-intent") {
+    try {
+      const amount = parseInt(formData.get("amount") as string, 10);
+      const customerId = formData.get("customerId") as string | null;
+
+      if (!amount || amount <= 0) {
+        return { error: "Invalid payment amount" };
+      }
+
+      const result = await createPOSPaymentIntent(organizationId, amount, {
+        customerId: customerId || undefined,
+      });
+
+      if (!result) {
+        return { error: "Stripe not connected. Please connect Stripe in Settings → Integrations." };
+      }
+
+      return {
+        clientSecret: result.clientSecret,
+        paymentIntentId: result.paymentIntentId,
+      };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Failed to create payment" };
+    }
+  }
+
+  if (intent === "connection-token") {
+    try {
+      const result = await createTerminalConnectionToken(organizationId);
+
+      if (!result) {
+        return { error: "Stripe not connected" };
+      }
+
+      return { secret: result.secret };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Failed to create connection token" };
+    }
   }
 
   if (intent === "scan-barcode") {
@@ -146,7 +208,17 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function POSPage() {
-  const { tenant, products, equipment, trips, agreementNumber, taxRate } = useLoaderData<typeof loader>();
+  const {
+    tenant,
+    products,
+    equipment,
+    trips,
+    agreementNumber,
+    taxRate,
+    stripeConnected,
+    stripePublishableKey,
+    hasTerminalReaders,
+  } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   // State
@@ -429,6 +501,10 @@ export default function POSPage() {
         onClose={() => setCheckoutMethod(null)}
         total={total}
         onComplete={completeCheckout}
+        stripeConnected={stripeConnected}
+        stripePublishableKey={stripePublishableKey}
+        hasTerminalReaders={hasTerminalReaders}
+        customerId={customer?.id}
       />
 
       <CashModal

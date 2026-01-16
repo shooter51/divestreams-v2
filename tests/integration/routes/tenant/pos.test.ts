@@ -43,6 +43,15 @@ vi.mock("../../../../lib/db/pos.server", () => ({
   getProductByBarcode: vi.fn(),
 }));
 
+// Mock the Stripe integration functions
+vi.mock("../../../../lib/integrations/stripe.server", () => ({
+  getStripeSettings: vi.fn(),
+  getStripePublishableKey: vi.fn(),
+  createPOSPaymentIntent: vi.fn(),
+  createTerminalConnectionToken: vi.fn(),
+  listTerminalReaders: vi.fn(),
+}));
+
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import {
@@ -54,6 +63,13 @@ import {
   generateAgreementNumber,
   getProductByBarcode,
 } from "../../../../lib/db/pos.server";
+import {
+  getStripeSettings,
+  getStripePublishableKey,
+  createPOSPaymentIntent,
+  createTerminalConnectionToken,
+  listTerminalReaders,
+} from "../../../../lib/integrations/stripe.server";
 
 describe("tenant/pos route", () => {
   const mockOrgContext = {
@@ -78,6 +94,10 @@ describe("tenant/pos route", () => {
     vi.clearAllMocks();
     (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
     (getTenantDb as Mock).mockReturnValue(mockTenantDb);
+    // Default Stripe mocks - no Stripe connected
+    (getStripeSettings as Mock).mockResolvedValue(null);
+    (getStripePublishableKey as Mock).mockResolvedValue(null);
+    (listTerminalReaders as Mock).mockResolvedValue(null);
   });
 
   describe("loader", () => {
