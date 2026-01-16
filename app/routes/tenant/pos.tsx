@@ -7,7 +7,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
-import { requireTenant } from "../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import {
   getPOSProducts,
@@ -33,7 +33,14 @@ import type { CartItem } from "../../../lib/validation/pos";
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const tenant = {
+    id: ctx.org.id,
+    subdomain: ctx.org.slug,
+    schemaName: `tenant_${ctx.org.slug}`,
+    name: ctx.org.name,
+  };
+  const organizationId = ctx.org.id;
   const { schema: tables } = getTenantDb(tenant.schemaName);
 
   const [products, equipment, trips] = await Promise.all([
@@ -63,7 +70,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const tenant = {
+    id: ctx.org.id,
+    subdomain: ctx.org.slug,
+    schemaName: `tenant_${ctx.org.slug}`,
+    name: ctx.org.name,
+  };
+  const organizationId = ctx.org.id;
   const { schema: tables } = getTenantDb(tenant.schemaName);
 
   const formData = await request.formData();
@@ -96,9 +110,8 @@ export async function action({ request }: ActionFunctionArgs) {
     try {
       const data = JSON.parse(formData.get("data") as string);
 
-      // TODO: Get actual user ID from session once auth is fully implemented
-      // For now, use a placeholder - the transactions table allows null userId
-      const userId = data.userId || null;
+      // Get the actual user ID from the authenticated session
+      const userId = ctx.user.id;
 
       const result = await processPOSCheckout(tables, organizationId, {
         items: data.items,
