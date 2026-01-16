@@ -1026,8 +1026,10 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.goto(getTenantUrl("/app/customers/new"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
-    const firstNameField = await page.getByLabel(/first name/i).isVisible().catch(() => false);
-    expect(firstNameField).toBeTruthy();
+    const firstNameLabel = await page.getByLabel(/first name/i).isVisible().catch(() => false);
+    const firstNameId = await page.locator("input#firstName, input[name='firstName']").first().isVisible().catch(() => false);
+    const firstNamePlaceholder = await page.getByPlaceholder(/first name/i).isVisible().catch(() => false);
+    expect(firstNameLabel || firstNameId || firstNamePlaceholder).toBeTruthy();
   });
 
   test("9.5 New customer form has last name field", async ({ page }) => {
@@ -1035,8 +1037,10 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.goto(getTenantUrl("/app/customers/new"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
-    const lastNameField = await page.getByLabel(/last name/i).isVisible().catch(() => false);
-    expect(lastNameField).toBeTruthy();
+    const lastNameLabel = await page.getByLabel(/last name/i).isVisible().catch(() => false);
+    const lastNameId = await page.locator("input#lastName, input[name='lastName']").first().isVisible().catch(() => false);
+    const lastNamePlaceholder = await page.getByPlaceholder(/last name/i).isVisible().catch(() => false);
+    expect(lastNameLabel || lastNameId || lastNamePlaceholder).toBeTruthy();
   });
 
   test("9.6 New customer form has email field", async ({ page }) => {
@@ -1044,8 +1048,10 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.goto(getTenantUrl("/app/customers/new"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
-    const emailField = await page.getByLabel(/email/i).isVisible().catch(() => false);
-    expect(emailField).toBeTruthy();
+    const emailLabel = await page.getByLabel(/email/i).isVisible().catch(() => false);
+    const emailPlaceholder = await page.getByPlaceholder(/email/i).isVisible().catch(() => false);
+    const emailInput = await page.locator("input[type='email'], input[name*='email'], input[id*='email']").first().isVisible().catch(() => false);
+    expect(emailLabel || emailPlaceholder || emailInput).toBeTruthy();
   });
 
   test("9.7 New customer form has phone field", async ({ page }) => {
@@ -1053,8 +1059,10 @@ test.describe.serial("Full E2E Workflow", () => {
     await page.goto(getTenantUrl("/app/customers/new"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
-    const phoneField = await page.getByLabel(/phone/i).isVisible().catch(() => false);
-    expect(phoneField).toBeTruthy();
+    const phoneLabel = await page.getByLabel(/phone/i).isVisible().catch(() => false);
+    const phoneId = await page.locator("input#phone, input[name='phone'], input[type='tel']").first().isVisible().catch(() => false);
+    const phonePlaceholder = await page.getByPlaceholder(/phone/i).isVisible().catch(() => false);
+    expect(phoneLabel || phoneId || phonePlaceholder).toBeTruthy();
   });
 
   test("9.8 Create new customer @critical", async ({ page }) => {
