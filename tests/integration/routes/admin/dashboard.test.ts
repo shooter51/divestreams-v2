@@ -94,14 +94,9 @@ describe("admin/dashboard (index) route", () => {
   });
 
   describe("loader", () => {
-    // Note: This test is difficult to mock correctly because the loader performs
-    // multiple sequential queries. The test verifies that when orgs are returned,
-    // they are processed correctly.
-    it.skip("returns all organizations when no search query is provided", async () => {
-      // Skipped: Complex query mocking for sequential db calls
-      // The loader functionality is tested via integration/E2E tests
-      expect(true).toBe(true);
-    });
+    // Note: Complex query mocking for sequential db calls is difficult.
+    // The loader functionality is tested via E2E tests instead.
+    it.todo("returns all organizations when no search query is provided");
 
     it("extracts search query from URL params", async () => {
       // Just test that search param is extracted correctly
@@ -125,12 +120,8 @@ describe("admin/dashboard (index) route", () => {
       expect(response.organizations).toHaveLength(0);
     });
 
-    // Skip this test - the complex query mocking is unreliable
-    // The date formatting logic is tested by the first "returns all organizations" test
-    it.skip("formats dates as ISO date strings", async () => {
-      // Date formatting is already verified in the first test
-      expect(true).toBe(true);
-    });
+    // Date formatting logic is tested via E2E tests
+    it.todo("formats dates as ISO date strings");
 
     it("returns empty array when no organizations exist", async () => {
       const createMockQuery = (returnValue: unknown) => {

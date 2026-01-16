@@ -151,100 +151,28 @@ describe("stale-tenant-cleanup", () => {
   });
 
   describe("metadata parsing", () => {
-    it("should handle null metadata", () => {
-      // The parseMetadata function should handle null gracefully
-      // This is tested implicitly through the main function
-      expect(true).toBe(true);
-    });
-
-    it("should handle invalid JSON metadata", () => {
-      // The parseMetadata function should handle invalid JSON gracefully
-      // This is tested implicitly through the main function
-      expect(true).toBe(true);
-    });
+    it.todo("should handle null metadata");
+    it.todo("should handle invalid JSON metadata");
   });
 
   describe("email templates", () => {
-    it("should have correct first warning email structure", () => {
-      // Import and test the email template functions
-      // They should include:
-      // - Subject line mentioning the shop name
-      // - Body explaining 60 days inactivity
-      // - Warning about 90 day deletion
-      // - Reactivation link
-      expect(true).toBe(true);
-    });
-
-    it("should have correct second warning email structure", () => {
-      // Second warning should:
-      // - Have urgent subject line with "Final Notice"
-      // - Include days remaining until deletion
-      // - Explain what happens on archive
-      // - Suggest upgrading to premium
-      expect(true).toBe(true);
-    });
+    it.todo("should have correct first warning email structure");
+    it.todo("should have correct second warning email structure");
   });
 });
 
 describe("stale-tenant-cleanup integration patterns", () => {
-  it("should only process FREE tier organizations", () => {
-    // This test documents the behavior:
-    // - Premium orgs should never be cleaned up
-    // - Only free tier orgs are checked for inactivity
-    // - Null subscription plans default to free behavior
-    expect(true).toBe(true);
-  });
-
-  it("should track warnings in organization metadata", () => {
-    // Warnings are tracked via:
-    // - staleTenantWarnings.firstWarningSentAt
-    // - staleTenantWarnings.secondWarningSentAt
-    // This prevents sending duplicate warnings
-    expect(true).toBe(true);
-  });
-
-  it("should soft delete by marking metadata", () => {
-    // Soft delete adds to metadata:
-    // - softDeletedAt: timestamp
-    // - softDeleteReason: "inactivity"
-    // Organization is not actually removed from database
-    expect(true).toBe(true);
-  });
-
-  it("should use last session time for any org member", () => {
-    // Activity is based on:
-    // - Most recent session.createdAt
-    // - For any member of the organization
-    // - Not just the owner
-    expect(true).toBe(true);
-  });
+  it.todo("should only process FREE tier organizations");
+  it.todo("should track warnings in organization metadata");
+  it.todo("should soft delete by marking metadata");
+  it.todo("should use last session time for any org member");
 });
 
 describe("cleanupStaleTenants error handling", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should catch and record individual org errors", async () => {
-    // When processing fails for one org, it should continue to the next
-    // and record the error in the results
-    expect(true).toBe(true);
-  });
-
-  it("should catch fatal errors and return partial results", async () => {
-    // If the main query fails, should return error in results
-    expect(true).toBe(true);
-  });
-
-  it("should handle missing owner gracefully", async () => {
-    // If organization has no owner (edge case), skip without error
-    expect(true).toBe(true);
-  });
-
-  it("should handle empty member list gracefully", async () => {
-    // If org has no members at all, skip without error
-    expect(true).toBe(true);
-  });
+  it.todo("should catch and record individual org errors");
+  it.todo("should catch fatal errors and return partial results");
+  it.todo("should handle missing owner gracefully");
+  it.todo("should handle empty member list gracefully");
 });
 
 describe("scheduleStaleTenantCleanup", () => {
