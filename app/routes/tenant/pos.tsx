@@ -474,8 +474,8 @@ export default function POSPage() {
           setShowCustomerSearch(false);
         }}
         onCreateNew={() => {
-          // TODO: Open create customer modal
           setShowCustomerSearch(false);
+          window.location.href = "/app/customers/new";
         }}
         searchResults={customerSearchResults}
         onSearch={handleCustomerSearch}
