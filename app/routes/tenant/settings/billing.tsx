@@ -5,6 +5,12 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { member, bookings, subscriptionPlans } from "../../../../lib/db/schema";
 import { eq, sql, count, gte, and, asc } from "drizzle-orm";
+import {
+  createCheckoutSession,
+  cancelSubscription,
+  createBillingPortalSession,
+  createSetupSession,
+} from "../../../../lib/stripe";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
@@ -179,30 +185,74 @@ export async function action({ request }: ActionFunctionArgs) {
     const planId = formData.get("planId") as string;
     const billingPeriod = (formData.get("billingPeriod") as "monthly" | "yearly") || "monthly";
 
-    // Map planId to plan name (in case they differ)
+    // Map planId to plan name for Stripe
     const planName = planId as "starter" | "pro" | "enterprise";
 
-    // For now, return a message that Stripe integration is being updated
-    // TODO: Update Stripe helper functions to work with organization table
-    return { error: "Stripe integration is being updated. Please contact support to upgrade your plan." };
+    try {
+      const sessionUrl = await createCheckoutSession(
+        orgId,
+        planName,
+        billingPeriod,
+        `${baseUrl}/app/settings/billing?success=true`,
+        `${baseUrl}/app/settings/billing?canceled=true`
+      );
+
+      if (sessionUrl) {
+        return redirect(sessionUrl);
+      }
+      return { error: "Failed to create checkout session" };
+    } catch (error) {
+      console.error("Checkout session error:", error);
+      return { error: error instanceof Error ? error.message : "Failed to create checkout session" };
+    }
   }
 
   if (intent === "cancel") {
-    // For now, return a message that Stripe integration is being updated
-    // TODO: Update Stripe helper functions to work with organization table
-    return { error: "Stripe integration is being updated. Please contact support to cancel your subscription." };
+    try {
+      const success = await cancelSubscription(orgId);
+      if (success) {
+        return { cancelled: true, message: "Subscription cancelled successfully" };
+      }
+      return { error: "Failed to cancel subscription" };
+    } catch (error) {
+      console.error("Cancel subscription error:", error);
+      return { error: error instanceof Error ? error.message : "Failed to cancel subscription" };
+    }
   }
 
   if (intent === "update-payment") {
-    // For now, return a message that Stripe integration is being updated
-    // TODO: Update Stripe helper functions to work with organization table
-    return { error: "Stripe integration is being updated. Please contact support to update your payment method." };
+    try {
+      const sessionUrl = await createBillingPortalSession(
+        orgId,
+        `${baseUrl}/app/settings/billing`
+      );
+
+      if (sessionUrl) {
+        return redirect(sessionUrl);
+      }
+      return { error: "Failed to open billing portal. Please ensure you have an active subscription." };
+    } catch (error) {
+      console.error("Billing portal error:", error);
+      return { error: error instanceof Error ? error.message : "Failed to open billing portal" };
+    }
   }
 
   if (intent === "add-payment") {
-    // For now, return a message that Stripe integration is being updated
-    // TODO: Update Stripe helper functions to work with organization table
-    return { error: "Stripe integration is being updated. Please contact support to add a payment method." };
+    try {
+      const sessionUrl = await createSetupSession(
+        orgId,
+        `${baseUrl}/app/settings/billing?payment_added=true`,
+        `${baseUrl}/app/settings/billing?canceled=true`
+      );
+
+      if (sessionUrl) {
+        return redirect(sessionUrl);
+      }
+      return { error: "Failed to create setup session" };
+    } catch (error) {
+      console.error("Setup session error:", error);
+      return { error: error instanceof Error ? error.message : "Failed to create setup session" };
+    }
   }
 
   return null;

@@ -2,7 +2,8 @@
  * POS Checkout Modals
  */
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useFetcher } from "react-router";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -11,43 +12,437 @@ interface CheckoutModalProps {
   onComplete: (payments: Array<{ method: "card" | "cash"; amount: number; stripePaymentIntentId?: string }>) => void;
 }
 
-// Card Payment Modal (Placeholder - TODO: Stripe Integration)
-export function CardModal({ isOpen, onClose, total, onComplete }: CheckoutModalProps) {
+interface CardModalProps extends CheckoutModalProps {
+  stripeConnected: boolean;
+  stripePublishableKey: string | null;
+  hasTerminalReaders: boolean;
+  customerId?: string;
+}
+
+type CardModalStep = "method-select" | "manual-entry" | "terminal" | "processing" | "success" | "error";
+
+// Stripe types (loaded dynamically)
+type StripeType = {
+  elements: (options?: object) => StripeElementsType;
+  confirmCardPayment: (clientSecret: string, data: object) => Promise<{ error?: { message: string }; paymentIntent?: { id: string; status: string } }>;
+};
+type StripeElementsType = {
+  create: (type: string, options?: object) => StripeCardElementType;
+};
+type StripeCardElementType = {
+  mount: (selector: string | HTMLElement) => void;
+  unmount: () => void;
+  on: (event: string, handler: (e: { complete: boolean; error?: { message: string } }) => void) => void;
+};
+
+// Card Payment Modal with Stripe Integration
+export function CardModal({
+  isOpen,
+  onClose,
+  total,
+  onComplete,
+  stripeConnected,
+  stripePublishableKey,
+  hasTerminalReaders,
+  customerId,
+}: CardModalProps) {
+  const fetcher = useFetcher();
+  const [step, setStep] = useState<CardModalStep>("method-select");
+  const [error, setError] = useState<string | null>(null);
+  const [stripe, setStripe] = useState<StripeType | null>(null);
+  const [cardElement, setCardElement] = useState<StripeCardElementType | null>(null);
+  const [cardComplete, setCardComplete] = useState(false);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+
+  // Load Stripe.js when modal opens with manual entry
+  useEffect(() => {
+    if (!isOpen || !stripePublishableKey || step !== "manual-entry") return;
+
+    // Check if Stripe is already loaded
+    if ((window as unknown as { Stripe?: (key: string) => StripeType }).Stripe) {
+      const stripeInstance = (window as unknown as { Stripe: (key: string) => StripeType }).Stripe(stripePublishableKey);
+      setStripe(stripeInstance);
+      return;
+    }
+
+    // Load Stripe.js
+    const script = document.createElement("script");
+    script.src = "https://js.stripe.com/v3/";
+    script.async = true;
+    script.onload = () => {
+      if ((window as unknown as { Stripe?: (key: string) => StripeType }).Stripe) {
+        const stripeInstance = (window as unknown as { Stripe: (key: string) => StripeType }).Stripe(stripePublishableKey);
+        setStripe(stripeInstance);
+      }
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup script if modal closes
+    };
+  }, [isOpen, stripePublishableKey, step]);
+
+  // Mount card element when Stripe is loaded
+  useEffect(() => {
+    if (!stripe || step !== "manual-entry") return;
+
+    const elements = stripe.elements();
+    const card = elements.create("card", {
+      style: {
+        base: {
+          fontSize: "16px",
+          color: "#424770",
+          "::placeholder": { color: "#aab7c4" },
+        },
+        invalid: { color: "#9e2146" },
+      },
+    });
+
+    // Wait for the DOM element to be available
+    const mountCard = () => {
+      const cardContainer = document.getElementById("stripe-card-element");
+      if (cardContainer) {
+        card.mount("#stripe-card-element");
+        card.on("change", (e) => {
+          setCardComplete(e.complete);
+          if (e.error) {
+            setError(e.error.message);
+          } else {
+            setError(null);
+          }
+        });
+        setCardElement(card);
+      } else {
+        // Retry after a short delay
+        setTimeout(mountCard, 100);
+      }
+    };
+
+    mountCard();
+
+    return () => {
+      card.unmount();
+      setCardElement(null);
+    };
+  }, [stripe, step]);
+
+  // Handle fetcher response for payment intent creation
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data) {
+      const data = fetcher.data as { clientSecret?: string; paymentIntentId?: string; error?: string };
+
+      if (data.error) {
+        setError(data.error);
+        setStep("error");
+      } else if (data.clientSecret && stripe && cardElement) {
+        // Confirm the payment
+        confirmPayment(data.clientSecret, data.paymentIntentId!);
+      }
+    }
+  }, [fetcher.state, fetcher.data, stripe, cardElement]);
+
+  const confirmPayment = async (clientSecret: string, intentId: string) => {
+    if (!stripe || !cardElement) return;
+
+    setStep("processing");
+
+    const result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: cardElement },
+    });
+
+    if (result.error) {
+      setError(result.error.message || "Payment failed");
+      setStep("error");
+    } else if (result.paymentIntent?.status === "succeeded") {
+      setPaymentIntentId(intentId);
+      setStep("success");
+      // Auto-complete after showing success
+      setTimeout(() => {
+        onComplete([{ method: "card", amount: total, stripePaymentIntentId: intentId }]);
+        handleClose();
+      }, 1500);
+    }
+  };
+
+  const handleManualEntry = () => {
+    setStep("manual-entry");
+  };
+
+  const handleTerminal = () => {
+    setStep("terminal");
+    // Terminal implementation would go here
+    // For now, show a placeholder
+  };
+
+  const handlePaymentSubmit = () => {
+    if (!cardComplete) {
+      setError("Please enter complete card details");
+      return;
+    }
+
+    setError(null);
+    setStep("processing");
+
+    // Create payment intent via action
+    const formData = new FormData();
+    formData.append("intent", "create-payment-intent");
+    formData.append("amount", Math.round(total * 100).toString()); // Convert to cents
+    if (customerId) {
+      formData.append("customerId", customerId);
+    }
+    fetcher.submit(formData, { method: "post" });
+  };
+
+  const handleClose = useCallback(() => {
+    setStep("method-select");
+    setError(null);
+    setCardComplete(false);
+    setPaymentIntentId(null);
+    onClose();
+  }, [onClose]);
+
+  const handleRetry = () => {
+    setError(null);
+    setStep("manual-entry");
+  };
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Card Payment</h2>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Total Due</label>
-            <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
-          </div>
-
-          <div className="p-6 bg-gray-50 rounded-lg text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-              </svg>
+  // Not connected state
+  if (!stripeConnected) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Card Payment</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Total Due</label>
+              <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
             </div>
-            <p className="text-gray-600 mb-2">Card payment integration coming soon</p>
-            <p className="text-sm text-gray-500">Use Cash or Split payment for now</p>
+            <div className="p-6 bg-amber-50 border border-amber-200 rounded-lg text-center">
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <p className="text-amber-800 font-medium mb-2">Stripe Not Connected</p>
+              <p className="text-sm text-amber-700">Connect Stripe in Settings → Integrations to accept card payments</p>
+            </div>
           </div>
-        </div>
-
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
-          >
-            Cancel
-          </button>
+          <div className="flex gap-3 mt-6">
+            <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // Method selection
+  if (step === "method-select") {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Card Payment</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Total Due</label>
+              <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={handleManualEntry}
+                className="w-full p-4 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium">Enter Card Manually</p>
+                    <p className="text-sm text-gray-500">Type card number, expiry, and CVC</p>
+                  </div>
+                </div>
+              </button>
+              <button
+                onClick={handleTerminal}
+                disabled={!hasTerminalReaders}
+                className={`w-full p-4 border-2 rounded-lg text-left transition-colors ${
+                  hasTerminalReaders
+                    ? "border-green-200 hover:border-green-400 hover:bg-green-50"
+                    : "border-gray-200 bg-gray-50 cursor-not-allowed"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    hasTerminalReaders ? "bg-green-100" : "bg-gray-200"
+                  }`}>
+                    <svg className={`w-5 h-5 ${hasTerminalReaders ? "text-green-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className={`font-medium ${!hasTerminalReaders && "text-gray-400"}`}>Use Card Reader</p>
+                    <p className={`text-sm ${hasTerminalReaders ? "text-gray-500" : "text-gray-400"}`}>
+                      {hasTerminalReaders ? "Tap, insert, or swipe card" : "No reader connected"}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Manual card entry
+  if (step === "manual-entry") {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Enter Card Details</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Total Due</label>
+              <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Card Information</label>
+              <div
+                id="stripe-card-element"
+                className="p-3 border rounded-lg bg-white min-h-[44px]"
+              />
+              {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => setStep("method-select")}
+              className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+            >
+              Back
+            </button>
+            <button
+              onClick={handlePaymentSubmit}
+              disabled={!cardComplete || fetcher.state !== "idle"}
+              className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+            >
+              Pay ${total.toFixed(2)}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Terminal placeholder
+  if (step === "terminal") {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Card Reader</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Total Due</label>
+              <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
+            </div>
+            <div className="p-8 bg-gray-50 rounded-lg text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                </svg>
+              </div>
+              <p className="text-lg font-medium text-gray-700">Present Card on Reader</p>
+              <p className="text-sm text-gray-500 mt-1">Tap, insert, or swipe the customer's card</p>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => setStep("method-select")}
+              className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Processing state
+  if (step === "processing") {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <div className="text-center py-8">
+            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-lg font-medium">Processing Payment...</p>
+            <p className="text-sm text-gray-500 mt-1">Please wait</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Success state
+  if (step === "success") {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-lg font-medium text-green-600">Payment Approved</p>
+            <p className="text-3xl font-bold mt-2">${total.toFixed(2)}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (step === "error") {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <div className="text-center py-6">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <p className="text-lg font-medium text-red-600">Payment Failed</p>
+            <p className="text-sm text-gray-600 mt-2">{error || "An error occurred"}</p>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+            <button
+              onClick={handleRetry}
+              className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 // Cash Payment Modal

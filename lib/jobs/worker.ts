@@ -19,6 +19,10 @@ import {
   welcomeEmail,
 } from "../email";
 import { cleanupStaleTenants } from "./stale-tenant-cleanup";
+import { db } from "../db";
+import { organization } from "../db/schema/auth";
+import { bookings, trips, tours, customers } from "../db/schema";
+import { eq, and, sql } from "drizzle-orm";
 
 // Redis connection
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
@@ -152,22 +156,81 @@ async function processBookingJob(job: { name: string; data: unknown }) {
       console.log(`[send-reminders] Processing booking reminders for ${tomorrowDateStr}`);
       console.log(`[send-reminders] Date range: ${tomorrow.toISOString()} to ${tomorrowEnd.toISOString()}`);
 
-      // TODO: Full multi-tenant implementation
-      // 1. Query public.tenants for all active tenants
-      // 2. For each tenant, set search_path to tenant schema
-      // 3. Query bookings JOIN trips WHERE trip_date = tomorrow AND booking.status = 'confirmed'
-      // 4. For each booking, queue a "booking-reminder" email job:
-      //    await emailQueue.add("booking-reminder", {
-      //      to: booking.customer_email,
-      //      customerName: booking.customer_name,
-      //      tripName: trip.name,
-      //      tripDate: trip.date,
-      //      tripTime: trip.departure_time,
-      //      bookingNumber: booking.booking_number,
-      //      shopName: tenant.business_name,
-      //    });
+      // Multi-tenant implementation: Query all active organizations and their bookings for tomorrow
+      let totalRemindersQueued = 0;
+      let organizationsProcessed = 0;
 
-      console.log(`[send-reminders] Reminder job scaffold complete. Full multi-tenant implementation pending.`);
+      try {
+        // 1. Query all organizations
+        const organizations = await db
+          .select({
+            id: organization.id,
+            name: organization.name,
+            slug: organization.slug,
+          })
+          .from(organization);
+
+        console.log(`[send-reminders] Found ${organizations.length} organizations to process`);
+
+        // 2. For each organization, query confirmed bookings with trips scheduled for tomorrow
+        for (const org of organizations) {
+          try {
+            // Query bookings with trips scheduled for tomorrow where status = 'confirmed'
+            const tomorrowBookings = await db
+              .select({
+                bookingId: bookings.id,
+                bookingNumber: bookings.bookingNumber,
+                customerEmail: customers.email,
+                customerFirstName: customers.firstName,
+                customerLastName: customers.lastName,
+                tripDate: trips.date,
+                tripStartTime: trips.startTime,
+                tourName: tours.name,
+              })
+              .from(bookings)
+              .innerJoin(trips, eq(bookings.tripId, trips.id))
+              .innerJoin(tours, eq(trips.tourId, tours.id))
+              .innerJoin(customers, eq(bookings.customerId, customers.id))
+              .where(
+                and(
+                  eq(bookings.organizationId, org.id),
+                  eq(bookings.status, "confirmed"),
+                  eq(trips.date, tomorrowDateStr)
+                )
+              );
+
+            console.log(`[send-reminders] Organization "${org.name}" (${org.slug}): found ${tomorrowBookings.length} bookings for tomorrow`);
+
+            // 3. For each booking, queue a "booking-reminder" email job
+            for (const booking of tomorrowBookings) {
+              const customerName = `${booking.customerFirstName} ${booking.customerLastName}`.trim();
+
+              await emailQueue.add("booking-reminder", {
+                to: booking.customerEmail,
+                customerName: customerName,
+                tripName: booking.tourName,
+                tripDate: booking.tripDate,
+                tripTime: booking.tripStartTime,
+                bookingNumber: booking.bookingNumber,
+                shopName: org.name,
+              });
+
+              totalRemindersQueued++;
+              console.log(`[send-reminders] Queued reminder for booking ${booking.bookingNumber} to ${booking.customerEmail}`);
+            }
+
+            organizationsProcessed++;
+          } catch (orgError) {
+            console.error(`[send-reminders] Error processing organization ${org.slug}:`, orgError);
+            // Continue to next organization even if one fails
+          }
+        }
+
+        console.log(`[send-reminders] Complete: Processed ${organizationsProcessed} organizations, queued ${totalRemindersQueued} reminder emails`);
+      } catch (error) {
+        console.error(`[send-reminders] Fatal error querying organizations:`, error);
+        throw error;
+      }
       break;
     }
     case "mark-no-shows":

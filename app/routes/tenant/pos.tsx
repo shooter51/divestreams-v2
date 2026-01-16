@@ -7,7 +7,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
-import { requireTenant } from "../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import {
   getPOSProducts,
@@ -18,6 +18,16 @@ import {
   generateAgreementNumber,
   getProductByBarcode,
 } from "../../../lib/db/pos.server";
+import { db } from "../../../lib/db/index";
+import { organizationSettings } from "../../../lib/db/schema";
+import { eq } from "drizzle-orm";
+import {
+  getStripeSettings,
+  getStripePublishableKey,
+  createPOSPaymentIntent,
+  createTerminalConnectionToken,
+  listTerminalReaders,
+} from "../../../lib/integrations/stripe.server";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { Cart } from "../../components/pos/Cart";
 import { ProductGrid } from "../../components/pos/ProductGrid";
@@ -33,7 +43,14 @@ import type { CartItem } from "../../../lib/validation/pos";
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const tenant = {
+    id: ctx.org.id,
+    subdomain: ctx.org.slug,
+    schemaName: `tenant_${ctx.org.slug}`,
+    name: ctx.org.name,
+  };
+  const organizationId = ctx.org.id;
   const { schema: tables } = getTenantDb(tenant.schemaName);
 
   const [products, equipment, trips] = await Promise.all([
@@ -41,6 +58,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getPOSEquipment(tables, organizationId),
     getPOSTrips(tables, organizationId, "UTC"), // Default timezone - could be stored in organization settings
   ]);
+
+  // Get organization settings for tax rate
+  const [settings] = await db
+    .select()
+    .from(organizationSettings)
+    .where(eq(organizationSettings.organizationId, organizationId))
+    .limit(1);
+
+  const taxRate = settings?.taxRate ? parseFloat(settings.taxRate) : 0;
 
   // Generate agreement number - handle case where rentals table may not exist yet
   let agreementNumber = `RA-${new Date().getFullYear()}-0001`;
@@ -51,6 +77,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // Use default - rentals table may not exist yet
   }
 
+  // Check Stripe integration status for card payments
+  const [stripeSettings, stripePublishableKey, terminalReaders] = await Promise.all([
+    getStripeSettings(organizationId),
+    getStripePublishableKey(organizationId),
+    listTerminalReaders(organizationId),
+  ]);
+
+  const stripeConnected = stripeSettings?.connected && stripeSettings?.chargesEnabled;
+  const hasTerminalReaders = terminalReaders && terminalReaders.length > 0;
+
   return {
     tenant,
     organizationId,
@@ -58,12 +94,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
     equipment,
     trips,
     agreementNumber,
-    taxRate: 0, // TODO: Get from tenant settings
+    taxRate,
+    // Stripe card payment info
+    stripeConnected: stripeConnected || false,
+    stripePublishableKey: stripeConnected ? stripePublishableKey : null,
+    hasTerminalReaders: hasTerminalReaders || false,
+    terminalReaders: terminalReaders || [],
   };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const tenant = {
+    id: ctx.org.id,
+    subdomain: ctx.org.slug,
+    schemaName: `tenant_${ctx.org.slug}`,
+    name: ctx.org.name,
+  };
+  const organizationId = ctx.org.id;
   const { schema: tables } = getTenantDb(tenant.schemaName);
 
   const formData = await request.formData();
@@ -73,6 +121,46 @@ export async function action({ request }: ActionFunctionArgs) {
     const query = formData.get("query") as string;
     const customers = await searchPOSCustomers(tables, organizationId, query);
     return { customers };
+  }
+
+  if (intent === "create-payment-intent") {
+    try {
+      const amount = parseInt(formData.get("amount") as string, 10);
+      const customerId = formData.get("customerId") as string | null;
+
+      if (!amount || amount <= 0) {
+        return { error: "Invalid payment amount" };
+      }
+
+      const result = await createPOSPaymentIntent(organizationId, amount, {
+        customerId: customerId || undefined,
+      });
+
+      if (!result) {
+        return { error: "Stripe not connected. Please connect Stripe in Settings → Integrations." };
+      }
+
+      return {
+        clientSecret: result.clientSecret,
+        paymentIntentId: result.paymentIntentId,
+      };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Failed to create payment" };
+    }
+  }
+
+  if (intent === "connection-token") {
+    try {
+      const result = await createTerminalConnectionToken(organizationId);
+
+      if (!result) {
+        return { error: "Stripe not connected" };
+      }
+
+      return { secret: result.secret };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Failed to create connection token" };
+    }
   }
 
   if (intent === "scan-barcode") {
@@ -96,9 +184,8 @@ export async function action({ request }: ActionFunctionArgs) {
     try {
       const data = JSON.parse(formData.get("data") as string);
 
-      // TODO: Get actual user ID from session once auth is fully implemented
-      // For now, use a placeholder - the transactions table allows null userId
-      const userId = data.userId || null;
+      // Get the actual user ID from the authenticated session
+      const userId = ctx.user.id;
 
       const result = await processPOSCheckout(tables, organizationId, {
         items: data.items,
@@ -121,7 +208,17 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function POSPage() {
-  const { tenant, products, equipment, trips, agreementNumber, taxRate } = useLoaderData<typeof loader>();
+  const {
+    tenant,
+    products,
+    equipment,
+    trips,
+    agreementNumber,
+    taxRate,
+    stripeConnected,
+    stripePublishableKey,
+    hasTerminalReaders,
+  } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   // State
@@ -404,6 +501,10 @@ export default function POSPage() {
         onClose={() => setCheckoutMethod(null)}
         total={total}
         onComplete={completeCheckout}
+        stripeConnected={stripeConnected}
+        stripePublishableKey={stripePublishableKey}
+        hasTerminalReaders={hasTerminalReaders}
+        customerId={customer?.id}
       />
 
       <CashModal
@@ -449,8 +550,8 @@ export default function POSPage() {
           setShowCustomerSearch(false);
         }}
         onCreateNew={() => {
-          // TODO: Open create customer modal
           setShowCustomerSearch(false);
+          window.location.href = "/app/customers/new";
         }}
         searchResults={customerSearchResults}
         onSearch={handleCustomerSearch}

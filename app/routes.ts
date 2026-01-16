@@ -123,6 +123,5 @@ export default [
     route("tenants/:id", "routes/admin/tenants.$id.tsx"),
     route("plans", "routes/admin/plans.tsx"),
     route("plans/:id", "routes/admin/plans.$id.tsx"),
-    // TODO: Add migrations route when file is created
   ]),
 ] satisfies RouteConfig;

@@ -56,6 +56,11 @@ vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
+// Mock the email module
+vi.mock("../../../../../lib/email", () => ({
+  sendEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
 
@@ -471,6 +476,21 @@ describe("tenant/settings/team route", () => {
 
     describe("resend-invite intent", () => {
       it("resends invitation", async () => {
+        // Mock the select query to find the existing invitation
+        const mockSelectQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockResolvedValue([{
+            id: "invite-1",
+            email: "pending@example.com",
+            role: "member",
+            organizationId: "org-uuid",
+            status: "pending",
+          }]),
+        };
+
+        (db.select as Mock).mockReturnValue(mockSelectQuery);
+
         const formData = new FormData();
         formData.append("intent", "resend-invite");
         formData.append("inviteId", "invite-1");
@@ -486,6 +506,30 @@ describe("tenant/settings/team route", () => {
           success: true,
           message: "Invitation resent",
         });
+      });
+
+      it("returns error for non-existent invitation", async () => {
+        // Mock the select query to return empty (invitation not found)
+        const mockSelectQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockResolvedValue([]),
+        };
+
+        (db.select as Mock).mockReturnValue(mockSelectQuery);
+
+        const formData = new FormData();
+        formData.append("intent", "resend-invite");
+        formData.append("inviteId", "non-existent-invite");
+
+        const request = new Request("https://demo.divestreams.com/app/settings/team", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "Invitation not found" });
       });
     });
 
