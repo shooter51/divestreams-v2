@@ -122,7 +122,14 @@ async function loginToTenant(page: Page) {
   await page.getByLabel(/email/i).fill(testData.user.email);
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForTimeout(2000);
+  // Wait for login completion: either redirect to /app or stay on login with error
+  // Using URL change detection instead of fixed timeout for reliability
+  try {
+    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+  } catch {
+    // Login may have failed or been slow - continue anyway, isAuthenticated will catch it
+    await page.waitForTimeout(2000);
+  }
 }
 
 // Helper to check if authenticated
