@@ -6,6 +6,7 @@ import { db } from "../../../../lib/db";
 import { member, user, invitation } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { PremiumGate } from "../../../../app/components/ui/UpgradePrompt";
+import { sendEmail } from "../../../../lib/email";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -113,7 +114,25 @@ export async function action({ request }: ActionFunctionArgs) {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     });
 
-    // TODO: Send invitation email
+    // Send invitation email
+    const inviteUrl = `${process.env.APP_URL || 'https://divestreams.com'}/auth/accept-invite?token=${inviteId}`;
+    try {
+      await sendEmail({
+        to: email,
+        subject: `You're invited to join ${ctx.org.name} on DiveStreams`,
+        html: `
+          <p>Hi,</p>
+          <p>${ctx.user.name || 'A team member'} has invited you to join <strong>${ctx.org.name}</strong> on DiveStreams as a ${role}.</p>
+          <p><a href="${inviteUrl}">Click here to accept the invitation</a></p>
+          <p>This invitation expires in 7 days.</p>
+          <p>If you didn't expect this invitation, you can ignore this email.</p>
+        `,
+      });
+    } catch (error) {
+      console.error("Failed to send invitation email:", error);
+      // Continue even if email fails - invitation was created
+    }
+
     return { success: true, message: `Invitation sent to ${email}` };
   }
 
@@ -162,7 +181,41 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "resend-invite") {
     const inviteId = formData.get("inviteId") as string;
-    // TODO: Resend invitation email
+
+    // Fetch the invitation details
+    const [existingInvite] = await db
+      .select()
+      .from(invitation)
+      .where(
+        and(
+          eq(invitation.id, inviteId),
+          eq(invitation.organizationId, ctx.org.id)
+        )
+      );
+
+    if (!existingInvite) {
+      return { error: "Invitation not found" };
+    }
+
+    // Send invitation email
+    const inviteUrl = `${process.env.APP_URL || 'https://divestreams.com'}/auth/accept-invite?token=${inviteId}`;
+    try {
+      await sendEmail({
+        to: existingInvite.email,
+        subject: `Reminder: You're invited to join ${ctx.org.name} on DiveStreams`,
+        html: `
+          <p>Hi,</p>
+          <p>This is a reminder that ${ctx.user.name || 'A team member'} has invited you to join <strong>${ctx.org.name}</strong> on DiveStreams as a ${existingInvite.role}.</p>
+          <p><a href="${inviteUrl}">Click here to accept the invitation</a></p>
+          <p>This invitation expires in 7 days from when it was originally sent.</p>
+          <p>If you didn't expect this invitation, you can ignore this email.</p>
+        `,
+      });
+    } catch (error) {
+      console.error("Failed to resend invitation email:", error);
+      return { error: "Failed to send email" };
+    }
+
     return { success: true, message: "Invitation resent" };
   }
 
