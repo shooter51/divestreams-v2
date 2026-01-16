@@ -661,3 +661,272 @@ export async function getStripePublishableKey(orgId: string): Promise<string | n
 
   return result.refreshToken;
 }
+
+// ============================================================================
+// POS PAYMENT PROCESSING
+// ============================================================================
+
+/**
+ * Create a PaymentIntent for POS transactions
+ *
+ * Creates a PaymentIntent using the tenant's connected Stripe account.
+ * Used for manual card entry in the POS system.
+ */
+export async function createPOSPaymentIntent(
+  orgId: string,
+  amount: number, // in cents
+  metadata?: { customerId?: string; receiptNumber?: string; description?: string }
+): Promise<{ clientSecret: string; paymentIntentId: string } | null> {
+  const client = await getStripeClient(orgId);
+
+  if (!client) {
+    return null;
+  }
+
+  const { stripe, integration } = client;
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "usd", // Could be configurable per org
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      metadata: {
+        orgId,
+        source: "pos",
+        ...metadata,
+      },
+    });
+
+    await logSyncOperation(integration.id, "create_payment_intent", "success", {
+      entityType: "payment_intent",
+      externalId: paymentIntent.id,
+    });
+
+    return {
+      clientSecret: paymentIntent.client_secret!,
+      paymentIntentId: paymentIntent.id,
+    };
+  } catch (error) {
+    await logSyncOperation(integration.id, "create_payment_intent", "failed", {
+      entityType: "payment_intent",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
+}
+
+// ============================================================================
+// STRIPE TERMINAL
+// ============================================================================
+
+/**
+ * Get or create a Terminal Location for the organization
+ *
+ * Stripe Terminal requires a location object. We create one per org.
+ */
+export async function getOrCreateTerminalLocation(
+  orgId: string,
+  locationInfo?: { displayName?: string; address?: { city?: string; country?: string; line1?: string; postalCode?: string; state?: string } }
+): Promise<{ locationId: string } | null> {
+  const client = await getStripeClient(orgId);
+
+  if (!client) {
+    return null;
+  }
+
+  const { stripe, integration } = client;
+  const settings = integration.settings as Record<string, unknown> | null;
+
+  // Check if we already have a location
+  if (settings?.terminalLocationId) {
+    return { locationId: settings.terminalLocationId as string };
+  }
+
+  try {
+    // Create a new location
+    const location = await stripe.terminal.locations.create({
+      display_name: locationInfo?.displayName || integration.accountName || "POS Location",
+      address: {
+        city: locationInfo?.address?.city || "Unknown",
+        country: locationInfo?.address?.country || "US",
+        line1: locationInfo?.address?.line1 || "123 Main St",
+        postal_code: locationInfo?.address?.postalCode || "00000",
+        state: locationInfo?.address?.state || "XX",
+      },
+    });
+
+    // Save location ID to settings
+    await updateIntegrationSettings(orgId, "stripe", {
+      terminalLocationId: location.id,
+    });
+
+    await logSyncOperation(integration.id, "create_terminal_location", "success", {
+      entityType: "terminal_location",
+      externalId: location.id,
+    });
+
+    return { locationId: location.id };
+  } catch (error) {
+    await logSyncOperation(integration.id, "create_terminal_location", "failed", {
+      entityType: "terminal_location",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    return null;
+  }
+}
+
+/**
+ * Create a connection token for Stripe Terminal SDK
+ *
+ * The client-side Terminal SDK needs a connection token to connect to readers.
+ */
+export async function createTerminalConnectionToken(
+  orgId: string
+): Promise<{ secret: string } | null> {
+  const client = await getStripeClient(orgId);
+
+  if (!client) {
+    return null;
+  }
+
+  const { stripe } = client;
+
+  try {
+    const connectionToken = await stripe.terminal.connectionTokens.create();
+    return { secret: connectionToken.secret };
+  } catch (error) {
+    console.error("Failed to create Terminal connection token:", error);
+    return null;
+  }
+}
+
+/**
+ * Register a Terminal reader with a registration code
+ */
+export async function registerTerminalReader(
+  orgId: string,
+  registrationCode: string,
+  label?: string
+): Promise<{ readerId: string; label: string; deviceType: string } | null> {
+  const client = await getStripeClient(orgId);
+
+  if (!client) {
+    return null;
+  }
+
+  const { stripe, integration } = client;
+
+  // Get or create location first
+  const location = await getOrCreateTerminalLocation(orgId);
+  if (!location) {
+    throw new Error("Could not create Terminal location");
+  }
+
+  try {
+    const reader = await stripe.terminal.readers.create({
+      registration_code: registrationCode,
+      label: label || "POS Reader",
+      location: location.locationId,
+    });
+
+    await logSyncOperation(integration.id, "register_terminal_reader", "success", {
+      entityType: "terminal_reader",
+      externalId: reader.id,
+    });
+
+    return {
+      readerId: reader.id,
+      label: reader.label || "POS Reader",
+      deviceType: reader.device_type,
+    };
+  } catch (error) {
+    await logSyncOperation(integration.id, "register_terminal_reader", "failed", {
+      entityType: "terminal_reader",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
+}
+
+/**
+ * List registered Terminal readers for the organization
+ */
+export async function listTerminalReaders(
+  orgId: string
+): Promise<Array<{
+  id: string;
+  label: string;
+  deviceType: string;
+  status: string;
+  ipAddress: string | null;
+}> | null> {
+  const client = await getStripeClient(orgId);
+
+  if (!client) {
+    return null;
+  }
+
+  const { stripe, integration } = client;
+  const settings = integration.settings as Record<string, unknown> | null;
+  const locationId = settings?.terminalLocationId as string | undefined;
+
+  try {
+    const readers = await stripe.terminal.readers.list({
+      location: locationId,
+      limit: 20,
+    });
+
+    return readers.data.map((reader) => ({
+      id: reader.id,
+      label: reader.label || "Unnamed Reader",
+      deviceType: reader.device_type,
+      status: reader.status || "unknown",
+      ipAddress: reader.ip_address || null,
+    }));
+  } catch (error) {
+    await logSyncOperation(integration.id, "list_terminal_readers", "failed", {
+      entityType: "terminal_reader",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    return null;
+  }
+}
+
+/**
+ * Delete a Terminal reader
+ */
+export async function deleteTerminalReader(
+  orgId: string,
+  readerId: string
+): Promise<{ success: boolean; error?: string }> {
+  const client = await getStripeClient(orgId);
+
+  if (!client) {
+    return { success: false, error: "Stripe not connected" };
+  }
+
+  const { stripe, integration } = client;
+
+  try {
+    await stripe.terminal.readers.del(readerId);
+
+    await logSyncOperation(integration.id, "delete_terminal_reader", "success", {
+      entityType: "terminal_reader",
+      externalId: readerId,
+    });
+
+    return { success: true };
+  } catch (error) {
+    await logSyncOperation(integration.id, "delete_terminal_reader", "failed", {
+      entityType: "terminal_reader",
+      externalId: readerId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete reader",
+    };
+  }
+}

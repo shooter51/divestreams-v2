@@ -1281,10 +1281,36 @@ export interface EquipmentServiceRecord {
 }
 
 export async function getEquipmentServiceHistory(organizationId: string, equipmentId: string, limit = 10): Promise<EquipmentServiceRecord[]> {
-  // Service history would be stored in equipment.serviceNotes or a separate service_records table
-  // For now, return empty array as a stub
-  // TODO: Implement when service_records table is added
-  return [];
+  const records = await db
+    .select({
+      id: schema.serviceRecords.id,
+      type: schema.serviceRecords.type,
+      description: schema.serviceRecords.description,
+      performedAt: schema.serviceRecords.performedAt,
+      performedBy: schema.serviceRecords.performedBy,
+      notes: schema.serviceRecords.notes,
+      cost: schema.serviceRecords.cost,
+    })
+    .from(schema.serviceRecords)
+    .where(
+      and(
+        eq(schema.serviceRecords.organizationId, organizationId),
+        eq(schema.serviceRecords.equipmentId, equipmentId)
+      )
+    )
+    .orderBy(desc(schema.serviceRecords.performedAt))
+    .limit(limit);
+
+  return records.map(r => ({
+    id: r.id,
+    date: r.performedAt,
+    type: r.type,
+    description: r.description,
+    technician: r.performedBy,
+    performedBy: r.performedBy,
+    notes: r.notes,
+    cost: r.cost ? parseFloat(r.cost) : null,
+  }));
 }
 
 export async function updateEquipmentStatus(organizationId: string, id: string, status: string) {

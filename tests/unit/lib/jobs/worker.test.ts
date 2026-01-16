@@ -123,6 +123,56 @@ vi.mock("../../../../lib/jobs/stale-tenant-cleanup", () => ({
   cleanupStaleTenants: mockCleanupStaleTenants,
 }));
 
+// Create chainable mock for database queries
+// The mock needs to return arrays when awaited after the .from() call
+const createDbMock = () => {
+  // Track call count to differentiate between organization query and booking queries
+  let selectCallCount = 0;
+
+  const createChain = () => {
+    const chain: Record<string, ReturnType<typeof vi.fn>> & { then?: (resolve: (v: unknown[]) => void) => void } = {};
+
+    // Make the chain thenable (awaitable) - returns empty array by default
+    chain.then = (resolve: (v: unknown[]) => void) => {
+      resolve([]);
+      return Promise.resolve([]);
+    };
+
+    const methods = ['from', 'innerJoin', 'leftJoin', 'rightJoin', 'where', 'orderBy', 'limit'];
+    methods.forEach(method => {
+      chain[method] = vi.fn().mockReturnValue(chain);
+    });
+
+    return chain;
+  };
+
+  return {
+    select: vi.fn().mockImplementation(() => {
+      selectCallCount++;
+      return createChain();
+    }),
+  };
+};
+
+const mockDb = createDbMock();
+
+// Mock database module
+vi.mock("../../../../lib/db", () => ({
+  db: mockDb,
+}));
+
+// Mock schema modules
+vi.mock("../../../../lib/db/schema/auth", () => ({
+  organization: { id: "id", name: "name", slug: "slug" },
+}));
+
+vi.mock("../../../../lib/db/schema", () => ({
+  bookings: { id: "id", tripId: "tripId", customerId: "customerId", organizationId: "organizationId", status: "status", bookingNumber: "bookingNumber" },
+  trips: { id: "id", tourId: "tourId", date: "date", startTime: "startTime" },
+  tours: { id: "id", name: "name" },
+  customers: { id: "id", email: "email", firstName: "firstName", lastName: "lastName" },
+}));
+
 describe("Job Worker Module", () => {
   beforeEach(() => {
     vi.clearAllMocks();

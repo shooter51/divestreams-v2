@@ -604,8 +604,130 @@ export const images = pgTable("images", {
 ]);
 
 // ============================================================================
+// ORGANIZATION SETTINGS
+// ============================================================================
+
+export const organizationSettings = pgTable("organization_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }).unique(),
+
+  // Tax settings
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).notNull().default("0"), // e.g., 8.25 for 8.25%
+  taxName: text("tax_name").default("Tax"), // e.g., "Sales Tax", "VAT", "GST"
+  taxIncludedInPrice: boolean("tax_included_in_price").notNull().default(false),
+
+  // Business settings
+  currency: text("currency").notNull().default("USD"),
+  timezone: text("timezone").notNull().default("UTC"),
+  dateFormat: text("date_format").notNull().default("MM/DD/YYYY"),
+  timeFormat: text("time_format").notNull().default("12h"), // "12h" or "24h"
+
+  // Booking settings
+  requireDepositForBooking: boolean("require_deposit_for_booking").notNull().default(false),
+  depositPercentage: decimal("deposit_percentage", { precision: 5, scale: 2 }).default("0"),
+  cancellationPolicyDays: integer("cancellation_policy_days").default(7),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("organization_settings_org_idx").on(table.organizationId),
+]);
+
+// ============================================================================
+// MAINTENANCE LOGS (for boats)
+// ============================================================================
+
+export const maintenanceLogs = pgTable("maintenance_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  boatId: uuid("boat_id").notNull().references(() => boats.id, { onDelete: "cascade" }),
+
+  type: text("type").notNull(), // "routine", "repair", "inspection", "emergency"
+  description: text("description").notNull(),
+
+  performedBy: text("performed_by"), // Name of person/company who did the maintenance
+  performedAt: timestamp("performed_at").notNull().defaultNow(),
+
+  cost: decimal("cost", { precision: 10, scale: 2 }),
+  notes: text("notes"),
+
+  // Next maintenance scheduling
+  nextMaintenanceDate: date("next_maintenance_date"),
+  nextMaintenanceType: text("next_maintenance_type"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdBy: text("created_by").references(() => organization.id), // User who logged it
+}, (table) => [
+  index("maintenance_logs_org_idx").on(table.organizationId),
+  index("maintenance_logs_boat_idx").on(table.boatId),
+  index("maintenance_logs_performed_at_idx").on(table.performedAt),
+]);
+
+// ============================================================================
+// SERVICE RECORDS (for equipment)
+// ============================================================================
+
+export const serviceRecords = pgTable("service_records", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  equipmentId: uuid("equipment_id").notNull().references(() => equipment.id, { onDelete: "cascade" }),
+
+  type: text("type").notNull(), // "inspection", "repair", "certification", "cleaning", "replacement"
+  description: text("description").notNull(),
+
+  performedBy: text("performed_by"), // Name of technician/company
+  performedAt: timestamp("performed_at").notNull().defaultNow(),
+
+  cost: decimal("cost", { precision: 10, scale: 2 }),
+  notes: text("notes"),
+
+  // For certification tracking (e.g., tank hydro tests)
+  certificationExpiry: date("certification_expiry"),
+
+  // Next service scheduling
+  nextServiceDate: date("next_service_date"),
+  nextServiceType: text("next_service_type"),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdBy: text("created_by").references(() => organization.id), // User who logged it
+}, (table) => [
+  index("service_records_org_idx").on(table.organizationId),
+  index("service_records_equipment_idx").on(table.equipmentId),
+  index("service_records_performed_at_idx").on(table.performedAt),
+]);
+
+// ============================================================================
 // RELATIONS
 // ============================================================================
+
+export const organizationSettingsRelations = relations(organizationSettings, ({ one }) => ({
+  organization: one(organization, {
+    fields: [organizationSettings.organizationId],
+    references: [organization.id],
+  }),
+}));
+
+export const maintenanceLogsRelations = relations(maintenanceLogs, ({ one }) => ({
+  organization: one(organization, {
+    fields: [maintenanceLogs.organizationId],
+    references: [organization.id],
+  }),
+  boat: one(boats, {
+    fields: [maintenanceLogs.boatId],
+    references: [boats.id],
+  }),
+}));
+
+export const serviceRecordsRelations = relations(serviceRecords, ({ one }) => ({
+  organization: one(organization, {
+    fields: [serviceRecords.organizationId],
+    references: [organization.id],
+  }),
+  equipment: one(equipment, {
+    fields: [serviceRecords.equipmentId],
+    references: [equipment.id],
+  }),
+}));
 
 export const customersRelations = relations(customers, ({ one, many }) => ({
   organization: one(organization, {

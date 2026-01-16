@@ -2,8 +2,8 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { organization } from "../../../../lib/db/schema";
-import { eq } from "drizzle-orm";
+import { organization, member, user } from "../../../../lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Notifications - DiveStreams" }];
 
@@ -49,9 +49,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ...metadata.notifications,
   };
 
+  // Get organization owner's email
+  const ownerMember = await db
+    .select({ email: user.email })
+    .from(member)
+    .innerJoin(user, eq(member.userId, user.id))
+    .where(
+      and(
+        eq(member.organizationId, ctx.org.id),
+        eq(member.role, "owner")
+      )
+    )
+    .limit(1);
+
+  const orgEmail = ownerMember[0]?.email || ctx.user.email;
+
   return {
     settings,
-    orgEmail: ctx.org.name, // TODO: Get actual org email
+    orgEmail,
     isPremium: ctx.isPremium,
   };
 }
