@@ -7,7 +7,7 @@
  */
 
 import { redirect } from "react-router";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count, gte } from "drizzle-orm";
 import { auth } from "./index";
 import { db } from "../db";
 import {
@@ -15,7 +15,7 @@ import {
   member,
 } from "../db/schema/auth";
 import { subscription } from "../db/schema/subscription";
-import { subscriptionPlans } from "../db/schema";
+import { subscriptionPlans, customers, tours, bookings } from "../db/schema";
 import type {
   Organization,
   Member,
@@ -272,14 +272,57 @@ export async function getOrgContext(
       }
     : FREE_TIER_LIMITS;
 
-  // Get usage statistics
-  // TODO: Implement real counts from database
-  // For now, return 0 as placeholder - these will be implemented
-  // when the respective API routes are built
+  // Get usage statistics from database
+  let customerCount = 0;
+  let tourCount = 0;
+  let bookingsThisMonthCount = 0;
+
+  try {
+    // Count customers for this organization
+    const [customerResult] = await db
+      .select({ count: count() })
+      .from(customers)
+      .where(eq(customers.organizationId, org.id));
+    customerCount = customerResult?.count ?? 0;
+  } catch (error) {
+    console.error("Failed to count customers:", error);
+  }
+
+  try {
+    // Count tours for this organization
+    const [tourResult] = await db
+      .select({ count: count() })
+      .from(tours)
+      .where(eq(tours.organizationId, org.id));
+    tourCount = tourResult?.count ?? 0;
+  } catch (error) {
+    console.error("Failed to count tours:", error);
+  }
+
+  try {
+    // Count bookings created this month for this organization
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const [bookingsResult] = await db
+      .select({ count: count() })
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.organizationId, org.id),
+          gte(bookings.createdAt, startOfMonth)
+        )
+      );
+    bookingsThisMonthCount = bookingsResult?.count ?? 0;
+  } catch (error) {
+    console.error("Failed to count bookings:", error);
+  }
+
   const usage: OrgUsage = {
-    customers: 0, // TODO: Count from customers table where organizationId = org.id
-    tours: 0, // TODO: Count from tours table where organizationId = org.id
-    bookingsThisMonth: 0, // TODO: Count from bookings table for current month
+    customers: customerCount,
+    tours: tourCount,
+    bookingsThisMonth: bookingsThisMonthCount,
   };
 
   // Calculate whether user can add more resources
