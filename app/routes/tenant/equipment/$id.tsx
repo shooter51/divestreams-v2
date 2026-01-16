@@ -1,7 +1,9 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { db } from "../../../../lib/db";
+import { serviceRecords } from "../../../../lib/db/schema";
 import {
   getEquipmentById,
   getEquipmentRentalHistory,
@@ -16,7 +18,8 @@ import { ImageManager, type Image } from "../../../../app/components/ui";
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const equipmentId = params.id;
 
   if (!equipmentId) {
@@ -109,7 +112,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const equipmentId = params.id;
@@ -127,7 +131,29 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "log-service") {
-    // TODO: Implement service logging when service_log table is added
+    const type = formData.get("type") as string;
+    const description = formData.get("description") as string;
+    const performedBy = formData.get("performedBy") as string;
+    const cost = formData.get("cost") as string;
+    const notes = formData.get("notes") as string;
+    const nextServiceDate = formData.get("nextServiceDate") as string;
+    const nextServiceType = formData.get("nextServiceType") as string;
+    const certificationExpiry = formData.get("certificationExpiry") as string;
+
+    await db.insert(serviceRecords).values({
+      organizationId,
+      equipmentId,
+      type: type || "inspection",
+      description: description || "Service performed",
+      performedBy: performedBy || null,
+      cost: cost || null,
+      notes: notes || null,
+      nextServiceDate: nextServiceDate || null,
+      nextServiceType: nextServiceType || null,
+      certificationExpiry: certificationExpiry || null,
+      createdBy: ctx.user.id,
+    });
+
     return { serviceLogged: true };
   }
 

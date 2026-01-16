@@ -18,6 +18,9 @@ import {
   generateAgreementNumber,
   getProductByBarcode,
 } from "../../../lib/db/pos.server";
+import { db } from "../../../lib/db/index";
+import { organizationSettings } from "../../../lib/db/schema";
+import { eq } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { Cart } from "../../components/pos/Cart";
 import { ProductGrid } from "../../components/pos/ProductGrid";
@@ -49,6 +52,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getPOSTrips(tables, organizationId, "UTC"), // Default timezone - could be stored in organization settings
   ]);
 
+  // Get organization settings for tax rate
+  const [settings] = await db
+    .select()
+    .from(organizationSettings)
+    .where(eq(organizationSettings.organizationId, organizationId))
+    .limit(1);
+
+  const taxRate = settings?.taxRate ? parseFloat(settings.taxRate) : 0;
+
   // Generate agreement number - handle case where rentals table may not exist yet
   let agreementNumber = `RA-${new Date().getFullYear()}-0001`;
   try {
@@ -65,7 +77,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     equipment,
     trips,
     agreementNumber,
-    taxRate: 0, // TODO: Get from tenant settings
+    taxRate,
   };
 }
 
