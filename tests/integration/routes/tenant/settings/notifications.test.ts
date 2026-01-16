@@ -7,20 +7,39 @@ vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
 }));
 
-vi.mock("../../../../../lib/db", () => ({
-  db: {
+vi.mock("../../../../../lib/db", () => {
+  const dbMock = {
+    select: vi.fn().mockReturnThis(),
+    from: vi.fn().mockReturnThis(),
+    innerJoin: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([{ email: "owner@example.com" }]),
     update: vi.fn().mockReturnThis(),
     set: vi.fn().mockReturnThis(),
-    where: vi.fn().mockResolvedValue({}),
-  },
-}));
+  };
+  // Make where return this for chaining, but also work for update
+  dbMock.where = vi.fn().mockImplementation(() => dbMock);
+  return { db: dbMock };
+});
 
 vi.mock("../../../../../lib/db/schema", () => ({
   organization: { id: "id" },
+  member: {
+    id: "id",
+    userId: "userId",
+    organizationId: "organizationId",
+    role: "role",
+  },
+  user: {
+    id: "id",
+    name: "name",
+    email: "email",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
+  and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";

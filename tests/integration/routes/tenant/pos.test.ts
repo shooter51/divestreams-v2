@@ -4,7 +4,27 @@ import { loader, action } from "../../../../app/routes/tenant/pos";
 
 // Mock the org-context module
 vi.mock("../../../../lib/auth/org-context.server", () => ({
-  requireTenant: vi.fn(),
+  requireOrgContext: vi.fn(),
+}));
+
+// Mock the main database module
+vi.mock("../../../../lib/db/index", () => ({
+  db: {
+    select: vi.fn().mockReturnThis(),
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([{ taxRate: "8.25" }]),
+  },
+}));
+
+// Mock the schema module
+vi.mock("../../../../lib/db/schema", () => ({
+  organizationSettings: { organizationId: "organizationId" },
+}));
+
+// Mock drizzle-orm
+vi.mock("drizzle-orm", () => ({
+  eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
 }));
 
 // Mock the tenant database module
@@ -23,7 +43,7 @@ vi.mock("../../../../lib/db/pos.server", () => ({
   getProductByBarcode: vi.fn(),
 }));
 
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import {
   getPOSProducts,
@@ -36,9 +56,18 @@ import {
 } from "../../../../lib/db/pos.server";
 
 describe("tenant/pos route", () => {
-  const mockTenantContext = {
-    tenant: { id: "tenant-1", name: "Demo Dive Shop", schemaName: "tenant_demo" },
-    organizationId: "org-uuid",
+  const mockOrgContext = {
+    user: { id: "user-1", name: "Test User", email: "test@example.com" },
+    session: { id: "session-1" },
+    org: { id: "org-uuid", name: "Demo Dive Shop", slug: "demo" },
+    membership: { role: "owner" },
+    subscription: null,
+    limits: { customers: 50, tours: 3, bookingsPerMonth: 20, teamMembers: 5 },
+    usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
+    canAddCustomer: true,
+    canAddTour: true,
+    canAddBooking: true,
+    isPremium: true,
   };
 
   const mockTenantDb = {
@@ -47,7 +76,7 @@ describe("tenant/pos route", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (requireTenant as Mock).mockResolvedValue(mockTenantContext);
+    (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
     (getTenantDb as Mock).mockReturnValue(mockTenantDb);
   });
 
@@ -61,7 +90,7 @@ describe("tenant/pos route", () => {
       const request = new Request("https://demo.divestreams.com/app/pos");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(requireTenant).toHaveBeenCalledWith(request);
+      expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("fetches products, equipment, and trips", async () => {

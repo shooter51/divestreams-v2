@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
-import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { eq, and, asc, desc } from "drizzle-orm";
+import { requireTenant, requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
   getBoatById,
   getBoatRecentTrips,
@@ -12,6 +12,7 @@ import {
 } from "../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
+import { maintenanceLogs } from "../../../../lib/db/schema";
 
 export const meta: MetaFunction = () => [{ title: "Boat Details - DiveStreams" }];
 
@@ -27,7 +28,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const { db, schema } = getTenantDb(organizationId);
 
   // Fetch all data in parallel
-  const [boat, recentTrips, upcomingTrips, stats, boatImages] = await Promise.all([
+  const [boat, recentTrips, upcomingTrips, stats, boatImages, maintenanceHistory] = await Promise.all([
     getBoatById(organizationId, boatId),
     getBoatRecentTrips(organizationId, boatId),
     getBoatUpcomingTrips(organizationId, boatId),
@@ -53,7 +54,25 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         )
       )
       .orderBy(asc(schema.images.sortOrder)),
+    // Get maintenance history for this boat
+    db
+      .select()
+      .from(maintenanceLogs)
+      .where(
+        and(
+          eq(maintenanceLogs.organizationId, organizationId),
+          eq(maintenanceLogs.boatId, boatId)
+        )
+      )
+      .orderBy(desc(maintenanceLogs.performedAt))
+      .limit(10),
   ]);
+
+  // Check if maintenance is due (next maintenance date is in the past or within 7 days)
+  const latestMaintenance = maintenanceHistory[0];
+  const maintenanceDue = latestMaintenance?.nextMaintenanceDate
+    ? new Date(latestMaintenance.nextMaintenanceDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    : false;
 
   if (!boat) {
     throw new Response("Boat not found", { status: 404 });
@@ -99,11 +118,29 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  return { boat: formattedBoat, recentTrips: formattedRecentTrips, upcomingTrips: formattedUpcomingTrips, stats, images };
+  // Format maintenance history dates
+  const formattedMaintenanceHistory = maintenanceHistory.map((log) => ({
+    ...log,
+    performedAt: log.performedAt instanceof Date ? log.performedAt.toISOString() : String(log.performedAt),
+    nextMaintenanceDate: log.nextMaintenanceDate ? String(log.nextMaintenanceDate) : null,
+    createdAt: log.createdAt instanceof Date ? log.createdAt.toISOString() : String(log.createdAt),
+    cost: log.cost ? String(log.cost) : null,
+  }));
+
+  return {
+    boat: formattedBoat,
+    recentTrips: formattedRecentTrips,
+    upcomingTrips: formattedUpcomingTrips,
+    stats,
+    images,
+    maintenanceHistory: formattedMaintenanceHistory,
+    maintenanceDue,
+  };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const boatId = params.id;
@@ -127,7 +164,29 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "log-maintenance") {
-    // TODO: Implement maintenance logging when maintenance_log table is added
+    const { db } = getTenantDb(organizationId);
+
+    const type = formData.get("type") as string;
+    const description = formData.get("description") as string;
+    const performedBy = formData.get("performedBy") as string;
+    const cost = formData.get("cost") as string;
+    const notes = formData.get("notes") as string;
+    const nextMaintenanceDate = formData.get("nextMaintenanceDate") as string;
+    const nextMaintenanceType = formData.get("nextMaintenanceType") as string;
+
+    await db.insert(maintenanceLogs).values({
+      organizationId,
+      boatId,
+      type: type || "routine",
+      description: description || "Maintenance performed",
+      performedBy: performedBy || null,
+      cost: cost ? cost : null,
+      notes: notes || null,
+      nextMaintenanceDate: nextMaintenanceDate || null,
+      nextMaintenanceType: nextMaintenanceType || null,
+      createdBy: ctx.user.id,
+    });
+
     return { maintenanceLogged: true };
   }
 
@@ -135,7 +194,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function BoatDetailPage() {
-  const { boat, recentTrips, upcomingTrips, stats, images } = useLoaderData<typeof loader>();
+  const { boat, recentTrips, upcomingTrips, stats, images, maintenanceHistory, maintenanceDue } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   const handleDelete = () => {
@@ -144,10 +203,7 @@ export default function BoatDetailPage() {
     }
   };
 
-  // Note: The boats table doesn't have maintenance fields in the current schema
-  // These would need to be added to the schema if maintenance tracking is needed
   const amenities = Array.isArray(boat.amenities) ? boat.amenities : [];
-  const maintenanceDue = false; // TODO: Add maintenance tracking to boats table
 
   return (
     <div>
@@ -357,16 +413,86 @@ export default function BoatDetailPage() {
           {/* Maintenance */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Maintenance</h2>
-            <div className="space-y-3 text-sm">
-              <p className="text-gray-500 text-sm">
-                Maintenance tracking coming soon.
-              </p>
-            </div>
-            <fetcher.Form method="post" className="mt-4">
+            {maintenanceHistory.length > 0 ? (
+              <div className="space-y-3 text-sm mb-4">
+                {maintenanceHistory.slice(0, 3).map((log) => (
+                  <div key={log.id} className="border-b pb-2 last:border-0">
+                    <div className="flex justify-between items-start">
+                      <span className="font-medium capitalize">{log.type}</span>
+                      <span className="text-gray-500 text-xs">
+                        {new Date(log.performedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-xs mt-1">{log.description}</p>
+                    {log.cost && (
+                      <p className="text-gray-500 text-xs">${log.cost}</p>
+                    )}
+                  </div>
+                ))}
+                {maintenanceHistory.length > 3 && (
+                  <p className="text-gray-500 text-xs">
+                    +{maintenanceHistory.length - 3} more records
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm mb-4">No maintenance records yet.</p>
+            )}
+            <fetcher.Form method="post" className="space-y-3">
               <input type="hidden" name="intent" value="log-maintenance" />
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Type</label>
+                <select
+                  name="type"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                  required
+                >
+                  <option value="routine">Routine</option>
+                  <option value="repair">Repair</option>
+                  <option value="inspection">Inspection</option>
+                  <option value="emergency">Emergency</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Description</label>
+                <input
+                  type="text"
+                  name="description"
+                  placeholder="What was done?"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Performed By</label>
+                <input
+                  type="text"
+                  name="performedBy"
+                  placeholder="Name or company"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Cost</label>
+                <input
+                  type="number"
+                  name="cost"
+                  placeholder="0.00"
+                  step="0.01"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Next Maintenance Date</label>
+                <input
+                  type="date"
+                  name="nextMaintenanceDate"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                />
+              </div>
               <button
                 type="submit"
-                className="w-full text-center py-2 text-sm text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50"
+                className="w-full text-center py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
               >
                 Log Maintenance
               </button>
