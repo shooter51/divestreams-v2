@@ -1,0 +1,25 @@
+{
+  "extends": "@istanbuljs/nyc-config-typescript",
+  "all": true,
+  "include": ["app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"],
+  "exclude": [
+    "**/*.d.ts",
+    "**/types.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/node_modules/**",
+    ".react-router/**",
+    "build/**",
+    "coverage/**",
+    "tests/**",
+    "lib/integrations/**",
+    "lib/stripe/**",
+    "lib/email/**",
+    "lib/stubs/**"
+  ],
+  "reporter": ["text", "text-summary", "html", "json"],
+  "report-dir": "coverage/combined",
+  "temp-dir": ".nyc_output",
+  "sourceMap": true,
+  "instrument": true
+}

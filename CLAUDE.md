@@ -5,38 +5,61 @@ Multi-tenant SaaS platform for dive shop and dive tour management. Built with Re
 
 ## Deployment
 
-### VPS Details
-- **Provider**: Hostinger VPS
-- **VPS ID**: 1239852
-- **IP Address**: 72.62.166.128
-- **Hostname**: srv1239852.hstgr.cloud
-- **OS**: Ubuntu 24.04 LTS
-- **Plan**: KVM 4 (4 CPUs, 16GB RAM, 200GB disk)
+### CI/CD Pipeline - THE ONLY WAY TO DEPLOY
+**IMPORTANT: NEVER deploy directly. ALWAYS use the CI/CD pipeline via git push.**
 
-### Docker Compose Project
-- **Project Name**: `divestreams-v2`
-- **Location on VPS**: `/docker/divestreams-v2/docker-compose.yml`
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   staging   │───▶│  Tests +    │───▶│   Build &   │───▶│   Deploy    │
+│   branch    │    │  E2E (80)   │    │   Docker    │    │   Staging   │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+                                                                │
+                                                                ▼
+┌─────────────┐                                         ┌─────────────┐
+│    main     │────────────────────────────────────────▶│   Deploy    │
+│   branch    │         (retag staging→latest)          │ Production  │
+└─────────────┘                                         └─────────────┘
+```
 
-**Containers:**
+### Deployment Workflow
+
+**To deploy to STAGING:**
+```bash
+git checkout staging
+git merge <feature-branch>  # or commit changes directly
+git push origin staging
+```
+This triggers: lint → typecheck → unit tests → E2E tests (80) → build Docker → deploy to staging VPS → smoke tests
+
+**To deploy to PRODUCTION:**
+```bash
+git checkout main
+git merge staging
+git push origin main
+```
+This retags `ghcr.io/shooter51/divestreams-app:staging` → `:latest` and deploys to production VPS.
+
+### VPS Infrastructure
+
+| Environment | VPS ID | IP Address | Docker Project | Image Tag |
+|-------------|--------|------------|----------------|-----------|
+| **Production** | 1239852 | 72.62.166.128 | divestreams-v2 | :latest |
+| **Staging** | 1271895 | 76.13.28.28 | divestreams-staging | :staging |
+
+**Containers (both environments):**
 | Container | Image | Purpose |
 |-----------|-------|---------|
-| divestreams-app | ghcr.io/shooter51/divestreams-app:latest | Main React Router application (port 3000 internal) |
+| divestreams-app | ghcr.io/shooter51/divestreams-app | Main React Router application (port 3000 internal) |
 | divestreams-db | postgres:16-alpine | PostgreSQL database |
 | divestreams-redis | redis:7-alpine | Redis cache/queue |
 | divestreams-caddy | caddy:2-alpine | Reverse proxy with SSL (ports 80/443) |
 
-### Deployment Process
-**IMPORTANT: Always follow these steps in order:**
-
-1. **Build Docker image for linux/amd64 and push:**
-   ```bash
-   docker buildx build --platform linux/amd64 -t ghcr.io/shooter51/divestreams-app:latest --push .
-   ```
-
-2. **Deploy to VPS:**
-   ```
-   mcp__hostinger-mcp__VPS_updateProjectV1(virtualMachineId: 1239852, projectName: "divestreams-v2")
-   ```
+### Check Deployment Status
+```bash
+# Check CI/CD pipeline status
+gh run list --limit 5
+gh run view <run-id>
+```
 
 ### Database Migrations
 Migrations run automatically on container startup via `scripts/docker-entrypoint.sh`.
@@ -147,21 +170,18 @@ NODE_ENV=production
 ADMIN_PASSWORD=DiveAdmin2024!
 ```
 
-### VPS Docker Auth
-VPS has Docker logged into GHCR. If auth expires, SSH in and run:
+### VPS Docker Auth (Emergency Only)
+Both VPSs are authenticated with GHCR. If auth expires (unauthorized errors in logs), SSH in and copy config from production:
 ```bash
-ssh root@72.62.166.128
-gh auth token | docker login ghcr.io -u shooter51 --password-stdin
+# Production → Staging auth sync
+ssh root@72.62.166.128 "cat /root/.docker/config.json" | ssh root@76.13.28.28 "mkdir -p /root/.docker && cat > /root/.docker/config.json"
 ```
 
 ### Git Remotes
-- **origin**: `https://github.com/shooter51/divestreams-v2.git` (HTTPS - primary)
-- **shooter51**: `https://github.com/shooter51/divestreams-v2.git` (HTTPS - alias)
+- **origin**: `https://github.com/shooter51/divestreams-v2.git`
 
-Use `origin` or `shooter51` remote for deployment.
-
-### Environment Variables (Production)
-Set in `/docker/divestreams-v2/.env` on VPS:
+### Environment Variables
+Set in `.env` files on each VPS (`/docker/divestreams-v2/.env` or `/docker/divestreams-staging/.env`):
 - `DATABASE_URL` - PostgreSQL connection string
 - `REDIS_URL` - Redis connection string
 - `AUTH_SECRET` - Session signing secret
@@ -174,8 +194,9 @@ Set in `/docker/divestreams-v2/.env` on VPS:
 - **Database**: PostgreSQL 16 with Drizzle ORM
 - **Cache/Queue**: Redis 7
 - **Styling**: Tailwind CSS
-- **Testing**: Vitest (312 tests)
+- **Testing**: Vitest + Playwright (80 E2E workflow tests)
 - **Reverse Proxy**: Caddy (auto SSL)
+- **CI/CD**: GitHub Actions
 
 ## Multi-Tenant Architecture
 - Schema-per-tenant isolation (`tenant_<subdomain>`)
@@ -200,9 +221,15 @@ npm run db:migrate   # Run migrations
 npm run db:studio    # Drizzle Studio
 ```
 
-### Check VPS Status
+### Check VPS Status (Monitoring Only)
 ```
-mcp__hostinger-mcp__VPS_getProjectListV1(virtualMachineId: 1239852)
+# Production (VPS 1239852)
 mcp__hostinger-mcp__VPS_getProjectContainersV1(virtualMachineId: 1239852, projectName: "divestreams-v2")
 mcp__hostinger-mcp__VPS_getProjectLogsV1(virtualMachineId: 1239852, projectName: "divestreams-v2")
+
+# Staging (VPS 1271895)
+mcp__hostinger-mcp__VPS_getProjectContainersV1(virtualMachineId: 1271895, projectName: "divestreams-staging")
+mcp__hostinger-mcp__VPS_getProjectLogsV1(virtualMachineId: 1271895, projectName: "divestreams-staging")
 ```
+
+**DO NOT use `VPS_updateProjectV1` directly - always deploy via CI/CD pipeline (git push).**

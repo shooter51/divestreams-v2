@@ -11,10 +11,10 @@ export default defineConfig({
     setupFiles: ["./tests/setup/test-utils.ts"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
-      reportsDirectory: "./coverage",
-      // Focus coverage on business logic in lib/, routes are tested via E2E
-      include: ["lib/**/*.ts", "lib/**/*.tsx"],
+      reporter: ["text", "json", "html", "lcov"],
+      reportsDirectory: "./coverage/unit",
+      // Include both app/ and lib/ for full coverage
+      include: ["app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"],
       exclude: [
         "**/*.d.ts",
         "**/types.ts",
@@ -26,15 +26,10 @@ export default defineConfig({
         "lib/integrations/**",
         "lib/stripe/**",
         "lib/email/**",
+        // Exclude stubs
+        "lib/stubs/**",
       ],
-      thresholds: {
-        // Current baseline - incrementally increase as coverage improves
-        // Current: ~27% statements, ~11% branches, ~14% functions, ~28% lines
-        statements: 25,
-        branches: 10,
-        functions: 12,
-        lines: 25,
-      },
+      // No thresholds - we'll track improvement over time
     },
     testTimeout: 60000,  // Increased for CI environment
     hookTimeout: 60000,

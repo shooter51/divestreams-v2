@@ -30,6 +30,8 @@ yarn-debug.log*
 
 # Testing
 coverage/
+!tests/e2e/coverage/
+.nyc_output/
 
 # TypeScript
 *.tsbuildinfo

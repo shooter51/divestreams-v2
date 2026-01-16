@@ -93,8 +93,8 @@ jobs:
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:5173
 
-      - name: Run E2E workflow tests (sequential, builds on each test)
-        run: npx playwright test tests/e2e/workflow/
+      - name: Run E2E tests (all 230 workflow tests)
+        run: npx playwright test tests/e2e/
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
           REDIS_URL: redis://localhost:6379
@@ -157,6 +157,27 @@ jobs:
 
       - name: Wait for deployment to stabilize
         run: sleep 45
+
+      - name: Verify containers are running
+        run: |
+          echo "Checking staging container status..."
+          RESPONSE=$(curl -s -X GET \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1271895/docker/divestreams-staging/containers" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          echo "$RESPONSE" | jq .
+
+          # Check that we have 4 containers running
+          RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
+          echo "Running containers: $RUNNING_COUNT"
+
+          if [ "$RUNNING_COUNT" -lt 4 ]; then
+            echo "ERROR: Expected 4 containers running, found $RUNNING_COUNT"
+            exit 1
+          fi
+
+          echo "✅ All 4 containers are running"
 
   # ─────────────────────────────────────────────
   # Smoke Tests (against live staging)
@@ -229,3 +250,24 @@ jobs:
 
       - name: Wait for deployment to stabilize
         run: sleep 45
+
+      - name: Verify containers are running
+        run: |
+          echo "Checking production container status..."
+          RESPONSE=$(curl -s -X GET \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1239852/docker/divestreams-v2/containers" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          echo "$RESPONSE" | jq .
+
+          # Check that we have 4 containers running
+          RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
+          echo "Running containers: $RUNNING_COUNT"
+
+          if [ "$RUNNING_COUNT" -lt 4 ]; then
+            echo "ERROR: Expected 4 containers running, found $RUNNING_COUNT"
+            exit 1
+          fi
+
+          echo "✅ All 4 containers are running in production"
