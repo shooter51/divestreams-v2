@@ -6,12 +6,6 @@ import { test, expect, type Page } from "@playwright/test";
  * COMPREHENSIVE TESTS FOR TENANT PUBLIC SITES
  * ============================================
  *
- * ⚠️ TEMPORARILY SKIPPED: Test setup needs to enable public site first.
- * See issue DIVE-8sh for fix tracking.
- *
- * The public site requires publicSiteSettings.enabled = true in the organization
- * record, but the E2E test setup doesn't configure this.
- *
  * Tests the customer-facing public site functionality:
  * - Public pages (home, about, contact, trips, courses)
  * - Customer registration and login
@@ -28,8 +22,60 @@ import { test, expect, type Page } from "@playwright/test";
  * Block E: Admin Public Site Settings (~10 tests)
  */
 
-// Skip all public site tests until test setup properly enables public site
-test.describe.skip("Public Site Tests", () => {
+// Public Site Tests
+test.describe.serial("Public Site Tests", () => {
+
+// Setup hook: Enable public site before running tests
+test.beforeAll(async ({ browser }) => {
+  const page = await browser.newPage();
+  try {
+    // Login to tenant admin panel
+    await page.goto(`http://e2etest.localhost:5173/auth/login`);
+
+    // Try to find and fill login form
+    const emailInput = page.getByLabel(/email/i);
+    const hasEmailInput = await emailInput.isVisible({ timeout: 5000 }).catch(() => false);
+
+    if (hasEmailInput) {
+      // Use test user credentials
+      const testUserEmail = process.env.E2E_USER_EMAIL || "e2e-user-1737033600000@example.com";
+      const testUserPassword = process.env.E2E_USER_PASSWORD || "TestPass123!";
+
+      await emailInput.fill(testUserEmail);
+      await page.getByLabel(/password/i).fill(testUserPassword);
+      await page.getByRole("button", { name: /sign in/i }).click();
+
+      // Wait for login to complete
+      try {
+        await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+      } catch {
+        await page.waitForTimeout(3000);
+      }
+
+      // Navigate to public site settings
+      await page.goto(`http://e2etest.localhost:5173/app/settings/public-site`);
+      await page.waitForTimeout(2000);
+
+      // Enable public site if not already enabled
+      const enabledCheckbox = page.locator('input[name="enabled"]');
+      const isChecked = await enabledCheckbox.isChecked().catch(() => false);
+
+      if (!isChecked) {
+        // Check the enable toggle
+        await enabledCheckbox.check();
+
+        // Submit the form
+        await page.getByRole("button", { name: /save|update/i }).click();
+        await page.waitForTimeout(2000);
+      }
+    }
+  } catch (error) {
+    console.log("Public site setup: Could not enable public site via UI, tests may fail");
+  } finally {
+    await page.close();
+  }
+});
+
 
 // Shared test data - reuses tenant from full-workflow.spec.ts
 const testData = {
@@ -1014,4 +1060,4 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     expect(page.url().includes("/settings") || page.url().includes("/public-site")).toBeTruthy();
   });
 });
-}); // End of skip wrapper
+});

@@ -36,6 +36,13 @@
       "when": 1768616063618,
       "tag": "0004_dazzling_professor_monster",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1768630637130,
+      "tag": "0005_jazzy_tattoo",
+      "breakpoints": true
     }
   ]
 }
