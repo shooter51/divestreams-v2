@@ -246,7 +246,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 
   // Phone validation (optional)
   if (phone && phone.trim()) {
-    const phoneRegex = /^[\d\s\-\+\(\)\.]+$/;
+    const phoneRegex = /^[\d\s().+-]+$/;
     if (!phoneRegex.test(phone)) {
       errors.phone = "Please enter a valid phone number";
     } else if (phone.length > 20) {
