@@ -135,6 +135,33 @@ export async function getCertificationLevels(
     .orderBy(asc(certificationLevels.level));
 }
 
+export async function getAllCertificationLevels(
+  organizationId: string,
+  agencyId?: string
+) {
+  const conditions = [eq(certificationLevels.organizationId, organizationId)];
+
+  if (agencyId) {
+    conditions.push(eq(certificationLevels.agencyId, agencyId));
+  }
+
+  return db
+    .select({
+      level: certificationLevels,
+      agency: certificationAgencies,
+    })
+    .from(certificationLevels)
+    .leftJoin(
+      certificationAgencies,
+      eq(certificationLevels.agencyId, certificationAgencies.id)
+    )
+    .where(and(...conditions))
+    .orderBy(
+      asc(certificationAgencies.name),
+      asc(certificationLevels.level)
+    );
+}
+
 export async function getCertificationLevelById(
   organizationId: string,
   levelId: string
