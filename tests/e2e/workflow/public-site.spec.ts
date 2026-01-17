@@ -27,9 +27,12 @@ test.describe.serial("Public Site Tests", () => {
 
 // Setup hook: Enable public site before running tests
 test.beforeAll(async ({ browser }) => {
+  // Extend timeout for this complex setup hook
+  test.setTimeout(60000);
+
   const page = await browser.newPage();
   try {
-    // Login to tenant admin panel
+    // Login with shared test user (created by full-workflow.spec.ts)
     await page.goto(`http://e2etest.localhost:5173/auth/login`, { timeout: 15000 });
 
     // Try to find and fill login form
@@ -37,12 +40,9 @@ test.beforeAll(async ({ browser }) => {
     const hasEmailInput = await emailInput.isVisible({ timeout: 5000 }).catch(() => false);
 
     if (hasEmailInput) {
-      // Use test user credentials
-      const testUserEmail = process.env.E2E_USER_EMAIL || "e2e-user-1737033600000@example.com";
-      const testUserPassword = process.env.E2E_USER_PASSWORD || "TestPass123!";
-
-      await emailInput.fill(testUserEmail);
-      await page.getByLabel(/password/i).fill(testUserPassword);
+      // Use the shared test user
+      await emailInput.fill(testData.user.email);
+      await page.getByLabel(/password/i).fill(testData.user.password);
       await page.getByRole("button", { name: /sign in/i }).click();
 
       // Wait for login to complete
@@ -89,7 +89,7 @@ const testData = {
   },
   user: {
     name: "E2E Test User",
-    email: `e2e-user-${Date.now()}@example.com`,
+    email: "e2e-user@example.com", // Shared with full-workflow.spec.ts
     password: "TestPass123!",
   },
 };

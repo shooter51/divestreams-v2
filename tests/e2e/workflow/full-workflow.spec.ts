@@ -40,7 +40,7 @@ const testData = {
   },
   user: {
     name: "E2E Test User",
-    email: `e2e-user-${Date.now()}@example.com`,
+    email: "e2e-user@example.com", // Fixed email for cross-test sharing
     password: "TestPass123!",
   },
   admin: {
