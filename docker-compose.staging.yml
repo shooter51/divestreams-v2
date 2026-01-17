@@ -1,0 +1,90 @@
+services:
+  app:
+    image: ghcr.io/shooter51/divestreams-app:staging
+    container_name: divestreams-staging-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_staging}@db:5432/divestreams
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_URL=${AUTH_URL:-https://staging.divestreams.com}
+      - APP_URL=${APP_URL:-https://staging.divestreams.com}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM:-noreply@divestreams.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-DiveAdmin2026!}
+      - PLATFORM_ADMIN_EMAIL=${PLATFORM_ADMIN_EMAIL}
+      - PLATFORM_ADMIN_PASSWORD=${PLATFORM_ADMIN_PASSWORD}
+      - PLATFORM_ADMIN_NAME=${PLATFORM_ADMIN_NAME:-Platform Admin}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - divestreams-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: divestreams-staging-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: divestreams
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-divestreams_staging}
+      POSTGRES_DB: divestreams
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U divestreams"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - divestreams-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: divestreams-staging-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - divestreams-network
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: divestreams-staging-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    command: ["sh", "-c", "caddy reverse-proxy --from :80 --to app:3000"]
+    depends_on:
+      - app
+    networks:
+      - divestreams-network
+
+networks:
+  divestreams-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
