@@ -6,9 +6,6 @@ import { test, expect, type Page } from "@playwright/test";
  * COMPREHENSIVE TEST SUITE FOR TRAINING MODULE
  * ============================================
  *
- * ⚠️ TEMPORARILY SKIPPED: Training module routes not yet implemented.
- * See issue DIVE-wm8 for implementation tracking.
- *
  * This file contains tests for the Training Module which manages:
  * - Certification courses (PADI, SSI, NAUI, etc.)
  * - Training sessions (classroom, pool, open water)
@@ -30,8 +27,8 @@ import { test, expect, type Page } from "@playwright/test";
  * - Block E is independent (settings management)
  */
 
-// Skip all training module tests until routes are implemented
-test.describe.skip("Training Module Tests", () => {
+// Training Module Tests
+test.describe.serial("Training Module Tests", () => {
 
 // Shared test data structure
 const trainingTestData = {
@@ -1113,4 +1110,4 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
     expect(hasStatusUpdate || hasStatusSelect || page.url().includes("/enrollments")).toBeTruthy();
   });
 });
-}); // End of skip wrapper
+});
