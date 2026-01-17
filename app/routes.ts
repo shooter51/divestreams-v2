@@ -137,8 +137,15 @@ export default [
       route("contact", "routes/site/contact.tsx"),
       route("login", "routes/site/login.tsx"),
       route("register", "routes/site/register.tsx"),
-      route("account", "routes/site/account/index.tsx"),
       route("book/:type/:id", "routes/site/book/$type.$id.tsx"),
+
+      // Account routes (protected by layout auth guard)
+      layout("routes/site/account/_layout.tsx", [
+        route("account", "routes/site/account/index.tsx"),
+        route("account/bookings", "routes/site/account/bookings.tsx"),
+        route("account/profile", "routes/site/account/profile.tsx"),
+        route("account/logout", "routes/site/account/logout.tsx"),
+      ]),
     ]),
   ]),
 ] satisfies RouteConfig;
