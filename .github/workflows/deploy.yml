@@ -107,7 +107,10 @@ jobs:
   # ─────────────────────────────────────────────
   build:
     needs: [test, e2e]
-    if: github.ref == 'refs/heads/staging'
+    if: |
+      github.ref == 'refs/heads/staging' &&
+      needs.test.result == 'success' &&
+      (needs.e2e.result == 'success' || needs.e2e.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       contents: read
