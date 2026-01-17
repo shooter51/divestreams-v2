@@ -3,6 +3,40 @@
 ## Project Overview
 Multi-tenant SaaS platform for dive shop and dive tour management. Built with React Router v7, PostgreSQL (multi-tenant with schema-per-tenant), Redis, and Caddy.
 
+## Beads Issue Tracking - REQUIRED BEFORE CODE CHANGES
+
+**IMPORTANT: Always use Beads to track work before making code changes.**
+
+### Before Starting Work
+```bash
+bd ready                    # Show issues ready to work on
+bd create --title "..."     # Create new issue for the task
+bd show DIVE-xxx            # View issue details
+```
+
+### During Work
+```bash
+bd update DIVE-xxx --status in-progress  # Mark as in progress
+bd comments DIVE-xxx --add "..."         # Add progress notes
+```
+
+### After Completing Work
+```bash
+bd close DIVE-xxx           # Close the issue
+bd list                     # Verify status
+```
+
+### Key Commands
+```bash
+bd status                   # Overview of all issues
+bd list                     # List open issues
+bd search "keyword"         # Find issues
+bd graph                    # Show dependency graph
+```
+
+**Issue Prefix:** `DIVE-`
+**Sync Branch:** `beads-sync`
+
 ## Deployment
 
 ### CI/CD Pipeline - THE ONLY WAY TO DEPLOY
