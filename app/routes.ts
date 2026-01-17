@@ -124,4 +124,21 @@ export default [
     route("plans", "routes/admin/plans.tsx"),
     route("plans/:id", "routes/admin/plans.$id.tsx"),
   ]),
+  // Public site routes (accessed via subdomain/site)
+  // These routes are for the customer-facing public website
+  ...prefix("site", [
+    layout("routes/site/_layout.tsx", [
+      index("routes/site/index.tsx"), // Homepage
+      route("about", "routes/site/about.tsx"),
+      route("trips", "routes/site/trips/index.tsx"),
+      route("trips/:tripId", "routes/site/trips/$tripId.tsx"),
+      route("courses", "routes/site/courses/index.tsx"),
+      route("courses/:courseId", "routes/site/courses/$courseId.tsx"),
+      route("contact", "routes/site/contact.tsx"),
+      route("login", "routes/site/login.tsx"),
+      route("register", "routes/site/register.tsx"),
+      route("account", "routes/site/account/index.tsx"),
+      route("book/:type/:id", "routes/site/book/$type.$id.tsx"),
+    ]),
+  ]),
 ] satisfies RouteConfig;
