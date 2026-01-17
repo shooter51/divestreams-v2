@@ -23,6 +23,7 @@ export * from "./schema/subscription";
 export * from "./schema/api-keys";
 export * from "./schema/webhooks";
 export * from "./schema/integrations";
+export * from "./schema/public-site";
 
 // Import organization for foreign key references
 import { organization } from "./schema/auth";
@@ -163,6 +164,9 @@ export const customers = pgTable("customers", {
   preferredLanguage: text("preferred_language").default("en"),
   marketingOptIn: boolean("marketing_opt_in").default(false),
 
+  // Public site account
+  hasAccount: boolean("has_account").notNull().default(false),
+
   notes: text("notes"),
   tags: jsonb("tags").$type<string[]>(),
 
@@ -281,6 +285,9 @@ export const trips = pgTable("trips", {
   maxParticipants: integer("max_participants"),
   price: decimal("price", { precision: 10, scale: 2 }),
 
+  // Public site visibility
+  isPublic: boolean("is_public").notNull().default(false),
+
   // Recurring trip fields
   isRecurring: boolean("is_recurring").notNull().default(false),
   recurrencePattern: text("recurrence_pattern"), // daily, weekly, biweekly, monthly
@@ -394,6 +401,9 @@ export const equipment = pgTable("equipment", {
   // For rentals
   rentalPrice: decimal("rental_price", { precision: 10, scale: 2 }),
   isRentable: boolean("is_rentable").default(true),
+
+  // Public site visibility
+  isPublic: boolean("is_public").notNull().default(false),
 
   // Maintenance
   lastServiceDate: date("last_service_date"),

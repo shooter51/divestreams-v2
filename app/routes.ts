@@ -99,6 +99,13 @@ export default [
       route("settings/integrations", "routes/tenant/settings/integrations.tsx"),
       route("settings/notifications", "routes/tenant/settings/notifications.tsx"),
       route("settings/booking-widget", "routes/tenant/settings/booking-widget.tsx"),
+
+      // Public Site Settings (with nested routes for tabs)
+      layout("routes/tenant/settings/public-site.tsx", [
+        route("settings/public-site", "routes/tenant/settings/public-site.general.tsx"),
+        route("settings/public-site/content", "routes/tenant/settings/public-site.content.tsx"),
+        route("settings/public-site/appearance", "routes/tenant/settings/public-site.appearance.tsx"),
+      ]),
     ]),
   ]),
 
@@ -123,5 +130,29 @@ export default [
     route("tenants/:id", "routes/admin/tenants.$id.tsx"),
     route("plans", "routes/admin/plans.tsx"),
     route("plans/:id", "routes/admin/plans.$id.tsx"),
+  ]),
+  // Public site routes (accessed via subdomain/site)
+  // These routes are for the customer-facing public website
+  ...prefix("site", [
+    layout("routes/site/_layout.tsx", [
+      index("routes/site/index.tsx"), // Homepage
+      route("about", "routes/site/about.tsx"),
+      route("trips", "routes/site/trips/index.tsx"),
+      route("trips/:tripId", "routes/site/trips/$tripId.tsx"),
+      route("courses", "routes/site/courses/index.tsx"),
+      route("courses/:courseId", "routes/site/courses/$courseId.tsx"),
+      route("contact", "routes/site/contact.tsx"),
+      route("login", "routes/site/login.tsx"),
+      route("register", "routes/site/register.tsx"),
+      route("book/:type/:id", "routes/site/book/$type.$id.tsx"),
+
+      // Account routes (protected by layout auth guard)
+      layout("routes/site/account/_layout.tsx", [
+        route("account", "routes/site/account/index.tsx"),
+        route("account/bookings", "routes/site/account/bookings.tsx"),
+        route("account/profile", "routes/site/account/profile.tsx"),
+        route("account/logout", "routes/site/account/logout.tsx"),
+      ]),
+    ]),
   ]),
 ] satisfies RouteConfig;
