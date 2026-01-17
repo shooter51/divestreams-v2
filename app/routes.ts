@@ -99,6 +99,13 @@ export default [
       route("settings/integrations", "routes/tenant/settings/integrations.tsx"),
       route("settings/notifications", "routes/tenant/settings/notifications.tsx"),
       route("settings/booking-widget", "routes/tenant/settings/booking-widget.tsx"),
+
+      // Public Site Settings (with nested routes for tabs)
+      layout("routes/tenant/settings/public-site.tsx", [
+        route("settings/public-site", "routes/tenant/settings/public-site.general.tsx"),
+        route("settings/public-site/content", "routes/tenant/settings/public-site.content.tsx"),
+        route("settings/public-site/appearance", "routes/tenant/settings/public-site.appearance.tsx"),
+      ]),
     ]),
   ]),
 
