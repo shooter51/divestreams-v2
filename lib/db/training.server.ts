@@ -34,6 +34,14 @@ export async function getCertificationAgencies(organizationId: string) {
     .orderBy(asc(certificationAgencies.name));
 }
 
+export async function getAllCertificationAgencies(organizationId: string) {
+  return db
+    .select()
+    .from(certificationAgencies)
+    .where(eq(certificationAgencies.organizationId, organizationId))
+    .orderBy(asc(certificationAgencies.name));
+}
+
 export async function getCertificationAgencyById(
   organizationId: string,
   agencyId: string

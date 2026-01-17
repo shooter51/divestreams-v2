@@ -96,6 +96,7 @@ export default [
       route("training/sessions/:sessionId", "routes/tenant/training/sessions/$sessionId.tsx"),
       route("training/enrollments", "routes/tenant/training/enrollments/index.tsx"),
       route("training/enrollments/:enrollmentId", "routes/tenant/training/enrollments/$enrollmentId.tsx"),
+      route("training/settings/agencies", "routes/tenant/training/settings/agencies.tsx"),
 
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
