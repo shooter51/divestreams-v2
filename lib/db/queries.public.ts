@@ -352,6 +352,246 @@ export interface PublicTripDetail {
   primaryImage: string | null;
 }
 
+// ============================================================================
+// Public Course Queries (for Embed Widget)
+// ============================================================================
+
+export interface PublicCourse {
+  id: string;
+  name: string;
+  description: string | null;
+  agencyName: string;
+  agencyCode: string;
+  agencyLogo: string | null;
+  levelName: string;
+  levelCode: string;
+  price: string;
+  depositAmount: string | null;
+  currency: string;
+  maxStudents: number;
+  totalSessions: number;
+  hasExam: boolean;
+  minOpenWaterDives: number;
+  scheduleType: string;
+}
+
+export async function getPublicCourses(
+  organizationId: string
+): Promise<PublicCourse[]> {
+  const courses = await db
+    .select({
+      id: schema.trainingCourses.id,
+      name: schema.trainingCourses.name,
+      description: schema.trainingCourses.description,
+      agencyName: schema.certificationAgencies.name,
+      agencyCode: schema.certificationAgencies.code,
+      agencyLogo: schema.certificationAgencies.logoUrl,
+      levelName: schema.certificationLevels.name,
+      levelCode: schema.certificationLevels.code,
+      price: schema.trainingCourses.price,
+      depositAmount: schema.trainingCourses.depositAmount,
+      maxStudents: schema.trainingCourses.maxStudents,
+      totalSessions: schema.trainingCourses.totalSessions,
+      hasExam: schema.trainingCourses.hasExam,
+      minOpenWaterDives: schema.trainingCourses.minOpenWaterDives,
+      scheduleType: schema.trainingCourses.scheduleType,
+    })
+    .from(schema.trainingCourses)
+    .innerJoin(
+      schema.certificationAgencies,
+      eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
+    )
+    .innerJoin(
+      schema.certificationLevels,
+      eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
+    )
+    .where(
+      and(
+        eq(schema.trainingCourses.organizationId, organizationId),
+        eq(schema.trainingCourses.isActive, true),
+        eq(schema.certificationAgencies.isActive, true),
+        eq(schema.certificationLevels.isActive, true)
+      )
+    )
+    .orderBy(asc(schema.certificationAgencies.name), asc(schema.certificationLevels.level));
+
+  // Get organization settings for currency
+  const orgSettings = await db
+    .select({ currency: schema.organizationSettings.currency })
+    .from(schema.organizationSettings)
+    .where(eq(schema.organizationSettings.organizationId, organizationId))
+    .limit(1);
+
+  const currency = orgSettings[0]?.currency || "USD";
+
+  return courses.map((course) => ({
+    id: course.id,
+    name: course.name,
+    description: course.description,
+    agencyName: course.agencyName,
+    agencyCode: course.agencyCode,
+    agencyLogo: course.agencyLogo,
+    levelName: course.levelName,
+    levelCode: course.levelCode,
+    price: course.price,
+    depositAmount: course.depositAmount,
+    currency,
+    maxStudents: course.maxStudents,
+    totalSessions: course.totalSessions,
+    hasExam: course.hasExam,
+    minOpenWaterDives: course.minOpenWaterDives ?? 0,
+    scheduleType: course.scheduleType,
+  }));
+}
+
+export interface PublicCourseDetail extends PublicCourse {
+  upcomingSessions: Array<{
+    id: string;
+    sessionType: string;
+    sessionNumber: number;
+    scheduledDate: string;
+    startTime: string;
+    endTime: string | null;
+    location: string | null;
+    availableSpots: number;
+  }>;
+}
+
+export async function getPublicCourseById(
+  organizationId: string,
+  courseId: string
+): Promise<PublicCourseDetail | null> {
+  const courses = await db
+    .select({
+      id: schema.trainingCourses.id,
+      name: schema.trainingCourses.name,
+      description: schema.trainingCourses.description,
+      agencyName: schema.certificationAgencies.name,
+      agencyCode: schema.certificationAgencies.code,
+      agencyLogo: schema.certificationAgencies.logoUrl,
+      levelName: schema.certificationLevels.name,
+      levelCode: schema.certificationLevels.code,
+      price: schema.trainingCourses.price,
+      depositAmount: schema.trainingCourses.depositAmount,
+      maxStudents: schema.trainingCourses.maxStudents,
+      totalSessions: schema.trainingCourses.totalSessions,
+      hasExam: schema.trainingCourses.hasExam,
+      minOpenWaterDives: schema.trainingCourses.minOpenWaterDives,
+      scheduleType: schema.trainingCourses.scheduleType,
+    })
+    .from(schema.trainingCourses)
+    .innerJoin(
+      schema.certificationAgencies,
+      eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
+    )
+    .innerJoin(
+      schema.certificationLevels,
+      eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
+    )
+    .where(
+      and(
+        eq(schema.trainingCourses.organizationId, organizationId),
+        eq(schema.trainingCourses.id, courseId),
+        eq(schema.trainingCourses.isActive, true)
+      )
+    )
+    .limit(1);
+
+  if (courses.length === 0) {
+    return null;
+  }
+
+  const course = courses[0];
+
+  // Get organization settings for currency
+  const orgSettings = await db
+    .select({ currency: schema.organizationSettings.currency })
+    .from(schema.organizationSettings)
+    .where(eq(schema.organizationSettings.organizationId, organizationId))
+    .limit(1);
+
+  const currency = orgSettings[0]?.currency || "USD";
+
+  // Get upcoming sessions for this course
+  const today = new Date().toISOString().split("T")[0];
+  const sessions = await db
+    .select({
+      id: schema.courseSessions.id,
+      sessionType: schema.courseSessions.sessionType,
+      sessionNumber: schema.courseSessions.sessionNumber,
+      scheduledDate: schema.courseSessions.scheduledDate,
+      startTime: schema.courseSessions.startTime,
+      endTime: schema.courseSessions.endTime,
+      location: schema.courseSessions.location,
+      maxStudents: schema.courseSessions.maxStudents,
+    })
+    .from(schema.courseSessions)
+    .where(
+      and(
+        eq(schema.courseSessions.organizationId, organizationId),
+        eq(schema.courseSessions.courseId, courseId),
+        eq(schema.courseSessions.status, "scheduled"),
+        gte(schema.courseSessions.scheduledDate, today)
+      )
+    )
+    .orderBy(asc(schema.courseSessions.scheduledDate), asc(schema.courseSessions.startTime))
+    .limit(10);
+
+  // Get enrollment count for each session to calculate available spots
+  const sessionsWithAvailability = await Promise.all(
+    sessions.map(async (session) => {
+      const [enrollmentCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.trainingEnrollments)
+        .where(
+          and(
+            eq(schema.trainingEnrollments.organizationId, organizationId),
+            eq(schema.trainingEnrollments.courseId, courseId),
+            sql`${schema.trainingEnrollments.status} NOT IN ('withdrawn', 'certified')`
+          )
+        );
+
+      const maxStudents = session.maxStudents || course.maxStudents;
+      const enrolled = Number(enrollmentCount?.count || 0);
+
+      return {
+        id: session.id,
+        sessionType: session.sessionType,
+        sessionNumber: session.sessionNumber,
+        scheduledDate: session.scheduledDate,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        location: session.location,
+        availableSpots: Math.max(0, maxStudents - enrolled),
+      };
+    })
+  );
+
+  return {
+    id: course.id,
+    name: course.name,
+    description: course.description,
+    agencyName: course.agencyName,
+    agencyCode: course.agencyCode,
+    agencyLogo: course.agencyLogo,
+    levelName: course.levelName,
+    levelCode: course.levelCode,
+    price: course.price,
+    depositAmount: course.depositAmount,
+    currency,
+    maxStudents: course.maxStudents,
+    totalSessions: course.totalSessions,
+    hasExam: course.hasExam,
+    minOpenWaterDives: course.minOpenWaterDives ?? 0,
+    scheduleType: course.scheduleType,
+    upcomingSessions: sessionsWithAvailability,
+  };
+}
+
+// ============================================================================
+// Public Trip Detail (for booking)
+// ============================================================================
+
 export async function getPublicTripById(
   organizationId: string,
   tripId: string

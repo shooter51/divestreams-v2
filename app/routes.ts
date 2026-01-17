@@ -86,6 +86,19 @@ export default [
       // Discount Codes
       route("discounts", "routes/tenant/discounts.tsx"),
 
+      // Training
+      route("training", "routes/tenant/training/index.tsx"),
+      route("training/courses", "routes/tenant/training/courses/index.tsx"),
+      route("training/courses/new", "routes/tenant/training/courses/new.tsx"),
+      route("training/courses/:courseId/edit", "routes/tenant/training/courses/$courseId.edit.tsx"),
+      route("training/courses/:courseId", "routes/tenant/training/courses/$courseId.tsx"),
+      route("training/sessions", "routes/tenant/training/sessions/index.tsx"),
+      route("training/sessions/:sessionId", "routes/tenant/training/sessions/$sessionId.tsx"),
+      route("training/enrollments", "routes/tenant/training/enrollments/index.tsx"),
+      route("training/enrollments/:enrollmentId", "routes/tenant/training/enrollments/$enrollmentId.tsx"),
+      route("training/settings/agencies", "routes/tenant/training/settings/agencies.tsx"),
+      route("training/settings/levels", "routes/tenant/training/settings/levels.tsx"),
+
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
       route("reports/export/csv", "routes/tenant/reports/export.csv.tsx"),
