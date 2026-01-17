@@ -37,7 +37,7 @@ const trainingTestData = {
     subdomain: "e2etest",
   },
   user: {
-    email: `e2e-user-${Date.now()}@example.com`,
+    email: "e2e-user@example.com", // Shared with full-workflow.spec.ts
     password: "TestPass123!",
   },
   course: {
@@ -85,11 +85,9 @@ const getTenantUrl = (path: string = "/") =>
 // Helper to login to tenant
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
-  // Use the user from full-workflow tests or create new
-  const testUserEmail = process.env.E2E_USER_EMAIL || "e2e-user-1737033600000@example.com";
-  const testUserPassword = process.env.E2E_USER_PASSWORD || "TestPass123!";
-  await page.getByLabel(/email/i).fill(testUserEmail);
-  await page.getByLabel(/password/i).fill(testUserPassword);
+  // Use the dynamic user created for this test
+  await page.getByLabel(/email/i).fill(trainingTestData.user.email);
+  await page.getByLabel(/password/i).fill(trainingTestData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
     await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
@@ -146,6 +144,7 @@ async function extractEntityUuid(
 // ═══════════════════════════════════════════════════════════════════════════════
 // BLOCK A: Training Dashboard & Navigation (~5 tests)
 // Tests the main training dashboard and navigation to sub-sections
+// Assumes tenant and user created by full-workflow.spec.ts
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Training Dashboard & Navigation", () => {
