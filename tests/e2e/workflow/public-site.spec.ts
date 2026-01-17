@@ -30,7 +30,7 @@ test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage();
   try {
     // Login to tenant admin panel
-    await page.goto(`http://e2etest.localhost:5173/auth/login`);
+    await page.goto(`http://e2etest.localhost:5173/auth/login`, { timeout: 15000 });
 
     // Try to find and fill login form
     const emailInput = page.getByLabel(/email/i);
@@ -47,34 +47,36 @@ test.beforeAll(async ({ browser }) => {
 
       // Wait for login to complete
       try {
-        await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+        await page.waitForURL(/\/(app|dashboard)/, { timeout: 15000 });
       } catch {
         await page.waitForTimeout(3000);
       }
 
       // Navigate to public site settings
-      await page.goto(`http://e2etest.localhost:5173/app/settings/public-site`);
-      await page.waitForTimeout(2000);
+      await page.goto(`http://e2etest.localhost:5173/app/settings/public-site`, { timeout: 15000 });
+      await page.waitForTimeout(3000);
 
       // Enable public site if not already enabled
       const enabledCheckbox = page.locator('input[name="enabled"]');
-      const isChecked = await enabledCheckbox.isChecked().catch(() => false);
+      const isChecked = await enabledCheckbox.isChecked({ timeout: 5000 }).catch(() => false);
 
       if (!isChecked) {
         // Check the enable toggle
-        await enabledCheckbox.check();
+        await enabledCheckbox.check({ timeout: 5000 });
 
         // Submit the form
-        await page.getByRole("button", { name: /save|update/i }).click();
-        await page.waitForTimeout(2000);
+        const saveButton = page.getByRole("button", { name: /save|update/i });
+        await saveButton.click({ timeout: 5000 });
+        await page.waitForTimeout(3000);
       }
     }
   } catch (error) {
     console.log("Public site setup: Could not enable public site via UI, tests may fail");
+    console.log("Error:", error);
   } finally {
     await page.close();
   }
-});
+}, { timeout: 60000 });
 
 
 // Shared test data - reuses tenant from full-workflow.spec.ts

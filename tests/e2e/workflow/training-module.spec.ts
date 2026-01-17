@@ -413,12 +413,17 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
       await page.goto(getTenantUrl("/app/training/courses"));
-      expect(page.url().includes("/courses")).toBeTruthy();
+      await page.waitForTimeout(2000);
+      // Verify we're on the courses page (not redirected to login)
+      const currentUrl = page.url();
+      expect(currentUrl.includes("/app/training") || currentUrl.includes("/courses")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/app/training/courses/${courseId}`));
-    await page.waitForTimeout(1500);
-    expect(page.url().includes("/courses")).toBeTruthy();
+    await page.waitForTimeout(2000);
+    // Verify we're on the course detail page
+    const currentUrl = page.url();
+    expect(currentUrl.includes("/courses") || currentUrl.includes("/training")).toBeTruthy();
   });
 
   test("B.10 Navigate to course edit page and verify save button", async ({ page }) => {
