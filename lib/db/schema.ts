@@ -23,9 +23,16 @@ export * from "./schema/subscription";
 export * from "./schema/api-keys";
 export * from "./schema/webhooks";
 export * from "./schema/integrations";
+export * from "./schema/training";
 
 // Import organization for foreign key references
 import { organization } from "./schema/auth";
+
+// Import training tables for relation definitions
+import {
+  courseSessions,
+  trainingEnrollments,
+} from "./schema/training";
 
 // ============================================================================
 // PUBLIC SCHEMA - Shared across all tenants (LEGACY - to be removed)
@@ -738,6 +745,7 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
   transactions: many(transactions),
   rentals: many(rentals),
   communications: many(customerCommunications),
+  trainingEnrollments: many(trainingEnrollments),
 }));
 
 export const customerCommunicationsRelations = relations(customerCommunications, ({ one }) => ({
@@ -765,6 +773,7 @@ export const diveSitesRelations = relations(diveSites, ({ one, many }) => ({
     references: [organization.id],
   }),
   tourDiveSites: many(tourDiveSites),
+  courseSessions: many(courseSessions),
 }));
 
 export const toursRelations = relations(tours, ({ one, many }) => ({
@@ -883,6 +892,33 @@ export const imagesRelations = relations(images, ({ one }) => ({
   organization: one(organization, {
     fields: [images.organizationId],
     references: [organization.id],
+  }),
+}));
+
+// ============================================================================
+// ADDITIONAL TRAINING RELATIONS
+// These are defined here to avoid circular imports with the training schema
+// ============================================================================
+
+/**
+ * Additional relation for courseSessions -> diveSites
+ * Defined here because diveSites is in main schema and courseSessions is in training schema
+ */
+export const courseSessionsDiveSiteRelation = relations(courseSessions, ({ one }) => ({
+  diveSite: one(diveSites, {
+    fields: [courseSessions.diveSiteId],
+    references: [diveSites.id],
+  }),
+}));
+
+/**
+ * Additional relation for trainingEnrollments -> customers
+ * Defined here because customers is in main schema and trainingEnrollments is in training schema
+ */
+export const trainingEnrollmentsCustomerRelation = relations(trainingEnrollments, ({ one }) => ({
+  customer: one(customers, {
+    fields: [trainingEnrollments.customerId],
+    references: [customers.id],
   }),
 }));
 
