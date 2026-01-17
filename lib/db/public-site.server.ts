@@ -359,6 +359,145 @@ export async function getPublicEquipment(
   };
 }
 
+/**
+ * Get a single public course by ID for an organization
+ * Returns tour of type 'course' where isActive = true
+ */
+export async function getPublicCourseById(
+  organizationId: string,
+  courseId: string
+): Promise<{
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  duration: number | null;
+  maxParticipants: number;
+  minParticipants: number | null;
+  price: string;
+  currency: string;
+  includesEquipment: boolean | null;
+  includesMeals: boolean | null;
+  includesTransport: boolean | null;
+  inclusions: string[] | null;
+  exclusions: string[] | null;
+  minCertLevel: string | null;
+  minAge: number | null;
+  requirements: string[] | null;
+  images: string[] | null;
+  isActive: boolean;
+} | null> {
+  const [course] = await db
+    .select({
+      id: tours.id,
+      name: tours.name,
+      description: tours.description,
+      type: tours.type,
+      duration: tours.duration,
+      maxParticipants: tours.maxParticipants,
+      minParticipants: tours.minParticipants,
+      price: tours.price,
+      currency: tours.currency,
+      includesEquipment: tours.includesEquipment,
+      includesMeals: tours.includesMeals,
+      includesTransport: tours.includesTransport,
+      inclusions: tours.inclusions,
+      exclusions: tours.exclusions,
+      minCertLevel: tours.minCertLevel,
+      minAge: tours.minAge,
+      requirements: tours.requirements,
+      images: tours.images,
+      isActive: tours.isActive,
+    })
+    .from(tours)
+    .where(
+      and(
+        eq(tours.organizationId, organizationId),
+        eq(tours.id, courseId),
+        eq(tours.type, "course"),
+        eq(tours.isActive, true)
+      )
+    )
+    .limit(1);
+
+  return course || null;
+}
+
+/**
+ * Get scheduled trips for a specific course/tour
+ * Returns upcoming sessions for course enrollment
+ */
+export async function getCourseScheduledTrips(
+  organizationId: string,
+  courseId: string,
+  options: PaginationOptions = {}
+): Promise<{
+  trips: Array<{
+    id: string;
+    date: string;
+    startTime: string;
+    endTime: string | null;
+    maxParticipants: number | null;
+    price: string | null;
+    status: string;
+  }>;
+  total: number;
+}> {
+  const { limit = 10, page = 1 } = options;
+  const offset = (page - 1) * limit;
+
+  const tripsData = await db
+    .select({
+      id: trips.id,
+      date: trips.date,
+      startTime: trips.startTime,
+      endTime: trips.endTime,
+      maxParticipants: trips.maxParticipants,
+      price: trips.price,
+      status: trips.status,
+    })
+    .from(trips)
+    .where(
+      and(
+        eq(trips.organizationId, organizationId),
+        eq(trips.tourId, courseId),
+        eq(trips.isPublic, true),
+        eq(trips.status, "scheduled")
+      )
+    )
+    .orderBy(trips.date, trips.startTime)
+    .limit(limit)
+    .offset(offset);
+
+  // Get total count
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(trips)
+    .where(
+      and(
+        eq(trips.organizationId, organizationId),
+        eq(trips.tourId, courseId),
+        eq(trips.isPublic, true),
+        eq(trips.status, "scheduled")
+      )
+    );
+
+  const total = Number(countResult[0]?.count ?? 0);
+
+  return {
+    trips: tripsData.map((trip) => ({
+      id: trip.id,
+      date: trip.date,
+      startTime: trip.startTime,
+      endTime: trip.endTime,
+      maxParticipants: trip.maxParticipants,
+      price: trip.price,
+      status: trip.status,
+    })),
+    total,
+  };
+}
+
 // ============================================================================
 // Custom Domain Resolution
 // ============================================================================
