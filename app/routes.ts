@@ -86,6 +86,9 @@ export default [
       // Discount Codes
       route("discounts", "routes/tenant/discounts.tsx"),
 
+      // Training
+      route("training", "routes/tenant/training/index.tsx"),
+
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
       route("reports/export/csv", "routes/tenant/reports/export.csv.tsx"),
