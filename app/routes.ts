@@ -155,4 +155,13 @@ export default [
       ]),
     ]),
   ]),
+  // Embed booking widget routes (for external website integration)
+  ...prefix("embed", [
+    layout("routes/embed/$tenant.tsx", [
+      route(":tenant", "routes/embed/$tenant._index.tsx"),
+      route(":tenant/tour/:id", "routes/embed/$tenant.tour.$id.tsx"),
+      route(":tenant/book", "routes/embed/$tenant.book.tsx"),
+      route(":tenant/confirm", "routes/embed/$tenant.confirm.tsx"),
+    ]),
+  ]),
 ] satisfies RouteConfig;
