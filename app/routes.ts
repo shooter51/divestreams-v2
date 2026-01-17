@@ -88,6 +88,7 @@ export default [
 
       // Training
       route("training", "routes/tenant/training/index.tsx"),
+      route("training/courses", "routes/tenant/training/courses/index.tsx"),
 
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
