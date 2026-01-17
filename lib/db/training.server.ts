@@ -695,6 +695,68 @@ export async function getSkillCheckoffs(
     .orderBy(asc(skillCheckoffs.skillCategory), asc(skillCheckoffs.skillName));
 }
 
+export async function getSkillCheckoffsForSession(
+  organizationId: string,
+  sessionId: string
+) {
+  return db
+    .select({
+      checkoff: skillCheckoffs,
+      enrollment: trainingEnrollments,
+      customer: customers,
+    })
+    .from(skillCheckoffs)
+    .leftJoin(
+      trainingEnrollments,
+      eq(skillCheckoffs.enrollmentId, trainingEnrollments.id)
+    )
+    .leftJoin(customers, eq(trainingEnrollments.customerId, customers.id))
+    .where(
+      and(
+        eq(skillCheckoffs.organizationId, organizationId),
+        eq(skillCheckoffs.sessionId, sessionId)
+      )
+    )
+    .orderBy(asc(skillCheckoffs.skillCategory), asc(skillCheckoffs.skillName));
+}
+
+export async function getEnrollmentsForSession(
+  organizationId: string,
+  sessionId: string
+) {
+  // First get the session to find its courseId
+  const session = await getCourseSessionById(organizationId, sessionId);
+  if (!session) return [];
+
+  // Get enrollments for the same course that are actively in progress
+  const enrollments = await db
+    .select({
+      enrollment: trainingEnrollments,
+      course: trainingCourses,
+      customer: customers,
+    })
+    .from(trainingEnrollments)
+    .leftJoin(
+      trainingCourses,
+      eq(trainingEnrollments.courseId, trainingCourses.id)
+    )
+    .leftJoin(customers, eq(trainingEnrollments.customerId, customers.id))
+    .where(
+      and(
+        eq(trainingEnrollments.organizationId, organizationId),
+        eq(trainingEnrollments.courseId, session.session.courseId),
+        inArray(trainingEnrollments.status, [
+          "enrolled",
+          "in_progress",
+          "scheduled",
+        ])
+      )
+    )
+    .orderBy(asc(customers.lastName), asc(customers.firstName));
+
+  return enrollments;
+}
+
 export async function recordSkillCheckoff(
   organizationId: string,
   data: {
