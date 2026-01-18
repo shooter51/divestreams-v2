@@ -119,12 +119,14 @@ export async function syncSubscriptionToDatabase(
     planInterval: price?.recurring?.interval || null,
     amount: price?.unit_amount || 0,
     currency: price?.currency || "usd",
-    currentPeriodStart: subscription.current_period_start
-      ? new Date(subscription.current_period_start * 1000)
-      : null,
-    currentPeriodEnd: subscription.current_period_end
-      ? new Date(subscription.current_period_end * 1000)
-      : null,
+    currentPeriodStart:
+      (subscription as any).current_period_start
+        ? new Date((subscription as any).current_period_start * 1000)
+        : null,
+    currentPeriodEnd:
+      (subscription as any).current_period_end
+        ? new Date((subscription as any).current_period_end * 1000)
+        : null,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
     canceledAt: subscription.canceled_at
       ? new Date(subscription.canceled_at * 1000)
@@ -190,17 +192,17 @@ export async function syncInvoiceToDatabase(
     stripeInvoiceId: invoice.id,
     stripeCustomerId: customerId,
     stripeSubscriptionId:
-      typeof invoice.subscription === "string" ? invoice.subscription : null,
+      typeof (invoice as any).subscription === "string" ? (invoice as any).subscription : null,
     invoiceNumber: invoice.number || null,
     amountDue: invoice.amount_due,
     amountPaid: invoice.amount_paid,
     amountRemaining: invoice.amount_remaining,
     subtotal: invoice.subtotal,
     total: invoice.total,
-    tax: invoice.tax || 0,
+    tax: (invoice as any).tax || 0,
     currency: invoice.currency,
     status: invoice.status || "draft",
-    paid: invoice.paid,
+    paid: (invoice as any).paid || false,
     attemptCount: invoice.attempt_count,
     periodStart: invoice.period_start
       ? new Date(invoice.period_start * 1000)
@@ -272,8 +274,8 @@ export async function syncPaymentToDatabase(
     stripePaymentIntentId: paymentIntent.id,
     stripeCustomerId: customerId,
     stripeInvoiceId:
-      typeof paymentIntent.invoice === "string"
-        ? paymentIntent.invoice
+      typeof (paymentIntent as any).invoice === "string"
+        ? (paymentIntent as any).invoice
         : null,
     amount: paymentIntent.amount,
     currency: paymentIntent.currency,
@@ -284,7 +286,7 @@ export async function syncPaymentToDatabase(
     failureCode: paymentIntent.last_payment_error?.code || null,
     failureMessage: paymentIntent.last_payment_error?.message || null,
     receiptEmail: paymentIntent.receipt_email || null,
-    receiptUrl: (paymentIntent.charges.data[0] as any)?.receipt_url || null,
+    receiptUrl: ((paymentIntent as any).charges?.data[0] as any)?.receipt_url || null,
     description: paymentIntent.description || null,
     metadata: paymentIntent.metadata as Record<string, string>,
     updatedAt: new Date(),

@@ -4,13 +4,16 @@
  * BullMQ worker that processes webhook deliveries with retry logic.
  */
 
-import { Worker } from "bullmq";
+import { Worker, type ConnectionOptions } from "bullmq";
 import Redis from "ioredis";
 import { deliverWebhook } from "../integrations/zapier-enhanced.server";
 
 const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
   maxRetriesPerRequest: null,
 });
+
+// Cast to ConnectionOptions to avoid ioredis version conflicts between packages
+const connection = redis as unknown as ConnectionOptions;
 
 /**
  * Worker for processing Zapier webhook deliveries
@@ -50,7 +53,7 @@ export const zapierWebhookWorker = new Worker(
     return result;
   },
   {
-    connection: redis,
+    connection,
     concurrency: 5, // Process up to 5 webhooks concurrently
   }
 );

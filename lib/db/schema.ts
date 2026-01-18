@@ -29,7 +29,32 @@ export * from "./schema/public-site";
 export * from "./schema/training";
 export * from "./schema/gallery";
 export * from "./schema/team";
-export * from "./schema/page-content";
+// Note: page-content.ts exports TeamMember interface which conflicts with schema/team.ts TeamMember type
+// We only need the table and types from team.ts, not the interface from page-content.ts
+export {
+  pageContent,
+  pageContentHistory,
+  pageContentRelations,
+  pageContentHistoryRelations,
+  type PageContentRow,
+  type NewPageContent,
+  type PageContentHistoryRow,
+  type NewPageContentHistory,
+  type ContentBlock,
+  type PageContent,
+  type HeadingBlock,
+  type ParagraphBlock,
+  type HtmlBlock,
+  type ImageBlock,
+  type GalleryBlock,
+  type TeamSectionBlock,
+  type ValuesGridBlock,
+  type CtaBlock,
+  type DividerBlock,
+  type SpacerBlock,
+  type ValueItem,
+  type ContentBlockType,
+} from "./schema/page-content";
 export * from "./schema/stripe";
 export * from "./schema/zapier";
 
