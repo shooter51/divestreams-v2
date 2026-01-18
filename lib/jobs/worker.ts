@@ -19,6 +19,7 @@ import {
   welcomeEmail,
 } from "../email";
 import { cleanupStaleTenants } from "./stale-tenant-cleanup";
+import { startQuickBooksSyncWorker } from "./quickbooks-sync.server";
 import { db } from "../db";
 import { organization } from "../db/schema/auth";
 import { bookings, trips, tours, customers } from "../db/schema";
@@ -356,6 +357,9 @@ function startWorkers() {
     console.error(`Maintenance job ${job?.id} failed:`, err);
   });
 
+  // QuickBooks sync worker
+  const quickbooksWorker = startQuickBooksSyncWorker();
+
   console.log("Workers started. Waiting for jobs...");
 
   // Graceful shutdown
@@ -365,6 +369,7 @@ function startWorkers() {
     await bookingWorker.close();
     await reportWorker.close();
     await maintenanceWorker.close();
+    await quickbooksWorker.close();
     await redisClient.quit();
     process.exit(0);
   };

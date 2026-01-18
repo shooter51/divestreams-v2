@@ -1063,6 +1063,15 @@ export default function IntegrationsPage() {
                           </button>
                         </fetcher.Form>
                       )}
+                      {/* Show Manage Settings button for QuickBooks */}
+                      {connection.id === "quickbooks" && (
+                        <Link
+                          to="/app/settings/integrations/quickbooks"
+                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 inline-block"
+                        >
+                          Manage Settings
+                        </Link>
+                      )}
                       <fetcher.Form
                         method="post"
                         onSubmit={(e) => {
