@@ -6,7 +6,14 @@
 
 import { eq, and, desc, asc, sql, inArray } from "drizzle-orm";
 import { db } from "./index";
-import { galleryImages, galleryAlbums, type GalleryImage, type GalleryAlbum } from "./schema/gallery";
+import {
+  galleryImages,
+  galleryAlbums,
+  type GalleryImage,
+  type GalleryAlbum,
+  type NewGalleryImage,
+  type NewGalleryAlbum,
+} from "./schema/gallery";
 
 // ============================================================================
 // Types
