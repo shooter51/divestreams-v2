@@ -6,25 +6,72 @@
  */
 
 import { useLoaderData, useRouteLoaderData } from "react-router";
-import type { Route } from "./+types/about";
+import type { LoaderFunctionArgs } from "react-router";
 import type { SiteLoaderData } from "./_layout";
 import { getPublicTeamMembers } from "~/lib/db/team.server";
+import { db } from "~/lib/db";
+import { organization } from "~/lib/db/schema";
+import { eq, sql } from "drizzle-orm";
+
+// Helper function to extract subdomain from host
+function getSubdomainFromHost(host: string): string | null {
+  if (host.includes("localhost")) {
+    const parts = host.split(".");
+    if (parts.length >= 2 && parts[0] !== "localhost") {
+      return parts[0].toLowerCase();
+    }
+    return null;
+  }
+
+  const parts = host.split(".");
+  if (parts.length >= 3) {
+    const subdomain = parts[0].toLowerCase();
+    if (subdomain === "www" || subdomain === "admin") {
+      return null;
+    }
+    return subdomain;
+  }
+  return null;
+}
 
 // ============================================================================
 // LOADER
 // ============================================================================
 
-export async function loader({ request }: Route.LoaderArgs) {
-  // Get organization from URL (handled by parent layout)
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const host = url.host;
 
-  // Import layout loader to get org context
-  // For now, we'll rely on the parent layout having loaded the org
-  // and just get team members here
+  // Try subdomain first
+  const subdomain = getSubdomainFromHost(host);
+
+  // Find organization by subdomain or custom domain
+  let org;
+
+  if (subdomain) {
+    [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.slug, subdomain))
+      .limit(1);
+  } else {
+    const customDomain = host.split(":")[0];
+    [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.customDomain, customDomain))
+      .limit(1);
+  }
+
+  if (!org) {
+    throw new Response("Organization not found", { status: 404 });
+  }
+
+  // Fetch team members for this organization
+  const teamMembers = await getPublicTeamMembers(org.id);
+
   return {
-    // teamMembers will be fetched based on organization from parent context
-    _placeholder: true,
+    teamMembers,
   };
 }
 
@@ -195,7 +242,19 @@ function PhotoGalleryPlaceholder() {
 // ============================================================================
 
 export default function SiteAboutPage() {
-  const { organization, settings, teamMembers } = useLoaderData<typeof loader>();
+  const { teamMembers } = useLoaderData<typeof loader>();
+  const loaderData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
+
+  if (!loaderData) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        <h1 className="text-4xl font-bold">About Us</h1>
+        <p className="mt-4 text-lg opacity-75">Loading...</p>
+      </div>
+    );
+  }
+
+  const { organization, settings } = loaderData;
   const aboutContent = settings.aboutContent;
 
   // Check if we have custom about content
