@@ -18,14 +18,14 @@ import { getGoogleAuthUrl } from "../../../../../lib/integrations/google-calenda
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Require authenticated organization context
-  const { organizationId } = await requireOrgContext(request);
+  const { org } = await requireOrgContext(request);
 
   // Get subdomain for callback URL
   const subdomain = getSubdomainFromRequest(request);
 
   try {
     // Generate Google OAuth authorization URL
-    const authUrl = getGoogleAuthUrl(organizationId, subdomain || undefined);
+    const authUrl = getGoogleAuthUrl(org.id, subdomain || undefined);
 
     // Redirect to Google's consent screen
     return redirect(authUrl);

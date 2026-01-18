@@ -65,8 +65,8 @@ function BlockRenderer({ block }: { block: ContentBlock }) {
 }
 
 function HeadingRenderer({ block }: { block: HeadingBlock }) {
-  const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
-  const sizeClasses = {
+  const Tag = `h${block.level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  const sizeClasses: Record<number, string> = {
     1: "text-4xl md:text-5xl",
     2: "text-3xl md:text-4xl",
     3: "text-2xl md:text-3xl",

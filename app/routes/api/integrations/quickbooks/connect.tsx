@@ -17,12 +17,12 @@ import {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Require authenticated org context
-  const { organization } = await requireOrgContext(request);
+  const { org } = await requireOrgContext(request);
   const subdomain = getSubdomainFromRequest(request);
 
   try {
     // Generate OAuth URL with org ID and subdomain
-    const authUrl = getQuickBooksAuthUrl(organization.id, subdomain || undefined);
+    const authUrl = getQuickBooksAuthUrl(org.id, subdomain || undefined);
 
     // Redirect to QuickBooks authorization page
     return redirect(authUrl);

@@ -8,22 +8,20 @@
  */
 
 import type { ActionFunctionArgs } from "react-router";
-import { json } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { syncAllTrips } from "../../../../../lib/integrations/google-calendar.server";
-import { getOrganizationById } from "../../../../../lib/db/queries.server";
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
-    return json({ error: "Method not allowed" }, { status: 405 });
+    return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
   try {
-    const { organizationId } = await requireOrgContext(request);
+    const { org } = await requireOrgContext(request);
 
     // Get organization timezone for proper date handling
-    const org = await getOrganizationById(organizationId);
-    const timezone = org?.timezone || "UTC";
+    // Note: Organization doesn't have timezone field yet, defaulting to UTC
+    const timezone = "UTC";
 
     // Parse request body for date range (optional)
     const body = await request.json();
@@ -36,14 +34,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Trigger bulk sync
     const result = await syncAllTrips(
-      organizationId,
+      org.id,
       startDate,
       endDate,
       timezone
     );
 
     if (result.failed > 0 && result.synced === 0) {
-      return json(
+      return Response.json(
         {
           error: `Failed to sync trips: ${result.errors.join(", ")}`,
         },
@@ -51,7 +49,7 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    return json({
+    return Response.json({
       success: true,
       synced: result.synced,
       failed: result.failed,
@@ -63,7 +61,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error("Google Calendar sync error:", error);
-    return json(
+    return Response.json(
       {
         error:
           error instanceof Error

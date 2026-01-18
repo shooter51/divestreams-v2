@@ -7,9 +7,9 @@
  */
 
 import type { LoaderFunctionArgs } from "react-router";
-import { validateZapierApiKey } from "~/lib/integrations/zapier-enhanced.server";
-import { db } from "~/lib/db";
-import { organization } from "~/lib/db/schema/auth";
+import { validateZapierApiKey } from "../../../../lib/integrations/zapier-enhanced.server.js";
+import { db } from "../../../../lib/db/index.js";
+import { organization } from "../../../../lib/db/schema/auth.js";
 import { eq } from "drizzle-orm";
 
 export async function loader({ request }: LoaderFunctionArgs) {

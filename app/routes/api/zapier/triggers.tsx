@@ -11,8 +11,8 @@ import {
   ZAPIER_TRIGGERS,
   ZAPIER_TRIGGER_DESCRIPTIONS,
   getSampleTriggerData,
-} from "~/lib/integrations/zapier.server";
-import { validateZapierApiKey } from "~/lib/integrations/zapier-enhanced.server";
+} from "../../../../lib/integrations/zapier.server.js";
+import { validateZapierApiKey } from "../../../../lib/integrations/zapier-enhanced.server.js";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Authenticate request using API key
