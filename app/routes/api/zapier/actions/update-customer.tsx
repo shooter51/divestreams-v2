@@ -74,11 +74,19 @@ export async function action({ request }: ActionFunctionArgs) {
     if (body.last_name !== undefined) updateData.lastName = body.last_name;
     if (body.phone !== undefined) updateData.phone = body.phone;
     if (body.emergency_contact !== undefined)
-      updateData.emergencyContact = body.emergency_contact;
+      updateData.emergencyContactName = body.emergency_contact;
     if (body.emergency_phone !== undefined)
-      updateData.emergencyPhone = body.emergency_phone;
-    if (body.certification_level !== undefined)
-      updateData.certificationLevel = body.certification_level;
+      updateData.emergencyContactPhone = body.emergency_phone;
+    if (body.certification_level !== undefined) {
+      // Update certifications array
+      updateData.certifications = customer.certifications || [];
+      if (Array.isArray(updateData.certifications)) {
+        updateData.certifications.push({
+          agency: "Unknown",
+          level: body.certification_level,
+        });
+      }
+    }
     if (body.notes !== undefined) updateData.notes = body.notes;
 
     const [updated] = await db
