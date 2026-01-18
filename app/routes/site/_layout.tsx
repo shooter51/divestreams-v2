@@ -193,8 +193,8 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
 
   // Check if public site is enabled
   if (!settings.enabled) {
-    // Redirect to main marketing site or show disabled message
-    throw redirect("/?site=disabled");
+    // Redirect to disabled site message with organization name
+    throw redirect(`/site-disabled?org=${encodeURIComponent(org.name)}`);
   }
 
   // Get theme preset and apply custom colors if specified
