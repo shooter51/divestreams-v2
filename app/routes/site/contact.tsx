@@ -8,6 +8,10 @@
 import { useRouteLoaderData, Form, useActionData, useNavigation } from "react-router";
 import type { ActionFunctionArgs } from "react-router";
 import type { SiteLoaderData } from "./_layout";
+import { db } from "../../../lib/db";
+import { contactMessages } from "../../../lib/db/schema/public-site";
+import { sendEmail, contactFormNotificationEmail, contactFormAutoReplyEmail } from "../../../lib/email";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 // ============================================================================
 // ICONS
@@ -157,13 +161,35 @@ interface ActionData {
 // ACTION
 // ============================================================================
 
-export async function action({ request }: ActionFunctionArgs): Promise<ActionData> {
+export async function action({ request, context }: ActionFunctionArgs): Promise<ActionData> {
   const formData = await request.formData();
 
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
   const message = formData.get("message") as string;
+  const honeypot = formData.get("website") as string; // Honeypot field
+
+  // Honeypot spam check - if filled, it's a bot
+  if (honeypot) {
+    console.log("Contact form spam detected (honeypot triggered)");
+    return { success: true }; // Return success to not reveal detection
+  }
+
+  // Rate limiting - 5 submissions per 15 minutes per IP
+  const clientIp = getClientIp(request);
+  const rateLimitResult = checkRateLimit(`contact-form:${clientIp}`, {
+    maxAttempts: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    const minutesUntilReset = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
+    return {
+      success: false,
+      error: `Too many submissions. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+    };
+  }
 
   // Validation
   const errors: ActionData["errors"] = {};
@@ -180,6 +206,10 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
     errors.message = "Message must be at least 10 characters";
   }
 
+  if (message && message.length > 5000) {
+    errors.message = "Message must be less than 5000 characters";
+  }
+
   // Phone is optional but validate format if provided
   if (phone && phone.trim()) {
     const phoneRegex = /^[\d\s().+-]+$/;
@@ -192,17 +222,83 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
     return { success: false, errors };
   }
 
-  // TODO: Store message in database or send email
-  // For now, we'll just return success
-  // In a real implementation, this would:
-  // 1. Store the message in a contact_messages table
-  // 2. Send an email notification to the organization
-  // 3. Send a confirmation email to the submitter
+  // Get organization from context (set by _layout loader)
+  const { organization, contactInfo } = context as any;
 
-  // Simulate processing time
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  if (!organization?.id) {
+    return {
+      success: false,
+      error: "Unable to process your request. Please try again later.",
+    };
+  }
 
-  return { success: true };
+  try {
+    // Store message in database
+    const referrer = request.headers.get("referer") || undefined;
+    const userAgent = request.headers.get("user-agent") || undefined;
+
+    await db.insert(contactMessages).values({
+      organizationId: organization.id,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      phone: phone?.trim() || null,
+      subject: null, // Could add subject field to form if needed
+      message: message.trim(),
+      referrerPage: referrer,
+      userAgent: userAgent,
+      ipAddress: clientIp,
+      status: "new",
+    });
+
+    // Send notification email to organization
+    const now = new Date();
+    const formattedDate = now.toLocaleString("en-US", {
+      dateStyle: "long",
+      timeStyle: "short",
+    });
+
+    if (contactInfo?.email) {
+      const notificationEmail = contactFormNotificationEmail({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone?.trim(),
+        message: message.trim(),
+        shopName: organization.name,
+        referrerPage: referrer,
+        submittedAt: formattedDate,
+      });
+
+      await sendEmail({
+        to: contactInfo.email,
+        subject: notificationEmail.subject,
+        html: notificationEmail.html,
+        text: notificationEmail.text,
+      });
+    }
+
+    // Send auto-reply confirmation to customer
+    const autoReplyEmail = contactFormAutoReplyEmail({
+      name: name.trim(),
+      shopName: organization.name,
+      contactEmail: contactInfo?.email || organization.email || "info@example.com",
+      contactPhone: contactInfo?.phone,
+    });
+
+    await sendEmail({
+      to: email.trim(),
+      subject: autoReplyEmail.subject,
+      html: autoReplyEmail.html,
+      text: autoReplyEmail.text,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error processing contact form:", error);
+    return {
+      success: false,
+      error: "Failed to send your message. Please try again later.",
+    };
+  }
 }
 
 // ============================================================================
@@ -279,6 +375,18 @@ export default function SiteContactPage() {
             </div>
           ) : (
             <Form method="post" className="space-y-6">
+              {/* Honeypot field - hidden from users, bots will fill it */}
+              <div style={{ position: "absolute", left: "-9999px" }} aria-hidden="true">
+                <label htmlFor="website">Website</label>
+                <input
+                  type="text"
+                  id="website"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
               {/* Name Field */}
               <div>
                 <label
