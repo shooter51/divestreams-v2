@@ -6,6 +6,7 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
+import { getBaseDomain, getTenantUrl } from "../../../../lib/utils/url";
 
 type OutletContextType = {
   settings: PublicSiteSettings;
@@ -57,6 +58,7 @@ export default function PublicSiteGeneralSettings() {
   const { settings, orgSlug, isPremium } = useOutletContext<OutletContextType>();
   const fetcher = useFetcher<{ success?: boolean; message?: string }>();
   const isSubmitting = fetcher.state === "submitting";
+  const baseDomain = getBaseDomain();
 
   return (
     <div className="space-y-6">
@@ -134,7 +136,7 @@ export default function PublicSiteGeneralSettings() {
                   <span className="text-gray-400">Name:</span> www
                 </div>
                 <div>
-                  <span className="text-gray-400">Value:</span> {orgSlug}.divestreams.com
+                  <span className="text-gray-400">Value:</span> {orgSlug}.{baseDomain}
                 </div>
               </div>
             </div>
@@ -209,10 +211,10 @@ export default function PublicSiteGeneralSettings() {
           </p>
           <div className="flex items-center gap-3">
             <code className="bg-white px-4 py-2 rounded border text-sm flex-1">
-              https://{orgSlug}.divestreams.com/site
+              {getTenantUrl(orgSlug, "/site")}
             </code>
             <a
-              href={`https://${orgSlug}.divestreams.com/site`}
+              href={getTenantUrl(orgSlug, "/site")}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"

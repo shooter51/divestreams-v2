@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { seedDemoData } from "../../../lib/db/seed-demo-data.server";
 import { hashPassword } from "../../../lib/auth/password.server";
+import { getBaseDomain } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Create Organization - DiveStreams Admin" }];
 
@@ -162,6 +163,7 @@ export default function CreateOrganizationPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const baseDomain = getBaseDomain();
 
   return (
     <div className="max-w-2xl">
@@ -201,7 +203,7 @@ export default function CreateOrganizationPage() {
                 required
               />
               <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-lg text-gray-500">
-                .divestreams.com
+                .{baseDomain}
               </span>
             </div>
             {actionData?.errors?.slug && (

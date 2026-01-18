@@ -6,12 +6,18 @@
  */
 
 import type { PublicSiteSettings, Organization } from "../db/schema/auth";
+import { getBaseDomain } from "./url";
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const MAIN_DOMAIN = "divestreams.com";
+/**
+ * Get the main DiveStreams domain for the current environment
+ */
+function getMainDomain(): string {
+  return getBaseDomain();
+}
 
 /**
  * Supported currencies with their formatting options
@@ -130,7 +136,7 @@ export function getPublicSiteUrl(
   }
 
   // Use subdomain
-  return `https://${org.slug}.${MAIN_DOMAIN}`;
+  return `https://${org.slug}.${getMainDomain()}`;
 }
 
 /**
@@ -158,7 +164,7 @@ export function getPublicSitePageUrl(
 export function getBookingWidgetUrl(
   org: Pick<Organization, "slug">
 ): string {
-  return `https://${MAIN_DOMAIN}/embed/${org.slug}`;
+  return `https://${getMainDomain()}/embed/${org.slug}`;
 }
 
 // ============================================================================
@@ -308,7 +314,7 @@ export function isValidCustomDomain(domain: string): boolean {
   }
 
   // Disallow divestreams.com domains as custom domains
-  if (domain.endsWith(`.${MAIN_DOMAIN}`) || domain === MAIN_DOMAIN) {
+  if (domain.endsWith(`.${getMainDomain()}`) || domain === getMainDomain()) {
     return false;
   }
 
