@@ -11,36 +11,37 @@
 import { useState } from "react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useNavigation } from "react-router";
-import { requireAuth } from "~/lib/auth.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import {
   generateZapierApiKey,
   listZapierApiKeys,
   revokeZapierApiKey,
   getWebhookStats,
   hasZapierConfigured,
-} from "~/lib/integrations/zapier-enhanced.server";
+} from "../../../../../lib/integrations/zapier-enhanced.server";
 import {
   ZAPIER_TRIGGERS,
   ZAPIER_TRIGGER_DESCRIPTIONS,
-} from "~/lib/integrations/zapier.server";
+  type ZapierTriggerType,
+} from "../../../../../lib/integrations/zapier.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { session, organization } = await requireAuth(request);
+  const ctx = await requireOrgContext(request);
 
   // Get API keys
-  const apiKeys = await listZapierApiKeys(organization.id);
+  const apiKeys = await listZapierApiKeys(ctx.org.id);
 
   // Get webhook stats
-  const webhookStats = await getWebhookStats(organization.id);
+  const webhookStats = await getWebhookStats(ctx.org.id);
 
   // Check if configured
-  const isConfigured = await hasZapierConfigured(organization.id);
+  const isConfigured = await hasZapierConfigured(ctx.org.id);
 
   return {
     apiKeys,
     webhookStats,
     isConfigured,
-    triggers: ZAPIER_TRIGGERS.map((trigger) => ({
+    triggers: ZAPIER_TRIGGERS.map((trigger: ZapierTriggerType) => ({
       key: trigger,
       description: ZAPIER_TRIGGER_DESCRIPTIONS[trigger],
     })),
@@ -48,14 +49,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { session, organization } = await requireAuth(request);
+  const ctx = await requireOrgContext(request);
 
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   if (intent === "generate-key") {
     const label = formData.get("label")?.toString();
-    const { key, keyId } = await generateZapierApiKey(organization.id, label);
+    const { key, keyId } = await generateZapierApiKey(ctx.org.id, label);
 
     return {
       success: true,
@@ -70,7 +71,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return { success: false, error: "Missing key ID" };
     }
 
-    const success = await revokeZapierApiKey(keyId, organization.id);
+    const success = await revokeZapierApiKey(keyId, ctx.org.id);
     return { success };
   }
 
@@ -140,7 +141,7 @@ export default function ZapierIntegrationSettings() {
           </p>
         ) : (
           <div className="space-y-3">
-            {data.apiKeys.map((key) => (
+            {data.apiKeys.map((key: any) => (
               <div
                 key={key.id}
                 className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
@@ -205,7 +206,7 @@ export default function ZapierIntegrationSettings() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">Available Triggers</h2>
         <div className="space-y-2">
-          {data.triggers.map((trigger) => (
+          {data.triggers.map((trigger: { key: string; description: string }) => (
             <div
               key={trigger.key}
               className="flex items-start p-3 border border-gray-100 rounded"
@@ -254,7 +255,7 @@ export default function ZapierIntegrationSettings() {
           <div>
             <h3 className="font-semibold mb-3">Recent Deliveries</h3>
             <div className="space-y-2">
-              {data.webhookStats.recentDeliveries.map((delivery) => (
+              {data.webhookStats.recentDeliveries.map((delivery: any) => (
                 <div
                   key={delivery.id}
                   className="flex items-center justify-between p-2 border border-gray-100 rounded text-sm"
