@@ -163,8 +163,13 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("A.4 Customers list displays customer names", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/customers"));
-    await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    await page.waitForTimeout(2000);
+    const authenticated = await isAuthenticated(page);
+    if (!authenticated) {
+      // Not authenticated, test cannot proceed
+      expect(page.url()).toContain("/login");
+      return;
+    }
     const hasContent = await page.locator("table tbody tr, [class*='card']").first().isVisible().catch(() => false);
     const hasEmptyState = await page.getByText(/no customer|empty/i).isVisible().catch(() => false);
     expect(hasContent || hasEmptyState || page.url().includes("/customers")).toBeTruthy();

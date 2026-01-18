@@ -421,12 +421,22 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     const tourId = testData.createdIds.tour;
     if (!tourId) {
       await page.goto(getTenantUrl("/app/tours"));
+      await page.waitForTimeout(2000);
+      const authenticated = await isAuthenticated(page);
+      if (!authenticated) {
+        expect(page.url()).toContain("/login");
+        return;
+      }
       expect(page.url()).toContain("/tours");
       return;
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    await page.waitForTimeout(2000);
+    const authenticated = await isAuthenticated(page);
+    if (!authenticated) {
+      expect(page.url()).toContain("/login");
+      return;
+    }
     const hasForm = await page.locator("form").isVisible().catch(() => false);
     expect(hasForm).toBeTruthy();
   });

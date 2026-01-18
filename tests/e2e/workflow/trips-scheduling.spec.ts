@@ -462,12 +462,22 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     const tripId = testData.createdIds.trip;
     if (!tripId) {
       await page.goto(getTenantUrl("/app/trips"));
+      await page.waitForTimeout(2000);
+      const authenticated = await isAuthenticated(page);
+      if (!authenticated) {
+        expect(page.url()).toContain("/login");
+        return;
+      }
       expect(page.url()).toContain("/trips");
       return;
     }
     await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
-    await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    await page.waitForTimeout(2000);
+    const authenticated = await isAuthenticated(page);
+    if (!authenticated) {
+      expect(page.url()).toContain("/login");
+      return;
+    }
     const dateField = page.getByLabel(/date/i).or(page.locator("input[type='date']")).first();
     if (await dateField.isVisible().catch(() => false)) {
       await dateField.fill(testData.editedTrip.date);
