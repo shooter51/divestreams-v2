@@ -13,6 +13,15 @@ import { test, expect, type Page } from "@playwright/test";
  * - Booking flow
  * - Admin public site settings
  *
+ * IMPORTANT DEPENDENCIES:
+ * -----------------------
+ * This test suite requires the "e2etest" tenant and user to exist.
+ * Before running these tests, run full-workflow.spec.ts to create:
+ *   - Test tenant "e2etest" (test 2.3)
+ *   - Test user "e2e-user@example.com" (test 3.4)
+ *
+ * The beforeAll hook will fail with a clear error if dependencies are missing.
+ *
  * BLOCK STRUCTURE:
  * ----------------
  * Block A: Public Site Navigation (~8 tests)
