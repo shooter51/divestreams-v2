@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { Link, useLoaderData, Outlet, useLocation } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getPublicSiteSettings } from "../../../../lib/db/public-site.server";
+import { getBaseDomain, getTenantUrl } from "../../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Public Site Settings - DiveStreams" }];
 
@@ -11,6 +12,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     orgSlug: ctx.org.slug,
+    baseDomain: getBaseDomain(),
+    publicSiteUrl: getTenantUrl(ctx.org.slug, "/site"),
     settings: settings ?? {
       enabled: false,
       theme: "ocean" as const,
@@ -42,7 +45,7 @@ const tabs = [
 ];
 
 export default function PublicSiteSettingsLayout() {
-  const { orgSlug, settings, isPremium } = useLoaderData<typeof loader>();
+  const { orgSlug, baseDomain, publicSiteUrl, settings, isPremium } = useLoaderData<typeof loader>();
   const location = useLocation();
 
   // Determine active tab
@@ -63,12 +66,12 @@ export default function PublicSiteSettingsLayout() {
         <p className="text-gray-500">
           Configure your public-facing website at{" "}
           <a
-            href={`https://${orgSlug}.divestreams.com/site`}
+            href={publicSiteUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
-            {orgSlug}.divestreams.com/site
+            {publicSiteUrl}
           </a>
         </p>
       </div>
@@ -116,7 +119,7 @@ export default function PublicSiteSettingsLayout() {
       </div>
 
       {/* Tab Content */}
-      <Outlet context={{ settings, orgSlug, isPremium }} />
+      <Outlet context={{ settings, orgSlug, baseDomain, publicSiteUrl, isPremium }} />
     </div>
   );
 }

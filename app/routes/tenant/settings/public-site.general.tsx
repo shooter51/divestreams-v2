@@ -6,11 +6,12 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
-import { getBaseDomain, getTenantUrl } from "../../../../lib/utils/url";
 
 type OutletContextType = {
   settings: PublicSiteSettings;
   orgSlug: string;
+  baseDomain: string;
+  publicSiteUrl: string;
   isPremium: boolean;
 };
 
@@ -55,10 +56,9 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function PublicSiteGeneralSettings() {
-  const { settings, orgSlug, isPremium } = useOutletContext<OutletContextType>();
+  const { settings, orgSlug, baseDomain, publicSiteUrl, isPremium } = useOutletContext<OutletContextType>();
   const fetcher = useFetcher<{ success?: boolean; message?: string }>();
   const isSubmitting = fetcher.state === "submitting";
-  const baseDomain = getBaseDomain();
 
   return (
     <div className="space-y-6">
@@ -211,10 +211,10 @@ export default function PublicSiteGeneralSettings() {
           </p>
           <div className="flex items-center gap-3">
             <code className="bg-white px-4 py-2 rounded border text-sm flex-1">
-              {getTenantUrl(orgSlug, "/site")}
+              {publicSiteUrl}
             </code>
             <a
-              href={getTenantUrl(orgSlug, "/site")}
+              href={publicSiteUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
