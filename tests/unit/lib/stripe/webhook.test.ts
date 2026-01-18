@@ -28,6 +28,13 @@ vi.mock("../../../../lib/stripe/index", () => ({
   setDefaultPaymentMethod: mockSetDefaultPaymentMethod,
 }));
 
+// Mock the Stripe billing module
+vi.mock("../../../../lib/stripe/stripe-billing.server", () => ({
+  syncSubscriptionToDatabase: vi.fn().mockResolvedValue(undefined),
+  syncInvoiceToDatabase: vi.fn().mockResolvedValue(undefined),
+  syncPaymentToDatabase: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe("Stripe Webhook Handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();

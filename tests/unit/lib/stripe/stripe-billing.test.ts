@@ -59,24 +59,10 @@ describe("Stripe Billing Integration", () => {
       expect(result).toBe(mockCustomerId);
     });
 
-    it("should create new customer if one does not exist", async () => {
+    it("should return null when no customer exists and Stripe not configured", async () => {
       const orgId = "org_test";
-      const mockNewCustomerId = "cus_new123";
 
       const { db } = await import("../../../../lib/db");
-
-      // Mock Stripe customer creation
-      const mockStripe = {
-        customers: {
-          create: vi.fn().mockResolvedValue({
-            id: mockNewCustomerId,
-            metadata: {},
-          }),
-        },
-      };
-      vi.doMock("../../../../lib/stripe/index", () => ({
-        stripe: mockStripe,
-      }));
 
       // Mock existing customer check (none found)
       (db.select as any).mockReturnValueOnce({
@@ -87,29 +73,7 @@ describe("Stripe Billing Integration", () => {
         }),
       });
 
-      // Mock organization lookup
-      (db.select as any).mockReturnValueOnce({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([
-              {
-                id: orgId,
-                name: "Test Organization",
-                slug: "test-org",
-              },
-            ]),
-          }),
-        }),
-      });
-
-      // Mock insert
-      const mockInsert = vi.fn().mockResolvedValue(undefined);
-      (db.insert as any).mockReturnValue({
-        values: mockInsert,
-      });
-
       // Expect null since Stripe is not initialized in test env
-      // This test just verifies the function doesn't crash
       const result = await getOrCreateStripeCustomer(orgId);
       expect(result).toBeNull();
     });
