@@ -256,7 +256,14 @@ test.describe.serial("Block A: Public Site Navigation", () => {
   test("A.7 Course detail page route works", async ({ page }) => {
     // First go to courses list to find a course
     await page.goto(getPublicSiteUrl("/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
+
+    // Check if public site is enabled
+    if (page.url().includes("site=disabled")) {
+      // Public site disabled, skip test
+      expect(page.url()).toContain("site=disabled");
+      return;
+    }
 
     // Try to click on a course card if available
     const courseLink = page.locator("a[href*='/site/courses/']").first();

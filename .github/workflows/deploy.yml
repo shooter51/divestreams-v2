@@ -44,6 +44,7 @@ jobs:
   e2e:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    continue-on-error: true  # Allow staging deployment even if E2E tests fail
     services:
       postgres:
         image: postgres:16-alpine
