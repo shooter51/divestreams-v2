@@ -33,23 +33,23 @@ export const meta: MetaFunction = () => [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { organization } = await requireOrgContext(request);
+  const { org } = await requireOrgContext(request);
 
   // Get QuickBooks integration
-  const integration = await getIntegration(organization.id, "quickbooks");
+  const integration = await getIntegration(org.id, "quickbooks");
 
   // Get connection status and company info
   const status = integration
-    ? await getQuickBooksStatus(organization.id)
+    ? await getQuickBooksStatus(org.id)
     : { connected: false };
 
   // Get available items and accounts if connected
-  const items = status.connected
-    ? await listQuickBooksItems(organization.id)
+  const items = status?.connected
+    ? await listQuickBooksItems(org.id)
     : null;
 
-  const accounts = status.connected
-    ? await listQuickBooksAccounts(organization.id)
+  const accounts = status?.connected
+    ? await listQuickBooksAccounts(org.id)
     : null;
 
   // Get recent sync logs
@@ -79,12 +79,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { organization } = await requireOrgContext(request);
+  const { org } = await requireOrgContext(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   if (intent === "disconnect") {
-    await disconnectIntegration(organization.id, "quickbooks");
+    await disconnectIntegration(org.id, "quickbooks");
     return redirect("/app/settings/integrations?success=QuickBooks disconnected");
   }
 
@@ -94,12 +94,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const syncCustomers = formData.get("syncCustomers") === "on";
     const autoSyncEnabled = formData.get("autoSyncEnabled") === "on";
 
-    const integration = await getIntegration(organization.id, "quickbooks");
+    const integration = await getIntegration(org.id, "quickbooks");
     if (!integration) {
       throw new Error("QuickBooks not connected");
     }
 
-    await updateIntegrationSettings(integration.id, {
+    await updateIntegrationSettings(org.id, "quickbooks", {
       syncInvoices,
       syncPayments,
       syncCustomers,
@@ -115,7 +115,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return { success: false, error: "Booking ID required" };
     }
 
-    const result = await syncBookingToQuickBooks(organization.id, bookingId);
+    const result = await syncBookingToQuickBooks(org.id, bookingId);
     return result;
   }
 
@@ -127,7 +127,7 @@ export default function QuickBooksSettings() {
   const fetcher = useFetcher();
   const [showSyncHistory, setShowSyncHistory] = useState(false);
 
-  const isConnected = status.connected;
+  const isConnected = status?.connected ?? false;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -162,10 +162,10 @@ export default function QuickBooksSettings() {
                   </svg>
                   Connected
                 </div>
-                {status.companyName && (
+                {status?.companyName && (
                   <p className="text-sm text-gray-600">Company: {status.companyName}</p>
                 )}
-                {status.useSandbox && (
+                {status?.useSandbox && (
                   <p className="text-sm text-orange-600 font-medium">Sandbox Mode</p>
                 )}
               </div>

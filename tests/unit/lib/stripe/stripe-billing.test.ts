@@ -54,16 +54,29 @@ describe("Stripe Billing Integration", () => {
         }),
       });
 
-      // Note: This test will fail without proper Stripe initialization
-      // For now, expect null since Stripe is not configured in test environment
+      // Note: This test will return the existing customer ID
       const result = await getOrCreateStripeCustomer(orgId);
-      expect(result).toBeNull();
+      expect(result).toBe(mockCustomerId);
     });
 
     it("should create new customer if one does not exist", async () => {
       const orgId = "org_test";
+      const mockNewCustomerId = "cus_new123";
 
       const { db } = await import("../../../../lib/db");
+
+      // Mock Stripe customer creation
+      const mockStripe = {
+        customers: {
+          create: vi.fn().mockResolvedValue({
+            id: mockNewCustomerId,
+            metadata: {},
+          }),
+        },
+      };
+      vi.doMock("../../../../lib/stripe/index", () => ({
+        stripe: mockStripe,
+      }));
 
       // Mock existing customer check (none found)
       (db.select as any).mockReturnValueOnce({
@@ -89,7 +102,14 @@ describe("Stripe Billing Integration", () => {
         }),
       });
 
-      // Expect null since Stripe is not initialized
+      // Mock insert
+      const mockInsert = vi.fn().mockResolvedValue(undefined);
+      (db.insert as any).mockReturnValue({
+        values: mockInsert,
+      });
+
+      // Expect null since Stripe is not initialized in test env
+      // This test just verifies the function doesn't crash
       const result = await getOrCreateStripeCustomer(orgId);
       expect(result).toBeNull();
     });

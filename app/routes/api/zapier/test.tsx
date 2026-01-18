@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .select({
       id: organization.id,
       name: organization.name,
-      subdomain: organization.subdomain,
+      slug: organization.slug,
     })
     .from(organization)
     .where(eq(organization.id, orgId))
@@ -48,7 +48,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     organization: {
       id: org.id,
       name: org.name,
-      subdomain: org.subdomain,
+      slug: org.slug,
     },
     timestamp: new Date().toISOString(),
   });

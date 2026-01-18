@@ -84,8 +84,8 @@ export async function action({ request }: ActionFunctionArgs) {
         .values({
           organizationId: orgId,
           email: body.customer_email,
-          firstName: body.customer_first_name || null,
-          lastName: body.customer_last_name || null,
+          firstName: body.customer_first_name || "",
+          lastName: body.customer_last_name || "",
           phone: body.customer_phone || null,
         })
         .returning();
@@ -100,8 +100,10 @@ export async function action({ request }: ActionFunctionArgs) {
         customerId: customer.id,
         participants: body.participants,
         status: "pending",
-        notes: body.notes || null,
-        totalAmount: 0, // Will be calculated based on trip pricing
+        bookingNumber: `BK-${Date.now()}`,
+        subtotal: "0",
+        total: "0",
+        internalNotes: body.notes || null,
       })
       .returning();
 
