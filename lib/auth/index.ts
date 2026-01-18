@@ -59,6 +59,8 @@ export const auth = betterAuth({
   trustedOrigins: [
     "https://divestreams.com",
     "https://*.divestreams.com",
+    "https://staging.divestreams.com",
+    "https://*.staging.divestreams.com",
     "http://localhost:3000",
     "http://localhost:5173",
   ],

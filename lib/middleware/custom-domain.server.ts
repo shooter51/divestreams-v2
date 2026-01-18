@@ -10,6 +10,7 @@ import { db } from "../db/index";
 import { organization } from "../db/schema/auth";
 import { eq, sql } from "drizzle-orm";
 import type { PublicSiteSettings } from "../db/schema/auth";
+import { getBaseDomain } from "../utils/url";
 
 // ============================================================================
 // TYPES
@@ -33,10 +34,12 @@ export type DomainResolutionResult =
 // ============================================================================
 
 /**
- * The main DiveStreams domain
- * Subdomains of this domain are treated as tenant identifiers
+ * Get the main DiveStreams domain for the current environment
+ * Returns environment-aware domain (divestreams.com or staging.divestreams.com)
  */
-const MAIN_DOMAIN = "divestreams.com";
+function getMainDomain(): string {
+  return getBaseDomain();
+}
 
 /**
  * Reserved subdomains that cannot be used for tenant sites
@@ -231,11 +234,11 @@ export function normalizeHostname(hostname: string): string {
  */
 export function extractSubdomain(hostname: string): string | null {
   // Check if hostname ends with main domain
-  const mainDomainSuffix = `.${MAIN_DOMAIN}`;
+  const mainDomainSuffix = `.${getMainDomain()}`;
 
   if (!hostname.endsWith(mainDomainSuffix)) {
     // Also check for exact main domain (no subdomain)
-    if (hostname === MAIN_DOMAIN) {
+    if (hostname === getMainDomain()) {
       return null;
     }
     // Not a divestreams.com domain
@@ -263,7 +266,7 @@ export function extractSubdomain(hostname: string): string | null {
  */
 export function isMainDomain(hostname: string): boolean {
   const normalized = normalizeHostname(hostname);
-  return normalized === MAIN_DOMAIN || normalized === `www.${MAIN_DOMAIN}`;
+  return normalized === getMainDomain() || normalized === `www.${getMainDomain()}`;
 }
 
 /**
@@ -292,5 +295,5 @@ export function getPublicSiteUrlForOrg(org: {
   }
 
   // Fall back to subdomain
-  return `https://${org.slug}.${MAIN_DOMAIN}`;
+  return `https://${org.slug}.${getMainDomain()}`;
 }

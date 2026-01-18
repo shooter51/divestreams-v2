@@ -25,6 +25,7 @@ import {
   logSyncOperation,
   type Integration,
 } from "./index.server";
+import { getAppUrl } from "../utils/url";
 
 // ============================================================================
 // CONSTANTS
@@ -87,7 +88,7 @@ function generateWebhookSecret(): string {
  * This is the URL that Zapier will call when setting up instant triggers
  */
 export function getZapierWebhookUrl(orgSlug: string): string {
-  const baseUrl = process.env.APP_URL || "https://divestreams.com";
+  const baseUrl = getAppUrl();
   return `${baseUrl}/api/webhooks/zapier/${orgSlug}`;
 }
 
