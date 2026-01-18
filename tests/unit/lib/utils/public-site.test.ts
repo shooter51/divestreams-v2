@@ -5,7 +5,7 @@
  * URL generation, settings management, and validation.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   formatPrice,
   formatPriceRange,
@@ -25,6 +25,10 @@ import {
 import type { PublicSiteSettings, Organization } from "../../../../lib/db/schema/auth";
 
 describe("Public Site Utilities", () => {
+  beforeEach(() => {
+    // Set APP_URL for consistent test expectations
+    process.env.APP_URL = "https://divestreams.com";
+  });
   describe("formatPrice", () => {
     it("should format USD price correctly", () => {
       expect(formatPrice(99.99, "USD")).toBe("$99.99");
