@@ -7,9 +7,9 @@
  */
 
 import type { ActionFunctionArgs } from "react-router";
-import { validateZapierApiKey } from "~/lib/integrations/zapier-enhanced.server";
-import { db } from "~/lib/db";
-import { customers } from "~/lib/db/schema";
+import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enhanced.server.js";
+import { db } from "../../../../../lib/db/index.js";
+import { customers } from "../../../../../lib/db/schema.js";
 import { eq, and } from "drizzle-orm";
 
 interface UpdateCustomerInput {

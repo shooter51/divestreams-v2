@@ -12,7 +12,7 @@ import {
   validateZapierApiKey,
   subscribeWebhook,
   unsubscribeWebhook,
-} from "~/lib/integrations/zapier-enhanced.server";
+} from "../../../../lib/integrations/zapier-enhanced.server.js";
 
 export async function action({ request }: ActionFunctionArgs) {
   // Authenticate request using API key
