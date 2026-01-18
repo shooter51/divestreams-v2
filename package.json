@@ -32,7 +32,8 @@
     "tenant:create": "tsx scripts/tenant-create.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "platform:setup": "tsx scripts/setup-platform-admin.ts",
-    "worker": "tsx lib/jobs/worker.ts"
+    "worker": "tsx lib/jobs/worker.ts",
+    "worker:zapier": "tsx lib/jobs/zapier-webhook-worker.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
