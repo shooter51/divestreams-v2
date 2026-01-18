@@ -13,6 +13,23 @@ import { db } from "./index";
 import * as schema from "./schema";
 
 // ============================================================================
+// Organization Queries
+// ============================================================================
+
+/**
+ * Get organization by ID
+ * Note: Organization table doesn't have timezone field yet, so this returns UTC by default
+ */
+async function getOrganizationById(organizationId: string) {
+  const result = await db
+    .select()
+    .from(schema.organization)
+    .where(eq(schema.organization.id, organizationId))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+// ============================================================================
 // Dashboard Queries
 // ============================================================================
 
@@ -626,8 +643,8 @@ export async function createTrip(organizationId: string, data: {
   import("../integrations/google-calendar.server")
     .then(({ syncTripToCalendar }) => {
       const org = getOrganizationById(organizationId);
-      const timezone = org.then((o) => o?.timezone || "UTC");
-      timezone.then((tz) =>
+      const timezone = org.then((o: any) => o?.timezone || "UTC");
+      timezone.then((tz: string) =>
         syncTripToCalendar(organizationId, trip.id, tz).catch((error) =>
           console.error("Google Calendar sync failed for trip:", trip.id, error)
         )
@@ -653,8 +670,8 @@ export async function updateTripStatus(organizationId: string, id: string, statu
     import("../integrations/google-calendar.server")
       .then(({ syncTripToCalendar }) => {
         const org = getOrganizationById(organizationId);
-        const timezone = org.then((o) => o?.timezone || "UTC");
-        timezone.then((tz) =>
+        const timezone = org.then((o: any) => o?.timezone || "UTC");
+        timezone.then((tz: string) =>
           syncTripToCalendar(organizationId, trip.id, tz).catch((error) =>
             console.error("Google Calendar sync failed for trip:", trip.id, error)
           )
@@ -794,8 +811,8 @@ export async function createBooking(organizationId: string, data: {
   import("../integrations/google-calendar-bookings.server")
     .then(({ syncBookingToCalendar }) => {
       const org = getOrganizationById(organizationId);
-      const timezone = org.then((o) => o?.timezone || "UTC");
-      timezone.then((tz) =>
+      const timezone = org.then((o: any) => o?.timezone || "UTC");
+      timezone.then((tz: string) =>
         syncBookingToCalendar(organizationId, data.tripId, tz).catch((error) =>
           console.error("Google Calendar booking sync failed:", booking.id, error)
         )
@@ -821,8 +838,8 @@ export async function updateBookingStatus(organizationId: string, id: string, st
     import("../integrations/google-calendar-bookings.server")
       .then(({ syncBookingCancellationToCalendar }) => {
         const org = getOrganizationById(organizationId);
-        const timezone = org.then((o) => o?.timezone || "UTC");
-        timezone.then((tz) =>
+        const timezone = org.then((o: any) => o?.timezone || "UTC");
+        timezone.then((tz: string) =>
           syncBookingCancellationToCalendar(organizationId, booking.tripId, tz).catch((error) =>
             console.error("Google Calendar booking cancellation sync failed:", booking.id, error)
           )
