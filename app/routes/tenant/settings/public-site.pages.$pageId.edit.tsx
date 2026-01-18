@@ -9,16 +9,15 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { Form, useLoaderData, useNavigation } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
   getPageContent,
   updatePageContent,
   publishPageContent,
   unpublishPageContent,
   getPageContentHistory,
-} from "../../../../../lib/db/page-content.server";
-import { RichTextEditor } from "../../../../../app/components/RichTextEditor";
-import type { PageContent, ContentBlock } from "../../../../../lib/db/schema/page-content";
+} from "../../../../lib/db/page-content.server";
+import type { PageContent, ContentBlock } from "../../../../lib/db/schema/page-content";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -265,7 +264,7 @@ export default function PageEditPage() {
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Version History</h2>
           <div className="space-y-3">
-            {history.slice(0, 5).map((entry) => (
+            {history.slice(0, 5).map((entry: any) => (
               <div
                 key={entry.id}
                 className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
