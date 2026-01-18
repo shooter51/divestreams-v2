@@ -25,6 +25,7 @@ export * from "./schema/webhooks";
 export * from "./schema/integrations";
 export * from "./schema/public-site";
 export * from "./schema/training";
+export * from "./schema/gallery";
 
 // Import organization for foreign key references
 import { organization } from "./schema/auth";

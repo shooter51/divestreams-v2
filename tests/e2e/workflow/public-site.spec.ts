@@ -27,52 +27,118 @@ test.describe.serial("Public Site Tests", () => {
 
 // Setup hook: Enable public site before running tests
 test.beforeAll(async ({ browser }) => {
+  // IMPORTANT: This test suite requires the "e2etest" tenant and user to exist.
+  // Run full-workflow.spec.ts first to create the tenant and user (tests 2.3 and 3.4).
+
   // Extend timeout for this complex setup hook
   test.setTimeout(60000);
 
   const page = await browser.newPage();
   try {
     // Login with shared test user (created by full-workflow.spec.ts)
-    await page.goto(`http://e2etest.localhost:5173/auth/login`, { timeout: 15000 });
+    await page.goto(`http://e2etest.localhost:5173/auth/login`, { timeout: 30000, waitUntil: 'domcontentloaded' });
+
+    // Wait for page to fully load
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+      // Network idle may not be reached, continue anyway
+    });
 
     // Try to find and fill login form
     const emailInput = page.getByLabel(/email/i);
     const hasEmailInput = await emailInput.isVisible({ timeout: 5000 }).catch(() => false);
 
-    if (hasEmailInput) {
-      // Use the shared test user
-      await emailInput.fill(testData.user.email);
-      await page.getByLabel(/password/i).fill(testData.user.password);
-      await page.getByRole("button", { name: /sign in/i }).click();
-
-      // Wait for login to complete
-      try {
-        await page.waitForURL(/\/(app|dashboard)/, { timeout: 15000 });
-      } catch {
-        await page.waitForTimeout(3000);
-      }
-
-      // Navigate to public site settings
-      await page.goto(`http://e2etest.localhost:5173/app/settings/public-site`, { timeout: 15000 });
-      await page.waitForTimeout(3000);
-
-      // Enable public site if not already enabled
-      const enabledCheckbox = page.locator('input[name="enabled"]');
-      const isChecked = await enabledCheckbox.isChecked({ timeout: 5000 }).catch(() => false);
-
-      if (!isChecked) {
-        // Check the enable toggle
-        await enabledCheckbox.check({ timeout: 5000 });
-
-        // Submit the form
-        const saveButton = page.getByRole("button", { name: /save|update/i });
-        await saveButton.click({ timeout: 5000 });
-        await page.waitForTimeout(3000);
-      }
+    if (!hasEmailInput) {
+      throw new Error(
+        "Login form not found - the 'e2etest' tenant may not exist. " +
+        "Run full-workflow.spec.ts first to create the tenant (test 2.3) and user (test 3.4)."
+      );
     }
+
+    // Use the shared test user
+    await emailInput.fill(testData.user.email);
+    await page.getByLabel(/password/i).fill(testData.user.password);
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    // Wait for login to complete with proper error handling
+    try {
+      await page.waitForURL(/\/(app|dashboard)/, { timeout: 15000 });
+    } catch (error) {
+      // Check if we got an error message
+      const errorMessage = await page.locator("[class*='bg-red'], [class*='text-red'], [class*='error']").textContent().catch(() => "");
+      throw new Error(
+        `Login failed for user '${testData.user.email}': ${errorMessage || 'Timeout waiting for redirect'}. ` +
+        "The user may not exist. Run full-workflow.spec.ts test 3.4 first to create the user."
+      );
+    }
+
+    // Navigate to public site settings
+    await page.goto(`http://e2etest.localhost:5173/app/settings/public-site`, { timeout: 15000 });
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000); // Give time for form to hydrate
+
+    // Verify we're on the settings page
+    if (!page.url().includes('/settings/public-site')) {
+      throw new Error(`Navigation to public site settings failed. Current URL: ${page.url()}`);
+    }
+
+    // Enable public site if not already enabled
+    const enabledCheckbox = page.locator('input[name="enabled"]');
+    const isCheckboxVisible = await enabledCheckbox.isVisible({ timeout: 5000 }).catch(() => false);
+
+    if (!isCheckboxVisible) {
+      throw new Error("Public site enabled checkbox not found on settings page");
+    }
+
+    const isChecked = await enabledCheckbox.isChecked();
+    console.log(`Public site enabled status before setup: ${isChecked}`);
+
+    if (!isChecked) {
+      // Check the enable toggle
+      await enabledCheckbox.check({ timeout: 5000 });
+
+      // Verify it was checked
+      const isNowChecked = await enabledCheckbox.isChecked();
+      if (!isNowChecked) {
+        throw new Error("Failed to check the enabled checkbox");
+      }
+
+      // Submit the form
+      const saveButton = page.getByRole("button", { name: /save|update/i });
+      const isSaveButtonVisible = await saveButton.isVisible({ timeout: 5000 }).catch(() => false);
+
+      if (!isSaveButtonVisible) {
+        throw new Error("Save button not found on public site settings page");
+      }
+
+      await saveButton.click({ timeout: 5000 });
+
+      // Wait for save to complete - look for success message or page reload
+      await page.waitForTimeout(2000);
+
+      // Verify the setting persisted by checking the checkbox again
+      const finalCheckStatus = await enabledCheckbox.isChecked();
+      if (!finalCheckStatus) {
+        throw new Error("Public site enabled setting did not persist after save");
+      }
+
+      console.log("Public site successfully enabled via beforeAll hook");
+    } else {
+      console.log("Public site was already enabled");
+    }
+
+    // Final verification: Try to access the public site
+    await page.goto(`http://e2etest.localhost:5173/site/`, { timeout: 10000 });
+    await page.waitForTimeout(1000);
+
+    // Check if we got redirected to disabled page
+    if (page.url().includes('site=disabled')) {
+      throw new Error("Public site is still disabled after attempting to enable it");
+    }
+
+    console.log("Public site setup completed successfully");
   } catch (error) {
-    console.log("Public site setup: Could not enable public site via UI, tests may fail");
-    console.log("Error:", error);
+    console.error("CRITICAL: Public site setup failed:", error);
+    throw error; // Re-throw to fail the test suite
   } finally {
     await page.close();
   }
@@ -195,15 +261,21 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     expect(isAboutPage || !has404 || (hasContent && hasContent.length > 50)).toBeTruthy();
   });
 
-  test.skip("A.3 Public site contact page loads", async ({ page }) => {
-    // SKIPPED: See DIVE-b70 - beforeAll hook silently fails to enable public site
+  test("A.3 Public site contact page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/contact"));
     await page.waitForTimeout(1000);
+
+    // Verify we're not redirected to disabled page
+    if (page.url().includes("site=disabled")) {
+      throw new Error("Public site is disabled - beforeAll hook should have enabled it");
+    }
+
     // Contact page should have form or contact info, or at least load the site
     const hasForm = await page.locator("form").isVisible().catch(() => false);
     const hasContactInfo = await page.getByText(/phone|email|address|contact/i).isVisible().catch(() => false);
     const isContactPage = page.url().includes("/contact");
     const isOnSite = page.url().includes("/site");
+
     // Pass if on contact page OR if on site (page may be disabled/redirect)
     expect(isContactPage || isOnSite || hasForm || hasContactInfo).toBeTruthy();
   });

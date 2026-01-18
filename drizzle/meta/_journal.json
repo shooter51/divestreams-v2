@@ -43,6 +43,13 @@
       "when": 1768630637130,
       "tag": "0005_jazzy_tattoo",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1768769837739,
+      "tag": "0006_tense_meltdown",
+      "breakpoints": true
     }
   ]
 }

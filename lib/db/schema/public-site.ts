@@ -101,6 +101,61 @@ export const customerSessionsRelations = relations(
 );
 
 // ============================================================================
+// CONTACT MESSAGES (for public site contact form)
+// ============================================================================
+
+export const contactMessages = pgTable(
+  "contact_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+
+    // Contact information
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone"),
+    subject: text("subject"),
+    message: text("message").notNull(),
+
+    // Tracking & spam prevention
+    referrerPage: text("referrer_page"),
+    userAgent: text("user_agent"),
+    ipAddress: text("ip_address"),
+
+    // Status management
+    status: text("status").notNull().default("new"), // new, read, replied, archived, spam
+    repliedAt: timestamp("replied_at"),
+    repliedBy: text("replied_by"), // user ID who replied
+
+    // Timestamps
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("contact_messages_org_idx").on(table.organizationId),
+    index("contact_messages_org_status_idx").on(table.organizationId, table.status),
+    index("contact_messages_org_created_idx").on(table.organizationId, table.createdAt),
+    index("contact_messages_email_idx").on(table.email),
+  ]
+);
+
+// ============================================================================
+// CONTACT MESSAGE RELATIONS
+// ============================================================================
+
+export const contactMessagesRelations = relations(
+  contactMessages,
+  ({ one }) => ({
+    organization: one(organization, {
+      fields: [contactMessages.organizationId],
+      references: [organization.id],
+    }),
+  })
+);
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 
@@ -109,3 +164,6 @@ export type NewCustomerCredentials = typeof customerCredentials.$inferInsert;
 
 export type CustomerSession = typeof customerSessions.$inferSelect;
 export type NewCustomerSession = typeof customerSessions.$inferInsert;
+
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type NewContactMessage = typeof contactMessages.$inferInsert;
