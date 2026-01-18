@@ -9,7 +9,7 @@
  */
 
 import { createHash, randomBytes } from "crypto";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "../db";
 import {
   zapierWebhookSubscriptions,
@@ -19,7 +19,7 @@ import {
   type NewZapierWebhookSubscription,
   type ZapierApiKey,
 } from "../db/schema/zapier";
-import { Queue } from "bullmq";
+import { Queue, type ConnectionOptions } from "bullmq";
 import Redis from "ioredis";
 
 // ============================================================================
@@ -30,6 +30,9 @@ const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
   maxRetriesPerRequest: null,
 });
 
+// Cast to ConnectionOptions to avoid ioredis version conflicts between packages
+const connection = redis as unknown as ConnectionOptions;
+
 // ============================================================================
 // WEBHOOK QUEUE
 // ============================================================================
@@ -38,7 +41,7 @@ const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
  * BullMQ queue for webhook deliveries with retry logic
  */
 export const zapierWebhookQueue = new Queue("zapier-webhooks", {
-  connection: redis,
+  connection,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -404,7 +407,7 @@ export async function deliverWebhook(
         .update(zapierWebhookSubscriptions)
         .set({
           lastError: `HTTP ${response.status}`,
-          failureCount: db.sql`${zapierWebhookSubscriptions.failureCount} + 1`,
+          failureCount: sql`${zapierWebhookSubscriptions.failureCount} + 1`,
         })
         .where(eq(zapierWebhookSubscriptions.id, subscriptionId));
 
@@ -432,7 +435,7 @@ export async function deliverWebhook(
       .update(zapierWebhookSubscriptions)
       .set({
         lastError: errorMessage,
-        failureCount: db.sql`${zapierWebhookSubscriptions.failureCount} + 1`,
+        failureCount: sql`${zapierWebhookSubscriptions.failureCount} + 1`,
       })
       .where(eq(zapierWebhookSubscriptions.id, subscriptionId));
 
@@ -494,9 +497,9 @@ export async function getWebhookStats(orgId: string): Promise<{
     })
     .from(zapierWebhookDeliveryLog)
     .where(
-      db.sql`${zapierWebhookDeliveryLog.subscriptionId} = ANY(${subscriptionIds})`
+      sql`${zapierWebhookDeliveryLog.subscriptionId} = ANY(${subscriptionIds})`
     )
-    .orderBy(db.sql`${zapierWebhookDeliveryLog.createdAt} DESC`)
+    .orderBy(sql`${zapierWebhookDeliveryLog.createdAt} DESC`)
     .limit(50);
 
   const successfulDeliveries = deliveries.filter((d) => d.status === "success").length;
