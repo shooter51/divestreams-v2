@@ -24,11 +24,14 @@ export * from "./schema/subscription";
 // export * from "./schema/api-keys";
 // export * from "./schema/webhooks";
 export * from "./schema/integrations";
+export * from "./schema/quickbooks";
 export * from "./schema/public-site";
 export * from "./schema/training";
 export * from "./schema/gallery";
 export * from "./schema/team";
 export * from "./schema/page-content";
+export * from "./schema/stripe";
+export * from "./schema/zapier";
 
 // Import organization for foreign key references
 import { organization } from "./schema/auth";
