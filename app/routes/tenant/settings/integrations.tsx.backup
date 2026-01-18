@@ -3,19 +3,18 @@ import { useLoaderData, useFetcher, Link, redirect, useSearchParams } from "reac
 import { useState, useEffect } from "react";
 // Server-only imports for loader/action
 import { requireOrgContext, getSubdomainFromRequest } from "../../../../lib/auth/org-context.server";
-// API keys and webhooks removed - DIVE-031
-// import { createApiKey, listApiKeys, revokeApiKey } from "../../../../lib/api-keys/index.server";
-// import {
-//   listWebhooks,
-//   createWebhook,
-//   updateWebhook,
-//   deleteWebhook,
-//   createTestDelivery,
-//   regenerateWebhookSecret,
-//   WEBHOOK_EVENTS,
-//   WEBHOOK_EVENT_DESCRIPTIONS,
-// } from "../../../../lib/webhooks/index.server";
-// import { deliverWebhook } from "../../../../lib/webhooks/deliver.server";
+import { createApiKey, listApiKeys, revokeApiKey } from "../../../../lib/api-keys/index.server";
+import {
+  listWebhooks,
+  createWebhook,
+  updateWebhook,
+  deleteWebhook,
+  createTestDelivery,
+  regenerateWebhookSecret,
+  WEBHOOK_EVENTS,
+  WEBHOOK_EVENT_DESCRIPTIONS,
+} from "../../../../lib/webhooks/index.server";
+import { deliverWebhook } from "../../../../lib/webhooks/deliver.server";
 import {
   listActiveIntegrations,
   disconnectIntegration,
@@ -42,18 +41,31 @@ import { getStripeSettings } from "../../../../lib/integrations/stripe.server";
 import { connectWhatsApp, sendWhatsApp } from "../../../../lib/integrations/whatsapp.server";
 
 // Type-only imports (stripped at compile time)
-// Webhooks removed - DIVE-031
-// import type { Webhook } from "../../../../lib/db/schema/webhooks";
+import type { Webhook } from "../../../../lib/db/schema/webhooks";
 
 // Inline types from server modules to avoid client bundle issues
 // These are duplicated here to prevent the bundler from pulling in .server.ts files
 type IntegrationProvider = "stripe" | "google-calendar" | "mailchimp" | "quickbooks" | "zapier" | "twilio" | "whatsapp" | "xero";
 
-// DIVE-031: Removed WebhookEventType
+type WebhookEventType = "booking.created" | "booking.updated" | "booking.cancelled" | "customer.created" | "customer.updated" | "payment.received" | "payment.refunded" | "trip.completed";
 
-// DIVE-031: Removed ApiKeyPermissions interface
+interface ApiKeyPermissions {
+  read?: boolean;
+  write?: boolean;
+  delete?: boolean;
+  scopes?: string[];
+}
 
-// DIVE-031: Removed ApiKeyDisplay interface
+interface ApiKeyDisplay {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  permissions: ApiKeyPermissions | null;
+  isActive: boolean;
+  lastUsedAt: Date | null;
+  expiresAt: Date | null;
+  createdAt: Date;
+}
 
 type ZapierTriggerType = "booking.created" | "booking.updated" | "booking.cancelled" | "customer.created" | "customer.updated" | "payment.received" | "payment.refunded" | "trip.completed" | "trip.created";
 
@@ -281,10 +293,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const currentPlan = ctx.subscription?.plan || "free";
 
   // Get API keys for this organization
-  // DIVE-031: Removed API keys loading
+  const apiKeysList = await listApiKeys(ctx.org.id);
 
   // Get webhooks for this organization
-  // DIVE-031: Removed webhooks loading
+  const webhooksList = await listWebhooks(ctx.org.id);
 
   // Check if Google OAuth is configured
   const googleConfigured = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
@@ -333,12 +345,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     availableIntegrations,
     currentPlan,
     isPremium: ctx.isPremium,
-    // DIVE-031: Removed apiKeys
-    // DIVE-031: Removed webhooks
+    apiKeys: apiKeysList,
+    webhooks: webhooksList,
     orgId: ctx.org.id,
     orgSlug: subdomain,
-    // DIVE-031: Removed webhookEvents
-    // DIVE-031: Removed webhookEventDescriptions
+    webhookEvents: WEBHOOK_EVENTS,
+    webhookEventDescriptions: WEBHOOK_EVENT_DESCRIPTIONS,
     googleConfigured,
     xeroConfigured,
     xeroSettings,
@@ -359,7 +371,32 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  // DIVE-031: Removed API key action handlers;
+  // API Key actions
+  if (intent === "createApiKey") {
+    const name = formData.get("keyName") as string;
+    if (!name || name.trim().length === 0) {
+      return { error: "API key name is required" };
+    }
+
+    try {
+      const result = await createApiKey(ctx.org.id, name.trim());
+      return {
+        success: true,
+        newKey: result.key, // Full key - only returned once!
+        keyId: result.id,
+        keyName: result.name,
+        keyPrefix: result.keyPrefix,
+      };
+    } catch (error) {
+      console.error("Error creating API key:", error);
+      return { error: "Failed to create API key" };
+    }
+  }
+
+  if (intent === "revokeApiKey") {
+    const keyId = formData.get("keyId") as string;
+    if (!keyId) {
+      return { error: "Key ID is required" };
     }
 
     try {
@@ -763,7 +800,111 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Webhook actions
-  // DIVE-031: Removed webhook action handlers;
+  if (intent === "createWebhook") {
+    const url = formData.get("webhookUrl") as string;
+    const description = formData.get("webhookDescription") as string;
+    const eventsRaw = formData.getAll("webhookEvents") as string[];
+
+    if (!url || url.trim().length === 0) {
+      return { error: "Webhook URL is required" };
+    }
+
+    if (eventsRaw.length === 0) {
+      return { error: "At least one event must be selected" };
+    }
+
+    try {
+      const webhook = await createWebhook(
+        ctx.org.id,
+        url.trim(),
+        eventsRaw as WebhookEventType[],
+        description?.trim() || undefined
+      );
+      return {
+        success: true,
+        webhookCreated: true,
+        webhookId: webhook.id,
+        webhookSecret: webhook.secret, // Only shown once!
+      };
+    } catch (error) {
+      console.error("Error creating webhook:", error);
+      return { error: error instanceof Error ? error.message : "Failed to create webhook" };
+    }
+  }
+
+  if (intent === "updateWebhook") {
+    const webhookId = formData.get("webhookId") as string;
+    const url = formData.get("webhookUrl") as string;
+    const description = formData.get("webhookDescription") as string;
+    const eventsRaw = formData.getAll("webhookEvents") as string[];
+    const isActive = formData.get("webhookIsActive") === "true";
+
+    if (!webhookId) {
+      return { error: "Webhook ID is required" };
+    }
+
+    if (!url || url.trim().length === 0) {
+      return { error: "Webhook URL is required" };
+    }
+
+    if (eventsRaw.length === 0) {
+      return { error: "At least one event must be selected" };
+    }
+
+    try {
+      await updateWebhook(webhookId, ctx.org.id, {
+        url: url.trim(),
+        events: eventsRaw as WebhookEventType[],
+        description: description?.trim() || undefined,
+        isActive,
+      });
+      return { success: true, webhookUpdated: true };
+    } catch (error) {
+      console.error("Error updating webhook:", error);
+      return { error: error instanceof Error ? error.message : "Failed to update webhook" };
+    }
+  }
+
+  if (intent === "deleteWebhook") {
+    const webhookId = formData.get("webhookId") as string;
+    if (!webhookId) {
+      return { error: "Webhook ID is required" };
+    }
+
+    try {
+      await deleteWebhook(webhookId, ctx.org.id);
+      return { success: true, webhookDeleted: true };
+    } catch (error) {
+      console.error("Error deleting webhook:", error);
+      return { error: error instanceof Error ? error.message : "Failed to delete webhook" };
+    }
+  }
+
+  if (intent === "testWebhook") {
+    const webhookId = formData.get("webhookId") as string;
+    if (!webhookId) {
+      return { error: "Webhook ID is required" };
+    }
+
+    try {
+      const deliveryId = await createTestDelivery(webhookId, ctx.org.id);
+      // Immediately attempt delivery
+      const success = await deliverWebhook(deliveryId);
+      return {
+        success: true,
+        webhookTested: true,
+        testDeliverySuccess: success,
+      };
+    } catch (error) {
+      console.error("Error testing webhook:", error);
+      return { error: error instanceof Error ? error.message : "Failed to test webhook" };
+    }
+  }
+
+  if (intent === "regenerateWebhookSecret") {
+    const webhookId = formData.get("webhookId") as string;
+    if (!webhookId) {
+      return { error: "Webhook ID is required" };
     }
 
     try {
@@ -795,6 +936,10 @@ export default function IntegrationsPage() {
     connectedIntegrations,
     availableIntegrations,
     currentPlan,
+    apiKeys,
+    webhooks,
+    webhookEvents,
+    webhookEventDescriptions,
     googleConfigured,
     xeroConfigured,
     xeroSettings,

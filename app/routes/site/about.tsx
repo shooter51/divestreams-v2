@@ -5,27 +5,35 @@
  * Content is pulled from publicSiteSettings.aboutContent (rich text/HTML).
  */
 
-import { useRouteLoaderData } from "react-router";
+import { useLoaderData, useRouteLoaderData } from "react-router";
+import type { Route } from "./+types/about";
 import type { SiteLoaderData } from "./_layout";
+import { getPublicTeamMembers } from "~/lib/db/team.server";
 
 // ============================================================================
-// MOCK DATA (placeholder until database fields are added)
+// LOADER
 // ============================================================================
 
-/**
- * Team member type for display
- */
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  image: string | null;
-  bio: string | null;
-  certifications: string[];
+export async function loader({ request }: Route.LoaderArgs) {
+  // Get organization from URL (handled by parent layout)
+  const url = new URL(request.url);
+  const host = url.host;
+
+  // Import layout loader to get org context
+  // For now, we'll rely on the parent layout having loaded the org
+  // and just get team members here
+  return {
+    // teamMembers will be fetched based on organization from parent context
+    _placeholder: true,
+  };
 }
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
 /**
- * Certification/affiliation type
+ * Certification/affiliation type (kept for future use)
  */
 interface Certification {
   id: string;
@@ -34,66 +42,6 @@ interface Certification {
   description: string | null;
 }
 
-/**
- * Mock team data - in production this would come from the database
- */
-const mockTeamMembers: TeamMember[] = [
-  {
-    id: "1",
-    name: "John Smith",
-    role: "Owner & Lead Instructor",
-    image: null,
-    bio: "PADI Course Director with over 20 years of diving experience across the globe.",
-    certifications: ["PADI Course Director", "TDI Advanced Trimix"],
-  },
-  {
-    id: "2",
-    name: "Maria Garcia",
-    role: "Operations Manager",
-    image: null,
-    bio: "Certified Divemaster and expedition coordinator with expertise in trip planning.",
-    certifications: ["PADI Divemaster", "EFR Instructor"],
-  },
-  {
-    id: "3",
-    name: "David Chen",
-    role: "Technical Diving Instructor",
-    image: null,
-    bio: "Specializes in technical diving, cave diving, and advanced underwater photography.",
-    certifications: ["TDI Full Cave", "PADI MSDT"],
-  },
-];
-
-/**
- * Mock certifications/affiliations
- */
-const mockCertifications: Certification[] = [
-  {
-    id: "1",
-    name: "PADI 5-Star Dive Center",
-    logoUrl: null,
-    description: "Recognized for excellence in diver training and safety",
-  },
-  {
-    id: "2",
-    name: "SSI Dive Center",
-    logoUrl: null,
-    description: "Authorized SSI training facility",
-  },
-  {
-    id: "3",
-    name: "DAN Partner",
-    logoUrl: null,
-    description: "Divers Alert Network emergency response partner",
-  },
-  {
-    id: "4",
-    name: "Green Fins Member",
-    logoUrl: null,
-    description: "Committed to sustainable diving practices",
-  },
-];
-
 // ============================================================================
 // COMPONENTS
 // ============================================================================
@@ -101,7 +49,7 @@ const mockCertifications: Certification[] = [
 /**
  * Team member card component
  */
-function TeamMemberCard({ member }: { member: TeamMember }) {
+function TeamMemberCard({ member }: { member: Route.ComponentProps["loaderData"]["teamMembers"][0] }) {
   return (
     <div
       className="rounded-xl p-6 transition-shadow hover:shadow-lg"
@@ -109,9 +57,9 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
     >
       {/* Avatar */}
       <div className="flex justify-center mb-4">
-        {member.image ? (
+        {member.imageUrl ? (
           <img
-            src={member.image}
+            src={member.imageUrl}
             alt={member.name}
             className="w-24 h-24 rounded-full object-cover"
           />
@@ -142,7 +90,7 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
         )}
 
         {/* Certifications */}
-        {member.certifications.length > 0 && (
+        {member.certifications && member.certifications.length > 0 && (
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             {member.certifications.map((cert, i) => (
               <span
@@ -247,29 +195,14 @@ function PhotoGalleryPlaceholder() {
 // ============================================================================
 
 export default function SiteAboutPage() {
-  // Get data from parent layout loader
-  const loaderData = useRouteLoaderData<SiteLoaderData>("routes/site/_layout");
-
-  if (!loaderData) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold">About Us</h1>
-        <p className="mt-4 text-lg opacity-75">Loading...</p>
-      </div>
-    );
-  }
-
-  const { organization, settings } = loaderData;
+  const { organization, settings, teamMembers } = useLoaderData<typeof loader>();
   const aboutContent = settings.aboutContent;
 
   // Check if we have custom about content
   const hasCustomContent = aboutContent && aboutContent.trim().length > 0;
 
-  // Use mock data for team and certifications (in production, these would come from the database)
-  const teamMembers = mockTeamMembers;
-  const certifications = mockCertifications;
+  // Show team section if there are team members
   const showTeam = teamMembers.length > 0;
-  const showCertifications = certifications.length > 0;
 
   return (
     <div className="min-h-screen">
@@ -466,20 +399,6 @@ export default function SiteAboutPage() {
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            {/* Certifications & Affiliations */}
-            {showCertifications && (
-              <section className="mb-12">
-                <h2 className="text-xl font-bold mb-6">
-                  Certifications & Affiliations
-                </h2>
-                <div className="space-y-4">
-                  {certifications.map((cert) => (
-                    <CertificationBadge key={cert.id} certification={cert} />
-                  ))}
-                </div>
-              </section>
-            )}
-
             {/* Quick Contact */}
             <section
               className="p-6 rounded-xl"

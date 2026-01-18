@@ -15,17 +15,20 @@ import {
 import { relations } from "drizzle-orm";
 
 // ============================================================================
-// RE-EXPORT AUTH, SUBSCRIPTION, API KEY, WEBHOOKS, AND INTEGRATIONS SCHEMAS
+// RE-EXPORT AUTH, SUBSCRIPTION, AND INTEGRATIONS SCHEMAS
 // ============================================================================
 
 export * from "./schema/auth";
 export * from "./schema/subscription";
-export * from "./schema/api-keys";
-export * from "./schema/webhooks";
+// API keys and webhooks removed - DIVE-031
+// export * from "./schema/api-keys";
+// export * from "./schema/webhooks";
 export * from "./schema/integrations";
 export * from "./schema/public-site";
 export * from "./schema/training";
 export * from "./schema/gallery";
+export * from "./schema/team";
+export * from "./schema/page-content";
 
 // Import organization for foreign key references
 import { organization } from "./schema/auth";
