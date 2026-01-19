@@ -6,6 +6,7 @@
  */
 
 import { sendEmail } from "../jobs/index";
+import { getTenantUrl, getAppUrl } from "../utils/url";
 
 /**
  * Format cents to USD currency string
@@ -59,7 +60,7 @@ export async function triggerWelcomeEmail(params: {
   subdomain: string;
   tenantId: string;
 }): Promise<void> {
-  const loginUrl = `https://${params.subdomain}.divestreams.com/login`;
+  const loginUrl = getTenantUrl(params.subdomain, "/login");
 
   await sendEmail("welcome", {
     to: params.userEmail,
@@ -79,7 +80,7 @@ export async function triggerPasswordReset(params: {
   resetToken: string;
   tenantId: string;
 }): Promise<void> {
-  const resetUrl = `https://divestreams.com/reset-password?token=${params.resetToken}`;
+  const resetUrl = `${getAppUrl()}/reset-password?token=${params.resetToken}`;
 
   await sendEmail("password-reset", {
     to: params.userEmail,

@@ -1,0 +1,396 @@
+import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { useLoaderData, useActionData, useNavigation, useFetcher, Link } from "react-router";
+import { useState } from "react";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import {
+  getAgencies,
+  createAgency,
+  updateAgency,
+  deleteAgency,
+} from "../../../../../lib/db/training.server";
+
+export const meta: MetaFunction = () => [{ title: "Certification Agencies - DiveStreams" }];
+
+// Common diving certification agencies for quick add
+const commonAgencies = [
+  { name: "PADI", code: "PADI", description: "Professional Association of Diving Instructors", website: "https://www.padi.com" },
+  { name: "SSI", code: "SSI", description: "Scuba Schools International", website: "https://www.divessi.com" },
+  { name: "NAUI", code: "NAUI", description: "National Association of Underwater Instructors", website: "https://www.naui.org" },
+  { name: "SDI/TDI", code: "SDI", description: "Scuba Diving International / Technical Diving International", website: "https://www.tdisdi.com" },
+  { name: "RAID", code: "RAID", description: "Rebreather Association of International Divers", website: "https://www.diveraid.com" },
+];
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const ctx = await requireOrgContext(request);
+  const agencies = await getAgencies(ctx.org.id);
+
+  return {
+    agencies,
+    commonAgencies,
+  };
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const ctx = await requireOrgContext(request);
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "create") {
+    const name = formData.get("name") as string;
+    const code = formData.get("code") as string;
+    const description = (formData.get("description") as string) || undefined;
+    const website = (formData.get("website") as string) || undefined;
+    const isActive = formData.get("isActive") === "true";
+
+    if (!name || !code) {
+      return { error: "Name and code are required" };
+    }
+
+    await createAgency({
+      organizationId: ctx.org.id,
+      name,
+      code,
+      description,
+      website,
+      isActive,
+    });
+
+    return { success: true, message: `Agency "${name}" created successfully` };
+  }
+
+  if (intent === "update") {
+    const agencyId = formData.get("agencyId") as string;
+    const name = formData.get("name") as string;
+    const code = formData.get("code") as string;
+    const description = (formData.get("description") as string) || null;
+    const website = (formData.get("website") as string) || null;
+    const isActive = formData.get("isActive") === "true";
+
+    if (!agencyId || !name || !code) {
+      return { error: "Agency ID, name, and code are required" };
+    }
+
+    await updateAgency(ctx.org.id, agencyId, {
+      name,
+      code,
+      description,
+      website,
+      isActive,
+    });
+
+    return { success: true, message: `Agency "${name}" updated successfully` };
+  }
+
+  if (intent === "delete") {
+    const agencyId = formData.get("agencyId") as string;
+
+    if (!agencyId) {
+      return { error: "Agency ID is required" };
+    }
+
+    await deleteAgency(ctx.org.id, agencyId);
+
+    return { success: true, message: "Agency deleted successfully" };
+  }
+
+  if (intent === "quick-add") {
+    const agencyCode = formData.get("agencyCode") as string;
+    const commonAgency = commonAgencies.find((a) => a.code === agencyCode);
+
+    if (!commonAgency) {
+      return { error: "Invalid agency code" };
+    }
+
+    await createAgency({
+      organizationId: ctx.org.id,
+      name: commonAgency.name,
+      code: commonAgency.code,
+      description: commonAgency.description,
+      website: commonAgency.website,
+      isActive: true,
+    });
+
+    return { success: true, message: `Agency "${commonAgency.name}" added successfully` };
+  }
+
+  return null;
+}
+
+export default function AgenciesPage() {
+  const { agencies, commonAgencies } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const fetcher = useFetcher();
+  const isSubmitting = navigation.state === "submitting";
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingAgency, setEditingAgency] = useState<typeof agencies[0] | null>(null);
+
+  // Find which common agencies haven't been added yet
+  const existingCodes = agencies.map((a) => a.code.toUpperCase());
+  const availableCommonAgencies = commonAgencies.filter(
+    (a) => !existingCodes.includes(a.code.toUpperCase())
+  );
+
+  const handleEdit = (agency: typeof agencies[0]) => {
+    setEditingAgency(agency);
+    setShowForm(true);
+  };
+
+  const handleCancel = () => {
+    setEditingAgency(null);
+    setShowForm(false);
+  };
+
+  return (
+    <div className="max-w-3xl">
+      <div className="mb-6">
+        <Link to="/app/settings" className="text-blue-600 hover:underline text-sm">
+          &larr; Back to Settings
+        </Link>
+        <h1 className="text-2xl font-bold mt-2">Certification Agencies</h1>
+        <p className="text-gray-500">
+          Manage diving certification agencies (PADI, SSI, NAUI, etc.)
+        </p>
+      </div>
+
+      {/* Success/Error Messages */}
+      {actionData?.success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+          {actionData.message}
+        </div>
+      )}
+      {actionData?.error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          {actionData.error}
+        </div>
+      )}
+
+      {/* Quick Add Common Agencies */}
+      {availableCommonAgencies.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+          <h3 className="font-medium text-blue-800 mb-2">Quick Add Common Agencies</h3>
+          <div className="flex flex-wrap gap-2">
+            {availableCommonAgencies.map((agency) => (
+              <fetcher.Form key={agency.code} method="post" className="inline">
+                <input type="hidden" name="intent" value="quick-add" />
+                <input type="hidden" name="agencyCode" value={agency.code} />
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 bg-white border border-blue-300 text-blue-700 rounded-lg text-sm hover:bg-blue-100 transition-colors"
+                >
+                  + {agency.name}
+                </button>
+              </fetcher.Form>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Form */}
+      {showForm && (
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <h2 className="font-semibold mb-4">
+            {editingAgency ? "Edit Agency" : "Add New Agency"}
+          </h2>
+          <form method="post" onSubmit={() => handleCancel()}>
+            <input type="hidden" name="intent" value={editingAgency ? "update" : "create"} />
+            {editingAgency && (
+              <input type="hidden" name="agencyId" value={editingAgency.id} />
+            )}
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium mb-1">
+                    Agency Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    defaultValue={editingAgency?.name || ""}
+                    placeholder="e.g., PADI"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="code" className="block text-sm font-medium mb-1">
+                    Code *
+                  </label>
+                  <input
+                    type="text"
+                    id="code"
+                    name="code"
+                    required
+                    defaultValue={editingAgency?.code || ""}
+                    placeholder="e.g., PADI"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Short identifier for the agency</p>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={2}
+                  defaultValue={editingAgency?.description || ""}
+                  placeholder="Full name or description of the agency"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="website" className="block text-sm font-medium mb-1">
+                  Website
+                </label>
+                <input
+                  type="url"
+                  id="website"
+                  name="website"
+                  defaultValue={editingAgency?.website || ""}
+                  placeholder="https://www.example.com"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    value="true"
+                    defaultChecked={editingAgency?.isActive ?? true}
+                    className="rounded"
+                  />
+                  <span className="text-sm font-medium">Active</span>
+                </label>
+                <p className="text-xs text-gray-500 ml-6">
+                  Inactive agencies won&apos;t appear in dropdowns
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+              >
+                {isSubmitting ? "Saving..." : editingAgency ? "Update Agency" : "Add Agency"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="border px-4 py-2 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Add Button */}
+      {!showForm && (
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Add Agency
+          </button>
+        </div>
+      )}
+
+      {/* Agencies List */}
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        {agencies.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            <p className="mb-2">No certification agencies configured yet.</p>
+            <p className="text-sm">
+              Add agencies like PADI, SSI, or NAUI to organize your courses.
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y">
+            {agencies.map((agency) => (
+              <div key={agency.id} className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-sm ${
+                      agency.isActive
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {agency.code.substring(0, 4)}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{agency.name}</p>
+                      {!agency.isActive && (
+                        <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                    {agency.description && (
+                      <p className="text-sm text-gray-500">{agency.description}</p>
+                    )}
+                    {agency.website && (
+                      <a
+                        href={agency.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        {agency.website}
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEdit(agency)}
+                    className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  >
+                    Edit
+                  </button>
+                  <fetcher.Form
+                    method="post"
+                    onSubmit={(e) => {
+                      if (
+                        !confirm(
+                          `Are you sure you want to delete "${agency.name}"? This may affect courses using this agency.`
+                        )
+                      ) {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    <input type="hidden" name="intent" value="delete" />
+                    <input type="hidden" name="agencyId" value={agency.id} />
+                    <button
+                      type="submit"
+                      className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      Delete
+                    </button>
+                  </fetcher.Form>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

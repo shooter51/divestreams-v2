@@ -117,6 +117,13 @@ export default function SettingsPage() {
       icon: "🎨",
       preview: null,
     },
+    {
+      href: "/app/settings/public-site",
+      title: "Public Site",
+      description: "Configure your public-facing website and appearance",
+      icon: "🌐",
+      preview: null,
+    },
   ];
 
   return (

@@ -8,7 +8,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: 0,
   workers: 1, // Single worker for coverage
-  reporter: [["html", { open: "never" }], ["list"]],
+  reporter: [
+    ["html", { open: "never" }],
+    ["list"],
+    ["json", { outputFile: "test-results/results.json" }],
+  ],
   timeout: 30000,
   expect: {
     timeout: 10000,

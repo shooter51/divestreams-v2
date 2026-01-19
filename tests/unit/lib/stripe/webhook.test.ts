@@ -28,6 +28,13 @@ vi.mock("../../../../lib/stripe/index", () => ({
   setDefaultPaymentMethod: mockSetDefaultPaymentMethod,
 }));
 
+// Mock the Stripe billing module
+vi.mock("../../../../lib/stripe/stripe-billing.server", () => ({
+  syncSubscriptionToDatabase: vi.fn().mockResolvedValue(undefined),
+  syncInvoiceToDatabase: vi.fn().mockResolvedValue(undefined),
+  syncPaymentToDatabase: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe("Stripe Webhook Handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -101,6 +108,18 @@ describe("Stripe Webhook Handler", () => {
             id: "sub_123",
             customer: "cus_123",
             status: "active",
+            metadata: {
+              organizationId: "org_test",
+            },
+            items: {
+              data: [{
+                price: {
+                  id: "price_test",
+                  unit_amount: 4900,
+                  currency: "usd",
+                } as any,
+              }] as any,
+            } as any,
           } as Stripe.Subscription,
         },
       };
@@ -123,7 +142,7 @@ describe("Stripe Webhook Handler", () => {
       const result = await handleStripeWebhook("payload", "sig_valid");
 
       expect(result.success).toBe(true);
-      expect(result.message).toBe("Webhook handled");
+      expect(result.message).toBe("Webhook handled successfully");
       expect(mockHandleSubscriptionUpdated).toHaveBeenCalled();
     });
 
@@ -137,6 +156,18 @@ describe("Stripe Webhook Handler", () => {
             id: "sub_456",
             customer: "cus_456",
             status: "active",
+            metadata: {
+              organizationId: "org_test",
+            },
+            items: {
+              data: [{
+                price: {
+                  id: "price_test",
+                  unit_amount: 4900,
+                  currency: "usd",
+                } as any,
+              }] as any,
+            } as any,
           } as Stripe.Subscription,
         },
       };
@@ -159,6 +190,7 @@ describe("Stripe Webhook Handler", () => {
       const result = await handleStripeWebhook("payload", "sig_valid");
 
       expect(result.success).toBe(true);
+      expect(result.message).toBe("Webhook handled successfully");
       expect(mockHandleSubscriptionUpdated).toHaveBeenCalled();
     });
 
@@ -172,6 +204,18 @@ describe("Stripe Webhook Handler", () => {
             id: "sub_789",
             customer: "cus_789",
             status: "canceled",
+            metadata: {
+              organizationId: "org_test",
+            },
+            items: {
+              data: [{
+                price: {
+                  id: "price_test",
+                  unit_amount: 4900,
+                  currency: "usd",
+                } as any,
+              }] as any,
+            } as any,
           } as Stripe.Subscription,
         },
       };
@@ -194,6 +238,7 @@ describe("Stripe Webhook Handler", () => {
       const result = await handleStripeWebhook("payload", "sig_valid");
 
       expect(result.success).toBe(true);
+      expect(result.message).toBe("Webhook handled successfully");
       expect(mockHandleSubscriptionDeleted).toHaveBeenCalled();
     });
 
@@ -228,6 +273,7 @@ describe("Stripe Webhook Handler", () => {
       const result = await handleStripeWebhook("payload", "sig_valid");
 
       expect(result.success).toBe(true);
+      expect(result.message).toBe("Webhook handled successfully");
     });
 
     it("handles invoice.payment_failed event", async () => {
@@ -261,6 +307,7 @@ describe("Stripe Webhook Handler", () => {
       const result = await handleStripeWebhook("payload", "sig_valid");
 
       expect(result.success).toBe(true);
+      expect(result.message).toBe("Webhook handled successfully");
     });
 
     it("handles checkout.session.completed event for setup mode", async () => {
@@ -303,6 +350,7 @@ describe("Stripe Webhook Handler", () => {
       const result = await handleStripeWebhook("payload", "sig_valid");
 
       expect(result.success).toBe(true);
+      expect(result.message).toBe("Webhook handled successfully");
     });
 
     it("handles unhandled event types gracefully", async () => {
@@ -333,7 +381,7 @@ describe("Stripe Webhook Handler", () => {
       const result = await handleStripeWebhook("payload", "sig_valid");
 
       expect(result.success).toBe(true);
-      expect(result.message).toBe("Webhook handled");
+      expect(result.message).toBe("Webhook handled successfully");
     });
   });
 });

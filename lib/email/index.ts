@@ -362,3 +362,160 @@ DiveStreams
 
   return { subject, html, text };
 }
+
+export function contactFormNotificationEmail(data: {
+  name: string;
+  email: string;
+  phone?: string;
+  subject?: string;
+  message: string;
+  shopName: string;
+  referrerPage?: string;
+  submittedAt: string;
+}) {
+  const subject = `New Contact Form Submission${data.subject ? ` - ${data.subject}` : ""}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+        .details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .detail-row { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .label { color: #666; font-weight: 600; }
+        .message-box { background: #f3f4f6; padding: 15px; border-radius: 8px; border-left: 4px solid #2563eb; margin: 15px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>New Contact Form Submission</h1>
+        </div>
+        <div class="content">
+          <p>You have received a new message through your website contact form.</p>
+
+          <div class="details">
+            <div class="detail-row">
+              <span class="label">From:</span> ${data.name} (${data.email})
+            </div>
+            ${data.phone ? `<div class="detail-row"><span class="label">Phone:</span> ${data.phone}</div>` : ""}
+            ${data.subject ? `<div class="detail-row"><span class="label">Subject:</span> ${data.subject}</div>` : ""}
+            <div class="detail-row">
+              <span class="label">Submitted:</span> ${data.submittedAt}
+            </div>
+            ${data.referrerPage ? `<div class="detail-row"><span class="label">Page:</span> ${data.referrerPage}</div>` : ""}
+          </div>
+
+          <div class="message-box">
+            <div class="label">Message:</div>
+            <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${data.message}</p>
+          </div>
+
+          <p><strong>Reply to:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
+        </div>
+        <div class="footer">
+          <p>${data.shopName} • Powered by DiveStreams</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+New Contact Form Submission
+
+From: ${data.name} (${data.email})
+${data.phone ? `Phone: ${data.phone}` : ""}
+${data.subject ? `Subject: ${data.subject}` : ""}
+Submitted: ${data.submittedAt}
+${data.referrerPage ? `Page: ${data.referrerPage}` : ""}
+
+Message:
+${data.message}
+
+Reply to: ${data.email}
+
+${data.shopName} • Powered by DiveStreams
+  `;
+
+  return { subject, html, text };
+}
+
+export function contactFormAutoReplyEmail(data: {
+  name: string;
+  shopName: string;
+  contactEmail: string;
+  contactPhone?: string;
+}) {
+  const subject = `Thank you for contacting ${data.shopName}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+        .highlight { background: #dbeafe; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Message Received</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${data.name},</p>
+          <p>Thank you for reaching out to <strong>${data.shopName}</strong>. We've received your message and will get back to you as soon as possible.</p>
+
+          <div class="highlight">
+            <p><strong>We typically respond within 24 hours.</strong></p>
+          </div>
+
+          <p>In the meantime, if you need immediate assistance, please feel free to contact us directly:</p>
+          <ul>
+            <li>Email: <a href="mailto:${data.contactEmail}">${data.contactEmail}</a></li>
+            ${data.contactPhone ? `<li>Phone: <a href="tel:${data.contactPhone}">${data.contactPhone}</a></li>` : ""}
+          </ul>
+
+          <p>Best regards,<br>${data.shopName} Team</p>
+        </div>
+        <div class="footer">
+          <p>${data.shopName} • Powered by DiveStreams</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Thank you for contacting ${data.shopName}
+
+Hi ${data.name},
+
+Thank you for reaching out to ${data.shopName}. We've received your message and will get back to you as soon as possible.
+
+We typically respond within 24 hours.
+
+In the meantime, if you need immediate assistance, please feel free to contact us directly:
+
+Email: ${data.contactEmail}
+${data.contactPhone ? `Phone: ${data.contactPhone}` : ""}
+
+Best regards,
+${data.shopName} Team
+
+${data.shopName} • Powered by DiveStreams
+  `;
+
+  return { subject, html, text };
+}
