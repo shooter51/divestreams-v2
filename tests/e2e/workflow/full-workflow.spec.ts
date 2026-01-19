@@ -215,7 +215,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await expect(page.getByLabel("Email Address")).toBeVisible();
   });
 
-  test("2.3 Create tenant via signup @critical", async ({ page, context }) => {
+  test("[KAN-2] 2.3 Create tenant via signup @critical", async ({ page, context }) => {
     await page.goto(getMarketingUrl("/signup"));
     await page.getByLabel("Dive Shop Name").fill(testData.tenant.shopName);
     await page.getByLabel("Choose Your URL").fill(testData.tenant.subdomain);
@@ -403,7 +403,7 @@ test.describe.serial("Block B: Admin Panel - Unauthenticated", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Tenant Routes Existence", () => {
-  test("4.1 Tenant dashboard navigation exists", async ({ page }) => {
+  test("[KAN-10] 4.1 Tenant dashboard navigation exists", async ({ page }) => {
     await page.goto(getTenantUrl("/app"));
     await page.waitForTimeout(1000);
     expect(page.url().includes("/app") || page.url().includes("/auth/login")).toBeTruthy();
@@ -979,7 +979,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     expect(phoneLabel || phoneId).toBeTruthy();
   });
 
-  test("9.8 Create new customer @critical", async ({ page }) => {
+  test("[KAN-11] 9.8 Create new customer @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/customers/new"));
     await page.waitForSelector('button[type="submit"], button:has-text("Save Customer")', { state: "visible", timeout: 10000 }).catch(() => null);
