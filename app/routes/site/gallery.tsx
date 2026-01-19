@@ -12,6 +12,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLoaderData, useRouteLoaderData, useSearchParams } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
+import { eq } from "drizzle-orm";
+import { db } from "../../../lib/db";
+import { organization } from "../../../lib/db/schema/auth";
 import {
   getPublicGalleryImages,
   getPublicGalleryAlbums,
@@ -44,9 +47,6 @@ interface GalleryLoaderData {
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<GalleryLoaderData> {
   const url = new URL(request.url);
-  const { db } = await import("../../../lib/db");
-  const { organization } = await import("../../../lib/db/schema/auth");
-  const { eq } = await import("drizzle-orm");
 
   // Resolve organization ID from host
   const host = url.host;
