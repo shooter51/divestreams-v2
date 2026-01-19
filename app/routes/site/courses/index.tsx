@@ -7,8 +7,10 @@
 
 import { Link, useLoaderData, useSearchParams } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
+import { eq } from "drizzle-orm";
+import { db } from "../../../../lib/db";
+import { organization } from "../../../../lib/db/schema/auth";
 import { getPublicCourses } from "../../../../lib/db/public-site.server";
-import type { SiteLoaderData } from "../_layout";
 
 // ============================================================================
 // CERTIFICATION AGENCIES
@@ -150,22 +152,48 @@ function formatPrice(price: string | null, currency = "USD"): string {
 // LOADER
 // ============================================================================
 
-export async function loader({ request, context }: LoaderFunctionArgs): Promise<LoaderData> {
-  // Get organization from parent layout context
-  const parentData = context?.parentData as SiteLoaderData | undefined;
+export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderData> {
+  const url = new URL(request.url);
+  const host = url.host;
 
-  if (!parentData?.organization?.id) {
+  // Extract subdomain for organization lookup
+  let subdomain: string | null = null;
+  if (host.includes("localhost")) {
+    const parts = host.split(".");
+    if (parts.length >= 2 && parts[0] !== "localhost") {
+      subdomain = parts[0].toLowerCase();
+    }
+  } else {
+    const parts = host.split(".");
+    if (parts.length >= 3) {
+      const sub = parts[0].toLowerCase();
+      if (sub !== "www" && sub !== "admin") {
+        subdomain = sub;
+      }
+    }
+  }
+
+  // Get organization from database
+  const [org] = await db
+    .select()
+    .from(organization)
+    .where(subdomain
+      ? eq(organization.slug, subdomain)
+      : eq(organization.customDomain, host.split(":")[0])
+    )
+    .limit(1);
+
+  if (!org) {
     throw new Response("Organization not found", { status: 404 });
   }
 
-  const url = new URL(request.url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const limit = 12;
   const agency = url.searchParams.get("agency");
   const level = url.searchParams.get("level");
 
   // Get all public courses
-  const result = await getPublicCourses(parentData.organization.id, { page, limit: 100 });
+  const result = await getPublicCourses(org.id, { page, limit: 100 });
 
   // Enhance courses with detected agency and level
   let enhancedCourses = result.courses.map((course) => ({
