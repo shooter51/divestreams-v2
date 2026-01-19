@@ -1,12 +1,13 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
+import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { db } from "../../../lib/db";
 import { organization, member, user, account } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
 import { eq } from "drizzle-orm";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
-import { auth } from "../../../lib/auth";
 import { seedDemoData } from "../../../lib/db/seed-demo-data.server";
+import { hashPassword } from "../../../lib/auth/password.server";
+import { getBaseDomain } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Create Organization - DiveStreams Admin" }];
 
@@ -158,33 +159,11 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-// Hash password using scrypt (same format as Better Auth)
-// Better Auth uses: N=16384, r=16, p=1, dkLen=64, format: "salt:hash"
-async function hashPassword(password: string): Promise<string> {
-  const { scrypt, randomBytes } = await import("crypto");
-  const { promisify } = await import("util");
-  const scryptAsync = promisify(scrypt) as (
-    password: string,
-    salt: string,
-    keylen: number,
-    options: { N: number; r: number; p: number; maxmem: number }
-  ) => Promise<Buffer>;
-
-  const salt = randomBytes(16).toString("hex");
-  const key = await scryptAsync(
-    password.normalize("NFKC"),
-    salt,
-    64, // dkLen
-    { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 }
-  );
-
-  return `${salt}:${key.toString("hex")}`;
-}
-
 export default function CreateOrganizationPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const baseDomain = getBaseDomain();
 
   return (
     <div className="max-w-2xl">
@@ -224,7 +203,7 @@ export default function CreateOrganizationPage() {
                 required
               />
               <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-lg text-gray-500">
-                .divestreams.com
+                .{baseDomain}
               </span>
             </div>
             {actionData?.errors?.slug && (

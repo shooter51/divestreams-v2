@@ -15,6 +15,8 @@ vi.mock("../../../../lib/jobs/index", () => ({
 describe("Email Triggers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Set APP_URL for consistent test expectations
+    process.env.APP_URL = "https://divestreams.com";
   });
 
   describe("formatCurrency", () => {

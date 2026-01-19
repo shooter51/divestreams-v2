@@ -3,18 +3,19 @@ import { useLoaderData, useFetcher, Link, redirect, useSearchParams } from "reac
 import { useState, useEffect } from "react";
 // Server-only imports for loader/action
 import { requireOrgContext, getSubdomainFromRequest } from "../../../../lib/auth/org-context.server";
-import { createApiKey, listApiKeys, revokeApiKey } from "../../../../lib/api-keys/index.server";
-import {
-  listWebhooks,
-  createWebhook,
-  updateWebhook,
-  deleteWebhook,
-  createTestDelivery,
-  regenerateWebhookSecret,
-  WEBHOOK_EVENTS,
-  WEBHOOK_EVENT_DESCRIPTIONS,
-} from "../../../../lib/webhooks/index.server";
-import { deliverWebhook } from "../../../../lib/webhooks/deliver.server";
+// API keys and webhooks removed - DIVE-031
+// import { createApiKey, listApiKeys, revokeApiKey } from "../../../../lib/api-keys/index.server";
+// import {
+//   listWebhooks,
+//   createWebhook,
+//   updateWebhook,
+//   deleteWebhook,
+//   createTestDelivery,
+//   regenerateWebhookSecret,
+//   WEBHOOK_EVENTS,
+//   WEBHOOK_EVENT_DESCRIPTIONS,
+// } from "../../../../lib/webhooks/index.server";
+// import { deliverWebhook } from "../../../../lib/webhooks/deliver.server";
 import {
   listActiveIntegrations,
   disconnectIntegration,
@@ -41,31 +42,18 @@ import { getStripeSettings } from "../../../../lib/integrations/stripe.server";
 import { connectWhatsApp, sendWhatsApp } from "../../../../lib/integrations/whatsapp.server";
 
 // Type-only imports (stripped at compile time)
-import type { Webhook } from "../../../../lib/db/schema/webhooks";
+// Webhooks removed - DIVE-031
+// import type { Webhook } from "../../../../lib/db/schema/webhooks";
 
 // Inline types from server modules to avoid client bundle issues
 // These are duplicated here to prevent the bundler from pulling in .server.ts files
 type IntegrationProvider = "stripe" | "google-calendar" | "mailchimp" | "quickbooks" | "zapier" | "twilio" | "whatsapp" | "xero";
 
-type WebhookEventType = "booking.created" | "booking.updated" | "booking.cancelled" | "customer.created" | "customer.updated" | "payment.received" | "payment.refunded" | "trip.completed";
+// DIVE-031: Removed WebhookEventType
 
-interface ApiKeyPermissions {
-  read?: boolean;
-  write?: boolean;
-  delete?: boolean;
-  scopes?: string[];
-}
+// DIVE-031: Removed ApiKeyPermissions interface
 
-interface ApiKeyDisplay {
-  id: string;
-  name: string;
-  keyPrefix: string;
-  permissions: ApiKeyPermissions | null;
-  isActive: boolean;
-  lastUsedAt: Date | null;
-  expiresAt: Date | null;
-  createdAt: Date;
-}
+// DIVE-031: Removed ApiKeyDisplay interface
 
 type ZapierTriggerType = "booking.created" | "booking.updated" | "booking.cancelled" | "customer.created" | "customer.updated" | "payment.received" | "payment.refunded" | "trip.completed" | "trip.created";
 
@@ -293,10 +281,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const currentPlan = ctx.subscription?.plan || "free";
 
   // Get API keys for this organization
-  const apiKeysList = await listApiKeys(ctx.org.id);
+  // DIVE-031: Removed API keys loading
 
   // Get webhooks for this organization
-  const webhooksList = await listWebhooks(ctx.org.id);
+  // DIVE-031: Removed webhooks loading
 
   // Check if Google OAuth is configured
   const googleConfigured = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
@@ -345,12 +333,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     availableIntegrations,
     currentPlan,
     isPremium: ctx.isPremium,
-    apiKeys: apiKeysList,
-    webhooks: webhooksList,
+    // DIVE-031: Removed apiKeys
+    // DIVE-031: Removed webhooks
     orgId: ctx.org.id,
     orgSlug: subdomain,
-    webhookEvents: WEBHOOK_EVENTS,
-    webhookEventDescriptions: WEBHOOK_EVENT_DESCRIPTIONS,
+    // DIVE-031: Removed webhookEvents
+    // DIVE-031: Removed webhookEventDescriptions
     googleConfigured,
     xeroConfigured,
     xeroSettings,
@@ -371,45 +359,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  // API Key actions
-  if (intent === "createApiKey") {
-    const name = formData.get("keyName") as string;
-    if (!name || name.trim().length === 0) {
-      return { error: "API key name is required" };
-    }
-
-    try {
-      const result = await createApiKey(ctx.org.id, name.trim());
-      return {
-        success: true,
-        newKey: result.key, // Full key - only returned once!
-        keyId: result.id,
-        keyName: result.name,
-        keyPrefix: result.keyPrefix,
-      };
-    } catch (error) {
-      console.error("Error creating API key:", error);
-      return { error: "Failed to create API key" };
-    }
-  }
-
-  if (intent === "revokeApiKey") {
-    const keyId = formData.get("keyId") as string;
-    if (!keyId) {
-      return { error: "Key ID is required" };
-    }
-
-    try {
-      const success = await revokeApiKey(keyId, ctx.org.id);
-      if (!success) {
-        return { error: "API key not found" };
-      }
-      return { success: true, revokedKeyId: keyId };
-    } catch (error) {
-      console.error("Error revoking API key:", error);
-      return { error: "Failed to revoke API key" };
-    }
-  }
+  // DIVE-031: Removed API key action handlers
 
   // Integration actions
   if (intent === "connect") {
@@ -799,126 +749,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  // Webhook actions
-  if (intent === "createWebhook") {
-    const url = formData.get("webhookUrl") as string;
-    const description = formData.get("webhookDescription") as string;
-    const eventsRaw = formData.getAll("webhookEvents") as string[];
-
-    if (!url || url.trim().length === 0) {
-      return { error: "Webhook URL is required" };
-    }
-
-    if (eventsRaw.length === 0) {
-      return { error: "At least one event must be selected" };
-    }
-
-    try {
-      const webhook = await createWebhook(
-        ctx.org.id,
-        url.trim(),
-        eventsRaw as WebhookEventType[],
-        description?.trim() || undefined
-      );
-      return {
-        success: true,
-        webhookCreated: true,
-        webhookId: webhook.id,
-        webhookSecret: webhook.secret, // Only shown once!
-      };
-    } catch (error) {
-      console.error("Error creating webhook:", error);
-      return { error: error instanceof Error ? error.message : "Failed to create webhook" };
-    }
-  }
-
-  if (intent === "updateWebhook") {
-    const webhookId = formData.get("webhookId") as string;
-    const url = formData.get("webhookUrl") as string;
-    const description = formData.get("webhookDescription") as string;
-    const eventsRaw = formData.getAll("webhookEvents") as string[];
-    const isActive = formData.get("webhookIsActive") === "true";
-
-    if (!webhookId) {
-      return { error: "Webhook ID is required" };
-    }
-
-    if (!url || url.trim().length === 0) {
-      return { error: "Webhook URL is required" };
-    }
-
-    if (eventsRaw.length === 0) {
-      return { error: "At least one event must be selected" };
-    }
-
-    try {
-      await updateWebhook(webhookId, ctx.org.id, {
-        url: url.trim(),
-        events: eventsRaw as WebhookEventType[],
-        description: description?.trim() || undefined,
-        isActive,
-      });
-      return { success: true, webhookUpdated: true };
-    } catch (error) {
-      console.error("Error updating webhook:", error);
-      return { error: error instanceof Error ? error.message : "Failed to update webhook" };
-    }
-  }
-
-  if (intent === "deleteWebhook") {
-    const webhookId = formData.get("webhookId") as string;
-    if (!webhookId) {
-      return { error: "Webhook ID is required" };
-    }
-
-    try {
-      await deleteWebhook(webhookId, ctx.org.id);
-      return { success: true, webhookDeleted: true };
-    } catch (error) {
-      console.error("Error deleting webhook:", error);
-      return { error: error instanceof Error ? error.message : "Failed to delete webhook" };
-    }
-  }
-
-  if (intent === "testWebhook") {
-    const webhookId = formData.get("webhookId") as string;
-    if (!webhookId) {
-      return { error: "Webhook ID is required" };
-    }
-
-    try {
-      const deliveryId = await createTestDelivery(webhookId, ctx.org.id);
-      // Immediately attempt delivery
-      const success = await deliverWebhook(deliveryId);
-      return {
-        success: true,
-        webhookTested: true,
-        testDeliverySuccess: success,
-      };
-    } catch (error) {
-      console.error("Error testing webhook:", error);
-      return { error: error instanceof Error ? error.message : "Failed to test webhook" };
-    }
-  }
-
-  if (intent === "regenerateWebhookSecret") {
-    const webhookId = formData.get("webhookId") as string;
-    if (!webhookId) {
-      return { error: "Webhook ID is required" };
-    }
-
-    try {
-      const webhook = await regenerateWebhookSecret(webhookId, ctx.org.id);
-      return {
-        success: true,
-        webhookSecretRegenerated: true,
-        newSecret: webhook.secret,
-      };
-    } catch (error) {
-      console.error("Error regenerating webhook secret:", error);
-      return { error: error instanceof Error ? error.message : "Failed to regenerate secret" };
-    }
-  }
+  // Webhook actions - DIVE-031: Removed webhook action handlers
 
   return null;
 }
@@ -936,10 +767,6 @@ export default function IntegrationsPage() {
     connectedIntegrations,
     availableIntegrations,
     currentPlan,
-    apiKeys,
-    webhooks,
-    webhookEvents,
-    webhookEventDescriptions,
     googleConfigured,
     xeroConfigured,
     xeroSettings,
@@ -955,19 +782,7 @@ export default function IntegrationsPage() {
   } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher();
-  const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
-  const [showNewKeyModal, setShowNewKeyModal] = useState(false);
-  const [newKeyData, setNewKeyData] = useState<{ key: string; name: string } | null>(null);
-  const [keyName, setKeyName] = useState("");
   const [copied, setCopied] = useState(false);
-  const [showWebhookModal, setShowWebhookModal] = useState(false);
-  const [editingWebhook, setEditingWebhook] = useState<Webhook | null>(null);
-  const [showNewSecretModal, setShowNewSecretModal] = useState(false);
-  const [newWebhookSecret, setNewWebhookSecret] = useState<string | null>(null);
-  const [webhookUrl, setWebhookUrl] = useState("");
-  const [webhookDescription, setWebhookDescription] = useState("");
-  const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
-  const [webhookIsActive, setWebhookIsActive] = useState(true);
 
   // Twilio modal state
   const [showTwilioModal, setShowTwilioModal] = useState(false);
@@ -1036,41 +851,7 @@ export default function IntegrationsPage() {
 
   // Handle fetcher responses
   useEffect(() => {
-    if (fetcher.data && "newKey" in fetcher.data && fetcher.data.newKey) {
-      setNewKeyData({
-        key: fetcher.data.newKey as string,
-        name: fetcher.data.keyName as string,
-      });
-      setShowCreateKeyModal(false);
-      setShowNewKeyModal(true);
-      setKeyName("");
-    }
-
-    // Handle webhook created response
-    if (fetcher.data && "webhookCreated" in fetcher.data && fetcher.data.webhookCreated) {
-      setNewWebhookSecret(fetcher.data.webhookSecret as string);
-      setShowWebhookModal(false);
-      setShowNewSecretModal(true);
-      resetWebhookForm();
-    }
-
-    // Handle webhook updated response
-    if (fetcher.data && "webhookUpdated" in fetcher.data && fetcher.data.webhookUpdated) {
-      setShowWebhookModal(false);
-      setEditingWebhook(null);
-      resetWebhookForm();
-    }
-
-    // Handle webhook deleted response
-    if (fetcher.data && "webhookDeleted" in fetcher.data && fetcher.data.webhookDeleted) {
-      // Webhook removed from list automatically on revalidation
-    }
-
-    // Handle webhook secret regenerated response
-    if (fetcher.data && "webhookSecretRegenerated" in fetcher.data && fetcher.data.webhookSecretRegenerated) {
-      setNewWebhookSecret(fetcher.data.newSecret as string);
-      setShowNewSecretModal(true);
-    }
+    // DIVE-031: Removed API key and webhook response handlers
 
     // Handle Twilio modal request
     if (fetcher.data && "showTwilioModal" in fetcher.data && fetcher.data.showTwilioModal) {
@@ -1124,36 +905,6 @@ export default function IntegrationsPage() {
     }
   }, [fetcher.data]);
 
-  const resetWebhookForm = () => {
-    setWebhookUrl("");
-    setWebhookDescription("");
-    setSelectedEvents([]);
-    setWebhookIsActive(true);
-    setEditingWebhook(null);
-  };
-
-  const openEditWebhook = (webhook: Webhook) => {
-    setEditingWebhook(webhook);
-    setWebhookUrl(webhook.url);
-    setWebhookDescription(webhook.description || "");
-    setSelectedEvents(webhook.events as string[]);
-    setWebhookIsActive(webhook.isActive);
-    setShowWebhookModal(true);
-  };
-
-  const openCreateWebhook = () => {
-    resetWebhookForm();
-    setShowWebhookModal(true);
-  };
-
-  const toggleEvent = (event: string) => {
-    setSelectedEvents((prev) =>
-      prev.includes(event)
-        ? prev.filter((e) => e !== event)
-        : [...prev, event]
-    );
-  };
-
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -1200,12 +951,6 @@ export default function IntegrationsPage() {
     { id: "notifications", name: "Notifications" },
     { id: "automation", name: "Automation" },
   ];
-
-  // Check if API access is available (professional or enterprise plan)
-  const hasApiAccess = planHierarchy.indexOf(normalizePlan(currentPlan)) >= planHierarchy.indexOf("professional");
-
-  // Filter active API keys
-  const activeApiKeys = apiKeys.filter((k: ApiKeyDisplay) => k.isActive);
 
   return (
     <div className="max-w-4xl">
@@ -1318,6 +1063,15 @@ export default function IntegrationsPage() {
                           </button>
                         </fetcher.Form>
                       )}
+                      {/* Show Manage Settings button for QuickBooks */}
+                      {connection.id === "quickbooks" && (
+                        <Link
+                          to="/app/settings/integrations/quickbooks"
+                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 inline-block"
+                        >
+                          Manage Settings
+                        </Link>
+                      )}
                       <fetcher.Form
                         method="post"
                         onSubmit={(e) => {
@@ -1424,632 +1178,7 @@ export default function IntegrationsPage() {
         );
       })}
 
-      {/* API Access */}
-      <div className="bg-white rounded-xl p-6 shadow-sm mt-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Icons.Key className="w-5 h-5 text-gray-600" />
-          <h2 className="font-semibold">API Access</h2>
-        </div>
-        <p className="text-sm text-gray-500 mb-4">
-          Build custom integrations with the DiveStreams API
-        </p>
 
-        {!hasApiAccess ? (
-          <div>
-            <p className="text-sm text-gray-600 mb-3">
-              API access is available on Professional and Enterprise plans.
-            </p>
-            <Link
-              to="/app/settings/billing"
-              className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
-            >
-              Upgrade for API Access
-            </Link>
-          </div>
-        ) : (
-          <div>
-            {/* API Keys List */}
-            {activeApiKeys.length > 0 ? (
-              <div className="space-y-3 mb-4">
-                {activeApiKeys.map((key: ApiKeyDisplay) => (
-                  <div
-                    key={key.id}
-                    className="flex items-center justify-between bg-gray-50 rounded-lg p-4"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">{key.name}</p>
-                      <p className="text-xs text-gray-500 font-mono">
-                        {key.keyPrefix}{"..."}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Created {formatDate(key.createdAt)}
-                        {key.lastUsedAt && (
-                          <span> - Last used {formatDate(key.lastUsedAt)}</span>
-                        )}
-                      </p>
-                    </div>
-                    <fetcher.Form
-                      method="post"
-                      onSubmit={(e) => {
-                        if (
-                          !confirm(
-                            `Are you sure you want to revoke the API key "${key.name}"? This action cannot be undone.`
-                          )
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                    >
-                      <input type="hidden" name="intent" value="revokeApiKey" />
-                      <input type="hidden" name="keyId" value={key.id} />
-                      <button
-                        type="submit"
-                        className="text-sm text-red-600 hover:text-red-700 px-3 py-1.5 border border-red-200 rounded-lg hover:bg-red-50"
-                      >
-                        Revoke
-                      </button>
-                    </fetcher.Form>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-gray-50 rounded-lg p-4 mb-4 text-center text-gray-500 text-sm">
-                No API keys yet. Create one to get started.
-              </div>
-            )}
-
-            <button
-              onClick={() => setShowCreateKeyModal(true)}
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
-            >
-              <Icons.Plus className="w-4 h-4" />
-              Create New API Key
-            </button>
-
-            {fetcher.data && "error" in fetcher.data && (
-              <p className="text-red-600 text-sm mt-2">{fetcher.data.error as string}</p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Webhooks */}
-      <div className="bg-white rounded-xl p-6 shadow-sm mt-4">
-        <h2 className="font-semibold mb-2">Webhooks</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Receive real-time notifications when events happen in your account
-        </p>
-
-        {!hasApiAccess ? (
-          <p className="text-sm text-gray-600">
-            Webhooks are available on Professional and Enterprise plans.
-          </p>
-        ) : (
-          <div>
-            {/* Webhooks List */}
-            {webhooks.length > 0 ? (
-              <div className="space-y-3 mb-4">
-                {webhooks.map((webhook: Webhook) => (
-                  <div
-                    key={webhook.id}
-                    className={`bg-gray-50 rounded-lg p-4 ${
-                      !webhook.isActive ? "opacity-60" : ""
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm truncate">{webhook.url}</p>
-                          {webhook.isActive ? (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                              Active
-                            </span>
-                          ) : (
-                            <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
-                              Disabled
-                            </span>
-                          )}
-                          {webhook.lastDeliveryStatus && (
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full ${
-                                webhook.lastDeliveryStatus === "success"
-                                  ? "bg-green-100 text-green-700"
-                                  : webhook.lastDeliveryStatus === "failed"
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                              }`}
-                            >
-                              Last: {webhook.lastDeliveryStatus}
-                            </span>
-                          )}
-                        </div>
-                        {webhook.description && (
-                          <p className="text-xs text-gray-500 mb-1">{webhook.description}</p>
-                        )}
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {(webhook.events as string[]).map((event) => (
-                            <span
-                              key={event}
-                              className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded"
-                            >
-                              {event}
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-xs text-gray-400 mt-2">
-                          Created {formatDate(webhook.createdAt)}
-                          {webhook.lastDeliveryAt && (
-                            <span> - Last delivery {formatDate(webhook.lastDeliveryAt)}</span>
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex gap-2 ml-4 flex-shrink-0">
-                        <fetcher.Form method="post">
-                          <input type="hidden" name="intent" value="testWebhook" />
-                          <input type="hidden" name="webhookId" value={webhook.id} />
-                          <button
-                            type="submit"
-                            disabled={fetcher.state === "submitting" || !webhook.isActive}
-                            className="text-sm text-blue-600 hover:text-blue-700 px-2 py-1 border border-blue-200 rounded hover:bg-blue-50 disabled:opacity-50"
-                            title="Send test event"
-                          >
-                            Test
-                          </button>
-                        </fetcher.Form>
-                        <button
-                          onClick={() => openEditWebhook(webhook)}
-                          className="text-sm text-gray-600 hover:text-gray-700 px-2 py-1 border rounded hover:bg-gray-100"
-                        >
-                          Edit
-                        </button>
-                        <fetcher.Form
-                          method="post"
-                          onSubmit={(e) => {
-                            if (
-                              !confirm(
-                                "Are you sure you want to delete this webhook? This action cannot be undone."
-                              )
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                        >
-                          <input type="hidden" name="intent" value="deleteWebhook" />
-                          <input type="hidden" name="webhookId" value={webhook.id} />
-                          <button
-                            type="submit"
-                            className="text-sm text-red-600 hover:text-red-700 px-2 py-1 border border-red-200 rounded hover:bg-red-50"
-                          >
-                            Delete
-                          </button>
-                        </fetcher.Form>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-gray-50 rounded-lg p-4 mb-4 text-center text-gray-500 text-sm">
-                No webhooks configured yet. Add one to receive real-time notifications.
-              </div>
-            )}
-
-            <button
-              onClick={openCreateWebhook}
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
-            >
-              <Icons.Plus className="w-4 h-4" />
-              Add Webhook Endpoint
-            </button>
-
-            {fetcher.data && "webhookTested" in fetcher.data && (
-              <p
-                className={`text-sm mt-2 ${
-                  fetcher.data.testDeliverySuccess ? "text-green-600" : "text-orange-600"
-                }`}
-              >
-                {fetcher.data.testDeliverySuccess
-                  ? "Test webhook delivered successfully!"
-                  : "Test webhook delivery attempted (check endpoint for response)"}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Create API Key Modal */}
-      {showCreateKeyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-lg font-bold">Create API Key</h2>
-              <button
-                onClick={() => {
-                  setShowCreateKeyModal(false);
-                  setKeyName("");
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <Icons.X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <fetcher.Form method="post" className="space-y-4">
-              <input type="hidden" name="intent" value="createApiKey" />
-              <div>
-                <label className="block text-sm font-medium mb-1">Key Name *</label>
-                <input
-                  type="text"
-                  name="keyName"
-                  value={keyName}
-                  onChange={(e) => setKeyName(e.target.value)}
-                  required
-                  placeholder="e.g., Production Server, Mobile App"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Give your key a descriptive name to identify where it's used.
-                </p>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p className="text-sm text-yellow-800">
-                  <strong>Important:</strong> The full API key will only be shown once after creation.
-                  Make sure to copy it immediately.
-                </p>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateKeyModal(false);
-                    setKeyName("");
-                  }}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={fetcher.state === "submitting" || !keyName.trim()}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {fetcher.state === "submitting" ? "Creating..." : "Create Key"}
-                </button>
-              </div>
-            </fetcher.Form>
-          </div>
-        </div>
-      )}
-
-      {/* New Key Created Modal */}
-      {showNewKeyModal && newKeyData && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Icons.Check className="w-5 h-5 text-green-600" />
-                </div>
-                <h2 className="text-lg font-bold">API Key Created</h2>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-3">
-                Your new API key <strong>"{newKeyData.name}"</strong> has been created.
-              </p>
-
-              <div className="bg-gray-900 rounded-lg p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <code className="text-green-400 text-sm font-mono break-all">
-                    {newKeyData.key}
-                  </code>
-                  <button
-                    onClick={() => copyToClipboard(newKeyData.key)}
-                    className="flex-shrink-0 p-2 text-gray-400 hover:text-white transition-colors"
-                    title="Copy to clipboard"
-                  >
-                    {copied ? (
-                      <Icons.Check className="w-5 h-5 text-green-400" />
-                    ) : (
-                      <Icons.Copy className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {copied && (
-                <p className="text-green-600 text-sm mt-2">Copied to clipboard!</p>
-              )}
-            </div>
-
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-              <p className="text-sm text-red-800">
-                <strong>Warning:</strong> This is the only time this key will be displayed.
-                Store it securely - you won't be able to see it again!
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                setShowNewKeyModal(false);
-                setNewKeyData(null);
-              }}
-              className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              I've Saved My Key
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Webhook Modal (Create/Edit) */}
-      {showWebhookModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-lg font-bold">
-                {editingWebhook ? "Edit Webhook" : "Add Webhook Endpoint"}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowWebhookModal(false);
-                  resetWebhookForm();
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <Icons.X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <fetcher.Form method="post" className="space-y-4">
-              <input
-                type="hidden"
-                name="intent"
-                value={editingWebhook ? "updateWebhook" : "createWebhook"}
-              />
-              {editingWebhook && (
-                <input type="hidden" name="webhookId" value={editingWebhook.id} />
-              )}
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Endpoint URL *</label>
-                <input
-                  type="url"
-                  name="webhookUrl"
-                  value={webhookUrl}
-                  onChange={(e) => setWebhookUrl(e.target.value)}
-                  required
-                  placeholder="https://your-server.com/webhook"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  We'll POST JSON payloads to this URL when events occur.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Description (optional)</label>
-                <input
-                  type="text"
-                  name="webhookDescription"
-                  value={webhookDescription}
-                  onChange={(e) => setWebhookDescription(e.target.value)}
-                  placeholder="e.g., Production server, Zapier integration"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Events to send *</label>
-                <div className="border rounded-lg divide-y max-h-60 overflow-y-auto">
-                  {webhookEvents.map((event) => (
-                    <label
-                      key={event}
-                      className="flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        name="webhookEvents"
-                        value={event}
-                        checked={selectedEvents.includes(event)}
-                        onChange={() => toggleEvent(event)}
-                        className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <div className="flex-1">
-                        <span className="text-sm font-medium">{event}</span>
-                        <p className="text-xs text-gray-500">
-                          {webhookEventDescriptions[event as keyof typeof webhookEventDescriptions]}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                {selectedEvents.length === 0 && (
-                  <p className="text-xs text-red-500 mt-1">
-                    Select at least one event
-                  </p>
-                )}
-              </div>
-
-              {editingWebhook && (
-                <div className="flex items-center gap-3">
-                  <label className="text-sm font-medium">Status:</label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="webhookIsActive"
-                      value="true"
-                      checked={webhookIsActive}
-                      onChange={() => setWebhookIsActive(true)}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm">Active</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="webhookIsActive"
-                      value="false"
-                      checked={!webhookIsActive}
-                      onChange={() => setWebhookIsActive(false)}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm">Disabled</span>
-                  </label>
-                </div>
-              )}
-
-              {!editingWebhook && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> A signing secret will be generated for this webhook.
-                    You'll need to use it to verify webhook payloads.
-                  </p>
-                </div>
-              )}
-
-              {editingWebhook && (
-                <div className="border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">Signing Secret</p>
-                      <p className="text-xs text-gray-500">
-                        Regenerate if you believe the secret has been compromised
-                      </p>
-                    </div>
-                    <fetcher.Form method="post">
-                      <input type="hidden" name="intent" value="regenerateWebhookSecret" />
-                      <input type="hidden" name="webhookId" value={editingWebhook.id} />
-                      <button
-                        type="submit"
-                        onClick={(e) => {
-                          if (
-                            !confirm(
-                              "Are you sure? This will invalidate the current secret and you'll need to update your server."
-                            )
-                          ) {
-                            e.preventDefault();
-                          }
-                        }}
-                        className="text-sm text-orange-600 hover:text-orange-700 px-3 py-1.5 border border-orange-200 rounded-lg hover:bg-orange-50"
-                      >
-                        Regenerate Secret
-                      </button>
-                    </fetcher.Form>
-                  </div>
-                </div>
-              )}
-
-              {fetcher.data && "error" in fetcher.data && (
-                <p className="text-red-600 text-sm">{fetcher.data.error as string}</p>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowWebhookModal(false);
-                    resetWebhookForm();
-                  }}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    fetcher.state === "submitting" ||
-                    !webhookUrl.trim() ||
-                    selectedEvents.length === 0
-                  }
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {fetcher.state === "submitting"
-                    ? "Saving..."
-                    : editingWebhook
-                    ? "Save Changes"
-                    : "Add Webhook"}
-                </button>
-              </div>
-            </fetcher.Form>
-          </div>
-        </div>
-      )}
-
-      {/* New Webhook Secret Modal */}
-      {showNewSecretModal && newWebhookSecret && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Icons.Check className="w-5 h-5 text-green-600" />
-                </div>
-                <h2 className="text-lg font-bold">Webhook Secret</h2>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-3">
-                Use this secret to verify webhook signatures. Store it securely.
-              </p>
-
-              <div className="bg-gray-900 rounded-lg p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <code className="text-green-400 text-sm font-mono break-all">
-                    {newWebhookSecret}
-                  </code>
-                  <button
-                    onClick={() => copyToClipboard(newWebhookSecret)}
-                    className="flex-shrink-0 p-2 text-gray-400 hover:text-white transition-colors"
-                    title="Copy to clipboard"
-                  >
-                    {copied ? (
-                      <Icons.Check className="w-5 h-5 text-green-400" />
-                    ) : (
-                      <Icons.Copy className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {copied && (
-                <p className="text-green-600 text-sm mt-2">Copied to clipboard!</p>
-              )}
-            </div>
-
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-              <p className="text-sm text-yellow-800">
-                <strong>Important:</strong> Store this secret securely. You'll need it to verify
-                that webhook payloads were sent by DiveStreams.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-3 mb-4">
-              <p className="text-sm font-medium mb-2">Verifying webhooks:</p>
-              <code className="text-xs text-gray-600 block">
-                X-DiveStreams-Signature: t=timestamp,v1=signature
-              </code>
-              <p className="text-xs text-gray-500 mt-2">
-                Signature = HMAC-SHA256(timestamp.payload, secret)
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                setShowNewSecretModal(false);
-                setNewWebhookSecret(null);
-              }}
-              className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              I've Saved My Secret
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Twilio Configuration Modal */}
       {showTwilioModal && (

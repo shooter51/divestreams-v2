@@ -7,6 +7,7 @@ import { member, user, invitation } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { PremiumGate } from "../../../../app/components/ui/UpgradePrompt";
 import { sendEmail } from "../../../../lib/email";
+import { getAppUrl } from "../../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -115,7 +116,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     // Send invitation email
-    const inviteUrl = `${process.env.APP_URL || 'https://divestreams.com'}/auth/accept-invite?token=${inviteId}`;
+    const inviteUrl = `${getAppUrl()}/auth/accept-invite?token=${inviteId}`;
     try {
       await sendEmail({
         to: email,
@@ -198,7 +199,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Send invitation email
-    const inviteUrl = `${process.env.APP_URL || 'https://divestreams.com'}/auth/accept-invite?token=${inviteId}`;
+    const inviteUrl = `${getAppUrl()}/auth/accept-invite?token=${inviteId}`;
     try {
       await sendEmail({
         to: existingInvite.email,

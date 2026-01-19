@@ -15,14 +15,48 @@ import {
 import { relations } from "drizzle-orm";
 
 // ============================================================================
-// RE-EXPORT AUTH, SUBSCRIPTION, API KEY, WEBHOOKS, AND INTEGRATIONS SCHEMAS
+// RE-EXPORT AUTH, SUBSCRIPTION, AND INTEGRATIONS SCHEMAS
 // ============================================================================
 
 export * from "./schema/auth";
 export * from "./schema/subscription";
-export * from "./schema/api-keys";
-export * from "./schema/webhooks";
+// API keys and webhooks removed - DIVE-031
+// export * from "./schema/api-keys";
+// export * from "./schema/webhooks";
 export * from "./schema/integrations";
+export * from "./schema/quickbooks";
+export * from "./schema/public-site";
+export * from "./schema/training";
+export * from "./schema/gallery";
+export * from "./schema/team";
+// Note: page-content.ts exports TeamMember interface which conflicts with schema/team.ts TeamMember type
+// We only need the table and types from team.ts, not the interface from page-content.ts
+export {
+  pageContent,
+  pageContentHistory,
+  pageContentRelations,
+  pageContentHistoryRelations,
+  type PageContentRow,
+  type NewPageContent,
+  type PageContentHistoryRow,
+  type NewPageContentHistory,
+  type ContentBlock,
+  type PageContent,
+  type HeadingBlock,
+  type ParagraphBlock,
+  type HtmlBlock,
+  type ImageBlock,
+  type GalleryBlock,
+  type TeamSectionBlock,
+  type ValuesGridBlock,
+  type CtaBlock,
+  type DividerBlock,
+  type SpacerBlock,
+  type ValueItem,
+  type ContentBlockType,
+} from "./schema/page-content";
+export * from "./schema/stripe";
+export * from "./schema/zapier";
 
 // Import organization for foreign key references
 import { organization } from "./schema/auth";
@@ -163,6 +197,9 @@ export const customers = pgTable("customers", {
   preferredLanguage: text("preferred_language").default("en"),
   marketingOptIn: boolean("marketing_opt_in").default(false),
 
+  // Public site account
+  hasAccount: boolean("has_account").notNull().default(false),
+
   notes: text("notes"),
   tags: jsonb("tags").$type<string[]>(),
 
@@ -281,6 +318,9 @@ export const trips = pgTable("trips", {
   maxParticipants: integer("max_participants"),
   price: decimal("price", { precision: 10, scale: 2 }),
 
+  // Public site visibility
+  isPublic: boolean("is_public").notNull().default(false),
+
   // Recurring trip fields
   isRecurring: boolean("is_recurring").notNull().default(false),
   recurrencePattern: text("recurrence_pattern"), // daily, weekly, biweekly, monthly
@@ -394,6 +434,9 @@ export const equipment = pgTable("equipment", {
   // For rentals
   rentalPrice: decimal("rental_price", { precision: 10, scale: 2 }),
   isRentable: boolean("is_rentable").default(true),
+
+  // Public site visibility
+  isPublic: boolean("is_public").notNull().default(false),
 
   // Maintenance
   lastServiceDate: date("last_service_date"),
