@@ -9,7 +9,7 @@ import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useSearchParams, useRouteLoaderData } from "react-router";
 import { eq, and, gte, lte, sql, asc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
-import { trips, tours, bookings, images } from "../../../../lib/db/schema";
+import { trips, tours, bookings, images, organization } from "../../../../lib/db/schema";
 import type { SiteLoaderData } from "../_layout";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -73,17 +73,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   // Get organization from parent layout or lookup
-  const { organization } = await db
+  const [org] = await db
     .select()
-    .from(require("../../../../lib/db/schema/auth").organization)
+    .from(organization)
     .where(subdomain
-      ? eq(require("../../../../lib/db/schema/auth").organization.slug, subdomain)
-      : eq(require("../../../../lib/db/schema/auth").organization.customDomain, host.split(":")[0])
+      ? eq(organization.slug, subdomain)
+      : eq(organization.customDomain, host.split(":")[0])
     )
-    .limit(1)
-    .then(res => ({ organization: res[0] }));
+    .limit(1);
 
-  if (!organization) {
+  if (!org) {
     throw new Response("Organization not found", { status: 404 });
   }
 
@@ -95,7 +94,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Build query conditions
   const conditions = [
-    eq(trips.organizationId, organization.id),
+    eq(trips.organizationId, org.id),
     eq(trips.isPublic, true),
     eq(trips.status, "scheduled"),
     gte(trips.date, fromDate),
@@ -164,7 +163,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         .from(images)
         .where(
           and(
-            eq(images.organizationId, organization.id),
+            eq(images.organizationId, org.id),
             eq(images.entityType, "tour"),
             eq(images.entityId, trip.tourId),
             eq(images.isPrimary, true)
@@ -205,7 +204,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     totalPages,
     fromDate,
     toDate,
-    organizationName: organization.name,
+    organizationName: org.name,
   };
 }
 
