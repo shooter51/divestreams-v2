@@ -16,6 +16,7 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
+    "test:e2e:failing": "playwright test tests/e2e/workflow/public-site.spec.ts tests/e2e/workflow/customer-management.spec.ts",
     "test:e2e:coverage": "E2E_COVERAGE=true playwright test",
     "test:coverage": "vitest run --coverage",
     "test:coverage:unit": "vitest run --coverage",
