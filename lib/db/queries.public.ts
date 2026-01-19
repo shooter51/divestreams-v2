@@ -455,3 +455,235 @@ export async function getPublicTripById(
     primaryImage: images[0]?.url || null,
   };
 }
+
+// ============================================================================
+// Public Course Queries (for Embed Widget)
+// ============================================================================
+
+export interface PublicCourse {
+  id: string;
+  name: string;
+  description: string | null;
+  agencyName: string;
+  agencyCode: string;
+  agencyLogo: string | null;
+  levelName: string;
+  levelCode: string;
+  price: string;
+  depositAmount: string | null;
+  currency: string;
+  maxStudents: number;
+  durationDays: number;
+  classroomHours: number;
+  poolHours: number;
+  openWaterDives: number;
+}
+
+export async function getPublicCourses(
+  organizationId: string
+): Promise<PublicCourse[]> {
+  const courses = await db
+    .select({
+      id: schema.trainingCourses.id,
+      name: schema.trainingCourses.name,
+      description: schema.trainingCourses.description,
+      agencyName: schema.certificationAgencies.name,
+      agencyCode: schema.certificationAgencies.code,
+      agencyLogo: schema.certificationAgencies.logoUrl,
+      levelName: schema.certificationLevels.name,
+      levelCode: schema.certificationLevels.code,
+      price: schema.trainingCourses.price,
+      depositAmount: schema.trainingCourses.depositAmount,
+      maxStudents: schema.trainingCourses.maxStudents,
+      durationDays: schema.trainingCourses.durationDays,
+      classroomHours: schema.trainingCourses.classroomHours,
+      poolHours: schema.trainingCourses.poolHours,
+      openWaterDives: schema.trainingCourses.openWaterDives,
+    })
+    .from(schema.trainingCourses)
+    .innerJoin(
+      schema.certificationAgencies,
+      eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
+    )
+    .innerJoin(
+      schema.certificationLevels,
+      eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
+    )
+    .where(
+      and(
+        eq(schema.trainingCourses.organizationId, organizationId),
+        eq(schema.trainingCourses.isActive, true),
+        eq(schema.trainingCourses.isPublic, true) // Only show public courses
+      )
+    )
+    .orderBy(asc(schema.certificationLevels.levelNumber));
+
+  // Get organization settings for currency
+  const orgSettings = await db
+    .select({ currency: schema.organizationSettings.currency })
+    .from(schema.organizationSettings)
+    .where(eq(schema.organizationSettings.organizationId, organizationId))
+    .limit(1);
+
+  const currency = orgSettings[0]?.currency || "USD";
+
+  return courses.map((course) => ({
+    id: course.id,
+    name: course.name,
+    description: course.description,
+    agencyName: course.agencyName,
+    agencyCode: course.agencyCode,
+    agencyLogo: course.agencyLogo,
+    levelName: course.levelName,
+    levelCode: course.levelCode,
+    price: course.price,
+    depositAmount: course.depositAmount,
+    currency,
+    maxStudents: course.maxStudents,
+    durationDays: course.durationDays,
+    classroomHours: course.classroomHours ?? 0,
+    poolHours: course.poolHours ?? 0,
+    openWaterDives: course.openWaterDives ?? 0,
+  }));
+}
+
+export interface PublicCourseDetail extends PublicCourse {
+  upcomingSessions: Array<{
+    id: string;
+    startDate: string;
+    endDate: string | null;
+    startTime: string | null;
+    location: string | null;
+    instructorName: string | null;
+    availableSpots: number;
+  }>;
+}
+
+export async function getPublicCourseById(
+  organizationId: string,
+  courseId: string
+): Promise<PublicCourseDetail | null> {
+  const courses = await db
+    .select({
+      id: schema.trainingCourses.id,
+      name: schema.trainingCourses.name,
+      description: schema.trainingCourses.description,
+      agencyName: schema.certificationAgencies.name,
+      agencyCode: schema.certificationAgencies.code,
+      agencyLogo: schema.certificationAgencies.logoUrl,
+      levelName: schema.certificationLevels.name,
+      levelCode: schema.certificationLevels.code,
+      price: schema.trainingCourses.price,
+      depositAmount: schema.trainingCourses.depositAmount,
+      maxStudents: schema.trainingCourses.maxStudents,
+      durationDays: schema.trainingCourses.durationDays,
+      classroomHours: schema.trainingCourses.classroomHours,
+      poolHours: schema.trainingCourses.poolHours,
+      openWaterDives: schema.trainingCourses.openWaterDives,
+    })
+    .from(schema.trainingCourses)
+    .innerJoin(
+      schema.certificationAgencies,
+      eq(schema.trainingCourses.agencyId, schema.certificationAgencies.id)
+    )
+    .innerJoin(
+      schema.certificationLevels,
+      eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
+    )
+    .where(
+      and(
+        eq(schema.trainingCourses.organizationId, organizationId),
+        eq(schema.trainingCourses.id, courseId),
+        eq(schema.trainingCourses.isActive, true),
+        eq(schema.trainingCourses.isPublic, true)
+      )
+    )
+    .limit(1);
+
+  if (courses.length === 0) {
+    return null;
+  }
+
+  const course = courses[0];
+
+  // Get organization settings for currency
+  const orgSettings = await db
+    .select({ currency: schema.organizationSettings.currency })
+    .from(schema.organizationSettings)
+    .where(eq(schema.organizationSettings.organizationId, organizationId))
+    .limit(1);
+
+  const currency = orgSettings[0]?.currency || "USD";
+
+  // Get upcoming sessions for this course
+  const today = new Date().toISOString().split("T")[0];
+  const sessions = await db
+    .select({
+      id: schema.trainingSessions.id,
+      startDate: schema.trainingSessions.startDate,
+      endDate: schema.trainingSessions.endDate,
+      startTime: schema.trainingSessions.startTime,
+      location: schema.trainingSessions.location,
+      instructorName: schema.trainingSessions.instructorName,
+      maxStudents: schema.trainingSessions.maxStudents,
+    })
+    .from(schema.trainingSessions)
+    .where(
+      and(
+        eq(schema.trainingSessions.organizationId, organizationId),
+        eq(schema.trainingSessions.courseId, courseId),
+        eq(schema.trainingSessions.status, "scheduled"),
+        gte(schema.trainingSessions.startDate, today)
+      )
+    )
+    .orderBy(asc(schema.trainingSessions.startDate))
+    .limit(10);
+
+  // Get enrollment count for each session
+  const sessionsWithAvailability = await Promise.all(
+    sessions.map(async (session) => {
+      const [enrollmentCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.trainingEnrollments)
+        .where(
+          and(
+            eq(schema.trainingEnrollments.sessionId, session.id),
+            sql`${schema.trainingEnrollments.status} NOT IN ('dropped', 'failed')`
+          )
+        );
+
+      const maxStudents = session.maxStudents || course.maxStudents;
+      const enrolled = Number(enrollmentCount?.count || 0);
+
+      return {
+        id: session.id,
+        startDate: session.startDate,
+        endDate: session.endDate,
+        startTime: session.startTime,
+        location: session.location,
+        instructorName: session.instructorName,
+        availableSpots: Math.max(0, maxStudents - enrolled),
+      };
+    })
+  );
+
+  return {
+    id: course.id,
+    name: course.name,
+    description: course.description,
+    agencyName: course.agencyName,
+    agencyCode: course.agencyCode,
+    agencyLogo: course.agencyLogo,
+    levelName: course.levelName,
+    levelCode: course.levelCode,
+    price: course.price,
+    depositAmount: course.depositAmount,
+    currency,
+    maxStudents: course.maxStudents,
+    durationDays: course.durationDays,
+    classroomHours: course.classroomHours ?? 0,
+    poolHours: course.poolHours ?? 0,
+    openWaterDives: course.openWaterDives ?? 0,
+    upcomingSessions: sessionsWithAvailability,
+  };
+}
