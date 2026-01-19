@@ -1,4 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "../fixtures/subdomain-page";
+import type { Page } from "@playwright/test";
 
 /**
  * Public Site E2E Workflow Tests - DiveStreams
