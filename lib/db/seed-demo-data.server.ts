@@ -398,6 +398,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         isRentable: true,
         status: "available",
         condition: "good",
+        isPublic: true, // Make equipment visible on public site
       })
       .returning({ id: schema.equipment.id });
     equipmentIds.push(inserted.id);
@@ -562,6 +563,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         startTime: trip.startTime,
         endTime: trip.endTime,
         status: "scheduled",
+        isPublic: true, // Make trips visible on public site
       })
       .returning({ id: schema.trips.id });
     tripIds.push(inserted.id);

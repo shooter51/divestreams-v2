@@ -48,6 +48,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     status: tripData.status,
     weatherNotes: tripData.weatherNotes || "",
     notes: tripData.notes || "",
+    isPublic: tripData.isPublic ?? true,
   };
 
   return { trip, boats, tours };
@@ -73,6 +74,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const status = formData.get("status") as string;
   const weatherNotes = formData.get("weatherNotes") as string;
   const notes = formData.get("notes") as string;
+  const isPublic = formData.get("isPublic") === "true";
 
   // Update trip in database
   const { db, schema } = getTenantDb(organizationId);
@@ -90,6 +92,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       status,
       weatherNotes,
       notes,
+      isPublic,
       updatedAt: new Date(),
     })
     .where(and(eq(schema.trips.organizationId, organizationId), eq(schema.trips.id, tripId)));
@@ -292,6 +295,21 @@ export default function EditTripPage() {
                 defaultValue={trip.notes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isPublic"
+                  value="true"
+                  defaultChecked={trip.isPublic}
+                  className="rounded"
+                />
+                <span className="text-sm font-medium">Show on public website</span>
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                Make this trip visible on your public booking site
+              </p>
             </div>
           </div>
         </div>

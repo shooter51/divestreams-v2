@@ -35,6 +35,7 @@ export async function action({ request }: ActionFunctionArgs) {
     condition: (formData.get("condition") as string) || undefined,
     rentalPrice: formData.get("rentalPrice") ? Number(formData.get("rentalPrice")) : undefined,
     isRentable: formData.get("isRentable") === "true",
+    isPublic: formData.get("isPublic") === "true",
   });
 
   return redirect("/app/equipment");
@@ -372,6 +373,21 @@ export default function NewEquipmentPage() {
             defaultValue={actionData?.values?.notes}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
           />
+          <div className="mt-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="isPublic"
+                value="true"
+                defaultChecked={actionData?.values?.isPublic !== "false"}
+                className="rounded"
+              />
+              <span className="text-sm font-medium">Show on public website</span>
+            </label>
+            <p className="text-xs text-gray-500 mt-1">
+              Make this equipment visible on your public rental catalog
+            </p>
+          </div>
         </div>
 
         {/* Actions */}
