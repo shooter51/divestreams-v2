@@ -622,6 +622,7 @@ export async function createTrip(organizationId: string, data: {
   maxParticipants?: number;
   price?: number;
   notes?: string;
+  isPublic?: boolean;
 }) {
   const [trip] = await db
     .insert(schema.trips)
@@ -635,6 +636,7 @@ export async function createTrip(organizationId: string, data: {
       maxParticipants: data.maxParticipants || null,
       price: data.price ? String(data.price) : null,
       notes: data.notes || null,
+      isPublic: data.isPublic ?? false,
     })
     .returning();
 
@@ -904,6 +906,7 @@ export async function createEquipment(organizationId: string, data: {
   condition?: string;
   rentalPrice?: number;
   isRentable?: boolean;
+  isPublic?: boolean;
 }) {
   const [equipment] = await db
     .insert(schema.equipment)
@@ -920,6 +923,7 @@ export async function createEquipment(organizationId: string, data: {
       condition: data.condition || "good",
       rentalPrice: data.rentalPrice ? String(data.rentalPrice) : null,
       isRentable: data.isRentable ?? true,
+      isPublic: data.isPublic ?? false,
     })
     .returning();
 
