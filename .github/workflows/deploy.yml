@@ -17,6 +17,20 @@ jobs:
   test:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -35,8 +49,17 @@ jobs:
         run: npm run typecheck
         continue-on-error: true  # Pre-existing TS issues, don't block CI
 
+      - name: Setup database schema
+        run: npm run db:push
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+
       - name: Run unit and integration tests
         run: npm test -- --run
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          ADMIN_PASSWORD: TestAdmin123
+          SESSION_SECRET: test-session-secret
 
   # ─────────────────────────────────────────────
   # E2E Tests (staging + PRs only)
