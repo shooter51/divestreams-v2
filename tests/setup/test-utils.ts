@@ -2,7 +2,7 @@ import "@testing-library/jest-dom/vitest";
 import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 // Mock environment variables
-process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test";
+process.env.DATABASE_URL = "postgresql://divestreams:divestreams_dev@localhost:5432/divestreams";
 process.env.APP_URL = "http://localhost:5173";
 process.env.ADMIN_PASSWORD = "TestAdmin123";
 process.env.SESSION_SECRET = "test-session-secret";
