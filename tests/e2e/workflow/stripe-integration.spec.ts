@@ -42,12 +42,11 @@ test.describe("Stripe Integration", () => {
       if (orgResult.length > 0) {
         const orgId = orgResult[0].id;
 
-        // Create or update subscription to starter plan (required for Stripe integration access)
+        // Delete any existing subscriptions for this org, then create a starter subscription
+        await sql`DELETE FROM subscription WHERE organization_id = ${orgId}`;
         await sql`
           INSERT INTO subscription (organization_id, plan, status, created_at, updated_at)
           VALUES (${orgId}, 'starter', 'active', NOW(), NOW())
-          ON CONFLICT (organization_id)
-          DO UPDATE SET plan = 'starter', status = 'active', updated_at = NOW()
         `;
       }
     } finally {
