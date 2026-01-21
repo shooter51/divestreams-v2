@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import postgres from "postgres";
 
 // Test data
 const testData = {
@@ -28,6 +29,32 @@ async function loginToTenant(page: any) {
 }
 
 test.describe("Stripe Integration", () => {
+  // Ensure tenant has a starter subscription (required for Stripe access)
+  test.beforeAll(async () => {
+    const sql = postgres(process.env.DATABASE_URL!);
+
+    try {
+      // Get organization ID for e2etest tenant
+      const orgResult = await sql`
+        SELECT id FROM organization WHERE slug = ${testData.tenant.subdomain}
+      `;
+
+      if (orgResult.length > 0) {
+        const orgId = orgResult[0].id;
+
+        // Create or update subscription to starter plan (required for Stripe integration access)
+        await sql`
+          INSERT INTO subscription (organization_id, plan, status, created_at, updated_at)
+          VALUES (${orgId}, 'starter', 'active', NOW(), NOW())
+          ON CONFLICT (organization_id)
+          DO UPDATE SET plan = 'starter', status = 'active', updated_at = NOW()
+        `;
+      }
+    } finally {
+      await sql.end();
+    }
+  });
+
   test("shows Stripe connection modal (not 'coming soon' error)", async ({ page }) => {
     // Login first
     await loginToTenant(page);
