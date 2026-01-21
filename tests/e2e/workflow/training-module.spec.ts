@@ -21,7 +21,7 @@ import { test, expect, type Page } from "@playwright/test";
  * Block E: Training Settings (~6 tests)
  *
  * DEPENDENCIES:
- * - Block A requires authenticated tenant (from full-workflow.spec.ts Block A)
+ * - Block A requires authenticated tenant (from 00-full-workflow.spec.ts Block A)
  * - Block B creates course used by Block C and D
  * - Block C creates session used by Block D
  * - Block E is independent (settings management)
@@ -37,7 +37,7 @@ const trainingTestData = {
     subdomain: "e2etest",
   },
   user: {
-    email: "e2e-user@example.com", // Shared with full-workflow.spec.ts
+    email: "e2e-user@example.com", // Shared with 00-full-workflow.spec.ts
     password: "TestPass123!",
   },
   course: {
@@ -144,7 +144,7 @@ async function extractEntityUuid(
 // ═══════════════════════════════════════════════════════════════════════════════
 // BLOCK A: Training Dashboard & Navigation (~5 tests)
 // Tests the main training dashboard and navigation to sub-sections
-// Assumes tenant and user created by full-workflow.spec.ts
+// Assumes tenant and user created by 00-full-workflow.spec.ts
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Training Dashboard & Navigation", () => {

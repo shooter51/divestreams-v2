@@ -16,8 +16,8 @@ import type { Page } from "@playwright/test";
  * IMPORTANT DEPENDENCIES:
  * -----------------------
  * This test suite requires:
- *   - Test tenant "e2etest" to exist (created by full-workflow.spec.ts test 2.3)
- *   - Test user "e2e-user@example.com" to exist (created by full-workflow.spec.ts test 3.4)
+ *   - Test tenant "e2etest" to exist (created by 00-full-workflow.spec.ts test 2.3)
+ *   - Test user "e2e-user@example.com" to exist (created by 00-full-workflow.spec.ts test 3.4)
  *   - At least one public course with upcoming sessions (created by training-module.spec.ts)
  *
  * BLOCK STRUCTURE:
@@ -31,7 +31,7 @@ import type { Page } from "@playwright/test";
 // Embed Courses Widget Tests
 test.describe.serial("Embed Courses Widget Tests", () => {
 
-// Shared test data - reuses tenant from full-workflow.spec.ts
+// Shared test data - reuses tenant from 00-full-workflow.spec.ts
 const testData = {
   tenant: {
     subdomain: "e2etest",
