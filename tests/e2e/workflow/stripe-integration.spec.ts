@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import postgres from "postgres";
 
+// CI/CD Stability Test - Pass 2 of 3
 // Test data
 const testData = {
   tenant: {
