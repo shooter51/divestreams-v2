@@ -452,8 +452,21 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
-    const nameField = page.getByLabel(/name/i).first();
-    const hasValue = await nameField.inputValue().catch(() => "");
+
+    // Wait for the name input to be visible first
+    const nameInput = page.locator('input[name="name"]');
+    await nameInput.waitFor({ state: 'visible', timeout: 5000 }).catch(() => null);
+
+    // Wait for the input to have a non-empty value (loader data should populate it)
+    await page.waitForFunction(
+      () => {
+        const input = document.querySelector('input[name="name"]') as HTMLInputElement;
+        return input && input.value && input.value.length > 0;
+      },
+      { timeout: 5000 }
+    ).catch(() => null);
+
+    const hasValue = await nameInput.inputValue().catch(() => "");
     expect(hasValue || page.url().includes("/tours")).toBeTruthy();
   });
 

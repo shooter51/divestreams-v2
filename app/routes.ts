@@ -174,12 +174,17 @@ export default [
     ]),
   ]),
   // Embed booking widget routes (for external website integration)
-  ...prefix("embed", [
+  ...prefix("embed/:tenant", [
     layout("routes/embed/$tenant.tsx", [
-      route(":tenant", "routes/embed/$tenant._index.tsx"),
-      route(":tenant/tour/:id", "routes/embed/$tenant.tour.$id.tsx"),
-      route(":tenant/book", "routes/embed/$tenant.book.tsx"),
-      route(":tenant/confirm", "routes/embed/$tenant.confirm.tsx"),
+      index("routes/embed/$tenant._index.tsx"),
+      route("tour/:id", "routes/embed/$tenant.tour.$id.tsx"),
+      route("book", "routes/embed/$tenant.book.tsx"),
+      route("confirm", "routes/embed/$tenant.confirm.tsx"),
+      // Course enrollment widget routes
+      route("courses", "routes/embed/$tenant.courses.tsx"),
+      route("courses/:courseId", "routes/embed/$tenant.courses.$courseId.tsx"),
+      route("courses/:courseId/enroll", "routes/embed/$tenant.courses.$courseId.enroll.tsx"),
+      route("courses/confirm", "routes/embed/$tenant.courses.confirm.tsx"),
     ]),
   ]),
 ] satisfies RouteConfig;

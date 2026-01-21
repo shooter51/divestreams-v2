@@ -611,9 +611,13 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     // Should be on account dashboard
     expect(page.url()).toContain("/account");
 
-    // Should have some dashboard content
-    const hasWelcome = await page.getByText(/welcome|dashboard|account/i).isVisible().catch(() => false);
-    expect(hasWelcome).toBeTruthy();
+    // Wait for page to fully hydrate before checking content
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForTimeout(500); // Small delay for React hydration
+
+    // Should have dashboard content - check for "My Account" heading that's always present in layout
+    // or "Upcoming Bookings" stat card that's in the dashboard
+    await expect(page.locator("h1:has-text('My Account'), h2:has-text('Welcome back')").first()).toBeVisible({ timeout: 5000 });
   });
 
   test("C.3 Account dashboard shows bookings section", async ({ page }) => {
