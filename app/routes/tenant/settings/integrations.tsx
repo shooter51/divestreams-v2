@@ -38,7 +38,7 @@ import {
 import { getXeroAuthUrl } from "../../../../lib/integrations/xero.server";
 import { getMailchimpAuthUrl, listAudiences } from "../../../../lib/integrations/mailchimp.server";
 import { getQuickBooksAuthUrl } from "../../../../lib/integrations/quickbooks.server";
-import { getStripeSettings } from "../../../../lib/integrations/stripe.server";
+import { getStripeSettings, connectStripe } from "../../../../lib/integrations/stripe.server";
 import { connectWhatsApp, sendWhatsApp } from "../../../../lib/integrations/whatsapp.server";
 
 // Type-only imports (stripped at compile time)
@@ -417,6 +417,11 @@ export async function action({ request }: ActionFunctionArgs) {
       return { showWhatsAppModal: true };
     }
 
+    // Handle Stripe (API-key based)
+    if (integrationId === "stripe") {
+      return { showStripeModal: true };
+    }
+
     // For other integrations, show coming soon
     return { error: `${integrationId} integration is coming soon!` };
   }
@@ -524,6 +529,32 @@ export async function action({ request }: ActionFunctionArgs) {
     } catch (error) {
       console.error("Error sending test WhatsApp message:", error);
       return { error: "Failed to send test WhatsApp message" };
+    }
+  }
+
+  // Connect Stripe with API credentials
+  if (intent === "connectStripe") {
+    const secretKey = formData.get("secretKey") as string;
+    const publishableKey = formData.get("publishableKey") as string;
+
+    if (!secretKey || !publishableKey) {
+      return { error: "Both Secret Key and Publishable Key are required" };
+    }
+
+    try {
+      const result = await connectStripe(ctx.org.id, {
+        secretKey,
+        publishableKey,
+      });
+
+      if (!result.success) {
+        return { error: result.error || "Failed to connect Stripe" };
+      }
+
+      return { success: true, message: "Stripe connected successfully!" };
+    } catch (error) {
+      console.error("Error connecting Stripe:", error);
+      return { error: "Failed to connect Stripe" };
     }
   }
 
@@ -819,6 +850,11 @@ export default function IntegrationsPage() {
   const [showTestWhatsAppModal, setShowTestWhatsAppModal] = useState(false);
   const [testWhatsAppNumber, setTestWhatsAppNumber] = useState("");
 
+  // Stripe modal state
+  const [showStripeModal, setShowStripeModal] = useState(false);
+  const [stripeSecretKey, setStripeSecretKey] = useState("");
+  const [stripePublishableKey, setStripePublishableKey] = useState("");
+
   // Xero modal state
   const [showXeroConfigModal, setShowXeroConfigModal] = useState(false);
   const [xeroSyncInvoices, setXeroSyncInvoices] = useState(xeroSettings?.syncInvoices || false);
@@ -833,6 +869,23 @@ export default function IntegrationsPage() {
   const [mailchimpSelectedAudience, setMailchimpSelectedAudience] = useState(mailchimpSettings?.selectedAudienceId || "");
   const [mailchimpSyncOnBooking, setMailchimpSyncOnBooking] = useState(mailchimpSettings?.syncOnBooking ?? true);
   const [mailchimpSyncOnCustomerCreate, setMailchimpSyncOnCustomerCreate] = useState(mailchimpSettings?.syncOnCustomerCreate ?? true);
+
+  // OAuth configuration modal state
+  const [showGoogleOAuthModal, setShowGoogleOAuthModal] = useState(false);
+  const [googleClientId, setGoogleClientId] = useState("");
+  const [googleClientSecret, setGoogleClientSecret] = useState("");
+
+  const [showMailchimpOAuthModal, setShowMailchimpOAuthModal] = useState(false);
+  const [mailchimpClientId, setMailchimpClientId] = useState("");
+  const [mailchimpClientSecret, setMailchimpClientSecret] = useState("");
+
+  const [showQuickBooksOAuthModal, setShowQuickBooksOAuthModal] = useState(false);
+  const [quickBooksClientId, setQuickBooksClientId] = useState("");
+  const [quickBooksClientSecret, setQuickBooksClientSecret] = useState("");
+
+  const [showXeroOAuthModal, setShowXeroOAuthModal] = useState(false);
+  const [xeroClientId, setXeroClientId] = useState("");
+  const [xeroClientSecret, setXeroClientSecret] = useState("");
 
   // Success/error messages from URL params (OAuth callbacks)
   const urlSuccess = searchParams.get("success");
@@ -863,6 +916,11 @@ export default function IntegrationsPage() {
       setShowWhatsAppModal(true);
     }
 
+    // Handle Stripe modal request
+    if (fetcher.data && "showStripeModal" in fetcher.data && fetcher.data.showStripeModal) {
+      setShowStripeModal(true);
+    }
+
     // Handle Mailchimp config modal request
     if (fetcher.data && "showMailchimpConfigModal" in fetcher.data && fetcher.data.showMailchimpConfigModal) {
       setShowMailchimpConfigModal(true);
@@ -880,6 +938,7 @@ export default function IntegrationsPage() {
       setShowTestSmsModal(false);
       setShowWhatsAppModal(false);
       setShowTestWhatsAppModal(false);
+      setShowStripeModal(false);
       setShowMailchimpConfigModal(false);
       setShowXeroConfigModal(false);
       // Reset Twilio form
@@ -897,6 +956,9 @@ export default function IntegrationsPage() {
       setWhatsAppTwilioAuthToken("");
       setWhatsAppTwilioNumber("");
       setTestWhatsAppNumber("");
+      // Reset Stripe form
+      setStripeSecretKey("");
+      setStripePublishableKey("");
     }
 
     // Handle error messages
@@ -1362,6 +1424,103 @@ export default function IntegrationsPage() {
                   className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Sending..." : "Send Test"}
+                </button>
+              </div>
+            </fetcher.Form>
+          </div>
+        </div>
+      )}
+
+      {/* Stripe Configuration Modal */}
+      {showStripeModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-bold">Connect Stripe</h2>
+                <p className="text-sm text-gray-500">
+                  Enter your Stripe API keys to enable payment processing
+                </p>
+              </div>
+              <button
+                onClick={() => setShowStripeModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <Icons.X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <fetcher.Form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="connectStripe" />
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Secret Key <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="secretKey"
+                  value={stripeSecretKey}
+                  onChange={(e) => setStripeSecretKey(e.target.value)}
+                  placeholder="sk_test_... or sk_live_..."
+                  className="w-full border rounded-lg p-2 text-sm font-mono"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Your Stripe Secret Key (starts with sk_test_ or sk_live_)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Publishable Key <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="publishableKey"
+                  value={stripePublishableKey}
+                  onChange={(e) => setStripePublishableKey(e.target.value)}
+                  placeholder="pk_test_... or pk_live_..."
+                  className="w-full border rounded-lg p-2 text-sm font-mono"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Your Stripe Publishable Key (starts with pk_test_ or pk_live_)
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-800">
+                  <strong>Where to find your API keys:</strong>
+                  <br />
+                  Visit your{" "}
+                  <a
+                    href="https://dashboard.stripe.com/apikeys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-blue-900"
+                  >
+                    Stripe Dashboard → API Keys
+                  </a>
+                  <br />
+                  Use test keys for development and live keys for production.
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowStripeModal(false)}
+                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={fetcher.state !== "idle"}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {fetcher.state !== "idle" ? "Connecting..." : "Connect Stripe"}
                 </button>
               </div>
             </fetcher.Form>
