@@ -135,6 +135,8 @@ export const trainingCourses = pgTable(
     levelId: uuid("level_id").references(() => certificationLevels.id, {
       onDelete: "set null",
     }),
+    templateId: uuid("template_id").references(() => agencyCourseTemplates.id, { onDelete: "set null" }),
+    templateHash: text("template_hash"),
     name: text("name").notNull(),
     code: text("code"), // Course code for reference
     description: text("description"),
@@ -180,6 +182,7 @@ export const trainingCourses = pgTable(
     index("training_courses_org_idx").on(table.organizationId),
     index("training_courses_agency_idx").on(table.agencyId),
     index("training_courses_level_idx").on(table.levelId),
+    index("training_courses_template_idx").on(table.templateId),
     index("training_courses_public_idx").on(table.organizationId, table.isPublic),
   ]
 );
@@ -328,6 +331,21 @@ export const certificationLevelsRelations = relations(
   })
 );
 
+export const agencyCourseTemplatesRelations = relations(
+  agencyCourseTemplates,
+  ({ one, many }) => ({
+    agency: one(certificationAgencies, {
+      fields: [agencyCourseTemplates.agencyId],
+      references: [certificationAgencies.id],
+    }),
+    level: one(certificationLevels, {
+      fields: [agencyCourseTemplates.levelId],
+      references: [certificationLevels.id],
+    }),
+    tenantCourses: many(trainingCourses),
+  })
+);
+
 export const trainingCoursesRelations = relations(
   trainingCourses,
   ({ one, many }) => ({
@@ -342,6 +360,10 @@ export const trainingCoursesRelations = relations(
     level: one(certificationLevels, {
       fields: [trainingCourses.levelId],
       references: [certificationLevels.id],
+    }),
+    template: one(agencyCourseTemplates, {
+      fields: [trainingCourses.templateId],
+      references: [agencyCourseTemplates.id],
     }),
     requiredLevel: one(certificationLevels, {
       fields: [trainingCourses.requiredCertLevel],
