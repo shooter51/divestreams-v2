@@ -5,6 +5,7 @@ import { organization, member } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
 import { eq, ilike, or, desc, sql, count, ne } from "drizzle-orm";
 import { requirePlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
+import { getTenantUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Organizations - DiveStreams Admin" }];
 
@@ -215,7 +216,7 @@ export default function AdminOrganizationsPage() {
                 <tr key={org.id}>
                   <td className="px-4 py-3">
                     <a
-                      href={`https://${org.slug}.divestreams.com/app`}
+                      href={getTenantUrl(org.slug, "/app")}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline font-medium"

@@ -9,6 +9,7 @@ import {
   customerSchema,
   tourSchema,
   tripSchema,
+  recurringTripSchema,
   bookingSchema,
   diveSiteSchema,
   boatSchema,
@@ -277,6 +278,146 @@ describe("Validation Module", () => {
       };
       const result = tripSchema.safeParse(data);
       expect(result.success).toBe(true);
+    });
+
+    // LINE 113 COVERAGE: Invalid JSON in recurrenceDays
+    it("should handle invalid JSON in recurrenceDays (line 113)", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        recurrenceDays: "{invalid json}",
+      };
+      const result = tripSchema.safeParse(data);
+      // Should fail because preprocessor returns undefined for invalid JSON
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.recurrenceDays).toBeUndefined();
+      }
+    });
+
+    it("should parse valid JSON array in recurrenceDays", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        recurrenceDays: "[1,3,5]",
+      };
+      const result = tripSchema.safeParse(data);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.recurrenceDays).toEqual([1, 3, 5]);
+      }
+    });
+  });
+
+  // ============================================================================
+  // recurringTripSchema Tests - LINES 133-144 COVERAGE
+  // ============================================================================
+
+  describe("recurringTripSchema", () => {
+    it("should validate recurring trip with all required fields", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        isRecurring: true,
+        recurrencePattern: "daily",
+      };
+      const result = recurringTripSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    // LINE 133-140 COVERAGE: Weekly pattern without recurrenceDays
+    it("should validate weekly pattern without recurrenceDays (lines 133-140)", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        isRecurring: true,
+        recurrencePattern: "weekly",
+        // No recurrenceDays - should still pass (backend will handle)
+      };
+      const result = recurringTripSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    // LINE 133-140 COVERAGE: Biweekly pattern without recurrenceDays
+    it("should validate biweekly pattern without recurrenceDays (lines 133-140)", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        isRecurring: true,
+        recurrencePattern: "biweekly",
+        recurrenceDays: [], // Empty array - should still pass
+      };
+      const result = recurringTripSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    // LINE 142-145 COVERAGE: No endDate or count (optional validation)
+    it("should validate recurring trip without endDate or count (lines 142-145)", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        isRecurring: true,
+        recurrencePattern: "monthly",
+        // No recurrenceEndDate or recurrenceCount - should still pass
+      };
+      const result = recurringTripSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it("should validate recurring trip with endDate", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        isRecurring: true,
+        recurrencePattern: "weekly",
+        recurrenceDays: [1, 3, 5],
+        recurrenceEndDate: "2025-12-31",
+      };
+      const result = recurringTripSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it("should validate recurring trip with count", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        isRecurring: true,
+        recurrencePattern: "daily",
+        recurrenceCount: 10,
+      };
+      const result = recurringTripSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject non-recurring trip (isRecurring must be true)", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        isRecurring: false,
+        recurrencePattern: "daily",
+      };
+      const result = recurringTripSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject recurring trip without pattern", () => {
+      const data = {
+        tourId: "550e8400-e29b-41d4-a716-446655440000",
+        date: "2025-03-15",
+        startTime: "09:00",
+        isRecurring: true,
+      };
+      const result = recurringTripSchema.safeParse(data);
+      expect(result.success).toBe(false);
     });
   });
 
@@ -759,6 +900,25 @@ describe("Validation Module", () => {
 
       const parsed = parseFormData(formData);
       expect(parsed.tags).toEqual(["VIP", "Repeat"]);
+    });
+
+    // LINE 365 COVERAGE: Invalid JSON array parsing
+    it("should handle malformed JSON arrays as strings (line 365)", () => {
+      const formData = new FormData();
+      formData.append("tags", "[invalid json");
+
+      const parsed = parseFormData(formData);
+      // Should keep as string when JSON parsing fails
+      expect(parsed.tags).toBe("[invalid json");
+    });
+
+    it("should handle JSON-like strings that aren't arrays", () => {
+      const formData = new FormData();
+      formData.append("config", "{key: value}");
+
+      const parsed = parseFormData(formData);
+      // Should keep as string (doesn't start with "[")
+      expect(parsed.config).toBe("{key: value}");
     });
   });
 

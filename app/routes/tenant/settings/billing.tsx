@@ -10,7 +10,12 @@ import {
   cancelSubscription,
   createBillingPortalSession,
   createSetupSession,
+  getPaymentMethod,
 } from "../../../../lib/stripe";
+import {
+  getInvoiceHistory,
+  fetchInvoicesFromStripe,
+} from "../../../../lib/stripe/stripe-billing.server";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
@@ -148,6 +153,42 @@ export async function loader({ request }: LoaderFunctionArgs) {
     invoiceUrl: string;
   };
 
+  // Fetch payment method from Stripe
+  let paymentMethod: PaymentMethod | null = null;
+  try {
+    const stripePaymentMethod = await getPaymentMethod(ctx.org.id);
+    if (stripePaymentMethod) {
+      paymentMethod = {
+        brand: stripePaymentMethod.brand,
+        last4: stripePaymentMethod.last4,
+        expiryMonth: stripePaymentMethod.expiryMonth,
+        expiryYear: stripePaymentMethod.expiryYear,
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching payment method:", error);
+  }
+
+  // Fetch invoice history
+  let billingHistory: BillingHistoryItem[] = [];
+  try {
+    // First, sync latest invoices from Stripe
+    await fetchInvoicesFromStripe(ctx.org.id, 10);
+
+    // Then fetch from database
+    const invoices = await getInvoiceHistory(ctx.org.id, 10);
+    billingHistory = invoices.map((invoice) => ({
+      id: invoice.stripeInvoiceId,
+      date: invoice.createdAt.toLocaleDateString(),
+      description: invoice.description || `Invoice ${invoice.invoiceNumber || invoice.stripeInvoiceId.slice(-8)}`,
+      status: invoice.paid ? "paid" : invoice.status === "open" ? "pending" : invoice.status,
+      amount: invoice.total / 100, // Convert cents to dollars
+      invoiceUrl: invoice.invoicePdf || invoice.hostedInvoiceUrl || "#",
+    }));
+  } catch (error) {
+    console.error("Error fetching invoice history:", error);
+  }
+
   const billing = {
     currentPlan,
     currentPlanName: currentPlanData?.name || "Free",
@@ -155,9 +196,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     nextBillingDate,
     amount: currentPlanData?.price || 0,
     subscriptionStatus: ctx.subscription?.status || "active",
-    trialEndsAt: undefined as string | undefined,
-    paymentMethod: null as PaymentMethod | null, // Would need Stripe integration
-    billingHistory: [] as BillingHistoryItem[], // Would need billing history table
+    trialEndsAt: ctx.subscription?.trialEndsAt?.toISOString(),
+    paymentMethod,
+    billingHistory,
     usage: {
       bookingsThisMonth,
       bookingsLimit: ctx.limits.bookingsPerMonth,

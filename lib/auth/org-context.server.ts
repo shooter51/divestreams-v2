@@ -138,13 +138,34 @@ export function getSubdomainFromRequest(request: Request): string | null {
     return null;
   }
 
+  // Handle production and staging
+  const parts = host.split(".");
+
+  // Check if this is the staging environment
+  // Format: staging.divestreams.com (base) or {tenant}.staging.divestreams.com (tenant)
+  if (parts.length >= 3 && parts[parts.length - 3] === "staging") {
+    // This is staging environment
+    if (parts.length === 3) {
+      // staging.divestreams.com - base staging site, no tenant
+      return null;
+    }
+    if (parts.length >= 4) {
+      // {tenant}.staging.divestreams.com
+      const subdomain = parts[0].toLowerCase();
+      // Ignore www as it's not a tenant subdomain
+      if (subdomain === "www") {
+        return null;
+      }
+      return subdomain;
+    }
+  }
+
   // Handle production
   // Format: subdomain.divestreams.com
-  const parts = host.split(".");
   if (parts.length >= 3) {
     const subdomain = parts[0].toLowerCase();
-    // Ignore www as it's not a tenant subdomain
-    if (subdomain === "www") {
+    // Ignore www and staging as they're not tenant subdomains
+    if (subdomain === "www" || subdomain === "staging") {
       return null;
     }
     return subdomain;
@@ -155,8 +176,24 @@ export function getSubdomainFromRequest(request: Request): string | null {
 
 /**
  * Check if the current request is for the admin subdomain
+ * Supports both production (admin.divestreams.com) and staging (admin-staging.divestreams.com)
  */
 export function isAdminSubdomain(request: Request): boolean {
+  const url = new URL(request.url);
+  const host = url.host;
+  const parts = host.split(".");
+
+  // Check for admin-staging.divestreams.com (staging admin)
+  if (parts.length >= 3 && parts[0] === "admin-staging") {
+    return true;
+  }
+
+  // Check for admin.staging.divestreams.com (alternative staging admin format)
+  if (parts.length >= 4 && parts[0] === "admin" && parts[1] === "staging") {
+    return true;
+  }
+
+  // Check for admin.divestreams.com (production admin)
   const subdomain = getSubdomainFromRequest(request);
   return subdomain === "admin";
 }

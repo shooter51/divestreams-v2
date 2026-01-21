@@ -70,6 +70,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     nextServiceDate: equipmentData.nextServiceDate || "",
     serviceNotes: equipmentData.serviceNotes || "",
     notes: equipmentData.notes || "",
+    isPublic: equipmentData.isPublic ?? true,
   };
 
   // Format images for the component
@@ -108,6 +109,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   // Get barcode directly from formData since it may not be in validation schema
   const barcode = formData.get("barcode") as string || null;
+  const isPublic = formData.get("isPublic") === "true";
 
   await db
     .update(schema.equipment)
@@ -129,6 +131,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       nextServiceDate: validation.data.nextServiceDate,
       serviceNotes: validation.data.serviceNotes,
       notes: validation.data.notes,
+      isPublic,
       updatedAt: new Date(),
     })
     .where(and(eq(schema.equipment.organizationId, organizationId), eq(schema.equipment.id, equipmentId)));
@@ -420,6 +423,21 @@ export default function EditEquipmentPage() {
             defaultValue={actionData?.values?.notes || equipment.notes}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
           />
+          <div className="mt-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="isPublic"
+                value="true"
+                defaultChecked={actionData?.values?.isPublic !== "false" && equipment.isPublic}
+                className="rounded"
+              />
+              <span className="text-sm font-medium">Show on public website</span>
+            </label>
+            <p className="text-xs text-gray-500 mt-1">
+              Make this equipment visible on your public rental catalog
+            </p>
+          </div>
         </div>
 
         {/* Actions */}

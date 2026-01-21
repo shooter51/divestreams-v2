@@ -177,6 +177,7 @@ export async function action({ request }: ActionFunctionArgs) {
       notes: (formData.get("notes") as string) || null,
       staffIds: staffIds.length > 0 ? staffIds as string[] : null,
       weatherNotes: (formData.get("weatherNotes") as string) || null,
+      isPublic: formData.get("isPublic") === "true",
       recurrencePattern,
       recurrenceDays: parsedRecurrenceDays || null,
       recurrenceEndDate: (formData.get("recurrenceEndDate") as string) || null,
@@ -192,6 +193,7 @@ export async function action({ request }: ActionFunctionArgs) {
       maxParticipants: formData.get("maxParticipants") ? Number(formData.get("maxParticipants")) : undefined,
       price: formData.get("price") ? Number(formData.get("price")) : undefined,
       notes: (formData.get("notes") as string) || undefined,
+      isPublic: formData.get("isPublic") === "true",
     });
   }
 
@@ -634,6 +636,21 @@ export default function NewTripPage() {
                 defaultValue={actionData?.values?.notes}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isPublic"
+                  value="true"
+                  defaultChecked={actionData?.values?.isPublic !== "false"}
+                  className="rounded"
+                />
+                <span className="text-sm font-medium">Show on public website</span>
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                Make this trip visible on your public booking site
+              </p>
             </div>
           </div>
         </div>

@@ -13,6 +13,23 @@ import { db } from "./index";
 import * as schema from "./schema";
 
 // ============================================================================
+// Organization Queries
+// ============================================================================
+
+/**
+ * Get organization by ID
+ * Note: Organization table doesn't have timezone field yet, so this returns UTC by default
+ */
+async function getOrganizationById(organizationId: string) {
+  const result = await db
+    .select()
+    .from(schema.organization)
+    .where(eq(schema.organization.id, organizationId))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+// ============================================================================
 // Dashboard Queries
 // ============================================================================
 
@@ -605,6 +622,7 @@ export async function createTrip(organizationId: string, data: {
   maxParticipants?: number;
   price?: number;
   notes?: string;
+  isPublic?: boolean;
 }) {
   const [trip] = await db
     .insert(schema.trips)
@@ -618,8 +636,23 @@ export async function createTrip(organizationId: string, data: {
       maxParticipants: data.maxParticipants || null,
       price: data.price ? String(data.price) : null,
       notes: data.notes || null,
+      isPublic: data.isPublic ?? false,
     })
     .returning();
+
+  // Sync to Google Calendar if integration is active
+  // Run async to not block trip creation
+  import("../integrations/google-calendar.server")
+    .then(({ syncTripToCalendar }) => {
+      const org = getOrganizationById(organizationId);
+      const timezone = org.then((o: any) => o?.timezone || "UTC");
+      timezone.then((tz: string) =>
+        syncTripToCalendar(organizationId, trip.id, tz).catch((error) =>
+          console.error("Google Calendar sync failed for trip:", trip.id, error)
+        )
+      );
+    })
+    .catch((error) => console.error("Failed to load Google Calendar module:", error));
 
   return trip;
 }
@@ -633,6 +666,21 @@ export async function updateTripStatus(organizationId: string, id: string, statu
       eq(schema.trips.id, id)
     ))
     .returning();
+
+  // Sync updated trip to Google Calendar if integration is active
+  if (trip) {
+    import("../integrations/google-calendar.server")
+      .then(({ syncTripToCalendar }) => {
+        const org = getOrganizationById(organizationId);
+        const timezone = org.then((o: any) => o?.timezone || "UTC");
+        timezone.then((tz: string) =>
+          syncTripToCalendar(organizationId, trip.id, tz).catch((error) =>
+            console.error("Google Calendar sync failed for trip:", trip.id, error)
+          )
+        );
+      })
+      .catch((error) => console.error("Failed to load Google Calendar module:", error));
+  }
 
   return trip ? mapTrip(trip) : null;
 }
@@ -760,6 +808,20 @@ export async function createBooking(organizationId: string, data: {
     })
     .returning();
 
+  // Sync booking to Google Calendar if integration is active
+  // Run async to not block booking creation
+  import("../integrations/google-calendar-bookings.server")
+    .then(({ syncBookingToCalendar }) => {
+      const org = getOrganizationById(organizationId);
+      const timezone = org.then((o: any) => o?.timezone || "UTC");
+      timezone.then((tz: string) =>
+        syncBookingToCalendar(organizationId, data.tripId, tz).catch((error) =>
+          console.error("Google Calendar booking sync failed:", booking.id, error)
+        )
+      );
+    })
+    .catch((error) => console.error("Failed to load Google Calendar module:", error));
+
   return booking;
 }
 
@@ -772,6 +834,21 @@ export async function updateBookingStatus(organizationId: string, id: string, st
       eq(schema.bookings.id, id)
     ))
     .returning();
+
+  // Sync booking cancellation to Google Calendar if status is cancelled
+  if (booking && (status === "cancelled" || status === "no_show")) {
+    import("../integrations/google-calendar-bookings.server")
+      .then(({ syncBookingCancellationToCalendar }) => {
+        const org = getOrganizationById(organizationId);
+        const timezone = org.then((o: any) => o?.timezone || "UTC");
+        timezone.then((tz: string) =>
+          syncBookingCancellationToCalendar(organizationId, booking.tripId, tz).catch((error) =>
+            console.error("Google Calendar booking cancellation sync failed:", booking.id, error)
+          )
+        );
+      })
+      .catch((error) => console.error("Failed to load Google Calendar module:", error));
+  }
 
   return booking;
 }
@@ -829,6 +906,7 @@ export async function createEquipment(organizationId: string, data: {
   condition?: string;
   rentalPrice?: number;
   isRentable?: boolean;
+  isPublic?: boolean;
 }) {
   const [equipment] = await db
     .insert(schema.equipment)
@@ -845,6 +923,7 @@ export async function createEquipment(organizationId: string, data: {
       condition: data.condition || "good",
       rentalPrice: data.rentalPrice ? String(data.rentalPrice) : null,
       isRentable: data.isRentable ?? true,
+      isPublic: data.isPublic ?? false,
     })
     .returning();
 
@@ -2377,6 +2456,7 @@ function mapTrip(row: any) {
     price: row.price ? Number(row.price) : null,
     notes: row.notes,
     weatherNotes: row.weatherNotes || row.weather_notes || null,
+    isPublic: row.isPublic ?? row.is_public ?? false,
     tourName: row.tourName || row.tour_name,
     tourType: row.tourType || row.tour_type,
     boatName: row.boatName || row.boat_name,
@@ -2432,6 +2512,7 @@ function mapEquipment(row: any) {
     condition: row.condition,
     rentalPrice: row.rentalPrice || row.rental_price ? Number(row.rentalPrice || row.rental_price) : null,
     isRentable: row.isRentable || row.is_rentable,
+    isPublic: row.isPublic ?? row.is_public ?? false,
     lastServiceDate: row.lastServiceDate || row.last_service_date,
     nextServiceDate: row.nextServiceDate || row.next_service_date,
     serviceNotes: row.serviceNotes || row.service_notes,

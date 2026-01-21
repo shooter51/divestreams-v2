@@ -6,6 +6,7 @@ import { subscription } from "../../../lib/db/schema/subscription";
 import { customers, tours, bookings } from "../../../lib/db/schema";
 import { eq, and, count, sql } from "drizzle-orm";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
+import { getBaseDomain, getTenantUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Organization Details - DiveStreams Admin" }];
 
@@ -202,6 +203,8 @@ export default function OrganizationDetailsPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
+  const baseDomain = getBaseDomain();
+
   const handleDelete = () => {
     if (
       confirm(
@@ -227,7 +230,7 @@ export default function OrganizationDetailsPage() {
           &larr; Back to Organizations
         </Link>
         <h1 className="text-2xl font-bold mt-2">{org.name}</h1>
-        <p className="text-gray-600">{org.slug}.divestreams.com</p>
+        <p className="text-gray-600">{org.slug}.{baseDomain}</p>
       </div>
 
       {actionData?.success && (
@@ -256,7 +259,7 @@ export default function OrganizationDetailsPage() {
                     className="flex-1 px-3 py-2 border rounded-l-lg bg-gray-50 text-gray-600"
                   />
                   <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-lg text-gray-600">
-                    .divestreams.com
+                    .{baseDomain}
                   </span>
                 </div>
               </div>
@@ -450,7 +453,7 @@ export default function OrganizationDetailsPage() {
             <h2 className="font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <a
-                href={`https://${org.slug}.divestreams.com/app`}
+                href={getTenantUrl(org.slug, "/app")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full text-center py-2 px-4 border rounded-lg hover:bg-gray-50 text-sm"

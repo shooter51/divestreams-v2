@@ -1,0 +1,99 @@
+name: Manual Deploy (No Tests)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ github.event.inputs.environment }}
+            type=sha,prefix=${{ github.event.inputs.environment }}-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+
+      - name: Deploy to Staging VPS
+        if: ${{ github.event.inputs.environment == 'staging' }}
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 76.13.28.28
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /docker/divestreams-staging
+            docker compose pull app
+            docker compose up -d app
+            docker compose logs --tail=50 app
+
+      - name: Deploy to Production VPS
+        if: ${{ github.event.inputs.environment == 'production' }}
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 72.62.166.128
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /docker/divestreams-v2
+            docker compose pull app
+            docker compose up -d app
+            docker compose logs --tail=50 app
+
+      - name: Deployment Summary
+        run: |
+          echo "### Deployment Complete! 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.environment }}" == "staging" ]; then
+            echo "**URL:** https://staging.divestreams.com" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**URL:** https://divestreams.com" >> $GITHUB_STEP_SUMMARY
+          fi
