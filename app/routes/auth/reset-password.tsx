@@ -107,6 +107,7 @@ export default function ResetPasswordPage() {
                 type="password"
                 id="password"
                 name="password"
+                autoComplete="new-password"
                 minLength={8}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
@@ -121,6 +122,7 @@ export default function ResetPasswordPage() {
                 type="password"
                 id="confirmPassword"
                 name="confirmPassword"
+                autoComplete="new-password"
                 minLength={8}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
