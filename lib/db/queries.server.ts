@@ -8,7 +8,7 @@
  * multi-tenancy. All queries now filter by organization_id in the public schema.
  */
 
-import { desc, eq, gte, lte, count, sum, and, sql } from "drizzle-orm";
+import { desc, eq, gte, lte, count, sum, and, sql, asc } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
 
@@ -1370,10 +1370,9 @@ export async function getEquipmentRentalHistory(organizationId: string, equipmen
 
 export interface EquipmentServiceRecord {
   id: string;
-  date: Date;
   type: string;
   description: string;
-  technician: string | null;
+  performedAt: Date;
   performedBy: string | null;
   notes: string | null;
   cost: number | null;
@@ -1402,10 +1401,9 @@ export async function getEquipmentServiceHistory(organizationId: string, equipme
 
   return records.map(r => ({
     id: r.id,
-    date: r.performedAt,
     type: r.type,
     description: r.description,
-    technician: r.performedBy,
+    performedAt: r.performedAt,
     performedBy: r.performedBy,
     notes: r.notes,
     cost: r.cost ? parseFloat(r.cost) : null,

@@ -173,6 +173,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     secondaryColor: "",
     logoUrl: null,
     heroImageUrl: null,
+    heroVideoUrl: null,
     fontFamily: "inter",
     pages: {
       home: true,
