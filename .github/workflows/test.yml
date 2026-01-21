@@ -178,6 +178,21 @@ jobs:
           path: coverage/e2e/
           retention-days: 7
 
+      - name: Report test results to Jira
+        if: always()
+        run: tsx scripts/jira-test-reporter.ts
+        env:
+          JIRA_HOST: ${{ secrets.JIRA_HOST }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+        continue-on-error: true
+
   coverage-report:
     name: Combined Coverage Report
     runs-on: ubuntu-latest

@@ -26,6 +26,7 @@ export interface RecurringTripTemplate {
   notes?: string | null;
   staffIds?: string[] | null;
   weatherNotes?: string | null;
+  isPublic?: boolean;
   // Recurrence settings
   recurrencePattern: RecurrencePattern;
   recurrenceDays?: number[] | null; // [0-6] for Sun-Sat
@@ -195,6 +196,7 @@ export async function createRecurringTrip(
       notes: template.notes || null,
       staffIds: template.staffIds || null,
       weatherNotes: template.weatherNotes || null,
+      isPublic: template.isPublic ?? false,
       isRecurring: true,
       recurrencePattern: template.recurrencePattern,
       recurrenceDays: template.recurrenceDays || null,
@@ -238,6 +240,7 @@ export async function createRecurringTrip(
           notes: template.notes || null,
           staffIds: template.staffIds || null,
           weatherNotes: template.weatherNotes || null,
+          isPublic: template.isPublic ?? false,
           isRecurring: true,
           recurrencePattern: template.recurrencePattern,
           recurrenceDays: template.recurrenceDays || null,

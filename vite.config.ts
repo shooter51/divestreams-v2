@@ -21,6 +21,11 @@ export default defineConfig(({ isSsrBuild }) => ({
         forceBuildInstrument: true,
       }),
   ].filter(Boolean),
+  server: {
+    // Allow subdomain access for E2E tests (e.g., e2etest.localhost:5173)
+    host: true,
+    strictPort: false,
+  },
   ssr: {
     noExternal: [],
     external: ["postgres", "better-auth"],

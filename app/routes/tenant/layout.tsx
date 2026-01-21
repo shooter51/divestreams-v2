@@ -49,6 +49,8 @@ export default function TenantLayout() {
     { href: "/app/equipment", label: "Equipment", icon: "🤿" },
     { href: "/app/products", label: "Products", icon: "📦" },
     { href: "/app/discounts", label: "Discounts", icon: "🏷️" },
+    { href: "/app/training", label: "Training", icon: "🎓" },
+    { href: "/app/gallery", label: "Gallery", icon: "📸" },
     { href: "/app/pos", label: "POS", icon: "💳" },
     { href: "/app/reports", label: "Reports", icon: "📈" },
     { href: "/app/settings", label: "Settings", icon: "⚙️" },

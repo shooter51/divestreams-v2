@@ -1,0 +1,320 @@
+/**
+ * Admin Contact Messages Page (Platform Admin)
+ *
+ * View and manage contact form submissions across all organizations.
+ * This is for the platform admin panel, not tenant admin.
+ */
+
+import { useLoaderData } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
+import { db } from "../../../lib/db";
+import { contactMessages } from "../../../lib/db/schema/public-site";
+import { organization } from "../../../lib/db/schema/auth";
+import { desc, eq } from "drizzle-orm";
+import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface LoaderData {
+  messages: Array<{
+    id: string;
+    organizationId: string;
+    organizationName: string | null;
+    name: string;
+    email: string;
+    phone: string | null;
+    subject: string | null;
+    message: string;
+    status: string;
+    createdAt: Date;
+    referrerPage: string | null;
+  }>;
+  stats: {
+    total: number;
+    new: number;
+    read: number;
+    replied: number;
+  };
+}
+
+// ============================================================================
+// LOADER
+// ============================================================================
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  // Require platform admin access
+  await requirePlatformContext(request);
+
+  // Get all contact messages across all organizations with organization names
+  const allMessages = await db
+    .select({
+      id: contactMessages.id,
+      organizationId: contactMessages.organizationId,
+      organizationName: organization.name,
+      name: contactMessages.name,
+      email: contactMessages.email,
+      phone: contactMessages.phone,
+      subject: contactMessages.subject,
+      message: contactMessages.message,
+      status: contactMessages.status,
+      createdAt: contactMessages.createdAt,
+      referrerPage: contactMessages.referrerPage,
+    })
+    .from(contactMessages)
+    .leftJoin(organization, eq(contactMessages.organizationId, organization.id))
+    .orderBy(desc(contactMessages.createdAt))
+    .limit(100);
+
+  // Calculate stats
+  const stats = {
+    total: allMessages.length,
+    new: allMessages.filter((m: any) => m.status === "new").length,
+    read: allMessages.filter((m: any) => m.status === "read").length,
+    replied: allMessages.filter((m: any) => m.status === "replied").length,
+  };
+
+  return {
+    messages: allMessages,
+    stats,
+  } satisfies LoaderData;
+}
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+export default function AdminContactMessagesPage() {
+  const { messages, stats } = useLoaderData<typeof loader>();
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case "new":
+        return "bg-blue-100 text-blue-800";
+      case "read":
+        return "bg-gray-100 text-gray-800";
+      case "replied":
+        return "bg-green-100 text-green-800";
+      case "archived":
+        return "bg-yellow-100 text-yellow-800";
+      case "spam":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Contact Messages</h1>
+        <p className="mt-2 text-gray-600">
+          Messages submitted through your public website contact form
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow p-5">
+          <div className="text-sm font-medium text-gray-500">Total</div>
+          <div className="mt-1 text-3xl font-semibold text-gray-900">
+            {stats.total}
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-5">
+          <div className="text-sm font-medium text-gray-500">New</div>
+          <div className="mt-1 text-3xl font-semibold text-blue-600">
+            {stats.new}
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-5">
+          <div className="text-sm font-medium text-gray-500">Read</div>
+          <div className="mt-1 text-3xl font-semibold text-gray-600">
+            {stats.read}
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-5">
+          <div className="text-sm font-medium text-gray-500">Replied</div>
+          <div className="mt-1 text-3xl font-semibold text-green-600">
+            {stats.replied}
+          </div>
+        </div>
+      </div>
+
+      {/* Messages List */}
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        {messages.length === 0 ? (
+          <div className="text-center py-12">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              No messages yet
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Contact form submissions will appear here.
+            </p>
+          </div>
+        ) : (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  From
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Message
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Date
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {messages.map((msg: any) => (
+                <tr
+                  key={msg.id}
+                  className={msg.status === "new" ? "bg-blue-50" : ""}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex flex-col">
+                      <div className="text-sm font-medium text-gray-900">
+                        {msg.name}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        <a
+                          href={`mailto:${msg.email}`}
+                          className="hover:text-blue-600"
+                        >
+                          {msg.email}
+                        </a>
+                      </div>
+                      {msg.phone && (
+                        <div className="text-sm text-gray-500">
+                          <a
+                            href={`tel:${msg.phone}`}
+                            className="hover:text-blue-600"
+                          >
+                            {msg.phone}
+                          </a>
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-400 mt-1">
+                        {msg.organizationName}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-900">
+                      {msg.subject && (
+                        <div className="font-medium mb-1">{msg.subject}</div>
+                      )}
+                      <div className="line-clamp-2 text-gray-600">
+                        {msg.message}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(
+                        msg.status
+                      )}`}
+                    >
+                      {msg.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(msg.createdAt)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a
+                      href={`mailto:${msg.email}?subject=Re: ${msg.subject || "Your message"}`}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      Reply
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Help Text */}
+      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-blue-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-blue-800">
+              About Contact Messages
+            </h3>
+            <div className="mt-2 text-sm text-blue-700">
+              <p>
+                Messages are automatically saved when customers submit the contact
+                form on your public website. Email notifications are sent to your
+                contact email address, and customers receive an auto-reply
+                confirmation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

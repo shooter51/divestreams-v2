@@ -12,6 +12,7 @@ import {
   boolean,
   index,
   uniqueIndex,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 // ============================================================================
@@ -114,6 +115,36 @@ export const verification = pgTable(
 /**
  * Organization table - Dive shops / tenants
  */
+/**
+ * Public site settings type for organization
+ */
+export type PublicSiteSettings = {
+  enabled: boolean;
+  theme: "ocean" | "tropical" | "minimal" | "dark" | "classic";
+  primaryColor: string;
+  secondaryColor: string;
+  logoUrl: string | null;
+  heroImageUrl: string | null;
+  fontFamily: "inter" | "poppins" | "roboto" | "open-sans";
+  pages: {
+    home: boolean;
+    about: boolean;
+    trips: boolean;
+    courses: boolean;
+    equipment: boolean;
+    contact: boolean;
+    gallery: boolean;
+  };
+  aboutContent: string | null;
+  contactInfo: {
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+    hours: string | null;
+    mapEmbed: string | null;
+  } | null;
+};
+
 export const organization = pgTable(
   "organization",
   {
@@ -122,6 +153,8 @@ export const organization = pgTable(
     slug: text("slug").notNull().unique(),
     logo: text("logo"),
     metadata: text("metadata"), // JSON stored as text for flexibility
+    customDomain: text("custom_domain"),
+    publicSiteSettings: jsonb("public_site_settings").$type<PublicSiteSettings>(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
