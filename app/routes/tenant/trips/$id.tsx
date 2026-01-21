@@ -526,6 +526,23 @@ export default function TripDetailPage() {
                 </Link>
               </div>
             </div>
+            {trip.diveSites && trip.diveSites.length > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-gray-500 text-sm mb-2">Dive Sites</p>
+                <div className="space-y-1">
+                  {trip.diveSites.map((site) => (
+                    <Link
+                      key={site.id}
+                      to={`/app/dive-sites/${site.id}`}
+                      className="block text-sm text-blue-600 hover:underline"
+                    >
+                      {site.name}
+                      {site.maxDepth && ` (${site.maxDepth}m)`}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Weather & Notes */}

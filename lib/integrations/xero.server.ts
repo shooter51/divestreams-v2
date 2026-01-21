@@ -110,16 +110,19 @@ export interface XeroSettings {
 // ============================================================================
 
 /**
- * Get Xero OAuth client credentials from environment
+ * Get Xero OAuth client credentials from tenant settings or environment
  */
-function getXeroCredentials() {
-  const clientId = process.env.XERO_CLIENT_ID;
-  const clientSecret = process.env.XERO_CLIENT_SECRET;
+function getXeroCredentials(
+  tenantClientId?: string,
+  tenantClientSecret?: string
+) {
+  const clientId = tenantClientId || process.env.XERO_CLIENT_ID;
+  const clientSecret = tenantClientSecret || process.env.XERO_CLIENT_SECRET;
   const appUrl = process.env.APP_URL || "http://localhost:5173";
 
   if (!clientId || !clientSecret) {
     throw new Error(
-      "Xero OAuth credentials not configured. Set XERO_CLIENT_ID and XERO_CLIENT_SECRET."
+      "Xero OAuth credentials not configured. Please add your OAuth app credentials in Settings → Integrations."
     );
   }
 
@@ -143,10 +146,17 @@ function getCallbackUrl(subdomain?: string): string {
  *
  * @param orgId - Organization ID to include in state
  * @param subdomain - Organization subdomain for callback URL
+ * @param tenantClientId - Optional tenant-specific client ID
+ * @param tenantClientSecret - Optional tenant-specific client secret
  * @returns URL to redirect the user to
  */
-export function getXeroAuthUrl(orgId: string, subdomain?: string): string {
-  const { clientId } = getXeroCredentials();
+export function getXeroAuthUrl(
+  orgId: string,
+  subdomain?: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
+): string {
+  const { clientId } = getXeroCredentials(tenantClientId, tenantClientSecret);
   const callbackUrl = getCallbackUrl(subdomain);
 
   // State contains org ID and a nonce for security
@@ -182,14 +192,16 @@ export function parseOAuthState(state: string): { orgId: string; nonce: number }
  */
 export async function exchangeCodeForTokens(
   code: string,
-  subdomain?: string
+  subdomain?: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
 ): Promise<{
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
   tokenType: string;
 }> {
-  const { clientId, clientSecret } = getXeroCredentials();
+  const { clientId, clientSecret } = getXeroCredentials(tenantClientId, tenantClientSecret);
   const callbackUrl = getCallbackUrl(subdomain);
 
   // Xero requires Basic auth header for token exchange
@@ -227,12 +239,16 @@ export async function exchangeCodeForTokens(
 /**
  * Refresh an expired access token
  */
-export async function refreshAccessToken(refreshToken: string): Promise<{
+export async function refreshAccessToken(
+  refreshToken: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
+): Promise<{
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
 }> {
-  const { clientId, clientSecret } = getXeroCredentials();
+  const { clientId, clientSecret } = getXeroCredentials(tenantClientId, tenantClientSecret);
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
   const response = await fetch(XERO_TOKEN_URL, {
@@ -296,10 +312,25 @@ export async function getXeroConnections(accessToken: string): Promise<XeroOrgan
 export async function handleXeroCallback(
   code: string,
   orgId: string,
-  subdomain?: string
+  subdomain?: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
 ): Promise<Integration> {
+  // If tenant credentials not provided, try to retrieve from existing integration settings
+  let clientId = tenantClientId;
+  let clientSecret = tenantClientSecret;
+
+  if (!clientId || !clientSecret) {
+    const existing = await getIntegrationWithTokens(orgId, "xero");
+    if (existing) {
+      const existingSettings = existing.integration.settings as { oauthClientId?: string; oauthClientSecret?: string } | null;
+      clientId = existingSettings?.oauthClientId;
+      clientSecret = existingSettings?.oauthClientSecret;
+    }
+  }
+
   // Exchange code for tokens
-  const tokens = await exchangeCodeForTokens(code, subdomain);
+  const tokens = await exchangeCodeForTokens(code, subdomain, clientId, clientSecret);
 
   // Get connected organizations
   const connections = await getXeroConnections(tokens.accessToken);
@@ -314,7 +345,21 @@ export async function handleXeroCallback(
   // Calculate token expiry time
   const expiresAt = new Date(Date.now() + tokens.expiresIn * 1000);
 
-  // Store the integration
+  // Store the integration with tenant OAuth credentials
+  const settings: Record<string, unknown> = {
+    tenantId: primaryOrg.tenantId,
+    tenantName: primaryOrg.tenantName,
+    syncInvoices: true,
+    syncPayments: false,
+    syncContacts: false,
+  };
+
+  // Store tenant OAuth credentials if provided
+  if (clientId && clientSecret) {
+    settings.oauthClientId = clientId;
+    settings.oauthClientSecret = clientSecret;
+  }
+
   return connectIntegration(
     orgId,
     "xero",
@@ -328,13 +373,7 @@ export async function handleXeroCallback(
       accountId: primaryOrg.tenantId,
       accountName: primaryOrg.tenantName,
     },
-    {
-      tenantId: primaryOrg.tenantId,
-      tenantName: primaryOrg.tenantName,
-      syncInvoices: true,
-      syncPayments: false,
-      syncContacts: false,
-    } as Record<string, unknown>
+    settings
   );
 }
 
@@ -355,7 +394,15 @@ async function getValidAccessToken(
   // Check if token needs refresh
   if (tokenNeedsRefresh(integration) && refreshToken) {
     try {
-      const refreshed = await refreshAccessToken(refreshToken);
+      // Get tenant OAuth credentials from settings if available
+      const allSettings = integration.settings as XeroSettings & {
+        oauthClientId?: string;
+        oauthClientSecret?: string;
+      } | null;
+      const tenantClientId = allSettings?.oauthClientId;
+      const tenantClientSecret = allSettings?.oauthClientSecret;
+
+      const refreshed = await refreshAccessToken(refreshToken, tenantClientId, tenantClientSecret);
       const newExpiresAt = new Date(Date.now() + refreshed.expiresIn * 1000);
 
       await updateTokens(integration.id, {

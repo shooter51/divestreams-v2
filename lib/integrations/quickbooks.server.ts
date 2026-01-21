@@ -47,17 +47,20 @@ const SCOPES = "com.intuit.quickbooks.accounting openid profile email";
 // ============================================================================
 
 /**
- * Get QuickBooks OAuth client credentials from environment
+ * Get QuickBooks OAuth client credentials from tenant settings or environment
  */
-function getQuickBooksCredentials() {
-  const clientId = process.env.QUICKBOOKS_CLIENT_ID;
-  const clientSecret = process.env.QUICKBOOKS_CLIENT_SECRET;
+function getQuickBooksCredentials(
+  tenantClientId?: string,
+  tenantClientSecret?: string
+) {
+  const clientId = tenantClientId || process.env.QUICKBOOKS_CLIENT_ID;
+  const clientSecret = tenantClientSecret || process.env.QUICKBOOKS_CLIENT_SECRET;
   const appUrl = process.env.APP_URL || "http://localhost:5173";
   const useSandbox = process.env.QUICKBOOKS_SANDBOX === "true";
 
   if (!clientId || !clientSecret) {
     throw new Error(
-      "QuickBooks OAuth credentials not configured. Set QUICKBOOKS_CLIENT_ID and QUICKBOOKS_CLIENT_SECRET."
+      "QuickBooks OAuth credentials not configured. Please add your OAuth app credentials in Settings → Integrations."
     );
   }
 
@@ -89,10 +92,17 @@ function getCallbackUrl(subdomain?: string): string {
  *
  * @param orgId - Organization ID to include in state
  * @param subdomain - Organization subdomain for callback URL
+ * @param tenantClientId - Optional tenant-specific client ID
+ * @param tenantClientSecret - Optional tenant-specific client secret
  * @returns URL to redirect the user to
  */
-export function getQuickBooksAuthUrl(orgId: string, subdomain?: string): string {
-  const { clientId } = getQuickBooksCredentials();
+export function getQuickBooksAuthUrl(
+  orgId: string,
+  subdomain?: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
+): string {
+  const { clientId } = getQuickBooksCredentials(tenantClientId, tenantClientSecret);
   const callbackUrl = getCallbackUrl(subdomain);
 
   // State contains org ID and a nonce for security
@@ -128,7 +138,9 @@ export function parseOAuthState(state: string): { orgId: string; nonce: number }
  */
 export async function exchangeCodeForTokens(
   code: string,
-  subdomain?: string
+  subdomain?: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
 ): Promise<{
   accessToken: string;
   refreshToken: string;
@@ -136,7 +148,7 @@ export async function exchangeCodeForTokens(
   tokenType: string;
   realmId: string;
 }> {
-  const { clientId, clientSecret } = getQuickBooksCredentials();
+  const { clientId, clientSecret } = getQuickBooksCredentials(tenantClientId, tenantClientSecret);
   const callbackUrl = getCallbackUrl(subdomain);
 
   // QuickBooks uses Basic auth for token exchange
@@ -178,12 +190,16 @@ export async function exchangeCodeForTokens(
 /**
  * Refresh an expired access token
  */
-export async function refreshAccessToken(refreshToken: string): Promise<{
+export async function refreshAccessToken(
+  refreshToken: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
+): Promise<{
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
 }> {
-  const { clientId, clientSecret } = getQuickBooksCredentials();
+  const { clientId, clientSecret } = getQuickBooksCredentials(tenantClientId, tenantClientSecret);
   const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
   const response = await fetch(QUICKBOOKS_TOKEN_URL, {
@@ -262,12 +278,27 @@ export async function handleQuickBooksCallback(
   code: string,
   realmId: string,
   orgId: string,
-  subdomain?: string
+  subdomain?: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
 ): Promise<Integration> {
-  const { useSandbox } = getQuickBooksCredentials();
+  // If tenant credentials not provided, try to retrieve from existing integration settings
+  let clientId = tenantClientId;
+  let clientSecret = tenantClientSecret;
+
+  if (!clientId || !clientSecret) {
+    const existing = await getIntegrationWithTokens(orgId, "quickbooks");
+    if (existing) {
+      const existingSettings = existing.integration.settings as { oauthClientId?: string; oauthClientSecret?: string } | null;
+      clientId = existingSettings?.oauthClientId;
+      clientSecret = existingSettings?.oauthClientSecret;
+    }
+  }
+
+  const { useSandbox } = getQuickBooksCredentials(clientId, clientSecret);
 
   // Exchange code for tokens
-  const tokens = await exchangeCodeForTokens(code, subdomain);
+  const tokens = await exchangeCodeForTokens(code, subdomain, clientId, clientSecret);
 
   // Get company info for display
   const companyInfo = await getCompanyInfo(tokens.accessToken, realmId, useSandbox);
@@ -275,7 +306,22 @@ export async function handleQuickBooksCallback(
   // Calculate token expiry time
   const expiresAt = new Date(Date.now() + tokens.expiresIn * 1000);
 
-  // Store the integration
+  // Store the integration with tenant OAuth credentials
+  const settings: Record<string, unknown> = {
+    realmId,
+    companyId: companyInfo.id,
+    useSandbox,
+    syncInvoices: true,
+    syncPayments: true,
+    syncCustomers: true,
+  };
+
+  // Store tenant OAuth credentials if provided
+  if (clientId && clientSecret) {
+    settings.oauthClientId = clientId;
+    settings.oauthClientSecret = clientSecret;
+  }
+
   return connectIntegration(
     orgId,
     "quickbooks",
@@ -290,14 +336,7 @@ export async function handleQuickBooksCallback(
       accountName: companyInfo.companyName,
       accountEmail: companyInfo.email,
     },
-    {
-      realmId,
-      companyId: companyInfo.id,
-      useSandbox,
-      syncInvoices: true,
-      syncPayments: true,
-      syncCustomers: true,
-    }
+    settings
   );
 }
 
@@ -324,7 +363,16 @@ async function getValidAccessToken(
   // Check if token needs refresh
   if (tokenNeedsRefresh(integration) && refreshToken) {
     try {
-      const refreshed = await refreshAccessToken(refreshToken);
+      // Get tenant OAuth credentials from settings if available
+      const allSettings = integration.settings as {
+        realmId?: string;
+        oauthClientId?: string;
+        oauthClientSecret?: string;
+      } | null;
+      const tenantClientId = allSettings?.oauthClientId;
+      const tenantClientSecret = allSettings?.oauthClientSecret;
+
+      const refreshed = await refreshAccessToken(refreshToken, tenantClientId, tenantClientSecret);
       const newExpiresAt = new Date(Date.now() + refreshed.expiresIn * 1000);
 
       await updateTokens(integration.id, {

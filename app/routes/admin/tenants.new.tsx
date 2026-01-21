@@ -258,7 +258,7 @@ export default function CreateOrganizationPage() {
                 Seed Demo Data
               </label>
               <p className="text-xs text-gray-500">
-                Populate with sample customers, tours, bookings, products, and images
+                Populate with sample customers, tours, trips, equipment, bookings, products, training courses, gallery images, and more
               </p>
             </div>
           </div>

@@ -125,6 +125,7 @@ export type PublicSiteSettings = {
   secondaryColor: string;
   logoUrl: string | null;
   heroImageUrl: string | null;
+  heroVideoUrl: string | null;
   fontFamily: "inter" | "poppins" | "roboto" | "open-sans";
   pages: {
     home: boolean;

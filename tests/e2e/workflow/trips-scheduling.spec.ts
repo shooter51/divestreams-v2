@@ -34,7 +34,7 @@ const testData = {
     subdomain: "e2etest",
   },
   user: {
-    email: process.env.E2E_USER_EMAIL || "e2e-user-1737033600000@example.com",
+    email: process.env.E2E_USER_EMAIL || "e2e-user@example.com",
     password: process.env.E2E_USER_PASSWORD || "TestPass123!",
   },
   trip: {
