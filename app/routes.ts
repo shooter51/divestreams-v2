@@ -88,6 +88,7 @@ export default [
 
       // Training Module
       route("training", "routes/tenant/training/index.tsx"),
+      route("training/import", "routes/tenant/training/import/index.tsx"),
       route("training/courses", "routes/tenant/training/courses/index.tsx"),
       route("training/courses/new", "routes/tenant/training/courses/new.tsx"),
       route("training/courses/:id/edit", "routes/tenant/training/courses/$id/edit.tsx"),
