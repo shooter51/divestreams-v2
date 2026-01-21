@@ -1,22 +1,49 @@
 import { test, expect } from "@playwright/test";
 
+// Test data
+const testData = {
+  tenant: {
+    subdomain: "e2etest",
+  },
+  user: {
+    email: process.env.E2E_USER_EMAIL || "e2e-user@example.com",
+    password: process.env.E2E_USER_PASSWORD || "TestPass123!",
+  },
+};
+
+function getTenantUrl(path: string) {
+  return `http://${testData.tenant.subdomain}.localhost:5173${path}`;
+}
+
+async function loginToTenant(page: any) {
+  await page.goto(getTenantUrl("/auth/login"));
+  await page.getByLabel(/email/i).fill(testData.user.email);
+  await page.getByLabel(/password/i).fill(testData.user.password);
+  await page.getByRole("button", { name: /sign in/i }).click();
+  try {
+    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+  } catch {
+    await page.waitForTimeout(2000);
+  }
+}
+
 test.describe("Stripe Integration", () => {
   test("shows Stripe connection modal (not 'coming soon' error)", async ({ page }) => {
+    // Login first
+    await loginToTenant(page);
+
     // Navigate to integrations page
-    await page.goto("http://localhost:5173/app/settings/integrations");
+    await page.goto(getTenantUrl("/app/settings/integrations"));
     
     // Wait for page to load
     await page.waitForLoadState("networkidle");
-    
-    // Find and click the Stripe Connect button
-    const stripeSection = page.locator('text="Stripe"').first();
-    await expect(stripeSection).toBeVisible();
-    
-    const connectButton = page.locator('button:has-text("Connect")').filter({
-      has: page.locator(':scope', { hasText: 'Stripe' })
-    }).first();
-    
-    // Click connect button
+
+    // Find the Stripe integration card by its unique structure
+    const stripeCard = page.locator('div.bg-white.rounded-xl:has(h3:text-is("Stripe"))').first();
+    await expect(stripeCard).toBeVisible();
+
+    // Find and click the Connect button within the Stripe card
+    const connectButton = stripeCard.locator('button:has-text("Connect")');
     await connectButton.click();
     
     // Verify modal appears with correct title (NOT "coming soon" error)
