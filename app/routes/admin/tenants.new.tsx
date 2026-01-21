@@ -251,6 +251,7 @@ export default function CreateOrganizationPage() {
               type="checkbox"
               id="seedDemoData"
               name="seedDemoData"
+              defaultChecked
               className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <div>
@@ -258,7 +259,7 @@ export default function CreateOrganizationPage() {
                 Seed Demo Data
               </label>
               <p className="text-xs text-gray-500">
-                Populate with sample customers, tours, bookings, products, and images
+                Populate with sample customers, tours, trips, equipment, bookings, products, training courses, gallery images, and more
               </p>
             </div>
           </div>
