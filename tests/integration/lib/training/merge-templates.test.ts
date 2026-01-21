@@ -20,6 +20,7 @@ describe("mergeTemplateUpdates", () => {
     let existingOrg = await db.query.organization.findFirst();
     if (!existingOrg) {
       const [org] = await db.insert(organization).values({
+        id: crypto.randomUUID(),
         name: "Test Organization",
         slug: `test-org-${Date.now()}`,
       }).returning();
