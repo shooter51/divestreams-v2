@@ -251,7 +251,6 @@ export default function CreateOrganizationPage() {
               type="checkbox"
               id="seedDemoData"
               name="seedDemoData"
-              defaultChecked
               className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <div>
