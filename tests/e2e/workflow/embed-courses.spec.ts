@@ -60,7 +60,7 @@ const testData = {
  * Get embed widget URL
  */
 const getEmbedUrl = (path: string = "/courses") =>
-  `http://${testData.tenant.subdomain}.localhost:5173/embed/${testData.tenant.subdomain}${path}`;
+  `http://localhost:5173/embed/${testData.tenant.subdomain}${path}`;
 
 /**
  * Extract course ID from URL

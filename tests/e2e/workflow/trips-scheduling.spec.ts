@@ -478,11 +478,16 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/login");
       return;
     }
-    const dateField = page.getByLabel(/date/i).or(page.locator("input[type='date']")).first();
-    if (await dateField.isVisible().catch(() => false)) {
+    const dateField = page.getByLabel(/^date/i).or(page.locator("input[name='date']")).first();
+    const isVisible = await dateField.isVisible().catch(() => false);
+    if (isVisible) {
       await dateField.fill(testData.editedTrip.date);
+      const filledValue = await dateField.inputValue();
+      expect(filledValue).toBe(testData.editedTrip.date);
+    } else {
+      // If field not visible, we're likely redirected - verify we're on a trips page
+      expect(page.url()).toContain("/trips");
     }
-    expect(page.url()).toContain("/trips");
   });
 
   test("C.5 Can modify trip time", async ({ page }) => {
@@ -496,11 +501,16 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
-    const timeField = page.getByLabel(/time/i).or(page.locator("input[type='time']")).first();
-    if (await timeField.isVisible().catch(() => false)) {
+    const timeField = page.getByLabel(/start.*time/i).or(page.locator("input[name='startTime']")).first();
+    const isVisible = await timeField.isVisible().catch(() => false);
+    if (isVisible) {
       await timeField.fill(testData.editedTrip.time);
+      const filledValue = await timeField.inputValue();
+      expect(filledValue).toBe(testData.editedTrip.time);
+    } else {
+      // If field not visible, we're likely redirected - verify we're on a trips page
+      expect(page.url()).toContain("/trips");
     }
-    expect(page.url()).toContain("/trips");
   });
 
   test("C.6 Can modify capacity", async ({ page }) => {
@@ -514,11 +524,16 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
-    const capacityField = page.getByLabel(/capacity|max.*participant/i);
-    if (await capacityField.isVisible().catch(() => false)) {
+    const capacityField = page.getByLabel(/max.*participant/i).or(page.locator("input[name='maxParticipants']")).first();
+    const isVisible = await capacityField.isVisible().catch(() => false);
+    if (isVisible) {
       await capacityField.fill(String(testData.editedTrip.capacity));
+      const filledValue = await capacityField.inputValue();
+      expect(filledValue).toBe(String(testData.editedTrip.capacity));
+    } else {
+      // If field not visible, we're likely redirected - verify we're on a trips page
+      expect(page.url()).toContain("/trips");
     }
-    expect(page.url()).toContain("/trips");
   });
 
   test("C.7 Edit form has save button", async ({ page }) => {
