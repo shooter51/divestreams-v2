@@ -135,6 +135,7 @@ export default function LoginPage() {
                 type="email"
                 id="email"
                 name="email"
+                autoComplete="email"
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -151,6 +152,7 @@ export default function LoginPage() {
                 type="password"
                 id="password"
                 name="password"
+                autoComplete="current-password"
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
