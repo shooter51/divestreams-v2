@@ -88,6 +88,11 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok || !userData?.user) {
+      console.error("Login failed:", {
+        status: response.status,
+        message: userData?.message,
+        email,
+      });
       return { errors: { form: userData?.message || "Invalid email or password" } };
     }
 
@@ -110,6 +115,9 @@ export default function LoginPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Preserve form values on error
+  const formData = navigation.formData;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -136,6 +144,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 autoComplete="email"
+                defaultValue={formData?.get("email")?.toString() || ""}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
