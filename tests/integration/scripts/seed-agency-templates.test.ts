@@ -3,6 +3,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { db } from "../../../lib/db";
 import { agencyCourseTemplates, certificationAgencies } from "../../../lib/db/schema/training";
+import { organization } from "../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 
 const execAsync = promisify(exec);
@@ -12,9 +13,15 @@ describe("seed-agency-templates script", () => {
   let testAgencyId: string;
 
   beforeEach(async () => {
-    // Get existing org
-    const existingOrg = await db.query.organization.findFirst();
-    if (!existingOrg) throw new Error("No organization found");
+    // Get or create org for testing
+    let existingOrg = await db.query.organization.findFirst();
+    if (!existingOrg) {
+      const [org] = await db.insert(organization).values({
+        name: "Test Organization",
+        slug: `test-org-${Date.now()}`,
+      }).returning();
+      existingOrg = org;
+    }
     testOrgId = existingOrg.id;
 
     // Create PADI agency

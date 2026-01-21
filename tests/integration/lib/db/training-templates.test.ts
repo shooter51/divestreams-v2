@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { upsertAgencyCourseTemplate, getAgencyCourseTemplates } from "../../../../lib/db/training-templates.server";
 import { db } from "../../../../lib/db";
 import { certificationAgencies, certificationLevels, agencyCourseTemplates } from "../../../../lib/db/schema/training";
+import { organization } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 
 describe("upsertAgencyCourseTemplate", () => {
@@ -14,10 +15,14 @@ describe("upsertAgencyCourseTemplate", () => {
     // Generate unique code for this test run
     uniqueCode = `test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-    // Get an existing organization ID (E2E Test Shop from the dev database)
-    const existingOrg = await db.query.organization.findFirst();
+    // Get or create org for testing
+    let existingOrg = await db.query.organization.findFirst();
     if (!existingOrg) {
-      throw new Error("No organization found in test database");
+      const [org] = await db.insert(organization).values({
+        name: "Test Organization",
+        slug: `test-org-${Date.now()}`,
+      }).returning();
+      existingOrg = org;
     }
     testOrgId = existingOrg.id;
 

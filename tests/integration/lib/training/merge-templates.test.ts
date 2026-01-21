@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mergeTemplateUpdates } from "../../../../lib/training/merge-templates.server";
 import { db } from "../../../../lib/db";
 import { trainingCourses, certificationAgencies, agencyCourseTemplates } from "../../../../lib/db/schema/training";
+import { organization } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { generateContentHash } from "../../../../lib/utils/content-hash.server";
 
@@ -15,9 +16,15 @@ describe("mergeTemplateUpdates", () => {
   beforeEach(async () => {
     uniqueCode = `test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-    // Get existing org
-    const existingOrg = await db.query.organization.findFirst();
-    if (!existingOrg) throw new Error("No organization found");
+    // Get or create org for testing
+    let existingOrg = await db.query.organization.findFirst();
+    if (!existingOrg) {
+      const [org] = await db.insert(organization).values({
+        name: "Test Organization",
+        slug: `test-org-${Date.now()}`,
+      }).returning();
+      existingOrg = org;
+    }
     testOrgId = existingOrg.id;
 
     // Create test agency
