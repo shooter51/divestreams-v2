@@ -18,6 +18,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent === "update-content") {
     const aboutContent = (formData.get("aboutContent") as string) || null;
     const heroImageUrl = (formData.get("heroImageUrl") as string) || null;
+    const heroVideoUrl = (formData.get("heroVideoUrl") as string) || null;
     const logoUrl = (formData.get("logoUrl") as string) || null;
 
     const contactInfo = {
@@ -31,6 +32,7 @@ export async function action({ request }: ActionFunctionArgs) {
     await updatePublicSiteSettings(ctx.org.id, {
       aboutContent,
       heroImageUrl,
+      heroVideoUrl,
       logoUrl,
       contactInfo,
     });
@@ -97,29 +99,64 @@ export default function PublicSiteContentSettings() {
             </div>
           </div>
 
-          {/* Image Preview */}
-          {(settings.logoUrl || settings.heroImageUrl) && (
-            <div className="mt-4 grid grid-cols-2 gap-6">
-              {settings.logoUrl && (
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-2">Logo Preview</p>
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                    <img
-                      src={settings.logoUrl}
-                      alt="Logo preview"
-                      className="max-h-16 object-contain"
-                    />
-                  </div>
+          <div className="mt-6">
+            <label htmlFor="heroVideoUrl" className="block text-sm font-medium mb-1">
+              Hero Video URL (Optional)
+            </label>
+            <input
+              type="url"
+              id="heroVideoUrl"
+              name="heroVideoUrl"
+              defaultValue={settings.heroVideoUrl || ""}
+              placeholder="https://example.com/video.mp4"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Video displayed below hero section. Formats: MP4 (H.264) or WebM. Max 50MB. 16:9 aspect ratio recommended. Will autoplay muted and loop.
+            </p>
+          </div>
+
+          {/* Image & Video Preview */}
+          {(settings.logoUrl || settings.heroImageUrl || settings.heroVideoUrl) && (
+            <div className="mt-4 space-y-4">
+              {(settings.logoUrl || settings.heroImageUrl) && (
+                <div className="grid grid-cols-2 gap-6">
+                  {settings.logoUrl && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-2">Logo Preview</p>
+                      <div className="border rounded-lg p-4 bg-gray-50">
+                        <img
+                          src={settings.logoUrl}
+                          alt="Logo preview"
+                          className="max-h-16 object-contain"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {settings.heroImageUrl && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 mb-2">Hero Preview</p>
+                      <div className="border rounded-lg overflow-hidden">
+                        <img
+                          src={settings.heroImageUrl}
+                          alt="Hero preview"
+                          className="w-full h-24 object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-              {settings.heroImageUrl && (
+              {settings.heroVideoUrl && (
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-2">Hero Preview</p>
+                  <p className="text-sm font-medium text-gray-600 mb-2">Hero Video Preview</p>
                   <div className="border rounded-lg overflow-hidden">
-                    <img
-                      src={settings.heroImageUrl}
-                      alt="Hero preview"
-                      className="w-full h-24 object-cover"
+                    <video
+                      src={settings.heroVideoUrl}
+                      className="w-full h-48 object-cover"
+                      muted
+                      playsInline
+                      controls
                     />
                   </div>
                 </div>
