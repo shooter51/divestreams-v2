@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { agencyCourseTemplates } from "../../../../../lib/db/schema/training";
+import { agencyCourseTemplates, trainingCourses } from "../../../../../lib/db/schema/training";
 
 describe("agencyCourseTemplates schema", () => {
   it("should have required columns", () => {
@@ -32,5 +32,14 @@ describe("agencyCourseTemplates schema", () => {
   it("should define sourceType with correct enum values", () => {
     // This tests the schema definition structure
     expect(agencyCourseTemplates.sourceType).toBeDefined();
+  });
+});
+
+describe("trainingCourses template linking", () => {
+  it("should have templateId and templateHash fields", () => {
+    const columns = Object.keys(trainingCourses);
+
+    expect(columns).toContain("templateId");
+    expect(columns).toContain("templateHash");
   });
 });
