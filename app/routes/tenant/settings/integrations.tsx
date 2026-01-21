@@ -368,11 +368,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Handle OAuth-based integrations
     if (integrationId === "google-calendar") {
-      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-        return { error: "Google OAuth is not configured. Contact support." };
-      }
-      const authUrl = getGoogleAuthUrl(ctx.org.id, subdomain || undefined);
-      return redirect(authUrl);
+      return { showGoogleOAuthModal: true };
     }
 
     // Handle API-key based integrations (Twilio)
@@ -387,29 +383,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Handle Mailchimp OAuth
     if (integrationId === "mailchimp") {
-      if (!process.env.MAILCHIMP_CLIENT_ID || !process.env.MAILCHIMP_CLIENT_SECRET) {
-        return { error: "Mailchimp OAuth is not configured. Contact support." };
-      }
-      const authUrl = getMailchimpAuthUrl(ctx.org.id, subdomain || undefined);
-      return redirect(authUrl);
+      return { showMailchimpOAuthModal: true };
     }
 
     // Handle Xero OAuth
     if (integrationId === "xero") {
-      if (!process.env.XERO_CLIENT_ID || !process.env.XERO_CLIENT_SECRET) {
-        return { error: "Xero OAuth is not configured. Contact support." };
-      }
-      const authUrl = getXeroAuthUrl(ctx.org.id, subdomain || undefined);
-      return redirect(authUrl);
+      return { showXeroOAuthModal: true };
     }
 
     // Handle QuickBooks OAuth
     if (integrationId === "quickbooks") {
-      if (!process.env.QUICKBOOKS_CLIENT_ID || !process.env.QUICKBOOKS_CLIENT_SECRET) {
-        return { error: "QuickBooks OAuth is not configured. Contact support." };
-      }
-      const authUrl = getQuickBooksAuthUrl(ctx.org.id, subdomain || undefined);
-      return redirect(authUrl);
+      return { showQuickBooksOAuthModal: true };
     }
 
     // Handle WhatsApp Business (API-key based)
@@ -555,6 +539,111 @@ export async function action({ request }: ActionFunctionArgs) {
     } catch (error) {
       console.error("Error connecting Stripe:", error);
       return { error: "Failed to connect Stripe" };
+    }
+  }
+
+  // Connect Google Calendar with OAuth credentials
+  if (intent === "connectGoogle") {
+    const clientId = formData.get("clientId") as string;
+    const clientSecret = formData.get("clientSecret") as string;
+
+    if (!clientId || !clientSecret) {
+      return { error: "Client ID and Client Secret are required" };
+    }
+
+    try {
+      const subdomain = getSubdomainFromRequest(request);
+      const authUrl = getGoogleAuthUrl(ctx.org.id, subdomain || undefined, clientId, clientSecret);
+
+      // Store credentials in integration settings before redirecting
+      // They will be retrieved during callback
+      await updateIntegrationSettings(ctx.org.id, "google-calendar", {
+        oauthClientId: clientId,
+        oauthClientSecret: clientSecret,
+      });
+
+      return redirect(authUrl);
+    } catch (error) {
+      console.error("Error connecting Google Calendar:", error);
+      return { error: error instanceof Error ? error.message : "Failed to connect Google Calendar" };
+    }
+  }
+
+  // Connect Mailchimp with OAuth credentials
+  if (intent === "connectMailchimp") {
+    const clientId = formData.get("clientId") as string;
+    const clientSecret = formData.get("clientSecret") as string;
+
+    if (!clientId || !clientSecret) {
+      return { error: "Client ID and Client Secret are required" };
+    }
+
+    try {
+      const subdomain = getSubdomainFromRequest(request);
+      const authUrl = getMailchimpAuthUrl(ctx.org.id, subdomain || undefined, clientId, clientSecret);
+
+      // Store credentials in integration settings before redirecting
+      await updateIntegrationSettings(ctx.org.id, "mailchimp", {
+        oauthClientId: clientId,
+        oauthClientSecret: clientSecret,
+      });
+
+      return redirect(authUrl);
+    } catch (error) {
+      console.error("Error connecting Mailchimp:", error);
+      return { error: error instanceof Error ? error.message : "Failed to connect Mailchimp" };
+    }
+  }
+
+  // Connect QuickBooks with OAuth credentials
+  if (intent === "connectQuickBooks") {
+    const clientId = formData.get("clientId") as string;
+    const clientSecret = formData.get("clientSecret") as string;
+
+    if (!clientId || !clientSecret) {
+      return { error: "Client ID and Client Secret are required" };
+    }
+
+    try {
+      const subdomain = getSubdomainFromRequest(request);
+      const authUrl = getQuickBooksAuthUrl(ctx.org.id, subdomain || undefined, clientId, clientSecret);
+
+      // Store credentials in integration settings before redirecting
+      await updateIntegrationSettings(ctx.org.id, "quickbooks", {
+        oauthClientId: clientId,
+        oauthClientSecret: clientSecret,
+      });
+
+      return redirect(authUrl);
+    } catch (error) {
+      console.error("Error connecting QuickBooks:", error);
+      return { error: error instanceof Error ? error.message : "Failed to connect QuickBooks" };
+    }
+  }
+
+  // Connect Xero with OAuth credentials
+  if (intent === "connectXero") {
+    const clientId = formData.get("clientId") as string;
+    const clientSecret = formData.get("clientSecret") as string;
+
+    if (!clientId || !clientSecret) {
+      return { error: "Client ID and Client Secret are required" };
+    }
+
+    try {
+      const subdomain = getSubdomainFromRequest(request);
+      const authUrl = getXeroAuthUrl(ctx.org.id, subdomain || undefined, clientId, clientSecret);
+
+      // Store credentials in integration settings before redirecting
+      await updateIntegrationSettings(ctx.org.id, "xero", {
+        oauthClientId: clientId,
+        oauthClientSecret: clientSecret,
+      });
+
+      return redirect(authUrl);
+    } catch (error) {
+      console.error("Error connecting Xero:", error);
+      return { error: error instanceof Error ? error.message : "Failed to connect Xero" };
     }
   }
 
@@ -854,6 +943,7 @@ export default function IntegrationsPage() {
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [stripeSecretKey, setStripeSecretKey] = useState("");
   const [stripePublishableKey, setStripePublishableKey] = useState("");
+  const [showStripeSettingsModal, setShowStripeSettingsModal] = useState(false);
 
   // Xero modal state
   const [showXeroConfigModal, setShowXeroConfigModal] = useState(false);
@@ -931,6 +1021,23 @@ export default function IntegrationsPage() {
       setShowXeroConfigModal(true);
     }
 
+    // Handle OAuth configuration modal requests
+    if (fetcher.data && "showGoogleOAuthModal" in fetcher.data && fetcher.data.showGoogleOAuthModal) {
+      setShowGoogleOAuthModal(true);
+    }
+
+    if (fetcher.data && "showMailchimpOAuthModal" in fetcher.data && fetcher.data.showMailchimpOAuthModal) {
+      setShowMailchimpOAuthModal(true);
+    }
+
+    if (fetcher.data && "showQuickBooksOAuthModal" in fetcher.data && fetcher.data.showQuickBooksOAuthModal) {
+      setShowQuickBooksOAuthModal(true);
+    }
+
+    if (fetcher.data && "showXeroOAuthModal" in fetcher.data && fetcher.data.showXeroOAuthModal) {
+      setShowXeroOAuthModal(true);
+    }
+
     // Handle success messages from integration actions
     if (fetcher.data && "success" in fetcher.data && fetcher.data.success && "message" in fetcher.data) {
       setNotification({ type: "success", message: fetcher.data.message as string });
@@ -939,8 +1046,13 @@ export default function IntegrationsPage() {
       setShowWhatsAppModal(false);
       setShowTestWhatsAppModal(false);
       setShowStripeModal(false);
+      setShowStripeSettingsModal(false);
       setShowMailchimpConfigModal(false);
       setShowXeroConfigModal(false);
+      setShowGoogleOAuthModal(false);
+      setShowMailchimpOAuthModal(false);
+      setShowQuickBooksOAuthModal(false);
+      setShowXeroOAuthModal(false);
       // Reset Twilio form
       setTwilioAccountSid("");
       setTwilioAuthToken("");
@@ -959,6 +1071,15 @@ export default function IntegrationsPage() {
       // Reset Stripe form
       setStripeSecretKey("");
       setStripePublishableKey("");
+      // Reset OAuth forms
+      setGoogleClientId("");
+      setGoogleClientSecret("");
+      setMailchimpClientId("");
+      setMailchimpClientSecret("");
+      setQuickBooksClientId("");
+      setQuickBooksClientSecret("");
+      setXeroClientId("");
+      setXeroClientSecret("");
     }
 
     // Handle error messages
@@ -1133,6 +1254,16 @@ export default function IntegrationsPage() {
                         >
                           Manage Settings
                         </Link>
+                      )}
+                      {/* Show View Settings button for Stripe */}
+                      {connection.id === "stripe" && stripeSettings && (
+                        <button
+                          type="button"
+                          onClick={() => setShowStripeSettingsModal(true)}
+                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50"
+                        >
+                          View Settings
+                        </button>
                       )}
                       <fetcher.Form
                         method="post"
@@ -1524,6 +1655,115 @@ export default function IntegrationsPage() {
                 </button>
               </div>
             </fetcher.Form>
+          </div>
+        </div>
+      )}
+
+      {/* Stripe Settings Modal */}
+      {showStripeSettingsModal && stripeSettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-bold">Stripe Settings</h2>
+                <p className="text-sm text-gray-500">
+                  View your Stripe integration configuration
+                </p>
+              </div>
+              <button
+                onClick={() => setShowStripeSettingsModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <Icons.X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Account ID</p>
+                    <p className="text-sm font-mono">{stripeSettings.accountId || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Account Name</p>
+                    <p className="text-sm">{stripeSettings.accountName || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Mode</p>
+                    <span
+                      className={`inline-block px-2 py-1 text-xs rounded-full ${
+                        stripeSettings.liveMode
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {stripeSettings.liveMode ? "Live Mode" : "Test Mode"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Publishable Key</p>
+                    <p className="text-sm font-mono">{stripeSettings.publishableKeyPrefix || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm font-medium mb-2">Capabilities</p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Charges Enabled</span>
+                    {stripeSettings.chargesEnabled ? (
+                      <Icons.Check className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <Icons.X className="w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Payouts Enabled</span>
+                    {stripeSettings.payoutsEnabled ? (
+                      <Icons.Check className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <Icons.X className="w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Webhook Configured</span>
+                    {stripeSettings.webhookConfigured ? (
+                      <Icons.Check className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <Icons.X className="w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-800">
+                  <strong>Dashboard Access:</strong>
+                  <br />
+                  Manage your Stripe account at{" "}
+                  <a
+                    href="https://dashboard.stripe.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-blue-900"
+                  >
+                    dashboard.stripe.com
+                  </a>
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowStripeSettingsModal(false)}
+                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -2344,6 +2584,390 @@ export default function IntegrationsPage() {
                   className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Sending..." : "Send Test"}
+                </button>
+              </div>
+            </fetcher.Form>
+          </div>
+        </div>
+      )}
+
+      {/* Google Calendar OAuth Configuration Modal */}
+      {showGoogleOAuthModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-bold">Connect Google Calendar</h2>
+                <p className="text-sm text-gray-500">
+                  Enter your Google OAuth credentials to enable calendar sync
+                </p>
+              </div>
+              <button
+                onClick={() => setShowGoogleOAuthModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <Icons.X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <fetcher.Form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="connectGoogle" />
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Client ID <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="clientId"
+                  value={googleClientId}
+                  onChange={(e) => setGoogleClientId(e.target.value)}
+                  placeholder="your-client-id.apps.googleusercontent.com"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Client Secret <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="clientSecret"
+                  value={googleClientSecret}
+                  onChange={(e) => setGoogleClientSecret(e.target.value)}
+                  placeholder="Your Google Client Secret"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This will be encrypted and stored securely
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Get your credentials:</strong>
+                  <br />
+                  1. Go to{" "}
+                  <a
+                    href="https://console.cloud.google.com/apis/credentials"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    Google Cloud Console
+                  </a>
+                  <br />
+                  2. Create OAuth 2.0 Client ID
+                  <br />
+                  3. Add redirect URI: <code className="bg-white px-1">{window.location.origin}/api/integrations/google/callback</code>
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowGoogleOAuthModal(false)}
+                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={fetcher.state !== "idle"}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {fetcher.state !== "idle" ? "Connecting..." : "Continue to Google"}
+                </button>
+              </div>
+            </fetcher.Form>
+          </div>
+        </div>
+      )}
+
+      {/* Mailchimp OAuth Configuration Modal */}
+      {showMailchimpOAuthModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-bold">Connect Mailchimp</h2>
+                <p className="text-sm text-gray-500">
+                  Enter your Mailchimp OAuth credentials to enable email marketing
+                </p>
+              </div>
+              <button
+                onClick={() => setShowMailchimpOAuthModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <Icons.X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <fetcher.Form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="connectMailchimp" />
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Client ID <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="clientId"
+                  value={mailchimpClientId}
+                  onChange={(e) => setMailchimpClientId(e.target.value)}
+                  placeholder="Your Mailchimp Client ID"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Client Secret <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="clientSecret"
+                  value={mailchimpClientSecret}
+                  onChange={(e) => setMailchimpClientSecret(e.target.value)}
+                  placeholder="Your Mailchimp Client Secret"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This will be encrypted and stored securely
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Get your credentials:</strong>
+                  <br />
+                  1. Go to{" "}
+                  <a
+                    href="https://admin.mailchimp.com/account/oauth2/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    Mailchimp Developer Portal
+                  </a>
+                  <br />
+                  2. Register your OAuth app
+                  <br />
+                  3. Add redirect URI: <code className="bg-white px-1">{window.location.origin}/api/integrations/mailchimp/callback</code>
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMailchimpOAuthModal(false)}
+                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={fetcher.state !== "idle"}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {fetcher.state !== "idle" ? "Connecting..." : "Continue to Mailchimp"}
+                </button>
+              </div>
+            </fetcher.Form>
+          </div>
+        </div>
+      )}
+
+      {/* QuickBooks OAuth Configuration Modal */}
+      {showQuickBooksOAuthModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-bold">Connect QuickBooks</h2>
+                <p className="text-sm text-gray-500">
+                  Enter your QuickBooks OAuth credentials to enable accounting sync
+                </p>
+              </div>
+              <button
+                onClick={() => setShowQuickBooksOAuthModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <Icons.X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <fetcher.Form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="connectQuickBooks" />
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Client ID <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="clientId"
+                  value={quickBooksClientId}
+                  onChange={(e) => setQuickBooksClientId(e.target.value)}
+                  placeholder="Your QuickBooks Client ID"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Client Secret <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="clientSecret"
+                  value={quickBooksClientSecret}
+                  onChange={(e) => setQuickBooksClientSecret(e.target.value)}
+                  placeholder="Your QuickBooks Client Secret"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This will be encrypted and stored securely
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Get your credentials:</strong>
+                  <br />
+                  1. Go to{" "}
+                  <a
+                    href="https://developer.intuit.com/app/developer/dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    Intuit Developer Portal
+                  </a>
+                  <br />
+                  2. Create an app with QuickBooks Online API
+                  <br />
+                  3. Add redirect URI: <code className="bg-white px-1">{window.location.origin}/api/integrations/quickbooks/callback</code>
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickBooksOAuthModal(false)}
+                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={fetcher.state !== "idle"}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {fetcher.state !== "idle" ? "Connecting..." : "Continue to QuickBooks"}
+                </button>
+              </div>
+            </fetcher.Form>
+          </div>
+        </div>
+      )}
+
+      {/* Xero OAuth Configuration Modal */}
+      {showXeroOAuthModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-bold">Connect Xero</h2>
+                <p className="text-sm text-gray-500">
+                  Enter your Xero OAuth credentials to enable accounting sync
+                </p>
+              </div>
+              <button
+                onClick={() => setShowXeroOAuthModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <Icons.X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <fetcher.Form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="connectXero" />
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Client ID <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="clientId"
+                  value={xeroClientId}
+                  onChange={(e) => setXeroClientId(e.target.value)}
+                  placeholder="Your Xero Client ID"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Client Secret <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="clientSecret"
+                  value={xeroClientSecret}
+                  onChange={(e) => setXeroClientSecret(e.target.value)}
+                  placeholder="Your Xero Client Secret"
+                  className="w-full border rounded-lg p-2 text-sm"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This will be encrypted and stored securely
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Get your credentials:</strong>
+                  <br />
+                  1. Go to{" "}
+                  <a
+                    href="https://developer.xero.com/app/manage"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    Xero Developer Portal
+                  </a>
+                  <br />
+                  2. Create an OAuth 2.0 app
+                  <br />
+                  3. Add redirect URI: <code className="bg-white px-1">{window.location.origin}/api/integrations/xero/callback</code>
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowXeroOAuthModal(false)}
+                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={fetcher.state !== "idle"}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {fetcher.state !== "idle" ? "Connecting..." : "Continue to Xero"}
                 </button>
               </div>
             </fetcher.Form>
