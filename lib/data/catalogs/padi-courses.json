@@ -1,5 +1,9 @@
 {
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "PADI Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import, not a direct database dump. The sync script (lib/jobs/sync-agency-catalogs.server.ts) transforms this into agency_course_templates records by: (1) Looking up agencyId from certification_agencies where code='padi', (2) Mapping levelCode to levelId via certification_levels lookup, (3) Generating contentHash from course fields, (4) Adding sourceType='static_json', timestamps, etc. Tenant-specific fields (price, isActive, etc.) are NOT in this file - they're set when tenants import courses.",
   "agency": "padi",
+  "agencyName": "Professional Association of Diving Instructors",
   "version": "2026.1",
   "lastUpdated": "2026-01-21",
   "courses": [
