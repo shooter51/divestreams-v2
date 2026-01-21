@@ -242,6 +242,7 @@ export function getDefaultSiteSettings(): PublicSiteSettings {
     secondaryColor: "#00B4D8",
     logoUrl: null,
     heroImageUrl: null,
+    heroVideoUrl: null,
     fontFamily: "inter",
     pages: {
       home: true,
@@ -279,6 +280,7 @@ export function mergeWithDefaults(
     secondaryColor: settings.secondaryColor ?? defaults.secondaryColor,
     logoUrl: settings.logoUrl ?? defaults.logoUrl,
     heroImageUrl: settings.heroImageUrl ?? defaults.heroImageUrl,
+    heroVideoUrl: settings.heroVideoUrl ?? defaults.heroVideoUrl,
     fontFamily: settings.fontFamily ?? defaults.fontFamily,
     pages: {
       home: settings.pages?.home ?? defaults.pages.home,
