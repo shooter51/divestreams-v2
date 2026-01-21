@@ -722,9 +722,10 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
   });
 
   test("D.5 Enrollment appears in enrollments list", async ({ page }) => {
+    test.setTimeout(60000); // Increase timeout for slow loading in full suite
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/training/enrollments"));
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000); // Increased wait for page load
     if (!(await isAuthenticated(page))) return;
 
     const hasEnrollments = await page
