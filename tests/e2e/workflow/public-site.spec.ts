@@ -17,7 +17,7 @@ import type { Page } from "@playwright/test";
  * IMPORTANT DEPENDENCIES:
  * -----------------------
  * This test suite requires the "e2etest" tenant and user to exist.
- * Before running these tests, run full-workflow.spec.ts to create:
+ * Before running these tests, run 00-full-workflow.spec.ts to create:
  *   - Test tenant "e2etest" (test 2.3)
  *   - Test user "e2e-user@example.com" (test 3.4)
  *
@@ -38,14 +38,14 @@ test.describe.serial("Public Site Tests", () => {
 // Setup hook: Enable public site before running tests
 test.beforeAll(async ({ browser }) => {
   // IMPORTANT: This test suite requires the "e2etest" tenant and user to exist.
-  // Run full-workflow.spec.ts first to create the tenant and user (tests 2.3 and 3.4).
+  // Run 00-full-workflow.spec.ts first to create the tenant and user (tests 2.3 and 3.4).
 
   // Extend timeout for this complex setup hook
   test.setTimeout(60000);
 
   const page = await browser.newPage();
   try {
-    // Login with shared test user (created by full-workflow.spec.ts)
+    // Login with shared test user (created by 00-full-workflow.spec.ts)
     await page.goto(`http://e2etest.localhost:5173/auth/login`, { timeout: 30000, waitUntil: 'domcontentloaded' });
 
     // Wait for page to fully load
@@ -60,7 +60,7 @@ test.beforeAll(async ({ browser }) => {
     if (!hasEmailInput) {
       throw new Error(
         "Login form not found - the 'e2etest' tenant may not exist. " +
-        "Run full-workflow.spec.ts first to create the tenant (test 2.3) and user (test 3.4)."
+        "Run 00-full-workflow.spec.ts first to create the tenant (test 2.3) and user (test 3.4)."
       );
     }
 
@@ -77,7 +77,7 @@ test.beforeAll(async ({ browser }) => {
       const errorMessage = await page.locator("[class*='bg-red'], [class*='text-red'], [class*='error']").textContent().catch(() => "");
       throw new Error(
         `Login failed for user '${testData.user.email}': ${errorMessage || 'Timeout waiting for redirect'}. ` +
-        "The user may not exist. Run full-workflow.spec.ts test 3.4 first to create the user."
+        "The user may not exist. Run 00-full-workflow.spec.ts test 3.4 first to create the user."
       );
     }
 
@@ -155,7 +155,7 @@ test.beforeAll(async ({ browser }) => {
 }, { timeout: 60000 });
 
 
-// Shared test data - reuses tenant from full-workflow.spec.ts
+// Shared test data - reuses tenant from 00-full-workflow.spec.ts
 const testData = {
   timestamp: Date.now(),
   tenant: {
@@ -165,7 +165,7 @@ const testData = {
   },
   user: {
     name: "E2E Test User",
-    email: "e2e-user@example.com", // Shared with full-workflow.spec.ts
+    email: "e2e-user@example.com", // Shared with 00-full-workflow.spec.ts
     password: "TestPass123!",
   },
 };
