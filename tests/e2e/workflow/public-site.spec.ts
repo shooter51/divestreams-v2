@@ -103,8 +103,8 @@ test.beforeAll(async ({ browser }) => {
     console.log(`Public site enabled status before setup: ${isChecked}`);
 
     if (!isChecked) {
-      // Check the enable toggle
-      await enabledCheckbox.check({ timeout: 5000 });
+      // Click the label which contains the toggle (checkbox is sr-only)
+      await page.locator('label:has(input[name="enabled"])').click({ timeout: 5000 });
 
       // Verify it was checked
       const isNowChecked = await enabledCheckbox.isChecked();
