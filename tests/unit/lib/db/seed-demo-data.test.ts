@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 vi.mock("../../../../lib/db/index", () => ({
   db: {
     insert: vi.fn(),
+    select: vi.fn(),
   },
 }));
 
@@ -30,12 +31,21 @@ describe("seedDemoData", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Set up chain mocks
+    // Set up insert chain mocks
     mockReturning = vi.fn().mockResolvedValue([mockInsertResult]);
     mockValues = vi.fn().mockReturnValue({ returning: mockReturning });
 
     (db.insert as ReturnType<typeof vi.fn>).mockReturnValue({
       values: mockValues,
+    });
+
+    // Set up select chain mocks for duplicate checks (returns empty array = no duplicates)
+    const mockLimit = vi.fn().mockResolvedValue([]);
+    const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
+    const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
+
+    (db.select as ReturnType<typeof vi.fn>).mockReturnValue({
+      from: mockFrom,
     });
 
     // Suppress console.log during tests

@@ -33,7 +33,7 @@ const testData = {
     subdomain: "e2etest",
   },
   user: {
-    email: process.env.E2E_USER_EMAIL || "e2e-user-1737033600000@example.com",
+    email: process.env.E2E_USER_EMAIL || "e2e-user@example.com",
     password: process.env.E2E_USER_PASSWORD || "TestPass123!",
   },
   tour: {
@@ -445,17 +445,20 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
-      await page.goto(getTenantUrl("/app/tours"));
-      expect(page.url()).toContain("/tours");
+      // Tour not created in previous tests - skip gracefully
+      test.skip();
       return;
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    if (!(await isAuthenticated(page))) {
+      test.skip();
+      return;
+    }
 
     // Wait for the name input to be visible first
     const nameInput = page.locator('input[name="name"]');
-    await nameInput.waitFor({ state: 'visible', timeout: 5000 }).catch(() => null);
+    await nameInput.waitFor({ state: 'visible', timeout: 5000 });
 
     // Wait for the input to have a non-empty value (loader data should populate it)
     await page.waitForFunction(
@@ -464,23 +467,25 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
         return input && input.value && input.value.length > 0;
       },
       { timeout: 5000 }
-    ).catch(() => null);
+    );
 
-    const hasValue = await nameInput.inputValue().catch(() => "");
-    expect(hasValue || page.url().includes("/tours")).toBeTruthy();
+    const hasValue = await nameInput.inputValue();
+    expect(hasValue.length).toBeGreaterThan(0);
   });
 
   test("C.4 Can modify tour name", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
-      await page.goto(getTenantUrl("/app/tours"));
-      expect(page.url()).toContain("/tours");
+      test.skip();
       return;
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    if (!(await isAuthenticated(page))) {
+      test.skip();
+      return;
+    }
     const nameField = page.getByLabel(/name/i).first();
     if (await nameField.isVisible().catch(() => false)) {
       await nameField.fill(testData.editedTour.name);
@@ -493,13 +498,15 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
-      await page.goto(getTenantUrl("/app/tours"));
-      expect(page.url()).toContain("/tours");
+      test.skip();
       return;
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    if (!(await isAuthenticated(page))) {
+      test.skip();
+      return;
+    }
     const priceField = page.getByLabel(/price/i);
     if (await priceField.isVisible().catch(() => false)) {
       await priceField.fill(String(testData.editedTour.price));
@@ -512,13 +519,15 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
-      await page.goto(getTenantUrl("/app/tours"));
-      expect(page.url()).toContain("/tours");
+      test.skip();
       return;
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    if (!(await isAuthenticated(page))) {
+      test.skip();
+      return;
+    }
     const maxField = page.getByLabel(/max.*participant|capacity/i);
     if (await maxField.isVisible().catch(() => false)) {
       await maxField.fill(String(testData.editedTour.maxParticipants));
@@ -530,13 +539,15 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
-      await page.goto(getTenantUrl("/app/tours"));
-      expect(page.url()).toContain("/tours");
+      test.skip();
       return;
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    if (!(await isAuthenticated(page))) {
+      test.skip();
+      return;
+    }
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
     expect(saveBtn).toBeTruthy();
   });
@@ -545,13 +556,15 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
-      await page.goto(getTenantUrl("/app/tours"));
-      expect(page.url()).toContain("/tours");
+      test.skip();
       return;
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    if (!(await isAuthenticated(page))) {
+      test.skip();
+      return;
+    }
 
     const saveBtn = page.getByRole("button", { name: /save|update/i });
     if (await saveBtn.isVisible().catch(() => false)) {
@@ -577,13 +590,15 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
-      await page.goto(getTenantUrl("/app/tours"));
-      expect(page.url()).toContain("/tours");
+      test.skip();
       return;
     }
     await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
-    if (!(await isAuthenticated(page))) return;
+    if (!(await isAuthenticated(page))) {
+      test.skip();
+      return;
+    }
     const cancelBtn = await page.getByRole("link", { name: /cancel|back/i }).isVisible().catch(() => false);
     const cancelBtnAlt = await page.getByRole("button", { name: /cancel|back/i }).isVisible().catch(() => false);
     expect(cancelBtn || cancelBtnAlt || page.url().includes("/tours")).toBeTruthy();

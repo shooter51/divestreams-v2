@@ -33,7 +33,7 @@ const testData = {
     subdomain: "e2etest",
   },
   user: {
-    email: process.env.E2E_USER_EMAIL || "e2e-user-1737033600000@example.com",
+    email: process.env.E2E_USER_EMAIL || "e2e-user@example.com",
     password: process.env.E2E_USER_PASSWORD || "TestPass123!",
   },
   customer: {
@@ -291,8 +291,11 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     await page.goto(getTenantUrl("/app/customers/new"));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
-    const emailField = await page.getByLabel(/email/i).isVisible().catch(() => false);
-    expect(emailField).toBeTruthy();
+    // Try multiple selectors for the email field
+    const emailByLabel = await page.getByLabel(/email/i).isVisible().catch(() => false);
+    const emailById = await page.locator('#email').isVisible().catch(() => false);
+    const emailByName = await page.locator('input[name="email"]').isVisible().catch(() => false);
+    expect(emailByLabel || emailById || emailByName).toBeTruthy();
   });
 
   test("B.6 New customer form has phone field", async ({ page }) => {

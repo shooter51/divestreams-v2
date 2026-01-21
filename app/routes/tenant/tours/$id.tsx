@@ -6,6 +6,7 @@ import {
   getTourById,
   getTourStats,
   getUpcomingTripsForTour,
+  getDiveSitesForTour,
   updateTourActiveStatus,
   deleteTour,
 } from "../../../../lib/db/queries.server";
@@ -32,10 +33,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   // Get tenant database for images query
   const { db, schema } = getTenantDb(organizationId);
 
-  // Fetch stats, upcoming trips, and images in parallel
-  const [stats, upcomingTrips, tourImages] = await Promise.all([
+  // Fetch stats, upcoming trips, dive sites, and images in parallel
+  const [stats, upcomingTrips, diveSites, tourImages] = await Promise.all([
     getTourStats(organizationId, tourId),
     getUpcomingTripsForTour(organizationId, tourId, 5),
+    getDiveSitesForTour(organizationId, tourId, 10),
     db
       .select({
         id: schema.images.id,
@@ -118,7 +120,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  return { tour, upcomingTrips: formattedUpcomingTrips, images };
+  return { tour, upcomingTrips: formattedUpcomingTrips, diveSites, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -154,7 +156,7 @@ const tourTypes: Record<string, string> = {
 };
 
 export default function TourDetailPage() {
-  const { tour, upcomingTrips, images } = useLoaderData<typeof loader>();
+  const { tour, upcomingTrips, diveSites, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   const formatDuration = (minutes: number) => {
@@ -307,6 +309,44 @@ export default function TourDetailPage() {
                 </ul>
               </div>
             </div>
+          </div>
+
+          {/* Dive Sites Visited */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-semibold">Dive Sites Visited</h2>
+              <Link
+                to={`/app/dive-sites`}
+                className="text-blue-600 text-sm hover:underline"
+              >
+                View all sites
+              </Link>
+            </div>
+            {diveSites.length === 0 ? (
+              <p className="text-gray-500 text-sm">No dive sites assigned to this tour yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {diveSites.map((site) => (
+                  <Link
+                    key={site.id}
+                    to={`/app/dive-sites/${site.id}`}
+                    className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium">{site.name}</p>
+                        {site.difficulty && (
+                          <p className="text-sm text-gray-500 capitalize">{site.difficulty} difficulty</p>
+                        )}
+                      </div>
+                      {site.maxDepth && (
+                        <p className="text-sm text-gray-500">{site.maxDepth}m max depth</p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Upcoming Trips */}

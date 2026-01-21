@@ -8,7 +8,7 @@
  * multi-tenancy. All queries now filter by organization_id in the public schema.
  */
 
-import { desc, eq, gte, lte, count, sum, and, sql } from "drizzle-orm";
+import { desc, eq, gte, lte, count, sum, and, sql, asc } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
 
@@ -1239,6 +1239,26 @@ export async function getToursUsingDiveSite(organizationId: string, siteId: stri
   return tours;
 }
 
+export async function getDiveSitesForTour(organizationId: string, tourId: string, limit = 10) {
+  const sites = await db
+    .select({
+      id: schema.diveSites.id,
+      name: schema.diveSites.name,
+      maxDepth: schema.diveSites.maxDepth,
+      difficulty: schema.diveSites.difficulty,
+    })
+    .from(schema.diveSites)
+    .innerJoin(schema.tourDiveSites, eq(schema.diveSites.id, schema.tourDiveSites.diveSiteId))
+    .where(and(
+      eq(schema.tourDiveSites.tourId, tourId),
+      eq(schema.diveSites.organizationId, organizationId)
+    ))
+    .orderBy(asc(schema.tourDiveSites.order))
+    .limit(limit);
+
+  return sites;
+}
+
 export async function createDiveSite(organizationId: string, data: {
   name: string;
   description?: string;
@@ -1350,10 +1370,9 @@ export async function getEquipmentRentalHistory(organizationId: string, equipmen
 
 export interface EquipmentServiceRecord {
   id: string;
-  date: Date;
   type: string;
   description: string;
-  technician: string | null;
+  performedAt: Date;
   performedBy: string | null;
   notes: string | null;
   cost: number | null;
@@ -1382,10 +1401,9 @@ export async function getEquipmentServiceHistory(organizationId: string, equipme
 
   return records.map(r => ({
     id: r.id,
-    date: r.performedAt,
     type: r.type,
     description: r.description,
-    technician: r.performedBy,
+    performedAt: r.performedAt,
     performedBy: r.performedBy,
     notes: r.notes,
     cost: r.cost ? parseFloat(r.cost) : null,
@@ -2265,13 +2283,17 @@ export async function getTripWithFullDetails(organizationId: string, id: string)
   const trip = await getTripById(organizationId, id);
   if (!trip) return null;
 
-  const tour = await getTourById(organizationId, trip.tourId);
-  const boat = trip.boatId ? await getBoatById(organizationId, trip.boatId) : null;
+  const [tour, boat, diveSites] = await Promise.all([
+    getTourById(organizationId, trip.tourId),
+    trip.boatId ? getBoatById(organizationId, trip.boatId) : null,
+    getDiveSitesForTour(organizationId, trip.tourId, 10),
+  ]);
 
   return {
     ...trip,
     tour: tour ? { id: tour.id, name: tour.name } : { id: trip.tourId, name: trip.tourName || "" },
     boat: boat ? { id: boat.id, name: boat.name } : { id: "", name: "No boat assigned" },
+    diveSites: diveSites || [],
     staff: [] as Array<{ id: string; name: string; role: string }>, // No trip-specific staff assignments in schema yet
     weatherNotes: trip.weatherNotes || null,
   };

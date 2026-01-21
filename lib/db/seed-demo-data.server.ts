@@ -1,5 +1,6 @@
 import { db } from "./index";
 import * as schema from "./schema";
+import { eq } from "drizzle-orm";
 
 // ============================================================================
 // DEMO IMAGE URLS - Using Unsplash for realistic diving photos
@@ -1033,6 +1034,200 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     rentalCount++;
   }
 
+  // ============================================================================
+  // TRAINING DATA (Agencies, Levels, Courses)
+  // ============================================================================
+
+  console.log("\n📚 Seeding training data...");
+
+  // Check if training data already exists to avoid duplicates
+  const existingAgencies = await db
+    .select()
+    .from(schema.certificationAgencies)
+    .where(eq(schema.certificationAgencies.organizationId, organizationId));
+
+  let trainingStats = { agencies: 0, levels: 0, courses: 0 };
+
+  if (existingAgencies.length === 0) {
+    try {
+      // Seed PADI agency
+      const [padiAgency] = await db
+        .insert(schema.certificationAgencies)
+        .values({
+          organizationId,
+          code: "padi",
+          name: "PADI",
+          description: "Professional Association of Diving Instructors",
+          website: "https://www.padi.com",
+        })
+        .returning();
+
+      // Seed key certification levels
+      const [openWaterLevel] = await db
+        .insert(schema.certificationLevels)
+        .values({
+          organizationId,
+          agencyId: padiAgency.id,
+          code: "open-water",
+          name: "Open Water Diver",
+          levelNumber: 3,
+          description: "Entry-level certification for independent diving",
+          minAge: 10,
+          minDives: 0,
+        })
+        .returning();
+
+      const [advancedLevel] = await db
+        .insert(schema.certificationLevels)
+        .values({
+          organizationId,
+          agencyId: padiAgency.id,
+          code: "advanced-ow",
+          name: "Advanced Open Water",
+          levelNumber: 4,
+          description: "Explore specialty diving",
+          minAge: 12,
+          minDives: 0,
+        })
+        .returning();
+
+      // Seed a few sample courses
+      await db.insert(schema.trainingCourses).values([
+        {
+          organizationId,
+          agencyId: padiAgency.id,
+          levelId: openWaterLevel.id,
+          name: "Open Water Diver Certification",
+          code: "OWD",
+          description: "Become a certified diver!",
+          durationDays: 3,
+          classroomHours: 8,
+          poolHours: 8,
+          openWaterDives: 4,
+          price: "449.00",
+          currency: "USD",
+          isPublic: true,
+        },
+        {
+          organizationId,
+          agencyId: padiAgency.id,
+          levelId: advancedLevel.id,
+          requiredCertLevel: openWaterLevel.id,
+          name: "Advanced Open Water Diver",
+          code: "AOWD",
+          description: "Build confidence and skills",
+          durationDays: 2,
+          classroomHours: 4,
+          poolHours: 0,
+          openWaterDives: 5,
+          price: "399.00",
+          currency: "USD",
+          isPublic: true,
+        },
+      ]);
+
+      trainingStats = { agencies: 1, levels: 2, courses: 2 };
+      console.log("  ✓ Training data seeded");
+    } catch (error) {
+      console.warn("  ⚠️  Warning: Training data seeding failed:", error);
+    }
+  } else {
+    console.log("  ℹ️  Training data already exists, skipping...");
+  }
+
+  // ============================================================================
+  // GALLERY DATA (Albums and Images)
+  // ============================================================================
+
+  console.log("\n📸 Seeding gallery data...");
+
+  // Check if gallery data already exists
+  const existingAlbums = await db
+    .select()
+    .from(schema.galleryAlbums)
+    .where(eq(schema.galleryAlbums.organizationId, organizationId));
+
+  let galleryStats = { albums: 0, images: 0 };
+
+  if (existingAlbums.length === 0) {
+    try {
+      // Create a few sample albums
+      const [recentAdventuresAlbum] = await db
+        .insert(schema.galleryAlbums)
+        .values({
+          organizationId,
+          name: "Recent Adventures",
+          slug: "recent-adventures",
+          description: "Our latest dive trips and underwater discoveries",
+          sortOrder: 0,
+          isPublic: true,
+        })
+        .returning();
+
+      const [marineLifeAlbum] = await db
+        .insert(schema.galleryAlbums)
+        .values({
+          organizationId,
+          name: "Marine Life",
+          slug: "marine-life",
+          description: "Amazing encounters with sea creatures",
+          sortOrder: 1,
+          isPublic: true,
+        })
+        .returning();
+
+      // Add sample images to albums
+      const sampleImages = [
+        {
+          albumId: recentAdventuresAlbum.id,
+          title: "Caribbean Reef Dive",
+          description: "Exploring vibrant coral reefs",
+          category: "coral-reefs",
+          tags: ["caribbean", "reef", "tropical"],
+          imageUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200",
+          thumbnailUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400",
+          isFeatured: true,
+        },
+        {
+          albumId: marineLifeAlbum.id,
+          title: "Sea Turtle Encounter",
+          description: "Peaceful green sea turtle",
+          category: "marine-life",
+          tags: ["turtle", "wildlife"],
+          imageUrl: "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=1200",
+          thumbnailUrl: "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=400",
+          isFeatured: true,
+        },
+        {
+          albumId: marineLifeAlbum.id,
+          title: "School of Tropical Fish",
+          description: "Colorful fish over the reef",
+          category: "marine-life",
+          tags: ["fish", "tropical", "colorful"],
+          imageUrl: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200",
+          thumbnailUrl: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=400",
+        },
+      ];
+
+      for (const img of sampleImages) {
+        await db.insert(schema.galleryImages).values({
+          organizationId,
+          ...img,
+          width: 1200,
+          height: 800,
+          status: "published",
+        });
+      }
+
+      galleryStats = { albums: 2, images: sampleImages.length };
+      console.log("  ✓ Gallery data seeded");
+    } catch (error) {
+      console.warn("  ⚠️  Warning: Gallery data seeding failed:", error);
+    }
+  } else {
+    console.log("  ℹ️  Gallery data already exists, skipping...");
+  }
+
   console.log(`Demo data seeded for organization: ${organizationId}`);
   console.log(`  - ${customers.length} customers`);
   console.log(`  - ${diveSites.length} dive sites`);
@@ -1046,4 +1241,9 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   console.log(`  - ${transactionData.length} transactions`);
   console.log(`  - ${imageEntries.length} images`);
   console.log(`  - ${rentalCount} rentals`);
+  console.log(`  - ${trainingStats.agencies} training agencies`);
+  console.log(`  - ${trainingStats.levels} certification levels`);
+  console.log(`  - ${trainingStats.courses} training courses`);
+  console.log(`  - ${galleryStats.albums} gallery albums`);
+  console.log(`  - ${galleryStats.images} gallery images`);
 }

@@ -41,16 +41,19 @@ const MAILCHIMP_METADATA_URL = "https://login.mailchimp.com/oauth2/metadata";
 // ============================================================================
 
 /**
- * Get Mailchimp OAuth client credentials from environment
+ * Get Mailchimp OAuth client credentials from tenant settings or environment
  */
-function getMailchimpCredentials() {
-  const clientId = process.env.MAILCHIMP_CLIENT_ID;
-  const clientSecret = process.env.MAILCHIMP_CLIENT_SECRET;
+function getMailchimpCredentials(
+  tenantClientId?: string,
+  tenantClientSecret?: string
+) {
+  const clientId = tenantClientId || process.env.MAILCHIMP_CLIENT_ID;
+  const clientSecret = tenantClientSecret || process.env.MAILCHIMP_CLIENT_SECRET;
   const appUrl = process.env.APP_URL || "http://localhost:5173";
 
   if (!clientId || !clientSecret) {
     throw new Error(
-      "Mailchimp OAuth credentials not configured. Set MAILCHIMP_CLIENT_ID and MAILCHIMP_CLIENT_SECRET."
+      "Mailchimp OAuth credentials not configured. Please add your OAuth app credentials in Settings → Integrations."
     );
   }
 
@@ -75,10 +78,17 @@ function getCallbackUrl(subdomain?: string): string {
  *
  * @param orgId - Organization ID to include in state
  * @param subdomain - Organization subdomain for callback URL
+ * @param tenantClientId - Optional tenant-specific client ID
+ * @param tenantClientSecret - Optional tenant-specific client secret
  * @returns URL to redirect the user to
  */
-export function getMailchimpAuthUrl(orgId: string, subdomain?: string): string {
-  const { clientId } = getMailchimpCredentials();
+export function getMailchimpAuthUrl(
+  orgId: string,
+  subdomain?: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
+): string {
+  const { clientId } = getMailchimpCredentials(tenantClientId, tenantClientSecret);
   const callbackUrl = getCallbackUrl(subdomain);
 
   // State contains org ID and a nonce for security
@@ -113,11 +123,13 @@ export function parseOAuthState(state: string): { orgId: string; nonce: number }
  */
 export async function exchangeCodeForTokens(
   code: string,
-  subdomain?: string
+  subdomain?: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
 ): Promise<{
   accessToken: string;
 }> {
-  const { clientId, clientSecret } = getMailchimpCredentials();
+  const { clientId, clientSecret } = getMailchimpCredentials(tenantClientId, tenantClientSecret);
   const callbackUrl = getCallbackUrl(subdomain);
 
   const response = await fetch(MAILCHIMP_TOKEN_URL, {
@@ -194,15 +206,44 @@ export async function getMailchimpMetadata(accessToken: string): Promise<{
 export async function handleMailchimpCallback(
   code: string,
   orgId: string,
-  subdomain?: string
+  subdomain?: string,
+  tenantClientId?: string,
+  tenantClientSecret?: string
 ): Promise<Integration> {
+  // If tenant credentials not provided, try to retrieve from existing integration settings
+  let clientId = tenantClientId;
+  let clientSecret = tenantClientSecret;
+
+  if (!clientId || !clientSecret) {
+    const existing = await getIntegrationWithTokens(orgId, "mailchimp");
+    if (existing) {
+      const existingSettings = existing.integration.settings as { oauthClientId?: string; oauthClientSecret?: string } | null;
+      clientId = existingSettings?.oauthClientId;
+      clientSecret = existingSettings?.oauthClientSecret;
+    }
+  }
+
   // Exchange code for token
-  const tokens = await exchangeCodeForTokens(code, subdomain);
+  const tokens = await exchangeCodeForTokens(code, subdomain, clientId, clientSecret);
 
   // Get account metadata for datacenter and account info
   const metadata = await getMailchimpMetadata(tokens.accessToken);
 
-  // Store the integration
+  // Store the integration with tenant OAuth credentials
+  const settings: Record<string, unknown> = {
+    datacenter: metadata.dc,
+    apiEndpoint: metadata.apiEndpoint,
+    syncEnabled: true,
+    syncNewCustomers: true,
+    syncExistingCustomers: false,
+  };
+
+  // Store tenant OAuth credentials if provided
+  if (clientId && clientSecret) {
+    settings.oauthClientId = clientId;
+    settings.oauthClientSecret = clientSecret;
+  }
+
   return connectIntegration(
     orgId,
     "mailchimp",
@@ -215,13 +256,7 @@ export async function handleMailchimpCallback(
       accountName: metadata.accountName,
       accountEmail: metadata.login?.loginEmail || metadata.login?.email,
     },
-    {
-      datacenter: metadata.dc,
-      apiEndpoint: metadata.apiEndpoint,
-      syncEnabled: true,
-      syncNewCustomers: true,
-      syncExistingCustomers: false,
-    }
+    settings
   );
 }
 

@@ -92,7 +92,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   // Format service history dates
   const formattedServiceHistory = serviceHistory.map((service) => ({
     ...service,
-    date: formatDate(service.date || new Date()),
+    date: formatDate(service.performedAt),
+    performedAt: formatDate(service.performedAt),
   }));
 
   // Format images for the component
@@ -357,42 +358,110 @@ export default function EquipmentDetailPage() {
 
           {/* Service History */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Service History</h2>
-              <fetcher.Form method="post">
-                <input type="hidden" name="intent" value="log-service" />
-                <button
-                  type="submit"
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  + Log Service
-                </button>
-              </fetcher.Form>
-            </div>
-            {serviceHistory.length === 0 ? (
-              <p className="text-gray-500 text-sm">No service records.</p>
-            ) : (
-              <div className="space-y-3">
-                {serviceHistory.map((service) => (
-                  <div
-                    key={service.id}
-                    className="p-3 bg-gray-50 rounded-lg"
-                  >
+            <h2 className="font-semibold mb-4">Service History</h2>
+            {serviceHistory.length > 0 ? (
+              <div className="space-y-3 text-sm mb-4">
+                {serviceHistory.slice(0, 3).map((service) => (
+                  <div key={service.id} className="border-b pb-2 last:border-0">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium">{service.type}</p>
-                        <p className="text-sm text-gray-500">
-                          {service.date} • {service.performedBy}
-                        </p>
-                      </div>
+                      <span className="font-medium capitalize">{service.type}</span>
+                      <span className="text-gray-500 text-xs">
+                        {service.date}
+                      </span>
                     </div>
-                    {service.notes && (
-                      <p className="text-sm text-gray-600 mt-2">{service.notes}</p>
+                    <p className="text-gray-600 text-xs mt-1">{service.description}</p>
+                    {service.cost && (
+                      <p className="text-gray-500 text-xs">${service.cost}</p>
                     )}
                   </div>
                 ))}
+                {serviceHistory.length > 3 && (
+                  <p className="text-gray-500 text-xs">
+                    +{serviceHistory.length - 3} more records
+                  </p>
+                )}
               </div>
+            ) : (
+              <p className="text-gray-500 text-sm mb-4">No service records yet.</p>
             )}
+            <fetcher.Form method="post" className="space-y-3">
+              <input type="hidden" name="intent" value="log-service" />
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Type</label>
+                <select
+                  name="type"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                  required
+                >
+                  <option value="inspection">Inspection</option>
+                  <option value="repair">Repair</option>
+                  <option value="certification">Certification</option>
+                  <option value="cleaning">Cleaning</option>
+                  <option value="replacement">Replacement</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Description</label>
+                <input
+                  type="text"
+                  name="description"
+                  placeholder="What was done?"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Performed By</label>
+                <input
+                  type="text"
+                  name="performedBy"
+                  placeholder="Technician or company name"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Cost</label>
+                <input
+                  type="number"
+                  name="cost"
+                  placeholder="0.00"
+                  step="0.01"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Notes</label>
+                <textarea
+                  name="notes"
+                  placeholder="Additional details..."
+                  rows={2}
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Next Service Date</label>
+                <input
+                  type="date"
+                  name="nextServiceDate"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Certification Expiry</label>
+                <input
+                  type="date"
+                  name="certificationExpiry"
+                  className="w-full text-sm border rounded-lg px-3 py-2"
+                />
+                <p className="text-xs text-gray-500 mt-1">For tanks, regulators, etc.</p>
+              </div>
+              <button
+                type="submit"
+                className="w-full text-center py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                Log Service
+              </button>
+            </fetcher.Form>
           </div>
 
           {/* Notes */}
