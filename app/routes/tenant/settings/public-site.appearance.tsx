@@ -1,5 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { useOutletContext, useFetcher } from "react-router";
+import { useState, useEffect } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
@@ -98,6 +99,20 @@ export default function PublicSiteAppearanceSettings() {
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const isSubmitting = fetcher.state === "submitting";
 
+  // Local state for live previews
+  const [theme, setTheme] = useState(settings.theme);
+  const [primaryColor, setPrimaryColor] = useState(settings.primaryColor);
+  const [secondaryColor, setSecondaryColor] = useState(settings.secondaryColor);
+  const [fontFamily, setFontFamily] = useState(settings.fontFamily);
+
+  // Update state when settings change (after save)
+  useEffect(() => {
+    setTheme(settings.theme);
+    setPrimaryColor(settings.primaryColor);
+    setSecondaryColor(settings.secondaryColor);
+    setFontFamily(settings.fontFamily);
+  }, [settings]);
+
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
@@ -123,11 +138,11 @@ export default function PublicSiteAppearanceSettings() {
           </p>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {themes.map((theme) => (
+            {themes.map((themeOption) => (
               <label
-                key={theme.id}
+                key={themeOption.id}
                 className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-blue-300 ${
-                  settings.theme === theme.id
+                  theme === themeOption.id
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200"
                 }`}
@@ -135,12 +150,13 @@ export default function PublicSiteAppearanceSettings() {
                 <input
                   type="radio"
                   name="theme"
-                  value={theme.id}
-                  defaultChecked={settings.theme === theme.id}
+                  value={themeOption.id}
+                  checked={theme === themeOption.id}
+                  onChange={(e) => setTheme(e.target.value as PublicSiteSettings["theme"])}
                   className="sr-only"
                 />
                 <div className="flex gap-1 mb-3">
-                  {theme.colors.map((color, i) => (
+                  {themeOption.colors.map((color, i) => (
                     <div
                       key={i}
                       className="w-8 h-8 rounded-full"
@@ -148,9 +164,9 @@ export default function PublicSiteAppearanceSettings() {
                     />
                   ))}
                 </div>
-                <p className="font-medium">{theme.name}</p>
-                <p className="text-xs text-gray-500">{theme.description}</p>
-                {settings.theme === theme.id && (
+                <p className="font-medium">{themeOption.name}</p>
+                <p className="text-xs text-gray-500">{themeOption.description}</p>
+                {theme === themeOption.id && (
                   <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                     <svg
                       className="w-3 h-3 text-white"
@@ -186,29 +202,21 @@ export default function PublicSiteAppearanceSettings() {
                 <input
                   type="color"
                   id="primaryColorPicker"
-                  defaultValue={settings.primaryColor}
+                  value={primaryColor}
                   className="w-12 h-10 rounded cursor-pointer border-0 p-0"
-                  onChange={(e) => {
-                    const input = document.getElementById(
-                      "primaryColor"
-                    ) as HTMLInputElement;
-                    if (input) input.value = e.target.value;
-                  }}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
                 />
                 <input
                   type="text"
                   id="primaryColor"
                   name="primaryColor"
-                  defaultValue={settings.primaryColor}
+                  value={primaryColor}
                   placeholder="#0ea5e9"
                   pattern="^#[0-9A-Fa-f]{6}$"
                   className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
                   onChange={(e) => {
-                    const picker = document.getElementById(
-                      "primaryColorPicker"
-                    ) as HTMLInputElement;
-                    if (picker && /^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
-                      picker.value = e.target.value;
+                    if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) {
+                      setPrimaryColor(e.target.value);
                     }
                   }}
                 />
@@ -224,29 +232,21 @@ export default function PublicSiteAppearanceSettings() {
                 <input
                   type="color"
                   id="secondaryColorPicker"
-                  defaultValue={settings.secondaryColor}
+                  value={secondaryColor}
                   className="w-12 h-10 rounded cursor-pointer border-0 p-0"
-                  onChange={(e) => {
-                    const input = document.getElementById(
-                      "secondaryColor"
-                    ) as HTMLInputElement;
-                    if (input) input.value = e.target.value;
-                  }}
+                  onChange={(e) => setSecondaryColor(e.target.value)}
                 />
                 <input
                   type="text"
                   id="secondaryColor"
                   name="secondaryColor"
-                  defaultValue={settings.secondaryColor}
+                  value={secondaryColor}
                   placeholder="#06b6d4"
                   pattern="^#[0-9A-Fa-f]{6}$"
                   className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
                   onChange={(e) => {
-                    const picker = document.getElementById(
-                      "secondaryColorPicker"
-                    ) as HTMLInputElement;
-                    if (picker && /^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
-                      picker.value = e.target.value;
+                    if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) {
+                      setSecondaryColor(e.target.value);
                     }
                   }}
                 />
@@ -262,18 +262,18 @@ export default function PublicSiteAppearanceSettings() {
               <button
                 type="button"
                 className="px-4 py-2 rounded-lg text-white text-sm"
-                style={{ backgroundColor: settings.primaryColor }}
+                style={{ backgroundColor: primaryColor }}
               >
                 Primary Button
               </button>
               <button
                 type="button"
                 className="px-4 py-2 rounded-lg text-white text-sm"
-                style={{ backgroundColor: settings.secondaryColor }}
+                style={{ backgroundColor: secondaryColor }}
               >
                 Secondary Button
               </button>
-              <span className="text-sm" style={{ color: settings.primaryColor }}>
+              <span className="text-sm" style={{ color: primaryColor }}>
                 Primary Link
               </span>
             </div>
@@ -290,7 +290,7 @@ export default function PublicSiteAppearanceSettings() {
               <label
                 key={font.id}
                 className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-blue-300 ${
-                  settings.fontFamily === font.id
+                  fontFamily === font.id
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200"
                 }`}
@@ -299,7 +299,8 @@ export default function PublicSiteAppearanceSettings() {
                   type="radio"
                   name="fontFamily"
                   value={font.id}
-                  defaultChecked={settings.fontFamily === font.id}
+                  checked={fontFamily === font.id}
+                  onChange={(e) => setFontFamily(e.target.value as PublicSiteSettings["fontFamily"])}
                   className="sr-only"
                 />
                 <p
@@ -318,7 +319,7 @@ export default function PublicSiteAppearanceSettings() {
                   {font.name}
                 </p>
                 <p className="text-sm text-gray-500">{font.sample}</p>
-                {settings.fontFamily === font.id && (
+                {fontFamily === font.id && (
                   <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                     <svg
                       className="w-3 h-3 text-white"
@@ -348,7 +349,7 @@ export default function PublicSiteAppearanceSettings() {
               </p>
             </div>
             <a
-              href={`https://${orgSlug}.divestreams.com/site`}
+              href={`https://${orgSlug}.divestreams.com`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
