@@ -337,15 +337,6 @@ export async function deleteCustomer(organizationId: string, id: string) {
       eq(schema.transactions.customerId, id)
     ));
 
-  // Delete booking participants (if exists)
-  await db
-    .delete(schema.bookingParticipants)
-    .where(and(
-      eq(schema.bookingParticipants.organizationId, organizationId),
-      eq(schema.bookingParticipants.customerId, id)
-    ))
-    .catch(() => {}); // Ignore if table doesn't exist
-
   // Delete bookings
   await db
     .delete(schema.bookings)

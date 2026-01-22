@@ -424,6 +424,9 @@ export default function ProductsPage() {
 
   const fetcherData = fetcher.data as {
     success?: boolean;
+    message?: string;
+    error?: string;
+    importResult?: { successCount: number; errorCount: number; errors: string[] };
   } | undefined;
 
   // Close modal on successful create/update/delete
@@ -535,14 +538,6 @@ export default function ProductsPage() {
       fileInputRef.current.value = "";
     }
   };
-
-  // Check for import result in fetcher data
-  const fetcherData = fetcher.data as {
-    success?: boolean;
-    message?: string;
-    error?: string;
-    importResult?: { successCount: number; errorCount: number; errors: string[] };
-  } | undefined;
 
   // Update import result when fetcher completes
   if (fetcherData?.importResult && fetcherData.importResult !== importResult) {
