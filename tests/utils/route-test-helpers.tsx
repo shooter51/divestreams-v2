@@ -5,6 +5,7 @@
  * Mock at the loader/action boundary rather than service layer for decoupling.
  */
 
+import * as React from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { render, type RenderResult } from "@testing-library/react";
 import type { ComponentType } from "react";
