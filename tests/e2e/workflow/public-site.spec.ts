@@ -290,8 +290,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     expect(isContactPage || isOnSite || hasForm || hasContactInfo).toBeTruthy();
   });
 
-  // FIXME: Flaky test - trips page timeout in CI - see beads issue
-  test.skip("A.4 Public site trips page loads", async ({ page }) => {
+  test("A.4 Public site trips page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/trips"));
     await page.waitForTimeout(1500);
     // Should show trips list or empty state
@@ -301,8 +300,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     expect(isTripsPage && (hasTripCards || hasEmptyState || true)).toBeTruthy();
   });
 
-  // FIXME: Flaky test - courses page timeout in CI - see beads issue
-  test.skip("A.5 Public site courses page loads", async ({ page }) => {
+  test("A.5 Public site courses page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/courses"));
     await page.waitForTimeout(1500);
     // Should show courses list or empty state
@@ -312,7 +310,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     expect(isCoursesPage && (hasCourseCards || hasEmptyState || true)).toBeTruthy();
   });
 
-  test.skip("A.6 Trip detail page route works", async ({ page }) => {
+  test("A.6 Trip detail page route works", async ({ page }) => {
     // SKIPPED: Flaky test - intermittent failures in CI
     // First go to trips list to find a trip
     await page.goto(getPublicSiteUrl("/trips"));

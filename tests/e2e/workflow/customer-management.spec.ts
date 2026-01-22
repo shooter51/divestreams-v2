@@ -124,8 +124,7 @@ async function extractEntityUuid(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Navigation & List View", () => {
-  // FIXME: Flaky test - auth redirect issue in CI - see beads issue
-  test.skip("A.1 Customers list page loads after login @smoke", async ({ page }) => {
+  test("A.1 Customers list page loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/customers"));
     await page.waitForTimeout(1500);
@@ -137,8 +136,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasHeading || page.url().includes("/customers")).toBeTruthy();
   });
 
-  // FIXME: Flaky test - timeout in CI - see beads issue
-  test.skip("A.2 Customers list shows table layout", async ({ page }) => {
+  test("A.2 Customers list shows table layout", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/customers"));
     await page.waitForTimeout(1500);
@@ -148,7 +146,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasTable || hasGrid || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test.skip("A.3 Customers list has Add button", async ({ page }) => {
+  test("A.3 Customers list has Add button", async ({ page }) => {
     // SKIPPED: Flaky test - intermittent auth/session failures in CI
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/customers"));
@@ -161,8 +159,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(addButton).toBeTruthy();
   });
 
-  // FIXME: Flaky test - subdomain navigation timeout in CI - same as A.1, A.2, A.3
-  test.skip("A.4 Customers list displays customer names", async ({ page }) => {
+  test("A.4 Customers list displays customer names", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/customers"));
     await page.waitForTimeout(2000);
