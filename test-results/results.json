@@ -1,0 +1,224 @@
+{
+  "config": {
+    "configFile": "/Users/tomgibson/DiveStreams/divestreams-v2/playwright.config.ts",
+    "rootDir": "/Users/tomgibson/DiveStreams/divestreams-v2/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/tomgibson/DiveStreams/divestreams-v2/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/tomgibson/DiveStreams/divestreams-v2/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "stdout": "pipe",
+      "stderr": "pipe",
+      "env": {
+        "NoDefaultCurrentDirectoryInExePath": "1",
+        "CLAUDE_CODE_ENTRYPOINT": "cli",
+        "TERM_PROGRAM": "Apple_Terminal",
+        "NODE": "/opt/homebrew/Cellar/node@20/20.19.5/bin/node",
+        "INIT_CWD": "/Users/tomgibson/DiveStreams/divestreams-v2",
+        "SHELL": "/bin/zsh",
+        "TERM": "xterm-256color",
+        "HOMEBREW_REPOSITORY": "/opt/homebrew",
+        "TMPDIR": "/var/folders/dv/zz6tjxpj4b7_x8brfn5bm2pc0000gn/T/",
+        "npm_config_global_prefix": "/opt/homebrew",
+        "TERM_PROGRAM_VERSION": "455.1",
+        "COLOR": "0",
+        "TERM_SESSION_ID": "55068C9C-DEC0-45A9-A59C-738F99A17C5B",
+        "npm_config_noproxy": "",
+        "npm_config_local_prefix": "/Users/tomgibson/DiveStreams/divestreams-v2",
+        "GIT_EDITOR": "true",
+        "USER": "tomgibson",
+        "npm_config_globalconfig": "/opt/homebrew/etc/npmrc",
+        "SSH_AUTH_SOCK": "/private/tmp/com.apple.launchd.uw2BxHzrXd/Listeners",
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+        "npm_execpath": "/opt/homebrew/Cellar/node@20/20.19.5/lib/node_modules/npm/bin/npm-cli.js",
+        "PATH": "/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/.bin:/Users/tomgibson/DiveStreams/node_modules/.bin:/Users/tomgibson/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/opt/homebrew/Cellar/node@20/20.19.5/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/opt/homebrew/opt/node@20/bin:/Users/tomgibson/source/goose/goose/target/release:/Users/tomgibson/.codeium/windsurf/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/usr/local/share/dotnet:/Users/tomgibson/.dotnet/tools:/Users/tomgibson/.cargo/bin:/Users/tomgibson/.local/bin:/Users/tomgibson/.lmstudio/bin:/Users/tomgibson/.local/bin",
+        "npm_package_json": "/Users/tomgibson/DiveStreams/divestreams-v2/package.json",
+        "_": "/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/.bin/playwright",
+        "LaunchInstanceID": "2B84B671-1A9B-424C-8A9E-EAD1A67AB3BF",
+        "npm_config_userconfig": "/Users/tomgibson/.npmrc",
+        "npm_config_init_module": "/Users/tomgibson/.npm-init.js",
+        "__CFBundleIdentifier": "com.apple.Terminal",
+        "npm_command": "run-script",
+        "PWD": "/Users/tomgibson/DiveStreams/divestreams-v2",
+        "npm_lifecycle_event": "test:e2e",
+        "EDITOR": "vi",
+        "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "delta",
+        "npm_package_name": "divestreams",
+        "LANG": "en_US.UTF-8",
+        "npm_config_npm_version": "10.8.2",
+        "XPC_FLAGS": "0x0",
+        "npm_config_node_gyp": "/opt/homebrew/Cellar/node@20/20.19.5/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js",
+        "npm_package_version": "2.0.0",
+        "XPC_SERVICE_NAME": "0",
+        "SHLVL": "3",
+        "HOME": "/Users/tomgibson",
+        "HOMEBREW_PREFIX": "/opt/homebrew",
+        "npm_config_cache": "/Users/tomgibson/.npm",
+        "LOGNAME": "tomgibson",
+        "npm_lifecycle_script": "playwright test",
+        "COREPACK_ENABLE_AUTO_PIN": "0",
+        "npm_config_user_agent": "npm/10.8.2 node/v20.19.5 darwin arm64 workspaces/false",
+        "INFOPATH": "/opt/homebrew/share/info:/opt/homebrew/share/info:",
+        "HOMEBREW_CELLAR": "/opt/homebrew/Cellar",
+        "CLAUDECODE": "1",
+        "SECURITYSESSIONID": "186b3",
+        "npm_node_execpath": "/opt/homebrew/Cellar/node@20/20.19.5/bin/node",
+        "npm_config_prefix": "/opt/homebrew",
+        "DATABASE_URL": "",
+        "REDIS_URL": "",
+        "AUTH_SECRET": "test-secret",
+        "ADMIN_PASSWORD": "DiveAdmin2026",
+        "APP_URL": "http://localhost:5173",
+        "CI": "true",
+        "GITHUB_ACTIONS": "",
+        "PLAYWRIGHT_TEST_BASE_URL": "http://localhost:5173",
+        "E2E_COVERAGE": ""
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "workflow/stripe-integration.spec.ts",
+      "file": "workflow/stripe-integration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Stripe Integration",
+          "file": "workflow/stripe-integration.spec.ts",
+          "line": 31,
+          "column": 6,
+          "specs": [
+            {
+              "title": "shows Stripe connection modal (not 'coming soon' error)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 0,
+                      "error": {
+                        "message": "PostgresError: database \"tomgibson\" does not exist",
+                        "stack": "PostgresError: database \"tomgibson\" does not exist\n    at ErrorResponse (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/connection.js:817:22)\n    at handle (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/connection.js:489:6)\n    at Socket.data (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/connection.js:324:9)\n    at cachedError (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/query.js:170:23)\n    at Query (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/query.js:36:24)\n    at sql (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/index.js:112:11)\n    at /Users/tomgibson/DiveStreams/divestreams-v2/tests/e2e/workflow/stripe-integration.spec.ts:38:34",
+                        "location": {
+                          "file": "/Users/tomgibson/DiveStreams/divestreams-v2/tests/e2e/workflow/stripe-integration.spec.ts",
+                          "column": 34,
+                          "line": 38
+                        },
+                        "snippet": "  36 |     try {\n  37 |       // Get organization ID for e2etest tenant\n> 38 |       const orgResult = await sql`\n     |                                  ^\n  39 |         SELECT id FROM organization WHERE slug = ${testData.tenant.subdomain}\n  40 |       `;\n  41 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/tomgibson/DiveStreams/divestreams-v2/tests/e2e/workflow/stripe-integration.spec.ts",
+                            "column": 34,
+                            "line": 38
+                          },
+                          "message": "PostgresError: database \"tomgibson\" does not exist\n\n  36 |     try {\n  37 |       // Get organization ID for e2etest tenant\n> 38 |       const orgResult = await sql`\n     |                                  ^\n  39 |         SELECT id FROM organization WHERE slug = ${testData.tenant.subdomain}\n  40 |       `;\n  41 |\n    at ErrorResponse (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/connection.js:817:22)\n    at handle (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/connection.js:489:6)\n    at Socket.data (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/connection.js:324:9)\n    at cachedError (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/query.js:170:23)\n    at Query (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/query.js:36:24)\n    at sql (/Users/tomgibson/DiveStreams/divestreams-v2/node_modules/postgres/src/index.js:112:11)\n    at /Users/tomgibson/DiveStreams/divestreams-v2/tests/e2e/workflow/stripe-integration.spec.ts:38:34"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-21T17:38:56.790Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/tomgibson/DiveStreams/divestreams-v2/tests/e2e/workflow/stripe-integration.spec.ts",
+                        "column": 34,
+                        "line": 38
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "53bb01033c43fa7038d5-35d55ed0585dfcc7190a",
+              "file": "workflow/stripe-integration.spec.ts",
+              "line": 58,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-01-21T17:38:56.345Z",
+    "duration": 478.14400000000006,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

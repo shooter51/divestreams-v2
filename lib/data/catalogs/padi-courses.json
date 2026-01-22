@@ -1,0 +1,127 @@
+{
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "PADI Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import, not a direct database dump. The sync script (lib/jobs/sync-agency-catalogs.server.ts) transforms this into agency_course_templates records by: (1) Looking up agencyId from certification_agencies where code='padi', (2) Mapping levelCode to levelId via certification_levels lookup, (3) Generating contentHash from course fields, (4) Adding sourceType='static_json', timestamps, etc. Tenant-specific fields (price, isActive, etc.) are NOT in this file - they're set when tenants import courses.",
+  "agency": "padi",
+  "agencyName": "Professional Association of Diving Instructors",
+  "version": "2026.1",
+  "lastUpdated": "2026-01-21",
+  "courses": [
+    {
+      "name": "Open Water Diver",
+      "code": "OWD",
+      "levelCode": "beginner",
+      "description": "The PADI Open Water Diver course is the world's most popular scuba course. Learn to dive in a relaxed, supportive environment with comprehensive training.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/open-water-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "Weight system",
+        "BCD (Buoyancy Control Device)",
+        "Regulator with alternate air source",
+        "Dive computer or tables"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Open Water Diver",
+      "code": "AOWD",
+      "levelCode": "advanced",
+      "description": "Take your diving to the next level with adventure dives including deep diving and underwater navigation, plus three specialty dives of your choice.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/advanced-open-water.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 5,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Current medical clearance if over 45 or with medical conditions",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Rescue Diver",
+      "code": "RD",
+      "levelCode": "advanced",
+      "description": "Learn to prevent and manage dive emergencies. Develop skills to help other divers and respond to diving accidents.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/rescue-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Advanced Open Water Diver and Emergency First Response (EFR) certification within 24 months",
+      "minAge": 12,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Pocket mask",
+        "Rescue mannequin (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Divemaster",
+      "code": "DM",
+      "levelCode": "professional",
+      "description": "The first professional level in the PADI system. Learn to supervise dive activities and assist instructors with student divers.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/divemaster.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 24,
+      "poolHours": 16,
+      "openWaterDives": 10,
+      "prerequisites": "PADI Rescue Diver, 40+ logged dives, EFR certification within 24 months, 18 years old",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer",
+        "Compass",
+        "Dive tables and slate",
+        "Pocket mask and oxygen unit (for training)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Enriched Air (Nitrox) Diver",
+      "code": "EAN",
+      "levelCode": "specialty",
+      "description": "Learn to dive with enriched air nitrox, extending your no-decompression limits and shortening surface intervals.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/enriched-air.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Oxygen analyzer (provided by center)",
+        "Nitrox-compatible dive computer"
+      ],
+      "materialsIncluded": true
+    }
+  ]
+}
