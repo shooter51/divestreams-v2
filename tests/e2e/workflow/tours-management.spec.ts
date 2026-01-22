@@ -207,8 +207,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasActions || page.url().includes("/tours")).toBeTruthy();
   });
 
-  // FIXME: Flaky test - dashboard navigation timeout in CI - see beads issue
-  test.skip("A.8 Can navigate from dashboard to tours", async ({ page }) => {
+  test("A.8 Can navigate from dashboard to tours", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/dashboard"));
     await page.waitForTimeout(1500);
@@ -224,8 +223,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     }
   });
 
-  // FIXME: Flaky test - auth redirect in CI - see beads issue
-  test.skip("A.9 Tours list URL is correct", async ({ page }) => {
+  test("A.9 Tours list URL is correct", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/app/tours"));
     await page.waitForTimeout(1000);
@@ -402,7 +400,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Edit Tour Flow", () => {
-  test.skip("C.1 Navigate to tour edit page", async ({ page }) => {
+  test("C.1 Navigate to tour edit page", async ({ page }) => {
     // SKIPPED: Flaky test - intermittent auth/session failures in CI
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;

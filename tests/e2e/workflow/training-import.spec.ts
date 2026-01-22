@@ -53,8 +53,14 @@ test.describe("Training Import", () => {
     const agencyDropdown = page.locator('select[name="agencyId"]');
     await expect(agencyDropdown).toBeVisible();
 
-    // Should have at least the placeholder option
-    await expect(agencyDropdown.locator('option')).toHaveCount(1); // Just "Select an agency..."
+    // Should have at least the placeholder option (and possibly agencies from seed data)
+    const options = agencyDropdown.locator('option');
+    const optionCount = await options.count();
+    expect(optionCount).toBeGreaterThanOrEqual(1); // At least the placeholder
+
+    // First option should be the placeholder
+    const firstOption = await options.first().textContent();
+    expect(firstOption?.toLowerCase()).toContain('select');
 
     // Should have submit button
     await expect(page.getByRole('button', { name: /next/i })).toBeVisible();
