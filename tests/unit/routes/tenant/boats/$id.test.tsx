@@ -1,7 +1,7 @@
 /**
  * Tenant Boat Details Route Tests
  *
- * Tests the boat details page loader and action with parallel data fetching and multiple intents.
+ * Tests the boat details page loader and action with images, trips, stats, and maintenance.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -47,34 +47,42 @@ describe("Route: tenant/boats/$id.tsx", () => {
 
   const mockBoat = {
     id: "boat-123",
-    name: "Sea Explorer",
+    name: "Ocean Explorer",
+    type: "dive_boat",
     capacity: 20,
-    length: "45ft",
+    registrationNumber: "REG-12345",
+    description: "Large dive boat with modern amenities",
     isActive: true,
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-15"),
+    amenities: ["GPS", "First Aid", "Oxygen"],
+    createdAt: new Date("2024-01-01T10:00:00Z"),
+    updatedAt: new Date("2024-01-15T14:30:00Z"),
   };
 
   const mockRecentTrips = [
     {
       id: "trip-1",
-      date: new Date("2024-01-10"),
-      tourName: "Morning Dive",
+      tourName: "Morning Reef Dive",
+      date: new Date("2024-01-10T09:00:00Z"),
+      participants: 15,
+      revenue: "$750.00",
     },
   ];
 
   const mockUpcomingTrips = [
     {
       id: "trip-2",
-      date: new Date("2024-02-01"),
-      tourName: "Afternoon Dive",
+      tourName: "Sunset Dive",
+      date: new Date("2024-02-15T17:00:00Z"),
+      bookedParticipants: 12,
+      maxParticipants: 20,
     },
   ];
 
   const mockStats = {
-    totalTrips: 150,
-    totalRevenue: "50000.00",
-    averageCapacity: 15,
+    totalTrips: 45,
+    totalPassengers: 680,
+    totalRevenue: "$34,000",
+    avgOccupancy: 85,
   };
 
   const mockImages = [
@@ -83,9 +91,9 @@ describe("Route: tenant/boats/$id.tsx", () => {
       url: "https://example.com/boat1.jpg",
       thumbnailUrl: "https://example.com/boat1-thumb.jpg",
       filename: "boat1.jpg",
-      width: 1024,
-      height: 768,
-      alt: "Boat photo",
+      width: 800,
+      height: 600,
+      alt: "Boat exterior",
       sortOrder: 1,
       isPrimary: true,
     },
@@ -95,17 +103,17 @@ describe("Route: tenant/boats/$id.tsx", () => {
     {
       id: "maint-1",
       type: "routine",
-      description: "Engine check",
-      performedAt: new Date("2024-01-05"),
-      performedBy: "Tech Smith",
-      cost: "500.00",
-      notes: "All good",
-      nextMaintenanceDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+      description: "Engine oil change",
+      performedBy: "Marine Services Inc",
+      cost: "450.00",
+      notes: "All systems normal",
+      performedAt: new Date("2024-01-05T10:00:00Z"),
+      nextMaintenanceDate: new Date("2024-04-05T00:00:00Z"),
       nextMaintenanceType: "routine",
-      createdAt: new Date("2024-01-05"),
-      organizationId: "org-123",
+      createdAt: new Date("2024-01-05T10:00:00Z"),
       boatId: "boat-123",
-      createdBy: "user-123",
+      organizationId: "org-123",
+      createdBy: "user-1",
     },
   ];
 
@@ -128,7 +136,7 @@ describe("Route: tenant/boats/$id.tsx", () => {
 
     it("should throw 404 when boat not found", async () => {
       // Arrange
-      const request = new Request("http://localhost/tenant/boats/boat-123");
+      const request = new Request("http://localhost/tenant/boats/boat-999");
       (requireTenant as any).mockResolvedValue({
         organizationId: "org-123",
       });
@@ -161,6 +169,11 @@ describe("Route: tenant/boats/$id.tsx", () => {
         },
       });
 
+      (getBoatById as any).mockResolvedValue(null);
+      (getBoatRecentTrips as any).mockResolvedValue([]);
+      (getBoatUpcomingTrips as any).mockResolvedValue([]);
+      (getBoatStats as any).mockResolvedValue(mockStats);
+
       mockSelect.mockReturnValue({
         from: mockFrom,
       });
@@ -173,53 +186,29 @@ describe("Route: tenant/boats/$id.tsx", () => {
       mockOrderBy.mockReturnValue({
         limit: mockLimit,
       });
-
-      (getBoatById as any).mockResolvedValue(null);
-      (getBoatRecentTrips as any).mockResolvedValue([]);
-      (getBoatUpcomingTrips as any).mockResolvedValue([]);
-      (getBoatStats as any).mockResolvedValue(mockStats);
+      mockLimit.mockResolvedValue([]);
 
       // Act & Assert
       try {
-        await loader({ request, params: { id: "boat-123" }, context: {} });
+        await loader({ request, params: { id: "boat-999" }, context: {} });
         expect(true).toBe(false); // Should not reach here
       } catch (error: any) {
         expect(error.status).toBe(404);
       }
     });
 
-    it("should load boat details with all related data", async () => {
+    it("should load boat details with images, trips, stats, and maintenance", async () => {
       // Arrange
       const request = new Request("http://localhost/tenant/boats/boat-123");
       (requireTenant as any).mockResolvedValue({
         organizationId: "org-123",
       });
 
-      // Mock db.select to handle two different query chains
-      let selectCallCount = 0;
-      const mockSelect = vi.fn().mockImplementation(() => {
-        selectCallCount++;
-
-        const mockFrom = vi.fn();
-        const mockWhere = vi.fn();
-        const mockOrderBy = vi.fn();
-        const mockLimit = vi.fn();
-
-        if (selectCallCount === 1) {
-          // First query: boatImages (no limit)
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ orderBy: mockOrderBy });
-          mockOrderBy.mockResolvedValue(mockImages);
-        } else if (selectCallCount === 2) {
-          // Second query: maintenanceHistory (with limit)
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ orderBy: mockOrderBy });
-          mockOrderBy.mockReturnValue({ limit: mockLimit });
-          mockLimit.mockResolvedValue(mockMaintenanceHistory);
-        }
-
-        return { from: mockFrom };
-      });
+      const mockSelect = vi.fn();
+      const mockFrom = vi.fn();
+      const mockWhere = vi.fn();
+      const mockOrderBy = vi.fn();
+      const mockLimit = vi.fn();
 
       (getTenantDb as any).mockReturnValue({
         db: {
@@ -248,6 +237,26 @@ describe("Route: tenant/boats/$id.tsx", () => {
       (getBoatUpcomingTrips as any).mockResolvedValue(mockUpcomingTrips);
       (getBoatStats as any).mockResolvedValue(mockStats);
 
+      // First select call - images query
+      mockSelect.mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            orderBy: vi.fn().mockResolvedValue(mockImages),
+          }),
+        }),
+      });
+
+      // Second select call - maintenance history query
+      mockSelect.mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            orderBy: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue(mockMaintenanceHistory),
+            }),
+          }),
+        }),
+      });
+
       // Act
       const result = await loader({ request, params: { id: "boat-123" }, context: {} });
 
@@ -258,7 +267,7 @@ describe("Route: tenant/boats/$id.tsx", () => {
       expect(getBoatStats).toHaveBeenCalledWith("org-123", "boat-123");
 
       expect(result.boat.id).toBe("boat-123");
-      expect(result.boat.name).toBe("Sea Explorer");
+      expect(result.boat.name).toBe("Ocean Explorer");
       expect(result.boat.createdAt).toBe("2024-01-01");
       expect(result.boat.updatedAt).toBe("2024-01-15");
 
@@ -266,59 +275,25 @@ describe("Route: tenant/boats/$id.tsx", () => {
       expect(result.recentTrips[0].date).toBe("2024-01-10");
 
       expect(result.upcomingTrips).toHaveLength(1);
-      expect(result.upcomingTrips[0].date).toBe("2024-02-01");
+      expect(result.upcomingTrips[0].date).toBe("2024-02-15");
 
       expect(result.stats).toEqual(mockStats);
+
       expect(result.images).toHaveLength(1);
       expect(result.images[0].url).toBe("https://example.com/boat1.jpg");
 
       expect(result.maintenanceHistory).toHaveLength(1);
       expect(result.maintenanceHistory[0].type).toBe("routine");
-
-      expect(result.maintenanceDue).toBe(false);
     });
 
-    it("should set maintenanceDue to true when maintenance date is within 7 days", async () => {
+    it("should calculate maintenance due when next date is within 7 days", async () => {
       // Arrange
       const request = new Request("http://localhost/tenant/boats/boat-123");
       (requireTenant as any).mockResolvedValue({
         organizationId: "org-123",
       });
 
-      const futureDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000); // 5 days from now
-      const upcomingMaintenance = [
-        {
-          ...mockMaintenanceHistory[0],
-          nextMaintenanceDate: futureDate,
-        },
-      ];
-
-      // Mock db.select to handle two different query chains
-      let selectCallCount = 0;
-      const mockSelect = vi.fn().mockImplementation(() => {
-        selectCallCount++;
-
-        const mockFrom = vi.fn();
-        const mockWhere = vi.fn();
-        const mockOrderBy = vi.fn();
-        const mockLimit = vi.fn();
-
-        if (selectCallCount === 1) {
-          // First query: boatImages (no limit)
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ orderBy: mockOrderBy });
-          mockOrderBy.mockResolvedValue(mockImages);
-        } else if (selectCallCount === 2) {
-          // Second query: maintenanceHistory (with limit)
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ orderBy: mockOrderBy });
-          mockOrderBy.mockReturnValue({ limit: mockLimit });
-          mockLimit.mockResolvedValue(upcomingMaintenance);
-        }
-
-        return { from: mockFrom };
-      });
-
+      const mockSelect = vi.fn();
       (getTenantDb as any).mockReturnValue({
         db: {
           select: mockSelect,
@@ -346,11 +321,103 @@ describe("Route: tenant/boats/$id.tsx", () => {
       (getBoatUpcomingTrips as any).mockResolvedValue([]);
       (getBoatStats as any).mockResolvedValue(mockStats);
 
+      // Images query
+      mockSelect.mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            orderBy: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      // Maintenance history with due date in 3 days
+      const threeDaysFromNow = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+      const maintenanceWithDueDate = [
+        {
+          ...mockMaintenanceHistory[0],
+          nextMaintenanceDate: threeDaysFromNow,
+        },
+      ];
+
+      mockSelect.mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            orderBy: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue(maintenanceWithDueDate),
+            }),
+          }),
+        }),
+      });
+
       // Act
       const result = await loader({ request, params: { id: "boat-123" }, context: {} });
 
       // Assert
       expect(result.maintenanceDue).toBe(true);
+    });
+
+    it("should handle empty images and maintenance history", async () => {
+      // Arrange
+      const request = new Request("http://localhost/tenant/boats/boat-123");
+      (requireTenant as any).mockResolvedValue({
+        organizationId: "org-123",
+      });
+
+      const mockSelect = vi.fn();
+      (getTenantDb as any).mockReturnValue({
+        db: {
+          select: mockSelect,
+        },
+        schema: {
+          images: {
+            id: "id",
+            url: "url",
+            thumbnailUrl: "thumbnailUrl",
+            filename: "filename",
+            width: "width",
+            height: "height",
+            alt: "alt",
+            sortOrder: "sortOrder",
+            isPrimary: "isPrimary",
+            organizationId: "organizationId",
+            entityType: "entityType",
+            entityId: "entityId",
+          },
+        },
+      });
+
+      (getBoatById as any).mockResolvedValue(mockBoat);
+      (getBoatRecentTrips as any).mockResolvedValue([]);
+      (getBoatUpcomingTrips as any).mockResolvedValue([]);
+      (getBoatStats as any).mockResolvedValue(mockStats);
+
+      // Images query - empty
+      mockSelect.mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            orderBy: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      // Maintenance history - empty
+      mockSelect.mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            orderBy: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([]),
+            }),
+          }),
+        }),
+      });
+
+      // Act
+      const result = await loader({ request, params: { id: "boat-123" }, context: {} });
+
+      // Assert
+      expect(result.images).toEqual([]);
+      expect(result.maintenanceHistory).toEqual([]);
+      expect(result.maintenanceDue).toBe(false);
     });
   });
 
@@ -364,7 +431,7 @@ describe("Route: tenant/boats/$id.tsx", () => {
       } as Request;
       (requireOrgContext as any).mockResolvedValue({
         org: { id: "org-123" },
-        user: { id: "user-123" },
+        user: { id: "user-1" },
       });
 
       // Act
@@ -374,7 +441,7 @@ describe("Route: tenant/boats/$id.tsx", () => {
       expect(result).toEqual({ error: "Boat ID required" });
     });
 
-    it("should toggle boat active status", async () => {
+    it("should toggle boat active status to inactive", async () => {
       // Arrange
       const formData = new FormData();
       formData.append("intent", "toggle-active");
@@ -383,9 +450,10 @@ describe("Route: tenant/boats/$id.tsx", () => {
       } as Request;
       (requireOrgContext as any).mockResolvedValue({
         org: { id: "org-123" },
-        user: { id: "user-123" },
+        user: { id: "user-1" },
       });
-      (getBoatById as any).mockResolvedValue(mockBoat);
+
+      (getBoatById as any).mockResolvedValue({ ...mockBoat, isActive: true });
       (updateBoatActiveStatus as any).mockResolvedValue(undefined);
 
       // Act
@@ -394,6 +462,29 @@ describe("Route: tenant/boats/$id.tsx", () => {
       // Assert
       expect(getBoatById).toHaveBeenCalledWith("org-123", "boat-123");
       expect(updateBoatActiveStatus).toHaveBeenCalledWith("org-123", "boat-123", false);
+      expect(result).toEqual({ toggled: true });
+    });
+
+    it("should toggle boat active status to active", async () => {
+      // Arrange
+      const formData = new FormData();
+      formData.append("intent", "toggle-active");
+      const request = {
+        formData: () => Promise.resolve(formData),
+      } as Request;
+      (requireOrgContext as any).mockResolvedValue({
+        org: { id: "org-123" },
+        user: { id: "user-1" },
+      });
+
+      (getBoatById as any).mockResolvedValue({ ...mockBoat, isActive: false });
+      (updateBoatActiveStatus as any).mockResolvedValue(undefined);
+
+      // Act
+      const result = await action({ request, params: { id: "boat-123" }, context: {} });
+
+      // Assert
+      expect(updateBoatActiveStatus).toHaveBeenCalledWith("org-123", "boat-123", true);
       expect(result).toEqual({ toggled: true });
     });
 
@@ -406,8 +497,9 @@ describe("Route: tenant/boats/$id.tsx", () => {
       } as Request;
       (requireOrgContext as any).mockResolvedValue({
         org: { id: "org-123" },
-        user: { id: "user-123" },
+        user: { id: "user-1" },
       });
+
       (deleteBoat as any).mockResolvedValue(undefined);
 
       // Act
@@ -419,29 +511,28 @@ describe("Route: tenant/boats/$id.tsx", () => {
       expect(result.headers.get("Location")).toBe("/app/boats");
     });
 
-    it("should log maintenance", async () => {
+    it("should log maintenance with all fields", async () => {
       // Arrange
       const formData = new FormData();
       formData.append("intent", "log-maintenance");
-      formData.append("type", "routine");
-      formData.append("description", "Engine maintenance");
-      formData.append("performedBy", "Tech Smith");
-      formData.append("cost", "500.00");
-      formData.append("notes", "All systems good");
-      formData.append("nextMaintenanceDate", "2024-04-05");
-      formData.append("nextMaintenanceType", "routine");
-
+      formData.append("type", "repair");
+      formData.append("description", "Fixed engine issue");
+      formData.append("performedBy", "Marine Mechanic Co");
+      formData.append("cost", "850.00");
+      formData.append("notes", "Replaced fuel pump");
+      formData.append("nextMaintenanceDate", "2024-06-01");
+      formData.append("nextMaintenanceType", "inspection");
       const request = {
         formData: () => Promise.resolve(formData),
       } as Request;
+      (requireOrgContext as any).mockResolvedValue({
+        org: { id: "org-123" },
+        user: { id: "user-1" },
+      });
 
       const mockInsert = vi.fn().mockReturnThis();
       const mockValues = vi.fn().mockResolvedValue(undefined);
 
-      (requireOrgContext as any).mockResolvedValue({
-        org: { id: "org-123" },
-        user: { id: "user-123" },
-      });
       (getTenantDb as any).mockReturnValue({
         db: {
           insert: mockInsert,
@@ -456,38 +547,38 @@ describe("Route: tenant/boats/$id.tsx", () => {
       const result = await action({ request, params: { id: "boat-123" }, context: {} });
 
       // Assert
-      expect(mockInsert).toHaveBeenCalled();
       expect(mockValues).toHaveBeenCalledWith({
         organizationId: "org-123",
         boatId: "boat-123",
-        type: "routine",
-        description: "Engine maintenance",
-        performedBy: "Tech Smith",
-        cost: "500.00",
-        notes: "All systems good",
-        nextMaintenanceDate: "2024-04-05",
-        nextMaintenanceType: "routine",
-        createdBy: "user-123",
+        type: "repair",
+        description: "Fixed engine issue",
+        performedBy: "Marine Mechanic Co",
+        cost: "850.00",
+        notes: "Replaced fuel pump",
+        nextMaintenanceDate: "2024-06-01",
+        nextMaintenanceType: "inspection",
+        createdBy: "user-1",
       });
       expect(result).toEqual({ maintenanceLogged: true });
     });
 
-    it("should log maintenance with default values for missing fields", async () => {
+    it("should log maintenance with only required fields", async () => {
       // Arrange
       const formData = new FormData();
       formData.append("intent", "log-maintenance");
-
+      formData.append("type", "routine");
+      formData.append("description", "Oil change");
       const request = {
         formData: () => Promise.resolve(formData),
       } as Request;
+      (requireOrgContext as any).mockResolvedValue({
+        org: { id: "org-123" },
+        user: { id: "user-1" },
+      });
 
       const mockInsert = vi.fn().mockReturnThis();
       const mockValues = vi.fn().mockResolvedValue(undefined);
 
-      (requireOrgContext as any).mockResolvedValue({
-        org: { id: "org-123" },
-        user: { id: "user-123" },
-      });
       (getTenantDb as any).mockReturnValue({
         db: {
           insert: mockInsert,
@@ -506,15 +597,52 @@ describe("Route: tenant/boats/$id.tsx", () => {
         organizationId: "org-123",
         boatId: "boat-123",
         type: "routine",
-        description: "Maintenance performed",
+        description: "Oil change",
         performedBy: null,
         cost: null,
         notes: null,
         nextMaintenanceDate: null,
         nextMaintenanceType: null,
-        createdBy: "user-123",
+        createdBy: "user-1",
       });
       expect(result).toEqual({ maintenanceLogged: true });
+    });
+
+    it("should default type to routine and description when not provided", async () => {
+      // Arrange
+      const formData = new FormData();
+      formData.append("intent", "log-maintenance");
+      const request = {
+        formData: () => Promise.resolve(formData),
+      } as Request;
+      (requireOrgContext as any).mockResolvedValue({
+        org: { id: "org-123" },
+        user: { id: "user-1" },
+      });
+
+      const mockInsert = vi.fn().mockReturnThis();
+      const mockValues = vi.fn().mockResolvedValue(undefined);
+
+      (getTenantDb as any).mockReturnValue({
+        db: {
+          insert: mockInsert,
+        },
+      });
+
+      mockInsert.mockReturnValue({
+        values: mockValues,
+      });
+
+      // Act
+      const result = await action({ request, params: { id: "boat-123" }, context: {} });
+
+      // Assert
+      expect(mockValues).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "routine",
+          description: "Maintenance performed",
+        })
+      );
     });
   });
 });
