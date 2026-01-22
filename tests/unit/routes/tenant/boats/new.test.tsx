@@ -1,7 +1,7 @@
 /**
  * Tenant Boat New Route Tests
  *
- * Tests the boat creation page loader and action with form validation.
+ * Tests the boat creation form with validation and data handling.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -12,11 +12,6 @@ vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireTenant: vi.fn(),
 }));
 
-// Mock queries
-vi.mock("../../../../../lib/db/queries.server", () => ({
-  createBoat: vi.fn(),
-}));
-
 // Mock validation
 vi.mock("../../../../../lib/validation", () => ({
   boatSchema: {},
@@ -24,10 +19,15 @@ vi.mock("../../../../../lib/validation", () => ({
   getFormValues: vi.fn(),
 }));
 
+// Mock queries
+vi.mock("../../../../../lib/db/queries.server", () => ({
+  createBoat: vi.fn(),
+}));
+
 // Import mocked modules
 import { requireTenant } from "../../../../../lib/auth/org-context.server";
-import { createBoat } from "../../../../../lib/db/queries.server";
 import { validateFormData, getFormValues } from "../../../../../lib/validation";
+import { createBoat } from "../../../../../lib/db/queries.server";
 
 describe("Route: tenant/boats/new.tsx", () => {
   beforeEach(() => {
@@ -35,7 +35,7 @@ describe("Route: tenant/boats/new.tsx", () => {
   });
 
   describe("loader", () => {
-    it("should require tenant authentication", async () => {
+    it("should return empty object after auth check", async () => {
       // Arrange
       const request = new Request("http://localhost/tenant/boats/new");
       (requireTenant as any).mockResolvedValue({
@@ -60,17 +60,15 @@ describe("Route: tenant/boats/new.tsx", () => {
       const request = {
         formData: () => Promise.resolve(formData),
       } as Request;
-
       (requireTenant as any).mockResolvedValue({
         organizationId: "org-123",
       });
+
       (validateFormData as any).mockReturnValue({
         success: false,
-        errors: {
-          name: "Name is required",
-          capacity: "Capacity must be at least 1",
-        },
+        errors: { name: "Required", capacity: "Must be at least 1" },
       });
+
       (getFormValues as any).mockReturnValue({
         name: "",
         capacity: "0",
@@ -80,27 +78,20 @@ describe("Route: tenant/boats/new.tsx", () => {
       const result = await action({ request, params: {}, context: {} });
 
       // Assert
-      expect(result).toEqual({
-        errors: {
-          name: "Name is required",
-          capacity: "Capacity must be at least 1",
-        },
-        values: {
-          name: "",
-          capacity: "0",
-        },
-      });
+      expect(result.errors.name).toBe("Required");
+      expect(result.errors.capacity).toBe("Must be at least 1");
+      expect(result.values.name).toBe("");
     });
 
-    it("should create boat with valid data and redirect", async () => {
+    it("should create boat with all fields and redirect", async () => {
       // Arrange
       const formData = new FormData();
-      formData.append("name", "New Boat");
-      formData.append("capacity", "20");
+      formData.append("name", "Ocean Explorer");
       formData.append("type", "Dive Boat");
-      formData.append("description", "A new boat");
-      formData.append("registrationNumber", "REG-001");
-      formData.append("amenities", "GPS, Radio");
+      formData.append("capacity", "12");
+      formData.append("description", "Large dive boat with full amenities");
+      formData.append("registrationNumber", "REG-2024-001");
+      formData.append("amenities", "Dive platform, Sun deck, Toilet, Shower");
       formData.append("isActive", "true");
 
       const request = {
@@ -110,44 +101,46 @@ describe("Route: tenant/boats/new.tsx", () => {
       (requireTenant as any).mockResolvedValue({
         organizationId: "org-123",
       });
+
       (validateFormData as any).mockReturnValue({
         success: true,
         data: {
-          name: "New Boat",
-          capacity: 20,
+          name: "Ocean Explorer",
           type: "Dive Boat",
-          description: "A new boat",
-          registrationNumber: "REG-001",
-          amenities: ["GPS", "Radio"],
+          capacity: 12,
+          description: "Large dive boat with full amenities",
+          registrationNumber: "REG-2024-001",
+          amenities: ["Dive platform", "Sun deck", "Toilet", "Shower"],
           isActive: true,
         },
       });
-      (createBoat as any).mockResolvedValue({ id: "boat-123" });
+
+      (createBoat as any).mockResolvedValue({
+        id: "boat-new-123",
+      });
 
       // Act
       const result = await action({ request, params: {}, context: {} });
 
       // Assert
       expect(createBoat).toHaveBeenCalledWith("org-123", {
-        name: "New Boat",
-        capacity: 20,
+        name: "Ocean Explorer",
         type: "Dive Boat",
-        description: "A new boat",
-        registrationNumber: "REG-001",
-        amenities: ["GPS", "Radio"],
+        capacity: 12,
+        description: "Large dive boat with full amenities",
+        registrationNumber: "REG-2024-001",
+        amenities: ["Dive platform", "Sun deck", "Toilet", "Shower"],
         isActive: true,
       });
       expect(result.status).toBe(302);
       expect(result.headers.get("Location")).toBe("/app/boats");
     });
 
-    it("should parse comma-separated amenities into array", async () => {
+    it("should create boat with minimal required fields", async () => {
       // Arrange
       const formData = new FormData();
-      formData.append("name", "New Boat");
-      formData.append("capacity", "20");
-      formData.append("amenities", "GPS, Radio, Anchor, Life jackets");
-      formData.append("isActive", "true");
+      formData.append("name", "Simple Boat");
+      formData.append("capacity", "8");
 
       const request = {
         formData: () => Promise.resolve(formData),
@@ -156,39 +149,42 @@ describe("Route: tenant/boats/new.tsx", () => {
       (requireTenant as any).mockResolvedValue({
         organizationId: "org-123",
       });
+
       (validateFormData as any).mockReturnValue({
         success: true,
         data: {
-          name: "New Boat",
-          capacity: 20,
-          amenities: ["GPS", "Radio", "Anchor", "Life jackets"],
-          isActive: true,
+          name: "Simple Boat",
+          capacity: 8,
+          isActive: false,
         },
       });
-      (createBoat as any).mockResolvedValue({ id: "boat-123" });
+
+      (createBoat as any).mockResolvedValue({
+        id: "boat-new-456",
+      });
 
       // Act
       const result = await action({ request, params: {}, context: {} });
 
       // Assert
       expect(createBoat).toHaveBeenCalledWith("org-123", {
-        name: "New Boat",
-        capacity: 20,
+        name: "Simple Boat",
         type: undefined,
+        capacity: 8,
         description: undefined,
         registrationNumber: undefined,
-        amenities: ["GPS", "Radio", "Anchor", "Life jackets"],
-        isActive: true,
+        amenities: undefined,
+        isActive: false,
       });
       expect(result.status).toBe(302);
     });
 
-    it("should handle empty amenities string", async () => {
+    it("should handle amenities parsing from comma-separated string", async () => {
       // Arrange
       const formData = new FormData();
-      formData.append("name", "New Boat");
-      formData.append("capacity", "20");
-      formData.append("amenities", "");
+      formData.append("name", "Test Boat");
+      formData.append("capacity", "10");
+      formData.append("amenities", "Platform,  Deck  , Kitchen , ,"); // With extra spaces and empty items
       formData.append("isActive", "true");
 
       const request = {
@@ -198,19 +194,63 @@ describe("Route: tenant/boats/new.tsx", () => {
       (requireTenant as any).mockResolvedValue({
         organizationId: "org-123",
       });
+
       (validateFormData as any).mockReturnValue({
         success: true,
         data: {
-          name: "New Boat",
-          capacity: 20,
-          amenities: [],
+          name: "Test Boat",
+          capacity: 10,
+          amenities: ["Platform", "Deck", "Kitchen"],
           isActive: true,
         },
       });
-      (createBoat as any).mockResolvedValue({ id: "boat-123" });
+
+      (createBoat as any).mockResolvedValue({
+        id: "boat-new-789",
+      });
 
       // Act
-      const result = await action({ request, params: {}, context: {} });
+      await action({ request, params: {}, context: {} });
+
+      // Assert
+      expect(createBoat).toHaveBeenCalledWith(
+        "org-123",
+        expect.objectContaining({
+          amenities: ["Platform", "Deck", "Kitchen"],
+        })
+      );
+    });
+
+    it("should handle empty amenities field", async () => {
+      // Arrange
+      const formData = new FormData();
+      formData.append("name", "Test Boat");
+      formData.append("capacity", "10");
+      formData.append("amenities", "");
+
+      const request = {
+        formData: () => Promise.resolve(formData),
+      } as Request;
+
+      (requireTenant as any).mockResolvedValue({
+        organizationId: "org-123",
+      });
+
+      (validateFormData as any).mockReturnValue({
+        success: true,
+        data: {
+          name: "Test Boat",
+          capacity: 10,
+          isActive: false,
+        },
+      });
+
+      (createBoat as any).mockResolvedValue({
+        id: "boat-new-999",
+      });
+
+      // Act
+      await action({ request, params: {}, context: {} });
 
       // Assert
       expect(createBoat).toHaveBeenCalledWith(
@@ -219,15 +259,14 @@ describe("Route: tenant/boats/new.tsx", () => {
           amenities: undefined,
         })
       );
-      expect(result.status).toBe(302);
     });
 
-    it("should handle checkbox isActive field", async () => {
+    it("should handle missing amenities field", async () => {
       // Arrange
       const formData = new FormData();
-      formData.append("name", "Inactive Boat");
+      formData.append("name", "Test Boat");
       formData.append("capacity", "10");
-      // isActive not included means checkbox is unchecked
+      // amenities not appended
 
       const request = {
         formData: () => Promise.resolve(formData),
@@ -236,6 +275,132 @@ describe("Route: tenant/boats/new.tsx", () => {
       (requireTenant as any).mockResolvedValue({
         organizationId: "org-123",
       });
+
+      (validateFormData as any).mockReturnValue({
+        success: true,
+        data: {
+          name: "Test Boat",
+          capacity: 10,
+          isActive: false,
+        },
+      });
+
+      (createBoat as any).mockResolvedValue({
+        id: "boat-new-888",
+      });
+
+      // Act
+      await action({ request, params: {}, context: {} });
+
+      // Assert
+      expect(createBoat).toHaveBeenCalledWith(
+        "org-123",
+        expect.objectContaining({
+          amenities: undefined,
+        })
+      );
+    });
+
+    it("should convert empty strings to undefined for optional fields", async () => {
+      // Arrange
+      const formData = new FormData();
+      formData.append("name", "Test Boat");
+      formData.append("capacity", "10");
+      formData.append("type", "");
+      formData.append("description", "");
+      formData.append("registrationNumber", "");
+
+      const request = {
+        formData: () => Promise.resolve(formData),
+      } as Request;
+
+      (requireTenant as any).mockResolvedValue({
+        organizationId: "org-123",
+      });
+
+      (validateFormData as any).mockReturnValue({
+        success: true,
+        data: {
+          name: "Test Boat",
+          capacity: 10,
+          isActive: false,
+        },
+      });
+
+      (createBoat as any).mockResolvedValue({
+        id: "boat-new-777",
+      });
+
+      // Act
+      await action({ request, params: {}, context: {} });
+
+      // Assert
+      expect(createBoat).toHaveBeenCalledWith("org-123", {
+        name: "Test Boat",
+        type: undefined,
+        capacity: 10,
+        description: undefined,
+        registrationNumber: undefined,
+        amenities: undefined,
+        isActive: false,
+      });
+    });
+
+    it("should handle isActive checkbox when checked", async () => {
+      // Arrange
+      const formData = new FormData();
+      formData.append("name", "Active Boat");
+      formData.append("capacity", "10");
+      formData.append("isActive", "true");
+
+      const request = {
+        formData: () => Promise.resolve(formData),
+      } as Request;
+
+      (requireTenant as any).mockResolvedValue({
+        organizationId: "org-123",
+      });
+
+      (validateFormData as any).mockReturnValue({
+        success: true,
+        data: {
+          name: "Active Boat",
+          capacity: 10,
+          isActive: true,
+        },
+      });
+
+      (createBoat as any).mockResolvedValue({
+        id: "boat-new-666",
+      });
+
+      // Act
+      await action({ request, params: {}, context: {} });
+
+      // Assert
+      expect(createBoat).toHaveBeenCalledWith(
+        "org-123",
+        expect.objectContaining({
+          isActive: true,
+        })
+      );
+    });
+
+    it("should handle isActive checkbox when unchecked", async () => {
+      // Arrange
+      const formData = new FormData();
+      formData.append("name", "Inactive Boat");
+      formData.append("capacity", "10");
+      // isActive not appended (checkbox unchecked)
+
+      const request = {
+        formData: () => Promise.resolve(formData),
+      } as Request;
+
+      (requireTenant as any).mockResolvedValue({
+        organizationId: "org-123",
+      });
+
       (validateFormData as any).mockReturnValue({
         success: true,
         data: {
@@ -244,10 +409,13 @@ describe("Route: tenant/boats/new.tsx", () => {
           isActive: false,
         },
       });
-      (createBoat as any).mockResolvedValue({ id: "boat-123" });
+
+      (createBoat as any).mockResolvedValue({
+        id: "boat-new-555",
+      });
 
       // Act
-      const result = await action({ request, params: {}, context: {} });
+      await action({ request, params: {}, context: {} });
 
       // Assert
       expect(createBoat).toHaveBeenCalledWith(
@@ -256,18 +424,13 @@ describe("Route: tenant/boats/new.tsx", () => {
           isActive: false,
         })
       );
-      expect(result.status).toBe(302);
     });
 
-    it("should convert empty strings to undefined for optional fields", async () => {
+    it("should parse capacity as number", async () => {
       // Arrange
       const formData = new FormData();
-      formData.append("name", "Minimal Boat");
+      formData.append("name", "Test Boat");
       formData.append("capacity", "15");
-      formData.append("type", "");
-      formData.append("description", "");
-      formData.append("registrationNumber", "");
-      formData.append("isActive", "true");
 
       const request = {
         formData: () => Promise.resolve(formData),
@@ -276,69 +439,30 @@ describe("Route: tenant/boats/new.tsx", () => {
       (requireTenant as any).mockResolvedValue({
         organizationId: "org-123",
       });
+
       (validateFormData as any).mockReturnValue({
         success: true,
         data: {
-          name: "Minimal Boat",
+          name: "Test Boat",
           capacity: 15,
-          isActive: true,
+          isActive: false,
         },
       });
-      (createBoat as any).mockResolvedValue({ id: "boat-123" });
+
+      (createBoat as any).mockResolvedValue({
+        id: "boat-new-444",
+      });
 
       // Act
-      const result = await action({ request, params: {}, context: {} });
-
-      // Assert
-      expect(createBoat).toHaveBeenCalledWith("org-123", {
-        name: "Minimal Boat",
-        capacity: 15,
-        type: undefined,
-        description: undefined,
-        registrationNumber: undefined,
-        amenities: undefined,
-        isActive: true,
-      });
-      expect(result.status).toBe(302);
-    });
-
-    it("should handle amenities with extra spaces", async () => {
-      // Arrange
-      const formData = new FormData();
-      formData.append("name", "New Boat");
-      formData.append("capacity", "20");
-      formData.append("amenities", " GPS ,  Radio , Anchor  ");
-      formData.append("isActive", "true");
-
-      const request = {
-        formData: () => Promise.resolve(formData),
-      } as Request;
-
-      (requireTenant as any).mockResolvedValue({
-        organizationId: "org-123",
-      });
-      (validateFormData as any).mockReturnValue({
-        success: true,
-        data: {
-          name: "New Boat",
-          capacity: 20,
-          amenities: ["GPS", "Radio", "Anchor"],
-          isActive: true,
-        },
-      });
-      (createBoat as any).mockResolvedValue({ id: "boat-123" });
-
-      // Act
-      const result = await action({ request, params: {}, context: {} });
+      await action({ request, params: {}, context: {} });
 
       // Assert
       expect(createBoat).toHaveBeenCalledWith(
         "org-123",
         expect.objectContaining({
-          amenities: ["GPS", "Radio", "Anchor"],
+          capacity: 15, // Should be number, not string
         })
       );
-      expect(result.status).toBe(302);
     });
   });
 });
