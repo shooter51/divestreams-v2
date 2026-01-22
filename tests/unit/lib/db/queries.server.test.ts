@@ -70,6 +70,17 @@ vi.mock("../../../../lib/db", () => ({
 
 // Mock the schema
 const mockSchema = vi.hoisted(() => ({
+  organization: {
+    id: "id",
+    name: "name",
+    slug: "slug",
+    logo: "logo",
+    metadata: "metadata",
+    customDomain: "customDomain",
+    publicSiteSettings: "publicSiteSettings",
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
+  },
   bookings: {
     id: "id", organizationId: "organizationId", tripId: "tripId", customerId: "customerId",
     status: "status", participants: "participants", total: "total", createdAt: "createdAt",

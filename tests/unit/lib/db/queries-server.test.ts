@@ -64,6 +64,17 @@ vi.mock("../../../../lib/db/index", () => ({
 }));
 
 vi.mock("../../../../lib/db/schema", () => ({
+  organization: {
+    id: "id",
+    name: "name",
+    slug: "slug",
+    logo: "logo",
+    metadata: "metadata",
+    customDomain: "customDomain",
+    publicSiteSettings: "publicSiteSettings",
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
+  },
   bookings: {
     id: "id",
     organizationId: "organizationId",
