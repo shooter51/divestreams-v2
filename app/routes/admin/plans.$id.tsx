@@ -38,7 +38,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const yearlyPrice = Math.round(parseFloat(formData.get("yearlyPrice") as string) * 100);
   const monthlyPriceId = formData.get("monthlyPriceId") as string;
   const yearlyPriceId = formData.get("yearlyPriceId") as string;
-  const featuresRaw = formData.get("features") as string;
+  const featuresRaw = (formData.get("features") as string) || "";
   const features = featuresRaw
     .split("\n")
     .map((f) => f.trim())
