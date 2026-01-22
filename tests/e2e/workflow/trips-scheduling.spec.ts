@@ -410,8 +410,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Edit Trip Flow", () => {
-  // FIXME: Flaky test - auth redirect issue in CI - see beads issue
-  test.skip("C.1 Navigate to trip edit page", async ({ page }) => {
+  test("C.1 Navigate to trip edit page", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -424,8 +423,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     expect(page.url()).toContain("/edit");
   });
 
-  // FIXME: Flaky test - auth redirect in CI - see beads issue
-  test.skip("C.2 Edit trip form loads with existing data", async ({ page }) => {
+  test("C.2 Edit trip form loads with existing data", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -440,7 +438,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     expect(hasForm).toBeTruthy();
   });
 
-  test.skip("C.3 Edit form date field has current value", async ({ page }) => {
+  test("C.3 Edit form date field has current value", async ({ page }) => {
     // SKIPPED: Flaky test - intermittent auth/session failures in CI
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
