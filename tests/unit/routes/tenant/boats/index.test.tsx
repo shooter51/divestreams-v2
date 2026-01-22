@@ -1,7 +1,7 @@
 /**
  * Tenant Boats Index Route Tests
  *
- * Tests the boats list page loader with search, trip counts, and statistics.
+ * Tests the boats list page loader with search and statistics.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -31,138 +31,164 @@ describe("Route: tenant/boats/index.tsx", () => {
   const mockBoats = [
     {
       id: "boat-1",
-      name: "Sea Explorer",
+      name: "Ocean Explorer",
       type: "Dive Boat",
-      capacity: 20,
+      capacity: 12,
       registrationNumber: "REG-001",
-      description: "A beautiful dive boat",
-      amenities: ["GPS", "Radio", "Dive platform"],
+      description: "Large dive boat with full amenities",
+      amenities: ["Dive platform", "Sun deck", "Toilet"],
       isActive: true,
     },
     {
       id: "boat-2",
-      name: "Ocean Runner",
+      name: "Sea Breeze",
       type: "Speed Boat",
-      capacity: 15,
+      capacity: 8,
       registrationNumber: "REG-002",
-      description: "Fast speed boat",
-      amenities: ["GPS"],
+      description: "Fast boat for quick trips",
+      amenities: ["GPS", "Radio"],
       isActive: true,
     },
     {
       id: "boat-3",
-      name: "Wave Rider",
+      name: "Island Hopper",
       type: "Catamaran",
-      capacity: 30,
-      registrationNumber: "REG-003",
-      description: "Large catamaran",
-      amenities: [],
+      capacity: 20,
+      registrationNumber: null,
+      description: null,
+      amenities: null,
       isActive: false,
     },
   ];
 
   const mockTripCounts = [
-    { boatId: "boat-1", count: 10 },
-    { boatId: "boat-2", count: 5 },
+    { boatId: "boat-1", count: 5 },
+    { boatId: "boat-2", count: 3 },
   ];
 
   describe("loader", () => {
-    it("should load boats list without search", async () => {
+    it("should load all boats with trip counts and statistics", async () => {
       // Arrange
       const request = new Request("http://localhost/tenant/boats");
       (requireOrgContext as any).mockResolvedValue({
         org: { id: "org-123" },
-        isPremium: false,
+        isPremium: true,
       });
 
-      let selectCallCount = 0;
-      (db.select as any).mockImplementation(() => {
-        selectCallCount++;
+      const mockSelectBoats = vi.fn();
+      const mockSelectTrips = vi.fn();
 
-        const mockFrom = vi.fn();
-        const mockWhere = vi.fn();
-        const mockGroupBy = vi.fn();
-
-        if (selectCallCount === 1) {
-          // First call: boats query
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockResolvedValue(mockBoats);
-        } else if (selectCallCount === 2) {
-          // Second call: trip counts query
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ groupBy: mockGroupBy });
-          mockGroupBy.mockResolvedValue(mockTripCounts);
-        }
-
-        return { from: mockFrom };
-      });
+      (db.select as any)
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(mockBoats),
+          }),
+        })
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockTripCounts),
+            }),
+          }),
+        });
 
       // Act
       const result = await loader({ request, params: {}, context: {} });
 
       // Assert
       expect(result.boats).toHaveLength(3);
-      expect(result.boats[0]).toEqual({
-        id: "boat-1",
-        name: "Sea Explorer",
-        type: "Dive Boat",
-        capacity: 20,
-        registrationNumber: "REG-001",
-        description: "A beautiful dive boat",
-        amenities: ["GPS", "Radio", "Dive platform"],
-        isActive: true,
-        tripCount: 10,
-      });
-      expect(result.boats[1].tripCount).toBe(5);
-      expect(result.boats[2].tripCount).toBe(0); // No trips
-
       expect(result.total).toBe(3);
-      expect(result.activeCount).toBe(2);
-      expect(result.totalCapacity).toBe(35); // 20 + 15 (only active boats)
+      expect(result.activeCount).toBe(2); // Only boat-1 and boat-2
+      expect(result.totalCapacity).toBe(20); // 12 + 8 (only active boats)
       expect(result.search).toBe("");
-      expect(result.isPremium).toBe(false);
+      expect(result.isPremium).toBe(true);
+
+      // Verify boat data with trip counts
+      expect(result.boats[0].id).toBe("boat-1");
+      expect(result.boats[0].tripCount).toBe(5);
+      expect(result.boats[1].tripCount).toBe(3);
+      expect(result.boats[2].tripCount).toBe(0); // No trips
     });
 
-    it("should load boats list with search query", async () => {
+    it("should filter boats by search query", async () => {
       // Arrange
-      const request = new Request("http://localhost/tenant/boats?q=Explorer");
+      const request = new Request("http://localhost/tenant/boats?q=explorer");
       (requireOrgContext as any).mockResolvedValue({
         org: { id: "org-123" },
-        isPremium: true,
+        isPremium: false,
       });
 
-      const filteredBoats = [mockBoats[0]]; // Only Sea Explorer
+      const filteredBoats = [mockBoats[0]]; // Only Ocean Explorer
 
-      let selectCallCount = 0;
-      (db.select as any).mockImplementation(() => {
-        selectCallCount++;
-
-        const mockFrom = vi.fn();
-        const mockWhere = vi.fn();
-        const mockGroupBy = vi.fn();
-
-        if (selectCallCount === 1) {
-          // First call: boats query with search
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockResolvedValue(filteredBoats);
-        } else if (selectCallCount === 2) {
-          // Second call: trip counts query
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ groupBy: mockGroupBy });
-          mockGroupBy.mockResolvedValue(mockTripCounts);
-        }
-
-        return { from: mockFrom };
-      });
+      (db.select as any)
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(filteredBoats),
+          }),
+        })
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockTripCounts),
+            }),
+          }),
+        });
 
       // Act
       const result = await loader({ request, params: {}, context: {} });
 
       // Assert
       expect(result.boats).toHaveLength(1);
-      expect(result.boats[0].name).toBe("Sea Explorer");
-      expect(result.search).toBe("Explorer");
-      expect(result.isPremium).toBe(true);
+      expect(result.boats[0].name).toBe("Ocean Explorer");
+      expect(result.search).toBe("explorer");
+      expect(result.total).toBe(1);
+    });
+
+    it("should handle null/undefined optional fields with defaults", async () => {
+      // Arrange
+      const request = new Request("http://localhost/tenant/boats");
+      (requireOrgContext as any).mockResolvedValue({
+        org: { id: "org-123" },
+        isPremium: true,
+      });
+
+      const boatWithNulls = [
+        {
+          id: "boat-1",
+          name: "Simple Boat",
+          type: null,
+          capacity: null,
+          registrationNumber: null,
+          description: null,
+          amenities: null,
+          isActive: null,
+        },
+      ];
+
+      (db.select as any)
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(boatWithNulls),
+          }),
+        })
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue([]),
+            }),
+          }),
+        });
+
+      // Act
+      const result = await loader({ request, params: {}, context: {} });
+
+      // Assert
+      expect(result.boats[0].type).toBe("Dive Boat"); // Default
+      expect(result.boats[0].capacity).toBe(0); // Default
+      expect(result.boats[0].registrationNumber).toBe(""); // Default
+      expect(result.boats[0].description).toBe(""); // Default
+      expect(result.boats[0].amenities).toEqual([]); // Default
+      expect(result.boats[0].isActive).toBe(true); // Default
     });
 
     it("should handle empty boats list", async () => {
@@ -173,25 +199,19 @@ describe("Route: tenant/boats/index.tsx", () => {
         isPremium: false,
       });
 
-      let selectCallCount = 0;
-      (db.select as any).mockImplementation(() => {
-        selectCallCount++;
-
-        const mockFrom = vi.fn();
-        const mockWhere = vi.fn();
-        const mockGroupBy = vi.fn();
-
-        if (selectCallCount === 1) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockResolvedValue([]);
-        } else if (selectCallCount === 2) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ groupBy: mockGroupBy });
-          mockGroupBy.mockResolvedValue([]);
-        }
-
-        return { from: mockFrom };
-      });
+      (db.select as any)
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        })
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue([]),
+            }),
+          }),
+        });
 
       // Act
       const result = await loader({ request, params: {}, context: {} });
@@ -203,183 +223,144 @@ describe("Route: tenant/boats/index.tsx", () => {
       expect(result.totalCapacity).toBe(0);
     });
 
-    it("should handle null/default values", async () => {
+    it("should calculate statistics correctly with mixed active/inactive boats", async () => {
       // Arrange
       const request = new Request("http://localhost/tenant/boats");
       (requireOrgContext as any).mockResolvedValue({
         org: { id: "org-123" },
-        isPremium: false,
+        isPremium: true,
       });
 
-      const boatsWithNulls = [
+      (db.select as any)
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(mockBoats),
+          }),
+        })
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockTripCounts),
+            }),
+          }),
+        });
+
+      // Act
+      const result = await loader({ request, params: {}, context: {} });
+
+      // Assert
+      // totalCapacity should only count active boats (boat-1: 12, boat-2: 8)
+      expect(result.totalCapacity).toBe(20);
+      // activeCount should be 2 (boat-1, boat-2)
+      expect(result.activeCount).toBe(2);
+      // total should include all boats
+      expect(result.total).toBe(3);
+    });
+
+    it("should handle non-array amenities", async () => {
+      // Arrange
+      const request = new Request("http://localhost/tenant/boats");
+      (requireOrgContext as any).mockResolvedValue({
+        org: { id: "org-123" },
+        isPremium: true,
+      });
+
+      const boatsWithInvalidAmenities = [
         {
           id: "boat-1",
           name: "Test Boat",
-          type: null,
-          capacity: null,
-          registrationNumber: null,
-          description: null,
-          amenities: null,
-          isActive: null,
+          type: "Dive Boat",
+          capacity: 10,
+          registrationNumber: "REG-001",
+          description: "Test",
+          amenities: "invalid", // Not an array
+          isActive: true,
         },
       ];
 
-      let selectCallCount = 0;
-      (db.select as any).mockImplementation(() => {
-        selectCallCount++;
-
-        const mockFrom = vi.fn();
-        const mockWhere = vi.fn();
-        const mockGroupBy = vi.fn();
-
-        if (selectCallCount === 1) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockResolvedValue(boatsWithNulls);
-        } else if (selectCallCount === 2) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ groupBy: mockGroupBy });
-          mockGroupBy.mockResolvedValue([]);
-        }
-
-        return { from: mockFrom };
-      });
-
-      // Act
-      const result = await loader({ request, params: {}, context: {} });
-
-      // Assert
-      expect(result.boats[0]).toEqual({
-        id: "boat-1",
-        name: "Test Boat",
-        type: "Dive Boat",
-        capacity: 0,
-        registrationNumber: "",
-        description: "",
-        amenities: [],
-        isActive: true,
-        tripCount: 0,
-      });
-    });
-
-    it("should calculate statistics correctly", async () => {
-      // Arrange
-      const request = new Request("http://localhost/tenant/boats");
-      (requireOrgContext as any).mockResolvedValue({
-        org: { id: "org-123" },
-        isPremium: false,
-      });
-
-      let selectCallCount = 0;
-      (db.select as any).mockImplementation(() => {
-        selectCallCount++;
-
-        const mockFrom = vi.fn();
-        const mockWhere = vi.fn();
-        const mockGroupBy = vi.fn();
-
-        if (selectCallCount === 1) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockResolvedValue(mockBoats);
-        } else if (selectCallCount === 2) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ groupBy: mockGroupBy });
-          mockGroupBy.mockResolvedValue(mockTripCounts);
-        }
-
-        return { from: mockFrom };
-      });
-
-      // Act
-      const result = await loader({ request, params: {}, context: {} });
-
-      // Assert
-      // Total boats: 3
-      expect(result.total).toBe(3);
-
-      // Active boats: 2 (boat-1 and boat-2)
-      expect(result.activeCount).toBe(2);
-
-      // Total capacity: 35 (20 + 15, only active boats)
-      expect(result.totalCapacity).toBe(35);
-    });
-
-    it("should map trip counts to boats correctly", async () => {
-      // Arrange
-      const request = new Request("http://localhost/tenant/boats");
-      (requireOrgContext as any).mockResolvedValue({
-        org: { id: "org-123" },
-        isPremium: false,
-      });
-
-      let selectCallCount = 0;
-      (db.select as any).mockImplementation(() => {
-        selectCallCount++;
-
-        const mockFrom = vi.fn();
-        const mockWhere = vi.fn();
-        const mockGroupBy = vi.fn();
-
-        if (selectCallCount === 1) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockResolvedValue(mockBoats);
-        } else if (selectCallCount === 2) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ groupBy: mockGroupBy });
-          mockGroupBy.mockResolvedValue(mockTripCounts);
-        }
-
-        return { from: mockFrom };
-      });
-
-      // Act
-      const result = await loader({ request, params: {}, context: {} });
-
-      // Assert
-      expect(result.boats[0].tripCount).toBe(10);
-      expect(result.boats[1].tripCount).toBe(5);
-      expect(result.boats[2].tripCount).toBe(0); // No trip count for this boat
-    });
-
-    it("should handle non-array amenities field", async () => {
-      // Arrange
-      const request = new Request("http://localhost/tenant/boats");
-      (requireOrgContext as any).mockResolvedValue({
-        org: { id: "org-123" },
-        isPremium: false,
-      });
-
-      const boatsWithStringAmenities = [
-        {
-          ...mockBoats[0],
-          amenities: "GPS, Radio" as any, // Invalid: string instead of array
-        },
-      ];
-
-      let selectCallCount = 0;
-      (db.select as any).mockImplementation(() => {
-        selectCallCount++;
-
-        const mockFrom = vi.fn();
-        const mockWhere = vi.fn();
-        const mockGroupBy = vi.fn();
-
-        if (selectCallCount === 1) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockResolvedValue(boatsWithStringAmenities);
-        } else if (selectCallCount === 2) {
-          mockFrom.mockReturnValue({ where: mockWhere });
-          mockWhere.mockReturnValue({ groupBy: mockGroupBy });
-          mockGroupBy.mockResolvedValue([]);
-        }
-
-        return { from: mockFrom };
-      });
+      (db.select as any)
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(boatsWithInvalidAmenities),
+          }),
+        })
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue([]),
+            }),
+          }),
+        });
 
       // Act
       const result = await loader({ request, params: {}, context: {} });
 
       // Assert
       expect(result.boats[0].amenities).toEqual([]);
+    });
+
+    it("should handle empty search query", async () => {
+      // Arrange
+      const request = new Request("http://localhost/tenant/boats?q=");
+      (requireOrgContext as any).mockResolvedValue({
+        org: { id: "org-123" },
+        isPremium: true,
+      });
+
+      (db.select as any)
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(mockBoats),
+          }),
+        })
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockTripCounts),
+            }),
+          }),
+        });
+
+      // Act
+      const result = await loader({ request, params: {}, context: {} });
+
+      // Assert
+      expect(result.search).toBe("");
+      expect(result.boats).toHaveLength(3);
+    });
+
+    it("should map trip counts to correct boats", async () => {
+      // Arrange
+      const request = new Request("http://localhost/tenant/boats");
+      (requireOrgContext as any).mockResolvedValue({
+        org: { id: "org-123" },
+        isPremium: true,
+      });
+
+      (db.select as any)
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(mockBoats),
+          }),
+        })
+        .mockReturnValueOnce({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              groupBy: vi.fn().mockResolvedValue(mockTripCounts),
+            }),
+          }),
+        });
+
+      // Act
+      const result = await loader({ request, params: {}, context: {} });
+
+      // Assert
+      expect(result.boats[0].id).toBe("boat-1");
+      expect(result.boats[0].tripCount).toBe(5);
+      expect(result.boats[1].id).toBe("boat-2");
+      expect(result.boats[1].tripCount).toBe(3);
+      expect(result.boats[2].id).toBe("boat-3");
+      expect(result.boats[2].tripCount).toBe(0); // No trips for boat-3
     });
   });
 });
