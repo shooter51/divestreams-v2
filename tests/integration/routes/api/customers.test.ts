@@ -99,14 +99,14 @@ describe("Customer API Routes", () => {
     it("should filter customers by search query", async () => {
       const { sql } = getDb();
 
-      await sql`INSERT INTO customers (organization_id, first_name, last_name, email) VALUES ('test-org', ('Alice', 'Anderson', 'alice@test.com')`;
-      await sql`INSERT INTO customers (organization_id, first_name, last_name, email) VALUES ('test-org', ('Bob', 'Brown', 'bob@test.com')`;
-      await sql`INSERT INTO customers (organization_id, first_name, last_name, email) VALUES ('test-org', ('Charlie', 'Chen', 'charlie@test.com')`;
+      await sql`INSERT INTO customers (organization_id, first_name, last_name, email) VALUES ('test-org', 'Alice', 'Anderson', 'alice@test.com')`;
+      await sql`INSERT INTO customers (organization_id, first_name, last_name, email) VALUES ('test-org', 'Bob', 'Brown', 'bob@test.com')`;
+      await sql`INSERT INTO customers (organization_id, first_name, last_name, email) VALUES ('test-org', 'Charlie', 'Chen', 'charlie@test.com')`;
 
       // Search by first name
       const searchResults = await sql`
         SELECT * FROM customers
-        WHERE first_name ILIKE ${"% Alice%"} OR last_name ILIKE ${"% Alice%"}
+        WHERE first_name ILIKE ${"%Alice%"} OR last_name ILIKE ${"%Alice%"}
       `;
 
       expect(searchResults).toHaveLength(1);
@@ -136,7 +136,7 @@ describe("Customer API Routes", () => {
     it("should return 404 for non-existent customer", async () => {
       const { sql } = getDb();
 
-      const customer = await sql`SELECT * FROM customers WHERE id = 99999`;
+      const customer = await sql`SELECT * FROM customers WHERE id = '00000000-0000-0000-0000-000000000000'::uuid`;
       expect(customer).toHaveLength(0);
     });
 
@@ -156,7 +156,7 @@ describe("Customer API Routes", () => {
       const customer = await sql`SELECT * FROM customers WHERE email = 'cert@test.com'`;
 
       expect(customer[0].certifications).toBeDefined();
-      const certs = JSON.parse(customer[0].certifications);
+      const certs = customer[0].certifications;
       expect(certs).toHaveLength(2);
       expect(certs[0].agency).toBe("PADI");
     });
@@ -174,7 +174,7 @@ describe("Customer API Routes", () => {
 
       await sql`
         INSERT INTO customers (organization_id, first_name, last_name, email)
-        VALUES (${newCustomer.firstName}, ${newCustomer.lastName}, ${newCustomer.email})
+        VALUES ('test-org', ${newCustomer.firstName}, ${newCustomer.lastName}, ${newCustomer.email})
       `;
 
       const created = await sql`SELECT * FROM customers WHERE email = 'new@test.com'`;
@@ -241,7 +241,7 @@ describe("Customer API Routes", () => {
 
       await sql`
         INSERT INTO customers (organization_id, first_name, last_name, email)
-        VALUES ('First', 'Customer', 'duplicate@test.com')
+        VALUES ('test-org', 'First', 'Customer', 'duplicate@test.com')
       `;
 
       // Try to create another with same email
@@ -249,7 +249,7 @@ describe("Customer API Routes", () => {
       // If unique constraint exists, it should throw
       await sql`
         INSERT INTO customers (organization_id, first_name, last_name, email)
-        VALUES ('Second', 'Customer', 'duplicate@test.com')
+        VALUES ('test-org', 'Second', 'Customer', 'duplicate@test.com')
       `;
 
       const customers = await sql`SELECT * FROM customers WHERE email = 'duplicate@test.com'`;
@@ -288,7 +288,7 @@ describe("Customer API Routes", () => {
 
       await sql`
         INSERT INTO customers (organization_id, first_name, last_name, email)
-        VALUES ('Cert', 'Update', 'certupdate@test.com')
+        VALUES ('test-org', 'Cert', 'Update', 'certupdate@test.com')
       `;
 
       const customer = await sql`SELECT id FROM customers WHERE email = 'certupdate@test.com'`;
@@ -305,7 +305,7 @@ describe("Customer API Routes", () => {
       `;
 
       const updated = await sql`SELECT certifications FROM customers WHERE id = ${customerId}`;
-      const certs = JSON.parse(updated[0].certifications);
+      const certs = updated[0].certifications;
 
       expect(certs).toHaveLength(1);
       expect(certs[0].level).toBe("Rescue Diver");
@@ -317,7 +317,7 @@ describe("Customer API Routes", () => {
       const result = await sql`
         UPDATE customers
         SET first_name = 'Not Found'
-        WHERE id = 99999
+        WHERE id = '00000000-0000-0000-0000-000000000000'::uuid
       `;
 
       // No rows affected
@@ -331,7 +331,7 @@ describe("Customer API Routes", () => {
 
       await sql`
         INSERT INTO customers (organization_id, first_name, last_name, email)
-        VALUES ('Delete', 'Me', 'delete@test.com')
+        VALUES ('test-org', 'Delete', 'Me', 'delete@test.com')
       `;
 
       const customer = await sql`SELECT id FROM customers WHERE email = 'delete@test.com'`;
@@ -353,7 +353,7 @@ describe("Customer API Routes", () => {
       const { sql } = getDb();
 
       // Create customer
-      await sql`INSERT INTO customers (organization_id, first_name, last_name, email) VALUES ('test-org', ('Cascade', 'Delete', 'cascade@test.com')`;
+      await sql`INSERT INTO customers (organization_id, first_name, last_name, email) VALUES ('test-org', 'Cascade', 'Delete', 'cascade@test.com')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
@@ -375,8 +375,8 @@ describe("Customer API Routes", () => {
 
       // Create booking
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK-CASCADE', ${customerId}, ${tripId}, 2, 200.00, 'confirmed')
+        INSERT INTO bookings (organization_id, booking_number, customer_id, trip_id, participants, total, status)
+        VALUES ('test-org', 'BK-CASCADE', ${customerId}, ${tripId}, 2, 200.00, 'confirmed')
       `;
 
       // Verify booking exists
