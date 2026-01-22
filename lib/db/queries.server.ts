@@ -318,12 +318,41 @@ export async function updateCustomer(organizationId: string, id: string, data: P
 }
 
 export async function deleteCustomer(organizationId: string, id: string) {
+  // Delete related records first to avoid foreign key constraint violations
+  // Note: customerCommunications has onDelete: cascade, so it will be deleted automatically
+
+  // Delete rentals
+  await db
+    .delete(schema.rentals)
+    .where(and(
+      eq(schema.rentals.organizationId, organizationId),
+      eq(schema.rentals.customerId, id)
+    ));
+
+  // Delete transactions
+  await db
+    .delete(schema.transactions)
+    .where(and(
+      eq(schema.transactions.organizationId, organizationId),
+      eq(schema.transactions.customerId, id)
+    ));
+
+  // Delete bookings
+  await db
+    .delete(schema.bookings)
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      eq(schema.bookings.customerId, id)
+    ));
+
+  // Finally delete the customer
   await db
     .delete(schema.customers)
     .where(and(
       eq(schema.customers.organizationId, organizationId),
       eq(schema.customers.id, id)
     ));
+
   return true;
 }
 
@@ -448,9 +477,17 @@ export async function updateTourActiveStatus(organizationId: string, id: string,
 }
 
 export async function deleteTour(organizationId: string, id: string) {
+  // Delete related trips first to avoid foreign key constraint violations
   await db
-    .update(schema.tours)
-    .set({ isActive: false, updatedAt: new Date() })
+    .delete(schema.trips)
+    .where(and(
+      eq(schema.trips.organizationId, organizationId),
+      eq(schema.trips.tourId, id)
+    ));
+
+  // Now delete the tour
+  await db
+    .delete(schema.tours)
     .where(and(
       eq(schema.tours.organizationId, organizationId),
       eq(schema.tours.id, id)
@@ -1064,9 +1101,9 @@ export async function updateDiveSiteActiveStatus(organizationId: string, id: str
 }
 
 export async function deleteDiveSite(organizationId: string, id: string) {
+  // Actually delete the dive site instead of just deactivating
   await db
-    .update(schema.diveSites)
-    .set({ isActive: false, updatedAt: new Date() })
+    .delete(schema.diveSites)
     .where(and(
       eq(schema.diveSites.organizationId, organizationId),
       eq(schema.diveSites.id, id)
@@ -1589,9 +1626,9 @@ export async function updateBoatActiveStatus(organizationId: string, id: string,
 }
 
 export async function deleteBoat(organizationId: string, id: string) {
+  // Actually delete the boat instead of just deactivating
   await db
-    .update(schema.boats)
-    .set({ isActive: false, updatedAt: new Date() })
+    .delete(schema.boats)
     .where(and(
       eq(schema.boats.organizationId, organizationId),
       eq(schema.boats.id, id)

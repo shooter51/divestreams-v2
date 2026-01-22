@@ -184,7 +184,7 @@ export default function PublicSiteGeneralSettings() {
                     type="checkbox"
                     name={`page-${page.id}`}
                     value="true"
-                    defaultChecked={settings.pages[page.id as keyof typeof settings.pages]}
+                    defaultChecked={settings?.pages?.[page.id as keyof typeof settings.pages] ?? false}
                     disabled={page.premium && !isPremium}
                     className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                   />
