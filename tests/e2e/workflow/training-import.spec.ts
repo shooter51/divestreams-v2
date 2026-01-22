@@ -50,9 +50,14 @@ test.describe("Training Import Wizard", () => {
     const agencyDropdown = page.locator('select[name="agencyId"]');
     expect(await agencyDropdown.isVisible()).toBeTruthy();
 
-    // Verify help text
-    const helpText = page.locator('text=/Don\'t see your agency/i');
-    expect(await helpText.isVisible()).toBeTruthy();
+    // Should have at least the placeholder option (and possibly agencies from seed data)
+    const options = agencyDropdown.locator('option');
+    const optionCount = await options.count();
+    expect(optionCount).toBeGreaterThanOrEqual(1); // At least the placeholder
+
+    // First option should be the placeholder
+    const firstOption = await options.first().textContent();
+    expect(firstOption?.toLowerCase()).toContain('select');
 
     // Verify next button exists
     const nextButton = page.getByRole("button", { name: /next.*select courses/i });

@@ -1,4 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
+import * as dotenv from "dotenv";
+
+// Load .env file before config is evaluated
+dotenv.config();
 
 const collectCoverage = process.env.E2E_COVERAGE === "true";
 
@@ -17,8 +21,10 @@ export default defineConfig({
   expect: {
     timeout: 10000,
   },
-  // Global setup/teardown for coverage
-  globalSetup: collectCoverage ? "./tests/e2e/coverage/global-setup.ts" : undefined,
+  // Global setup/teardown for coverage and environment
+  globalSetup: collectCoverage
+    ? "./tests/e2e/coverage/global-setup.ts"
+    : "./tests/e2e/global-setup.ts",
   globalTeardown: collectCoverage ? "./tests/e2e/coverage/global-teardown.ts" : undefined,
   use: {
     baseURL: process.env.BASE_URL || "http://localhost:5173",
