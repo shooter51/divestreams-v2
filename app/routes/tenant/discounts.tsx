@@ -4,7 +4,7 @@
  * Create and manage discount codes that can be applied to bookings.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
@@ -240,6 +240,14 @@ export default function DiscountsPage() {
 
   const isSubmitting = fetcher.state === "submitting";
   const fetcherData = fetcher.data as { success?: boolean; message?: string; error?: string } | undefined;
+
+  // Close modal on successful create/update/delete
+  useEffect(() => {
+    if (fetcherData?.success) {
+      setShowForm(false);
+      setEditingDiscount(null);
+    }
+  }, [fetcherData?.success]);
 
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {
@@ -638,10 +646,8 @@ export default function DiscountsPage() {
                         onClick={(e) => {
                           if (!confirm("Delete this discount code? This cannot be undone.")) {
                             e.preventDefault();
-                          } else {
-                            setShowForm(false);
-                            setEditingDiscount(null);
                           }
+                          // Don't close modal here - let useEffect handle it after success
                         }}
                         className="w-full py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
                       >
