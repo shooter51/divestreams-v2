@@ -1,0 +1,156 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://divestreams.com/schemas/agency-catalog.schema.json",
+  "title": "Agency Course Catalog",
+  "description": "Static JSON catalog of training courses from certification agencies (PADI, SSI, etc.). This is source data that gets transformed into agency_course_templates database records.",
+  "type": "object",
+  "required": ["agency", "agencyName", "version", "lastUpdated", "courses"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "_comment": {
+      "type": "string",
+      "description": "Human-readable comment about this catalog file"
+    },
+    "_note": {
+      "type": "string",
+      "description": "Detailed notes about data transformation and usage"
+    },
+    "agency": {
+      "type": "string",
+      "description": "Agency code (matches certification_agencies.code)",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "examples": ["padi", "ssi", "naui", "sdi-tdi", "gue"]
+    },
+    "agencyName": {
+      "type": "string",
+      "description": "Full agency name",
+      "examples": ["Professional Association of Diving Instructors", "Scuba Schools International"]
+    },
+    "version": {
+      "type": "string",
+      "description": "Catalog version (YYYY.N format)",
+      "pattern": "^\\d{4}\\.\\d+$",
+      "examples": ["2026.1", "2026.2"]
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date (ISO 8601 format)"
+    },
+    "courses": {
+      "type": "array",
+      "description": "Array of course definitions",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/course"
+      }
+    }
+  },
+  "definitions": {
+    "course": {
+      "type": "object",
+      "required": ["name", "code", "levelCode", "durationDays"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Course name",
+          "minLength": 1,
+          "maxLength": 200,
+          "examples": ["Open Water Diver", "Advanced Open Water Diver"]
+        },
+        "code": {
+          "type": "string",
+          "description": "Course code (agency-specific)",
+          "minLength": 1,
+          "maxLength": 50,
+          "examples": ["OWD", "AOWD", "RD", "DM"]
+        },
+        "levelCode": {
+          "type": "string",
+          "description": "Certification level code (maps to certification_levels)",
+          "enum": ["beginner", "advanced", "professional", "specialty", "instructor"],
+          "examples": ["beginner", "advanced", "professional"]
+        },
+        "description": {
+          "type": ["string", "null"],
+          "description": "Course description (HTML allowed)",
+          "maxLength": 5000
+        },
+        "images": {
+          "type": "array",
+          "description": "Course image URLs",
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "durationDays": {
+          "type": "integer",
+          "description": "Course duration in days",
+          "minimum": 1,
+          "maximum": 365,
+          "examples": [3, 2, 7]
+        },
+        "classroomHours": {
+          "type": "integer",
+          "description": "Classroom/theory hours",
+          "minimum": 0,
+          "maximum": 1000,
+          "default": 0
+        },
+        "poolHours": {
+          "type": "integer",
+          "description": "Confined water (pool) hours",
+          "minimum": 0,
+          "maximum": 1000,
+          "default": 0
+        },
+        "openWaterDives": {
+          "type": "integer",
+          "description": "Number of open water dives",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 0
+        },
+        "prerequisites": {
+          "type": ["string", "null"],
+          "description": "Course prerequisites",
+          "maxLength": 2000,
+          "examples": ["PADI Open Water Diver or equivalent", null]
+        },
+        "minAge": {
+          "type": ["integer", "null"],
+          "description": "Minimum age requirement",
+          "minimum": 0,
+          "maximum": 99,
+          "examples": [10, 12, 15, 18]
+        },
+        "medicalRequirements": {
+          "type": ["string", "null"],
+          "description": "Medical clearance requirements",
+          "maxLength": 1000,
+          "examples": ["PADI Medical Statement required", "Physician approval required if over 45"]
+        },
+        "requiredItems": {
+          "type": "array",
+          "description": "Required equipment/materials",
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "examples": [["Mask, fins, and snorkel", "Dive computer", "Wetsuit"]]
+        },
+        "materialsIncluded": {
+          "type": "boolean",
+          "description": "Whether course materials are included in standard pricing",
+          "default": true
+        }
+      }
+    }
+  }
+}

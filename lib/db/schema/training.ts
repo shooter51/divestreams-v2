@@ -75,6 +75,50 @@ export const certificationLevels = pgTable(
 );
 
 // ============================================================================
+// AGENCY COURSE TEMPLATES (Import from certification agencies)
+// ============================================================================
+
+export const agencyCourseTemplates = pgTable(
+  "agency_course_templates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    agencyId: uuid("agency_id").references(() => certificationAgencies.id, { onDelete: "cascade" }),
+    levelId: uuid("level_id").references(() => certificationLevels.id, { onDelete: "set null" }),
+
+    // Agency-controlled fields
+    name: text("name").notNull(),
+    code: text("code"),
+    description: text("description"),
+    images: jsonb("images").$type<string[]>(),
+
+    durationDays: integer("duration_days").notNull().default(1),
+    classroomHours: integer("classroom_hours").default(0),
+    poolHours: integer("pool_hours").default(0),
+    openWaterDives: integer("open_water_dives").default(0),
+
+    prerequisites: text("prerequisites"),
+    minAge: integer("min_age"),
+    medicalRequirements: text("medical_requirements"),
+    requiredItems: jsonb("required_items").$type<string[]>(),
+    materialsIncluded: boolean("materials_included").default(true),
+
+    // Tracking
+    contentHash: text("content_hash").notNull(),
+    sourceType: text("source_type").notNull(), // 'api', 'static_json', 'manual'
+    sourceUrl: text("source_url"),
+    lastSyncedAt: timestamp("last_synced_at"),
+
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    agencyIdx: index("idx_agency_templates_agency").on(table.agencyId),
+    hashIdx: index("idx_agency_templates_hash").on(table.contentHash),
+    uniqueCode: uniqueIndex("idx_agency_templates_code").on(table.agencyId, table.code),
+  })
+);
+
+// ============================================================================
 // TRAINING COURSES
 // ============================================================================
 
@@ -91,6 +135,8 @@ export const trainingCourses = pgTable(
     levelId: uuid("level_id").references(() => certificationLevels.id, {
       onDelete: "set null",
     }),
+    templateId: uuid("template_id").references(() => agencyCourseTemplates.id, { onDelete: "set null" }),
+    templateHash: text("template_hash"),
     name: text("name").notNull(),
     code: text("code"), // Course code for reference
     description: text("description"),
@@ -136,6 +182,7 @@ export const trainingCourses = pgTable(
     index("training_courses_org_idx").on(table.organizationId),
     index("training_courses_agency_idx").on(table.agencyId),
     index("training_courses_level_idx").on(table.levelId),
+    index("training_courses_template_idx").on(table.templateId),
     index("training_courses_public_idx").on(table.organizationId, table.isPublic),
   ]
 );
@@ -284,6 +331,21 @@ export const certificationLevelsRelations = relations(
   })
 );
 
+export const agencyCourseTemplatesRelations = relations(
+  agencyCourseTemplates,
+  ({ one, many }) => ({
+    agency: one(certificationAgencies, {
+      fields: [agencyCourseTemplates.agencyId],
+      references: [certificationAgencies.id],
+    }),
+    level: one(certificationLevels, {
+      fields: [agencyCourseTemplates.levelId],
+      references: [certificationLevels.id],
+    }),
+    tenantCourses: many(trainingCourses),
+  })
+);
+
 export const trainingCoursesRelations = relations(
   trainingCourses,
   ({ one, many }) => ({
@@ -298,6 +360,10 @@ export const trainingCoursesRelations = relations(
     level: one(certificationLevels, {
       fields: [trainingCourses.levelId],
       references: [certificationLevels.id],
+    }),
+    template: one(agencyCourseTemplates, {
+      fields: [trainingCourses.templateId],
+      references: [agencyCourseTemplates.id],
     }),
     requiredLevel: one(certificationLevels, {
       fields: [trainingCourses.requiredCertLevel],
