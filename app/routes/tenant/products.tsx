@@ -2,7 +2,7 @@
  * Products Management (Inventory for POS)
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Form } from "react-router";
 import { requireTenant } from "../../../lib/auth/org-context.server";
@@ -422,6 +422,21 @@ export default function ProductsPage() {
 
   const isSubmitting = fetcher.state === "submitting";
 
+  const fetcherData = fetcher.data as {
+    success?: boolean;
+    message?: string;
+    error?: string;
+    importResult?: { successCount: number; errorCount: number; errors: string[] };
+  } | undefined;
+
+  // Close modal on successful create/update/delete
+  useEffect(() => {
+    if (fetcherData?.success) {
+      setShowForm(false);
+      setEditingProduct(null);
+    }
+  }, [fetcherData?.success]);
+
   // Toggle product selection
   const toggleProductSelection = (productId: string) => {
     const newSelected = new Set(selectedProducts);
@@ -523,14 +538,6 @@ export default function ProductsPage() {
       fileInputRef.current.value = "";
     }
   };
-
-  // Check for import result in fetcher data
-  const fetcherData = fetcher.data as {
-    success?: boolean;
-    message?: string;
-    error?: string;
-    importResult?: { successCount: number; errorCount: number; errors: string[] };
-  } | undefined;
 
   // Update import result when fetcher completes
   if (fetcherData?.importResult && fetcherData.importResult !== importResult) {
@@ -1005,10 +1012,8 @@ export default function ProductsPage() {
                         onClick={(e) => {
                           if (!confirm("Delete this product?")) {
                             e.preventDefault();
-                          } else {
-                            setShowForm(false);
-                            setEditingProduct(null);
                           }
+                          // Don't close modal here - let useEffect handle it after success
                         }}
                         className="w-full py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
                       >

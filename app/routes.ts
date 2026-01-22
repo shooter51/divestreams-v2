@@ -86,6 +86,11 @@ export default [
       // Discount Codes
       route("discounts", "routes/tenant/discounts.tsx"),
 
+      // Gallery
+      route("gallery", "routes/tenant/gallery/index.tsx"),
+      route("gallery/new", "routes/tenant/gallery/new.tsx"),
+      route("gallery/:id", "routes/tenant/gallery/$id.tsx"),
+
       // Training Module
       route("training", "routes/tenant/training/index.tsx"),
       route("training/import", "routes/tenant/training/import/index.tsx"),
