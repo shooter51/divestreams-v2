@@ -44,13 +44,17 @@ test.describe("Training Import", () => {
     await page.waitForTimeout(1500);
 
     // Should show page title
-    await expect(page.locator("h1")).toContainText("Import Training Courses");
+    await expect(page.getByRole('heading', { name: /Import Training Courses/i })).toBeVisible();
 
     // Should show agency selection section
-    await expect(page.locator('text=Select Certification Agency')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Select Certification Agency/i })).toBeVisible();
 
     // Should have agency dropdown
-    await expect(page.locator('select[name="agencyId"]')).toBeVisible();
+    const agencyDropdown = page.locator('select[name="agencyId"]');
+    await expect(agencyDropdown).toBeVisible();
+
+    // Should have at least the placeholder option
+    await expect(agencyDropdown.locator('option')).toHaveCount(1); // Just "Select an agency..."
 
     // Should have submit button
     await expect(page.getByRole('button', { name: /next/i })).toBeVisible();
