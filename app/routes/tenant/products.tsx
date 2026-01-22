@@ -422,6 +422,10 @@ export default function ProductsPage() {
 
   const isSubmitting = fetcher.state === "submitting";
 
+  const fetcherData = fetcher.data as {
+    success?: boolean;
+  } | undefined;
+
   // Close modal on successful create/update/delete
   useEffect(() => {
     if (fetcherData?.success) {
