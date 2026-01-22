@@ -34,21 +34,30 @@ export async function teardownTestDatabase() {
 export async function createTestTenantSchema(db: ReturnType<typeof drizzle>, schemaName: string) {
   await db.execute(drizzleSql.raw(`CREATE SCHEMA IF NOT EXISTS ${schemaName}`));
 
-  // Create tenant tables
+  // Create tenant tables (matching real schema from lib/db/schema.ts)
   await db.execute(drizzleSql.raw(`
     CREATE TABLE IF NOT EXISTS ${schemaName}.customers (
-      id SERIAL PRIMARY KEY,
-      first_name VARCHAR(100) NOT NULL,
-      last_name VARCHAR(100) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      phone VARCHAR(50),
-      emergency_contact VARCHAR(255),
-      emergency_phone VARCHAR(50),
-      certification_level VARCHAR(100),
-      certification_agency VARCHAR(100),
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      organization_id TEXT NOT NULL,
+      email TEXT NOT NULL,
+      first_name TEXT NOT NULL,
+      last_name TEXT NOT NULL,
+      phone TEXT,
+      date_of_birth DATE,
+      emergency_contact_name TEXT,
+      emergency_contact_phone TEXT,
+      emergency_contact_relation TEXT,
+      medical_conditions TEXT,
+      medications TEXT,
+      certifications JSONB,
+      address TEXT,
+      city TEXT,
+      state TEXT,
+      postal_code TEXT,
+      country TEXT,
       notes TEXT,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW()
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
     )
   `));
 
@@ -107,29 +116,41 @@ export async function createTestTenantSchema(db: ReturnType<typeof drizzle>, sch
 
   await db.execute(drizzleSql.raw(`
     CREATE TABLE IF NOT EXISTS ${schemaName}.bookings (
-      id SERIAL PRIMARY KEY,
-      booking_number VARCHAR(50) UNIQUE NOT NULL,
-      customer_id INTEGER REFERENCES ${schemaName}.customers(id),
-      trip_id INTEGER REFERENCES ${schemaName}.trips(id),
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      organization_id TEXT NOT NULL,
+      booking_number TEXT UNIQUE NOT NULL,
+      customer_id UUID REFERENCES ${schemaName}.customers(id) ON DELETE CASCADE,
+      trip_id INTEGER REFERENCES ${schemaName}.trips(id) ON DELETE CASCADE,
       participants INTEGER NOT NULL,
+      subtotal DECIMAL(10,2),
+      discount DECIMAL(10,2),
+      tax DECIMAL(10,2),
       total DECIMAL(10,2) NOT NULL,
-      paid_amount DECIMAL(10,2) DEFAULT 0,
-      status VARCHAR(50) DEFAULT 'pending',
+      currency TEXT DEFAULT 'USD',
+      special_requests TEXT,
+      source TEXT,
+      status TEXT DEFAULT 'pending',
+      payment_status TEXT DEFAULT 'pending',
       notes TEXT,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW()
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
     )
   `));
 
   await db.execute(drizzleSql.raw(`
-    CREATE TABLE IF NOT EXISTS ${schemaName}.payments (
-      id SERIAL PRIMARY KEY,
-      booking_id INTEGER REFERENCES ${schemaName}.bookings(id),
+    CREATE TABLE IF NOT EXISTS ${schemaName}.transactions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      organization_id TEXT NOT NULL,
+      booking_id UUID REFERENCES ${schemaName}.bookings(id) ON DELETE CASCADE,
+      type TEXT NOT NULL,
       amount DECIMAL(10,2) NOT NULL,
-      method VARCHAR(50) NOT NULL,
-      stripe_payment_id VARCHAR(255),
-      status VARCHAR(50) DEFAULT 'pending',
-      created_at TIMESTAMP DEFAULT NOW()
+      currency TEXT DEFAULT 'USD',
+      method TEXT,
+      stripe_payment_intent_id TEXT,
+      stripe_charge_id TEXT,
+      status TEXT DEFAULT 'pending',
+      metadata JSONB,
+      created_at TIMESTAMP NOT NULL DEFAULT NOW()
     )
   `));
 }
