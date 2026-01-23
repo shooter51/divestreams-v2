@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { Form, useLoaderData, useNavigation } from "react-router";
+import { Form, useLoaderData, useNavigation, useActionData } from "react-router";
 import { useState } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
@@ -120,6 +120,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function PageEditPage() {
   const { page, history, orgSlug } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const actionData = useActionData<typeof action>();
   const isSubmitting = navigation.state === "submitting";
 
   // Simple editor for now - just allow editing blocks as JSON
@@ -130,6 +131,18 @@ export default function PageEditPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* Restore Feedback */}
+      {navigation.state === "idle" && actionData?.message && (
+        <div
+          className={`p-4 rounded-lg ${
+            actionData.success
+              ? "bg-green-50 border border-green-200 text-green-800"
+              : "bg-red-50 border border-red-200 text-red-800"
+          }`}
+        >
+          {actionData.message || actionData.error}
+        </div>
+      )}
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -306,22 +319,24 @@ export default function PageEditPage() {
                     {new Date(entry.createdAt).toLocaleString()}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  onClick={() => {
-                    if (
-                      confirm(
+                <Form method="post" className="inline">
+                  <input type="hidden" name="intent" value="restore" />
+                  <input type="hidden" name="version" value={entry.version} />
+                  <button
+                    type="submit"
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:text-gray-400"
+                    disabled={isSubmitting}
+                    onClick={(e) => {
+                      if (!confirm(
                         `Restore to version ${entry.version}? This will create a new version with the old content.`
-                      )
-                    ) {
-                      // TODO: Implement restore
-                      alert("Restore functionality coming soon");
-                    }
-                  }}
-                >
-                  Restore
-                </button>
+                      )) {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    {isSubmitting ? "Restoring..." : "Restore"}
+                  </button>
+                </Form>
               </div>
             ))}
           </div>
