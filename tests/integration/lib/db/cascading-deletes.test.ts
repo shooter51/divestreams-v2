@@ -34,8 +34,8 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
 
       // Create customer
       await sql`
-        INSERT INTO customers (first_name, last_name, email)
-        VALUES ('Delete', 'Me', 'deleteme@test.com')
+        INSERT INTO customers (first_name, last_name, email, organization_id)
+        VALUES ('Delete', 'Me', 'deleteme@test.com', 'test-org')
       `;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
@@ -78,7 +78,7 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
       const { sql } = getDb();
 
       // Setup
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Test', 'Customer', 'test@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Test', 'Customer', 'test@test.com', 'test-org')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
@@ -133,8 +133,8 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
       const { sql } = getDb();
 
       // Setup
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('C1', 'Test', 'c1@test.com')`;
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('C2', 'Test', 'c2@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('C1', 'Test', 'c1@test.com', 'test-org')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('C2', 'Test', 'c2@test.com', 'test-org')`;
       const customers = await sql`SELECT id FROM customers ORDER BY email`;
       const customer1Id = customers[0].id;
       const customer2Id = customers[1].id;
@@ -180,7 +180,7 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
       const { sql } = getDb();
 
       // Setup
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Pay', 'Customer', 'pay@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Pay', 'Customer', 'pay@test.com', 'test-org')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
@@ -289,7 +289,7 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
       const { sql } = getDb();
 
       // Create customer
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Multi', 'Cascade', 'multi@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Multi', 'Cascade', 'multi@test.com', 'test-org')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
@@ -367,8 +367,8 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
       const { sql } = getDb();
 
       // Create two customers
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Keep', 'Me', 'keep@test.com')`;
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Delete', 'Me', 'delete@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Keep', 'Me', 'keep@test.com', 'test-org')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Delete', 'Me', 'delete@test.com', 'test-org')`;
 
       const customers = await sql`SELECT id FROM customers ORDER BY email`;
       const deleteCustomerId = customers[0].id;
