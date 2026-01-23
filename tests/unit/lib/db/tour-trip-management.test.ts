@@ -467,21 +467,14 @@ describe("Tour and Trip Management Logic", () => {
   });
 
   describe("deleteTour", () => {
-    it("should soft delete tour by setting isActive to false", async () => {
-      (db.update as any) = vi.fn(() => db);
-      (db.set as any) = vi.fn(() => db);
+    it("should delete tour and related trips", async () => {
+      (db.delete as any) = vi.fn(() => db);
       (db.where as any) = vi.fn(() => Promise.resolve());
 
       const result = await deleteTour(testOrgId, "tour-123");
 
       expect(result).toBe(true);
-      expect((db.update as any)).toHaveBeenCalled();
-      expect((db.set as any)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isActive: false,
-          updatedAt: expect.any(Date),
-        })
-      );
+      expect((db.delete as any)).toHaveBeenCalled();
     });
   });
 
