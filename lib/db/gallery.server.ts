@@ -455,6 +455,27 @@ export async function getAllGalleryAlbums(
 }
 
 /**
+ * Get a single album by ID for admin
+ */
+export async function getGalleryAlbum(
+  organizationId: string,
+  albumId: string
+): Promise<GalleryAlbum | null> {
+  const [album] = await db
+    .select()
+    .from(galleryAlbums)
+    .where(
+      and(
+        eq(galleryAlbums.organizationId, organizationId),
+        eq(galleryAlbums.id, albumId)
+      )
+    )
+    .limit(1);
+
+  return album || null;
+}
+
+/**
  * Create a new gallery image
  */
 export async function createGalleryImage(
