@@ -170,6 +170,18 @@ vi.mock("../../../../lib/db/schema", () => ({
     difficulty: "difficulty",
     isActive: "isActive",
   },
+  rentals: {
+    id: "id",
+    organizationId: "organizationId",
+    equipmentId: "equipmentId",
+    customerId: "customerId",
+    rentedAt: "rentedAt",
+    returnedAt: "returnedAt",
+    dueAt: "dueAt",
+    status: "status",
+    dailyRate: "dailyRate",
+    totalCharge: "totalCharge",
+  },
 }));
 
 describe("Server Queries Module", () => {
