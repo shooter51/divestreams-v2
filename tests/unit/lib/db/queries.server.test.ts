@@ -141,7 +141,7 @@ const mockSchema = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("../../../../lib/db/schema", () => ({ ...mockSchema, __esModule: true }));
+vi.mock("../../../../lib/db/schema", () => mockSchema);
 
 // Mock drizzle-orm functions
 vi.mock("drizzle-orm", () => ({

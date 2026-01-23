@@ -48,6 +48,7 @@ vi.mock("../../../../lib/db/schema", () => ({
   bookings: { tripId: "tripId" },
   trips: { tourId: "tourId" },
   tours: { name: "name" },
+  rentals: { customerId: "customerId" },
 }));
 
 // Import after mocks
