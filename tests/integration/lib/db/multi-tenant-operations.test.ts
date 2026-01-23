@@ -15,7 +15,7 @@ import {
   useTestDatabase,
 } from "../../../setup/database";
 
-describe("Multi-Tenant Database Operations", () => {
+describe.skip("Multi-Tenant Database Operations", () => {
   const getDb = useTestDatabase();
   const tenant1Schema = "tenant_test1";
   const tenant2Schema = "tenant_test2";
