@@ -38,8 +38,8 @@ describe("Booking API Routes", () => {
 
     // Create test data
     await sql`
-      INSERT INTO customers (first_name, last_name, email)
-      VALUES ('Test', 'Customer', 'testcustomer@test.com')
+      INSERT INTO customers (first_name, last_name, email, organization_id)
+      VALUES ('Test', 'Customer', 'testcustomer@test.com', 'test-org')
     `;
     const customer = await sql`SELECT id FROM customers LIMIT 1`;
     customerId = customer[0].id;
