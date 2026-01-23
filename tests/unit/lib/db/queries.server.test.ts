@@ -141,7 +141,7 @@ const mockSchema = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("../../../../lib/db/schema", () => mockSchema);
+vi.mock("../../../../lib/db/schema", () => ({ ...mockSchema, __esModule: true }));
 
 // Mock drizzle-orm functions
 vi.mock("drizzle-orm", () => ({
@@ -767,13 +767,12 @@ describe("queries.server database functions", () => {
   });
 
   describe("deleteDiveSite", () => {
-    it("should soft delete dive site", async () => {
+    it("should delete dive site", async () => {
       const { deleteDiveSite } = await import("../../../../lib/db/queries.server");
 
       const result = await deleteDiveSite("org-1", "site-1");
 
-      expect(dbMock.update).toHaveBeenCalled();
-      expect(dbMock.set).toHaveBeenCalled();
+      expect(dbMock.delete).toHaveBeenCalled();
       expect(result).toBe(true);
     });
   });
