@@ -1,16 +1,15 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Form, useActionData } from "react-router";
+import { useLoaderData, Form, useActionData, useNavigation } from "react-router";
 import { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
-import { getAgencies } from "../../../../../lib/db/training.server";
+import { getAgencies, getAgencyById, createCourse } from "../../../../../lib/db/training.server";
+import { getAgencyTemplates, type AgencyCourseTemplate } from "../../../../../lib/data/agency-templates";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const orgContext = await requireOrgContext(request);
 
   // Get available agencies for this organization
   const agencies = await getAgencies(orgContext.org.id);
-
-  console.log("[Import Route] Loaded", { agencyCount: agencies.length });
 
   return { agencies };
 }
@@ -19,63 +18,156 @@ export async function action({ request }: ActionFunctionArgs) {
   const orgContext = await requireOrgContext(request);
 
   const formData = await request.formData();
-  const agencyId = formData.get("agencyId") as string;
   const step = formData.get("step") as string;
+  const agencyId = formData.get("agencyId") as string;
 
-  // TODO: Handle actual import logic when backend is ready
-  console.log("[Import Action]", { step, agencyId });
-
+  // Step 1: User selected an agency - fetch available course templates
   if (step === "select-agency") {
-    // Return mock courses for the selected agency
+    if (!agencyId) {
+      return { error: "Please select a certification agency" };
+    }
+
+    // Get the agency from database to get its code
+    const agency = await getAgencyById(orgContext.org.id, agencyId);
+    if (!agency) {
+      return { error: "Agency not found" };
+    }
+
+    // Get templates for this agency
+    const templates = getAgencyTemplates(agency.code);
+    if (!templates) {
+      return {
+        error: `No course templates available for ${agency.name}. Templates are available for: PADI, SSI, NAUI`
+      };
+    }
+
     return {
       success: true,
       step: "select-courses",
-      agency: { id: agencyId, name: "PADI" },
-      courses: [
-        {
-          id: "1",
-          name: "Open Water Diver",
-          code: "OW",
-          description: "Entry-level certification for new divers",
-          duration: "3-4 days",
-        },
-        {
-          id: "2",
-          name: "Advanced Open Water Diver",
-          code: "AOW",
-          description: "Build on your Open Water skills",
-          duration: "2-3 days",
-        },
-        {
-          id: "3",
-          name: "Rescue Diver",
-          code: "RD",
-          description: "Learn to prevent and manage dive emergencies",
-          duration: "3-4 days",
-        },
-      ],
+      agency: { id: agency.id, name: agency.name, code: agency.code },
+      courses: templates.courses.map((course, index) => ({
+        id: `${agency.code}-${course.code}`,
+        templateIndex: index,
+        ...course,
+      })),
     };
   }
 
+  // Step 2: User selected courses - show preview
   if (step === "select-courses") {
-    const selectedCourses = formData.getAll("courses") as string[];
+    const selectedCourseIds = formData.getAll("courses") as string[];
+    const agencyCode = formData.get("agencyCode") as string;
+    const agencyName = formData.get("agencyName") as string;
+
+    if (selectedCourseIds.length === 0) {
+      return { error: "Please select at least one course to import" };
+    }
+
+    // Get the templates again to get full course data
+    const templates = getAgencyTemplates(agencyCode);
+    if (!templates) {
+      return { error: "Agency templates not found" };
+    }
+
+    // Filter to selected courses
+    const selectedCourses = templates.courses.filter((_, index) =>
+      selectedCourseIds.includes(`${agencyCode}-${templates.courses[index].code}`)
+    );
+
     return {
       success: true,
       step: "preview",
+      agency: { id: agencyId, name: agencyName, code: agencyCode },
+      selectedCourses: selectedCourses.map(course => ({
+        id: `${agencyCode}-${course.code}`,
+        ...course,
+      })),
       selectedCount: selectedCourses.length,
     };
   }
 
-  return { success: true };
+  // Step 3: Execute the import
+  if (step === "execute-import") {
+    const agencyCode = formData.get("agencyCode") as string;
+    const courseCodesJson = formData.get("courseCodes") as string;
+
+    if (!agencyCode || !courseCodesJson) {
+      return { error: "Missing import data" };
+    }
+
+    const courseCodes: string[] = JSON.parse(courseCodesJson);
+    const templates = getAgencyTemplates(agencyCode);
+
+    if (!templates) {
+      return { error: "Agency templates not found" };
+    }
+
+    // Get the agency record for linking
+    const agencies = await getAgencies(orgContext.org.id);
+    const agency = agencies.find(a => a.code.toLowerCase() === agencyCode.toLowerCase());
+
+    const importedCourses: string[] = [];
+    const errors: string[] = [];
+
+    for (const code of courseCodes) {
+      const template = templates.courses.find(c => c.code === code);
+      if (!template) {
+        errors.push(`Template not found for code: ${code}`);
+        continue;
+      }
+
+      try {
+        const course = await createCourse({
+          organizationId: orgContext.org.id,
+          agencyId: agency?.id,
+          name: template.name,
+          code: template.code,
+          description: template.description,
+          durationDays: template.durationDays,
+          classroomHours: template.classroomHours,
+          poolHours: template.poolHours,
+          openWaterDives: template.openWaterDives,
+          minAge: template.minAge,
+          prerequisites: template.prerequisites,
+          medicalRequirements: template.medicalRequirements,
+          materialsIncluded: template.materialsIncluded,
+          requiredItems: template.requiredItems,
+          price: "0.00", // Default price - user will set
+          currency: "USD",
+          isActive: true,
+          isPublic: false, // Default to private - user will publish
+        });
+        importedCourses.push(course.name);
+      } catch (error) {
+        console.error(`Failed to import ${template.name}:`, error);
+        errors.push(`Failed to import ${template.name}`);
+      }
+    }
+
+    if (errors.length > 0 && importedCourses.length === 0) {
+      return { error: errors.join(", ") };
+    }
+
+    return {
+      success: true,
+      step: "complete",
+      importedCount: importedCourses.length,
+      importedCourses,
+      errors: errors.length > 0 ? errors : undefined,
+    };
+  }
+
+  return { error: "Unknown step" };
 }
 
 export default function TrainingImportPage() {
   const { agencies } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-  const [currentStep, setCurrentStep] = useState<"select-agency" | "select-courses" | "preview">("select-agency");
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
 
-  // Update step based on action data
-  const effectiveStep = actionData?.step || currentStep;
+  // Determine current step from action data
+  const currentStep = actionData?.step || "select-agency";
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -89,30 +181,53 @@ export default function TrainingImportPage() {
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
-          <Step number={1} title="Select Agency" active={effectiveStep === "select-agency"} completed={effectiveStep !== "select-agency"} />
+          <Step number={1} title="Select Agency" active={currentStep === "select-agency"} completed={currentStep !== "select-agency"} />
           <div className="flex-1 h-1 bg-gray-200 mx-2">
-            <div className={`h-full ${effectiveStep !== "select-agency" ? "bg-blue-600" : "bg-gray-200"}`} />
+            <div className={`h-full transition-all ${currentStep !== "select-agency" ? "bg-blue-600" : "bg-gray-200"}`} />
           </div>
-          <Step number={2} title="Choose Courses" active={effectiveStep === "select-courses"} completed={effectiveStep === "preview"} />
+          <Step number={2} title="Choose Courses" active={currentStep === "select-courses"} completed={currentStep === "preview" || currentStep === "complete"} />
           <div className="flex-1 h-1 bg-gray-200 mx-2">
-            <div className={`h-full ${effectiveStep === "preview" ? "bg-blue-600" : "bg-gray-200"}`} />
+            <div className={`h-full transition-all ${currentStep === "preview" || currentStep === "complete" ? "bg-blue-600" : "bg-gray-200"}`} />
           </div>
-          <Step number={3} title="Preview & Import" active={effectiveStep === "preview"} completed={false} />
+          <Step number={3} title="Import" active={currentStep === "preview" || currentStep === "complete"} completed={currentStep === "complete"} />
         </div>
       </div>
 
+      {/* Error Display */}
+      {actionData?.error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+          {actionData.error}
+        </div>
+      )}
+
       {/* Step Content */}
       <div className="bg-white rounded-lg shadow-lg p-8">
-        {effectiveStep === "select-agency" && (
-          <SelectAgencyStep agencies={agencies} />
+        {currentStep === "select-agency" && (
+          <SelectAgencyStep agencies={agencies} isSubmitting={isSubmitting} />
         )}
 
-        {effectiveStep === "select-courses" && actionData?.courses && (
-          <SelectCoursesStep courses={actionData.courses} agency={actionData.agency} />
+        {currentStep === "select-courses" && actionData?.courses && actionData?.agency && (
+          <SelectCoursesStep
+            courses={actionData.courses}
+            agency={actionData.agency}
+            isSubmitting={isSubmitting}
+          />
         )}
 
-        {effectiveStep === "preview" && (
-          <PreviewStep selectedCount={actionData?.selectedCount || 0} />
+        {currentStep === "preview" && actionData?.selectedCourses && actionData?.agency && (
+          <PreviewStep
+            selectedCourses={actionData.selectedCourses}
+            agency={actionData.agency}
+            isSubmitting={isSubmitting}
+          />
+        )}
+
+        {currentStep === "complete" && (
+          <CompleteStep
+            importedCount={actionData?.importedCount || 0}
+            importedCourses={actionData?.importedCourses || []}
+            errors={actionData?.errors}
+          />
         )}
       </div>
     </div>
@@ -122,7 +237,7 @@ export default function TrainingImportPage() {
 function Step({ number, title, active, completed }: { number: number; title: string; active: boolean; completed: boolean }) {
   return (
     <div className="flex flex-col items-center">
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
         completed ? "bg-green-600 text-white" :
         active ? "bg-blue-600 text-white" :
         "bg-gray-200 text-gray-600"
@@ -136,12 +251,12 @@ function Step({ number, title, active, completed }: { number: number; title: str
   );
 }
 
-function SelectAgencyStep({ agencies }: { agencies: Array<{ id: string; name: string }> }) {
+function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ id: string; name: string; code: string }>; isSubmitting: boolean }) {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Step 1: Select Certification Agency</h2>
       <p className="text-gray-600 mb-6">
-        Choose the certification agency whose courses you want to import. We'll fetch their latest course catalog.
+        Choose the certification agency whose courses you want to import. We support PADI, SSI, and NAUI course templates.
       </p>
 
       <Form method="post" className="max-w-md">
@@ -157,6 +272,7 @@ function SelectAgencyStep({ agencies }: { agencies: Array<{ id: string; name: st
               name="agencyId"
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
+              disabled={isSubmitting}
             >
               <option value="">Select an agency...</option>
               {agencies.map((agency) => (
@@ -166,16 +282,17 @@ function SelectAgencyStep({ agencies }: { agencies: Array<{ id: string; name: st
               ))}
             </select>
             <p className="text-sm text-gray-500 mt-1">
-              Don't see your agency? Add it in Settings → Training → Agencies
+              Don't see your agency? Add it in Settings → Training → Agencies first.
             </p>
           </div>
 
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              disabled={isSubmitting}
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-blue-400"
             >
-              Next: Select Courses →
+              {isSubmitting ? "Loading courses..." : "Next: Select Courses →"}
             </button>
           </div>
         </div>
@@ -184,7 +301,15 @@ function SelectAgencyStep({ agencies }: { agencies: Array<{ id: string; name: st
   );
 }
 
-function SelectCoursesStep({ courses, agency }: { courses: Array<any>; agency: { id: string; name: string } }) {
+function SelectCoursesStep({
+  courses,
+  agency,
+  isSubmitting
+}: {
+  courses: Array<AgencyCourseTemplate & { id: string }>;
+  agency: { id: string; name: string; code: string };
+  isSubmitting: boolean;
+}) {
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
 
   const toggleCourse = (courseId: string) => {
@@ -237,6 +362,8 @@ function SelectCoursesStep({ courses, agency }: { courses: Array<any>; agency: {
       <Form method="post">
         <input type="hidden" name="step" value="select-courses" />
         <input type="hidden" name="agencyId" value={agency.id} />
+        <input type="hidden" name="agencyCode" value={agency.code} />
+        <input type="hidden" name="agencyName" value={agency.name} />
 
         <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
           {courses.map((course) => (
@@ -263,7 +390,11 @@ function SelectCoursesStep({ courses, agency }: { courses: Array<any>; agency: {
                     <span className="text-xs bg-gray-100 px-2 py-1 rounded">{course.code}</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">{course.description}</p>
-                  <p className="text-xs text-gray-500 mt-1">Duration: {course.duration}</p>
+                  <div className="flex gap-4 mt-2 text-xs text-gray-500">
+                    <span>{course.durationDays} days</span>
+                    <span>{course.openWaterDives} open water dives</span>
+                    <span>Min age: {course.minAge}</span>
+                  </div>
                 </div>
               </div>
             </label>
@@ -271,19 +402,18 @@ function SelectCoursesStep({ courses, agency }: { courses: Array<any>; agency: {
         </div>
 
         <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          <a
+            href="/tenant/training/import"
+            className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-center"
           >
             ← Back
-          </button>
+          </a>
           <button
             type="submit"
-            disabled={selectedCourses.size === 0}
+            disabled={selectedCourses.size === 0 || isSubmitting}
             className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            Preview Import ({selectedCourses.size} courses) →
+            {isSubmitting ? "Loading preview..." : `Preview Import (${selectedCourses.size} courses) →`}
           </button>
         </div>
       </Form>
@@ -291,12 +421,20 @@ function SelectCoursesStep({ courses, agency }: { courses: Array<any>; agency: {
   );
 }
 
-function PreviewStep({ selectedCount }: { selectedCount: number }) {
+function PreviewStep({
+  selectedCourses,
+  agency,
+  isSubmitting
+}: {
+  selectedCourses: Array<AgencyCourseTemplate & { id: string }>;
+  agency: { id: string; name: string; code: string };
+  isSubmitting: boolean;
+}) {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-2">Step 3: Preview & Import</h2>
       <p className="text-gray-600 mb-6">
-        Ready to import {selectedCount} courses into your catalog
+        Ready to import {selectedCourses.length} courses from {agency.name} into your catalog
       </p>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -304,47 +442,124 @@ function PreviewStep({ selectedCount }: { selectedCount: number }) {
         <ul className="space-y-2 text-sm text-blue-800">
           <li className="flex items-start gap-2">
             <span className="text-blue-600 mt-0.5">✓</span>
-            <span>{selectedCount} course templates will be added to your catalog</span>
+            <span>{selectedCourses.length} course templates will be added to your catalog</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-600 mt-0.5">✓</span>
-            <span>You can customize pricing and settings for each course after import</span>
+            <span>Courses will be created as drafts (not public) with $0 price</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-600 mt-0.5">✓</span>
-            <span>Agency course information will be preserved for future updates</span>
+            <span>You can customize pricing, schedule, and settings for each course after import</span>
           </li>
         </ul>
       </div>
 
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-        <h3 className="font-medium text-yellow-900 mb-2">⚠️ Coming Soon</h3>
-        <p className="text-sm text-yellow-800">
-          The import functionality is currently under development. This preview shows the planned workflow.
-          The backend API integration and data processing will be available in the next release.
-        </p>
+      <div className="mb-6">
+        <h3 className="font-medium mb-3">Courses to import:</h3>
+        <ul className="space-y-2 text-sm">
+          {selectedCourses.map((course) => (
+            <li key={course.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+              <span className="font-mono text-xs bg-gray-200 px-2 py-0.5 rounded">{course.code}</span>
+              <span>{course.name}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <Form method="post" className="space-y-4">
         <input type="hidden" name="step" value="execute-import" />
+        <input type="hidden" name="agencyId" value={agency.id} />
+        <input type="hidden" name="agencyCode" value={agency.code} />
+        <input type="hidden" name="courseCodes" value={JSON.stringify(selectedCourses.map(c => c.code))} />
 
         <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          <a
+            href="/tenant/training/import"
+            className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-center"
           >
-            ← Back
-          </button>
+            ← Start Over
+          </a>
           <button
             type="submit"
-            disabled={true}
-            className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+            disabled={isSubmitting}
+            className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-green-400"
           >
-            Start Import (Coming Soon)
+            {isSubmitting ? "Importing courses..." : `Import ${selectedCourses.length} Courses`}
           </button>
         </div>
       </Form>
+    </div>
+  );
+}
+
+function CompleteStep({
+  importedCount,
+  importedCourses,
+  errors
+}: {
+  importedCount: number;
+  importedCourses: string[];
+  errors?: string[];
+}) {
+  return (
+    <div className="text-center">
+      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <span className="text-4xl text-green-600">✓</span>
+      </div>
+
+      <h2 className="text-2xl font-semibold mb-2">Import Complete!</h2>
+      <p className="text-gray-600 mb-6">
+        Successfully imported {importedCount} courses into your catalog
+      </p>
+
+      {errors && errors.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-left">
+          <h3 className="font-medium text-yellow-900 mb-2">Some courses had issues:</h3>
+          <ul className="text-sm text-yellow-800 list-disc list-inside">
+            {errors.map((error, i) => (
+              <li key={i}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+        <h3 className="font-medium mb-2">Imported courses:</h3>
+        <ul className="text-sm space-y-1">
+          {importedCourses.map((name, i) => (
+            <li key={i} className="flex items-center gap-2">
+              <span className="text-green-600">✓</span>
+              {name}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <h3 className="font-medium text-blue-900 mb-2">Next steps:</h3>
+        <ul className="text-sm text-blue-800 text-left space-y-1">
+          <li>1. Set pricing for each imported course</li>
+          <li>2. Configure course details and requirements</li>
+          <li>3. Publish courses to make them visible on your public site</li>
+          <li>4. Create training sessions to start accepting enrollments</li>
+        </ul>
+      </div>
+
+      <div className="flex gap-3 justify-center">
+        <a
+          href="/tenant/training/courses"
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          View Courses →
+        </a>
+        <a
+          href="/tenant/training/import"
+          className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          Import More
+        </a>
+      </div>
     </div>
   );
 }
