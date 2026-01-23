@@ -34,7 +34,7 @@ describe("Concurrent Operations and Data Integrity", () => {
 
       const insertOperations = Array.from({ length: 20 }, (_, i) =>
         sql`
-          INSERT INTO customers (first_name, last_name, email)
+          INSERT INTO customers (first_name, last_name, email, organization_id)
           VALUES (${`Customer${i}`}, 'Concurrent', ${`customer${i}@test.com`})
         `
       );
@@ -49,7 +49,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       const { sql } = getDb();
 
       // Setup
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Test', 'Customer', 'test@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Test', 'Customer', 'test@test.com', 'test-org')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
@@ -87,7 +87,7 @@ describe("Concurrent Operations and Data Integrity", () => {
 
       const operations = Array.from({ length: 50 }, (_, i) =>
         sql`
-          INSERT INTO customers (first_name, last_name, email)
+          INSERT INTO customers (first_name, last_name, email, organization_id)
           VALUES ('Integrity', ${`User${i}`}, ${`integrity${i}@test.com`})
         `
       );
@@ -140,7 +140,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       const { sql } = getDb();
 
       // Setup
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Test', 'Customer', 'test@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Test', 'Customer', 'test@test.com', 'test-org')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
@@ -217,7 +217,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       // Create multiple customers
       for (let i = 0; i < 20; i++) {
         await sql`
-          INSERT INTO customers (first_name, last_name, email)
+          INSERT INTO customers (first_name, last_name, email, organization_id)
           VALUES (${`Delete${i}`}, 'Test', ${`delete${i}@test.com`})
         `;
       }
@@ -273,7 +273,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       const { sql } = getDb();
 
       // Setup
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Race', 'Customer', 'race@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Race', 'Customer', 'race@test.com', 'test-org')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
@@ -316,7 +316,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       const { sql } = getDb();
 
       // Setup
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Prevent', 'Double', 'prevent@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Prevent', 'Double', 'prevent@test.com', 'test-org')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
@@ -364,7 +364,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       const { sql } = getDb();
 
       // Create base data
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Load', 'Test', 'load@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Load', 'Test', 'load@test.com', 'test-org')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
@@ -405,7 +405,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       // Create 100 customers rapidly
       const operations = Array.from({ length: 100 }, (_, i) =>
         sql`
-          INSERT INTO customers (first_name, last_name, email)
+          INSERT INTO customers (first_name, last_name, email, organization_id)
           VALUES (${`Load${i}`}, 'Test', ${`load${i}@test.com`})
         `
       );
@@ -427,7 +427,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       const { sql } = getDb();
 
       // Create customer
-      await sql`INSERT INTO customers (first_name, last_name, email) VALUES ('Orphan', 'Test', 'orphan@test.com')`;
+      await sql`INSERT INTO customers (first_name, last_name, email, organization_id) VALUES ('Orphan', 'Test', 'orphan@test.com', 'test-org')`;
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
       const customerId = customer[0].id;
 
