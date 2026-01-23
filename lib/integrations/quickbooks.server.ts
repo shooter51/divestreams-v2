@@ -17,6 +17,7 @@
 
 import {
   connectIntegration,
+  getIntegration,
   getIntegrationWithTokens,
   updateTokens,
   updateLastSync,
@@ -907,5 +908,37 @@ export async function getQuickBooksStatus(
     companyName: integration.accountName || undefined,
     realmId: settings?.realmId,
     useSandbox: settings?.useSandbox,
+  };
+}
+
+// ============================================================================
+// Sync Functions
+// ============================================================================
+
+export interface QuickBooksSyncResult {
+  success: boolean;
+  synced: number;
+  failed: number;
+  errors?: string[];
+}
+
+/**
+ * Sync data to QuickBooks
+ */
+export async function syncToQuickBooks(organizationId: string): Promise<QuickBooksSyncResult> {
+  const integration = await getIntegration(organizationId, 'quickbooks');
+  if (!integration?.isActive) {
+    return { success: false, synced: 0, failed: 0, errors: ['QuickBooks integration not active'] };
+  }
+
+  // Sync customers, invoices, and payments to QuickBooks
+  // For now, return a placeholder - actual implementation requires QuickBooks API calls
+  console.log('[QuickBooks] Would sync data for org:', organizationId);
+
+  return {
+    success: false,
+    synced: 0,
+    failed: 0,
+    errors: ['QuickBooks sync requires API implementation'],
   };
 }

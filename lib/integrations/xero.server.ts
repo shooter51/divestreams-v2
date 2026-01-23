@@ -12,6 +12,7 @@
 
 import {
   connectIntegration,
+  getIntegration,
   getIntegrationWithTokens,
   updateTokens,
   updateLastSync,
@@ -715,4 +716,57 @@ export async function getXeroContacts(
     console.error("Error fetching Xero contacts:", error);
     return null;
   }
+}
+
+// ============================================================================
+// Sync Functions
+// ============================================================================
+
+export interface XeroSyncResult {
+  success: boolean;
+  synced: number;
+  failed: number;
+  errors?: string[];
+}
+
+/**
+ * Sync contacts to Xero
+ */
+export async function syncContactsToXero(organizationId: string): Promise<XeroSyncResult> {
+  const integration = await getIntegration(organizationId, 'xero');
+  if (!integration?.isActive) {
+    return { success: false, synced: 0, failed: 0, errors: ['Xero integration not active'] };
+  }
+
+  // Get customers that need syncing
+  // For now, return a placeholder - actual implementation requires Xero API calls
+  console.log('[Xero] Would sync contacts for org:', organizationId);
+
+  return {
+    success: false,
+    synced: 0,
+    failed: 0,
+    errors: ['Xero contact sync requires API implementation'],
+  };
+}
+
+/**
+ * Sync invoices to Xero
+ */
+export async function syncInvoicesToXero(organizationId: string): Promise<XeroSyncResult> {
+  const integration = await getIntegration(organizationId, 'xero');
+  if (!integration?.isActive) {
+    return { success: false, synced: 0, failed: 0, errors: ['Xero integration not active'] };
+  }
+
+  // Get invoices that need syncing
+  // For now, return a placeholder - actual implementation requires Xero API calls
+  console.log('[Xero] Would sync invoices for org:', organizationId);
+
+  return {
+    success: false,
+    synced: 0,
+    failed: 0,
+    errors: ['Xero invoice sync requires API implementation'],
+  };
 }
