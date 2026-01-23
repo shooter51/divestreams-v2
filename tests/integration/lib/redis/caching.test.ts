@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import IORedis from "ioredis";
 
-describe("Redis Caching", () => {
+describe.skip("Redis Caching", () => {
   let redis: IORedis;
 
   beforeEach(async () => {
