@@ -64,7 +64,15 @@ export async function handleStripeWebhook(
         const invoice = event.data.object as Stripe.Invoice;
         await syncInvoiceToDatabase(invoice);
         console.log("Payment succeeded for invoice:", invoice.id);
-        // TODO: Send confirmation email
+
+        // Send confirmation email
+        try {
+          const { sendPaymentSuccessEmail } = await import('./email-notifications.server');
+          await sendPaymentSuccessEmail(invoice);
+        } catch (emailError) {
+          console.error("Failed to send payment success email:", emailError);
+          // Don't fail the webhook - email is best-effort
+        }
         break;
       }
 
@@ -72,7 +80,15 @@ export async function handleStripeWebhook(
         const invoice = event.data.object as Stripe.Invoice;
         await syncInvoiceToDatabase(invoice);
         console.log("Payment failed for invoice:", invoice.id);
-        // TODO: Send failed payment notification email
+
+        // Send failed payment notification email
+        try {
+          const { sendPaymentFailedEmail } = await import('./email-notifications.server');
+          await sendPaymentFailedEmail(invoice);
+        } catch (emailError) {
+          console.error("Failed to send payment failed email:", emailError);
+          // Don't fail the webhook - email is best-effort
+        }
         break;
       }
 
