@@ -268,8 +268,8 @@ describe("Multi-Tenant Database Operations", () => {
 
       // Create booking
       await db.execute(drizzleSql.raw(`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK001', ${customerId}, ${tripId}, 2, 200.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK001', ${customerId}, ${tripId}, 2, 200.00, 'confirmed', 'test-org')
       `));
 
       // Verify booking exists
