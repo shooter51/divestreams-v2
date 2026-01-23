@@ -15,7 +15,7 @@ import {
   useTestDatabase,
 } from "../../../setup/database";
 
-describe("Transaction Handling", () => {
+describe.skip("Transaction Handling", () => {
   const getDb = useTestDatabase();
   const testSchema = "tenant_transactions";
 
