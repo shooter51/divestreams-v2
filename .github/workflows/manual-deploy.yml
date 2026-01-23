@@ -14,11 +14,12 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: shooter51/divestreams-app
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
     permissions:
       contents: read
       packages: write
@@ -37,59 +38,89 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=${{ github.event.inputs.environment }}
-            type=sha,prefix=${{ github.event.inputs.environment }}-
-
-      - name: Build and push Docker image
+      - name: Build and push Docker image (staging)
+        if: ${{ github.event.inputs.environment == 'staging' }}
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: linux/amd64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            NODE_ENV=production
 
-      - name: Deploy to Staging VPS
-        if: ${{ github.event.inputs.environment == 'staging' }}
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 76.13.28.28
-          username: root
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd /docker/divestreams-staging
-            docker compose pull app
-            docker compose up -d app
-            docker compose logs --tail=50 app
-
-      - name: Deploy to Production VPS
+      - name: Build and push Docker image (production)
         if: ${{ github.event.inputs.environment == 'production' }}
-        uses: appleboy/ssh-action@v1.0.3
+        uses: docker/build-push-action@v5
         with:
-          host: 72.62.166.128
-          username: root
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd /docker/divestreams-v2
-            docker compose pull app
-            docker compose up -d app
-            docker compose logs --tail=50 app
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to staging VPS
+        if: ${{ github.event.inputs.environment == 'staging' }}
+        run: |
+          echo "Deploying to staging (VPS 1271895)"
+          curl -X POST \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1271895/docker/divestreams-staging/update" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body
+
+      - name: Deploy to production VPS
+        if: ${{ github.event.inputs.environment == 'production' }}
+        run: |
+          echo "Deploying to production (VPS 1239852)"
+          curl -X POST \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1239852/docker/divestreams-v2/update" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body
+
+      - name: Wait for deployment to stabilize
+        run: sleep 45
+
+      - name: Verify containers are running
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "staging" ]; then
+            VPS_ID=1271895
+            PROJECT=divestreams-staging
+          else
+            VPS_ID=1239852
+            PROJECT=divestreams-v2
+          fi
+
+          echo "Checking container status..."
+          RESPONSE=$(curl -s -X GET \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/$VPS_ID/docker/$PROJECT/containers" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          echo "$RESPONSE" | jq .
+
+          RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
+          echo "Running containers: $RUNNING_COUNT"
+
+          if [ "$RUNNING_COUNT" -lt 4 ]; then
+            echo "ERROR: Expected 4 containers running, found $RUNNING_COUNT"
+            exit 1
+          fi
+
+          echo "✅ All 4 containers are running"
 
       - name: Deployment Summary
         run: |
           echo "### Deployment Complete! 🚀" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Image:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event.inputs.environment }}" == "staging" ]; then
