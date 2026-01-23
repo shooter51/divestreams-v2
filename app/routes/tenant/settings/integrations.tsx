@@ -21,7 +21,7 @@ import {
   disconnectIntegration,
   updateIntegrationSettings,
 } from "../../../../lib/integrations/index.server";
-import { getGoogleAuthUrl, syncAllTrips } from "../../../../lib/integrations/google-calendar.server";
+import { getGoogleAuthUrl } from "../../../../lib/integrations/google-calendar.server";
 import { connectTwilio, sendSMS } from "../../../../lib/integrations/twilio.server";
 import {
   connectZapier,
