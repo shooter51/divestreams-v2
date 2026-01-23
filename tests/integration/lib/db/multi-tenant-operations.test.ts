@@ -62,15 +62,15 @@ describe("Multi-Tenant Database Operations", () => {
       // Insert customer in tenant1
       await db.execute(drizzleSql.raw(`SET search_path TO ${tenant1Schema}`));
       await db.execute(drizzleSql.raw(`
-        INSERT INTO customers (first_name, last_name, email)
-        VALUES ('Alice', 'Tenant1', 'alice@tenant1.com')
+        INSERT INTO customers (first_name, last_name, email, organization_id)
+        VALUES ('Alice', 'Tenant1', 'alice@tenant1.com', 'org-1')
       `));
 
       // Insert customer in tenant2
       await db.execute(drizzleSql.raw(`SET search_path TO ${tenant2Schema}`));
       await db.execute(drizzleSql.raw(`
-        INSERT INTO customers (first_name, last_name, email)
-        VALUES ('Bob', 'Tenant2', 'bob@tenant2.com')
+        INSERT INTO customers (first_name, last_name, email, organization_id)
+        VALUES ('Bob', 'Tenant2', 'bob@tenant2.com', 'org-2')
       `));
 
       // Query tenant1 - should only see Alice
@@ -98,8 +98,8 @@ describe("Multi-Tenant Database Operations", () => {
       // Create data in tenant1
       await db.execute(drizzleSql.raw(`SET search_path TO ${tenant1Schema}`));
       await db.execute(drizzleSql.raw(`
-        INSERT INTO customers (first_name, last_name, email)
-        VALUES ('Charlie', 'Test', 'charlie@test.com')
+        INSERT INTO customers (first_name, last_name, email, organization_id)
+        VALUES ('Charlie', 'Test', 'charlie@test.com', 'org-1')
       `));
 
       // Try to access from tenant2 - should find nothing
@@ -117,8 +117,8 @@ describe("Multi-Tenant Database Operations", () => {
       // Insert in tenant1
       await db.execute(drizzleSql.raw(`SET search_path TO ${tenant1Schema}`));
       await db.execute(drizzleSql.raw(`
-        INSERT INTO customers (first_name, last_name, email)
-        VALUES ('User1', 'T1', 'user1@t1.com')
+        INSERT INTO customers (first_name, last_name, email, organization_id)
+        VALUES ('User1', 'T1', 'user1@t1.com', 'org-1')
       `));
 
       const t1Result = await db.execute(drizzleSql.raw(`
@@ -129,8 +129,8 @@ describe("Multi-Tenant Database Operations", () => {
       // Insert in tenant2
       await db.execute(drizzleSql.raw(`SET search_path TO ${tenant2Schema}`));
       await db.execute(drizzleSql.raw(`
-        INSERT INTO customers (first_name, last_name, email)
-        VALUES ('User1', 'T2', 'user1@t2.com')
+        INSERT INTO customers (first_name, last_name, email, organization_id)
+        VALUES ('User1', 'T2', 'user1@t2.com', 'org-2')
       `));
 
       const t2Result = await db.execute(drizzleSql.raw(`
@@ -151,8 +151,8 @@ describe("Multi-Tenant Database Operations", () => {
           await db.execute(drizzleSql.raw(`SET search_path TO ${tenant1Schema}`));
           for (let i = 0; i < 5; i++) {
             await db.execute(drizzleSql.raw(`
-              INSERT INTO customers (first_name, last_name, email)
-              VALUES ('User${i}', 'Tenant1', 'user${i}@t1.com')
+              INSERT INTO customers (first_name, last_name, email, organization_id)
+              VALUES ('User${i}', 'Tenant1', 'user${i}@t1.com', 'org-1')
             `));
           }
         })(),
@@ -160,8 +160,8 @@ describe("Multi-Tenant Database Operations", () => {
           await db.execute(drizzleSql.raw(`SET search_path TO ${tenant2Schema}`));
           for (let i = 0; i < 5; i++) {
             await db.execute(drizzleSql.raw(`
-              INSERT INTO customers (first_name, last_name, email)
-              VALUES ('User${i}', 'Tenant2', 'user${i}@t2.com')
+              INSERT INTO customers (first_name, last_name, email, organization_id)
+              VALUES ('User${i}', 'Tenant2', 'user${i}@t2.com', 'org-2')
             `));
           }
         })(),
@@ -234,8 +234,8 @@ describe("Multi-Tenant Database Operations", () => {
 
       // Create customer
       await db.execute(drizzleSql.raw(`
-        INSERT INTO customers (first_name, last_name, email)
-        VALUES ('Delete', 'Test', 'delete@test.com')
+        INSERT INTO customers (first_name, last_name, email, organization_id)
+        VALUES ('Delete', 'Test', 'delete@test.com', 'org-1')
       `));
 
       const customer = await db.execute(drizzleSql.raw(`
