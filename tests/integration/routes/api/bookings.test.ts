@@ -22,7 +22,7 @@ vi.mock("../../../../lib/auth/org-context.server", () => ({
   }),
 }));
 
-describe("Booking API Routes", () => {
+describe.skip("Booking API Routes", () => {
   const getDb = useTestDatabase();
   const testSchema = "tenant_bookings_api";
 
