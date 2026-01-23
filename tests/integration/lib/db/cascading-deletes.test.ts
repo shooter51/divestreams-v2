@@ -58,8 +58,8 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
 
       // Create booking
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK001', ${customerId}, ${tripId}, 2, 200.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK001', ${customerId}, ${tripId}, 2, 200.00, 'confirmed', 'test-org')
       `;
 
       // Verify booking exists
@@ -99,8 +99,8 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
 
       // Create booking
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK002', ${customerId}, ${tripId}, 2, 200.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK002', ${customerId}, ${tripId}, 2, 200.00, 'confirmed', 'test-org')
       `;
       const booking = await sql`SELECT id FROM bookings WHERE booking_number = 'BK002'`;
       const bookingId = booking[0].id;
@@ -156,12 +156,12 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
 
       // Create multiple bookings for this trip
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK003', ${customer1Id}, ${tripId}, 2, 200.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK003', ${customer1Id}, ${tripId}, 2, 200.00, 'confirmed', 'test-org')
       `;
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK004', ${customer2Id}, ${tripId}, 1, 100.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK004', ${customer2Id}, ${tripId}, 1, 100.00, 'confirmed', 'test-org')
       `;
 
       // Verify bookings exist
@@ -201,8 +201,8 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
 
       // Create booking with payment
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK005', ${customerId}, ${tripId}, 2, 200.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK005', ${customerId}, ${tripId}, 2, 200.00, 'confirmed', 'test-org')
       `;
       const booking = await sql`SELECT id FROM bookings WHERE booking_number = 'BK005'`;
       const bookingId = booking[0].id;
@@ -248,8 +248,8 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
       // Try to create booking with non-existent customer
       await expect(
         sql`
-          INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-          VALUES ('BK006', 99999, ${tripId}, 2, 200.00, 'confirmed')
+          INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+          VALUES ('BK006', 99999, ${tripId}, 2, 200.00, 'confirmed', 'test-org')
         `
       ).rejects.toThrow();
     });
@@ -319,12 +319,12 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
 
       // Create bookings for both trips
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK007', ${customerId}, ${trip1Id}, 2, 200.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK007', ${customerId}, ${trip1Id}, 2, 200.00, 'confirmed', 'test-org')
       `;
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK008', ${customerId}, ${trip2Id}, 2, 200.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK008', ${customerId}, ${trip2Id}, 2, 200.00, 'confirmed', 'test-org')
       `;
 
       const bookings = await sql`SELECT id FROM bookings`;
@@ -392,12 +392,12 @@ describe("Cascading Deletes and Foreign Key Constraints", () => {
 
       // Create bookings for both customers on same trip
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK009', ${keepCustomerId}, ${tripId}, 1, 100.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK009', ${keepCustomerId}, ${tripId}, 1, 100.00, 'confirmed', 'test-org')
       `;
       await sql`
-        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status)
-        VALUES ('BK010', ${deleteCustomerId}, ${tripId}, 1, 100.00, 'confirmed')
+        INSERT INTO bookings (booking_number, customer_id, trip_id, participants, total, status, organization_id)
+        VALUES ('BK010', ${deleteCustomerId}, ${tripId}, 1, 100.00, 'confirmed', 'test-org')
       `;
 
       // Verify both bookings exist
