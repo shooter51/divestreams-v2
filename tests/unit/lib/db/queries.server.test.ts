@@ -70,6 +70,7 @@ vi.mock("../../../../lib/db", () => ({
 
 // Mock the schema
 vi.mock("../../../../lib/db/schema", () => ({
+  __esModule: true,
   organization: {
     id: "id",
     name: "name",
