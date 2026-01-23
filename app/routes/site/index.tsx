@@ -95,10 +95,10 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoade
 
   // Get images for featured trips
   const { images } = await import("../../../lib/db/schema");
-  const { and: andOp } = await import("drizzle-orm");
+  const { and: andOp, inArray } = await import("drizzle-orm");
 
-  const tripIds = tripsResult.trips.map(t => t.tour?.id).filter(Boolean) as string[];
-  const tourImages = tripIds.length > 0 ? await db
+  const tourIds = tripsResult.trips.map(t => t.tour?.id).filter(Boolean) as string[];
+  const tourImages = tourIds.length > 0 ? await db
     .select({
       tourId: images.entityId,
       url: images.url,
@@ -108,7 +108,8 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoade
       andOp(
         eq(images.organizationId, org.id),
         eq(images.entityType, "tour"),
-        eq(images.isPrimary, true)
+        eq(images.isPrimary, true),
+        inArray(images.entityId, tourIds)
       )
     ) : [];
 
