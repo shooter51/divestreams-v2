@@ -35,7 +35,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       const insertOperations = Array.from({ length: 20 }, (_, i) =>
         sql`
           INSERT INTO customers (first_name, last_name, email, organization_id)
-          VALUES (${`Customer${i}`}, 'Concurrent', ${`customer${i}@test.com`})
+          VALUES (${`Customer${i}`}, 'Concurrent', ${`customer${i}@test.com`}, 'test-org')
         `
       );
 
@@ -88,7 +88,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       const operations = Array.from({ length: 50 }, (_, i) =>
         sql`
           INSERT INTO customers (first_name, last_name, email, organization_id)
-          VALUES ('Integrity', ${`User${i}`}, ${`integrity${i}@test.com`})
+          VALUES ('Integrity', ${`User${i}`}, ${`integrity${i}@test.com`}, 'test-org')
         `
       );
 
@@ -112,8 +112,8 @@ describe("Concurrent Operations and Data Integrity", () => {
 
       // Create customer
       await sql`
-        INSERT INTO customers (first_name, last_name, email, phone)
-        VALUES ('Update', 'Test', 'update@test.com', '555-0000')
+        INSERT INTO customers (first_name, last_name, email, phone, organization_id)
+        VALUES ('Update', 'Test', 'update@test.com', '555-0000', 'test-org')
       `;
 
       const customer = await sql`SELECT id FROM customers LIMIT 1`;
@@ -218,7 +218,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       for (let i = 0; i < 20; i++) {
         await sql`
           INSERT INTO customers (first_name, last_name, email, organization_id)
-          VALUES (${`Delete${i}`}, 'Test', ${`delete${i}@test.com`})
+          VALUES (${`Delete${i}`}, 'Test', ${`delete${i}@test.com`}, 'test-org')
         `;
       }
 
@@ -406,7 +406,7 @@ describe("Concurrent Operations and Data Integrity", () => {
       const operations = Array.from({ length: 100 }, (_, i) =>
         sql`
           INSERT INTO customers (first_name, last_name, email, organization_id)
-          VALUES (${`Load${i}`}, 'Test', ${`load${i}@test.com`})
+          VALUES (${`Load${i}`}, 'Test', ${`load${i}@test.com`}, 'test-org')
         `
       );
 
