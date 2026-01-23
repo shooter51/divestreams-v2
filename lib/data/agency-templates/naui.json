@@ -1,0 +1,48 @@
+{
+  "agencyCode": "naui",
+  "agencyName": "NAUI",
+  "courses": [
+    {
+      "code": "SD",
+      "name": "Scuba Diver",
+      "description": "Comprehensive entry-level certification with emphasis on dive planning and safety.",
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 10,
+      "openWaterDives": 4,
+      "minAge": 15,
+      "prerequisites": "Swimming ability, good health",
+      "medicalRequirements": "Medical history form",
+      "materialsIncluded": true,
+      "requiredItems": ["Swimsuit", "Towel"]
+    },
+    {
+      "code": "AD",
+      "name": "Advanced Scuba Diver",
+      "description": "Expand your diving knowledge and experience with advanced techniques.",
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 6,
+      "minAge": 15,
+      "prerequisites": "NAUI Scuba Diver, 15 logged dives",
+      "medicalRequirements": "Medical history form",
+      "materialsIncluded": true,
+      "requiredItems": ["Logbook", "Certification"]
+    },
+    {
+      "code": "MSD",
+      "name": "Master Scuba Diver",
+      "description": "Highest non-leadership certification. Demonstrates diving excellence.",
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "minAge": 18,
+      "prerequisites": "NAUI Advanced, First Aid, 50 logged dives",
+      "medicalRequirements": "Medical clearance",
+      "materialsIncluded": true,
+      "requiredItems": ["Logbook", "All certifications"]
+    }
+  ]
+}

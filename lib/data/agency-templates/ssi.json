@@ -1,0 +1,62 @@
+{
+  "agencyCode": "ssi",
+  "agencyName": "SSI",
+  "courses": [
+    {
+      "code": "OWD",
+      "name": "Open Water Diver",
+      "description": "Your first step into the underwater world. Learn to dive to 18 meters.",
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "minAge": 10,
+      "prerequisites": "Ability to swim, good health",
+      "medicalRequirements": "Medical statement",
+      "materialsIncluded": true,
+      "requiredItems": ["Swimsuit", "Towel"]
+    },
+    {
+      "code": "AOWD",
+      "name": "Advanced Adventurer",
+      "description": "Try 5 different specialty programs and expand your skills.",
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 5,
+      "minAge": 12,
+      "prerequisites": "SSI Open Water Diver",
+      "medicalRequirements": "Medical statement",
+      "materialsIncluded": true,
+      "requiredItems": ["Logbook"]
+    },
+    {
+      "code": "STRESS",
+      "name": "Stress & Rescue",
+      "description": "Learn diver stress management, rescue skills, and emergency procedures.",
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "minAge": 15,
+      "prerequisites": "SSI Advanced Adventurer, React Right",
+      "medicalRequirements": "Medical statement",
+      "materialsIncluded": true,
+      "requiredItems": ["Logbook", "React Right certification"]
+    },
+    {
+      "code": "DG",
+      "name": "Dive Guide",
+      "description": "Professional level certification to guide certified divers.",
+      "durationDays": 10,
+      "classroomHours": 30,
+      "poolHours": 10,
+      "openWaterDives": 15,
+      "minAge": 18,
+      "prerequisites": "SSI Stress & Rescue, 40 logged dives",
+      "medicalRequirements": "Medical clearance",
+      "materialsIncluded": true,
+      "requiredItems": ["All certifications", "Logbook"]
+    }
+  ]
+}
