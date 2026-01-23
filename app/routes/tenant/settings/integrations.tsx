@@ -663,37 +663,48 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "sync") {
-    const integrationId = formData.get("integrationId") as string;
+    const integrationId = formData.get("integrationId") as IntegrationProvider;
 
-    if (integrationId === "google-calendar") {
-      try {
-        // Sync trips for the next 30 days
-        const today = new Date();
-        const thirtyDaysLater = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-        const startDate = today.toISOString().split("T")[0];
-        const endDate = thirtyDaysLater.toISOString().split("T")[0];
+    try {
+      const { dispatchSync, getSyncCapabilities } = await import("../../../../lib/integrations/sync-dispatcher.server");
 
-        const result = await syncAllTrips(ctx.org.id, startDate, endDate);
-
-        if (result.errors.length > 0) {
-          return {
-            success: true,
-            message: `Synced ${result.synced} trips, ${result.failed} failed`,
-            syncDetails: result,
-          };
-        }
-
+      // Check if this integration supports sync
+      const capabilities = getSyncCapabilities(integrationId);
+      if (!capabilities.canSync) {
         return {
           success: true,
-          message: `Successfully synced ${result.synced} trips to Google Calendar!`,
+          message: capabilities.description,
         };
-      } catch (error) {
-        console.error("Error syncing to Google Calendar:", error);
-        return { error: "Failed to sync to Google Calendar" };
       }
-    }
 
-    return { error: "Sync not implemented for this integration" };
+      // Dispatch the sync
+      const result = await dispatchSync({
+        organizationId: ctx.org.id,
+        integrationId,
+      });
+
+      if (!result.success) {
+        return {
+          error: result.errors?.join(', ') || 'Sync failed',
+        };
+      }
+
+      if (result.synced === 0 && result.failed === 0) {
+        return {
+          success: true,
+          message: 'Everything is already synced!',
+        };
+      }
+
+      return {
+        success: true,
+        message: `Successfully synced ${result.synced} items${result.failed > 0 ? `, ${result.failed} failed` : ''}`,
+        syncDetails: result,
+      };
+    } catch (error) {
+      console.error("Error during sync:", error);
+      return { error: error instanceof Error ? error.message : "Sync failed" };
+    }
   }
 
   if (intent === "configure") {
