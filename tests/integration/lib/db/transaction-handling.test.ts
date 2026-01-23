@@ -37,18 +37,18 @@ describe("Transaction Handling", () => {
       await sql.begin(async (tx) => {
         // Insert multiple related records in transaction
         await tx`
-          INSERT INTO customers (first_name, last_name, email)
-          VALUES ('John', 'Doe', 'john@test.com')
+          INSERT INTO customers (first_name, last_name, email, organization_id)
+          VALUES ('John', 'Doe', 'john@test.com', 'test-org')
         `;
 
         await tx`
-          INSERT INTO customers (first_name, last_name, email)
-          VALUES ('Jane', 'Doe', 'jane@test.com')
+          INSERT INTO customers (first_name, last_name, email, organization_id)
+          VALUES ('Jane', 'Doe', 'jane@test.com', 'test-org')
         `;
 
         await tx`
-          INSERT INTO customers (first_name, last_name, email)
-          VALUES ('Jim', 'Doe', 'jim@test.com')
+          INSERT INTO customers (first_name, last_name, email, organization_id)
+          VALUES ('Jim', 'Doe', 'jim@test.com', 'test-org')
         `;
       });
 
@@ -63,14 +63,14 @@ describe("Transaction Handling", () => {
       try {
         await sql.begin(async (tx) => {
           await tx`
-            INSERT INTO customers (first_name, last_name, email)
-            VALUES ('Success', 'User', 'success@test.com')
+            INSERT INTO customers (first_name, last_name, email, organization_id)
+            VALUES ('Success', 'User', 'success@test.com', 'test-org')
           `;
 
           // This will fail due to duplicate email (if we insert same email twice)
           await tx`
-            INSERT INTO customers (first_name, last_name, email)
-            VALUES ('Fail', 'User', 'success@test.com')
+            INSERT INTO customers (first_name, last_name, email, organization_id)
+            VALUES ('Fail', 'User', 'success@test.com', 'test-org')
           `;
         });
       } catch (error) {
@@ -136,8 +136,8 @@ describe("Transaction Handling", () => {
 
       // Insert initial customer
       await sql`
-        INSERT INTO customers (first_name, last_name, email)
-        VALUES ('Concurrent', 'Test', 'concurrent@test.com')
+        INSERT INTO customers (first_name, last_name, email, organization_id)
+        VALUES ('Concurrent', 'Test', 'concurrent@test.com', 'test-org')
       `;
 
       // Simulate concurrent updates
