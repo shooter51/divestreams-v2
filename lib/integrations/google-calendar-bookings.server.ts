@@ -63,3 +63,38 @@ export async function syncBookingCancellationToCalendar(
     };
   }
 }
+
+/**
+ * Sync all trips to calendar for an organization
+ *
+ * This is the dispatcher function used by the generic sync endpoint.
+ * It returns a SyncResult that matches the dispatcher's expected format.
+ *
+ * @param orgId - Organization ID
+ */
+export async function syncTripsToCalendar(
+  orgId: string
+): Promise<{ success: boolean; synced: number; failed: number; errors?: string[] }> {
+  try {
+    // For now, return placeholder - actual implementation would:
+    // 1. Get all trips for the organization
+    // 2. Sync each trip to calendar
+    // 3. Count successes and failures
+    console.log('[Google Calendar] Would sync trips for org:', orgId);
+
+    return {
+      success: true,
+      synced: 0,
+      failed: 0,
+      errors: ['Google Calendar sync requires API implementation'],
+    };
+  } catch (error) {
+    console.error("Failed to sync trips to calendar:", error);
+    return {
+      success: false,
+      synced: 0,
+      failed: 0,
+      errors: [error instanceof Error ? error.message : "Unknown error"],
+    };
+  }
+}

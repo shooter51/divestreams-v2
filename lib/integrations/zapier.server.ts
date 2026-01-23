@@ -467,3 +467,23 @@ export function getSampleTriggerData(trigger: ZapierTriggerType): Record<string,
       return {};
   }
 }
+
+// ============================================================================
+// Sync Functions
+// ============================================================================
+
+/**
+ * Trigger sync webhook for Zapier
+ */
+export async function triggerSyncWebhook(organizationId: string): Promise<{ triggered: boolean }> {
+  const integration = await getIntegration(organizationId, 'zapier');
+  if (!integration?.isActive) {
+    return { triggered: false };
+  }
+
+  // Trigger the sync webhook if configured
+  // For now, return a placeholder - actual implementation triggers configured webhooks
+  console.log('[Zapier] Would trigger sync webhook for org:', organizationId);
+
+  return { triggered: false };
+}

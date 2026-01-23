@@ -19,6 +19,7 @@
 
 import {
   connectIntegration,
+  getIntegration,
   getIntegrationWithTokens,
   updateLastSync,
   logSyncOperation,
@@ -690,4 +691,36 @@ export async function getAccountInfo(
 export async function verifyConnection(orgId: string): Promise<boolean> {
   const info = await getAccountInfo(orgId);
   return info !== null;
+}
+
+// ============================================================================
+// Sync Functions
+// ============================================================================
+
+export interface MailchimpSyncResult {
+  success: boolean;
+  synced: number;
+  failed: number;
+  errors?: string[];
+}
+
+/**
+ * Sync contacts to Mailchimp audience
+ */
+export async function syncContactsToMailchimp(organizationId: string): Promise<MailchimpSyncResult> {
+  const integration = await getIntegration(organizationId, 'mailchimp');
+  if (!integration?.isActive) {
+    return { success: false, synced: 0, failed: 0, errors: ['Mailchimp integration not active'] };
+  }
+
+  // Get customers that need syncing to Mailchimp
+  // For now, return a placeholder - actual implementation requires Mailchimp API calls
+  console.log('[Mailchimp] Would sync contacts for org:', organizationId);
+
+  return {
+    success: false,
+    synced: 0,
+    failed: 0,
+    errors: ['Mailchimp contact sync requires API implementation'],
+  };
 }
