@@ -1,16 +1,14 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useFetcher, Link } from "react-router";
-import { eq, and } from "drizzle-orm";
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import {
+  getGalleryAlbum,
   updateGalleryAlbum,
   deleteGalleryAlbum,
   getAllGalleryImages,
-  createGalleryImage,
   updateGalleryImage,
   deleteGalleryImage,
 } from "../../../../lib/db/gallery.server";
-import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 export const meta: MetaFunction = () => [{ title: "Album - DiveStreams" }];
 
@@ -22,19 +20,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Album ID required", { status: 400 });
   }
 
-  const { db, schema } = getTenantDb(organizationId);
-
   // Get album details
-  const [album] = await db
-    .select()
-    .from(schema.galleryAlbums)
-    .where(
-      and(
-        eq(schema.galleryAlbums.organizationId, organizationId),
-        eq(schema.galleryAlbums.id, albumId)
-      )
-    )
-    .limit(1);
+  const album = await getGalleryAlbum(organizationId, albumId);
 
   if (!album) {
     throw new Response("Album not found", { status: 404 });
