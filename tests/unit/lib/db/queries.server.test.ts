@@ -69,7 +69,7 @@ vi.mock("../../../../lib/db", () => ({
 }));
 
 // Mock the schema
-const mockSchema = vi.hoisted(() => ({
+vi.mock("../../../../lib/db/schema", () => ({
   organization: {
     id: "id",
     name: "name",
@@ -140,8 +140,6 @@ const mockSchema = vi.hoisted(() => ({
     tourId: "tourId", diveSiteId: "diveSiteId",
   },
 }));
-
-vi.mock("../../../../lib/db/schema", () => mockSchema);
 
 // Mock drizzle-orm functions
 vi.mock("drizzle-orm", () => ({
