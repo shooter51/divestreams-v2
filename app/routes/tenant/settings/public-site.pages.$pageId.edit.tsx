@@ -16,6 +16,7 @@ import {
   publishPageContent,
   unpublishPageContent,
   getPageContentHistory,
+  restorePageContentVersion,
 } from "../../../../lib/db/page-content.server";
 import type { PageContent, ContentBlock } from "../../../../lib/db/schema/page-content";
 
@@ -84,6 +85,33 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "unpublish") {
     await unpublishPageContent(ctx.org.id, pageId, ctx.user.id);
     return { success: true, message: "Page unpublished successfully" };
+  }
+
+  if (intent === "restore") {
+    const versionStr = formData.get("version");
+    if (!versionStr) {
+      return { success: false, error: "Version number is required" };
+    }
+
+    const version = parseInt(versionStr as string, 10);
+    if (isNaN(version)) {
+      return { success: false, error: "Invalid version number" };
+    }
+
+    const { restorePageContentVersion } = await import("../../../../lib/db/page-content.server");
+
+    const restored = await restorePageContentVersion(
+      ctx.org.id,
+      pageId,
+      version,
+      ctx.user.id
+    );
+
+    if (!restored) {
+      return { success: false, error: "Failed to restore version. Version may not exist." };
+    }
+
+    return { success: true, message: `Restored to version ${version}` };
   }
 
   return null;
