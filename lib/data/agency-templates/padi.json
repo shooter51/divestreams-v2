@@ -1,0 +1,90 @@
+{
+  "agencyCode": "padi",
+  "agencyName": "PADI",
+  "courses": [
+    {
+      "code": "OW",
+      "name": "Open Water Diver",
+      "description": "Entry-level certification that teaches fundamental diving skills. Learn to dive safely to 18 meters/60 feet.",
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "minAge": 10,
+      "prerequisites": "None - ability to swim 200 meters",
+      "medicalRequirements": "Medical questionnaire, doctor's clearance if needed",
+      "materialsIncluded": true,
+      "requiredItems": ["Swimsuit", "Towel", "Passport photo"]
+    },
+    {
+      "code": "AOW",
+      "name": "Advanced Open Water Diver",
+      "description": "Build on your Open Water skills with 5 adventure dives including deep and navigation.",
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 5,
+      "minAge": 12,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "medicalRequirements": "Medical questionnaire",
+      "materialsIncluded": true,
+      "requiredItems": ["Logbook", "Certification card"]
+    },
+    {
+      "code": "RD",
+      "name": "Rescue Diver",
+      "description": "Learn to prevent and manage dive emergencies. Challenging but rewarding course.",
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "minAge": 12,
+      "prerequisites": "PADI Advanced Open Water Diver, EFR within 24 months",
+      "medicalRequirements": "Medical questionnaire",
+      "materialsIncluded": true,
+      "requiredItems": ["Logbook", "Certification card", "EFR certification"]
+    },
+    {
+      "code": "DM",
+      "name": "Divemaster",
+      "description": "First professional level. Supervise diving activities and assist instructors.",
+      "durationDays": 14,
+      "classroomHours": 40,
+      "poolHours": 20,
+      "openWaterDives": 20,
+      "minAge": 18,
+      "prerequisites": "PADI Rescue Diver, 40 logged dives, EFR within 24 months",
+      "medicalRequirements": "Medical clearance from physician",
+      "materialsIncluded": true,
+      "requiredItems": ["Logbook", "All certifications", "Passport photos"]
+    },
+    {
+      "code": "EFR",
+      "name": "Emergency First Response",
+      "description": "CPR and first aid training for divers and non-divers alike.",
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "minAge": 10,
+      "prerequisites": "None",
+      "medicalRequirements": "None",
+      "materialsIncluded": true,
+      "requiredItems": []
+    },
+    {
+      "code": "NITROX",
+      "name": "Enriched Air Diver (Nitrox)",
+      "description": "Learn to dive with enriched air nitrox for longer no-decompression limits.",
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "minAge": 12,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "medicalRequirements": "Medical questionnaire",
+      "materialsIncluded": true,
+      "requiredItems": ["Logbook", "Certification card"]
+    }
+  ]
+}
