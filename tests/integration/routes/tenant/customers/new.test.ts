@@ -7,14 +7,27 @@ import * as queries from "../../../../../lib/db/queries.server";
 vi.mock("../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../lib/db/queries.server");
 
+// Mock require-feature.server - requireLimit returns available capacity
+vi.mock("../../../../../lib/require-feature.server", () => ({
+  requireLimit: vi.fn().mockResolvedValue({ current: 0, limit: 50, remaining: 50 }),
+}));
+
+vi.mock("../../../../../lib/plan-features", () => ({
+  DEFAULT_PLAN_LIMITS: { free: { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 } },
+}));
+
 describe("app/routes/tenant/customers/new.tsx", () => {
   const mockOrganizationId = "org-123";
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
+      user: { id: "user-123", email: "test@example.com" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 50 },
+      isPremium: false,
     } as any);
   });
 

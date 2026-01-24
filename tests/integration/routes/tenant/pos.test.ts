@@ -27,6 +27,15 @@ vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
 }));
 
+// Mock require-feature.server - requireFeature is a no-op in tests
+vi.mock("../../../../lib/require-feature.server", () => ({
+  requireFeature: vi.fn(),
+}));
+
+vi.mock("../../../../lib/plan-features", () => ({
+  PLAN_FEATURES: { HAS_POS: "has_pos" },
+}));
+
 // Mock the tenant database module
 vi.mock("../../../../lib/db/tenant.server", () => ({
   getTenantDb: vi.fn(),
