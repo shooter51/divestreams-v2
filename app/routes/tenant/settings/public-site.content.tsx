@@ -207,7 +207,7 @@ export default function PublicSiteContentSettings() {
                 name="contactAddress"
                 rows={2}
                 defaultValue={settings.contactInfo?.address || ""}
-                placeholder="123 Ocean Drive&#10;Key Largo, FL 33037"
+                placeholder="123 Ocean Drive, Key Largo, FL 33037"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -251,7 +251,7 @@ export default function PublicSiteContentSettings() {
                 name="contactHours"
                 rows={3}
                 defaultValue={settings.contactInfo?.hours || ""}
-                placeholder="Monday - Friday: 8am - 6pm&#10;Saturday - Sunday: 7am - 7pm"
+                placeholder="Mon-Fri: 8am-6pm, Sat-Sun: 7am-7pm"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -288,6 +288,7 @@ export default function PublicSiteContentSettings() {
                 <p className="text-sm font-medium text-gray-600 mb-2">Map Preview</p>
                 <div
                   className="border rounded-lg overflow-hidden"
+                  suppressHydrationWarning
                   dangerouslySetInnerHTML={{
                     __html: settings.contactInfo.mapEmbed.replace(
                       /width="[^"]*"/,
