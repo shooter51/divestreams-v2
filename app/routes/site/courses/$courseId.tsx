@@ -68,29 +68,32 @@ interface CourseDetail {
   id: string;
   name: string;
   description: string | null;
-  type: string;
-  duration: number | null;
-  maxParticipants: number;
-  minParticipants: number | null;
+  durationDays: number;
+  classroomHours: number | null;
+  poolHours: number | null;
+  openWaterDives: number | null;
+  maxStudents: number;
+  minStudents: number | null;
   price: string;
   currency: string;
-  includesEquipment: boolean | null;
-  includesMeals: boolean | null;
-  includesTransport: boolean | null;
-  inclusions: string[] | null;
-  exclusions: string[] | null;
-  minCertLevel: string | null;
+  depositRequired: boolean | null;
+  depositAmount: string | null;
+  materialsIncluded: boolean | null;
+  equipmentIncluded: boolean | null;
+  includedItems: string[] | null;
+  requiredItems: string[] | null;
   minAge: number | null;
-  requirements: string[] | null;
+  prerequisites: string | null;
+  medicalRequirements: string | null;
   images: string[] | null;
-  isActive: boolean;
+  agencyName: string | null;
+  levelName: string | null;
 }
 
 interface LoaderData {
   course: CourseDetail;
   sessions: ScheduledSession[];
   totalSessions: number;
-  detectedAgency: { id: string; name: string; color: string; description: string } | null;
 }
 
 // ============================================================================
@@ -98,48 +101,26 @@ interface LoaderData {
 // ============================================================================
 
 /**
- * Detect agency from course name or description
+ * Get agency color from name
  */
-function detectAgency(name: string, description: string | null): string | null {
-  const text = `${name} ${description || ""}`.toLowerCase();
+function getAgencyColor(agencyName: string | null): string {
+  if (!agencyName) return "#6b7280";
 
-  if (text.includes("padi")) return "padi";
-  if (text.includes("ssi")) return "ssi";
-  if (text.includes("naui")) return "naui";
-  if (text.includes("sdi") || text.includes("tdi")) return "sdi";
-  if (text.includes("raid")) return "raid";
-  if (text.includes("gue")) return "gue";
-
-  return null;
+  const nameLower = agencyName.toLowerCase();
+  for (const [id, agency] of Object.entries(CERTIFICATION_AGENCIES)) {
+    if (nameLower.includes(id) || nameLower.includes(agency.name.toLowerCase())) {
+      return agency.color;
+    }
+  }
+  return "#6b7280";
 }
 
 /**
- * Format duration in minutes to readable string
+ * Format duration in days to readable string
  */
-function formatDuration(minutes: number | null): string {
-  if (!minutes) return "Duration varies";
-
-  if (minutes < 60) {
-    return `${minutes} minutes`;
-  }
-
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (minutes >= 1440) {
-    const days = Math.floor(minutes / 1440);
-    const remainingHours = Math.floor((minutes % 1440) / 60);
-    if (remainingHours === 0) {
-      return days === 1 ? "1 day" : `${days} days`;
-    }
-    return `${days} day${days > 1 ? "s" : ""}, ${remainingHours} hour${remainingHours > 1 ? "s" : ""}`;
-  }
-
-  if (remainingMinutes === 0) {
-    return hours === 1 ? "1 hour" : `${hours} hours`;
-  }
-
-  return `${hours} hour${hours > 1 ? "s" : ""} ${remainingMinutes} min`;
+function formatDuration(days: number): string {
+  if (days === 1) return "1 day";
+  return `${days} days`;
 }
 
 /**
@@ -215,15 +196,10 @@ export async function loader({ params, context }: LoaderFunctionArgs): Promise<L
     { limit: 10 }
   );
 
-  // Detect certification agency
-  const agencyId = detectAgency(course.name, course.description);
-  const detectedAgency = agencyId ? { id: agencyId, ...CERTIFICATION_AGENCIES[agencyId] } : null;
-
   return {
     course,
     sessions: sessionsResult.trips,
     totalSessions: sessionsResult.total,
-    detectedAgency,
   };
 }
 
@@ -283,37 +259,32 @@ function WhatsIncludedSection({ course }: { course: CourseDetail }) {
   const includedItems: { icon: string; label: string }[] = [];
   const excludedItems: string[] = [];
 
-  if (course.includesEquipment) {
+  if (course.equipmentIncluded) {
     includedItems.push({ icon: "equipment", label: "All dive equipment" });
   } else {
     excludedItems.push("Dive equipment (available for rent)");
   }
 
-  if (course.includesMeals) {
-    includedItems.push({ icon: "meals", label: "Meals included" });
-  }
-
-  if (course.includesTransport) {
-    includedItems.push({ icon: "transport", label: "Transportation included" });
+  if (course.materialsIncluded) {
+    includedItems.push({ icon: "book", label: "Course materials & manuals" });
   }
 
   // Add custom inclusions
-  if (course.inclusions) {
-    course.inclusions.forEach((item) => {
+  if (course.includedItems) {
+    course.includedItems.forEach((item) => {
       includedItems.push({ icon: "check", label: item });
     });
   }
 
   // Add standard course items
   includedItems.push(
-    { icon: "book", label: "Course materials & manuals" },
     { icon: "card", label: "Certification fee" },
     { icon: "instructor", label: "Professional instruction" }
   );
 
-  // Add custom exclusions
-  if (course.exclusions) {
-    excludedItems.push(...course.exclusions);
+  // Add required items as exclusions (things student must bring)
+  if (course.requiredItems) {
+    excludedItems.push(...course.requiredItems.map(item => `Bring your own: ${item}`));
   }
 
   const getIcon = (type: string) => {
@@ -412,12 +383,16 @@ function PrerequisitesSection({ course }: { course: CourseDetail }) {
     prerequisites.push(`Minimum age: ${course.minAge} years`);
   }
 
-  if (course.minCertLevel) {
-    prerequisites.push(`Certification: ${course.minCertLevel}`);
+  if (course.levelName) {
+    prerequisites.push(`Required certification: ${course.levelName}`);
   }
 
-  if (course.requirements) {
-    prerequisites.push(...course.requirements);
+  if (course.prerequisites) {
+    prerequisites.push(course.prerequisites);
+  }
+
+  if (course.medicalRequirements) {
+    prerequisites.push(`Medical: ${course.medicalRequirements}`);
   }
 
   // Default prerequisites if none specified
@@ -586,7 +561,15 @@ function SessionsSection({
 // ============================================================================
 
 export default function SiteCourseDetailPage() {
-  const { course, sessions, totalSessions, detectedAgency } = useLoaderData<typeof loader>();
+  const { course, sessions, totalSessions } = useLoaderData<typeof loader>();
+
+  // Get agency info for styling
+  const agencyColor = getAgencyColor(course.agencyName);
+  const agencyInfo = course.agencyName ? {
+    name: course.agencyName,
+    color: agencyColor,
+    description: CERTIFICATION_AGENCIES[course.agencyName.toLowerCase()]?.description || `${course.agencyName} certified course`,
+  } : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -643,17 +626,22 @@ export default function SiteCourseDetailPage() {
               )}
             </div>
 
-            {/* Agency Badge */}
-            {detectedAgency && (
-              <div className="mb-4">
+            {/* Badges */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {course.agencyName && (
                 <span
                   className="inline-flex items-center px-3 py-1 text-sm font-semibold text-white rounded-full"
-                  style={{ backgroundColor: detectedAgency.color }}
+                  style={{ backgroundColor: agencyColor }}
                 >
-                  {detectedAgency.name} Course
+                  {course.agencyName}
                 </span>
-              </div>
-            )}
+              )}
+              {course.levelName && (
+                <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-gray-100 text-gray-700 rounded-full">
+                  {course.levelName}
+                </span>
+              )}
+            </div>
 
             {/* Course Title */}
             <h1
@@ -669,13 +657,13 @@ export default function SiteCourseDetailPage() {
                 <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>{formatDuration(course.duration)}</span>
+                <span>{formatDuration(course.durationDays)}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span>Max {course.maxParticipants} students</span>
+                <span>Max {course.maxStudents} students</span>
               </div>
               {course.minAge && (
                 <div className="flex items-center gap-2 text-sm">
@@ -683,6 +671,22 @@ export default function SiteCourseDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <span>Min age: {course.minAge}+</span>
+                </div>
+              )}
+              {course.classroomHours && (
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <span>{course.classroomHours}h classroom</span>
+                </div>
+              )}
+              {course.openWaterDives && (
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                  </svg>
+                  <span>{course.openWaterDives} open water dives</span>
                 </div>
               )}
             </div>
@@ -698,8 +702,8 @@ export default function SiteCourseDetailPage() {
           </div>
 
           {/* Agency Certification Info */}
-          {detectedAgency && (
-            <AgencyCertificationCard agency={detectedAgency} />
+          {agencyInfo && (
+            <AgencyCertificationCard agency={{ id: course.agencyName?.toLowerCase() || "", ...agencyInfo }} />
           )}
 
           {/* What's Included */}
@@ -745,7 +749,7 @@ export default function SiteCourseDetailPage() {
                 <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>{formatDuration(course.duration)}</span>
+                <span>{formatDuration(course.durationDays)}</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -753,12 +757,22 @@ export default function SiteCourseDetailPage() {
                 </svg>
                 <span>Certification included</span>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <span>Materials included</span>
-              </div>
+              {course.materialsIncluded && (
+                <div className="flex items-center gap-3 text-sm">
+                  <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <span>Materials included</span>
+                </div>
+              )}
+              {course.equipmentIncluded && (
+                <div className="flex items-center gap-3 text-sm">
+                  <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <span>Equipment included</span>
+                </div>
+              )}
             </div>
 
             {/* Contact Link */}

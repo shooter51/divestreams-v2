@@ -43,8 +43,9 @@ interface HomeLoaderData {
     id: string;
     name: string;
     description: string | null;
-    price: string | null;
-    duration: number | null;
+    price: string;
+    currency: string;
+    durationDays: number;
   }>;
 }
 
@@ -129,7 +130,8 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoade
       name: course.name,
       description: course.description,
       price: course.price,
-      duration: course.duration,
+      currency: course.currency,
+      durationDays: course.durationDays,
     })),
   };
 }
@@ -285,18 +287,14 @@ function CourseCard({
 }: {
   course: HomeLoaderData["featuredCourses"][0];
 }) {
-  const formattedPrice = course.price
-    ? new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(parseFloat(course.price))
-    : "Contact for price";
+  const formattedPrice = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: course.currency,
+  }).format(parseFloat(course.price));
 
-  const durationText = course.duration
-    ? course.duration >= 24
-      ? `${Math.round(course.duration / 24)} days`
-      : `${course.duration} hours`
-    : null;
+  const durationText = course.durationDays === 1
+    ? "1 day"
+    : `${course.durationDays} days`;
 
   return (
     <Link

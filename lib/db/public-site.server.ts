@@ -13,6 +13,9 @@ import {
   trips,
   tours,
   equipment,
+  trainingCourses,
+  certificationAgencies,
+  certificationLevels,
   type PublicSiteSettings,
 } from "./schema";
 
@@ -58,9 +61,17 @@ export interface PaginatedCoursesResult extends PaginatedResult<unknown> {
     id: string;
     name: string;
     description: string | null;
-    price: string | null;
-    duration: number | null;
-    isPublic: boolean;
+    price: string;
+    currency: string;
+    durationDays: number;
+    maxStudents: number;
+    minAge: number | null;
+    prerequisites: string | null;
+    materialsIncluded: boolean | null;
+    equipmentIncluded: boolean | null;
+    images: string[] | null;
+    agencyName: string | null;
+    levelName: string | null;
   }>;
 }
 
@@ -234,9 +245,7 @@ export async function getPublicTrips(
 
 /**
  * Get public courses for an organization
- * Note: Training courses table may need to be created.
- * For now, this returns tours of type 'course' as a fallback.
- * Returns only courses where isPublic = true (when trainingCourses table exists)
+ * Returns only courses where isPublic = true and isActive = true
  */
 export async function getPublicCourses(
   organizationId: string,
@@ -245,38 +254,47 @@ export async function getPublicCourses(
   const { limit = 20, page = 1 } = options;
   const offset = (page - 1) * limit;
 
-  // Since trainingCourses table doesn't exist yet, return tours of type 'course'
-  // This can be updated when trainingCourses table is added
+  // Query from trainingCourses table with agency and level joins
   const coursesData = await db
     .select({
-      id: tours.id,
-      name: tours.name,
-      description: tours.description,
-      price: tours.price,
-      duration: tours.duration,
-      isActive: tours.isActive,
+      id: trainingCourses.id,
+      name: trainingCourses.name,
+      description: trainingCourses.description,
+      price: trainingCourses.price,
+      currency: trainingCourses.currency,
+      durationDays: trainingCourses.durationDays,
+      maxStudents: trainingCourses.maxStudents,
+      minAge: trainingCourses.minAge,
+      prerequisites: trainingCourses.prerequisites,
+      materialsIncluded: trainingCourses.materialsIncluded,
+      equipmentIncluded: trainingCourses.equipmentIncluded,
+      images: trainingCourses.images,
+      agencyName: certificationAgencies.name,
+      levelName: certificationLevels.name,
     })
-    .from(tours)
+    .from(trainingCourses)
+    .leftJoin(certificationAgencies, eq(trainingCourses.agencyId, certificationAgencies.id))
+    .leftJoin(certificationLevels, eq(trainingCourses.levelId, certificationLevels.id))
     .where(
       and(
-        eq(tours.organizationId, organizationId),
-        eq(tours.type, "course"),
-        eq(tours.isActive, true)
+        eq(trainingCourses.organizationId, organizationId),
+        eq(trainingCourses.isPublic, true),
+        eq(trainingCourses.isActive, true)
       )
     )
-    .orderBy(tours.name)
+    .orderBy(trainingCourses.sortOrder, trainingCourses.name)
     .limit(limit)
     .offset(offset);
 
   // Get total count
   const countResult = await db
     .select({ count: sql<number>`count(*)` })
-    .from(tours)
+    .from(trainingCourses)
     .where(
       and(
-        eq(tours.organizationId, organizationId),
-        eq(tours.type, "course"),
-        eq(tours.isActive, true)
+        eq(trainingCourses.organizationId, organizationId),
+        eq(trainingCourses.isPublic, true),
+        eq(trainingCourses.isActive, true)
       )
     );
 
@@ -288,8 +306,16 @@ export async function getPublicCourses(
       name: course.name,
       description: course.description,
       price: course.price,
-      duration: course.duration,
-      isPublic: course.isActive ?? false,
+      currency: course.currency,
+      durationDays: course.durationDays,
+      maxStudents: course.maxStudents,
+      minAge: course.minAge,
+      prerequisites: course.prerequisites,
+      materialsIncluded: course.materialsIncluded,
+      equipmentIncluded: course.equipmentIncluded,
+      images: course.images,
+      agencyName: course.agencyName,
+      levelName: course.levelName,
     })),
     total,
   };
@@ -361,7 +387,7 @@ export async function getPublicEquipment(
 
 /**
  * Get a single public course by ID for an organization
- * Returns tour of type 'course' where isActive = true
+ * Returns training course where isPublic = true and isActive = true
  */
 export async function getPublicCourseById(
   organizationId: string,
@@ -370,52 +396,62 @@ export async function getPublicCourseById(
   id: string;
   name: string;
   description: string | null;
-  type: string;
-  duration: number | null;
-  maxParticipants: number;
-  minParticipants: number | null;
+  durationDays: number;
+  classroomHours: number | null;
+  poolHours: number | null;
+  openWaterDives: number | null;
+  maxStudents: number;
+  minStudents: number | null;
   price: string;
   currency: string;
-  includesEquipment: boolean | null;
-  includesMeals: boolean | null;
-  includesTransport: boolean | null;
-  inclusions: string[] | null;
-  exclusions: string[] | null;
-  minCertLevel: string | null;
+  depositRequired: boolean | null;
+  depositAmount: string | null;
+  materialsIncluded: boolean | null;
+  equipmentIncluded: boolean | null;
+  includedItems: string[] | null;
+  requiredItems: string[] | null;
   minAge: number | null;
-  requirements: string[] | null;
+  prerequisites: string | null;
+  medicalRequirements: string | null;
   images: string[] | null;
-  isActive: boolean;
+  agencyName: string | null;
+  levelName: string | null;
 } | null> {
   const [course] = await db
     .select({
-      id: tours.id,
-      name: tours.name,
-      description: tours.description,
-      type: tours.type,
-      duration: tours.duration,
-      maxParticipants: tours.maxParticipants,
-      minParticipants: tours.minParticipants,
-      price: tours.price,
-      currency: tours.currency,
-      includesEquipment: tours.includesEquipment,
-      includesMeals: tours.includesMeals,
-      includesTransport: tours.includesTransport,
-      inclusions: tours.inclusions,
-      exclusions: tours.exclusions,
-      minCertLevel: tours.minCertLevel,
-      minAge: tours.minAge,
-      requirements: tours.requirements,
-      images: tours.images,
-      isActive: tours.isActive,
+      id: trainingCourses.id,
+      name: trainingCourses.name,
+      description: trainingCourses.description,
+      durationDays: trainingCourses.durationDays,
+      classroomHours: trainingCourses.classroomHours,
+      poolHours: trainingCourses.poolHours,
+      openWaterDives: trainingCourses.openWaterDives,
+      maxStudents: trainingCourses.maxStudents,
+      minStudents: trainingCourses.minStudents,
+      price: trainingCourses.price,
+      currency: trainingCourses.currency,
+      depositRequired: trainingCourses.depositRequired,
+      depositAmount: trainingCourses.depositAmount,
+      materialsIncluded: trainingCourses.materialsIncluded,
+      equipmentIncluded: trainingCourses.equipmentIncluded,
+      includedItems: trainingCourses.includedItems,
+      requiredItems: trainingCourses.requiredItems,
+      minAge: trainingCourses.minAge,
+      prerequisites: trainingCourses.prerequisites,
+      medicalRequirements: trainingCourses.medicalRequirements,
+      images: trainingCourses.images,
+      agencyName: certificationAgencies.name,
+      levelName: certificationLevels.name,
     })
-    .from(tours)
+    .from(trainingCourses)
+    .leftJoin(certificationAgencies, eq(trainingCourses.agencyId, certificationAgencies.id))
+    .leftJoin(certificationLevels, eq(trainingCourses.levelId, certificationLevels.id))
     .where(
       and(
-        eq(tours.organizationId, organizationId),
-        eq(tours.id, courseId),
-        eq(tours.type, "course"),
-        eq(tours.isActive, true)
+        eq(trainingCourses.organizationId, organizationId),
+        eq(trainingCourses.id, courseId),
+        eq(trainingCourses.isPublic, true),
+        eq(trainingCourses.isActive, true)
       )
     )
     .limit(1);

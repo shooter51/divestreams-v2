@@ -42,12 +42,17 @@ interface Course {
   id: string;
   name: string;
   description: string | null;
-  price: string | null;
-  duration: number | null;
-  isPublic: boolean;
-  // Extended fields derived from name/description for filtering
-  agency: string | null;
-  level: string | null;
+  price: string;
+  currency: string;
+  durationDays: number;
+  maxStudents: number;
+  minAge: number | null;
+  prerequisites: string | null;
+  materialsIncluded: boolean | null;
+  equipmentIncluded: boolean | null;
+  images: string[] | null;
+  agencyName: string | null;
+  levelName: string | null;
 }
 
 interface LoaderData {
@@ -66,77 +71,17 @@ interface LoaderData {
 // ============================================================================
 
 /**
- * Detect agency from course name or description
+ * Format duration in days to readable string
  */
-function detectAgency(name: string, description: string | null): string | null {
-  const text = `${name} ${description || ""}`.toLowerCase();
-
-  if (text.includes("padi")) return "padi";
-  if (text.includes("ssi")) return "ssi";
-  if (text.includes("naui")) return "naui";
-  if (text.includes("sdi") || text.includes("tdi")) return "sdi";
-  if (text.includes("raid")) return "raid";
-  if (text.includes("gue")) return "gue";
-
-  return null;
-}
-
-/**
- * Detect course level from name or description
- */
-function detectLevel(name: string, description: string | null): string | null {
-  const text = `${name} ${description || ""}`.toLowerCase();
-
-  if (text.includes("discover") || text.includes("intro") || text.includes("try")) {
-    return "beginner";
-  }
-  if (text.includes("open water") || text.includes("basic")) {
-    return "open-water";
-  }
-  if (text.includes("advanced") || text.includes("deep") || text.includes("navigation")) {
-    return "advanced";
-  }
-  if (text.includes("specialty") || text.includes("nitrox") || text.includes("wreck") || text.includes("night")) {
-    return "specialty";
-  }
-  if (text.includes("divemaster") || text.includes("instructor") || text.includes("professional")) {
-    return "professional";
-  }
-
-  return null;
-}
-
-/**
- * Format duration in minutes to readable string
- */
-function formatDuration(minutes: number | null): string {
-  if (!minutes) return "Duration varies";
-
-  if (minutes < 60) {
-    return `${minutes} min`;
-  }
-
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (minutes >= 1440) { // 24 hours or more
-    const days = Math.floor(minutes / 1440);
-    return days === 1 ? "1 day" : `${days} days`;
-  }
-
-  if (remainingMinutes === 0) {
-    return hours === 1 ? "1 hour" : `${hours} hours`;
-  }
-
-  return `${hours}h ${remainingMinutes}m`;
+function formatDuration(days: number): string {
+  if (days === 1) return "1 day";
+  return `${days} days`;
 }
 
 /**
  * Format price for display
  */
-function formatPrice(price: string | null, currency = "USD"): string {
-  if (!price) return "Price on request";
-
+function formatPrice(price: string, currency: string): string {
   const numericPrice = parseFloat(price);
   if (isNaN(numericPrice)) return "Price on request";
 
@@ -195,25 +140,24 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
   // Get all public courses
   const result = await getPublicCourses(org.id, { page, limit: 100 });
 
-  // Enhance courses with detected agency and level
-  let enhancedCourses = result.courses.map((course) => ({
-    ...course,
-    agency: detectAgency(course.name, course.description),
-    level: detectLevel(course.name, course.description),
-  }));
+  // Apply filters by agency name and level name
+  let filteredCourses = result.courses;
 
-  // Apply filters
   if (agency) {
-    enhancedCourses = enhancedCourses.filter((c) => c.agency === agency);
+    filteredCourses = filteredCourses.filter((c) =>
+      c.agencyName?.toLowerCase().includes(agency.toLowerCase())
+    );
   }
   if (level) {
-    enhancedCourses = enhancedCourses.filter((c) => c.level === level);
+    filteredCourses = filteredCourses.filter((c) =>
+      c.levelName?.toLowerCase().includes(level.toLowerCase())
+    );
   }
 
   // Paginate
-  const total = enhancedCourses.length;
+  const total = filteredCourses.length;
   const startIndex = (page - 1) * limit;
-  const paginatedCourses = enhancedCourses.slice(startIndex, startIndex + limit);
+  const paginatedCourses = filteredCourses.slice(startIndex, startIndex + limit);
 
   return {
     courses: paginatedCourses,
@@ -234,18 +178,21 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
 /**
  * Agency badge component
  */
-function AgencyBadge({ agencyId }: { agencyId: string | undefined | null }) {
-  if (!agencyId) return null;
+function AgencyBadge({ agencyName }: { agencyName: string | null }) {
+  if (!agencyName) return null;
 
-  const agency = CERTIFICATION_AGENCIES.find((a) => a.id === agencyId);
-  if (!agency) return null;
+  // Try to match with known agencies for color, otherwise use default
+  const agencyLower = agencyName.toLowerCase();
+  const agency = CERTIFICATION_AGENCIES.find((a) =>
+    agencyLower.includes(a.id) || agencyLower.includes(a.name.toLowerCase())
+  );
 
   return (
     <span
       className="inline-flex items-center px-2 py-1 text-xs font-semibold text-white rounded"
-      style={{ backgroundColor: agency.color }}
+      style={{ backgroundColor: agency?.color || "#6b7280" }}
     >
-      {agency.name}
+      {agencyName}
     </span>
   );
 }
@@ -253,15 +200,12 @@ function AgencyBadge({ agencyId }: { agencyId: string | undefined | null }) {
 /**
  * Level badge component
  */
-function LevelBadge({ levelId }: { levelId: string | undefined | null }) {
-  if (!levelId) return null;
-
-  const level = COURSE_LEVELS.find((l) => l.id === levelId);
-  if (!level) return null;
+function LevelBadge({ levelName }: { levelName: string | null }) {
+  if (!levelName) return null;
 
   return (
     <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
-      {level.name}
+      {levelName}
     </span>
   );
 }
@@ -270,38 +214,45 @@ function LevelBadge({ levelId }: { levelId: string | undefined | null }) {
  * Course card component
  */
 function CourseCard({ course }: { course: Course }) {
+  const hasImage = course.images && course.images.length > 0;
+
   return (
     <Link
       to={`/site/courses/${course.id}`}
       className="group block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-200"
     >
-      {/* Course Image Placeholder */}
+      {/* Course Image */}
       <div
-        className="h-48 flex items-center justify-center"
-        style={{ backgroundColor: "var(--accent-color)" }}
+        className="h-48 flex items-center justify-center bg-cover bg-center"
+        style={hasImage
+          ? { backgroundImage: `url(${course.images![0]})` }
+          : { backgroundColor: "var(--accent-color)" }
+        }
       >
-        <svg
-          className="w-16 h-16 opacity-50"
-          style={{ color: "var(--primary-color)" }}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-          />
-        </svg>
+        {!hasImage && (
+          <svg
+            className="w-16 h-16 opacity-50"
+            style={{ color: "var(--primary-color)" }}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
+          </svg>
+        )}
       </div>
 
       {/* Card Content */}
       <div className="p-5">
         {/* Badges */}
         <div className="flex flex-wrap gap-2 mb-3">
-          <AgencyBadge agencyId={course.agency} />
-          <LevelBadge levelId={course.level} />
+          <AgencyBadge agencyName={course.agencyName} />
+          <LevelBadge levelName={course.levelName} />
         </div>
 
         {/* Course Name */}
@@ -319,6 +270,20 @@ function CourseCard({ course }: { course: Course }) {
           </p>
         )}
 
+        {/* Course Features */}
+        <div className="flex flex-wrap gap-2 mb-4 text-xs">
+          {course.materialsIncluded && (
+            <span className="px-2 py-1 bg-green-100 text-green-700 rounded">
+              Materials included
+            </span>
+          )}
+          {course.equipmentIncluded && (
+            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+              Equipment included
+            </span>
+          )}
+        </div>
+
         {/* Meta Info */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           {/* Duration */}
@@ -326,7 +291,7 @@ function CourseCard({ course }: { course: Course }) {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>{formatDuration(course.duration)}</span>
+            <span>{formatDuration(course.durationDays)}</span>
           </div>
 
           {/* Price */}
@@ -334,7 +299,7 @@ function CourseCard({ course }: { course: Course }) {
             className="text-lg font-bold"
             style={{ color: "var(--primary-color)" }}
           >
-            {formatPrice(course.price)}
+            {formatPrice(course.price, course.currency)}
           </span>
         </div>
       </div>
