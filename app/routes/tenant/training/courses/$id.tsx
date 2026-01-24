@@ -263,6 +263,29 @@ export default function CourseDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Course Images */}
+          {course.images && course.images.length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h2 className="font-semibold mb-4">Course Images</h2>
+              <div className="space-y-2">
+                {course.images.map((img: string, idx: number) => (
+                  <div key={idx} className="relative">
+                    <img
+                      src={img}
+                      alt={`Course image ${idx + 1}`}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    {idx === 0 && (
+                      <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                        Main Image
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Quick Actions */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Quick Actions</h2>
