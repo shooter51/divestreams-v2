@@ -79,12 +79,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const sub = subWithPlan?.subscription;
 
+  // Pre-compute URLs server-side where process.env.APP_URL is available
+  const tenantUrl = getTenantUrl(org.slug, "/tenant");
+  const baseDomain = getBaseDomain();
+
   return {
     organization: {
       ...org,
       createdAt: org.createdAt.toISOString().split("T")[0],
       metadata: org.metadata ? JSON.parse(org.metadata) : null,
     },
+    tenantUrl,
+    baseDomain,
     members: members.map((m) => ({
       ...m,
       createdAt: m.createdAt.toISOString().split("T")[0],
@@ -337,7 +343,7 @@ type ModalState = {
 };
 
 export default function OrganizationDetailsPage() {
-  const { organization: org, members, subscription: sub, usage, plans } = useLoaderData<typeof loader>();
+  const { organization: org, members, subscription: sub, usage, plans, tenantUrl, baseDomain } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const fetcher = useFetcher<typeof action>();
@@ -346,8 +352,6 @@ export default function OrganizationDetailsPage() {
   const [modal, setModal] = useState<ModalState>({ type: null, user: null });
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-
-  const baseDomain = getBaseDomain();
 
   const closeModal = () => {
     setModal({ type: null, user: null });
@@ -639,7 +643,7 @@ export default function OrganizationDetailsPage() {
             <h2 className="font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <a
-                href={getTenantUrl(org.slug, "/tenant")}
+                href={tenantUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full text-center py-2 px-4 border rounded-lg hover:bg-gray-50 text-sm"

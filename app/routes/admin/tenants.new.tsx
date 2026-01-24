@@ -23,7 +23,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .where(eq(subscriptionPlans.isActive, true))
     .orderBy(asc(subscriptionPlans.monthlyPrice));
 
-  return { plans };
+  // Pre-compute baseDomain server-side where process.env.APP_URL is available
+  const baseDomain = getBaseDomain();
+
+  return { plans, baseDomain };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -168,11 +171,10 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function CreateOrganizationPage() {
-  const { plans } = useLoaderData<typeof loader>();
+  const { plans, baseDomain } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-  const baseDomain = getBaseDomain();
 
   return (
     <div className="max-w-2xl">
