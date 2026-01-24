@@ -209,7 +209,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
 
   test("A.8 Can navigate from dashboard to customers", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/tenant/dashboard"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const customersLink = page.getByRole("link", { name: /customer/i }).first();
