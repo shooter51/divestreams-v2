@@ -135,6 +135,37 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<HomeLoade
 }
 
 /**
+ * Check if URL is a YouTube video URL
+ */
+function isYouTubeUrl(url: string): boolean {
+  return /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)/.test(url);
+}
+
+/**
+ * Convert YouTube URL to embed URL
+ */
+function getYouTubeEmbedUrl(url: string): string {
+  // Handle youtu.be/VIDEO_ID format
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (shortMatch) {
+    return `https://www.youtube.com/embed/${shortMatch[1]}?autoplay=1&mute=1&loop=1&playlist=${shortMatch[1]}`;
+  }
+
+  // Handle youtube.com/watch?v=VIDEO_ID format
+  const longMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+  if (longMatch) {
+    return `https://www.youtube.com/embed/${longMatch[1]}?autoplay=1&mute=1&loop=1&playlist=${longMatch[1]}`;
+  }
+
+  // Handle youtube.com/embed/VIDEO_ID format (already embed URL)
+  if (url.includes("youtube.com/embed/")) {
+    return url;
+  }
+
+  return url;
+}
+
+/**
  * Extract subdomain from request host
  */
 function getSubdomainFromHost(host: string): string | null {
@@ -428,15 +459,25 @@ export default function SiteHomePage() {
         <section className="py-12 px-4 bg-gradient-to-b from-transparent to-gray-50">
           <div className="max-w-6xl mx-auto">
             <div className="relative rounded-xl overflow-hidden shadow-2xl">
-              <video
-                src={settings.heroVideoUrl}
-                className="w-full aspect-video object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls={false}
-              />
+              {isYouTubeUrl(settings.heroVideoUrl) ? (
+                <iframe
+                  src={getYouTubeEmbedUrl(settings.heroVideoUrl)}
+                  className="w-full aspect-video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="Video"
+                />
+              ) : (
+                <video
+                  src={settings.heroVideoUrl}
+                  className="w-full aspect-video object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  controls={false}
+                />
+              )}
               {/* Optional gradient overlay for better aesthetics */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
             </div>
