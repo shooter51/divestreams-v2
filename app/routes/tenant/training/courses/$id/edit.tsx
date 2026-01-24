@@ -253,7 +253,7 @@ export default function EditCoursePage() {
                 id="imagesStr"
                 name="imagesStr"
                 rows={3}
-                placeholder="Paste image URLs, one per line&#10;https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+                placeholder="https://example.com/image1.jpg"
                 defaultValue={
                   actionData?.values?.imagesStr ||
                   course.images?.join("\n") ||
