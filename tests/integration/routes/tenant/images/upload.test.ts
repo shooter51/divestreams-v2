@@ -22,7 +22,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
 
   describe("action", () => {
     it("should return 405 for non-POST requests", async () => {
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "GET",
       });
 
@@ -38,7 +38,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "123");
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -56,7 +56,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       formData.append("file", file);
       formData.append("entityId", "123");
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -74,7 +74,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       formData.append("file", file);
       formData.append("entityType", "tour");
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -95,7 +95,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
 
       vi.mocked(storage.isValidImageType).mockReturnValue(true);
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -116,7 +116,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
 
       vi.mocked(storage.isValidImageType).mockReturnValue(false);
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -140,7 +140,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
 
       vi.mocked(storage.isValidImageType).mockReturnValue(true);
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -171,7 +171,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -211,7 +211,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -275,7 +275,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -346,7 +346,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -410,7 +410,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images/upload", {
+      const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });

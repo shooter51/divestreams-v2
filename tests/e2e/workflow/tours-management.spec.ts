@@ -619,7 +619,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
     await page.waitForTimeout(1500);
-    expect(page.url()).toMatch(/\/app\/tours\/[a-f0-9-]+/);
+    expect(page.url()).toMatch(/\/tenant\/tours\/[a-f0-9-]+/);
   });
 
   test("D.2 Detail page shows tour name", async ({ page }) => {

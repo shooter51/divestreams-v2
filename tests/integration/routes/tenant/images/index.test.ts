@@ -56,7 +56,7 @@ describe("app/routes/tenant/images/index.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images?entityType=tour&entityId=123");
+      const request = new Request("http://test.com/tenant/images?entityType=tour&entityId=123");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(tenantServer.getTenantDb).toHaveBeenCalledWith(mockTenant.subdomain);
@@ -68,7 +68,7 @@ describe("app/routes/tenant/images/index.tsx", () => {
     });
 
     it("should return 400 if entityType is missing", async () => {
-      const request = new Request("http://test.com/app/images?entityId=123");
+      const request = new Request("http://test.com/tenant/images?entityId=123");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe(400);
@@ -77,7 +77,7 @@ describe("app/routes/tenant/images/index.tsx", () => {
     });
 
     it("should return 400 if entityId is missing", async () => {
-      const request = new Request("http://test.com/app/images?entityType=tour");
+      const request = new Request("http://test.com/tenant/images?entityType=tour");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe(400);
@@ -97,7 +97,7 @@ describe("app/routes/tenant/images/index.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images?entityType=tour&entityId=456");
+      const request = new Request("http://test.com/tenant/images?entityType=tour&entityId=456");
       const result = await loader({ request, params: {}, context: {} });
 
       const json = await result.json();
@@ -116,7 +116,7 @@ describe("app/routes/tenant/images/index.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images?entityType=boat&entityId=789");
+      const request = new Request("http://test.com/tenant/images?entityType=boat&entityId=789");
       const result = await loader({ request, params: {}, context: {} });
 
       const json = await result.json();

@@ -125,7 +125,7 @@ export class ReportsPage extends TenantBasePage {
       await this.page.getByLabel(/email/i).fill("owner@demo.com");
       await this.page.getByLabel(/password/i).fill("demo123");
       await this.page.getByRole("button", { name: /sign in/i }).click();
-      await this.page.waitForURL(/\/app\/reports/);
+      await this.page.waitForURL(/\/tenant\/reports/);
     }
   }
 

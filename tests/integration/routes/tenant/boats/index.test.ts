@@ -109,7 +109,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/boats");
+      const request = new Request("http://test.com/tenant/boats");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.boats).toHaveLength(2);
@@ -151,7 +151,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/boats?q=explorer");
+      const request = new Request("http://test.com/tenant/boats?q=explorer");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.search).toBe("explorer");
@@ -189,7 +189,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/boats");
+      const request = new Request("http://test.com/tenant/boats");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.boats[0].tripCount).toBe(0);
@@ -245,7 +245,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/boats");
+      const request = new Request("http://test.com/tenant/boats");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.boats[0].type).toBe("Dive Boat");
@@ -280,7 +280,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/boats");
+      const request = new Request("http://test.com/tenant/boats");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.totalCapacity).toBe(20);
@@ -317,7 +317,7 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         isPremium: true,
       } as any);
 
-      const request = new Request("http://test.com/app/boats");
+      const request = new Request("http://test.com/tenant/boats");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.isPremium).toBe(true);

@@ -47,7 +47,7 @@ describe("tenant/calendar route", () => {
 
   describe("Calendar Data Requirements", () => {
     it("requires organization context", async () => {
-      const request = new Request("https://demo.divestreams.com/app/calendar");
+      const request = new Request("https://demo.divestreams.com/tenant/calendar");
       await requireOrgContext(request);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -63,7 +63,7 @@ describe("tenant/calendar route", () => {
 
   describe("Date Filtering", () => {
     it("parses month parameter from URL", () => {
-      const url = new URL("https://demo.divestreams.com/app/calendar?month=2025-02");
+      const url = new URL("https://demo.divestreams.com/tenant/calendar?month=2025-02");
       const month = url.searchParams.get("month");
 
       expect(month).toBe("2025-02");

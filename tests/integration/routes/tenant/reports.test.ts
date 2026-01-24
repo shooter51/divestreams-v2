@@ -45,14 +45,14 @@ describe("tenant/reports route", () => {
 
   describe("Report Data Requirements", () => {
     it("requires organization context", async () => {
-      const request = new Request("https://demo.divestreams.com/app/reports");
+      const request = new Request("https://demo.divestreams.com/tenant/reports");
       await requireOrgContext(request);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns premium status", async () => {
-      const request = new Request("https://demo.divestreams.com/app/reports");
+      const request = new Request("https://demo.divestreams.com/tenant/reports");
       const ctx = await requireOrgContext(request);
 
       expect(ctx.isPremium).toBe(true);
@@ -61,7 +61,7 @@ describe("tenant/reports route", () => {
 
   describe("Date Range Handling", () => {
     it("parses date range from URL params", () => {
-      const url = new URL("https://demo.divestreams.com/app/reports?from=2025-01-01&to=2025-01-31");
+      const url = new URL("https://demo.divestreams.com/tenant/reports?from=2025-01-01&to=2025-01-31");
       const from = url.searchParams.get("from");
       const to = url.searchParams.get("to");
 

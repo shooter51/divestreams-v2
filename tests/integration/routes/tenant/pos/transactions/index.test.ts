@@ -56,7 +56,7 @@ describe("app/routes/tenant/pos/transactions/index.tsx", () => {
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
       vi.mocked(queries.getPOSSummary).mockResolvedValue(mockSummary as any);
 
-      const request = new Request("http://test.com/app/pos/transactions");
+      const request = new Request("http://test.com/tenant/pos/transactions");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(queries.getPOSSummary).toHaveBeenCalledWith(mockOrganizationId);
@@ -78,7 +78,7 @@ describe("app/routes/tenant/pos/transactions/index.tsx", () => {
       vi.mocked(queries.getPOSSummary).mockResolvedValue(mockSummary as any);
 
       const request = new Request(
-        "http://test.com/app/pos/transactions?dateFrom=2024-01-01&dateTo=2024-01-31"
+        "http://test.com/tenant/pos/transactions?dateFrom=2024-01-01&dateTo=2024-01-31"
       );
       const result = await loader({ request, params: {}, context: {} });
 
@@ -102,7 +102,7 @@ describe("app/routes/tenant/pos/transactions/index.tsx", () => {
         transactionCount: 0,
       } as any);
 
-      const request = new Request("http://test.com/app/pos/transactions");
+      const request = new Request("http://test.com/tenant/pos/transactions");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.transactions).toEqual([]);

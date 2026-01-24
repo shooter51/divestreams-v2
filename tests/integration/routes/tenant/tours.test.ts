@@ -106,7 +106,7 @@ describe("tenant/tours route", () => {
         return mockCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/tours");
+      const request = new Request("https://demo.divestreams.com/tenant/tours");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -141,7 +141,7 @@ describe("tenant/tours route", () => {
         return mockCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/tours");
+      const request = new Request("https://demo.divestreams.com/tenant/tours");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(db.select).toHaveBeenCalled();
@@ -177,7 +177,7 @@ describe("tenant/tours route", () => {
         return mockCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/tours?search=morning");
+      const request = new Request("https://demo.divestreams.com/tenant/tours?search=morning");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.search).toBe("morning");
@@ -212,7 +212,7 @@ describe("tenant/tours route", () => {
         return mockCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/tours?type=single_dive");
+      const request = new Request("https://demo.divestreams.com/tenant/tours?type=single_dive");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.typeFilter).toBe("single_dive");
@@ -263,7 +263,7 @@ describe("tenant/tours route", () => {
         return mockCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/tours");
+      const request = new Request("https://demo.divestreams.com/tenant/tours");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.tours).toHaveLength(1);
@@ -310,7 +310,7 @@ describe("tenant/tours route", () => {
         return mockCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/tours");
+      const request = new Request("https://demo.divestreams.com/tenant/tours");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.tours).toEqual([]);
@@ -346,7 +346,7 @@ describe("tenant/tours route", () => {
         return mockCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/tours");
+      const request = new Request("https://demo.divestreams.com/tenant/tours");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.canAddTour).toBe(true);
@@ -399,7 +399,7 @@ describe("tenant/tours route", () => {
         return mockCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/tours");
+      const request = new Request("https://demo.divestreams.com/tenant/tours");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.tours[0]).toMatchObject({

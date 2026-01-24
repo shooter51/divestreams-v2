@@ -96,7 +96,7 @@ describe("tenant/customers route", () => {
     it("requires organization context", async () => {
       setupDbMocks([], 0);
 
-      const request = new Request("https://demo.divestreams.com/app/customers");
+      const request = new Request("https://demo.divestreams.com/tenant/customers");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -105,7 +105,7 @@ describe("tenant/customers route", () => {
     it("fetches customers with organization filter", async () => {
       setupDbMocks([], 0);
 
-      const request = new Request("https://demo.divestreams.com/app/customers");
+      const request = new Request("https://demo.divestreams.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(db.select).toHaveBeenCalled();
@@ -115,7 +115,7 @@ describe("tenant/customers route", () => {
     it("filters by search when provided", async () => {
       setupDbMocks([], 0);
 
-      const request = new Request("https://demo.divestreams.com/app/customers?search=john");
+      const request = new Request("https://demo.divestreams.com/tenant/customers?search=john");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.search).toBe("john");
@@ -124,7 +124,7 @@ describe("tenant/customers route", () => {
     it("paginates correctly", async () => {
       const { mockCustomersQuery } = setupDbMocks([], 100);
 
-      const request = new Request("https://demo.divestreams.com/app/customers?page=3");
+      const request = new Request("https://demo.divestreams.com/tenant/customers?page=3");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.page).toBe(3);
@@ -148,7 +148,7 @@ describe("tenant/customers route", () => {
 
       setupDbMocks(mockCustomers, 1);
 
-      const request = new Request("https://demo.divestreams.com/app/customers");
+      const request = new Request("https://demo.divestreams.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.customers).toHaveLength(1);
@@ -167,7 +167,7 @@ describe("tenant/customers route", () => {
     it("returns empty array when no customers exist", async () => {
       setupDbMocks([], 0);
 
-      const request = new Request("https://demo.divestreams.com/app/customers");
+      const request = new Request("https://demo.divestreams.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.customers).toEqual([]);
@@ -177,7 +177,7 @@ describe("tenant/customers route", () => {
     it("returns pagination info", async () => {
       setupDbMocks([], 100);
 
-      const request = new Request("https://demo.divestreams.com/app/customers?page=2");
+      const request = new Request("https://demo.divestreams.com/tenant/customers?page=2");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.page).toBe(2);
@@ -188,7 +188,7 @@ describe("tenant/customers route", () => {
     it("calculates totalPages correctly", async () => {
       setupDbMocks([], 45);
 
-      const request = new Request("https://demo.divestreams.com/app/customers");
+      const request = new Request("https://demo.divestreams.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.totalPages).toBe(3); // 45 / 20 = 2.25, rounds up to 3
@@ -197,7 +197,7 @@ describe("tenant/customers route", () => {
     it("returns search value", async () => {
       setupDbMocks([], 0);
 
-      const request = new Request("https://demo.divestreams.com/app/customers?search=smith");
+      const request = new Request("https://demo.divestreams.com/tenant/customers?search=smith");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.search).toBe("smith");
@@ -220,7 +220,7 @@ describe("tenant/customers route", () => {
 
       setupDbMocks(mockCustomers, 1);
 
-      const request = new Request("https://demo.divestreams.com/app/customers");
+      const request = new Request("https://demo.divestreams.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.customers[0].certifications).toBeNull();
@@ -229,7 +229,7 @@ describe("tenant/customers route", () => {
     it("returns freemium data", async () => {
       setupDbMocks([], 0);
 
-      const request = new Request("https://demo.divestreams.com/app/customers");
+      const request = new Request("https://demo.divestreams.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.canAddCustomer).toBe(true);

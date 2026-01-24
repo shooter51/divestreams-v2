@@ -75,7 +75,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
 
       vi.mocked(gallery.getAllGalleryImages).mockResolvedValue(mockImages as any);
 
-      const request = new Request("http://test.com/app/gallery/album-456");
+      const request = new Request("http://test.com/tenant/gallery/album-456");
       const result = await loader({ request, params: { id: mockAlbumId }, context: {} });
 
       expect(tenantServer.getTenantDb).toHaveBeenCalledWith(mockOrganizationId);
@@ -89,7 +89,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
     });
 
     it("should throw 400 if album ID is missing", async () => {
-      const request = new Request("http://test.com/app/gallery/");
+      const request = new Request("http://test.com/tenant/gallery/");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -113,7 +113,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
         schema: { galleryAlbums: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/gallery/nonexistent");
+      const request = new Request("http://test.com/tenant/gallery/nonexistent");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -145,7 +145,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
 
       vi.mocked(gallery.getAllGalleryImages).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/gallery/album-456");
+      const request = new Request("http://test.com/tenant/gallery/album-456");
       const result = await loader({ request, params: { id: mockAlbumId }, context: {} });
 
       expect(result.images).toHaveLength(0);
@@ -173,7 +173,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
 
       vi.mocked(gallery.getAllGalleryImages).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/gallery/album-456");
+      const request = new Request("http://test.com/tenant/gallery/album-456");
       const result = await loader({ request, params: { id: mockAlbumId }, context: {} });
 
       expect(result.album.description).toBeNull();
@@ -190,7 +190,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       formData.append("name", "Updated Album Name");
       formData.append("description", "Updated description");
 
-      const request = new Request("http://test.com/app/gallery/album-456", {
+      const request = new Request("http://test.com/tenant/gallery/album-456", {
         method: "POST",
         body: formData,
       });
@@ -214,7 +214,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "delete-album");
 
-      const request = new Request("http://test.com/app/gallery/album-456", {
+      const request = new Request("http://test.com/tenant/gallery/album-456", {
         method: "POST",
         body: formData,
       });
@@ -234,7 +234,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       formData.append("intent", "delete-image");
       formData.append("imageId", "img-123");
 
-      const request = new Request("http://test.com/app/gallery/album-456", {
+      const request = new Request("http://test.com/tenant/gallery/album-456", {
         method: "POST",
         body: formData,
       });
@@ -253,7 +253,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       formData.append("imageId", "img-123");
       formData.append("status", "published");
 
-      const request = new Request("http://test.com/app/gallery/album-456", {
+      const request = new Request("http://test.com/tenant/gallery/album-456", {
         method: "POST",
         body: formData,
       });
@@ -276,7 +276,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       formData.append("imageId", "img-123");
       formData.append("isFeatured", "true");
 
-      const request = new Request("http://test.com/app/gallery/album-456", {
+      const request = new Request("http://test.com/tenant/gallery/album-456", {
         method: "POST",
         body: formData,
       });
@@ -295,7 +295,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "unknown-action");
 
-      const request = new Request("http://test.com/app/gallery/album-456", {
+      const request = new Request("http://test.com/tenant/gallery/album-456", {
         method: "POST",
         body: formData,
       });
@@ -309,7 +309,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "update-album");
 
-      const request = new Request("http://test.com/app/gallery/", {
+      const request = new Request("http://test.com/tenant/gallery/", {
         method: "POST",
         body: formData,
       });

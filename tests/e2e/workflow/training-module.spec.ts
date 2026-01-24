@@ -418,7 +418,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
       expect(currentUrl.includes("/tenant/training") || currentUrl.includes("/courses")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/courses/${courseId}`));
+    await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
     await page.waitForTimeout(2000);
     // Verify we're on the course detail page
     const currentUrl = page.url();
@@ -433,7 +433,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
       expect(page.url().includes("/courses")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/courses/${courseId}/edit`));
+    await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const saveBtn = await page
@@ -488,7 +488,7 @@ test.describe.serial("Block C: Session Management", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/courses/${courseId}`));
+    await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Look for schedule/add session button
@@ -513,7 +513,7 @@ test.describe.serial("Block C: Session Management", () => {
     }
 
     // Navigate to course detail and try to create session
-    await page.goto(getTenantUrl(`/app/training/courses/${courseId}`));
+    await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
 
@@ -585,7 +585,7 @@ test.describe.serial("Block C: Session Management", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/sessions/${sessionId}`));
+    await page.goto(getTenantUrl(`/tenant/training/sessions/${sessionId}`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/training")).toBeTruthy();
   });
@@ -598,7 +598,7 @@ test.describe.serial("Block C: Session Management", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/sessions/${sessionId}`));
+    await page.goto(getTenantUrl(`/tenant/training/sessions/${sessionId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Should show course name or link
@@ -664,7 +664,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/courses/${courseId}`));
+    await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Look for enroll button
@@ -689,7 +689,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     }
 
     // Navigate to course and try to enroll
-    await page.goto(getTenantUrl(`/app/training/courses/${courseId}`));
+    await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
 
@@ -752,7 +752,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/enrollments/${enrollmentId}`));
+    await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/training")).toBeTruthy();
   });
@@ -765,7 +765,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/enrollments/${enrollmentId}`));
+    await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Should show status or progress
@@ -964,7 +964,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/courses/${courseId}`));
+    await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Should show enrolled students count or section
@@ -984,7 +984,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/courses/${courseId}`));
+    await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Should show sessions section
@@ -1020,7 +1020,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/sessions/${sessionId}`));
+    await page.goto(getTenantUrl(`/tenant/training/sessions/${sessionId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Should show skills or attendance section
@@ -1040,7 +1040,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/enrollments/${enrollmentId}`));
+    await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Should show progress tracker or skills list
@@ -1060,7 +1060,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/enrollments/${enrollmentId}`));
+    await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Should show certification info or issue button
@@ -1080,7 +1080,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/enrollments/${enrollmentId}`));
+    await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Should show exam status
@@ -1100,7 +1100,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       expect(page.url().includes("/training")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/training/enrollments/${enrollmentId}`));
+    await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Should have status update option

@@ -82,7 +82,7 @@ test.beforeAll(async ({ browser }) => {
     }
 
     // Navigate to public site settings
-    await page.goto(`http://e2etest.localhost:5173/app/settings/public-site`, { timeout: 15000 });
+    await page.goto(`http://e2etest.localhost:5173/tenant/settings/public-site`, { timeout: 15000 });
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000); // Give time for form to hydrate
 

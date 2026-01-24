@@ -88,14 +88,14 @@ describe("tenant/settings/notifications route", () => {
 
   describe("loader", () => {
     it("requires organization context", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/notifications");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/notifications");
       await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns default notification settings when no metadata exists", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/notifications");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/notifications");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(result.settings).toEqual({
@@ -114,7 +114,7 @@ describe("tenant/settings/notifications route", () => {
     it("returns custom notification settings from metadata", async () => {
       (requireOrgContext as Mock).mockResolvedValue(mockOrgContextWithMetadata);
 
-      const request = new Request("https://demo.divestreams.com/app/settings/notifications");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/notifications");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(result.settings.emailBookingConfirmation).toBe(false);
@@ -126,7 +126,7 @@ describe("tenant/settings/notifications route", () => {
     it("returns premium status", async () => {
       (requireOrgContext as Mock).mockResolvedValue(mockOrgContextWithMetadata);
 
-      const request = new Request("https://demo.divestreams.com/app/settings/notifications");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/notifications");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(result.isPremium).toBe(true);
@@ -138,7 +138,7 @@ describe("tenant/settings/notifications route", () => {
         org: { ...mockOrgContext.org, metadata: "invalid-json" },
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/notifications");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/notifications");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       // Should fall back to defaults
@@ -159,7 +159,7 @@ describe("tenant/settings/notifications route", () => {
       formData.append("notifyLowCapacity", "true");
       formData.append("lowCapacityThreshold", "5");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/notifications", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/notifications", {
         method: "POST",
         body: formData,
       });
@@ -182,7 +182,7 @@ describe("tenant/settings/notifications route", () => {
       formData.append("notifyLowCapacity", "false");
       formData.append("lowCapacityThreshold", "2");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/notifications", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/notifications", {
         method: "POST",
         body: formData,
       });
@@ -196,7 +196,7 @@ describe("tenant/settings/notifications route", () => {
       const formData = new FormData();
       // Missing all fields
 
-      const request = new Request("https://demo.divestreams.com/app/settings/notifications", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/notifications", {
         method: "POST",
         body: formData,
       });
@@ -227,7 +227,7 @@ describe("tenant/settings/notifications route", () => {
       formData.append("notifyLowCapacity", "false");
       formData.append("lowCapacityThreshold", "2");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/notifications", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/notifications", {
         method: "POST",
         body: formData,
       });

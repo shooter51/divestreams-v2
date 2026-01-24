@@ -59,7 +59,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
         ], // Recent bookings
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports/export/csv");
+      const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result).toBeInstanceOf(Response);
@@ -89,7 +89,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
       ]) as any);
 
       const request = new Request(
-        "http://test.com/app/reports/export/csv?startDate=2024-01-01&endDate=2024-01-31"
+        "http://test.com/tenant/reports/export/csv?startDate=2024-01-01&endDate=2024-01-31"
       );
       const result = await loader({ request, params: {}, context: {} });
 
@@ -109,7 +109,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
         [],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports/export/csv");
+      const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe(200);
@@ -127,7 +127,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
         [],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports/export/csv");
+      const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
 
       const csvContent = await result.text();
@@ -149,7 +149,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
       };
       vi.mocked(db.select).mockReturnValue(mockBuilder as any);
 
-      const request = new Request("http://test.com/app/reports/export/csv");
+      const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe(200);
@@ -178,7 +178,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
         ],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports/export/csv");
+      const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
 
       const csvContent = await result.text();
@@ -197,7 +197,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
         [],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports/export/csv");
+      const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
 
       const csvContent = await result.text();

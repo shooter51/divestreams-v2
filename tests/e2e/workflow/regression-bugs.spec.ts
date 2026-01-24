@@ -642,7 +642,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
     if (diveSiteId) testData.createdIds.diveSite = diveSiteId;
 
     // Delete dive site
-    await page.goto(getTenantUrl(`/app/dive-sites/${diveSiteId}`));
+    await page.goto(getTenantUrl(`/tenant/dive-sites/${diveSiteId}`));
     await page.waitForTimeout(2000);
 
     const deleteBtn = page.getByRole("button", { name: /delete/i });

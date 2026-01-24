@@ -89,7 +89,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
         schema: mockSchema,
       } as any);
 
-      const request = new Request("http://test.com/app/equipment/eq-456/edit");
+      const request = new Request("http://test.com/tenant/equipment/eq-456/edit");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
 
       expect(queries.getEquipmentById).toHaveBeenCalledWith(mockOrganizationId, mockEquipmentId);
@@ -100,7 +100,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
     });
 
     it("should throw 400 if equipment ID is missing", async () => {
-      const request = new Request("http://test.com/app/equipment//edit");
+      const request = new Request("http://test.com/tenant/equipment//edit");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -126,7 +126,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/equipment/nonexistent/edit");
+      const request = new Request("http://test.com/tenant/equipment/nonexistent/edit");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -170,7 +170,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/equipment/eq-456/edit");
+      const request = new Request("http://test.com/tenant/equipment/eq-456/edit");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
 
       expect(result.equipment.brand).toBe("");
@@ -225,7 +225,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       formData.append("barcode", "987654321");
       formData.append("isPublic", "true");
 
-      const request = new Request("http://test.com/app/equipment/eq-456/edit", {
+      const request = new Request("http://test.com/tenant/equipment/eq-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -238,14 +238,14 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe(`/app/equipment/${mockEquipmentId}`);
+      expect(result.headers.get("Location")).toBe(`/tenant/equipment/${mockEquipmentId}`);
     });
 
     it("should throw 400 if equipment ID is missing in action", async () => {
       const formData = new FormData();
       formData.append("name", "Test");
 
-      const request = new Request("http://test.com/app/equipment//edit", {
+      const request = new Request("http://test.com/tenant/equipment//edit", {
         method: "POST",
         body: formData,
       });
@@ -278,7 +278,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       formData.append("name", "");
       formData.append("category", "");
 
-      const request = new Request("http://test.com/app/equipment/eq-456/edit", {
+      const request = new Request("http://test.com/tenant/equipment/eq-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -318,7 +318,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       formData.append("barcode", "NEW123");
       formData.append("isPublic", "true");
 
-      const request = new Request("http://test.com/app/equipment/eq-456/edit", {
+      const request = new Request("http://test.com/tenant/equipment/eq-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -355,7 +355,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       formData.append("name", "Test Equipment");
       // isPublic not in formData = unchecked
 
-      const request = new Request("http://test.com/app/equipment/eq-456/edit", {
+      const request = new Request("http://test.com/tenant/equipment/eq-456/edit", {
         method: "POST",
         body: formData,
       });

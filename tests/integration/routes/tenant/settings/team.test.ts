@@ -106,7 +106,7 @@ describe("tenant/settings/team route", () => {
         return mockInvitationsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/team");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/team");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -150,7 +150,7 @@ describe("tenant/settings/team route", () => {
         return mockInvitationsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/team");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/team");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.team).toHaveLength(2);
@@ -195,7 +195,7 @@ describe("tenant/settings/team route", () => {
         return mockInvitationsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/team");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/team");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.pendingInvites).toHaveLength(1);
@@ -229,7 +229,7 @@ describe("tenant/settings/team route", () => {
         return mockInvitationsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/team");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/team");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.roles).toBeDefined();
@@ -258,7 +258,7 @@ describe("tenant/settings/team route", () => {
         return mockInvitationsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/team");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/team");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.planLimit).toBe(5);
@@ -292,7 +292,7 @@ describe("tenant/settings/team route", () => {
         return mockInvitationsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/team");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/team");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.canInviteTeamMembers).toBe(false);
@@ -329,7 +329,7 @@ describe("tenant/settings/team route", () => {
         return mockInvitationsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/team");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/team");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.team[0].name).toBe("Unknown");
@@ -351,7 +351,7 @@ describe("tenant/settings/team route", () => {
         formData.append("email", "newuser@example.com");
         formData.append("role", "admin");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/team", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
           method: "POST",
           body: formData,
         });
@@ -376,7 +376,7 @@ describe("tenant/settings/team route", () => {
         formData.append("email", "newuser@example.com");
         formData.append("role", "member");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/team", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
           method: "POST",
           body: formData,
         });
@@ -403,7 +403,7 @@ describe("tenant/settings/team route", () => {
         formData.append("userId", "member-2");
         formData.append("role", "admin");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/team", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
           method: "POST",
           body: formData,
         });
@@ -431,7 +431,7 @@ describe("tenant/settings/team route", () => {
         formData.append("intent", "remove");
         formData.append("userId", "member-2");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/team", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
           method: "POST",
           body: formData,
         });
@@ -459,7 +459,7 @@ describe("tenant/settings/team route", () => {
         formData.append("intent", "cancel-invite");
         formData.append("inviteId", "invite-1");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/team", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
           method: "POST",
           body: formData,
         });
@@ -495,7 +495,7 @@ describe("tenant/settings/team route", () => {
         formData.append("intent", "resend-invite");
         formData.append("inviteId", "invite-1");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/team", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
           method: "POST",
           body: formData,
         });
@@ -522,7 +522,7 @@ describe("tenant/settings/team route", () => {
         formData.append("intent", "resend-invite");
         formData.append("inviteId", "non-existent-invite");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/team", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
           method: "POST",
           body: formData,
         });
@@ -537,7 +537,7 @@ describe("tenant/settings/team route", () => {
       const formData = new FormData();
       formData.append("intent", "unknown");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/team", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
         method: "POST",
         body: formData,
       });

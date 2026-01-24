@@ -79,14 +79,14 @@ describe("tenant/settings/profile route", () => {
 
   describe("loader", () => {
     it("requires organization context", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/profile");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns profile data from org metadata", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/profile");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.profile.name).toBe("Demo Dive Shop");
@@ -99,7 +99,7 @@ describe("tenant/settings/profile route", () => {
     });
 
     it("returns address data from org metadata", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/profile");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.profile.address).toMatchObject({
@@ -112,7 +112,7 @@ describe("tenant/settings/profile route", () => {
     });
 
     it("returns booking settings from org metadata", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/profile");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.profile.bookingSettings).toMatchObject({
@@ -133,7 +133,7 @@ describe("tenant/settings/profile route", () => {
         },
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/profile");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.profile.email).toBe("");
@@ -147,7 +147,7 @@ describe("tenant/settings/profile route", () => {
     });
 
     it("returns orgId and isPremium", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/profile");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.orgId).toBe("org-uuid");
@@ -172,7 +172,7 @@ describe("tenant/settings/profile route", () => {
         formData.append("country", "USA");
         formData.append("postalCode", "92101");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/profile", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
           method: "POST",
           body: formData,
         });
@@ -196,7 +196,7 @@ describe("tenant/settings/profile route", () => {
         formData.append("timezone", "America/New_York");
         formData.append("currency", "USD");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/profile", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
           method: "POST",
           body: formData,
         });
@@ -220,7 +220,7 @@ describe("tenant/settings/profile route", () => {
         formData.append("requireDeposit", "true");
         formData.append("depositPercent", "50");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/profile", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
           method: "POST",
           body: formData,
         });
@@ -238,7 +238,7 @@ describe("tenant/settings/profile route", () => {
         const formData = new FormData();
         formData.append("intent", "update-booking-settings");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/profile", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
           method: "POST",
           body: formData,
         });
@@ -260,7 +260,7 @@ describe("tenant/settings/profile route", () => {
         // Not including requireDeposit means false
         formData.append("depositPercent", "25");
 
-        const request = new Request("https://demo.divestreams.com/app/settings/profile", {
+        const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
           method: "POST",
           body: formData,
         });
@@ -278,7 +278,7 @@ describe("tenant/settings/profile route", () => {
       const formData = new FormData();
       formData.append("intent", "unknown");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/profile", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
         method: "POST",
         body: formData,
       });
@@ -307,7 +307,7 @@ describe("tenant/settings/profile route", () => {
       formData.append("timezone", "America/Chicago");
       formData.append("currency", "USD");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/profile", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
         method: "POST",
         body: formData,
       });
@@ -333,7 +333,7 @@ describe("tenant/settings/profile route", () => {
       formData.append("intent", "update-booking-settings");
       formData.append("minAdvanceBooking", "24");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/profile", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
         method: "POST",
         body: formData,
       });

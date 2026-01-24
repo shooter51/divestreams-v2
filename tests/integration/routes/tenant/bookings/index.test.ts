@@ -73,7 +73,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/bookings");
+      const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.bookings).toHaveLength(1);
@@ -121,7 +121,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/bookings?status=confirmed");
+      const request = new Request("http://test.com/tenant/bookings?status=confirmed");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe("confirmed");
@@ -163,7 +163,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/bookings?page=2");
+      const request = new Request("http://test.com/tenant/bookings?page=2");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.page).toBe(2);
@@ -206,7 +206,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/bookings?search=john");
+      const request = new Request("http://test.com/tenant/bookings?search=john");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.search).toBe("john");
@@ -284,7 +284,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/bookings");
+      const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.stats.upcoming).toBe(1); // 1 confirmed booking
@@ -334,7 +334,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/bookings");
+      const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.canAddBooking).toBe(false);
@@ -397,7 +397,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/bookings");
+      const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.bookings[0].trip.date).toBe("2024-02-01");

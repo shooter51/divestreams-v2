@@ -620,7 +620,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     }
     await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
     await page.waitForTimeout(1500);
-    expect(page.url()).toMatch(/\/app\/trips\/[a-f0-9-]+/);
+    expect(page.url()).toMatch(/\/tenant\/trips\/[a-f0-9-]+/);
   });
 
   test("D.2 Detail page shows trip date and time", async ({ page }) => {

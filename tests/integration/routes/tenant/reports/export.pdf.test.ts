@@ -53,7 +53,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
           },
         ]); // Recent bookings (limit 20 for PDF)
 
-      const request = new Request("http://test.com/app/reports/export/pdf");
+      const request = new Request("http://test.com/tenant/reports/export/pdf");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result).toBeInstanceOf(Response);
@@ -89,7 +89,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         .mockResolvedValueOnce([]);
 
       const request = new Request(
-        "http://test.com/app/reports/export/pdf?startDate=2024-01-01&endDate=2024-01-31"
+        "http://test.com/tenant/reports/export/pdf?startDate=2024-01-01&endDate=2024-01-31"
       );
       const result = await loader({ request, params: {}, context: {} });
 
@@ -116,7 +116,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         .mockResolvedValueOnce([{ count: 10 }])
         .mockResolvedValueOnce([]);
 
-      const request = new Request("http://test.com/app/reports/export/pdf");
+      const request = new Request("http://test.com/tenant/reports/export/pdf");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe(200);
@@ -145,7 +145,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         .mockResolvedValueOnce([{ count: 0 }])
         .mockResolvedValueOnce([]);
 
-      const request = new Request("http://test.com/app/reports/export/pdf");
+      const request = new Request("http://test.com/tenant/reports/export/pdf");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe(200);
@@ -164,7 +164,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
 
-      const request = new Request("http://test.com/app/reports/export/pdf");
+      const request = new Request("http://test.com/tenant/reports/export/pdf");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe(200);
@@ -204,7 +204,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         .mockResolvedValueOnce([{ count: 10 }])
         .mockResolvedValueOnce(mockBookings.slice(0, 20)); // limit(20) in route
 
-      const request = new Request("http://test.com/app/reports/export/pdf");
+      const request = new Request("http://test.com/tenant/reports/export/pdf");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe(200);
@@ -241,7 +241,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
           },
         ]);
 
-      const request = new Request("http://test.com/app/reports/export/pdf");
+      const request = new Request("http://test.com/tenant/reports/export/pdf");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe(200);

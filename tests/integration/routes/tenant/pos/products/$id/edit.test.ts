@@ -32,7 +32,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
     it("should fetch product", async () => {
       vi.mocked(queries.getProductById).mockResolvedValue(mockProduct as any);
 
-      const request = new Request("http://test.com/app/pos/products/prod-1/edit");
+      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit");
       const result = await loader({ request, params: { id: "prod-1" }, context: {} });
 
       expect(queries.getProductById).toHaveBeenCalledWith(mockOrganizationId, "prod-1");
@@ -42,7 +42,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
     it("should handle product not found", async () => {
       vi.mocked(queries.getProductById).mockResolvedValue(null);
 
-      const request = new Request("http://test.com/app/pos/products/nonexistent/edit");
+      const request = new Request("http://test.com/tenant/pos/products/nonexistent/edit");
 
       await expect(
         loader({ request, params: { id: "nonexistent" }, context: {} })
@@ -63,7 +63,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       formData.append("trackInventory", "on");
       formData.append("isActive", "on");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1/edit", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit", {
         method: "POST",
         body: formData,
       });
@@ -93,7 +93,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       formData.append("category", "equipment");
       formData.append("price", "50");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1/edit", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit", {
         method: "POST",
         body: formData,
       });
@@ -110,7 +110,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       formData.append("category", "");
       formData.append("price", "50");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1/edit", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit", {
         method: "POST",
         body: formData,
       });
@@ -127,7 +127,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       formData.append("category", "equipment");
       formData.append("price", "invalid");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1/edit", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit", {
         method: "POST",
         body: formData,
       });
@@ -147,7 +147,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       formData.append("price", "50");
       // trackInventory not included = checkbox unchecked
 
-      const request = new Request("http://test.com/app/pos/products/prod-1/edit", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit", {
         method: "POST",
         body: formData,
       });
@@ -172,7 +172,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       formData.append("price", "50");
       // isActive not included = checkbox unchecked
 
-      const request = new Request("http://test.com/app/pos/products/prod-1/edit", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit", {
         method: "POST",
         body: formData,
       });
@@ -197,7 +197,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       formData.append("price", "50");
       formData.append("costPrice", "");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1/edit", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit", {
         method: "POST",
         body: formData,
       });
@@ -216,7 +216,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       formData.append("price", "50");
       formData.append("stockQuantity", "");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1/edit", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit", {
         method: "POST",
         body: formData,
       });

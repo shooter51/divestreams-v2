@@ -78,7 +78,7 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/boats/boat-456/edit");
+      const request = new Request("http://test.com/tenant/boats/boat-456/edit");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
 
       expect(queries.getBoatById).toHaveBeenCalledWith(mockOrganizationId, mockBoatId);
@@ -89,7 +89,7 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
     });
 
     it("should throw 400 if boat ID is missing", async () => {
-      const request = new Request("http://test.com/app/boats//edit");
+      const request = new Request("http://test.com/tenant/boats//edit");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -115,7 +115,7 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/boats/nonexistent/edit");
+      const request = new Request("http://test.com/tenant/boats/nonexistent/edit");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -148,7 +148,7 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/boats/boat-456/edit");
+      const request = new Request("http://test.com/tenant/boats/boat-456/edit");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
 
       expect(result.boat.amenities).toEqual([]);
@@ -182,7 +182,7 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/boats/boat-456/edit");
+      const request = new Request("http://test.com/tenant/boats/boat-456/edit");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
 
       expect(result.boat.description).toBe("");
@@ -221,7 +221,7 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
       formData.append("capacity", "15");
       formData.append("amenities", "WiFi, AC");
 
-      const request = new Request("http://test.com/app/boats/boat-456/edit", {
+      const request = new Request("http://test.com/tenant/boats/boat-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -233,14 +233,14 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
 
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe(`/app/boats/${mockBoatId}`);
+      expect(result.headers.get("Location")).toBe(`/tenant/boats/${mockBoatId}`);
     });
 
     it("should throw 400 if boat ID is missing in action", async () => {
       const formData = new FormData();
       formData.append("name", "Test");
 
-      const request = new Request("http://test.com/app/boats//edit", {
+      const request = new Request("http://test.com/tenant/boats//edit", {
         method: "POST",
         body: formData,
       });
@@ -273,7 +273,7 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
       formData.append("name", "");
       formData.append("capacity", "");
 
-      const request = new Request("http://test.com/app/boats/boat-456/edit", {
+      const request = new Request("http://test.com/tenant/boats/boat-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -311,7 +311,7 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
       formData.append("capacity", "10");
       formData.append("amenities", "WiFi, AC, Kitchen");
 
-      const request = new Request("http://test.com/app/boats/boat-456/edit", {
+      const request = new Request("http://test.com/tenant/boats/boat-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -347,7 +347,7 @@ describe("app/routes/tenant/boats/$id/edit.tsx", () => {
       formData.append("capacity", "10");
       formData.append("amenities", "");
 
-      const request = new Request("http://test.com/app/boats/boat-456/edit", {
+      const request = new Request("http://test.com/tenant/boats/boat-456/edit", {
         method: "POST",
         body: formData,
       });

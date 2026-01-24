@@ -39,7 +39,7 @@ export async function loginToTenant(
   await page.getByRole("button", { name: /sign in/i }).click();
 
   // Wait for redirect to app
-  await page.waitForURL(/\/app/, { timeout: 10000 });
+  await page.waitForURL(/\/tenant/, { timeout: 10000 });
 }
 
 /**

@@ -57,7 +57,7 @@ describe("Tenant Isolation", () => {
     it("requires organization context for tenant routes", async () => {
       (requireOrgContext as Mock).mockResolvedValue(mockOrgA);
 
-      const request = new Request("https://org-a.divestreams.com/app/customers");
+      const request = new Request("https://org-a.divestreams.com/tenant/customers");
       await requireOrgContext(request);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -66,7 +66,7 @@ describe("Tenant Isolation", () => {
     it("resolves correct organization from subdomain", async () => {
       (requireOrgContext as Mock).mockResolvedValue(mockOrgA);
 
-      const request = new Request("https://org-a.divestreams.com/app/customers");
+      const request = new Request("https://org-a.divestreams.com/tenant/customers");
       const ctx = await requireOrgContext(request);
 
       expect(ctx.org.slug).toBe("org-a");
@@ -74,11 +74,11 @@ describe("Tenant Isolation", () => {
 
     it("different subdomains resolve to different organizations", async () => {
       (requireOrgContext as Mock).mockResolvedValueOnce(mockOrgA);
-      const requestA = new Request("https://org-a.divestreams.com/app/customers");
+      const requestA = new Request("https://org-a.divestreams.com/tenant/customers");
       const ctxA = await requireOrgContext(requestA);
 
       (requireOrgContext as Mock).mockResolvedValueOnce(mockOrgB);
-      const requestB = new Request("https://org-b.divestreams.com/app/customers");
+      const requestB = new Request("https://org-b.divestreams.com/tenant/customers");
       const ctxB = await requireOrgContext(requestB);
 
       expect(ctxA.org.id).not.toBe(ctxB.org.id);

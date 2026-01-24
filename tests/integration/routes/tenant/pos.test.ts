@@ -107,7 +107,7 @@ describe("tenant/pos route", () => {
       (getPOSTrips as Mock).mockResolvedValue([]);
       (generateAgreementNumber as Mock).mockResolvedValue("RA-2024-0001");
 
-      const request = new Request("https://demo.divestreams.com/app/pos");
+      const request = new Request("https://demo.divestreams.com/tenant/pos");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -119,7 +119,7 @@ describe("tenant/pos route", () => {
       (getPOSTrips as Mock).mockResolvedValue([]);
       (generateAgreementNumber as Mock).mockResolvedValue("RA-2024-0001");
 
-      const request = new Request("https://demo.divestreams.com/app/pos");
+      const request = new Request("https://demo.divestreams.com/tenant/pos");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(getPOSProducts).toHaveBeenCalled();
@@ -143,7 +143,7 @@ describe("tenant/pos route", () => {
       (getPOSTrips as Mock).mockResolvedValue(mockTrips);
       (generateAgreementNumber as Mock).mockResolvedValue("RA-2024-0001");
 
-      const request = new Request("https://demo.divestreams.com/app/pos");
+      const request = new Request("https://demo.divestreams.com/tenant/pos");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.products).toEqual(mockProducts);
@@ -159,7 +159,7 @@ describe("tenant/pos route", () => {
       (getPOSTrips as Mock).mockResolvedValue([]);
       (generateAgreementNumber as Mock).mockRejectedValue(new Error("Table not found"));
 
-      const request = new Request("https://demo.divestreams.com/app/pos");
+      const request = new Request("https://demo.divestreams.com/tenant/pos");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       // Should use default agreement number pattern
@@ -173,7 +173,7 @@ describe("tenant/pos route", () => {
       (generateAgreementNumber as Mock).mockResolvedValue("RA-2024-0001");
       (getStripeSettings as Mock).mockResolvedValue(null);
 
-      const request = new Request("https://demo.divestreams.com/app/pos");
+      const request = new Request("https://demo.divestreams.com/tenant/pos");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.stripeConnected).toBe(false);
@@ -196,7 +196,7 @@ describe("tenant/pos route", () => {
         { id: "tmr_1", label: "Reader 1", deviceType: "bbpos_wisepos_e", status: "online" },
       ]);
 
-      const request = new Request("https://demo.divestreams.com/app/pos");
+      const request = new Request("https://demo.divestreams.com/tenant/pos");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.stripeConnected).toBe(true);
@@ -216,7 +216,7 @@ describe("tenant/pos route", () => {
       (getStripePublishableKey as Mock).mockResolvedValue("pk_test_123");
       (listTerminalReaders as Mock).mockResolvedValue([]);
 
-      const request = new Request("https://demo.divestreams.com/app/pos");
+      const request = new Request("https://demo.divestreams.com/tenant/pos");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.stripeConnected).toBe(true);
@@ -236,7 +236,7 @@ describe("tenant/pos route", () => {
         formData.append("intent", "search-customers");
         formData.append("query", "john");
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -266,7 +266,7 @@ describe("tenant/pos route", () => {
         formData.append("intent", "scan-barcode");
         formData.append("barcode", "123456789");
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -295,7 +295,7 @@ describe("tenant/pos route", () => {
         formData.append("intent", "scan-barcode");
         formData.append("barcode", "nonexistent");
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -328,7 +328,7 @@ describe("tenant/pos route", () => {
         formData.append("intent", "checkout");
         formData.append("data", JSON.stringify(checkoutData));
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -357,7 +357,7 @@ describe("tenant/pos route", () => {
         formData.append("intent", "checkout");
         formData.append("data", JSON.stringify(checkoutData));
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -382,7 +382,7 @@ describe("tenant/pos route", () => {
         formData.append("intent", "checkout");
         formData.append("data", JSON.stringify(checkoutData));
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -397,7 +397,7 @@ describe("tenant/pos route", () => {
       const formData = new FormData();
       formData.append("intent", "unknown");
 
-      const request = new Request("https://demo.divestreams.com/app/pos", {
+      const request = new Request("https://demo.divestreams.com/tenant/pos", {
         method: "POST",
         body: formData,
       });
@@ -419,7 +419,7 @@ describe("tenant/pos route", () => {
         formData.append("amount", "5000");
         formData.append("customerId", "cust-1");
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -446,7 +446,7 @@ describe("tenant/pos route", () => {
         formData.append("intent", "create-payment-intent");
         formData.append("amount", "5000");
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -460,7 +460,7 @@ describe("tenant/pos route", () => {
         const formData = new FormData();
         formData.append("intent", "create-payment-intent");
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -477,7 +477,7 @@ describe("tenant/pos route", () => {
         formData.append("intent", "create-payment-intent");
         formData.append("amount", "5000");
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -497,7 +497,7 @@ describe("tenant/pos route", () => {
         const formData = new FormData();
         formData.append("intent", "connection-token");
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -514,7 +514,7 @@ describe("tenant/pos route", () => {
         const formData = new FormData();
         formData.append("intent", "connection-token");
 
-        const request = new Request("https://demo.divestreams.com/app/pos", {
+        const request = new Request("https://demo.divestreams.com/tenant/pos", {
           method: "POST",
           body: formData,
         });

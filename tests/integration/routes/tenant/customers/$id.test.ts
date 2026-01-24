@@ -77,7 +77,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
 
-      const request = new Request("http://test.com/app/customers/cust-456");
+      const request = new Request("http://test.com/tenant/customers/cust-456");
       const result = await loader({ request, params: { id: mockCustomerId }, context: {} });
 
       expect(queries.getCustomerById).toHaveBeenCalledWith(mockOrganizationId, mockCustomerId);
@@ -90,7 +90,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
     });
 
     it("should throw 400 if customer ID is missing", async () => {
-      const request = new Request("http://test.com/app/customers/");
+      const request = new Request("http://test.com/tenant/customers/");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -105,7 +105,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
     it("should throw 404 if customer not found", async () => {
       vi.mocked(queries.getCustomerById).mockResolvedValue(null);
 
-      const request = new Request("http://test.com/app/customers/nonexistent");
+      const request = new Request("http://test.com/tenant/customers/nonexistent");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -145,7 +145,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
 
-      const request = new Request("http://test.com/app/customers/cust-456");
+      const request = new Request("http://test.com/tenant/customers/cust-456");
       const result = await loader({ request, params: { id: mockCustomerId }, context: {} });
 
       expect(result.communications).toEqual([]);
@@ -190,7 +190,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
 
-      const request = new Request("http://test.com/app/customers/cust-456");
+      const request = new Request("http://test.com/tenant/customers/cust-456");
       const result = await loader({ request, params: { id: mockCustomerId }, context: {} });
 
       expect(result.customer.createdAt).toBe("2024-01-15");
@@ -206,7 +206,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "delete");
 
-      const request = new Request("http://test.com/app/customers/cust-456", {
+      const request = new Request("http://test.com/tenant/customers/cust-456", {
         method: "POST",
         body: formData,
       });
@@ -228,7 +228,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
       formData.append("body", "This is a test email");
       formData.append("customerEmail", "john@example.com");
 
-      const request = new Request("http://test.com/app/customers/cust-456", {
+      const request = new Request("http://test.com/tenant/customers/cust-456", {
         method: "POST",
         body: formData,
       });
@@ -242,7 +242,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "unknown-action");
 
-      const request = new Request("http://test.com/app/customers/cust-456", {
+      const request = new Request("http://test.com/tenant/customers/cust-456", {
         method: "POST",
         body: formData,
       });

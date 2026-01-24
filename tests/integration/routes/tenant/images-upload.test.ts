@@ -78,7 +78,7 @@ describe("tenant/images/upload route", () => {
 
   describe("action", () => {
     it("rejects non-POST requests", async () => {
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "GET",
       });
 
@@ -95,7 +95,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -125,7 +125,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -142,7 +142,7 @@ describe("tenant/images/upload route", () => {
       formData.append("file", new Blob(["test"]), "test.jpg");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -159,7 +159,7 @@ describe("tenant/images/upload route", () => {
       formData.append("file", new Blob(["test"]), "test.jpg");
       formData.append("entityType", "tour");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -177,7 +177,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "invalid");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -222,7 +222,7 @@ describe("tenant/images/upload route", () => {
         formData.append("entityType", entityType);
         formData.append("entityId", "entity-123");
 
-        const request = new Request("https://demo.divestreams.com/app/images/upload", {
+        const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
           method: "POST",
           body: formData,
         });
@@ -241,7 +241,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -263,7 +263,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -283,7 +283,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -303,7 +303,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -336,7 +336,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -375,7 +375,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityId", "tour-123");
       formData.append("alt", "Coral reef at sunrise");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -407,7 +407,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -427,7 +427,7 @@ describe("tenant/images/upload route", () => {
       formData.append("entityType", "tour");
       formData.append("entityId", "tour-123");
 
-      const request = new Request("https://demo.divestreams.com/app/images/upload", {
+      const request = new Request("https://demo.divestreams.com/tenant/images/upload", {
         method: "POST",
         body: formData,
       });

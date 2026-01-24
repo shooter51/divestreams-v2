@@ -122,7 +122,7 @@ async function loginToTenant(page: Page) {
   await page.getByLabel(/email/i).fill(testData.user.email);
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  // Wait for login completion: either redirect to /app or stay on login with error
+  // Wait for login completion: either redirect to /tenant or stay on login with error
   // Using URL change detection instead of fixed timeout for reliability
   try {
     await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
@@ -281,9 +281,9 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.locator("#password").fill(testData.user.password);
     await page.locator("#confirmPassword").fill(testData.user.password);
     await page.getByRole("button", { name: /create account/i }).click();
-    // Wait for redirect to /app or error to appear
+    // Wait for redirect to /tenant or error to appear
     try {
-      await page.waitForURL(/\/app/, { timeout: 10000 });
+      await page.waitForURL(/\/tenant/, { timeout: 10000 });
       // Success - user created and redirected
       return;
     } catch {
@@ -294,7 +294,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
         return;
       }
       // Any other error is a real failure
-      throw new Error(`Signup failed: ${formError || 'Unknown error - did not redirect to /app'}`);
+      throw new Error(`Signup failed: ${formError || 'Unknown error - did not redirect to /tenant'}`);
     }
   });
 
@@ -303,13 +303,13 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.getByLabel(/email/i).fill(testData.user.email);
     await page.getByLabel(/password/i).fill(testData.user.password);
     await page.getByRole("button", { name: /sign in/i }).click();
-    // Wait for redirect to /app - login must succeed for remaining tests to work
+    // Wait for redirect to /tenant - login must succeed for remaining tests to work
     try {
-      await page.waitForURL(/\/app/, { timeout: 10000 });
+      await page.waitForURL(/\/tenant/, { timeout: 10000 });
       // Success - logged in and redirected
     } catch {
       const formError = await page.locator('[class*="bg-red"]').textContent().catch(() => null);
-      throw new Error(`Login failed: ${formError || 'Unknown error - did not redirect to /app'}`);
+      throw new Error(`Login failed: ${formError || 'Unknown error - did not redirect to /tenant'}`);
     }
   });
 
@@ -888,7 +888,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/dive-sites")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/dive-sites/${diveSiteId}`));
+    await page.goto(getTenantUrl(`/tenant/dive-sites/${diveSiteId}`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
@@ -901,7 +901,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/dive-sites")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/dive-sites/${diveSiteId}/edit`));
+    await page.goto(getTenantUrl(`/tenant/dive-sites/${diveSiteId}/edit`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
@@ -994,7 +994,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       if (await phoneInput.isVisible().catch(() => false)) await phoneInput.fill(testData.customer.phone);
       await page.getByRole("button", { name: /save customer/i }).click();
       await Promise.race([
-        page.waitForURL(/\/app\/customers(?!\/new)/, { timeout: 10000 }),
+        page.waitForURL(/\/tenant\/customers(?!\/new)/, { timeout: 10000 }),
         page.waitForSelector('.text-red-500', { state: "visible", timeout: 10000 }),
         page.waitForTimeout(5000)
       ]).catch(() => null);
@@ -1214,7 +1214,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/equipment")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/equipment/${equipmentId}`));
+    await page.goto(getTenantUrl(`/tenant/equipment/${equipmentId}`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/equipment")).toBeTruthy();
   });
@@ -1227,7 +1227,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/equipment")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/app/equipment/${equipmentId}/edit`));
+    await page.goto(getTenantUrl(`/tenant/equipment/${equipmentId}/edit`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/equipment")).toBeTruthy();
   });

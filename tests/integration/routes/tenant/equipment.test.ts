@@ -93,7 +93,7 @@ describe("tenant/equipment route", () => {
     it("requires organization context", async () => {
       setupDbMocks([], []);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -102,7 +102,7 @@ describe("tenant/equipment route", () => {
     it("fetches equipment with organization filter", async () => {
       setupDbMocks([], []);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(db.select).toHaveBeenCalled();
@@ -112,7 +112,7 @@ describe("tenant/equipment route", () => {
     it("filters by search when provided", async () => {
       setupDbMocks([], []);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment?q=regulator");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment?q=regulator");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.search).toBe("regulator");
@@ -121,7 +121,7 @@ describe("tenant/equipment route", () => {
     it("filters by category when provided", async () => {
       setupDbMocks([], []);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment?category=bcd");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment?category=bcd");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.category).toBe("bcd");
@@ -130,7 +130,7 @@ describe("tenant/equipment route", () => {
     it("filters by status when provided", async () => {
       setupDbMocks([], []);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment?status=available");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment?status=available");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.status).toBe("available");
@@ -155,7 +155,7 @@ describe("tenant/equipment route", () => {
 
       setupDbMocks(mockEquipment, mockEquipment);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.equipment).toHaveLength(1);
@@ -176,7 +176,7 @@ describe("tenant/equipment route", () => {
     it("returns empty array when no equipment exists", async () => {
       setupDbMocks([], []);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.equipment).toEqual([]);
@@ -193,7 +193,7 @@ describe("tenant/equipment route", () => {
 
       setupDbMocks(mockAllEquipment, mockAllEquipment);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.stats).toMatchObject({
@@ -208,7 +208,7 @@ describe("tenant/equipment route", () => {
     it("returns freemium data", async () => {
       setupDbMocks([], []);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.hasEquipmentRentals).toBe(false);
@@ -224,7 +224,7 @@ describe("tenant/equipment route", () => {
 
       setupDbMocks(mockAllEquipment, mockAllEquipment);
 
-      const request = new Request("https://demo.divestreams.com/app/equipment");
+      const request = new Request("https://demo.divestreams.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.rentableCount).toBe(2);
@@ -237,7 +237,7 @@ describe("tenant/equipment route", () => {
         const formData = new FormData();
         formData.append("intent", "barcode-lookup");
 
-        const request = new Request("https://demo.divestreams.com/app/equipment", {
+        const request = new Request("https://demo.divestreams.com/tenant/equipment", {
           method: "POST",
           body: formData,
         });
@@ -267,7 +267,7 @@ describe("tenant/equipment route", () => {
         formData.append("intent", "barcode-lookup");
         formData.append("barcode", "123456789");
 
-        const request = new Request("https://demo.divestreams.com/app/equipment", {
+        const request = new Request("https://demo.divestreams.com/tenant/equipment", {
           method: "POST",
           body: formData,
         });
@@ -295,7 +295,7 @@ describe("tenant/equipment route", () => {
         formData.append("intent", "barcode-lookup");
         formData.append("barcode", "nonexistent");
 
-        const request = new Request("https://demo.divestreams.com/app/equipment", {
+        const request = new Request("https://demo.divestreams.com/tenant/equipment", {
           method: "POST",
           body: formData,
         });
@@ -313,7 +313,7 @@ describe("tenant/equipment route", () => {
       const formData = new FormData();
       formData.append("intent", "unknown");
 
-      const request = new Request("https://demo.divestreams.com/app/equipment", {
+      const request = new Request("https://demo.divestreams.com/tenant/equipment", {
         method: "POST",
         body: formData,
       });

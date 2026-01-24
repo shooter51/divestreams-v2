@@ -22,7 +22,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
 
   describe("action", () => {
     it("should return 405 for non-POST requests", async () => {
-      const request = new Request("http://test.com/app/images/delete", {
+      const request = new Request("http://test.com/tenant/images/delete", {
         method: "GET",
       });
 
@@ -36,7 +36,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
     it("should return 400 if imageId is missing", async () => {
       const formData = new FormData();
 
-      const request = new Request("http://test.com/app/images/delete", {
+      const request = new Request("http://test.com/tenant/images/delete", {
         method: "POST",
         body: formData,
       });
@@ -62,7 +62,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
       const formData = new FormData();
       formData.append("imageId", "nonexistent");
 
-      const request = new Request("http://test.com/app/images/delete", {
+      const request = new Request("http://test.com/tenant/images/delete", {
         method: "POST",
         body: formData,
       });
@@ -106,7 +106,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
       const formData = new FormData();
       formData.append("imageId", "img-123");
 
-      const request = new Request("http://test.com/app/images/delete", {
+      const request = new Request("http://test.com/tenant/images/delete", {
         method: "POST",
         body: formData,
       });
@@ -177,7 +177,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
       const formData = new FormData();
       formData.append("imageId", "img-123");
 
-      const request = new Request("http://test.com/app/images/delete", {
+      const request = new Request("http://test.com/tenant/images/delete", {
         method: "POST",
         body: formData,
       });
@@ -221,7 +221,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
       const formData = new FormData();
       formData.append("imageId", "img-123");
 
-      const request = new Request("http://test.com/app/images/delete", {
+      const request = new Request("http://test.com/tenant/images/delete", {
         method: "POST",
         body: formData,
       });
