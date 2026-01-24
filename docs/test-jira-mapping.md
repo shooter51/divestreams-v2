@@ -31,46 +31,59 @@ test('[KAN-2] [KAN-10] Complex workflow test', async ({ page }) => {
 });
 ```
 
-## Current Test Mappings
+## Current Test Coverage
 
-### Full Workflow Tests (`tests/e2e/workflow/full-workflow.spec.ts`)
+### E2E Test Files Summary
 
-| Test Title | Jira Key(s) | Status | Notes |
-|------------|-------------|--------|-------|
-| Platform admin can create tenant | [KAN-2] | ✅ Active | Pilot test - tenant creation |
-| Tenant admin can access their dashboard | [KAN-10] | ✅ Active | Pilot test - tenant dashboard |
-| Tenant admin can manage customers | [KAN-11] | ✅ Active | Pilot test - customer management |
-| *Other tests...* | - | ⏳ Pending | To be tagged in future phases |
+| Test File | Test Count | Status | Notes |
+|-----------|------------|--------|-------|
+| `00-full-workflow.spec.ts` | 230 | ✅ Active | Complete workflow coverage |
+| `customer-management.spec.ts` | 46 | ✅ Active | Customer CRUD and details |
+| `tours-management.spec.ts` | 60 | ✅ Active | Tour management workflows |
+| `trips-scheduling.spec.ts` | 60 | ✅ Active | Trip scheduling and booking |
+| `training-module.spec.ts` | 47 | ✅ Active | Training courses management |
+| `public-site.spec.ts` | 40 | ✅ Active | Public-facing site tests |
+| `regression-bugs.spec.ts` | 25 | ✅ Active | Bug regression tests |
+| `embed-courses.spec.ts` | 21 | ✅ Active | Embedded course widget |
+| `training-import.spec.ts` | 13 | ✅ Active | Training catalog import |
+| `stripe-integration.spec.ts` | 1 | ⏳ Skipped | Stripe payments (CI skipped) |
+| **Total** | **543** | | |
 
-### Customer Management Tests (`tests/e2e/workflow/customer-management.spec.ts`)
+## Current Jira-Tagged Tests
 
-| Test Title | Jira Key(s) | Status | Notes |
-|------------|-------------|--------|-------|
-| *To be mapped* | - | ⏳ Pending | Phase 4+ |
-
-### Tours Management Tests (`tests/e2e/workflow/tours-management.spec.ts`)
-
-| Test Title | Jira Key(s) | Status | Notes |
-|------------|-------------|--------|-------|
-| *To be mapped* | - | ⏳ Pending | Phase 4+ |
-
-### Trips Scheduling Tests (`tests/e2e/workflow/trips-scheduling.spec.ts`)
+### Full Workflow Tests (`tests/e2e/workflow/00-full-workflow.spec.ts`)
 
 | Test Title | Jira Key(s) | Status | Notes |
 |------------|-------------|--------|-------|
-| *To be mapped* | - | ⏳ Pending | Phase 4+ |
+| Create tenant via signup | [KAN-2] | ✅ Active | Pilot test - tenant creation |
+| Tenant dashboard navigation exists | [KAN-10] | ✅ Active | Pilot test - tenant dashboard |
+| Create new customer | [KAN-11] | ✅ Active | Pilot test - customer management |
 
-### Training Module Tests (`tests/e2e/workflow/training-module.spec.ts`)
+### Regression Tests (`tests/e2e/workflow/regression-bugs.spec.ts`)
 
-| Test Title | Jira Key(s) | Status | Notes |
-|------------|-------------|--------|-------|
-| *To be mapped* | - | ⏳ Pending | Phase 4+ |
+| Bug Description | Jira Key(s) | Status | Notes |
+|-----------------|-------------|--------|-------|
+| Customer deletion 500 error | DIVE-w1s | ✅ Fixed | Cascade deletes implemented |
+| Booking deletion 500 error | DIVE-237 | ✅ Fixed | Cascade deletes implemented |
+| Discount code modal not closing | DIVE-ein | ✅ Fixed | Modal behavior corrected |
+| Discount code update not working | DIVE-ka3 | ✅ Fixed | Update logic fixed |
+| Product deletion modal not closing | DIVE-d4m | ✅ Fixed | Modal behavior corrected |
+| Boat deletion only deactivating | DIVE-u07 | ✅ Fixed | True deletion implemented |
+| Dive site deletion only deactivating | DIVE-9f5 | ✅ Fixed | True deletion implemented |
+| Tour deletion only deactivating | DIVE-98t | ✅ Fixed | True deletion implemented |
+| Gallery 404 route missing | DIVE-6l9 | ✅ Fixed | Route added |
 
-### Public Site Tests (`tests/e2e/workflow/public-site.spec.ts`)
+### Tests Pending Jira Tagging
 
-| Test Title | Jira Key(s) | Status | Notes |
-|------------|-------------|--------|-------|
-| *To be mapped* | - | ⏳ Pending | Phase 4+ |
+| Test File | Test Count | Status |
+|-----------|------------|--------|
+| customer-management.spec.ts | 46 | ⏳ Pending Phase 4+ |
+| tours-management.spec.ts | 60 | ⏳ Pending Phase 4+ |
+| trips-scheduling.spec.ts | 60 | ⏳ Pending Phase 4+ |
+| training-module.spec.ts | 47 | ⏳ Pending Phase 4+ |
+| public-site.spec.ts | 40 | ⏳ Pending Phase 4+ |
+| training-import.spec.ts | 13 | ⏳ Pending Phase 4+ |
+| embed-courses.spec.ts | 21 | ⏳ Pending Phase 4+ |
 
 ## Jira Issue Structure
 
@@ -161,7 +174,7 @@ Posted: 2024-01-19T10:30:00Z
 - ⏳ Create corresponding Jira issues
 
 ### Phase 4: Full Coverage
-- ⏳ Map all 80 E2E tests
+- ⏳ Map all 543 E2E tests (currently 3 tagged)
 - ⏳ Establish test case library in Jira
 - ⏳ Create test execution reports
 
@@ -255,9 +268,11 @@ Posted: 2024-01-19T10:30:00Z
 |------|--------|--------|------------|
 | 2024-01-19 | Initial Setup | Created mapping document | - |
 | 2024-01-19 | Initial Setup | Tagged pilot tests KAN-2, KAN-10, KAN-11 | - |
+| 2026-01-24 | System | Updated test counts (543 total), added regression test mappings | - |
+| 2026-01-24 | System | Route prefix changed from /app/ to /tenant/ | - |
 
 ---
 
-**Last Updated:** 2024-01-19
+**Last Updated:** 2026-01-24
 **Maintainer:** DiveStreams Development Team
-**Status:** Phase 1 - Pilot
+**Status:** Phase 2 - Pilot Testing Active
