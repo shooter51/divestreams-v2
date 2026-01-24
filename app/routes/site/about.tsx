@@ -112,7 +112,7 @@ export default function SiteAboutPage() {
           // Render CMS content blocks
           <ContentBlockRenderer blocks={pageContent!.content.blocks} />
         ) : (
-          // Legacy fallback content
+          // Legacy fallback content - shown when no CMS content exists
           <div className="prose prose-lg max-w-none">
             <h2 className="text-2xl font-bold mb-6">Our Story</h2>
             <p className="opacity-75">
@@ -127,7 +127,7 @@ export default function SiteAboutPage() {
               step of the way.
             </p>
             <p className="mt-8 text-sm text-gray-500">
-              To customize this page, go to Settings → Public Site → Pages
+              To customize this page, go to Settings → Public Site → Content
             </p>
           </div>
         )}
