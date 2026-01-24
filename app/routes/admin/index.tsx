@@ -5,7 +5,7 @@ import { organization, member } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
 import { eq, ilike, or, desc, sql, count, ne } from "drizzle-orm";
 import { requirePlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
-import { getTenantUrl } from "../../../lib/utils/url";
+import { getTenantUrl, getBaseDomain } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Organizations - DiveStreams Admin" }];
 
@@ -87,6 +87,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
           ownerEmail: owner?.email || "—",
           subscriptionStatus: sub?.status || "free",
           subscriptionPlan: sub?.plan || "free",
+          // Pre-compute tenant URL server-side where process.env.APP_URL is available
+          tenantUrl: getTenantUrl(org.slug, "/tenant"),
         };
       })
     );
@@ -216,7 +218,7 @@ export default function AdminOrganizationsPage() {
                 <tr key={org.id}>
                   <td className="px-4 py-3">
                     <a
-                      href={getTenantUrl(org.slug, "/tenant")}
+                      href={org.tenantUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline font-medium"
