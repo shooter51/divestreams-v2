@@ -5,7 +5,7 @@ import { db } from "../../../lib/db";
 import { trips, bookings, customers, tours } from "../../../lib/db/schema";
 import { eq, sql, and, gte, count, desc } from "drizzle-orm";
 import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
-import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS } from "../../../lib/plan-features";
+import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS, type PlanLimits } from "../../../lib/plan-features";
 import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
 
 export const meta: MetaFunction = () => {
@@ -172,7 +172,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     upcomingTrips: formattedTrips,
     recentBookings: formattedBookings,
     subscription: ctx.subscription,
-    limits: ctx.limits,
     usage,
     planLimits,
     limitChecks,
@@ -188,7 +187,6 @@ export default function DashboardPage() {
     upcomingTrips,
     recentBookings,
     subscription,
-    limits,
     usage,
     planLimits,
     limitChecks,
@@ -404,12 +402,7 @@ interface UsageCardProps {
   planName: string;
   limitChecks: Record<keyof UsageStats, LimitCheck>;
   usage: UsageStats;
-  planLimits: {
-    users: number;
-    customers: number;
-    toursPerMonth: number;
-    storageGb: number;
-  };
+  planLimits: PlanLimits;
   isPremium: boolean;
   hasWarning: boolean;
 }
@@ -509,7 +502,14 @@ function UsageItem({ label, current, limit, check, unit }: UsageItemProps) {
       {/* Progress bar */}
       {!isUnlimited && (
         <div className="mt-2">
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className="w-full h-2 bg-gray-200 rounded-full overflow-hidden"
+            role="progressbar"
+            aria-valuenow={check.percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${label}: ${check.percent}% used`}
+          >
             <div
               className={`h-full ${progressColor} transition-all duration-300`}
               style={{ width: `${Math.min(check.percent, 100)}%` }}
