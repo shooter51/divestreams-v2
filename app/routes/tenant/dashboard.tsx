@@ -201,7 +201,7 @@ export default function DashboardPage() {
             </span>
           </div>
           {!isPremium && (
-            <Link to="/app/settings/billing" className="text-sm text-blue-600 hover:underline mt-1 inline-block">
+            <Link to="/tenant/settings/billing" className="text-sm text-blue-600 hover:underline mt-1 inline-block">
               Upgrade for more features
             </Link>
           )}
@@ -254,7 +254,7 @@ export default function DashboardPage() {
             ))}
           </div>
           <Link
-            to="/app/trips"
+            to="/tenant/trips"
             className="block text-center text-blue-600 mt-4 text-sm hover:underline"
           >
             View all trips →
@@ -291,7 +291,7 @@ export default function DashboardPage() {
             ))}
           </div>
           <Link
-            to="/app/bookings"
+            to="/tenant/bookings"
             className="block text-center text-blue-600 mt-4 text-sm hover:underline"
           >
             View all bookings →

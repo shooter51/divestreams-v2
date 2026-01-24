@@ -706,7 +706,7 @@ export default function ReportsPage() {
               </div>
             )}
             <Link
-              to="/app/tours"
+              to="/tenant/tours"
               className="block text-center text-blue-600 mt-4 text-sm hover:underline"
             >
               View all tours
@@ -738,7 +738,7 @@ export default function ReportsPage() {
             </div>
           </div>
           <Link
-            to="/app/customers"
+            to="/tenant/customers"
             className="block text-center text-blue-600 mt-4 text-sm hover:underline"
           >
             View all customers
@@ -800,7 +800,7 @@ export default function ReportsPage() {
             </div>
           )}
           <Link
-            to="/app/equipment"
+            to="/tenant/equipment"
             className="block text-center text-blue-600 mt-4 text-sm hover:underline"
           >
             View all equipment

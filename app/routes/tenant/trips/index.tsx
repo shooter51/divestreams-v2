@@ -140,7 +140,7 @@ export default function TripsPage() {
           <p className="text-gray-500">{total} trips</p>
         </div>
         <Link
-          to="/app/trips/new"
+          to="/tenant/trips/new"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           Schedule Trip
@@ -186,7 +186,7 @@ export default function TripsPage() {
               : "No trips found."}
           </p>
           <Link
-            to="/app/trips/new"
+            to="/tenant/trips/new"
             className="inline-block mt-4 text-blue-600 hover:underline"
           >
             Schedule your first trip

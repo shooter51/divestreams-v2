@@ -38,22 +38,22 @@ export default function TenantLayout() {
   const trialDaysLeft = tenant.trialDaysLeft;
 
   const navItems = [
-    { href: "/app", label: "Dashboard", icon: "📊" },
-    { href: "/app/bookings", label: "Bookings", icon: "📅" },
-    { href: "/app/calendar", label: "Calendar", icon: "🗓️" },
-    { href: "/app/customers", label: "Customers", icon: "👥" },
-    { href: "/app/tours", label: "Tours", icon: "🏝️" },
-    { href: "/app/trips", label: "Trips", icon: "🚤" },
-    { href: "/app/dive-sites", label: "Dive Sites", icon: "🌊" },
-    { href: "/app/boats", label: "Boats", icon: "⛵" },
-    { href: "/app/equipment", label: "Equipment", icon: "🤿" },
-    { href: "/app/products", label: "Products", icon: "📦" },
-    { href: "/app/discounts", label: "Discounts", icon: "🏷️" },
-    { href: "/app/training", label: "Training", icon: "🎓" },
-    { href: "/app/gallery", label: "Gallery", icon: "📸" },
-    { href: "/app/pos", label: "POS", icon: "💳" },
-    { href: "/app/reports", label: "Reports", icon: "📈" },
-    { href: "/app/settings", label: "Settings", icon: "⚙️" },
+    { href: "/tenant", label: "Dashboard", icon: "📊" },
+    { href: "/tenant/bookings", label: "Bookings", icon: "📅" },
+    { href: "/tenant/calendar", label: "Calendar", icon: "🗓️" },
+    { href: "/tenant/customers", label: "Customers", icon: "👥" },
+    { href: "/tenant/tours", label: "Tours", icon: "🏝️" },
+    { href: "/tenant/trips", label: "Trips", icon: "🚤" },
+    { href: "/tenant/dive-sites", label: "Dive Sites", icon: "🌊" },
+    { href: "/tenant/boats", label: "Boats", icon: "⛵" },
+    { href: "/tenant/equipment", label: "Equipment", icon: "🤿" },
+    { href: "/tenant/products", label: "Products", icon: "📦" },
+    { href: "/tenant/discounts", label: "Discounts", icon: "🏷️" },
+    { href: "/tenant/training", label: "Training", icon: "🎓" },
+    { href: "/tenant/gallery", label: "Gallery", icon: "📸" },
+    { href: "/tenant/pos", label: "POS", icon: "💳" },
+    { href: "/tenant/reports", label: "Reports", icon: "📈" },
+    { href: "/tenant/settings", label: "Settings", icon: "⚙️" },
   ];
 
   return (
@@ -62,7 +62,7 @@ export default function TenantLayout() {
       {isTrialing && trialDaysLeft > 0 && (
         <div className="bg-blue-600 text-white text-center py-2 text-sm">
           You have {trialDaysLeft} days left in your free trial.{" "}
-          <Link to="/app/settings/billing" className="underline font-medium">
+          <Link to="/tenant/settings/billing" className="underline font-medium">
             Upgrade now
           </Link>
         </div>
@@ -80,8 +80,8 @@ export default function TenantLayout() {
             <ul className="space-y-1">
               {navItems.map((item) => {
                 const isActive =
-                  item.href === "/app"
-                    ? location.pathname === "/app"
+                  item.href === "/tenant"
+                    ? location.pathname === "/tenant"
                     : location.pathname.startsWith(item.href);
 
                 return (

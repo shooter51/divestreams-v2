@@ -88,7 +88,7 @@ export default function DiveSitesPage() {
           <p className="text-gray-500">{total} sites</p>
         </div>
         <Link
-          to="/app/dive-sites/new"
+          to="/tenant/dive-sites/new"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           Add Site
@@ -124,7 +124,7 @@ export default function DiveSitesPage() {
         <div className="bg-white rounded-xl p-12 shadow-sm text-center">
           <p className="text-gray-500">No dive sites found.</p>
           <Link
-            to="/app/dive-sites/new"
+            to="/tenant/dive-sites/new"
             className="inline-block mt-4 text-blue-600 hover:underline"
           >
             Add your first dive site

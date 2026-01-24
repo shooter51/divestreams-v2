@@ -192,7 +192,7 @@ export default function BookingsPage() {
           </p>
         </div>
         <Link
-          to="/app/bookings/new"
+          to="/tenant/bookings/new"
           className={`px-4 py-2 rounded-lg ${
             canAddBooking
               ? "bg-blue-600 text-white hover:bg-blue-700"

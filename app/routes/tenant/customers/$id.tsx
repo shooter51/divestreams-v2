@@ -90,7 +90,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     await deleteCustomer(organizationId, customerId);
-    return redirect("/app/customers");
+    return redirect("/tenant/customers");
   }
 
   if (intent === "send-email") {
@@ -148,7 +148,7 @@ export default function CustomerDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/app/customers" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/customers" className="text-blue-600 hover:underline text-sm">
           ← Back to Customers
         </Link>
       </div>

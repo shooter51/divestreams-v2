@@ -20,7 +20,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const canceled = url.searchParams.get("canceled");
 
   // Build redirect URL with status
-  const billingUrl = new URL("/app/settings/billing", url.origin);
+  const billingUrl = new URL("/tenant/settings/billing", url.origin);
 
   if (success === "true" || sessionId) {
     billingUrl.searchParams.set("success", "true");

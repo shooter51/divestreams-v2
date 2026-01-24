@@ -121,7 +121,7 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error("Failed to queue booking confirmation email:", emailError);
   }
 
-  return redirect("/app/bookings");
+  return redirect("/tenant/bookings");
 }
 
 export default function NewBookingPage() {
@@ -134,7 +134,7 @@ export default function NewBookingPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/bookings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/bookings" className="text-blue-600 hover:underline text-sm">
           ← Back to Bookings
         </Link>
         <h1 className="text-2xl font-bold mt-2">New Booking</h1>
@@ -153,7 +153,7 @@ export default function NewBookingPage() {
                 <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
               </div>
               <Link
-                to="/app/bookings/new"
+                to="/tenant/bookings/new"
                 className="text-sm text-blue-600 hover:underline"
               >
                 Change
@@ -183,7 +183,7 @@ export default function NewBookingPage() {
                 <p className="text-red-500 text-sm mt-1">{actionData.errors.customerId}</p>
               )}
               <p className="text-sm text-gray-500 mt-2">
-                <Link to="/app/customers/new" className="text-blue-600 hover:underline">
+                <Link to="/tenant/customers/new" className="text-blue-600 hover:underline">
                   + Add new customer
                 </Link>
               </p>
@@ -388,7 +388,7 @@ export default function NewBookingPage() {
             {isSubmitting ? "Creating..." : "Create Booking"}
           </button>
           <Link
-            to="/app/bookings"
+            to="/tenant/bookings"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

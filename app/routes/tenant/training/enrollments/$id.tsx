@@ -203,7 +203,7 @@ export default function EnrollmentDetailPage() {
 
   // Handle redirect after delete
   if (fetcher.data?.deleted) {
-    navigate("/app/training/enrollments");
+    navigate("/tenant/training/enrollments");
     return null;
   }
 
@@ -240,7 +240,7 @@ export default function EnrollmentDetailPage() {
     <div>
       <div className="mb-6">
         <Link
-          to="/app/training/enrollments"
+          to="/tenant/training/enrollments"
           className="text-blue-600 hover:underline text-sm"
         >
           &larr; Back to Enrollments

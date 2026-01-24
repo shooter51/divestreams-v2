@@ -146,7 +146,7 @@ export default function LevelsPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <Link to="/app/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Certification Levels</h1>
@@ -172,7 +172,7 @@ export default function LevelsPage() {
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6">
           <p className="font-medium">No certification agencies configured</p>
           <p className="text-sm">
-            <Link to="/app/settings/training/agencies" className="underline">
+            <Link to="/tenant/settings/training/agencies" className="underline">
               Add certification agencies
             </Link>{" "}
             first to associate levels with them.

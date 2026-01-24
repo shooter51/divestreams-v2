@@ -160,7 +160,7 @@ export default function DiveSiteDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/app/dive-sites" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/dive-sites" className="text-blue-600 hover:underline text-sm">
           ← Back to Dive Sites
         </Link>
       </div>

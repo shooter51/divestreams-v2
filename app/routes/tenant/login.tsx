@@ -28,7 +28,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (sessionData?.user) {
     // Already logged in, redirect to app
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/app";
+    const redirectTo = url.searchParams.get("redirect") || "/tenant";
     throw redirect(redirectTo);
   }
 
@@ -62,7 +62,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const redirectTo = formData.get("redirectTo");
 
   // Validate redirectTo and default to /app
-  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/app";
+  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/tenant";
 
   // Handle "join" intent - user wants to join org as customer
   if (intent === "join") {
@@ -199,7 +199,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const isSubmitting = navigation.state === "submitting";
-  const redirectTo = searchParams.get("redirect") || "/app";
+  const redirectTo = searchParams.get("redirect") || "/tenant";
 
   // Show "Not a member" UI if user is authenticated but not a member of this org
   if (actionData?.notMember) {
@@ -406,7 +406,7 @@ export default function LoginPage() {
 
             <div className="mt-6">
               <Link
-                to={`/signup${redirectTo !== "/app" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+                to={`/signup${redirectTo !== "/tenant" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
                 className="w-full flex justify-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
                 Create an account
@@ -419,7 +419,7 @@ export default function LoginPage() {
         <p className="mt-6 text-center text-sm text-gray-500">
           Not a member of {orgName}?{" "}
           <Link
-            to={`/signup?role=customer${redirectTo !== "/app" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+            to={`/signup?role=customer${redirectTo !== "/tenant" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""}`}
             className="font-medium text-blue-600 hover:text-blue-500"
           >
             Join as a customer

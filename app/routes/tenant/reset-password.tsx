@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (sessionData?.user) {
     // Already logged in, redirect to app
-    throw redirect("/app");
+    throw redirect("/tenant");
   }
 
   // Try to get the email from verification table using the token
@@ -131,7 +131,7 @@ export async function action({ request }: ActionFunctionArgs) {
           const cookies = signInResponse.headers.get("set-cookie");
 
           // Redirect to /app with session cookies
-          return redirect("/app", {
+          return redirect("/tenant", {
             headers: cookies ? { "Set-Cookie": cookies } : {},
           });
         }

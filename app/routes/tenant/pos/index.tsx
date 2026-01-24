@@ -354,13 +354,13 @@ export default function POSPage() {
         </div>
         <div className="flex gap-3">
           <Link
-            to="/app/pos/products"
+            to="/tenant/pos/products"
             className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
           >
             Manage Products
           </Link>
           <Link
-            to="/app/pos/transactions"
+            to="/tenant/pos/transactions"
             className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
           >
             Transactions
@@ -464,7 +464,7 @@ export default function POSPage() {
                 <div>
                   <p className="mb-4">No products yet</p>
                   <Link
-                    to="/app/pos/products/new"
+                    to="/tenant/pos/products/new"
                     className="text-blue-600 hover:underline"
                   >
                     Add your first product

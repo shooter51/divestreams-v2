@@ -453,7 +453,7 @@ export default function OrganizationDetailsPage() {
             <h2 className="font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <a
-                href={getTenantUrl(org.slug, "/app")}
+                href={getTenantUrl(org.slug, "/tenant")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full text-center py-2 px-4 border rounded-lg hover:bg-gray-50 text-sm"

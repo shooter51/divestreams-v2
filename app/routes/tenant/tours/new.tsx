@@ -59,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
     minAge: formData.get("minAge") ? Number(formData.get("minAge")) : undefined,
   });
 
-  return redirect("/app/tours");
+  return redirect("/tenant/tours");
 }
 
 export default function NewTourPage() {
@@ -70,7 +70,7 @@ export default function NewTourPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/tours" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/tours" className="text-blue-600 hover:underline text-sm">
           ← Back to Tours
         </Link>
         <h1 className="text-2xl font-bold mt-2">Create Tour</h1>
@@ -381,7 +381,7 @@ export default function NewTourPage() {
             {isSubmitting ? "Creating..." : "Create Tour"}
           </button>
           <Link
-            to="/app/tours"
+            to="/tenant/tours"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

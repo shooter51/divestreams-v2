@@ -119,7 +119,7 @@ export default function NotificationsPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Notification Settings</h1>
@@ -320,7 +320,7 @@ export default function NotificationsPage() {
             {isSubmitting ? "Saving..." : "Save Settings"}
           </button>
           <Link
-            to="/app/settings"
+            to="/tenant/settings"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

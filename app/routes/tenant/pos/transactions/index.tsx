@@ -126,7 +126,7 @@ export default function TransactionsPage() {
           <p className="text-sm text-gray-500">{transactions.length} transactions</p>
         </div>
         <Link
-          to="/app/pos"
+          to="/tenant/pos"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           Back to POS
@@ -153,7 +153,7 @@ export default function TransactionsPage() {
       <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
         <div className="flex gap-2">
           <Link
-            to="/app/pos/transactions"
+            to="/tenant/pos/transactions"
             className={`px-4 py-2 rounded-lg text-sm ${
               !currentType ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
             }`}
@@ -161,7 +161,7 @@ export default function TransactionsPage() {
             All
           </Link>
           <Link
-            to="/app/pos/transactions?type=sale"
+            to="/tenant/pos/transactions?type=sale"
             className={`px-4 py-2 rounded-lg text-sm ${
               currentType === "sale" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
             }`}
@@ -169,7 +169,7 @@ export default function TransactionsPage() {
             Sales
           </Link>
           <Link
-            to="/app/pos/transactions?type=refund"
+            to="/tenant/pos/transactions?type=refund"
             className={`px-4 py-2 rounded-lg text-sm ${
               currentType === "refund" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
             }`}

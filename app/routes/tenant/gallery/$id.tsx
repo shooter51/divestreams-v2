@@ -62,7 +62,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete-album") {
     await deleteGalleryAlbum(organizationId, albumId);
-    return redirect("/app/gallery");
+    return redirect("/tenant/gallery");
   }
 
   if (intent === "delete-image") {
@@ -117,7 +117,7 @@ export default function AlbumDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/app/gallery" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/gallery" className="text-blue-600 hover:underline text-sm">
           ← Back to Gallery
         </Link>
       </div>
@@ -229,7 +229,7 @@ export default function AlbumDetailPage() {
             Images ({images.length})
           </h2>
           <Link
-            to="/app/images/upload"
+            to="/tenant/images/upload"
             state={{ albumId: album.id }}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
@@ -245,7 +245,7 @@ export default function AlbumDetailPage() {
               Upload your first images to this album
             </p>
             <Link
-              to="/app/images/upload"
+              to="/tenant/images/upload"
               state={{ albumId: album.id }}
               className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
             >

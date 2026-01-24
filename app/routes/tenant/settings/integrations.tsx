@@ -1168,7 +1168,7 @@ export default function IntegrationsPage() {
       )}
 
       <div className="mb-6">
-        <Link to="/app/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Integrations</h1>
@@ -1260,7 +1260,7 @@ export default function IntegrationsPage() {
                       {/* Show Manage Settings button for QuickBooks */}
                       {connection.id === "quickbooks" && (
                         <Link
-                          to="/app/settings/integrations/quickbooks"
+                          to="/tenant/settings/integrations/quickbooks"
                           className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 inline-block"
                         >
                           Manage Settings
@@ -1367,7 +1367,7 @@ export default function IntegrationsPage() {
                           Requires {integration.requiredPlan} plan
                         </p>
                         <Link
-                          to="/app/settings/billing"
+                          to="/tenant/settings/billing"
                           className="text-sm text-blue-600 hover:underline"
                         >
                           Upgrade to unlock

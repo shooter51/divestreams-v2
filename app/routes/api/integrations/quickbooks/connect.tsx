@@ -38,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         const baseUrl = new URL(process.env.APP_URL || "http://localhost:5173");
         return `${baseUrl.protocol}//${subdomain}.${baseUrl.host}/app/settings/integrations`;
       }
-      return "/app/settings/integrations";
+      return "/tenant/settings/integrations";
     };
 
     return redirect(`${getRedirectUrl()}?error=${encodeURIComponent(errorMessage)}`);

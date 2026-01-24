@@ -176,7 +176,7 @@ export default function TourDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/app/tours" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/tours" className="text-blue-600 hover:underline text-sm">
           ← Back to Tours
         </Link>
       </div>

@@ -93,7 +93,7 @@ export default function CoursesIndexPage() {
           <p className="text-gray-500">{total} courses</p>
         </div>
         <Link
-          to="/app/training/courses/new"
+          to="/tenant/training/courses/new"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           Create Course

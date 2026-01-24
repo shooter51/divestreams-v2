@@ -234,7 +234,7 @@ export default function TeamPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <Link to="/app/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
           ← Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Team Members</h1>
@@ -249,7 +249,7 @@ export default function TeamPage() {
           <p className="font-medium">Upgrade to invite team members</p>
           <p className="text-sm">
             Team member invitations are a premium feature.{" "}
-            <Link to="/app/settings/billing" className="underline">
+            <Link to="/tenant/settings/billing" className="underline">
               Upgrade your plan
             </Link>{" "}
             to invite additional team members.
@@ -263,7 +263,7 @@ export default function TeamPage() {
           <p className="font-medium">Team limit reached</p>
           <p className="text-sm">
             Your current plan allows {planLimit} team members.{" "}
-            <Link to="/app/settings/billing" className="underline">
+            <Link to="/tenant/settings/billing" className="underline">
               Upgrade your plan
             </Link>{" "}
             to add more team members.

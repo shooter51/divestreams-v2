@@ -85,7 +85,7 @@ export default function NewSessionPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/training/sessions" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/training/sessions" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Sessions
         </Link>
         <h1 className="text-2xl font-bold mt-2">Schedule Training Session</h1>
@@ -307,7 +307,7 @@ export default function NewSessionPage() {
             {isSubmitting ? "Creating..." : "Create Session"}
           </button>
           <Link
-            to="/app/training/sessions"
+            to="/tenant/training/sessions"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel
