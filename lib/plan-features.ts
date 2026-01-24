@@ -1,33 +1,79 @@
 /**
  * Plan Features Constants
  *
- * Defines all available plan features as boolean flags.
+ * Defines all available plan features as boolean flags and quantity limits.
  * These are used in the admin plans editor and for feature enforcement.
  */
 
 export const PLAN_FEATURES = {
-  // Boolean features
+  HAS_TOURS_BOOKINGS: "has_tours_bookings",
+  HAS_EQUIPMENT_BOATS: "has_equipment_boats",
+  HAS_TRAINING: "has_training",
   HAS_POS: "has_pos",
-  HAS_EQUIPMENT_RENTALS: "has_equipment_rentals",
-  HAS_ADVANCED_REPORTS: "has_advanced_reports",
-  HAS_EMAIL_NOTIFICATIONS: "has_email_notifications",
+  HAS_PUBLIC_SITE: "has_public_site",
+  HAS_ADVANCED_NOTIFICATIONS: "has_advanced_notifications",
+  HAS_INTEGRATIONS: "has_integrations",
   HAS_API_ACCESS: "has_api_access",
-  HAS_CUSTOM_BRANDING: "has_custom_branding",
-  HAS_MULTI_LOCATION: "has_multi_location",
-  HAS_PRIORITY_SUPPORT: "has_priority_support",
 } as const;
 
 export type PlanFeatureKey = (typeof PLAN_FEATURES)[keyof typeof PLAN_FEATURES];
 
 export const FEATURE_LABELS: Record<PlanFeatureKey, string> = {
+  has_tours_bookings: "Tours & Bookings",
+  has_equipment_boats: "Equipment & Boats",
+  has_training: "Training Management",
   has_pos: "Point of Sale",
-  has_equipment_rentals: "Equipment Rentals",
-  has_advanced_reports: "Advanced Reports",
-  has_email_notifications: "Email Notifications",
+  has_public_site: "Public Website",
+  has_advanced_notifications: "Advanced Notifications",
+  has_integrations: "Integrations",
   has_api_access: "API Access",
-  has_custom_branding: "Custom Branding",
-  has_multi_location: "Multi-Location Support",
-  has_priority_support: "Priority Support",
+};
+
+export const FEATURE_UPGRADE_INFO: Record<PlanFeatureKey, {
+  title: string;
+  description: string;
+  requiredPlan: string;
+}> = {
+  has_tours_bookings: {
+    title: "Tours & Bookings",
+    description: "Create tours, manage trips, and accept bookings from customers.",
+    requiredPlan: "Free",
+  },
+  has_equipment_boats: {
+    title: "Equipment & Boats",
+    description: "Manage your dive equipment inventory and boat fleet.",
+    requiredPlan: "Starter",
+  },
+  has_training: {
+    title: "Training Management",
+    description: "Run certification courses with student tracking and scheduling.",
+    requiredPlan: "Pro",
+  },
+  has_pos: {
+    title: "Point of Sale",
+    description: "Process sales, manage products, and track transactions.",
+    requiredPlan: "Pro",
+  },
+  has_public_site: {
+    title: "Public Website",
+    description: "Your own branded website for customers to browse and book.",
+    requiredPlan: "Starter",
+  },
+  has_advanced_notifications: {
+    title: "Advanced Notifications",
+    description: "Automated email reminders, booking confirmations, and more.",
+    requiredPlan: "Pro",
+  },
+  has_integrations: {
+    title: "Integrations",
+    description: "Connect with Zapier, QuickBooks, and other business tools.",
+    requiredPlan: "Enterprise",
+  },
+  has_api_access: {
+    title: "API Access",
+    description: "Build custom integrations with our REST API.",
+    requiredPlan: "Enterprise",
+  },
 };
 
 /**
@@ -36,60 +82,86 @@ export const FEATURE_LABELS: Record<PlanFeatureKey, string> = {
  */
 export const DEFAULT_PLAN_FEATURES: Record<string, Record<PlanFeatureKey, boolean>> = {
   free: {
+    has_tours_bookings: true,
+    has_equipment_boats: false,
+    has_training: false,
     has_pos: false,
-    has_equipment_rentals: false,
-    has_advanced_reports: false,
-    has_email_notifications: false,
+    has_public_site: false,
+    has_advanced_notifications: false,
+    has_integrations: false,
     has_api_access: false,
-    has_custom_branding: false,
-    has_multi_location: false,
-    has_priority_support: false,
   },
   starter: {
-    has_pos: true,
-    has_equipment_rentals: true,
-    has_advanced_reports: false,
-    has_email_notifications: true,
+    has_tours_bookings: true,
+    has_equipment_boats: true,
+    has_training: false,
+    has_pos: false,
+    has_public_site: true,
+    has_advanced_notifications: false,
+    has_integrations: false,
     has_api_access: false,
-    has_custom_branding: false,
-    has_multi_location: false,
-    has_priority_support: false,
   },
   pro: {
+    has_tours_bookings: true,
+    has_equipment_boats: true,
+    has_training: true,
     has_pos: true,
-    has_equipment_rentals: true,
-    has_advanced_reports: true,
-    has_email_notifications: true,
-    has_api_access: true,
-    has_custom_branding: true,
-    has_multi_location: false,
-    has_priority_support: false,
+    has_public_site: true,
+    has_advanced_notifications: true,
+    has_integrations: false,
+    has_api_access: false,
   },
   enterprise: {
+    has_tours_bookings: true,
+    has_equipment_boats: true,
+    has_training: true,
     has_pos: true,
-    has_equipment_rentals: true,
-    has_advanced_reports: true,
-    has_email_notifications: true,
+    has_public_site: true,
+    has_advanced_notifications: true,
+    has_integrations: true,
     has_api_access: true,
-    has_custom_branding: true,
-    has_multi_location: true,
-    has_priority_support: true,
   },
+};
+
+/**
+ * Plan quantity limits
+ * -1 indicates unlimited
+ */
+export interface PlanLimits {
+  users: number;        // -1 = unlimited
+  customers: number;
+  toursPerMonth: number;
+  storageGb: number;
+}
+
+export const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
+  free: { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 },
+  starter: { users: 3, customers: 500, toursPerMonth: 25, storageGb: 5 },
+  pro: { users: 10, customers: 5000, toursPerMonth: 100, storageGb: 25 },
+  enterprise: { users: -1, customers: -1, toursPerMonth: -1, storageGb: 100 },
+};
+
+export const LIMIT_WARNING_THRESHOLD = 0.8;
+
+export const LIMIT_LABELS: Record<keyof PlanLimits, string> = {
+  users: "Team Members",
+  customers: "Customers",
+  toursPerMonth: "Tours per Month",
+  storageGb: "Storage",
 };
 
 /**
  * Type for the features object stored in the database
  */
 export interface PlanFeaturesObject {
-  // Boolean feature flags
+  has_tours_bookings?: boolean;
+  has_equipment_boats?: boolean;
+  has_training?: boolean;
   has_pos?: boolean;
-  has_equipment_rentals?: boolean;
-  has_advanced_reports?: boolean;
-  has_email_notifications?: boolean;
+  has_public_site?: boolean;
+  has_advanced_notifications?: boolean;
+  has_integrations?: boolean;
   has_api_access?: boolean;
-  has_custom_branding?: boolean;
-  has_multi_location?: boolean;
-  has_priority_support?: boolean;
   // Marketing descriptions (displayed on pricing page)
   descriptions?: string[];
 }
