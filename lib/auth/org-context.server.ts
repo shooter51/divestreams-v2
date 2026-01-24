@@ -23,6 +23,18 @@ import type {
   Session,
 } from "../db/schema/auth";
 import type { Subscription } from "../db/schema/subscription";
+import type { PlanFeaturesObject, PlanLimits } from "../plan-features";
+
+/**
+ * Plan details from subscription_plans table
+ */
+export interface PlanDetails {
+  id: string;
+  name: string;
+  displayName: string;
+  features: PlanFeaturesObject;
+  limits: PlanLimits;
+}
 
 // ============================================================================
 // FREE TIER LIMITS
@@ -96,7 +108,7 @@ export interface OrgContext {
   /** User's membership in the organization */
   membership: Member;
   /** Organization's subscription */
-  subscription: Subscription | null;
+  subscription: (Subscription & { planDetails?: PlanDetails }) | null;
   /** Effective limits based on subscription */
   limits: TierLimits;
   /** Current usage statistics */
@@ -368,12 +380,28 @@ export async function getOrgContext(
   const canAddBooking =
     isPremium || usage.bookingsThisMonth < limits.bookingsPerMonth;
 
+  // Build subscription with plan details
+  const subscriptionWithPlan = sub
+    ? {
+        ...sub,
+        planDetails: planDetails
+          ? {
+              id: planDetails.id,
+              name: planDetails.name,
+              displayName: planDetails.displayName,
+              features: planDetails.features as PlanFeaturesObject,
+              limits: planDetails.limits as PlanLimits,
+            }
+          : undefined,
+      }
+    : null;
+
   return {
     user: sessionData.user as User,
     session: sessionData.session as Session,
     org,
     membership,
-    subscription: sub || null,
+    subscription: subscriptionWithPlan,
     limits,
     usage,
     canAddCustomer,
