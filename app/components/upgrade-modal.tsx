@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router";
 import type { PlanFeatureKey, PlanLimits } from "../../lib/plan-features";
 import { FEATURE_UPGRADE_INFO, LIMIT_LABELS } from "../../lib/plan-features";
@@ -9,6 +10,15 @@ interface UpgradeModalProps {
 }
 
 export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps) {
+  // Keyboard escape handler for accessibility
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
+
   if (!feature && !limitType) return null;
 
   let title: string;
@@ -30,7 +40,12 @@ export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="upgrade-modal-title"
+    >
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50"
@@ -39,6 +54,17 @@ export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps)
 
       {/* Modal */}
       <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+          aria-label="Close"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
         <div className="text-center">
           {/* Lock icon */}
           <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
@@ -47,6 +73,7 @@ export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps)
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -57,7 +84,7 @@ export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps)
             </svg>
           </div>
 
-          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <h2 id="upgrade-modal-title" className="text-xl font-semibold text-gray-900">{title}</h2>
           <p className="mt-2 text-gray-600">{description}</p>
           <p className="mt-4 text-sm font-medium text-gray-900">
             Upgrade to {requiredPlan} to unlock this feature
