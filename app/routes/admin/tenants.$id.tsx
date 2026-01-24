@@ -1,12 +1,15 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
+import { redirect, useLoaderData, useActionData, useNavigation, Link, useFetcher } from "react-router";
+import { useState } from "react";
 import { db } from "../../../lib/db";
-import { organization, member, user } from "../../../lib/db/schema/auth";
+import { organization, member, user, account } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
 import { customers, tours, bookings } from "../../../lib/db/schema";
-import { eq, and, count, sql } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { getBaseDomain, getTenantUrl } from "../../../lib/utils/url";
+import { hashPassword, generateRandomPassword } from "../../../lib/auth/password.server";
+import { auth } from "../../../lib/auth";
 
 export const meta: MetaFunction = () => [{ title: "Organization Details - DiveStreams Admin" }];
 
@@ -180,6 +183,96 @@ export async function action({ request, params }: ActionFunctionArgs) {
     }
   }
 
+  if (intent === "resetPassword") {
+    const userId = formData.get("userId") as string;
+    const method = formData.get("method") as "set" | "generate" | "sendLink";
+
+    if (!userId) {
+      return { error: "User ID is required" };
+    }
+
+    // Get the user
+    const [targetUser] = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    if (!targetUser) {
+      return { error: "User not found" };
+    }
+
+    if (method === "sendLink") {
+      // Use Better Auth's password reset flow
+      try {
+        await auth.api.requestPasswordReset({
+          body: { email: targetUser.email, redirectTo: "/auth/reset-password" },
+        });
+        return { success: true, message: `Password reset email sent to ${targetUser.email}` };
+      } catch (error) {
+        console.error("Failed to send reset email:", error);
+        return { error: "Failed to send reset email. Check user's email address." };
+      }
+    }
+
+    let newPassword: string;
+    if (method === "generate") {
+      newPassword = generateRandomPassword(16);
+    } else {
+      // method === "set"
+      newPassword = formData.get("password") as string;
+      if (!newPassword || newPassword.length < 8) {
+        return { error: "Password must be at least 8 characters" };
+      }
+    }
+
+    // Hash and update password
+    const hashedPassword = await hashPassword(newPassword);
+    await db
+      .update(account)
+      .set({ password: hashedPassword, updatedAt: new Date() })
+      .where(and(eq(account.userId, userId), eq(account.providerId, "credential")));
+
+    if (method === "generate") {
+      return { success: true, message: "Password reset successfully", generatedPassword: newPassword };
+    }
+    return { success: true, message: "Password reset successfully" };
+  }
+
+  if (intent === "changeEmail") {
+    const userId = formData.get("userId") as string;
+    const newEmail = formData.get("newEmail") as string;
+
+    if (!userId || !newEmail) {
+      return { error: "User ID and new email are required" };
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      return { error: "Please enter a valid email address" };
+    }
+
+    // Check if email already exists
+    const [existingUser] = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, newEmail))
+      .limit(1);
+
+    if (existingUser && existingUser.id !== userId) {
+      return { error: "Email already in use by another account" };
+    }
+
+    // Update email
+    await db
+      .update(user)
+      .set({ email: newEmail, updatedAt: new Date() })
+      .where(eq(user.id, userId));
+
+    return { success: true, message: `Email updated to ${newEmail}` };
+  }
+
   return null;
 }
 
@@ -197,13 +290,40 @@ const statusColors: Record<string, string> = {
   canceled: "bg-red-100 text-red-700",
 };
 
+type ModalState = {
+  type: "password" | "email" | null;
+  user: { id: string; email: string; name: string | null } | null;
+};
+
 export default function OrganizationDetailsPage() {
   const { organization: org, members, subscription: sub, usage } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const fetcher = useFetcher<typeof action>();
   const isSubmitting = navigation.state === "submitting";
 
+  const [modal, setModal] = useState<ModalState>({ type: null, user: null });
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
   const baseDomain = getBaseDomain();
+
+  const closeModal = () => {
+    setModal({ type: null, user: null });
+    setGeneratedPassword(null);
+    setCopied(false);
+  };
+
+  // Handle fetcher response for generated password
+  if (fetcher.data?.generatedPassword && !generatedPassword) {
+    setGeneratedPassword(fetcher.data.generatedPassword);
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleDelete = () => {
     if (
@@ -398,6 +518,27 @@ export default function OrganizationDetailsPage() {
                       >
                         {m.role}
                       </span>
+                      <div className="relative group">
+                        <button className="text-xs text-blue-600 hover:underline">
+                          Manage
+                        </button>
+                        <div className="absolute right-0 mt-1 w-40 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                          <button
+                            type="button"
+                            onClick={() => setModal({ type: "password", user: { id: m.userId, email: m.userEmail, name: m.userName } })}
+                            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          >
+                            Reset Password
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setModal({ type: "email", user: { id: m.userId, email: m.userEmail, name: m.userName } })}
+                            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          >
+                            Change Email
+                          </button>
+                        </div>
+                      </div>
                       {m.role !== "owner" && (
                         <form method="post" className="inline">
                           <input type="hidden" name="intent" value="removeMember" />
@@ -499,6 +640,190 @@ export default function OrganizationDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Reset Password Modal */}
+      {modal.type === "password" && modal.user && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+            <h3 className="font-semibold text-lg mb-4">
+              Reset Password for {modal.user.name || modal.user.email}
+            </h3>
+
+            {fetcher.data?.error && (
+              <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                {fetcher.data.error}
+              </div>
+            )}
+
+            {fetcher.data?.success && !generatedPassword && (
+              <div className="mb-4 bg-green-50 text-green-600 p-3 rounded-lg text-sm">
+                {fetcher.data.message}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {/* Option 1: Set specific password */}
+              <fetcher.Form method="post" className="space-y-2">
+                <input type="hidden" name="intent" value="resetPassword" />
+                <input type="hidden" name="userId" value={modal.user.id} />
+                <input type="hidden" name="method" value="set" />
+                <label className="block text-sm font-medium">Set specific password</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="password"
+                    placeholder="Min 8 characters"
+                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                    minLength={8}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={fetcher.state === "submitting"}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:bg-blue-400"
+                  >
+                    Set
+                  </button>
+                </div>
+              </fetcher.Form>
+
+              <div className="border-t pt-4">
+                {/* Option 2: Generate random password */}
+                <fetcher.Form method="post" className="space-y-2">
+                  <input type="hidden" name="intent" value="resetPassword" />
+                  <input type="hidden" name="userId" value={modal.user.id} />
+                  <input type="hidden" name="method" value="generate" />
+                  <label className="block text-sm font-medium">Generate random password</label>
+                  {generatedPassword ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={generatedPassword}
+                        readOnly
+                        className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono bg-gray-50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(generatedPassword)}
+                        className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
+                      >
+                        {copied ? "Copied!" : "Copy"}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={fetcher.state === "submitting"}
+                      className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      Generate & Show
+                    </button>
+                  )}
+                </fetcher.Form>
+              </div>
+
+              <div className="border-t pt-4">
+                {/* Option 3: Send reset link */}
+                <fetcher.Form method="post" className="space-y-2">
+                  <input type="hidden" name="intent" value="resetPassword" />
+                  <input type="hidden" name="userId" value={modal.user.id} />
+                  <input type="hidden" name="method" value="sendLink" />
+                  <label className="block text-sm font-medium">Send reset link via email</label>
+                  <p className="text-xs text-gray-500">
+                    Sends password reset email to {modal.user.email}
+                  </p>
+                  <button
+                    type="submit"
+                    disabled={fetcher.state === "submitting"}
+                    className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Send Reset Email
+                  </button>
+                </fetcher.Form>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Email Modal */}
+      {modal.type === "email" && modal.user && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+            <h3 className="font-semibold text-lg mb-4">
+              Change Email for {modal.user.name || modal.user.email}
+            </h3>
+
+            {fetcher.data?.error && (
+              <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                {fetcher.data.error}
+              </div>
+            )}
+
+            {fetcher.data?.success && (
+              <div className="mb-4 bg-green-50 text-green-600 p-3 rounded-lg text-sm">
+                {fetcher.data.message}
+              </div>
+            )}
+
+            <fetcher.Form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="changeEmail" />
+              <input type="hidden" name="userId" value={modal.user.id} />
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Current email</label>
+                <input
+                  type="text"
+                  value={modal.user.email}
+                  disabled
+                  className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-600 text-sm"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="newEmail" className="block text-sm font-medium mb-1">
+                  New email
+                </label>
+                <input
+                  type="email"
+                  id="newEmail"
+                  name="newEmail"
+                  placeholder="new@example.com"
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={fetcher.state === "submitting"}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:bg-blue-400"
+                >
+                  {fetcher.state === "submitting" ? "Updating..." : "Update Email"}
+                </button>
+              </div>
+            </fetcher.Form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
