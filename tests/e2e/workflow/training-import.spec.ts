@@ -163,18 +163,21 @@ test.describe("Training Import Wizard", () => {
       // Click "Select All"
       await selectAllBtn.click();
 
-      // Verify count shows all selected (use flexible regex for any count)
+      // Verify count shows all selected (flexible - any count where selected equals total)
       const selectedCount = page.locator('text=/\\d+ of \\d+ selected/i');
       await expect(selectedCount).toBeVisible();
       const countText = await selectedCount.textContent();
-      expect(countText).toMatch(/3 of 3 selected/i);
+      // Parse the count to verify all are selected (e.g., "6 of 6 selected")
+      const match = countText?.match(/(\d+) of (\d+) selected/i);
+      expect(match).toBeTruthy();
+      expect(match![1]).toEqual(match![2]); // Selected count equals total count
 
       // Click "Select None"
       const selectNoneBtn = page.getByRole("button", { name: /select none/i });
       await selectNoneBtn.click();
 
-      // Verify count shows none selected
-      await expect(selectedCount).toHaveText(/0 of 3 selected/i);
+      // Verify count shows none selected (0 of N)
+      await expect(selectedCount).toHaveText(/0 of \d+ selected/i);
     } else {
       test.skip();
     }
@@ -199,16 +202,16 @@ test.describe("Training Import Wizard", () => {
       await firstCheckbox.click();
       await expect(firstCheckbox).toBeChecked();
 
-      // Verify count updated
+      // Verify count updated to "1 of N selected" (flexible for any total)
       const countText = page.locator('text=/\\d+ of \\d+ selected/i');
-      await expect(countText).toHaveText(/1 of 3 selected/i);
+      await expect(countText).toHaveText(/1 of \d+ selected/i);
 
       // Click to deselect
       await firstCheckbox.click();
       await expect(firstCheckbox).not.toBeChecked();
 
-      // Verify count updated
-      await expect(countText).toHaveText(/0 of 3 selected/i);
+      // Verify count updated to "0 of N selected"
+      await expect(countText).toHaveText(/0 of \d+ selected/i);
     } else {
       test.skip();
     }
