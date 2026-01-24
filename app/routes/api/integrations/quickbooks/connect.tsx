@@ -36,7 +36,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const getRedirectUrl = () => {
       if (subdomain) {
         const baseUrl = new URL(process.env.APP_URL || "http://localhost:5173");
-        return `${baseUrl.protocol}//${subdomain}.${baseUrl.host}/app/settings/integrations`;
+        return `${baseUrl.protocol}//${subdomain}.${baseUrl.host}/tenant/settings/integrations`;
       }
       return "/tenant/settings/integrations";
     };

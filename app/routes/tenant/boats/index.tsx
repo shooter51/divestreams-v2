@@ -167,7 +167,7 @@ export default function BoatsPage() {
           {boats.map((boat) => (
             <Link
               key={boat.id}
-              to={`/app/boats/${boat.id}`}
+              to={`/tenant/boats/${boat.id}`}
               className={`bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow ${
                 !boat.isActive ? "opacity-60" : ""
               }`}

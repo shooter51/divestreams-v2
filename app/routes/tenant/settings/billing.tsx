@@ -234,8 +234,8 @@ export async function action({ request }: ActionFunctionArgs) {
         orgId,
         planName,
         billingPeriod,
-        `${baseUrl}/app/settings/billing?success=true`,
-        `${baseUrl}/app/settings/billing?canceled=true`
+        `${baseUrl}/tenant/settings/billing?success=true`,
+        `${baseUrl}/tenant/settings/billing?canceled=true`
       );
 
       if (sessionUrl) {
@@ -265,7 +265,7 @@ export async function action({ request }: ActionFunctionArgs) {
     try {
       const sessionUrl = await createBillingPortalSession(
         orgId,
-        `${baseUrl}/app/settings/billing`
+        `${baseUrl}/tenant/settings/billing`
       );
 
       if (sessionUrl) {
@@ -282,8 +282,8 @@ export async function action({ request }: ActionFunctionArgs) {
     try {
       const sessionUrl = await createSetupSession(
         orgId,
-        `${baseUrl}/app/settings/billing?payment_added=true`,
-        `${baseUrl}/app/settings/billing?canceled=true`
+        `${baseUrl}/tenant/settings/billing?payment_added=true`,
+        `${baseUrl}/tenant/settings/billing?canceled=true`
       );
 
       if (sessionUrl) {

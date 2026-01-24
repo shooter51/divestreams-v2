@@ -122,7 +122,7 @@ export default function TrainingDashboardPage() {
               upcomingSessions.map((session) => (
                 <Link
                   key={session.id}
-                  to={`/app/training/sessions/${session.id}`}
+                  to={`/tenant/training/sessions/${session.id}`}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
                 >
                   <div>
@@ -170,7 +170,7 @@ export default function TrainingDashboardPage() {
               recentEnrollments.map((enrollment) => (
                 <Link
                   key={enrollment.id}
-                  to={`/app/training/enrollments/${enrollment.id}`}
+                  to={`/tenant/training/enrollments/${enrollment.id}`}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
                 >
                   <div>

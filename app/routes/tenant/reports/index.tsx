@@ -517,7 +517,7 @@ export default function ReportsPage() {
     if (dateRange.start) params.set("startDate", dateRange.start);
     if (dateRange.end) params.set("endDate", dateRange.end);
     const queryString = params.toString();
-    return `/app/reports/export/${type}${queryString ? `?${queryString}` : ""}`;
+    return `/tenant/reports/export/${type}${queryString ? `?${queryString}` : ""}`;
   };
 
   const handleExportCSV = () => {

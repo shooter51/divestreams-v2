@@ -238,7 +238,7 @@ export default function BoatDetailPage() {
         </div>
         <div className="flex gap-2">
           <Link
-            to={`/app/boats/${boat.id}/edit`}
+            to={`/tenant/boats/${boat.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Edit
@@ -323,7 +323,7 @@ export default function BoatDetailPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Upcoming Trips</h2>
               <Link
-                to={`/app/trips/new?boatId=${boat.id}`}
+                to={`/tenant/trips/new?boatId=${boat.id}`}
                 className="text-sm text-blue-600 hover:underline"
               >
                 + Schedule Trip
@@ -336,7 +336,7 @@ export default function BoatDetailPage() {
                 {upcomingTrips.map((trip) => (
                   <Link
                     key={trip.id}
-                    to={`/app/trips/${trip.id}`}
+                    to={`/tenant/trips/${trip.id}`}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <div>
@@ -357,7 +357,7 @@ export default function BoatDetailPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Recent Trips</h2>
               <Link
-                to={`/app/trips?boatId=${boat.id}`}
+                to={`/tenant/trips?boatId=${boat.id}`}
                 className="text-sm text-blue-600 hover:underline"
               >
                 View All
@@ -370,7 +370,7 @@ export default function BoatDetailPage() {
                 {recentTrips.map((trip) => (
                   <Link
                     key={trip.id}
-                    to={`/app/trips/${trip.id}`}
+                    to={`/tenant/trips/${trip.id}`}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <div>
@@ -504,19 +504,19 @@ export default function BoatDetailPage() {
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <Link
-                to={`/app/trips/new?boatId=${boat.id}`}
+                to={`/tenant/trips/new?boatId=${boat.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
               >
                 Schedule Trip
               </Link>
               <Link
-                to={`/app/calendar?boatId=${boat.id}`}
+                to={`/tenant/calendar?boatId=${boat.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
               >
                 View Calendar
               </Link>
               <Link
-                to={`/app/reports?boat=${boat.id}`}
+                to={`/tenant/reports?boat=${boat.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
               >
                 Export Report

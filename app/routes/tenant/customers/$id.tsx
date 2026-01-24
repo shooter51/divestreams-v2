@@ -168,7 +168,7 @@ export default function CustomerDetailPage() {
             Send Email
           </button>
           <Link
-            to={`/app/customers/${customer.id}/edit`}
+            to={`/tenant/customers/${customer.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Edit
@@ -253,7 +253,7 @@ export default function CustomerDetailPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Booking History</h2>
               <Link
-                to={`/app/bookings/new?customerId=${customer.id}`}
+                to={`/tenant/bookings/new?customerId=${customer.id}`}
                 className="text-blue-600 text-sm hover:underline"
               >
                 + New Booking
@@ -267,7 +267,7 @@ export default function CustomerDetailPage() {
                 >
                   <div>
                     <Link
-                      to={`/app/bookings/${booking.id}`}
+                      to={`/tenant/bookings/${booking.id}`}
                       className="font-medium hover:text-blue-600"
                     >
                       {booking.tripName}

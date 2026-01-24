@@ -186,7 +186,7 @@ export default function DiveSiteDetailPage() {
         </div>
         <div className="flex gap-2">
           <Link
-            to={`/app/dive-sites/${diveSite.id}/edit`}
+            to={`/tenant/dive-sites/${diveSite.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Edit
@@ -281,7 +281,7 @@ export default function DiveSiteDetailPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Recent Trips</h2>
               <Link
-                to={`/app/trips?siteId=${diveSite.id}`}
+                to={`/tenant/trips?siteId=${diveSite.id}`}
                 className="text-sm text-blue-600 hover:underline"
               >
                 View All
@@ -294,7 +294,7 @@ export default function DiveSiteDetailPage() {
                 {recentTrips.map((trip) => (
                   <Link
                     key={trip.id}
-                    to={`/app/trips/${trip.id}`}
+                    to={`/tenant/trips/${trip.id}`}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <div>
@@ -353,7 +353,7 @@ export default function DiveSiteDetailPage() {
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <Link
-                to={`/app/trips/new?siteId=${diveSite.id}`}
+                to={`/tenant/trips/new?siteId=${diveSite.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
               >
                 Schedule Trip Here
@@ -443,7 +443,7 @@ export default function DiveSiteDetailPage() {
                 {toursUsingSite.map((tour) => (
                   <Link
                     key={tour.id}
-                    to={`/app/tours/${tour.id}`}
+                    to={`/tenant/tours/${tour.id}`}
                     className="block text-sm text-blue-600 hover:underline"
                   >
                     {tour.name}
@@ -453,7 +453,7 @@ export default function DiveSiteDetailPage() {
             )}
             {toursUsingSite.length > 0 && (
               <Link
-                to={`/app/tours?siteId=${diveSite.id}`}
+                to={`/tenant/tours?siteId=${diveSite.id}`}
                 className="block text-center mt-4 text-gray-500 text-xs hover:underline"
               >
                 View all tours

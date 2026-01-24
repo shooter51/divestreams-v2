@@ -68,7 +68,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.bookings.organizationId, organizationId), eq(schema.bookings.id, bookingId)));
 
-  return redirect(`/app/bookings/${bookingId}`);
+  return redirect(`/tenant/bookings/${bookingId}`);
 }
 
 export default function EditBookingPage() {
@@ -79,7 +79,7 @@ export default function EditBookingPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/app/bookings/${booking.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/bookings/${booking.id}`} className="text-blue-600 hover:underline text-sm">
           ← Back to Booking
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Booking</h1>
@@ -93,13 +93,13 @@ export default function EditBookingPage() {
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-500">Customer</span>
-              <Link to={`/app/customers/${booking.customerId}`} className="text-blue-600 hover:underline">
+              <Link to={`/tenant/customers/${booking.customerId}`} className="text-blue-600 hover:underline">
                 {booking.customerName}
               </Link>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Trip</span>
-              <Link to={`/app/trips/${booking.tripId}`} className="text-blue-600 hover:underline">
+              <Link to={`/tenant/trips/${booking.tripId}`} className="text-blue-600 hover:underline">
                 {booking.tripName}
               </Link>
             </div>
@@ -191,7 +191,7 @@ export default function EditBookingPage() {
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
-            to={`/app/bookings/${booking.id}`}
+            to={`/tenant/bookings/${booking.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

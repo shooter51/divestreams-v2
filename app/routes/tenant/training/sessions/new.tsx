@@ -68,7 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
     status: "scheduled",
   });
 
-  return redirect(`/app/training/sessions/${session.id}`);
+  return redirect(`/tenant/training/sessions/${session.id}`);
 }
 
 export default function NewSessionPage() {

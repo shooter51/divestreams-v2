@@ -169,7 +169,7 @@ export default function CustomersPage() {
               customers.map((customer) => (
                 <tr key={customer.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <Link to={`/app/customers/${customer.id}`} className="font-medium text-blue-600 hover:underline">
+                    <Link to={`/tenant/customers/${customer.id}`} className="font-medium text-blue-600 hover:underline">
                       {customer.firstName} {customer.lastName}
                     </Link>
                   </td>
@@ -195,7 +195,7 @@ export default function CustomersPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link
-                      to={`/app/customers/${customer.id}`}
+                      to={`/tenant/customers/${customer.id}`}
                       className="text-blue-600 hover:underline text-sm"
                     >
                       View

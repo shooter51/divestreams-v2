@@ -178,7 +178,7 @@ export default function CoursesIndexPage() {
                   <td className="px-6 py-4">
                     <div>
                       <Link
-                        to={`/app/training/courses/${course.id}`}
+                        to={`/tenant/training/courses/${course.id}`}
                         className="font-medium text-blue-600 hover:underline"
                       >
                         {course.name}
@@ -229,7 +229,7 @@ export default function CoursesIndexPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link
-                      to={`/app/training/courses/${course.id}`}
+                      to={`/tenant/training/courses/${course.id}`}
                       className="text-blue-600 hover:underline text-sm"
                     >
                       View

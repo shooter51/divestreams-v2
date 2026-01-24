@@ -239,7 +239,7 @@ export default function EquipmentDetailPage() {
         </div>
         <div className="flex gap-2">
           <Link
-            to={`/app/equipment/${equipment.id}/edit`}
+            to={`/tenant/equipment/${equipment.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Edit
@@ -332,7 +332,7 @@ export default function EquipmentDetailPage() {
                 {rentalHistory.map((rental) => (
                   <Link
                     key={rental.id}
-                    to={`/app/bookings/${rental.id}`}
+                    to={`/tenant/bookings/${rental.id}`}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <div>

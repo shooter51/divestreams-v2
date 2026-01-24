@@ -1,7 +1,7 @@
 /**
  * Image Delete API
  *
- * POST /app/images/delete
+ * POST /tenant/images/delete
  * Deletes an image from storage and database.
  */
 

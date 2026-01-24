@@ -261,7 +261,7 @@ export default function BookingDetailPage() {
             </fetcher.Form>
           )}
           <Link
-            to={`/app/bookings/${booking.id}/edit`}
+            to={`/tenant/bookings/${booking.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Edit
@@ -298,7 +298,7 @@ export default function BookingDetailPage() {
             <div className="flex justify-between items-start">
               <div>
                 <Link
-                  to={`/app/tours/${booking.trip.tourId}`}
+                  to={`/tenant/tours/${booking.trip.tourId}`}
                   className="text-lg font-medium text-blue-600 hover:underline"
                 >
                   {booking.trip.tourName}
@@ -316,7 +316,7 @@ export default function BookingDetailPage() {
                 </div>
               </div>
               <Link
-                to={`/app/trips/${booking.trip.id}`}
+                to={`/tenant/trips/${booking.trip.id}`}
                 className="text-sm text-blue-600 hover:underline"
               >
                 View Trip →
@@ -435,7 +435,7 @@ export default function BookingDetailPage() {
             <h2 className="font-semibold mb-4">Customer</h2>
             <div className="space-y-2">
               <Link
-                to={`/app/customers/${booking.customer.id}`}
+                to={`/tenant/customers/${booking.customer.id}`}
                 className="font-medium text-blue-600 hover:underline"
               >
                 {booking.customer.firstName} {booking.customer.lastName}
@@ -504,7 +504,7 @@ export default function BookingDetailPage() {
                 🖨️ Print Booking
               </button>
               <Link
-                to={`/app/trips/${booking.trip?.id}`}
+                to={`/tenant/trips/${booking.trip?.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
               >
                 📋 View Trip Manifest

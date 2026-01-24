@@ -1,7 +1,7 @@
 /**
  * Image Reorder API
  *
- * POST /app/images/reorder
+ * POST /tenant/images/reorder
  * Updates image order and primary status.
  */
 

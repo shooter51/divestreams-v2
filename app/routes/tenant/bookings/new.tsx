@@ -206,7 +206,7 @@ export default function NewBookingPage() {
                 </p>
               </div>
               <Link
-                to={`/app/bookings/new${selectedCustomer ? `?customerId=${selectedCustomer.id}` : ""}`}
+                to={`/tenant/bookings/new${selectedCustomer ? `?customerId=${selectedCustomer.id}` : ""}`}
                 className="text-sm text-blue-600 hover:underline"
               >
                 Change

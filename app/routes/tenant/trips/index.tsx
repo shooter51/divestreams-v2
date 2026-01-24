@@ -210,7 +210,7 @@ export default function TripsPage() {
                   {dateTrips.map((trip) => (
                     <Link
                       key={trip.id}
-                      to={`/app/trips/${trip.id}`}
+                      to={`/tenant/trips/${trip.id}`}
                       className="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-4">

@@ -410,7 +410,7 @@ export default function TripDetailPage() {
         <div className="flex gap-2">
           {trip.status !== "cancelled" && trip.status !== "completed" && spotsAvailable > 0 && (
             <Link
-              to={`/app/bookings/new?tripId=${trip.id}`}
+              to={`/tenant/bookings/new?tripId=${trip.id}`}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Add Booking
@@ -428,7 +428,7 @@ export default function TripDetailPage() {
             </fetcher.Form>
           )}
           <Link
-            to={`/app/trips/${trip.id}/edit`}
+            to={`/tenant/trips/${trip.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Edit
@@ -511,7 +511,7 @@ export default function TripDetailPage() {
               </div>
               <div>
                 <p className="text-gray-500">Boat</p>
-                <Link to={`/app/boats/${trip.boat.id}`} className="text-blue-600 hover:underline">
+                <Link to={`/tenant/boats/${trip.boat.id}`} className="text-blue-600 hover:underline">
                   {trip.boat.name}
                 </Link>
               </div>
@@ -521,7 +521,7 @@ export default function TripDetailPage() {
               </div>
               <div>
                 <p className="text-gray-500">Tour</p>
-                <Link to={`/app/tours/${trip.tour.id}`} className="text-blue-600 hover:underline">
+                <Link to={`/tenant/tours/${trip.tour.id}`} className="text-blue-600 hover:underline">
                   {trip.tour.name}
                 </Link>
               </div>
@@ -533,7 +533,7 @@ export default function TripDetailPage() {
                   {trip.diveSites.map((site) => (
                     <Link
                       key={site.id}
-                      to={`/app/dive-sites/${site.id}`}
+                      to={`/tenant/dive-sites/${site.id}`}
                       className="block text-sm text-blue-600 hover:underline"
                     >
                       {site.name}
@@ -572,7 +572,7 @@ export default function TripDetailPage() {
               <h2 className="font-semibold">Bookings ({bookings.length})</h2>
               {spotsAvailable > 0 && (
                 <Link
-                  to={`/app/bookings/new?tripId=${trip.id}`}
+                  to={`/tenant/bookings/new?tripId=${trip.id}`}
                   className="text-blue-600 text-sm hover:underline"
                 >
                   + Add Booking
@@ -586,7 +586,7 @@ export default function TripDetailPage() {
                 {bookings.map((booking) => (
                   <Link
                     key={booking.id}
-                    to={`/app/bookings/${booking.id}`}
+                    to={`/tenant/bookings/${booking.id}`}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <div>
@@ -636,7 +636,7 @@ export default function TripDetailPage() {
               </div>
             )}
             <Link
-              to={`/app/trips/${trip.id}/edit`}
+              to={`/tenant/trips/${trip.id}/edit`}
               className="block text-center mt-4 text-blue-600 text-sm hover:underline"
             >
               Manage Staff
@@ -667,7 +667,7 @@ export default function TripDetailPage() {
                 📤 Export to PDF
               </button>
               <Link
-                to={`/app/trips/new?tourId=${trip.tour.id}`}
+                to={`/tenant/trips/new?tourId=${trip.tour.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
               >
                 📅 Schedule Similar Trip
@@ -743,7 +743,7 @@ export default function TripDetailPage() {
                   recurringInfo.seriesInstances.map((instance) => (
                     <Link
                       key={instance.id}
-                      to={`/app/trips/${instance.id}`}
+                      to={`/tenant/trips/${instance.id}`}
                       onClick={() => setShowSeriesModal(false)}
                       className={`flex justify-between items-center p-3 rounded-lg hover:bg-gray-100 ${
                         instance.id === trip.id ? "bg-blue-50 border border-blue-200" : "bg-gray-50"

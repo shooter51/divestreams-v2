@@ -48,7 +48,7 @@ export default function GalleryIndexPage() {
           {albums.map((album) => (
             <Link
               key={album.id}
-              to={`/app/gallery/${album.id}`}
+              to={`/tenant/gallery/${album.id}`}
               className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
             >
               {/* Cover Image */}

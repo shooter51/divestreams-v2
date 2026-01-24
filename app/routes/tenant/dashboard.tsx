@@ -235,7 +235,7 @@ export default function DashboardPage() {
             {upcomingTrips.map((trip) => (
               <Link
                 key={trip.id}
-                to={`/app/trips/${trip.id}`}
+                to={`/tenant/trips/${trip.id}`}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
               >
                 <div>
@@ -268,7 +268,7 @@ export default function DashboardPage() {
             {recentBookings.map((booking) => (
               <Link
                 key={booking.id}
-                to={`/app/bookings/${booking.id}`}
+                to={`/tenant/bookings/${booking.id}`}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
               >
                 <div>
