@@ -1040,17 +1040,27 @@ export async function seedDemoData(organizationId: string): Promise<void> {
 
   console.log("\n📚 Seeding training data...");
 
-  // Check if training data already exists to avoid duplicates
+  // Check if PADI/SSI/NAUI agencies already exist (not just any agency)
   const existingAgencies = await db
     .select()
     .from(schema.certificationAgencies)
     .where(eq(schema.certificationAgencies.organizationId, organizationId));
 
+  // Check specifically for PADI, SSI, or NAUI agencies
+  const hasPadi = existingAgencies.some((a) => a.code.toLowerCase() === "padi");
+  const hasSsi = existingAgencies.some((a) => a.code.toLowerCase() === "ssi");
+  const hasNaui = existingAgencies.some((a) => a.code.toLowerCase() === "naui");
+
   let trainingStats = { agencies: 0, levels: 0, courses: 0 };
 
-  if (existingAgencies.length === 0) {
-    try {
-      // Seed PADI agency
+  // Seed each agency individually if it doesn't exist
+  let agenciesSeeded = 0;
+  let levelsSeeded = 0;
+  let coursesSeeded = 0;
+
+  try {
+    // Seed PADI if missing
+    if (!hasPadi) {
       const [padiAgency] = await db
         .insert(schema.certificationAgencies)
         .values({
@@ -1062,7 +1072,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         })
         .returning();
 
-      // Seed key certification levels
+      // Seed PADI certification levels
       const [openWaterLevel] = await db
         .insert(schema.certificationLevels)
         .values({
@@ -1091,7 +1101,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         })
         .returning();
 
-      // Seed a few sample courses
+      // Seed sample courses for PADI
       await db.insert(schema.trainingCourses).values([
         {
           organizationId,
@@ -1126,13 +1136,105 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         },
       ]);
 
-      trainingStats = { agencies: 1, levels: 2, courses: 2 };
-      console.log("  ✓ Training data seeded");
-    } catch (error) {
-      console.warn("  ⚠️  Warning: Training data seeding failed:", error);
+      agenciesSeeded++;
+      levelsSeeded += 2;
+      coursesSeeded += 2;
+      console.log("  ✓ PADI agency seeded");
     }
-  } else {
-    console.log("  ℹ️  Training data already exists, skipping...");
+
+    // Seed SSI if missing
+    if (!hasSsi) {
+      const [ssiAgency] = await db
+        .insert(schema.certificationAgencies)
+        .values({
+          organizationId,
+          code: "ssi",
+          name: "SSI",
+          description: "Scuba Schools International",
+          website: "https://www.divessi.com",
+        })
+        .returning();
+
+      // Seed SSI certification levels
+      await db.insert(schema.certificationLevels).values([
+        {
+          organizationId,
+          agencyId: ssiAgency.id,
+          code: "ssi-open-water",
+          name: "Open Water Diver",
+          levelNumber: 3,
+          description: "SSI entry-level certification",
+          minAge: 10,
+          minDives: 0,
+        },
+        {
+          organizationId,
+          agencyId: ssiAgency.id,
+          code: "ssi-advanced",
+          name: "Advanced Adventurer",
+          levelNumber: 4,
+          description: "SSI advanced certification",
+          minAge: 12,
+          minDives: 0,
+        },
+      ]);
+
+      agenciesSeeded++;
+      levelsSeeded += 2;
+      console.log("  ✓ SSI agency seeded");
+    }
+
+    // Seed NAUI if missing
+    if (!hasNaui) {
+      const [nauiAgency] = await db
+        .insert(schema.certificationAgencies)
+        .values({
+          organizationId,
+          code: "naui",
+          name: "NAUI",
+          description: "National Association of Underwater Instructors",
+          website: "https://www.naui.org",
+        })
+        .returning();
+
+      // Seed NAUI certification levels
+      await db.insert(schema.certificationLevels).values([
+        {
+          organizationId,
+          agencyId: nauiAgency.id,
+          code: "naui-scuba-diver",
+          name: "Scuba Diver",
+          levelNumber: 3,
+          description: "NAUI entry-level certification",
+          minAge: 10,
+          minDives: 0,
+        },
+        {
+          organizationId,
+          agencyId: nauiAgency.id,
+          code: "naui-advanced",
+          name: "Advanced Scuba Diver",
+          levelNumber: 4,
+          description: "NAUI advanced certification",
+          minAge: 15,
+          minDives: 0,
+        },
+      ]);
+
+      agenciesSeeded++;
+      levelsSeeded += 2;
+      console.log("  ✓ NAUI agency seeded");
+    }
+
+    if (agenciesSeeded > 0) {
+      console.log(`  ✓ Training data seeded (${agenciesSeeded} agencies, ${levelsSeeded} levels, ${coursesSeeded} courses)`);
+    } else {
+      console.log("  ℹ️  All training agencies already exist, skipping...");
+    }
+
+    trainingStats = { agencies: agenciesSeeded, levels: levelsSeeded, courses: coursesSeeded };
+  } catch (error) {
+    console.warn("  ⚠️  Warning: Training data seeding failed:", error);
   }
 
   // ============================================================================

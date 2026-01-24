@@ -338,6 +338,44 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     const hasError = await page.locator('[class*="bg-red"], [class*="text-red"]').isVisible().catch(() => false);
     expect(hasError || page.url().includes("/login")).toBeTruthy();
   });
+
+  test("3.9 Seed demo data for training tests @critical", async ({ page }) => {
+    // Login first to establish authentication
+    await loginToTenant(page);
+
+    // Navigate to settings page first to get cookies set properly
+    await page.goto(getTenantUrl("/tenant/settings"));
+    await page.waitForLoadState("networkidle");
+
+    // Submit the seed training agencies form directly via POST
+    // This is idempotent and safe to call multiple times - only seeds PADI/SSI/NAUI
+    const response = await page.request.post(getTenantUrl("/tenant/settings"), {
+      form: {
+        intent: "seedTrainingAgencies",
+      },
+    });
+
+    // The action should return success (either new agencies seeded or already exist)
+    expect(response.ok()).toBeTruthy();
+
+    // Wait a moment for the data to be committed
+    await page.waitForTimeout(500);
+
+    // Verify by checking that agencies exist by navigating to training import
+    await page.goto(getTenantUrl("/tenant/training/import"));
+    await page.waitForLoadState("networkidle");
+
+    // Check that the agency dropdown has PADI, SSI, or NAUI
+    const agencyDropdown = page.locator('select[name="agencyId"]');
+    if (await agencyDropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const options = await agencyDropdown.locator("option").allTextContents();
+      const hasAgencies = options.some(
+        (opt) =>
+          opt.includes("PADI") || opt.includes("SSI") || opt.includes("NAUI")
+      );
+      expect(hasAgencies).toBeTruthy();
+    }
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
