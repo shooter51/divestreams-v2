@@ -60,7 +60,7 @@ export function ImageManager({
     formData.append("entityId", entityId);
 
     try {
-      const response = await fetch("/app/images/upload", {
+      const response = await fetch("/tenant/images/upload", {
         method: "POST",
         body: formData,
       });
@@ -98,7 +98,7 @@ export function ImageManager({
     formData.append("imageId", imageId);
 
     try {
-      const response = await fetch("/app/images/delete", {
+      const response = await fetch("/tenant/images/delete", {
         method: "POST",
         body: formData,
       });
@@ -132,7 +132,7 @@ export function ImageManager({
 
     // Save to server
     try {
-      await fetch("/app/images/reorder", {
+      await fetch("/tenant/images/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -180,7 +180,7 @@ export function ImageManager({
 
     // Save new order to server
     try {
-      await fetch("/app/images/reorder", {
+      await fetch("/tenant/images/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

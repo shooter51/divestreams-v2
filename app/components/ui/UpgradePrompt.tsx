@@ -63,7 +63,7 @@ function BannerPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
           </div>
         </div>
         <Link
-          to="/app/settings/billing"
+          to="/tenant/settings/billing"
           className="flex items-center gap-2 bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors whitespace-nowrap"
         >
           <UpgradeIcon />
@@ -85,7 +85,7 @@ function InlinePrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
           <span>{message}</span>
         </div>
         <Link
-          to="/app/settings/billing"
+          to="/tenant/settings/billing"
           className="text-amber-700 font-medium hover:text-amber-900 hover:underline whitespace-nowrap"
         >
           Upgrade
@@ -110,7 +110,7 @@ function OverlayPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps
           Upgrade your plan to unlock this feature and more
         </p>
         <Link
-          to="/app/settings/billing"
+          to="/tenant/settings/billing"
           className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors"
         >
           <UpgradeIcon />
