@@ -370,6 +370,11 @@ export default function SiteHomePage() {
   const contactInfo = layoutData?.contactInfo;
   const enabledPages = layoutData?.enabledPages;
 
+  // Debug: log hero image URL
+  if (typeof window !== "undefined" && settings?.heroImageUrl) {
+    console.log("Hero Image URL:", settings.heroImageUrl);
+  }
+
   return (
     <div>
       {/* Hero Section */}
@@ -378,7 +383,7 @@ export default function SiteHomePage() {
         style={
           settings?.heroImageUrl
             ? {
-                backgroundImage: `url(${settings.heroImageUrl})`,
+                backgroundImage: `url("${settings.heroImageUrl}")`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }
