@@ -45,6 +45,15 @@ vi.mock("drizzle-orm", () => ({
   count: vi.fn(() => ({ type: "count" })),
 }));
 
+// Mock require-feature.server - requireFeature is a no-op in tests
+vi.mock("../../../../lib/require-feature.server", () => ({
+  requireFeature: vi.fn(),
+}));
+
+vi.mock("../../../../lib/plan-features", () => ({
+  PLAN_FEATURES: { HAS_EQUIPMENT_BOATS: "has_equipment_boats" },
+}));
+
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 

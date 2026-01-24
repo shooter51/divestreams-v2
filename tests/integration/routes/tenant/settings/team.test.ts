@@ -56,6 +56,15 @@ vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
+// Mock require-feature.server - requireLimit returns available capacity
+vi.mock("../../../../../lib/require-feature.server", () => ({
+  requireLimit: vi.fn().mockResolvedValue({ current: 1, limit: 5, remaining: 4 }),
+}));
+
+vi.mock("../../../../../lib/plan-features", () => ({
+  DEFAULT_PLAN_LIMITS: { free: { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 } },
+}));
+
 // Mock the email module
 vi.mock("../../../../../lib/email", () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),

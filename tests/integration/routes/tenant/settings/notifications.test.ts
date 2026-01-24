@@ -42,6 +42,15 @@ vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
+// Mock require-feature.server - requireFeature is a no-op in tests
+vi.mock("../../../../../lib/require-feature.server", () => ({
+  requireFeature: vi.fn(),
+}));
+
+vi.mock("../../../../../lib/plan-features", () => ({
+  PLAN_FEATURES: { HAS_ADVANCED_NOTIFICATIONS: "has_advanced_notifications" },
+}));
+
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
 

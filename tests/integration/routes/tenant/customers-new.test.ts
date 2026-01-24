@@ -24,14 +24,23 @@ vi.mock("react-router", async () => {
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   requireTenant: vi.fn(),
+  requireOrgContext: vi.fn(),
 }));
 
 vi.mock("../../../../lib/db/queries.server", () => ({
   createCustomer: vi.fn(),
 }));
 
-import { action } from "../../../../app/routes/tenant/customers/new";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+vi.mock("../../../../lib/require-feature.server", () => ({
+  requireLimit: vi.fn().mockResolvedValue({ current: 0, limit: 50, remaining: 50 }),
+}));
+
+vi.mock("../../../../lib/plan-features", () => ({
+  DEFAULT_PLAN_LIMITS: { free: { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 } },
+}));
+
+import { action, loader } from "../../../../app/routes/tenant/customers/new";
+import { requireTenant, requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createCustomer } from "../../../../lib/db/queries.server";
 
 describe("tenant/customers/new route", () => {
@@ -47,14 +56,32 @@ describe("tenant/customers/new route", () => {
     organizationId: "org-uuid-123",
   };
 
+  const mockOrgContext = {
+    user: { id: "user-1", name: "Test User", email: "test@example.com" },
+    session: { id: "session-1" },
+    org: { id: "org-uuid-123", name: "Demo Dive Shop", slug: "demo" },
+    membership: { role: "owner" },
+    subscription: {
+      plan: "free",
+      planDetails: {
+        features: {},
+        limits: { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 },
+      },
+    },
+    limits: { customers: 50, tours: 5 },
+    usage: { customers: 0, tours: 0 },
+    isPremium: false,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockRedirect.mockClear();
     (requireTenant as Mock).mockResolvedValue(mockTenantContext);
+    (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
   });
 
   describe("action", () => {
-    it("requires tenant context", async () => {
+    it("requires organization context", async () => {
       const formData = new FormData();
       formData.append("firstName", "John");
       formData.append("lastName", "Doe");
@@ -69,7 +96,7 @@ describe("tenant/customers/new route", () => {
 
       await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(requireTenant).toHaveBeenCalledWith(request);
+      expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns error when firstName is missing", async () => {
