@@ -52,7 +52,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!code) {
     return redirect(
       getRedirectUrl(
-        "/app/settings/integrations?error=" +
+        "/tenant/settings/integrations?error=" +
           encodeURIComponent("Missing authorization code")
       )
     );
@@ -61,7 +61,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!state) {
     return redirect(
       getRedirectUrl(
-        "/app/settings/integrations?error=" +
+        "/tenant/settings/integrations?error=" +
           encodeURIComponent("Missing state parameter")
       )
     );
@@ -81,7 +81,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // Redirect back to integrations page with success message
     return redirect(
       getRedirectUrl(
-        "/app/settings/integrations?success=" +
+        "/tenant/settings/integrations?success=" +
           encodeURIComponent("Xero connected successfully!")
       )
     );

@@ -551,7 +551,7 @@ export default function POSPage() {
         }}
         onCreateNew={() => {
           setShowCustomerSearch(false);
-          window.location.href = "/app/customers/new";
+          window.location.href = "/tenant/customers/new";
         }}
         searchResults={customerSearchResults}
         onSearch={handleCustomerSearch}

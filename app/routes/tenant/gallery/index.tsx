@@ -22,7 +22,7 @@ export default function GalleryIndexPage() {
           <p className="text-gray-500">Manage your photo albums and images</p>
         </div>
         <Link
-          to="/app/gallery/new"
+          to="/tenant/gallery/new"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           + New Album
@@ -37,7 +37,7 @@ export default function GalleryIndexPage() {
             Create your first photo album to showcase your dive trips and underwater photography
           </p>
           <Link
-            to="/app/gallery/new"
+            to="/tenant/gallery/new"
             className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
           >
             Create Album

@@ -21,7 +21,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // If already logged in, redirect to app
   const orgContext = await getOrgContext(request);
   if (orgContext) {
-    return redirect("/app");
+    return redirect("/tenant");
   }
 
   const url = new URL(request.url);

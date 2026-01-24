@@ -115,7 +115,7 @@ export default function PublicSiteGeneralSettings() {
             {!isPremium && (
               <p className="text-xs text-yellow-600 mt-1">
                 Custom domains are available on paid plans.{" "}
-                <a href="/app/settings/billing" className="underline">
+                <a href="/tenant/settings/billing" className="underline">
                   Upgrade now
                 </a>
               </p>

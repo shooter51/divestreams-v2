@@ -46,7 +46,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     await deleteCourse(ctx.org.id, courseId);
-    return redirect("/app/training/courses");
+    return redirect("/tenant/training/courses");
   }
 
   return null;
@@ -75,7 +75,7 @@ export default function CourseDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/app/training/courses" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/training/courses" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Courses
         </Link>
       </div>

@@ -38,7 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
     isPublic: formData.get("isPublic") === "true",
   });
 
-  return redirect("/app/equipment");
+  return redirect("/tenant/equipment");
 }
 
 export default function NewEquipmentPage() {
@@ -51,7 +51,7 @@ export default function NewEquipmentPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/equipment" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/equipment" className="text-blue-600 hover:underline text-sm">
           ← Back to Equipment
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Equipment</h1>
@@ -400,7 +400,7 @@ export default function NewEquipmentPage() {
             {isSubmitting ? "Saving..." : "Add Equipment"}
           </button>
           <Link
-            to="/app/equipment"
+            to="/tenant/equipment"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

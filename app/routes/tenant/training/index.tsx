@@ -61,19 +61,19 @@ export default function TrainingDashboardPage() {
 
         <div className="flex gap-2">
           <Link
-            to="/app/training/import"
+            to="/tenant/training/import"
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             Import Courses
           </Link>
           <Link
-            to="/app/training/courses"
+            to="/tenant/training/courses"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Manage Courses
           </Link>
           <Link
-            to="/app/training/sessions"
+            to="/tenant/training/sessions"
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
           >
             View Sessions
@@ -87,25 +87,25 @@ export default function TrainingDashboardPage() {
           title="Active Courses"
           value={stats.activeCourses}
           icon="📚"
-          linkTo="/app/training/courses"
+          linkTo="/tenant/training/courses"
         />
         <StatCard
           title="Upcoming Sessions"
           value={stats.upcomingSessions}
           icon="📅"
-          linkTo="/app/training/sessions"
+          linkTo="/tenant/training/sessions"
         />
         <StatCard
           title="Active Enrollments"
           value={stats.activeEnrollments}
           icon="👥"
-          linkTo="/app/training/enrollments"
+          linkTo="/tenant/training/enrollments"
         />
         <StatCard
           title="Certifications This Month"
           value={stats.certificationsThisMonth}
           icon="🏅"
-          linkTo="/app/training/enrollments?status=completed"
+          linkTo="/tenant/training/enrollments?status=completed"
         />
       </div>
 
@@ -151,7 +151,7 @@ export default function TrainingDashboardPage() {
             )}
           </div>
           <Link
-            to="/app/training/sessions"
+            to="/tenant/training/sessions"
             className="block text-center text-blue-600 mt-4 text-sm hover:underline"
           >
             View all sessions
@@ -198,7 +198,7 @@ export default function TrainingDashboardPage() {
             )}
           </div>
           <Link
-            to="/app/training/enrollments"
+            to="/tenant/training/enrollments"
             className="block text-center text-blue-600 mt-4 text-sm hover:underline"
           >
             View all enrollments
@@ -211,21 +211,21 @@ export default function TrainingDashboardPage() {
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
         <div className="flex gap-4">
           <Link
-            to="/app/training/courses/new"
+            to="/tenant/training/courses/new"
             className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <span className="text-xl">+</span>
             <span>Create Course</span>
           </Link>
           <Link
-            to="/app/training/sessions/new"
+            to="/tenant/training/sessions/new"
             className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <span className="text-xl">+</span>
             <span>Schedule Session</span>
           </Link>
           <Link
-            to="/app/training/enrollments/new"
+            to="/tenant/training/enrollments/new"
             className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <span className="text-xl">+</span>

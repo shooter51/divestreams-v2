@@ -197,7 +197,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   }
 
-  return redirect("/app/trips");
+  return redirect("/tenant/trips");
 }
 
 // Day names for weekly selection
@@ -252,7 +252,7 @@ export default function NewTripPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/trips" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/trips" className="text-blue-600 hover:underline text-sm">
           ← Back to Trips
         </Link>
         <h1 className="text-2xl font-bold mt-2">Schedule Trip</h1>
@@ -270,7 +270,7 @@ export default function NewTripPage() {
                   ${selectedTour.price} • {selectedTour.duration} min • Max {selectedTour.maxParticipants} pax
                 </p>
               </div>
-              <Link to="/app/trips/new" className="text-sm text-blue-600 hover:underline">
+              <Link to="/tenant/trips/new" className="text-sm text-blue-600 hover:underline">
                 Change
               </Link>
               <input type="hidden" name="tourId" value={selectedTour.id} />
@@ -665,7 +665,7 @@ export default function NewTripPage() {
             {isSubmitting ? "Scheduling..." : "Schedule Trip"}
           </button>
           <Link
-            to="/app/trips"
+            to="/tenant/trips"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

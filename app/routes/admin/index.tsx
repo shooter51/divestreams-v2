@@ -216,7 +216,7 @@ export default function AdminOrganizationsPage() {
                 <tr key={org.id}>
                   <td className="px-4 py-3">
                     <a
-                      href={getTenantUrl(org.slug, "/app")}
+                      href={getTenantUrl(org.slug, "/tenant")}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline font-medium"

@@ -26,7 +26,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (sessionData?.user) {
     // Already logged in, redirect to app
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/app";
+    const redirectTo = url.searchParams.get("redirect") || "/tenant";
     throw redirect(redirectTo);
   }
 
@@ -60,7 +60,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const redirectTo = formData.get("redirectTo");
 
   // Validate redirectTo and default to /app
-  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/app";
+  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/tenant";
 
   // Validation
   const errors: Record<string, string> = {};
@@ -187,7 +187,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
 
   const isSubmitting = navigation.state === "submitting";
-  const redirectTo = searchParams.get("redirect") || "/app";
+  const redirectTo = searchParams.get("redirect") || "/tenant";
   const isCustomerSignup = searchParams.get("role") === "customer";
   const errors = actionData?.errors ?? {};
   const values = actionData?.values ?? { name: "", email: "" };
@@ -412,7 +412,7 @@ export default function SignupPage() {
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
               <Link
-                to={`/login${redirectTo !== "/app" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+                to={`/login${redirectTo !== "/tenant" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
                 Sign in

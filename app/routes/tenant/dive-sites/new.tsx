@@ -39,7 +39,7 @@ export async function action({ request }: ActionFunctionArgs) {
     visibility: (formData.get("visibility") as string) || undefined,
   });
 
-  return redirect("/app/dive-sites");
+  return redirect("/tenant/dive-sites");
 }
 
 export default function NewDiveSitePage() {
@@ -50,7 +50,7 @@ export default function NewDiveSitePage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/dive-sites" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/dive-sites" className="text-blue-600 hover:underline text-sm">
           ← Back to Dive Sites
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Dive Site</h1>
@@ -258,7 +258,7 @@ export default function NewDiveSitePage() {
             {isSubmitting ? "Saving..." : "Add Dive Site"}
           </button>
           <Link
-            to="/app/dive-sites"
+            to="/tenant/dive-sites"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

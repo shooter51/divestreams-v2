@@ -17,7 +17,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (sessionData?.user) {
     // Already logged in, redirect to app
-    throw redirect("/app");
+    throw redirect("/tenant");
   }
 
   return {};

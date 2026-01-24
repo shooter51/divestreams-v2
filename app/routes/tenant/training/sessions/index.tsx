@@ -80,7 +80,7 @@ export default function SessionsPage() {
           <p className="text-gray-500">{total} session{total !== 1 ? "s" : ""}</p>
         </div>
         <Link
-          to="/app/training/courses"
+          to="/tenant/training/courses"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           New Session
@@ -148,7 +148,7 @@ export default function SessionsPage() {
               : "No training sessions scheduled yet."}
           </p>
           <Link
-            to="/app/training/courses"
+            to="/tenant/training/courses"
             className="inline-block mt-4 text-blue-600 hover:underline"
           >
             Schedule a session from a course

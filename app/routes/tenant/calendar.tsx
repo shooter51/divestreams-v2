@@ -350,7 +350,7 @@ export default function CalendarPage() {
             </button>
           </div>
           <Link
-            to="/app/trips/new"
+            to="/tenant/trips/new"
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
           >
             Schedule Trip

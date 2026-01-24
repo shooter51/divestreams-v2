@@ -218,7 +218,7 @@ export default function BookingDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/app/bookings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/bookings" className="text-blue-600 hover:underline text-sm">
           ← Back to Bookings
         </Link>
       </div>

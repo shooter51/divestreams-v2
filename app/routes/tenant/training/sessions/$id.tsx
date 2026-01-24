@@ -114,7 +114,7 @@ export default function SessionDetailPage() {
 
   // Redirect after delete
   if (fetcher.data?.deleted) {
-    navigate("/app/training/sessions");
+    navigate("/tenant/training/sessions");
     return null;
   }
 
@@ -147,7 +147,7 @@ export default function SessionDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/app/training/sessions" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/training/sessions" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Sessions
         </Link>
       </div>
@@ -518,7 +518,7 @@ export default function SessionDetailPage() {
                 View Course
               </Link>
               <Link
-                to="/app/training/enrollments"
+                to="/tenant/training/enrollments"
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
               >
                 All Enrollments

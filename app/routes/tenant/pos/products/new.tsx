@@ -53,7 +53,7 @@ export default function NewProductPage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-4 mb-6">
-        <Link to="/app/pos/products" className="text-gray-400 hover:text-gray-600">
+        <Link to="/tenant/pos/products" className="text-gray-400 hover:text-gray-600">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -248,7 +248,7 @@ export default function NewProductPage() {
             {isSubmitting ? "Creating..." : "Create Product"}
           </button>
           <Link
-            to="/app/pos/products"
+            to="/tenant/pos/products"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

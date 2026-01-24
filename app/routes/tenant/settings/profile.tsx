@@ -177,7 +177,7 @@ export default function ProfileSettingsPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <Link to="/app/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
           ← Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Shop Profile</h1>

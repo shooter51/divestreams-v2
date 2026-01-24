@@ -85,7 +85,7 @@ export async function action({ request }: ActionFunctionArgs) {
     isPublic,
   });
 
-  return redirect("/app/training/courses");
+  return redirect("/tenant/training/courses");
 }
 
 export default function NewCoursePage() {
@@ -97,7 +97,7 @@ export default function NewCoursePage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/training/courses" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/training/courses" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Courses
         </Link>
         <h1 className="text-2xl font-bold mt-2">Create Course</h1>
@@ -402,7 +402,7 @@ export default function NewCoursePage() {
             {isSubmitting ? "Creating..." : "Create Course"}
           </button>
           <Link
-            to="/app/training/courses"
+            to="/tenant/training/courses"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

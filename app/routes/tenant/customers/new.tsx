@@ -61,7 +61,7 @@ export async function action({ request }: ActionFunctionArgs) {
       notes: formData.get("notes") as string || undefined,
     });
 
-    return redirect("/app/customers");
+    return redirect("/tenant/customers");
   } catch (error) {
     console.error("Failed to create customer:", error);
     const values: Record<string, string> = {};
@@ -85,7 +85,7 @@ export default function NewCustomerPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/customers" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/customers" className="text-blue-600 hover:underline text-sm">
           ← Back to Customers
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Customer</h1>
@@ -414,7 +414,7 @@ export default function NewCustomerPage() {
             {isSubmitting ? "Saving..." : "Save Customer"}
           </button>
           <Link
-            to="/app/customers"
+            to="/tenant/customers"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

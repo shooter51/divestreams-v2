@@ -160,7 +160,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     await deleteBoat(organizationId, boatId);
-    return redirect("/app/boats");
+    return redirect("/tenant/boats");
   }
 
   if (intent === "log-maintenance") {
@@ -208,7 +208,7 @@ export default function BoatDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/app/boats" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/boats" className="text-blue-600 hover:underline text-sm">
           ← Back to Boats
         </Link>
       </div>

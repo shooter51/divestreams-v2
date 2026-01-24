@@ -227,7 +227,7 @@ export default function EquipmentPage() {
           {/* Rental management button - premium only */}
           {hasEquipmentRentals ? (
             <Link
-              to="/app/equipment/rentals"
+              to="/tenant/equipment/rentals"
               className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
             >
               Manage Rentals
@@ -244,7 +244,7 @@ export default function EquipmentPage() {
             </button>
           )}
           <Link
-            to="/app/equipment/new"
+            to="/tenant/equipment/new"
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             Add Equipment
@@ -339,7 +339,7 @@ export default function EquipmentPage() {
         <div className="bg-white rounded-xl p-12 shadow-sm text-center">
           <p className="text-gray-500">No equipment found.</p>
           <Link
-            to="/app/equipment/new"
+            to="/tenant/equipment/new"
             className="inline-block mt-4 text-blue-600 hover:underline"
           >
             Add your first equipment item
@@ -417,7 +417,7 @@ export default function EquipmentPage() {
       {!isPremium && rentableCount > 0 && (
         <div className="mt-4 text-center text-sm text-gray-500">
           <span className="text-amber-500">*</span> Equipment rentals require a premium subscription.{" "}
-          <Link to="/app/settings/billing" className="text-blue-600 hover:underline">
+          <Link to="/tenant/settings/billing" className="text-blue-600 hover:underline">
             Upgrade now
           </Link>
         </div>

@@ -22,7 +22,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Check if already logged in
   const orgContext = await getOrgContext(request);
   if (orgContext) {
-    return redirect("/app");
+    return redirect("/tenant");
   }
 
   // Get organization name for display
@@ -98,7 +98,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Get redirect URL from query params
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/app";
+    const redirectTo = url.searchParams.get("redirect") || "/tenant";
 
     // Redirect to app WITH the session cookies
     return redirect(redirectTo, {

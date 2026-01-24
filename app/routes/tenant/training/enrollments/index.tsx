@@ -109,7 +109,7 @@ export default function EnrollmentsPage() {
           <p className="text-gray-500">{total} total enrollments</p>
         </div>
         <Link
-          to="/app/training/enrollments/new"
+          to="/tenant/training/enrollments/new"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           New Enrollment

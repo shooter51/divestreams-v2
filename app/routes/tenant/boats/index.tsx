@@ -111,7 +111,7 @@ export default function BoatsPage() {
           </p>
         </div>
         <Link
-          to="/app/boats/new"
+          to="/tenant/boats/new"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           Add Boat
@@ -156,7 +156,7 @@ export default function BoatsPage() {
         <div className="bg-white rounded-xl p-12 shadow-sm text-center">
           <p className="text-gray-500">No boats found.</p>
           <Link
-            to="/app/boats/new"
+            to="/tenant/boats/new"
             className="inline-block mt-4 text-blue-600 hover:underline"
           >
             Add your first boat

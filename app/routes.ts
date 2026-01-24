@@ -23,7 +23,7 @@ export default [
 
   // Tenant application routes (accessed via subdomain)
   // These routes check for tenant context in their loaders
-  ...prefix("app", [
+  ...prefix("tenant", [
     // Tenant dashboard layout
     layout("routes/tenant/layout.tsx", [
       index("routes/tenant/dashboard.tsx"),
@@ -50,6 +50,7 @@ export default [
       route("tours", "routes/tenant/tours/index.tsx"),
       route("tours/new", "routes/tenant/tours/new.tsx"),
       route("tours/:id/edit", "routes/tenant/tours/$id/edit.tsx"),
+      route("tours/:id/duplicate", "routes/tenant/tours/$id.duplicate.tsx"),
       route("tours/:id", "routes/tenant/tours/$id.tsx"),
 
       // Image management API

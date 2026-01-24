@@ -29,7 +29,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     await deleteProduct(organizationId, params.id!);
-    return redirect("/app/pos/products");
+    return redirect("/tenant/pos/products");
   }
 
   if (intent === "adjustStock") {
@@ -68,7 +68,7 @@ export default function ProductDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link to="/app/pos/products" className="text-gray-400 hover:text-gray-600">
+          <Link to="/tenant/pos/products" className="text-gray-400 hover:text-gray-600">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>

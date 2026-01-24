@@ -75,7 +75,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Redirect to the new tenant's onboarding
-    return redirect(getTenantUrl(tenant.subdomain, "/app"));
+    return redirect(getTenantUrl(tenant.subdomain, "/tenant"));
   } catch (error) {
     return {
       errors: { form: "Failed to create account. Please try again." },

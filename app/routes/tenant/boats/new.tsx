@@ -41,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
     isActive: formData.get("isActive") === "true",
   });
 
-  return redirect("/app/boats");
+  return redirect("/tenant/boats");
 }
 
 export default function NewBoatPage() {
@@ -52,7 +52,7 @@ export default function NewBoatPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/boats" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/boats" className="text-blue-600 hover:underline text-sm">
           ← Back to Boats
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Boat</h1>
@@ -235,7 +235,7 @@ export default function NewBoatPage() {
             {isSubmitting ? "Saving..." : "Add Boat"}
           </button>
           <Link
-            to="/app/boats"
+            to="/tenant/boats"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

@@ -55,7 +55,7 @@ describe("Route Configuration", () => {
   describe("Tour Routes", () => {
     it("should have tour edit route configured", () => {
       const tourEditRoute = allRoutes.find(
-        (r) => r.path === "tours/:id/edit" || r.path === "app/tours/:id/edit"
+        (r) => r.path === "tenant/tours/:id/edit"
       );
 
       expect(tourEditRoute).toBeDefined();
@@ -63,12 +63,12 @@ describe("Route Configuration", () => {
       expect(tourEditRoute?.file).toContain("edit");
     });
 
-    it("should match /app/tours/:uuid/edit pattern", () => {
+    it("should match /tenant/tours/:uuid/edit pattern", () => {
       const testPath = "tours/8a24c176-6327-476b-9713-5bcaf37e1c31/edit";
 
       // Find a route that would match this path
       const matchingRoute = allRoutes.find((r) => {
-        const pattern = r.path.replace(/^app\//, ""); // Remove app prefix for comparison
+        const pattern = r.path.replace(/^tenant\//, ""); // Remove tenant prefix for comparison
         return routeMatches(pattern, testPath) || routeMatches(r.path, testPath);
       });
 
@@ -96,21 +96,21 @@ describe("Route Configuration", () => {
 
     it("should have tour list route", () => {
       const tourListRoute = allRoutes.find(
-        (r) => r.path === "tours" || r.path === "app/tours"
+        (r) => r.path === "tenant/tours"
       );
       expect(tourListRoute).toBeDefined();
     });
 
     it("should have tour new route", () => {
       const tourNewRoute = allRoutes.find(
-        (r) => r.path === "tours/new" || r.path === "app/tours/new"
+        (r) => r.path === "tenant/tours/new"
       );
       expect(tourNewRoute).toBeDefined();
     });
 
     it("should have tour detail route", () => {
       const tourDetailRoute = allRoutes.find(
-        (r) => r.path === "tours/:id" || r.path === "app/tours/:id"
+        (r) => r.path === "tenant/tours/:id"
       );
       expect(tourDetailRoute).toBeDefined();
     });
@@ -128,7 +128,7 @@ describe("Route Configuration", () => {
     });
 
     it("tour edit file should exist on disk", () => {
-      const tourEditRoute = allRoutes.find((r) => r.path === "app/tours/:id/edit");
+      const tourEditRoute = allRoutes.find((r) => r.path === "tenant/tours/:id/edit");
       expect(tourEditRoute).toBeDefined();
 
       // Resolve the full path from the project root
@@ -219,10 +219,10 @@ describe("Route Configuration", () => {
 
   describe("Critical Route Matching", () => {
     const criticalPaths = [
-      { path: "app/tours/8a24c176-6327-476b-9713-5bcaf37e1c31/edit", name: "Tour Edit", pattern: "app/tours/:id/edit" },
-      { path: "app/tours/bd0435ee-ba05-4c8c-8d61-d134f2b19e97/edit", name: "Tour Edit (alt UUID)", pattern: "app/tours/:id/edit" },
-      { path: "app/bookings/new", name: "New Booking", pattern: "app/bookings/new" },
-      { path: "app/customers/abc-123-def", name: "Customer Detail", pattern: "app/customers/:id" },
+      { path: "tours/8a24c176-6327-476b-9713-5bcaf37e1c31/edit", name: "Tour Edit", pattern: "tenant/tours/:id/edit" },
+      { path: "tours/bd0435ee-ba05-4c8c-8d61-d134f2b19e97/edit", name: "Tour Edit (alt UUID)", pattern: "tenant/tours/:id/edit" },
+      { path: "bookings/new", name: "New Booking", pattern: "tenant/bookings/new" },
+      { path: "customers/abc-123-def", name: "Customer Detail", pattern: "tenant/customers/:id" },
     ];
 
     for (const { path, name, pattern } of criticalPaths) {

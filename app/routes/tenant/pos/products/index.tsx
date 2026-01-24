@@ -75,13 +75,13 @@ export default function ProductsPage() {
         </div>
         <div className="flex gap-3">
           <Link
-            to="/app/pos"
+            to="/tenant/pos"
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Back to POS
           </Link>
           <Link
-            to="/app/pos/products/new"
+            to="/tenant/pos/products/new"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Add Product
@@ -121,7 +121,7 @@ export default function ProductsPage() {
           </button>
           {(currentCategory || currentSearch) && (
             <Link
-              to="/app/pos/products"
+              to="/tenant/pos/products"
               className="px-4 py-2 text-gray-600 hover:text-gray-900"
             >
               Clear
@@ -235,7 +235,7 @@ export default function ProductsPage() {
           <div className="text-center py-12">
             <p className="text-gray-500 mb-4">No products found</p>
             <Link
-              to="/app/pos/products/new"
+              to="/tenant/pos/products/new"
               className="text-blue-600 hover:underline"
             >
               Add your first product

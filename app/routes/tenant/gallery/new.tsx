@@ -44,7 +44,7 @@ export default function NewGalleryAlbumPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/app/gallery" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/gallery" className="text-blue-600 hover:underline text-sm">
           ← Back to Gallery
         </Link>
         <h1 className="text-2xl font-bold mt-2">Create New Album</h1>
@@ -148,7 +148,7 @@ export default function NewGalleryAlbumPage() {
             {isSubmitting ? "Creating..." : "Create Album"}
           </button>
           <Link
-            to="/app/gallery"
+            to="/tenant/gallery"
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

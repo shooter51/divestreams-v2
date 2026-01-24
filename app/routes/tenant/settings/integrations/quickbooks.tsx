@@ -85,7 +85,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "disconnect") {
     await disconnectIntegration(org.id, "quickbooks");
-    return redirect("/app/settings/integrations?success=QuickBooks disconnected");
+    return redirect("/tenant/settings/integrations?success=QuickBooks disconnected");
   }
 
   if (intent === "updateSettings") {
@@ -134,7 +134,7 @@ export default function QuickBooksSettings() {
       {/* Header */}
       <div className="mb-6">
         <Link
-          to="/app/settings/integrations"
+          to="/tenant/settings/integrations"
           className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block"
         >
           ← Back to Integrations

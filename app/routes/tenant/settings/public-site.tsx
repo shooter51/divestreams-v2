@@ -39,9 +39,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const tabs = [
-  { id: "general", label: "General", href: "/app/settings/public-site" },
-  { id: "content", label: "Content", href: "/app/settings/public-site/content" },
-  { id: "appearance", label: "Appearance", href: "/app/settings/public-site/appearance" },
+  { id: "general", label: "General", href: "/tenant/settings/public-site" },
+  { id: "content", label: "Content", href: "/tenant/settings/public-site/content" },
+  { id: "appearance", label: "Appearance", href: "/tenant/settings/public-site/appearance" },
 ];
 
 export default function PublicSiteSettingsLayout() {
@@ -59,7 +59,7 @@ export default function PublicSiteSettingsLayout() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <Link to="/app/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Public Site Settings</h1>

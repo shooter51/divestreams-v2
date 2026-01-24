@@ -367,7 +367,7 @@ export default function TripDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/app/trips" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/trips" className="text-blue-600 hover:underline text-sm">
           ← Back to Trips
         </Link>
       </div>

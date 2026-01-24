@@ -175,7 +175,7 @@ export default function ToursPage() {
           </p>
         </div>
         <Link
-          to="/app/tours/new"
+          to="/tenant/tours/new"
           className={`px-4 py-2 rounded-lg ${
             canAddTour
               ? "bg-blue-600 text-white hover:bg-blue-700"
