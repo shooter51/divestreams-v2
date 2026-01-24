@@ -21,6 +21,10 @@ vi.mock("../../../../lib/db", () => ({
     select: vi.fn().mockReturnThis(),
     from: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockResolvedValue([
+      { id: "plan-1", name: "free", displayName: "Free", monthlyPrice: 0, isActive: true },
+      { id: "plan-2", name: "pro", displayName: "Professional", monthlyPrice: 4900, isActive: true },
+    ]),
     limit: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
     values: vi.fn().mockResolvedValue([]),
@@ -58,7 +62,18 @@ vi.mock("../../../../lib/db/schema/subscription", () => ({
     id: "id",
     organizationId: "organizationId",
     plan: "plan",
+    planId: "planId",
     status: "status",
+  },
+}));
+
+vi.mock("../../../../lib/db/schema", () => ({
+  subscriptionPlans: {
+    id: "id",
+    name: "name",
+    displayName: "displayName",
+    monthlyPrice: "monthlyPrice",
+    isActive: "isActive",
   },
 }));
 
@@ -67,6 +82,7 @@ vi.mock("drizzle-orm", async (importOriginal) => {
   return {
     ...actual,
     eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
+    asc: vi.fn((a) => ({ type: "asc", field: a })),
   };
 });
 
@@ -86,12 +102,15 @@ describe("admin/tenants.new route", () => {
   });
 
   describe("loader", () => {
-    it("returns empty object (no longer loads plans)", async () => {
+    it("returns plans from database", async () => {
       const request = new Request("https://admin.divestreams.com/tenants/new");
 
       const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(response).toEqual({});
+      expect(response).toHaveProperty("plans");
+      expect(response.plans).toHaveLength(2);
+      expect(response.plans[0]).toHaveProperty("name", "free");
+      expect(response.plans[1]).toHaveProperty("name", "pro");
     });
   });
 
