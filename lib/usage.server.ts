@@ -26,7 +26,9 @@ export async function getUsage(organizationId: string): Promise<UsageStats> {
     ),
   ]);
 
-  // Storage calculation would need file tracking - placeholder for now
+  // TODO: Storage tracking not yet implemented
+  // Storage limits are not enforced until file upload tracking is added.
+  // This will require a separate table to track uploaded files per organization.
   const storageGb = 0;
 
   return {
@@ -53,7 +55,7 @@ export function checkLimit(current: number, limit: number): LimitCheck {
   const percent = Math.round((current / limit) * 100);
   return {
     allowed: current < limit,
-    warning: (current / limit) >= LIMIT_WARNING_THRESHOLD,
+    warning: current < limit && (current / limit) >= LIMIT_WARNING_THRESHOLD,
     percent,
     current,
     limit,
