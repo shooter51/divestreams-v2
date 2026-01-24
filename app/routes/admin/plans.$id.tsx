@@ -3,7 +3,7 @@ import { redirect, useLoaderData, useActionData, useNavigation, Link } from "rea
 import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
 import { eq } from "drizzle-orm";
-import { PLAN_FEATURES, FEATURE_LABELS, type PlanFeaturesObject, type PlanFeatureKey } from "../../../lib/plan-features";
+import { FEATURE_LABELS, type PlanFeaturesObject, type PlanFeatureKey, type PlanLimits } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Edit Plan - DiveStreams Admin" }];
 
@@ -127,7 +127,7 @@ export default function EditPlanPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
-  const limits = plan?.limits as { users: number; customers: number; toursPerMonth: number; storageGb: number } | undefined;
+  const limits = plan?.limits as PlanLimits | undefined;
 
   // Handle both old format (string[]) and new format (PlanFeaturesObject)
   const rawFeatures = plan?.features;
