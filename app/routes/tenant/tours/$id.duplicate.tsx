@@ -2,7 +2,7 @@ import { redirect, type Route } from "react-router";
 import { requireTenant } from "~/lib/auth/org-context.server";
 import { duplicateTour } from "~/lib/db/queries.server";
 
-export const action: Route.ActionFunction = async ({ params, request }) => {
+export const action: Route.ActionFunction = async ({ params, request }: { params: Record<string, string | undefined>; request: Request }) => {
   if (request.method !== "POST") {
     throw new Response("Method not allowed", { status: 405 });
   }
