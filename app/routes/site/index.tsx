@@ -375,16 +375,17 @@ export default function SiteHomePage() {
       {/* Hero Section */}
       <section
         className="relative min-h-[60vh] flex items-center justify-center"
-        style={{
-          backgroundImage: settings?.heroImageUrl
-            ? `url(${settings.heroImageUrl})`
-            : undefined,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          background: !settings?.heroImageUrl
-            ? `linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)`
-            : undefined,
-        }}
+        style={
+          settings?.heroImageUrl
+            ? {
+                backgroundImage: `url(${settings.heroImageUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : {
+                background: `linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)`,
+              }
+        }
       >
         {/* Overlay for image backgrounds */}
         {settings?.heroImageUrl && (
