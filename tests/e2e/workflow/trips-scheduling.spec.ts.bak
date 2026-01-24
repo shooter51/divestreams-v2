@@ -374,7 +374,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
       page.waitForTimeout(3000),
     ]).catch(() => null);
 
-    const redirectedToList = page.url().includes("/tenant/trips") && !page.url().includes("/new");
+    const redirectedToList = page.url().includes("/app/trips") && !page.url().includes("/new");
     const hasSuccessMessage = await page.getByText(/success|created|scheduled/i).isVisible().catch(() => false);
     expect(redirectedToList || hasSuccessMessage || page.url().includes("/trips")).toBeTruthy();
   });
@@ -390,7 +390,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(hasTrips || hasEmptyState || page.url().includes("/trips")).toBeTruthy();
 
     // Extract trip UUID for later tests
-    const tripUuid = await extractEntityUuid(page, "", "/tenant/trips");
+    const tripUuid = await extractEntityUuid(page, "", "/app/trips");
     if (tripUuid) testData.createdIds.trip = tripUuid;
   });
 
@@ -418,7 +418,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     expect(page.url()).toContain("/edit");
   });
@@ -431,7 +431,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasForm = await page.locator("form").isVisible().catch(() => false);
@@ -447,7 +447,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const dateField = page.getByLabel(/date/i).or(page.locator("input[type='date']")).first();
@@ -469,7 +469,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(2000);
     const authenticated = await isAuthenticated(page);
     if (!authenticated) {
@@ -496,7 +496,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const timeField = page.getByLabel(/start.*time/i).or(page.locator("input[name='startTime']")).first();
@@ -519,7 +519,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const capacityField = page.getByLabel(/max.*participant/i).or(page.locator("input[name='maxParticipants']")).first();
@@ -542,7 +542,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
@@ -557,7 +557,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
 
@@ -567,7 +567,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       await page.waitForTimeout(3000);
     }
 
-    const redirected = page.url().includes("/tenant/trips") && !page.url().includes("/edit");
+    const redirected = page.url().includes("/app/trips") && !page.url().includes("/edit");
     const hasSuccess = await page.getByText(/success|updated|saved/i).isVisible().catch(() => false);
     expect(redirected || hasSuccess || page.url().includes("/trips")).toBeTruthy();
   });
@@ -580,7 +580,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasContent = await page.locator("body").textContent();
@@ -595,7 +595,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const cancelBtn = await page.getByRole("link", { name: /cancel|back/i }).isVisible().catch(() => false);
@@ -618,7 +618,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     expect(page.url()).toMatch(/\/app\/trips\/[a-f0-9-]+/);
   });
@@ -631,7 +631,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasDateTime = await page.getByText(/\d{1,2}:\d{2}|AM|PM|date|time/i).isVisible().catch(() => false);
@@ -646,7 +646,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasCapacity = await page.getByText(/capacity|participant|spot/i).isVisible().catch(() => false);
@@ -661,7 +661,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasAvailable = await page.getByText(/available|booked|remaining/i).isVisible().catch(() => false);
@@ -676,7 +676,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasPrice = await page.getByText(/\$|price/i).isVisible().catch(() => false);
@@ -691,7 +691,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasTour = await page.getByText(/tour/i).isVisible().catch(() => false);
@@ -706,7 +706,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasEdit = await page.getByRole("link", { name: /edit/i }).isVisible().catch(() => false);
@@ -722,7 +722,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasBookings = await page.getByText(/booking|participant|customer|passenger/i).isVisible().catch(() => false);
@@ -737,7 +737,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasBack = await page.getByRole("link", { name: /back|trip/i }).isVisible().catch(() => false);
@@ -749,7 +749,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     await page.goto(getTenantUrl("/tenant/trips/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
     const hasError = await page.getByText(/not found|error/i).isVisible().catch(() => false);
-    const redirected = page.url().includes("/tenant/trips") && !page.url().includes("000000");
+    const redirected = page.url().includes("/app/trips") && !page.url().includes("000000");
     expect(hasError || redirected || page.url().includes("/trips")).toBeTruthy();
   });
 });
@@ -768,7 +768,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasStatus = await page.getByText(/scheduled|completed|cancelled|status/i).isVisible().catch(() => false);
@@ -783,7 +783,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const statusBtn = await page.getByRole("button", { name: /status|complete|cancel/i }).isVisible().catch(() => false);
@@ -798,7 +798,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasCancel = await page.getByRole("button", { name: /cancel.*trip/i }).isVisible().catch(() => false);
@@ -813,7 +813,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const completeBtn = await page.getByRole("button", { name: /complete|mark.*complete/i }).isVisible().catch(() => false);
@@ -850,7 +850,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasDelete = await page.getByRole("button", { name: /delete/i }).isVisible().catch(() => false);
@@ -865,7 +865,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const deleteBtn = page.getByRole("button", { name: /delete/i }).first();
@@ -914,7 +914,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasCapacityInfo = await page.getByText(/\d+\/\d+|capacity|booked/i).isVisible().catch(() => false);
@@ -938,7 +938,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasParticipants = await page.getByText(/participant|passenger|customer/i).isVisible().catch(() => false);
@@ -953,7 +953,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasAddBooking = await page.getByRole("button", { name: /add.*booking|book/i }).isVisible().catch(() => false);
@@ -968,7 +968,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Just verify the page loads - actual overbooking test would need booking creation
@@ -992,7 +992,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasBookingLink = await page.locator("a[href*='/bookings/']").first().isVisible().catch(() => false);
@@ -1007,7 +1007,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
       expect(page.url()).toContain("/trips");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Verify capacity information is displayed

@@ -463,6 +463,46 @@ export async function createTour(organizationId: string, data: {
   return mapTour(tour);
 }
 
+export async function duplicateTour(organizationId: string, sourceTourId: string) {
+  // Fetch the source tour
+  const sourceTour = await getTourById(organizationId, sourceTourId);
+
+  if (!sourceTour) {
+    throw new Error("Tour not found");
+  }
+
+  // Generate new name
+  const newName = `${sourceTour.name} (Copy)`;
+
+  // Create duplicate with all fields copied
+  const [tour] = await db
+    .insert(schema.tours)
+    .values({
+      organizationId,
+      name: newName,
+      description: sourceTour.description,
+      type: sourceTour.type,
+      duration: sourceTour.duration,
+      maxParticipants: sourceTour.maxParticipants,
+      minParticipants: sourceTour.minParticipants,
+      price: sourceTour.price,
+      currency: sourceTour.currency,
+      includesEquipment: sourceTour.includesEquipment,
+      includesMeals: sourceTour.includesMeals,
+      includesTransport: sourceTour.includesTransport,
+      inclusions: sourceTour.inclusions,
+      exclusions: sourceTour.exclusions,
+      minCertLevel: sourceTour.minCertLevel,
+      minAge: sourceTour.minAge,
+      requirements: sourceTour.requirements,
+      images: sourceTour.images,
+      isActive: true, // New tours start active
+    })
+    .returning();
+
+  return mapTour(tour);
+}
+
 export async function updateTourActiveStatus(organizationId: string, id: string, isActive: boolean) {
   const [tour] = await db
     .update(schema.tours)

@@ -178,7 +178,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     // Extract customer ID
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
-    const customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
+    const customerId = await extractEntityId(page, testData.customer.lastName, "/app/customers");
     if (customerId) testData.createdIds.customer = customerId;
 
     expect(testData.createdIds.customer).toBeTruthy();
@@ -220,7 +220,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     // Extract booking ID
     await page.goto(getTenantUrl("/tenant/bookings"));
     await page.waitForTimeout(1500);
-    const bookingId = await extractEntityId(page, testData.customer.lastName, "/tenant/bookings");
+    const bookingId = await extractEntityId(page, testData.customer.lastName, "/app/bookings");
     if (bookingId) testData.createdIds.booking = bookingId;
 
     expect(page.url()).toContain("/bookings");
@@ -235,7 +235,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     }
 
     // Navigate to customer detail page
-    await page.goto(getTenantUrl(`/tenant/customers/${testData.createdIds.customer}`));
+    await page.goto(getTenantUrl(`/app/customers/${testData.createdIds.customer}`));
     await page.waitForTimeout(2000);
 
     // Find and click delete button
@@ -270,7 +270,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     }
 
     // Navigate to booking detail page
-    await page.goto(getTenantUrl(`/tenant/bookings/${testData.createdIds.booking}`));
+    await page.goto(getTenantUrl(`/app/bookings/${testData.createdIds.booking}`));
     await page.waitForTimeout(2000);
 
     // Find delete button
@@ -592,11 +592,11 @@ test.describe.serial("Block D: Entity Deletion", () => {
     // Extract boat ID
     await page.goto(getTenantUrl("/tenant/boats"));
     await page.waitForTimeout(1500);
-    const boatId = await extractEntityId(page, testData.boat.name, "/tenant/boats");
+    const boatId = await extractEntityId(page, testData.boat.name, "/app/boats");
     if (boatId) testData.createdIds.boat = boatId;
 
     // Delete boat
-    await page.goto(getTenantUrl(`/tenant/boats/${boatId}`));
+    await page.goto(getTenantUrl(`/app/boats/${boatId}`));
     await page.waitForTimeout(2000);
 
     const deleteBtn = page.getByRole("button", { name: /delete/i });
@@ -684,11 +684,11 @@ test.describe.serial("Block D: Entity Deletion", () => {
     // Extract tour ID
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
-    const tourId = await extractEntityId(page, testData.tour.name, "/tenant/tours");
+    const tourId = await extractEntityId(page, testData.tour.name, "/app/tours");
     if (tourId) testData.createdIds.tour = tourId;
 
     // Delete tour
-    await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
+    await page.goto(getTenantUrl(`/app/tours/${tourId}`));
     await page.waitForTimeout(2000);
 
     const deleteBtn = page.getByRole("button", { name: /delete/i });
