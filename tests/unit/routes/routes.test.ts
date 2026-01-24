@@ -219,10 +219,10 @@ describe("Route Configuration", () => {
 
   describe("Critical Route Matching", () => {
     const criticalPaths = [
-      { path: "tours/8a24c176-6327-476b-9713-5bcaf37e1c31/edit", name: "Tour Edit", pattern: "tenant/tours/:id/edit" },
-      { path: "tours/bd0435ee-ba05-4c8c-8d61-d134f2b19e97/edit", name: "Tour Edit (alt UUID)", pattern: "tenant/tours/:id/edit" },
-      { path: "bookings/new", name: "New Booking", pattern: "tenant/bookings/new" },
-      { path: "customers/abc-123-def", name: "Customer Detail", pattern: "tenant/customers/:id" },
+      { path: "tenant/tours/8a24c176-6327-476b-9713-5bcaf37e1c31/edit", name: "Tour Edit", pattern: "tenant/tours/:id/edit" },
+      { path: "tenant/tours/bd0435ee-ba05-4c8c-8d61-d134f2b19e97/edit", name: "Tour Edit (alt UUID)", pattern: "tenant/tours/:id/edit" },
+      { path: "tenant/bookings/new", name: "New Booking", pattern: "tenant/bookings/new" },
+      { path: "tenant/customers/abc-123-def", name: "Customer Detail", pattern: "tenant/customers/:id" },
     ];
 
     for (const { path, name, pattern } of criticalPaths) {

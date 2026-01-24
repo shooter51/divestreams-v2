@@ -91,7 +91,7 @@ describe("tenant/login route", () => {
   });
 
   describe("loader", () => {
-    it("redirects to app when already logged in", async () => {
+    it("redirects to /tenant when already logged in", async () => {
       shouldThrowRedirect = true; // loader uses throw redirect()
       (auth.api.getSession as Mock).mockResolvedValue({
         user: { id: "user-1", email: "test@example.com" },
@@ -116,7 +116,7 @@ describe("tenant/login route", () => {
         user: { id: "user-1", email: "test@example.com" },
       });
 
-      const request = new Request("https://demo.divestreams.com/login?redirect=/app/bookings");
+      const request = new Request("https://demo.divestreams.com/login?redirect=/tenant/bookings");
 
       try {
         await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
@@ -240,7 +240,7 @@ describe("tenant/login route", () => {
         expect(response).toEqual({ error: "Invalid credentials" });
       });
 
-      it("redirects to app when login is successful and user is a member", async () => {
+      it("redirects to /tenant when login is successful and user is a member", async () => {
         const mockCookie = "better_auth_session=test123; Path=/; HttpOnly";
         const mockAuthResponse = new Response(
           JSON.stringify({ user: { id: "user-1", email: "user@example.com" } }),

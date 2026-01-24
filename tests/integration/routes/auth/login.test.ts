@@ -89,7 +89,7 @@ describe("auth/login route", () => {
       expect((response as Response).status).toBe(302);
     });
 
-    it("redirects to /app when already logged in", async () => {
+    it("redirects to /tenant when already logged in", async () => {
       (getSubdomainFromRequest as Mock).mockReturnValue("demo");
       (getOrgContext as Mock).mockResolvedValue({
         user: { id: "user-1" },
@@ -222,7 +222,7 @@ describe("auth/login route", () => {
       expect((result as { errors: Record<string, string> }).errors.form).toBe("Invalid credentials");
     });
 
-    it("redirects to /app on successful login", async () => {
+    it("redirects to /tenant on successful login", async () => {
       (getSubdomainFromRequest as Mock).mockReturnValue("demo");
       (db.limit as Mock).mockResolvedValue([mockOrg]);
 
@@ -266,7 +266,7 @@ describe("auth/login route", () => {
       formData.append("email", "test@example.com");
       formData.append("password", "correctpassword");
 
-      const request = new Request("https://demo.divestreams.com/auth/login?redirect=/app/bookings", {
+      const request = new Request("https://demo.divestreams.com/auth/login?redirect=/tenant/bookings", {
         method: "POST",
         body: formData,
       });

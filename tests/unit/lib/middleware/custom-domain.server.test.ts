@@ -172,14 +172,14 @@ describe("Custom Domain Middleware", () => {
 
   describe("URL Construction", () => {
     it("should construct URL from request", () => {
-      const url = new URL("https://demo.divestreams.com/app");
+      const url = new URL("https://demo.divestreams.com/tenant");
       expect(url.protocol).toBe("https:");
       expect(url.host).toBe("demo.divestreams.com");
       expect(url.pathname).toBe("/tenant");
     });
 
     it("should parse URL components", () => {
-      const url = new URL("https://demo.divestreams.com:3000/app/bookings?id=123");
+      const url = new URL("https://demo.divestreams.com:3000/tenant/bookings?id=123");
       expect(url.hostname).toBe("demo.divestreams.com");
       expect(url.port).toBe("3000");
       expect(url.pathname).toBe("/tenant/bookings");
@@ -192,7 +192,7 @@ describe("Custom Domain Middleware", () => {
     });
 
     it("should handle URL with hash", () => {
-      const url = new URL("https://demo.divestreams.com/app#section");
+      const url = new URL("https://demo.divestreams.com/tenant#section");
       expect(url.hash).toBe("#section");
     });
   });
@@ -282,7 +282,7 @@ describe("Custom Domain Middleware", () => {
         return new Response("OK");
       });
 
-      const request = new Request("https://demo.divestreams.com/app");
+      const request = new Request("https://demo.divestreams.com/tenant");
       const response = middleware(request);
 
       expect(middleware).toHaveBeenCalledWith(request);
@@ -295,7 +295,7 @@ describe("Custom Domain Middleware", () => {
         return next();
       });
 
-      const request = new Request("https://demo.divestreams.com/app");
+      const request = new Request("https://demo.divestreams.com/tenant");
       middleware(request);
 
       expect(next).toHaveBeenCalled();
@@ -312,12 +312,12 @@ describe("Custom Domain Middleware", () => {
         return next(modifiedRequest);
       });
 
-      const request = new Request("https://demo.divestreams.com/app");
+      const request = new Request("https://demo.divestreams.com/tenant");
       middleware(request);
 
       expect(next).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: "https://demo.divestreams.com/app",
+          url: "https://demo.divestreams.com/tenant",
         })
       );
     });
@@ -333,7 +333,7 @@ describe("Custom Domain Middleware", () => {
         }
       });
 
-      const request = new Request("https://demo.divestreams.com/app");
+      const request = new Request("https://demo.divestreams.com/tenant");
       const response = middleware(request);
 
       expect(response.status).toBe(500);
@@ -348,7 +348,7 @@ describe("Custom Domain Middleware", () => {
         }
       };
 
-      const request = new Request("https://demo.divestreams.com/app");
+      const request = new Request("https://demo.divestreams.com/tenant");
       const response = await middleware(request);
 
       expect(response.status).toBe(500);
