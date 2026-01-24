@@ -5,6 +5,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
+import { getAppUrl } from "../../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Booking Widget - DiveStreams" }];
 
@@ -48,7 +49,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 
   // Build embed URL
-  const baseUrl = process.env.APP_URL || "https://divestreams.com";
+  const baseUrl = getAppUrl();
   const embedUrl = `${baseUrl}/embed/${ctx.org.slug}`;
 
   return {

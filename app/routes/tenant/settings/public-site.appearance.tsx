@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
+import { getTenantUrl } from "../../../../lib/utils/url";
 
 type OutletContextType = {
   settings: PublicSiteSettings;
@@ -349,7 +350,7 @@ export default function PublicSiteAppearanceSettings() {
               </p>
             </div>
             <a
-              href={`https://${orgSlug}.divestreams.com`}
+              href={getTenantUrl(orgSlug)}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"

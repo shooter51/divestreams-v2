@@ -1,6 +1,7 @@
 import { Outlet, Link, useLoaderData, useLocation } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { getBaseDomain } from "../../../lib/utils/url";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -73,7 +74,7 @@ export default function TenantLayout() {
         <aside className="w-64 bg-white h-screen border-r border-gray-200 fixed flex flex-col">
           <div className="p-4 border-b flex-shrink-0">
             <h1 className="text-xl font-bold text-blue-600">{tenant.name}</h1>
-            <p className="text-sm text-gray-500">{tenant.subdomain}.divestreams.com</p>
+            <p className="text-sm text-gray-500">{tenant.subdomain}.{getBaseDomain()}</p>
           </div>
 
           <nav className="p-4 flex-1 overflow-y-auto">

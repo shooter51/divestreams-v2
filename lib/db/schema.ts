@@ -65,6 +65,9 @@ import { organization } from "./schema/auth";
 // PUBLIC SCHEMA - Shared across all tenants (LEGACY - to be removed)
 // ============================================================================
 
+// Import PlanFeaturesObject type for features column
+import type { PlanFeaturesObject } from "../plan-features";
+
 // Subscription plans available in the system
 export const subscriptionPlans = pgTable("subscription_plans", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -74,7 +77,9 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   yearlyPriceId: text("yearly_price_id"), // Stripe price ID
   monthlyPrice: integer("monthly_price").notNull(), // in cents
   yearlyPrice: integer("yearly_price").notNull(), // in cents
-  features: jsonb("features").notNull().$type<string[]>(),
+  // Features now stores both boolean flags and marketing descriptions
+  // Legacy string[] format is also supported for backward compatibility
+  features: jsonb("features").notNull().$type<PlanFeaturesObject | string[]>(),
   limits: jsonb("limits").notNull().$type<{
     users: number;
     customers: number;

@@ -4,8 +4,8 @@ import { useState } from "react";
 import { db } from "../../../lib/db";
 import { organization, member, user, account } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
-import { customers, tours, bookings } from "../../../lib/db/schema";
-import { eq, and, count } from "drizzle-orm";
+import { customers, tours, bookings, subscriptionPlans } from "../../../lib/db/schema";
+import { eq, and, count, asc } from "drizzle-orm";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { getBaseDomain, getTenantUrl } from "../../../lib/utils/url";
 import { hashPassword, generateRandomPassword } from "../../../lib/auth/password.server";
@@ -43,12 +43,23 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     .innerJoin(user, eq(member.userId, user.id))
     .where(eq(member.organizationId, org.id));
 
-  // Get subscription
-  const [sub] = await db
-    .select()
+  // Get subscription with plan details
+  const [subWithPlan] = await db
+    .select({
+      subscription: subscription,
+      plan: subscriptionPlans,
+    })
     .from(subscription)
+    .leftJoin(subscriptionPlans, eq(subscription.planId, subscriptionPlans.id))
     .where(eq(subscription.organizationId, org.id))
     .limit(1);
+
+  // Get all active subscription plans for the dropdown
+  const plans = await db
+    .select()
+    .from(subscriptionPlans)
+    .where(eq(subscriptionPlans.isActive, true))
+    .orderBy(asc(subscriptionPlans.monthlyPrice));
 
   // Get usage stats
   const [customerCount] = await db
@@ -66,6 +77,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     .from(bookings)
     .where(eq(bookings.organizationId, org.id));
 
+  const sub = subWithPlan?.subscription;
+
   return {
     organization: {
       ...org,
@@ -82,8 +95,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           currentPeriodStart: sub.currentPeriodStart?.toISOString().split("T")[0] || null,
           currentPeriodEnd: sub.currentPeriodEnd?.toISOString().split("T")[0] || null,
           createdAt: sub.createdAt.toISOString().split("T")[0],
+          planDetails: subWithPlan?.plan ? {
+            id: subWithPlan.plan.id,
+            name: subWithPlan.plan.name,
+            displayName: subWithPlan.plan.displayName,
+            monthlyPrice: subWithPlan.plan.monthlyPrice,
+          } : null,
         }
       : null,
+    plans: plans.map((p) => ({
+      id: p.id,
+      name: p.name,
+      displayName: p.displayName,
+      monthlyPrice: p.monthlyPrice,
+    })),
     usage: {
       customers: customerCount?.count || 0,
       tours: tourCount?.count || 0,
@@ -131,8 +156,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "updateSubscription") {
-    const plan = formData.get("plan") as string;
+    const planId = formData.get("planId") as string;
     const status = formData.get("status") as string;
+
+    // Get plan details for backwards compatibility (populate legacy 'plan' field)
+    let planName = "free";
+    if (planId) {
+      const [selectedPlan] = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.id, planId))
+        .limit(1);
+      if (selectedPlan) {
+        // Map to legacy plan names: free plans -> "free", paid plans -> "premium"
+        planName = selectedPlan.monthlyPrice === 0 ? "free" : "premium";
+      }
+    }
 
     // Check if subscription exists
     const [existingSub] = await db
@@ -145,7 +184,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       await db
         .update(subscription)
         .set({
-          plan: plan as "free" | "premium",
+          planId: planId || null,
+          plan: planName, // Keep legacy field updated for backwards compatibility
           status: status as "active" | "trialing" | "past_due" | "canceled",
           updatedAt: new Date(),
         })
@@ -154,7 +194,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       await db.insert(subscription).values({
         id: crypto.randomUUID(),
         organizationId: org.id,
-        plan: plan as "free" | "premium",
+        planId: planId || null,
+        plan: planName, // Keep legacy field for backwards compatibility
         status: status as "active" | "trialing" | "past_due" | "canceled",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -296,7 +337,7 @@ type ModalState = {
 };
 
 export default function OrganizationDetailsPage() {
-  const { organization: org, members, subscription: sub, usage } = useLoaderData<typeof loader>();
+  const { organization: org, members, subscription: sub, usage, plans } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const fetcher = useFetcher<typeof action>();
@@ -428,17 +469,21 @@ export default function OrganizationDetailsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="plan" className="block text-sm font-medium mb-1">
+                  <label htmlFor="planId" className="block text-sm font-medium mb-1">
                     Plan
                   </label>
                   <select
-                    id="plan"
-                    name="plan"
-                    defaultValue={sub?.plan || "free"}
+                    id="planId"
+                    name="planId"
+                    defaultValue={sub?.planId || ""}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="free">Free</option>
-                    <option value="premium">Premium</option>
+                    <option value="">Select a plan...</option>
+                    {plans.map((plan) => (
+                      <option key={plan.id} value={plan.id}>
+                        {plan.displayName} (${(plan.monthlyPrice / 100).toFixed(2)}/mo)
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -618,12 +663,12 @@ export default function OrganizationDetailsPage() {
                 <span className="text-sm text-gray-600">Plan:</span>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
-                    sub?.plan === "premium"
+                    sub?.planDetails?.monthlyPrice && sub.planDetails.monthlyPrice > 0
                       ? "bg-purple-100 text-purple-700"
                       : "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  {sub?.plan || "free"}
+                  {sub?.planDetails?.displayName || sub?.plan || "Free"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
