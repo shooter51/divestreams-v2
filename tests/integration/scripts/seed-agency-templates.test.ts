@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { db } from "../../../lib/db";
 import { agencyCourseTemplates, certificationAgencies } from "../../../lib/db/schema/training";
 import { organization } from "../../../lib/db/schema/auth";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 const execAsync = promisify(exec);
 
@@ -25,16 +25,38 @@ describe("seed-agency-templates script", () => {
     }
     testOrgId = existingOrg.id;
 
-    // Create PADI agency
-    const [agency] = await db
-      .insert(certificationAgencies)
-      .values({
-        organizationId: testOrgId,
-        name: "PADI",
-        code: "padi",
-      })
-      .returning();
-    testAgencyId = agency.id;
+    // Create PADI agency (or get existing one)
+    const existingAgency = await db
+      .select()
+      .from(certificationAgencies)
+      .where(eq(certificationAgencies.organizationId, testOrgId))
+      .limit(1);
+
+    if (existingAgency.length > 0 && existingAgency[0].code === "padi") {
+      testAgencyId = existingAgency[0].id;
+    } else {
+      const [agency] = await db
+        .insert(certificationAgencies)
+        .values({
+          organizationId: testOrgId,
+          name: "PADI",
+          code: "padi",
+        })
+        .onConflictDoNothing()
+        .returning();
+
+      if (agency) {
+        testAgencyId = agency.id;
+      } else {
+        // Agency already exists, fetch it
+        const [existing] = await db
+          .select()
+          .from(certificationAgencies)
+          .where(eq(certificationAgencies.code, "padi"))
+          .limit(1);
+        testAgencyId = existing.id;
+      }
+    }
   });
 
   afterEach(async () => {
