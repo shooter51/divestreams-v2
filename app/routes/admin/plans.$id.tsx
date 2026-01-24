@@ -285,7 +285,7 @@ export default function EditPlanPage() {
               name="featureDescriptions"
               rows={5}
               defaultValue={planFeatures?.descriptions?.join("\n") || ""}
-              placeholder="Up to 3 users&#10;1,000 customers&#10;Basic reporting&#10;Email support"
+              placeholder="Up to 3 users, 1,000 customers, Basic reporting..."
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
             <p className="text-xs text-gray-500 mt-1">
