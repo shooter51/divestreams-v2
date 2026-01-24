@@ -418,7 +418,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       expect(queries.deleteBoat).toHaveBeenCalledWith(mockOrganizationId, mockBoatId);
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/boats");
+      expect(result.headers.get("Location")).toBe("/tenant/boats");
     });
 
     it("should return null for unknown intent", async () => {

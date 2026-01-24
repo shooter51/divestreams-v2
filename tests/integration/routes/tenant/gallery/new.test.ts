@@ -56,7 +56,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
 
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/gallery/album-123");
+      expect(result.headers.get("Location")).toBe("/tenant/gallery/album-123");
     });
 
     it("should return validation error for missing name", async () => {

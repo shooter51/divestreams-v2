@@ -369,7 +369,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     expect(modalStillVisible).toBeFalsy();
 
     // Extract discount ID
-    const discountId = await extractEntityId(page, testData.discount.code, "/app/discounts");
+    const discountId = await extractEntityId(page, testData.discount.code, "/tenant/discounts");
     if (discountId) testData.createdIds.discount = discountId;
   });
 
@@ -504,7 +504,7 @@ test.describe.serial("Block C: Product Modal Issues", () => {
     await page.waitForTimeout(3000);
 
     // Extract product ID
-    const productId = await extractEntityId(page, testData.product.name, "/app/products");
+    const productId = await extractEntityId(page, testData.product.name, "/tenant/products");
     if (productId) testData.createdIds.product = productId;
 
     expect(page.url()).toContain("/products");
@@ -638,7 +638,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
     // Extract dive site ID
     await page.goto(getTenantUrl("/tenant/dive-sites"));
     await page.waitForTimeout(1500);
-    const diveSiteId = await extractEntityId(page, testData.diveSite.name, "/app/dive-sites");
+    const diveSiteId = await extractEntityId(page, testData.diveSite.name, "/tenant/dive-sites");
     if (diveSiteId) testData.createdIds.diveSite = diveSiteId;
 
     // Delete dive site
@@ -769,7 +769,7 @@ test.describe.serial("Block E: Gallery Navigation", () => {
     await page.waitForTimeout(1500);
 
     // Should either show not found or redirect, but not crash
-    expect(page.url()).toContain("/app");
+    expect(page.url()).toContain("/tenant");
   });
 });
 

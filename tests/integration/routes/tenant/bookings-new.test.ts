@@ -436,7 +436,7 @@ describe("tenant/bookings/new route", () => {
 
       expect(response).toBeInstanceOf(Response);
       expect((response as Response).status).toBe(302);
-      expect((response as Response).headers.get("location")).toBe("/app/bookings");
+      expect((response as Response).headers.get("location")).toBe("/tenant/bookings");
     });
 
     it("continues even if email fails", async () => {
@@ -460,7 +460,7 @@ describe("tenant/bookings/new route", () => {
 
       // Should still redirect successfully
       expect(response).toBeInstanceOf(Response);
-      expect((response as Response).headers.get("location")).toBe("/app/bookings");
+      expect((response as Response).headers.get("location")).toBe("/tenant/bookings");
     });
   });
 });

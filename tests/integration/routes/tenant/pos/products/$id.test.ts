@@ -67,7 +67,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       expect(queries.deleteProduct).toHaveBeenCalledWith(mockOrganizationId, "prod-1");
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/pos/products");
+      expect(result.headers.get("Location")).toBe("/tenant/pos/products");
     });
 
     it("should adjust stock up", async () => {

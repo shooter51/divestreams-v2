@@ -63,7 +63,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/dive-sites");
+      expect(result.headers.get("Location")).toBe("/tenant/dive-sites");
     });
 
     it("should return validation errors for missing name", async () => {

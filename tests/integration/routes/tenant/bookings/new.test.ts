@@ -258,7 +258,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
 
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/bookings");
+      expect(result.headers.get("Location")).toBe("/tenant/bookings");
     });
 
     it("should return validation errors on invalid data", async () => {

@@ -84,7 +84,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
 
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/pos/products/prod-1");
+      expect(result.headers.get("Location")).toBe("/tenant/pos/products/prod-1");
     });
 
     it("should return validation error for missing name", async () => {

@@ -395,7 +395,7 @@ describe("marketing/signup route", () => {
 
         expect(result).toBeInstanceOf(Response);
         expect((result as Response).status).toBe(302);
-        expect(getTenantUrl).toHaveBeenCalledWith("paradisedive", "/app");
+        expect(getTenantUrl).toHaveBeenCalledWith("paradisedive", "/tenant");
       });
     });
 

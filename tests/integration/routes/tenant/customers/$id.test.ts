@@ -218,7 +218,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/customers");
+      expect(result.headers.get("Location")).toBe("/tenant/customers");
     });
 
     it("should send email and return success", async () => {

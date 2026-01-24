@@ -359,7 +359,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       expect(queries.deleteEquipment).toHaveBeenCalledWith(mockOrganizationId, mockEquipmentId);
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/equipment");
+      expect(result.headers.get("Location")).toBe("/tenant/equipment");
     });
 
     it("should return null for unknown intent", async () => {
