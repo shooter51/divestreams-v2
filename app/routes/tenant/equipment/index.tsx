@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireFeature } from "../../../../lib/require-feature.server";
+import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { equipment } from "../../../../lib/db/schema";
 import { eq, or, ilike, sql, count, and } from "drizzle-orm";
@@ -12,6 +14,7 @@ export const meta: MetaFunction = () => [{ title: "Equipment - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_EQUIPMENT_BOATS);
   const url = new URL(request.url);
   const search = url.searchParams.get("q") || "";
   const category = url.searchParams.get("category") || "";
