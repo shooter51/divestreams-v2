@@ -637,7 +637,7 @@ export default function SiteHomePage() {
         <section className="py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-6">About Us</h2>
-            <p className="text-lg opacity-80 leading-relaxed line-clamp-4">
+            <p className="text-lg opacity-80 leading-relaxed line-clamp-4 whitespace-pre-line">
               {settings.aboutContent}
             </p>
             <Link

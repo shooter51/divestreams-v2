@@ -426,7 +426,7 @@ export default function SiteLayout() {
                 </span>
               </Link>
               {contactInfo?.address && (
-                <p className="mt-4 text-sm opacity-75">{contactInfo.address}</p>
+                <p className="mt-4 text-sm opacity-75 whitespace-pre-line">{contactInfo.address}</p>
               )}
             </div>
 
@@ -462,7 +462,7 @@ export default function SiteLayout() {
                   </li>
                 )}
                 {contactInfo?.hours && (
-                  <li className="opacity-75">{contactInfo.hours}</li>
+                  <li className="opacity-75 whitespace-pre-line">{contactInfo.hours}</li>
                 )}
               </ul>
             </div>
@@ -472,7 +472,7 @@ export default function SiteLayout() {
           <div className="mt-8 pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-sm opacity-75"
             style={{ borderColor: "var(--accent-color)" }}
           >
-            <p>
+            <p suppressHydrationWarning>
               &copy; {new Date().getFullYear()} {organization.name}. All rights reserved.
             </p>
             <div className="flex gap-4">
