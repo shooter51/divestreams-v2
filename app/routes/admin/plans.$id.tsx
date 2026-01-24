@@ -3,6 +3,7 @@ import { redirect, useLoaderData, useActionData, useNavigation, Link } from "rea
 import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
 import { eq } from "drizzle-orm";
+import { FEATURE_LABELS, type PlanFeaturesObject, type PlanFeatureKey } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Edit Plan - DiveStreams Admin" }];
 
@@ -38,11 +39,25 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const yearlyPrice = Math.round(parseFloat(formData.get("yearlyPrice") as string) * 100);
   const monthlyPriceId = formData.get("monthlyPriceId") as string;
   const yearlyPriceId = formData.get("yearlyPriceId") as string;
-  const featuresRaw = formData.get("features") as string;
-  const features = featuresRaw
-    .split("\n")
-    .map((f) => f.trim())
-    .filter(Boolean);
+
+  // Parse boolean feature flags from checkboxes
+  const featureFlags: Record<string, boolean> = {};
+  for (const key of Object.keys(FEATURE_LABELS)) {
+    featureFlags[key] = formData.get(`feature_${key}`) === "on";
+  }
+
+  // Parse marketing descriptions (one per line)
+  const descriptionsRaw = formData.get("featureDescriptions") as string;
+  const descriptions = descriptionsRaw
+    ? descriptionsRaw.split("\n").map((f) => f.trim()).filter(Boolean)
+    : [];
+
+  // Combine into features object
+  const features: PlanFeaturesObject = {
+    ...featureFlags,
+    descriptions,
+  };
+
   const limitUsers = parseInt(formData.get("limitUsers") as string) || -1;
   const limitCustomers = parseInt(formData.get("limitCustomers") as string) || -1;
   const limitTours = parseInt(formData.get("limitTours") as string) || -1;
@@ -113,6 +128,12 @@ export default function EditPlanPage() {
   const isSubmitting = navigation.state === "submitting";
 
   const limits = plan?.limits as { users: number; customers: number; toursPerMonth: number; storageGb: number } | undefined;
+
+  // Handle both old format (string[]) and new format (PlanFeaturesObject)
+  const rawFeatures = plan?.features;
+  const planFeatures: PlanFeaturesObject | undefined = Array.isArray(rawFeatures)
+    ? { descriptions: rawFeatures } // Legacy: convert string[] to { descriptions: string[] }
+    : (rawFeatures as PlanFeaturesObject | undefined);
 
   return (
     <div className="max-w-2xl">
@@ -239,17 +260,37 @@ export default function EditPlanPage() {
           </div>
 
           <div className="col-span-2">
-            <label htmlFor="features" className="block text-sm font-medium mb-1">
-              Features (one per line)
+            <h3 className="text-sm font-medium mb-3">Plan Features</h3>
+            <div className="grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg">
+              {(Object.entries(FEATURE_LABELS) as [PlanFeatureKey, string][]).map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name={`feature_${key}`}
+                    defaultChecked={planFeatures?.[key] === true}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="col-span-2">
+            <label htmlFor="featureDescriptions" className="block text-sm font-medium mb-1">
+              Feature Descriptions (for pricing page, one per line)
             </label>
             <textarea
-              id="features"
-              name="features"
+              id="featureDescriptions"
+              name="featureDescriptions"
               rows={5}
-              defaultValue={(plan?.features as string[])?.join("\n") || ""}
-              placeholder="Up to 3 users&#10;1,000 customers&#10;Basic reporting"
+              defaultValue={planFeatures?.descriptions?.join("\n") || ""}
+              placeholder="Up to 3 users&#10;1,000 customers&#10;Basic reporting&#10;Email support"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Marketing text displayed on the pricing page (separate from technical feature flags above)
+            </p>
           </div>
 
           <div className="col-span-2">

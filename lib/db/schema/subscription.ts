@@ -15,6 +15,10 @@ import {
 } from "drizzle-orm/pg-core";
 import { organization } from "./auth";
 
+// Forward reference to subscriptionPlans - defined in parent schema.ts
+// We use a string reference here to avoid circular dependency
+import { subscriptionPlans } from "../schema";
+
 // ============================================================================
 // SUBSCRIPTION TABLE
 // ============================================================================
@@ -32,7 +36,8 @@ export const subscription = pgTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
-    plan: text("plan").notNull().default("free"), // free, premium
+    plan: text("plan").notNull().default("free"), // free, premium (legacy field - kept for backwards compatibility)
+    planId: uuid("plan_id").references(() => subscriptionPlans.id), // Links to subscription_plans table
     status: text("status").notNull().default("active"), // trialing, active, past_due, canceled
     stripeCustomerId: text("stripe_customer_id"),
     stripeSubscriptionId: text("stripe_subscription_id"),
@@ -47,6 +52,7 @@ export const subscription = pgTable(
     index("subscription_org_idx").on(table.organizationId),
     index("subscription_stripe_customer_idx").on(table.stripeCustomerId),
     index("subscription_stripe_subscription_idx").on(table.stripeSubscriptionId),
+    index("subscription_plan_id_idx").on(table.planId),
   ]
 );
 

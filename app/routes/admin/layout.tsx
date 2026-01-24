@@ -29,6 +29,7 @@ export default function AdminLayout() {
   const navItems = [
     { href: "/dashboard", label: "Organizations", icon: "🏢" },
     { href: "/plans", label: "Plans", icon: "💳" },
+    { href: "/settings/team", label: "Settings", icon: "⚙️" },
   ];
 
   return (

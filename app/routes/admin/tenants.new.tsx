@@ -1,9 +1,10 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, Link } from "react-router";
+import { redirect, useActionData, useNavigation, useLoaderData, Link } from "react-router";
 import { db } from "../../../lib/db";
 import { organization, member, user, account } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
-import { eq } from "drizzle-orm";
+import { subscriptionPlans } from "../../../lib/db/schema";
+import { eq, asc } from "drizzle-orm";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { seedDemoData } from "../../../lib/db/seed-demo-data.server";
 import { hashPassword } from "../../../lib/auth/password.server";
@@ -15,7 +16,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Require platform admin access
   await requirePlatformContext(request);
 
-  return {};
+  // Fetch active subscription plans from database
+  const plans = await db
+    .select()
+    .from(subscriptionPlans)
+    .where(eq(subscriptionPlans.isActive, true))
+    .orderBy(asc(subscriptionPlans.monthlyPrice));
+
+  return { plans };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -81,7 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
     console.log(`[TENANT CREATE] Creating subscription for org: ${orgId}`);
     await db.insert(subscription).values({
       organizationId: orgId,
-      plan: plan as "free" | "premium",
+      plan,
       status: "active",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -160,6 +168,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function CreateOrganizationPage() {
+  const { plans } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -238,11 +247,14 @@ export default function CreateOrganizationPage() {
             <select
               id="plan"
               name="plan"
-              defaultValue="free"
+              defaultValue={plans[0]?.name || "free"}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="free">Free</option>
-              <option value="premium">Premium</option>
+              {plans.map((plan) => (
+                <option key={plan.id} value={plan.name}>
+                  {plan.displayName} - ${(plan.monthlyPrice / 100).toFixed(2)}/mo
+                </option>
+              ))}
             </select>
           </div>
 
