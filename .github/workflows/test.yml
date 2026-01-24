@@ -151,8 +151,8 @@ jobs:
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
           REDIS_URL: redis://localhost:6379
-          BASE_URL: http://localhost:5173
-          APP_URL: http://localhost:5173
+          BASE_URL: http://e2etest.localhost:5173
+          APP_URL: http://e2etest.localhost:5173
           E2E_COVERAGE: "true"
 
       - name: Generate E2E coverage report
