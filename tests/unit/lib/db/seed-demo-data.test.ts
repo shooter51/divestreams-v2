@@ -40,16 +40,25 @@ describe("seedDemoData", () => {
     });
 
     // Set up select chain mocks for duplicate checks (returns empty array = no duplicates)
+    // The mock needs to handle both patterns:
+    // 1. db.select().from().where().limit() - returns []
+    // 2. db.select().from().where() - directly awaitable, returns []
     const mockLimit = vi.fn().mockResolvedValue([]);
-    const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
+    // Make mockWhere both thenable (for direct await) and have .limit() method
+    const mockWhere = vi.fn().mockImplementation(() => {
+      const result = Promise.resolve([]);
+      (result as unknown as { limit: typeof mockLimit }).limit = mockLimit;
+      return result;
+    });
     const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
 
     (db.select as ReturnType<typeof vi.fn>).mockReturnValue({
       from: mockFrom,
     });
 
-    // Suppress console.log during tests
+    // Suppress console.log and console.warn during tests
     vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
