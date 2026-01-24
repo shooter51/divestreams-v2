@@ -2,10 +2,11 @@ import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useSearchParams, useNavigate } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
-import { trips, bookings, customers, tours, member } from "../../../lib/db/schema";
+import { trips, bookings, customers, tours } from "../../../lib/db/schema";
 import { eq, sql, and, gte, count, desc } from "drizzle-orm";
 import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
-import { LIMIT_LABELS, LIMIT_WARNING_THRESHOLD } from "../../../lib/plan-features";
+import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS } from "../../../lib/plan-features";
+import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Dashboard - DiveStreams" }];
@@ -157,35 +158,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     date: formatDate(booking.date),
   }));
 
-  // Get team member count
-  const [teamMemberCount] = await db
-    .select({ count: count() })
-    .from(member)
-    .where(eq(member.organizationId, ctx.org.id));
-
-  // Build extended usage stats for the UsageCard
-  const extendedUsage = {
-    users: teamMemberCount?.count ?? 0,
-    customers: ctx.usage.customers,
-    toursPerMonth: ctx.usage.tours,
-    storageGb: 0, // Storage tracking not yet implemented
-  };
+  // Get usage stats using centralized function
+  const usage = await getUsage(ctx.org.id);
 
   // Get plan limits from subscription plan details or use defaults
-  const planLimits = ctx.subscription?.planDetails?.limits ?? {
-    users: ctx.limits.teamMembers,
-    customers: ctx.limits.customers,
-    toursPerMonth: ctx.limits.tours,
-    storageGb: 1,
-  };
+  const planLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
 
-  // Calculate limit checks for each resource
-  const limitChecks = {
-    users: calculateLimitCheck(extendedUsage.users, planLimits.users),
-    customers: calculateLimitCheck(extendedUsage.customers, planLimits.customers),
-    toursPerMonth: calculateLimitCheck(extendedUsage.toursPerMonth, planLimits.toursPerMonth),
-    storageGb: calculateLimitCheck(extendedUsage.storageGb, planLimits.storageGb),
-  };
+  // Calculate limit checks using centralized function
+  const limitChecks = checkAllLimits(usage, planLimits);
 
   return {
     stats,
@@ -193,29 +173,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     recentBookings: formattedBookings,
     subscription: ctx.subscription,
     limits: ctx.limits,
-    usage: ctx.usage,
-    extendedUsage,
+    usage,
     planLimits,
     limitChecks,
     planName: ctx.subscription?.planDetails?.displayName ?? ctx.subscription?.plan ?? "Free",
     isPremium: ctx.isPremium,
     orgName: ctx.org.name,
-  };
-}
-
-// Helper function to calculate limit check for a resource
-function calculateLimitCheck(current: number, limit: number) {
-  if (limit === -1) {
-    return { allowed: true, warning: false, percent: 0, current, limit, remaining: -1 };
-  }
-  const percent = limit > 0 ? Math.round((current / limit) * 100) : 0;
-  return {
-    allowed: current < limit,
-    warning: current < limit && (current / limit) >= LIMIT_WARNING_THRESHOLD,
-    percent: Math.min(percent, 100),
-    current,
-    limit,
-    remaining: Math.max(0, limit - current),
   };
 }
 
@@ -227,7 +190,6 @@ export default function DashboardPage() {
     subscription,
     limits,
     usage,
-    extendedUsage,
     planLimits,
     limitChecks,
     planName,
@@ -250,15 +212,7 @@ export default function DashboardPage() {
     navigate({ search: newParams.toString() }, { replace: true });
   };
 
-  // Calculate usage percentages - using correct property names from TierLimits and OrgUsage
-  const bookingsUsagePercent = limits.bookingsPerMonth > 0
-    ? Math.round((usage.bookingsThisMonth / limits.bookingsPerMonth) * 100)
-    : 0;
-  const customersUsagePercent = limits.customers > 0
-    ? Math.round((usage.customers / limits.customers) * 100)
-    : 0;
-
-  // Check if any limit is approaching warning threshold
+  // Check if any limit is approaching warning threshold (using pre-calculated limitChecks)
   const hasWarning = Object.values(limitChecks).some(check => check.warning || !check.allowed);
 
   return (
@@ -291,7 +245,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Free Tier Usage Warning */}
-      {!isPremium && (bookingsUsagePercent > 80 || customersUsagePercent > 80) && (
+      {!isPremium && hasWarning && (
         <div className="mb-6">
           <UpgradePrompt feature="higher limits" />
         </div>
@@ -313,7 +267,7 @@ export default function DashboardPage() {
       <UsageCard
         planName={planName}
         limitChecks={limitChecks}
-        extendedUsage={extendedUsage}
+        usage={usage}
         planLimits={planLimits}
         isPremium={isPremium}
         hasWarning={hasWarning}
@@ -446,24 +400,10 @@ function StatCard({
   );
 }
 
-interface LimitCheck {
-  allowed: boolean;
-  warning: boolean;
-  percent: number;
-  current: number;
-  limit: number;
-  remaining: number;
-}
-
 interface UsageCardProps {
   planName: string;
-  limitChecks: Record<string, LimitCheck>;
-  extendedUsage: {
-    users: number;
-    customers: number;
-    toursPerMonth: number;
-    storageGb: number;
-  };
+  limitChecks: Record<keyof UsageStats, LimitCheck>;
+  usage: UsageStats;
   planLimits: {
     users: number;
     customers: number;
@@ -474,7 +414,7 @@ interface UsageCardProps {
   hasWarning: boolean;
 }
 
-function UsageCard({ planName, limitChecks, extendedUsage, planLimits, isPremium, hasWarning }: UsageCardProps) {
+function UsageCard({ planName, limitChecks, usage, planLimits, isPremium, hasWarning }: UsageCardProps) {
   const usageItems: Array<{
     key: keyof typeof LIMIT_LABELS;
     label: string;
@@ -483,10 +423,10 @@ function UsageCard({ planName, limitChecks, extendedUsage, planLimits, isPremium
     check: LimitCheck;
     unit?: string;
   }> = [
-    { key: "users", label: LIMIT_LABELS.users, current: extendedUsage.users, limit: planLimits.users, check: limitChecks.users },
-    { key: "customers", label: LIMIT_LABELS.customers, current: extendedUsage.customers, limit: planLimits.customers, check: limitChecks.customers },
-    { key: "toursPerMonth", label: LIMIT_LABELS.toursPerMonth, current: extendedUsage.toursPerMonth, limit: planLimits.toursPerMonth, check: limitChecks.toursPerMonth },
-    { key: "storageGb", label: LIMIT_LABELS.storageGb, current: extendedUsage.storageGb, limit: planLimits.storageGb, check: limitChecks.storageGb, unit: "GB" },
+    { key: "users", label: LIMIT_LABELS.users, current: usage.users, limit: planLimits.users, check: limitChecks.users },
+    { key: "customers", label: LIMIT_LABELS.customers, current: usage.customers, limit: planLimits.customers, check: limitChecks.customers },
+    { key: "toursPerMonth", label: LIMIT_LABELS.toursPerMonth, current: usage.toursPerMonth, limit: planLimits.toursPerMonth, check: limitChecks.toursPerMonth },
+    { key: "storageGb", label: LIMIT_LABELS.storageGb, current: usage.storageGb, limit: planLimits.storageGb, check: limitChecks.storageGb, unit: "GB" },
   ];
 
   return (
