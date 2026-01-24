@@ -3,7 +3,7 @@ import { redirect, useLoaderData, useActionData, useNavigation, Link } from "rea
 import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
 import { eq } from "drizzle-orm";
-import { FEATURE_LABELS, type PlanFeaturesObject, type PlanFeatureKey } from "../../../lib/plan-features";
+import { PLAN_FEATURES, FEATURE_LABELS, type PlanFeaturesObject, type PlanFeatureKey } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Edit Plan - DiveStreams Admin" }];
 
@@ -298,12 +298,13 @@ export default function EditPlanPage() {
             <div className="grid grid-cols-4 gap-4">
               <div>
                 <label htmlFor="limitUsers" className="block text-xs text-gray-500 mb-1">
-                  Users
+                  Team Members
                 </label>
                 <input
                   type="number"
                   id="limitUsers"
                   name="limitUsers"
+                  min={-1}
                   defaultValue={limits?.users ?? -1}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
@@ -316,30 +317,34 @@ export default function EditPlanPage() {
                   type="number"
                   id="limitCustomers"
                   name="limitCustomers"
+                  min={-1}
                   defaultValue={limits?.customers ?? -1}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
                 <label htmlFor="limitTours" className="block text-xs text-gray-500 mb-1">
-                  Tours/Month
+                  Tours per Month
                 </label>
                 <input
                   type="number"
                   id="limitTours"
                   name="limitTours"
+                  min={-1}
                   defaultValue={limits?.toursPerMonth ?? -1}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
                 <label htmlFor="limitStorage" className="block text-xs text-gray-500 mb-1">
-                  Storage (GB)
+                  Storage GB
                 </label>
                 <input
                   type="number"
                   id="limitStorage"
                   name="limitStorage"
+                  min={0}
+                  step="0.1"
                   defaultValue={limits?.storageGb ?? -1}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
