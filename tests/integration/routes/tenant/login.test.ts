@@ -106,7 +106,7 @@ describe("tenant/login route", () => {
       } catch (response) {
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/app");
+        expect((response as Response).headers.get("Location")).toBe("/tenant");
       }
     });
 
@@ -124,7 +124,7 @@ describe("tenant/login route", () => {
       } catch (response) {
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/app/bookings");
+        expect((response as Response).headers.get("Location")).toBe("/tenant/bookings");
       }
     });
 
@@ -291,7 +291,7 @@ describe("tenant/login route", () => {
 
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/app");
+        expect((response as Response).headers.get("Location")).toBe("/tenant");
       });
 
       it("returns notMember when user is not a member of the org", async () => {
@@ -373,7 +373,7 @@ describe("tenant/login route", () => {
         formData.append("intent", "join");
         formData.append("userId", "user-1");
         formData.append("orgId", "org-1");
-        formData.append("redirectTo", "/app");
+        formData.append("redirectTo", "/tenant");
 
         const request = new Request("https://demo.divestreams.com/login", {
           method: "POST",
@@ -385,7 +385,7 @@ describe("tenant/login route", () => {
         // redirect() returns a Response in React Router v7
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/app");
+        expect((response as Response).headers.get("Location")).toBe("/tenant");
         expect(db.insert).toHaveBeenCalled();
       });
 
@@ -434,7 +434,7 @@ describe("tenant/login route", () => {
         formData.append("intent", "join");
         formData.append("userId", "user-1");
         formData.append("orgId", "org-1");
-        formData.append("redirectTo", "/app");
+        formData.append("redirectTo", "/tenant");
 
         const request = new Request("https://demo.divestreams.com/login", {
           method: "POST",

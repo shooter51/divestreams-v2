@@ -30,7 +30,7 @@ export async function loginToTenant(
   await page.goto(`http://${subdomain}.localhost:5173/auth/login`);
 
   // Check if already logged in
-  if (page.url().includes("/app")) {
+  if (page.url().includes("/tenant")) {
     return;
   }
 

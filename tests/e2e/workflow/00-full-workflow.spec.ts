@@ -404,9 +404,9 @@ test.describe.serial("Block B: Admin Panel - Unauthenticated", () => {
 
 test.describe.serial("Block C: Tenant Routes Existence", () => {
   test("[KAN-10] 4.1 Tenant dashboard navigation exists", async ({ page }) => {
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1000);
-    expect(page.url().includes("/app") || page.url().includes("/auth/login")).toBeTruthy();
+    expect(page.url().includes("/tenant") || page.url().includes("/auth/login")).toBeTruthy();
   });
 
   test("4.2 Customers page route exists", async ({ page }) => {
@@ -1168,7 +1168,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
         page.getByRole("button", { name: /add|create|save/i }).click(),
         page.waitForTimeout(3000)
       ]).catch(() => null);
-      const redirectedToList = page.url().includes("/app/equipment") && !page.url().includes("/new");
+      const redirectedToList = page.url().includes("/tenant/equipment") && !page.url().includes("/new");
       const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
       expect(redirectedToList || hasSuccessMessage || page.url().includes("/equipment")).toBeTruthy();
     } else {
@@ -1184,7 +1184,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     const hasEquipment = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no equipment|empty|nothing/i).isVisible().catch(() => false);
     expect(hasEquipment || emptyState).toBeTruthy();
-    const equipmentUuid = await extractEntityUuid(page, testData.equipment.name, "/app/equipment");
+    const equipmentUuid = await extractEntityUuid(page, testData.equipment.name, "/tenant/equipment");
     if (equipmentUuid) testData.createdIds.equipment = equipmentUuid;
   });
 
@@ -1344,7 +1344,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     const hasDiscounts = await page.locator("table, [class*='grid']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no discount/i).isVisible().catch(() => false);
     expect(hasDiscounts || emptyState).toBeTruthy();
-    const discountUuid = await extractEntityUuid(page, testData.discount.code, "/app/discounts");
+    const discountUuid = await extractEntityUuid(page, testData.discount.code, "/tenant/discounts");
     if (discountUuid) testData.createdIds.discount = discountUuid;
   });
 
@@ -2449,164 +2449,164 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
 test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("20.1 Dashboard loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const dashboard = await page.getByRole("heading", { name: /dashboard|welcome/i }).isVisible().catch(() => false);
-    expect(dashboard || page.url().includes("/app")).toBeTruthy();
+    expect(dashboard || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.2 Dashboard has stats cards", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const statsCards = await page.locator("[class*='card'], [class*='stat']").first().isVisible().catch(() => false);
-    expect(statsCards || page.url().includes("/app")).toBeTruthy();
+    expect(statsCards || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.3 Dashboard shows upcoming trips", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const upcomingTrips = await page.getByText(/upcoming|next|scheduled/i).first().isVisible().catch(() => false);
-    expect(upcomingTrips || page.url().includes("/app")).toBeTruthy();
+    expect(upcomingTrips || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.4 Dashboard shows recent bookings", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const recentBookings = await page.getByText(/recent|booking|reservation/i).first().isVisible().catch(() => false);
-    expect(recentBookings || page.url().includes("/app")).toBeTruthy();
+    expect(recentBookings || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.5 Dashboard has navigation sidebar", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const sidebar = await page.locator("nav, [class*='sidebar'], [class*='navigation']").first().isVisible().catch(() => false);
-    expect(sidebar || page.url().includes("/app")).toBeTruthy();
+    expect(sidebar || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.6 Dashboard sidebar has dashboard link", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const dashboardLink = await page.getByRole("link", { name: /dashboard/i }).isVisible().catch(() => false);
-    expect(dashboardLink || page.url().includes("/app")).toBeTruthy();
+    expect(dashboardLink || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.7 Dashboard sidebar has customers link", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const customersLink = await page.getByRole("link", { name: /customer/i }).isVisible().catch(() => false);
-    expect(customersLink || page.url().includes("/app")).toBeTruthy();
+    expect(customersLink || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.8 Dashboard sidebar has trips link", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const tripsLink = await page.getByRole("link", { name: /trip/i }).isVisible().catch(() => false);
-    expect(tripsLink || page.url().includes("/app")).toBeTruthy();
+    expect(tripsLink || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.9 Dashboard sidebar has bookings link", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const bookingsLink = await page.getByRole("link", { name: /booking/i }).isVisible().catch(() => false);
-    expect(bookingsLink || page.url().includes("/app")).toBeTruthy();
+    expect(bookingsLink || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.10 Dashboard sidebar has settings link", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const settingsLink = await page.getByRole("link", { name: /setting/i }).isVisible().catch(() => false);
-    expect(settingsLink || page.url().includes("/app")).toBeTruthy();
+    expect(settingsLink || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.11 Dashboard has user profile menu", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const profileMenu = await page.locator("[class*='avatar'], [class*='profile'], [class*='user']").first().isVisible().catch(() => false);
-    expect(profileMenu || page.url().includes("/app")).toBeTruthy();
+    expect(profileMenu || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.12 Dashboard has logout option", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const logoutButton = await page.getByRole("button", { name: /logout|sign out/i }).isVisible().catch(() => false);
-    expect(logoutButton || page.url().includes("/app")).toBeTruthy();
+    expect(logoutButton || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.13 Dashboard shows revenue stats", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const revenueStats = await page.getByText(/revenue|\$|earnings/i).first().isVisible().catch(() => false);
-    expect(revenueStats || page.url().includes("/app")).toBeTruthy();
+    expect(revenueStats || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.14 Dashboard shows customer count", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const customerCount = await page.getByText(/customer|guest/i).first().isVisible().catch(() => false);
-    expect(customerCount || page.url().includes("/app")).toBeTruthy();
+    expect(customerCount || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.15 Dashboard quick actions exist", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const quickActions = await page.getByRole("button", { name: /new|add|create|quick/i }).first().isVisible().catch(() => false);
-    expect(quickActions || page.url().includes("/app")).toBeTruthy();
+    expect(quickActions || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.16 Dashboard handles empty state gracefully", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const hasContent = await page.locator("[class*='card'], [class*='stat'], [class*='empty']").first().isVisible().catch(() => false);
-    expect(hasContent || page.url().includes("/app")).toBeTruthy();
+    expect(hasContent || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.17 Dashboard is responsive", async ({ page }) => {
     await loginToTenant(page);
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const mobileMenuButton = await page.locator("[class*='hamburger'], [class*='menu-toggle'], button[aria-label*='menu']").first().isVisible().catch(() => false);
-    expect(mobileMenuButton || page.url().includes("/app")).toBeTruthy();
+    expect(mobileMenuButton || page.url().includes("/tenant")).toBeTruthy();
   });
 
   test("20.18 Dashboard charts load", async ({ page }) => {
     await loginToTenant(page);
-    await page.goto(getTenantUrl("/app"));
+    await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const charts = await page.locator("canvas, svg, [class*='chart']").first().isVisible().catch(() => false);
-    expect(charts || page.url().includes("/app")).toBeTruthy();
+    expect(charts || page.url().includes("/tenant")).toBeTruthy();
   });
 });

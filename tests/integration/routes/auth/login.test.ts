@@ -101,7 +101,7 @@ describe("auth/login route", () => {
       const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(response).toBeInstanceOf(Response);
-      expect((response as Response).headers.get("location")).toBe("/app");
+      expect((response as Response).headers.get("location")).toBe("/tenant");
     });
 
     it("redirects when organization not found", async () => {
@@ -247,7 +247,7 @@ describe("auth/login route", () => {
 
       expect(response).toBeInstanceOf(Response);
       expect((response as Response).status).toBe(302);
-      expect((response as Response).headers.get("location")).toBe("/app");
+      expect((response as Response).headers.get("location")).toBe("/tenant");
     });
 
     it("redirects to custom redirect URL on success", async () => {
@@ -274,7 +274,7 @@ describe("auth/login route", () => {
       const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
       expect(response).toBeInstanceOf(Response);
-      expect((response as Response).headers.get("location")).toBe("/app/bookings");
+      expect((response as Response).headers.get("location")).toBe("/tenant/bookings");
     });
 
     it("handles auth error gracefully", async () => {

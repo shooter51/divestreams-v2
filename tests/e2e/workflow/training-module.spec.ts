@@ -373,7 +373,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     ]).catch(() => null);
 
     const redirectedToList =
-      page.url().includes("/app/training/courses") && !page.url().includes("/new");
+      page.url().includes("/tenant/training/courses") && !page.url().includes("/new");
     const hasSuccessMessage = await page
       .getByText(/success|created|added/i)
       .isVisible()
@@ -402,7 +402,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     const courseUuid = await extractEntityUuid(
       page,
       trainingTestData.course.name,
-      "/app/training/courses"
+      "/tenant/training/courses"
     );
     if (courseUuid) trainingTestData.createdIds.course = courseUuid;
   });
@@ -415,7 +415,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
       await page.waitForTimeout(2000);
       // Verify we're on the courses page (not redirected to login)
       const currentUrl = page.url();
-      expect(currentUrl.includes("/app/training") || currentUrl.includes("/courses")).toBeTruthy();
+      expect(currentUrl.includes("/tenant/training") || currentUrl.includes("/courses")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/app/training/courses/${courseId}`));
@@ -573,7 +573,7 @@ test.describe.serial("Block C: Session Management", () => {
     expect(hasSessions || emptyState || page.url().includes("/sessions")).toBeTruthy();
 
     // Try to extract session ID
-    const sessionUuid = await extractEntityUuid(page, "", "/app/training/sessions");
+    const sessionUuid = await extractEntityUuid(page, "", "/tenant/training/sessions");
     if (sessionUuid) trainingTestData.createdIds.session = sessionUuid;
   });
 
@@ -740,7 +740,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     expect(hasEnrollments || emptyState || page.url().includes("/enrollments")).toBeTruthy();
 
     // Try to extract enrollment ID
-    const enrollmentUuid = await extractEntityUuid(page, "", "/app/training/enrollments");
+    const enrollmentUuid = await extractEntityUuid(page, "", "/tenant/training/enrollments");
     if (enrollmentUuid) trainingTestData.createdIds.enrollment = enrollmentUuid;
   });
 

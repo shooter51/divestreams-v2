@@ -51,7 +51,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/customers");
+      expect(result.headers.get("Location")).toBe("/tenant/customers");
     });
 
     it("should return error for missing first name", async () => {

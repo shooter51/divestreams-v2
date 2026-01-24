@@ -9,7 +9,7 @@ async function loginToTenant(page: any) {
   await page.fill('input[name="email"]', "admin@e2etest.com");
   await page.fill('input[name="password"]', "admin123");
   await page.click('button[type="submit"]');
-  await page.waitForURL(getTenantUrl("/app"));
+  await page.waitForURL(getTenantUrl("/tenant"));
 }
 
 test.describe("Training Import Wizard", () => {
@@ -31,7 +31,7 @@ test.describe("Training Import Wizard", () => {
     await page.waitForURL(getTenantUrl("/tenant/training/import"));
 
     // Verify we're on import page
-    expect(page.url()).toContain("/app/training/import");
+    expect(page.url()).toContain("/tenant/training/import");
 
     // Verify page title
     const heading = page.getByRole("heading", { name: /import training courses/i });

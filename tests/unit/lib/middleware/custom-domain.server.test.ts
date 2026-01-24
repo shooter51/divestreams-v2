@@ -175,14 +175,14 @@ describe("Custom Domain Middleware", () => {
       const url = new URL("https://demo.divestreams.com/app");
       expect(url.protocol).toBe("https:");
       expect(url.host).toBe("demo.divestreams.com");
-      expect(url.pathname).toBe("/app");
+      expect(url.pathname).toBe("/tenant");
     });
 
     it("should parse URL components", () => {
       const url = new URL("https://demo.divestreams.com:3000/app/bookings?id=123");
       expect(url.hostname).toBe("demo.divestreams.com");
       expect(url.port).toBe("3000");
-      expect(url.pathname).toBe("/app/bookings");
+      expect(url.pathname).toBe("/tenant/bookings");
       expect(url.searchParams.get("id")).toBe("123");
     });
 

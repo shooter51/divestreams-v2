@@ -224,7 +224,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       expect(gallery.deleteGalleryAlbum).toHaveBeenCalledWith(mockOrganizationId, mockAlbumId);
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/app/gallery");
+      expect(result.headers.get("Location")).toBe("/tenant/gallery");
     });
 
     it("should delete image", async () => {
