@@ -370,9 +370,11 @@ export default function SiteHomePage() {
   const contactInfo = layoutData?.contactInfo;
   const enabledPages = layoutData?.enabledPages;
 
-  // Debug: log hero image URL
-  if (typeof window !== "undefined" && settings?.heroImageUrl) {
-    console.log("Hero Image URL:", settings.heroImageUrl);
+  // Debug: log settings to console
+  if (typeof window !== "undefined") {
+    console.log("Layout Data:", layoutData);
+    console.log("Settings:", settings);
+    console.log("Hero Image URL:", settings?.heroImageUrl);
   }
 
   return (
