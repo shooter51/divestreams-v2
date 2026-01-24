@@ -8,6 +8,8 @@ import { eq, and } from "drizzle-orm";
 import { PremiumGate } from "../../../../app/components/ui/UpgradePrompt";
 import { sendEmail } from "../../../../lib/email";
 import { getAppUrl } from "../../../../lib/utils/url";
+import { requireLimit } from "../../../../lib/require-feature.server";
+import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -34,6 +36,10 @@ const roles = [
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+
+  // Check users limit - this will redirect if limit exceeded
+  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
+  const limitCheck = await requireLimit(ctx.org.id, "users", limits);
 
   // Get team members from Better Auth member table
   const membersRaw = await db
@@ -76,14 +82,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     expiresAt: inv.expiresAt?.toISOString().split("T")[0] || "",
   }));
 
-  // Plan limit from context
-  const planLimit = ctx.limits.teamMembers;
+  // Plan limit from requireLimit check
+  const planLimit = limitCheck.limit;
 
   return {
     team,
     pendingInvites,
     roles,
     planLimit,
+    limitRemaining: limitCheck.remaining,
     isPremium: ctx.isPremium,
     canInviteTeamMembers: ctx.isPremium, // Only premium users can invite team members
   };
@@ -224,12 +231,13 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TeamPage() {
-  const { team, pendingInvites, roles, planLimit, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
+  const { team, pendingInvites, roles, planLimit, limitRemaining, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
 
   const activeMembers = team.filter((m) => m.status === "active").length;
-  const atLimit = activeMembers >= planLimit;
+  const atLimit = planLimit !== -1 && activeMembers >= planLimit;
+  const isNearLimit = planLimit !== -1 && limitRemaining <= Math.ceil(planLimit * 0.2);
 
   return (
     <div className="max-w-3xl">
@@ -267,6 +275,18 @@ export default function TeamPage() {
               Upgrade your plan
             </Link>{" "}
             to add more team members.
+          </p>
+        </div>
+      )}
+
+      {/* Near limit warning */}
+      {canInviteTeamMembers && isNearLimit && !atLimit && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-amber-800 text-sm">
+            {limitRemaining} of {planLimit} team member slots remaining.{" "}
+            <Link to="/tenant/settings/billing" className="underline font-medium">
+              Upgrade for more
+            </Link>
           </p>
         </div>
       )}

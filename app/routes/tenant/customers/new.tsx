@@ -1,12 +1,25 @@
-import type { MetaFunction, ActionFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, Link } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
+import { redirect, useActionData, useNavigation, useLoaderData, Link } from "react-router";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createCustomer } from "../../../../lib/db/queries.server";
+import { requireLimit } from "../../../../lib/require-feature.server";
+import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  const ctx = await requireOrgContext(request);
+  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
+  const limitCheck = await requireLimit(ctx.org.id, "customers", limits);
+  return {
+    limitRemaining: limitCheck.remaining,
+    limitMax: limitCheck.limit,
+  };
+}
+
 export async function action({ request }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
 
   const firstName = formData.get("firstName") as string;
@@ -78,9 +91,11 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function NewCustomerPage() {
+  const { limitRemaining, limitMax } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const isNearLimit = limitMax !== -1 && limitRemaining <= Math.ceil(limitMax * 0.2);
 
   return (
     <div className="max-w-2xl">
@@ -403,6 +418,18 @@ export default function NewCustomerPage() {
             </div>
           </div>
         </div>
+
+        {/* Limit Warning */}
+        {isNearLimit && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-amber-800 text-sm">
+              {limitRemaining} of {limitMax} customers remaining.{" "}
+              <Link to="/tenant/settings/billing" className="underline font-medium">
+                Upgrade for more
+              </Link>
+            </p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">
