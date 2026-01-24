@@ -13,6 +13,27 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => [
   { title: data?.organization?.name ? `Book with ${data.organization.name}` : "Book Now" },
 ];
 
+// Widget settings type (matches booking-widget.tsx)
+type WidgetSettings = {
+  primaryColor: string;
+  buttonText: string;
+  showPrices: boolean;
+  showAvailability: boolean;
+  showDescription: boolean;
+  layout: "grid" | "list";
+  maxTripsShown: number;
+};
+
+const defaultWidgetSettings: WidgetSettings = {
+  primaryColor: "#2563eb",
+  buttonText: "Book Now",
+  showPrices: true,
+  showAvailability: true,
+  showDescription: true,
+  layout: "grid",
+  maxTripsShown: 6,
+};
+
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const subdomain = params.tenant;
   if (!subdomain) {
@@ -24,20 +45,31 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     throw new Response("Shop not found", { status: 404 });
   }
 
-  // Get branding settings from organization metadata
+  // Get branding and widget settings from organization metadata
+  // Widget settings page saves to: metadata.branding and metadata.widget
   const metadata = org.metadata as {
+    branding?: {
+      primaryColor?: string;
+      secondaryColor?: string;
+      logo?: string;
+    };
+    widget?: Partial<WidgetSettings>;
     settings?: {
-      branding?: {
-        primaryColor?: string;
-        secondaryColor?: string;
-        logo?: string;
-      };
       currency?: string;
       timezone?: string;
     };
   } | null;
 
-  const branding = metadata?.settings?.branding || {};
+  // Read branding from metadata.branding (where widget settings page saves it)
+  const branding = metadata?.branding || {};
+
+  // Read widget settings from metadata.widget
+  const widgetSettings: WidgetSettings = {
+    ...defaultWidgetSettings,
+    ...metadata?.widget,
+    // Branding primaryColor takes precedence if set
+    primaryColor: branding.primaryColor || metadata?.widget?.primaryColor || defaultWidgetSettings.primaryColor,
+  };
 
   return {
     organization: {
@@ -48,15 +80,16 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       timezone: metadata?.settings?.timezone || "UTC",
     },
     branding: {
-      primaryColor: branding.primaryColor || "#0066cc",
+      primaryColor: widgetSettings.primaryColor,
       secondaryColor: branding.secondaryColor || "#f0f9ff",
       logo: branding.logo,
     },
+    widgetSettings,
   };
 }
 
 export default function EmbedLayout() {
-  const { organization, branding } = useLoaderData<typeof loader>();
+  const { organization, branding, widgetSettings } = useLoaderData<typeof loader>();
 
   return (
     <div
@@ -83,7 +116,7 @@ export default function EmbedLayout() {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-6">
-        <Outlet context={{ organization, branding }} />
+        <Outlet context={{ organization, branding, widgetSettings }} />
       </main>
 
       {/* Footer */}

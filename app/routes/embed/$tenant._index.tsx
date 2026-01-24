@@ -50,19 +50,42 @@ function formatPrice(price: string, currency: string): string {
   }).format(parseFloat(price));
 }
 
-function TourCard({ tour, tenantSlug }: { tour: PublicTour; tenantSlug: string }) {
+// Widget settings type (matches embed layout)
+type WidgetSettings = {
+  primaryColor: string;
+  buttonText: string;
+  showPrices: boolean;
+  showAvailability: boolean;
+  showDescription: boolean;
+  layout: "grid" | "list";
+  maxTripsShown: number;
+};
+
+function TourCard({
+  tour,
+  tenantSlug,
+  widgetSettings
+}: {
+  tour: PublicTour;
+  tenantSlug: string;
+  widgetSettings: WidgetSettings;
+}) {
   const inclusions = [];
   if (tour.includesEquipment) inclusions.push("Equipment");
   if (tour.includesMeals) inclusions.push("Meals");
   if (tour.includesTransport) inclusions.push("Transport");
 
+  const isListLayout = widgetSettings.layout === "list";
+
   return (
     <Link
       to={`/embed/${tenantSlug}/tour/${tour.id}`}
-      className="block bg-white rounded-lg border hover:shadow-md transition-shadow overflow-hidden"
+      className={`block bg-white rounded-lg border hover:shadow-md transition-shadow overflow-hidden ${
+        isListLayout ? "flex" : ""
+      }`}
     >
       {/* Image */}
-      <div className="aspect-video bg-gray-100 relative">
+      <div className={`bg-gray-100 relative ${isListLayout ? "w-48 flex-shrink-0" : "aspect-video"}`}>
         {tour.primaryImage ? (
           <img
             src={tour.thumbnailImage || tour.primaryImage}
@@ -94,10 +117,10 @@ function TourCard({ tour, tenantSlug }: { tour: PublicTour; tenantSlug: string }
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className={`p-4 ${isListLayout ? "flex-1" : ""}`}>
         <h3 className="font-semibold text-lg mb-1">{tour.name}</h3>
 
-        {tour.description && (
+        {widgetSettings.showDescription && tour.description && (
           <p className="text-sm text-gray-600 line-clamp-2 mb-3">
             {tour.description}
           </p>
@@ -113,12 +136,14 @@ function TourCard({ tour, tenantSlug }: { tour: PublicTour; tenantSlug: string }
               {formatDuration(tour.duration)}
             </span>
           )}
-          <span className="flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            Max {tour.maxParticipants}
-          </span>
+          {widgetSettings.showAvailability && (
+            <span className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Max {tour.maxParticipants}
+            </span>
+          )}
         </div>
 
         {/* Inclusions */}
@@ -147,14 +172,16 @@ function TourCard({ tour, tenantSlug }: { tour: PublicTour; tenantSlug: string }
 
         {/* Price */}
         <div className="flex items-center justify-between pt-3 border-t">
-          <span className="text-xl font-bold" style={{ color: "var(--primary-color)" }}>
-            {formatPrice(tour.price, tour.currency)}
-          </span>
+          {widgetSettings.showPrices && (
+            <span className="text-xl font-bold" style={{ color: "var(--primary-color)" }}>
+              {formatPrice(tour.price, tour.currency)}
+            </span>
+          )}
           <span
-            className="text-sm font-medium px-4 py-2 rounded"
+            className={`text-sm font-medium px-4 py-2 rounded ${!widgetSettings.showPrices ? "ml-auto" : ""}`}
             style={{ backgroundColor: "var(--secondary-color)", color: "var(--primary-color)" }}
           >
-            View Dates
+            {widgetSettings.buttonText}
           </span>
         </div>
       </div>
@@ -162,12 +189,30 @@ function TourCard({ tour, tenantSlug }: { tour: PublicTour; tenantSlug: string }
   );
 }
 
+// Default widget settings (fallback if not provided)
+const defaultWidgetSettings: WidgetSettings = {
+  primaryColor: "#2563eb",
+  buttonText: "Book Now",
+  showPrices: true,
+  showAvailability: true,
+  showDescription: true,
+  layout: "grid",
+  maxTripsShown: 6,
+};
+
 export default function EmbedToursPage() {
   const { tours } = useLoaderData<typeof loader>();
-  const { organization } = useOutletContext<{
+  const { organization, widgetSettings: contextSettings } = useOutletContext<{
     organization: { slug: string; name: string };
     branding: { primaryColor: string };
+    widgetSettings?: WidgetSettings;
   }>();
+
+  // Use widget settings from context or defaults
+  const widgetSettings = contextSettings || defaultWidgetSettings;
+
+  // Apply maxTripsShown limit
+  const displayedTours = tours.slice(0, widgetSettings.maxTripsShown);
 
   if (tours.length === 0) {
     return (
@@ -199,9 +244,18 @@ export default function EmbedToursPage() {
     <div>
       <h2 className="text-2xl font-bold mb-6">Available Tours</h2>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {tours.map((tour) => (
-          <TourCard key={tour.id} tour={tour} tenantSlug={organization.slug} />
+      <div className={
+        widgetSettings.layout === "list"
+          ? "flex flex-col gap-4"
+          : "grid gap-6 md:grid-cols-2"
+      }>
+        {displayedTours.map((tour) => (
+          <TourCard
+            key={tour.id}
+            tour={tour}
+            tenantSlug={organization.slug}
+            widgetSettings={widgetSettings}
+          />
         ))}
       </div>
     </div>
