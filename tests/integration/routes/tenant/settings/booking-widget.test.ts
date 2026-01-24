@@ -71,14 +71,14 @@ describe("tenant/settings/booking-widget route", () => {
 
   describe("loader", () => {
     it("requires organization context", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget");
       await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns default widget settings when no metadata exists", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(result.settings).toEqual({
@@ -95,7 +95,7 @@ describe("tenant/settings/booking-widget route", () => {
     it("returns custom widget settings from metadata", async () => {
       (requireOrgContext as Mock).mockResolvedValue(mockOrgContextWithMetadata);
 
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(result.settings.primaryColor).toBe("#ff0000");
@@ -106,14 +106,14 @@ describe("tenant/settings/booking-widget route", () => {
     });
 
     it("returns embed URL", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(result.embedUrl).toBe("https://divestreams.com/embed/demo");
     });
 
     it("returns org name and slug", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(result.orgSlug).toBe("demo");
@@ -126,7 +126,7 @@ describe("tenant/settings/booking-widget route", () => {
         org: { ...mockOrgContext.org, metadata: "invalid-json" },
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       // Should fall back to defaults
@@ -145,7 +145,7 @@ describe("tenant/settings/booking-widget route", () => {
         },
       });
 
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget");
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(result.settings.primaryColor).toBe("#123456");
@@ -163,7 +163,7 @@ describe("tenant/settings/booking-widget route", () => {
       formData.append("layout", "list");
       formData.append("maxTripsShown", "12");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget", {
         method: "POST",
         body: formData,
       });
@@ -184,7 +184,7 @@ describe("tenant/settings/booking-widget route", () => {
       formData.append("layout", "grid");
       formData.append("maxTripsShown", "6");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget", {
         method: "POST",
         body: formData,
       });
@@ -198,7 +198,7 @@ describe("tenant/settings/booking-widget route", () => {
       const formData = new FormData();
       // Only provide some fields
 
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget", {
         method: "POST",
         body: formData,
       });
@@ -230,7 +230,7 @@ describe("tenant/settings/booking-widget route", () => {
       formData.append("layout", "grid");
       formData.append("maxTripsShown", "6");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget", {
         method: "POST",
         body: formData,
       });
@@ -251,7 +251,7 @@ describe("tenant/settings/booking-widget route", () => {
       formData.append("layout", "grid");
       formData.append("maxTripsShown", "6");
 
-      const request = new Request("https://demo.divestreams.com/app/settings/booking-widget", {
+      const request = new Request("https://demo.divestreams.com/tenant/settings/booking-widget", {
         method: "POST",
         body: formData,
       });

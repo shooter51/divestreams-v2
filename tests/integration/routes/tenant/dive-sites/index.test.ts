@@ -49,7 +49,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
 
-      const request = new Request("http://test.com/app/dive-sites");
+      const request = new Request("http://test.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.diveSites).toHaveLength(1);
@@ -69,7 +69,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
 
-      const request = new Request("http://test.com/app/dive-sites?q=reef");
+      const request = new Request("http://test.com/tenant/dive-sites?q=reef");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.search).toBe("reef");
@@ -99,7 +99,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
 
-      const request = new Request("http://test.com/app/dive-sites?difficulty=beginner");
+      const request = new Request("http://test.com/tenant/dive-sites?difficulty=beginner");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.difficulty).toBe("beginner");
@@ -129,7 +129,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
 
-      const request = new Request("http://test.com/app/dive-sites");
+      const request = new Request("http://test.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.diveSites[0].maxDepth).toBe(0);
@@ -165,7 +165,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
 
       vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
 
-      const request = new Request("http://test.com/app/dive-sites");
+      const request = new Request("http://test.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.diveSites[0].coordinates).toBeNull();
@@ -189,7 +189,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
         isPremium: true,
       } as any);
 
-      const request = new Request("http://test.com/app/dive-sites");
+      const request = new Request("http://test.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.isPremium).toBe(true);

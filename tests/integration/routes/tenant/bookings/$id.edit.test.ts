@@ -47,7 +47,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
 
       vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as any);
 
-      const request = new Request("http://test.com/app/bookings/booking-456/edit");
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit");
       const result = await loader({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.getBookingWithFullDetails).toHaveBeenCalledWith(mockOrganizationId, mockBookingId);
@@ -67,7 +67,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
     });
 
     it("should throw 400 if booking ID is missing", async () => {
-      const request = new Request("http://test.com/app/bookings//edit");
+      const request = new Request("http://test.com/tenant/bookings//edit");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -82,7 +82,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
     it("should throw 404 if booking not found", async () => {
       vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(null);
 
-      const request = new Request("http://test.com/app/bookings/nonexistent/edit");
+      const request = new Request("http://test.com/tenant/bookings/nonexistent/edit");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -119,7 +119,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
 
       vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as any);
 
-      const request = new Request("http://test.com/app/bookings/booking-456/edit");
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit");
       const result = await loader({ request, params: { id: mockBookingId }, context: {} });
 
       expect(result.booking.specialRequests).toBe("");
@@ -153,7 +153,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       formData.append("specialRequests", "Gluten-free meals");
       formData.append("internalNotes", "Regular customer");
 
-      const request = new Request("http://test.com/app/bookings/booking-456/edit", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -174,7 +174,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe(`/app/bookings/${mockBookingId}`);
+      expect(result.headers.get("Location")).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
     it("should throw 400 if booking ID is missing in action", async () => {
@@ -182,7 +182,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       formData.append("participants", "2");
       formData.append("status", "pending");
 
-      const request = new Request("http://test.com/app/bookings//edit", {
+      const request = new Request("http://test.com/tenant/bookings//edit", {
         method: "POST",
         body: formData,
       });
@@ -222,7 +222,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       formData.append("specialRequests", "");
       formData.append("internalNotes", "");
 
-      const request = new Request("http://test.com/app/bookings/booking-456/edit", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -261,7 +261,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       formData.append("specialRequests", "");
       formData.append("internalNotes", "");
 
-      const request = new Request("http://test.com/app/bookings/booking-456/edit", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456/edit", {
         method: "POST",
         body: formData,
       });

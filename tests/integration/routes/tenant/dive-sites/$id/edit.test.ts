@@ -85,7 +85,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
         schema: mockSchema,
       } as any);
 
-      const request = new Request("http://test.com/app/dive-sites/site-456/edit");
+      const request = new Request("http://test.com/tenant/dive-sites/site-456/edit");
       const result = await loader({ request, params: { id: mockSiteId }, context: {} });
 
       expect(queries.getDiveSiteById).toHaveBeenCalledWith(mockOrganizationId, mockSiteId);
@@ -95,7 +95,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
     });
 
     it("should throw 400 if site ID is missing", async () => {
-      const request = new Request("http://test.com/app/dive-sites//edit");
+      const request = new Request("http://test.com/tenant/dive-sites//edit");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -121,7 +121,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/dive-sites/nonexistent/edit");
+      const request = new Request("http://test.com/tenant/dive-sites/nonexistent/edit");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -161,7 +161,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/dive-sites/site-456/edit");
+      const request = new Request("http://test.com/tenant/dive-sites/site-456/edit");
       const result = await loader({ request, params: { id: mockSiteId }, context: {} });
 
       expect(result.site.description).toBe("");
@@ -216,7 +216,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
       formData.append("difficulty", "advanced");
       formData.append("highlights", "Sharks, Manta Rays");
 
-      const request = new Request("http://test.com/app/dive-sites/site-456/edit", {
+      const request = new Request("http://test.com/tenant/dive-sites/site-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -229,14 +229,14 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe(`/app/dive-sites/${mockSiteId}`);
+      expect(result.headers.get("Location")).toBe(`/tenant/dive-sites/${mockSiteId}`);
     });
 
     it("should throw 400 if site ID is missing in action", async () => {
       const formData = new FormData();
       formData.append("name", "Test");
 
-      const request = new Request("http://test.com/app/dive-sites//edit", {
+      const request = new Request("http://test.com/tenant/dive-sites//edit", {
         method: "POST",
         body: formData,
       });
@@ -269,7 +269,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
       formData.append("name", "");
       formData.append("maxDepth", "");
 
-      const request = new Request("http://test.com/app/dive-sites/site-456/edit", {
+      const request = new Request("http://test.com/tenant/dive-sites/site-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -307,7 +307,7 @@ describe("app/routes/tenant/dive-sites/$id/edit.tsx", () => {
       formData.append("name", "Test Site");
       formData.append("highlights", "Sharks, Coral, Wreck");
 
-      const request = new Request("http://test.com/app/dive-sites/site-456/edit", {
+      const request = new Request("http://test.com/tenant/dive-sites/site-456/edit", {
         method: "POST",
         body: formData,
       });

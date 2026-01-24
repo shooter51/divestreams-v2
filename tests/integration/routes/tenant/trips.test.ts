@@ -93,7 +93,7 @@ describe("tenant/trips route", () => {
 
       (db.select as Mock).mockReturnValue(mockTripsQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -110,7 +110,7 @@ describe("tenant/trips route", () => {
 
       (db.select as Mock).mockReturnValue(mockTripsQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.view).toBe("upcoming");
@@ -127,7 +127,7 @@ describe("tenant/trips route", () => {
 
       (db.select as Mock).mockReturnValue(mockTripsQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/trips?view=past");
+      const request = new Request("https://demo.divestreams.com/tenant/trips?view=past");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.view).toBe("past");
@@ -144,7 +144,7 @@ describe("tenant/trips route", () => {
 
       (db.select as Mock).mockReturnValue(mockTripsQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/trips?tourId=tour-1");
+      const request = new Request("https://demo.divestreams.com/tenant/trips?tourId=tour-1");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.tourId).toBe("tour-1");
@@ -161,7 +161,7 @@ describe("tenant/trips route", () => {
 
       (db.select as Mock).mockReturnValue(mockTripsQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.trips).toEqual([]);
@@ -211,7 +211,7 @@ describe("tenant/trips route", () => {
         return mockBookingsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.trips).toHaveLength(1);
@@ -270,7 +270,7 @@ describe("tenant/trips route", () => {
         return mockBookingsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.trips[0].status).toBe("full");
@@ -336,7 +336,7 @@ describe("tenant/trips route", () => {
         return mockBookingsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(Object.keys(result.tripsByDate)).toHaveLength(2);
@@ -387,7 +387,7 @@ describe("tenant/trips route", () => {
         return mockBookingsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       // 5 participants * $100 = $500.00
@@ -437,7 +437,7 @@ describe("tenant/trips route", () => {
         return mockBookingsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.trips[0].tour.name).toBe("Unknown Tour");
@@ -457,7 +457,7 @@ describe("tenant/trips route", () => {
 
       (db.select as Mock).mockReturnValue(mockTripsQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.isPremium).toBe(false);
@@ -519,7 +519,7 @@ describe("tenant/trips route", () => {
         return mockBookingsQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/trips");
+      const request = new Request("https://demo.divestreams.com/tenant/trips");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.trips).toHaveLength(1);

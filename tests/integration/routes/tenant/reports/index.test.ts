@@ -47,7 +47,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 10 }], // New customers
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports");
+      const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.revenueOverview.currentPeriod).toBe(5000);
@@ -71,7 +71,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 2 }],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports?range=today");
+      const request = new Request("http://test.com/tenant/reports?range=today");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.dateRange.preset).toBe("today");
@@ -88,7 +88,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 5 }],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports?range=this_week");
+      const request = new Request("http://test.com/tenant/reports?range=this_week");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.dateRange.preset).toBe("this_week");
@@ -105,7 +105,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 100 }],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports?range=this_year");
+      const request = new Request("http://test.com/tenant/reports?range=this_year");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.dateRange.preset).toBe("this_year");
@@ -123,7 +123,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
       ]) as any);
 
       const request = new Request(
-        "http://test.com/app/reports?range=custom&start=2024-01-01&end=2024-01-31"
+        "http://test.com/tenant/reports?range=custom&start=2024-01-01&end=2024-01-31"
       );
       const result = await loader({ request, params: {}, context: {} });
 
@@ -148,7 +148,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 10 }],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports");
+      const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.isPremium).toBe(true);
@@ -168,7 +168,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 10 }],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports");
+      const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.isPremium).toBe(false);
@@ -188,7 +188,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 0 }],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports");
+      const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.revenueOverview.currentPeriod).toBe(0);
@@ -208,7 +208,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
       };
       vi.mocked(db.select).mockReturnValue(mockBuilder as any);
 
-      const request = new Request("http://test.com/app/reports");
+      const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
 
       // Should return defaults (all zeros)
@@ -228,7 +228,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 10 }],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports");
+      const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.revenueOverview.changePercent).toBe(20);
@@ -244,7 +244,7 @@ describe("app/routes/tenant/reports/index.tsx", () => {
         [{ count: 5 }],
       ]) as any);
 
-      const request = new Request("http://test.com/app/reports");
+      const request = new Request("http://test.com/tenant/reports");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.revenueOverview.changePercent).toBe(-20);

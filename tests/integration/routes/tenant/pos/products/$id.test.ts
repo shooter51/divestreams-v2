@@ -32,7 +32,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     it("should fetch product by ID", async () => {
       vi.mocked(queries.getProductById).mockResolvedValue(mockProduct as any);
 
-      const request = new Request("http://test.com/app/pos/products/prod-1");
+      const request = new Request("http://test.com/tenant/pos/products/prod-1");
       const result = await loader({ request, params: { id: "prod-1" }, context: {} });
 
       expect(queries.getProductById).toHaveBeenCalledWith(mockOrganizationId, "prod-1");
@@ -42,7 +42,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     it("should handle product not found", async () => {
       vi.mocked(queries.getProductById).mockResolvedValue(null);
 
-      const request = new Request("http://test.com/app/pos/products/nonexistent");
+      const request = new Request("http://test.com/tenant/pos/products/nonexistent");
 
       await expect(
         loader({ request, params: { id: "nonexistent" }, context: {} })
@@ -57,7 +57,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "delete");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1", {
         method: "POST",
         body: formData,
       });
@@ -77,7 +77,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       formData.append("intent", "adjustStock");
       formData.append("adjustment", "5");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1", {
         method: "POST",
         body: formData,
       });
@@ -95,7 +95,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       formData.append("intent", "adjustStock");
       formData.append("adjustment", "-3");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1", {
         method: "POST",
         body: formData,
       });
@@ -113,7 +113,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       formData.append("intent", "adjustStock");
       formData.append("adjustment", "invalid");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1", {
         method: "POST",
         body: formData,
       });
@@ -130,7 +130,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       formData.append("intent", "adjustStock");
       formData.append("adjustment", "0");
 
-      const request = new Request("http://test.com/app/pos/products/prod-1", {
+      const request = new Request("http://test.com/tenant/pos/products/prod-1", {
         method: "POST",
         body: formData,
       });

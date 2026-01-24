@@ -40,7 +40,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
 
       vi.mocked(queries.getCustomerById).mockResolvedValue(mockCustomer as any);
 
-      const request = new Request("http://test.com/app/customers/cust-456/edit");
+      const request = new Request("http://test.com/tenant/customers/cust-456/edit");
       const result = await loader({ request, params: { id: mockCustomerId }, context: {} });
 
       expect(queries.getCustomerById).toHaveBeenCalledWith(mockOrganizationId, mockCustomerId);
@@ -51,7 +51,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
     });
 
     it("should throw 400 if customer ID is missing", async () => {
-      const request = new Request("http://test.com/app/customers//edit");
+      const request = new Request("http://test.com/tenant/customers//edit");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -66,7 +66,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
     it("should throw 404 if customer not found", async () => {
       vi.mocked(queries.getCustomerById).mockResolvedValue(null);
 
-      const request = new Request("http://test.com/app/customers/nonexistent/edit");
+      const request = new Request("http://test.com/tenant/customers/nonexistent/edit");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -120,7 +120,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
       formData.append("email", "john.doe@example.com");
       formData.append("phone", "555-1234");
 
-      const request = new Request("http://test.com/app/customers/cust-456/edit", {
+      const request = new Request("http://test.com/tenant/customers/cust-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -133,7 +133,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe(`/app/customers/${mockCustomerId}`);
+      expect(result.headers.get("Location")).toBe(`/tenant/customers/${mockCustomerId}`);
     });
 
     it("should return validation errors for missing required fields", async () => {
@@ -157,7 +157,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
       formData.append("lastName", "");
       formData.append("email", "");
 
-      const request = new Request("http://test.com/app/customers/cust-456/edit", {
+      const request = new Request("http://test.com/tenant/customers/cust-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -187,7 +187,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
       formData.append("lastName", "Doe");
       formData.append("email", "invalid-email");
 
-      const request = new Request("http://test.com/app/customers/cust-456/edit", {
+      const request = new Request("http://test.com/tenant/customers/cust-456/edit", {
         method: "POST",
         body: formData,
       });
@@ -238,7 +238,7 @@ describe("app/routes/tenant/customers/$id/edit.tsx", () => {
       formData.append("email", "john@example.com");
       formData.append("phone", "555-1234");
 
-      const request = new Request("http://test.com/app/customers/cust-456/edit", {
+      const request = new Request("http://test.com/tenant/customers/cust-456/edit", {
         method: "POST",
         body: formData,
       });

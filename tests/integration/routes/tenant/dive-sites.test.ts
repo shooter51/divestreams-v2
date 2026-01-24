@@ -72,7 +72,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -87,7 +87,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(db.select).toHaveBeenCalled();
@@ -103,7 +103,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites?q=reef");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites?q=reef");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.search).toBe("reef");
@@ -118,7 +118,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites?difficulty=advanced");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites?difficulty=advanced");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.difficulty).toBe("advanced");
@@ -148,7 +148,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.diveSites).toHaveLength(1);
@@ -173,7 +173,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.diveSites).toEqual([]);
@@ -204,7 +204,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.diveSites[0]).toMatchObject({
@@ -243,7 +243,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.diveSites[0].coordinates).toBeNull();
@@ -258,7 +258,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.isPremium).toBe(false);
@@ -273,7 +273,7 @@ describe("tenant/dive-sites route", () => {
 
       (db.select as Mock).mockReturnValue(mockSelectQuery);
 
-      const request = new Request("https://demo.divestreams.com/app/dive-sites?q=reef&difficulty=expert");
+      const request = new Request("https://demo.divestreams.com/tenant/dive-sites?q=reef&difficulty=expert");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.search).toBe("reef");

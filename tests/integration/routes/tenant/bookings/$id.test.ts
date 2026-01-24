@@ -82,7 +82,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as any);
       vi.mocked(queries.getPaymentsByBookingId).mockResolvedValue(mockPayments as any);
 
-      const request = new Request("http://test.com/app/bookings/booking-456");
+      const request = new Request("http://test.com/tenant/bookings/booking-456");
       const result = await loader({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.getBookingWithFullDetails).toHaveBeenCalledWith(mockOrganizationId, mockBookingId);
@@ -96,7 +96,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
     });
 
     it("should throw 400 if booking ID is missing", async () => {
-      const request = new Request("http://test.com/app/bookings/");
+      const request = new Request("http://test.com/tenant/bookings/");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -112,7 +112,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(null);
       vi.mocked(queries.getPaymentsByBookingId).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/bookings/nonexistent");
+      const request = new Request("http://test.com/tenant/bookings/nonexistent");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -164,7 +164,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as any);
       vi.mocked(queries.getPaymentsByBookingId).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/bookings/booking-456");
+      const request = new Request("http://test.com/tenant/bookings/booking-456");
       const result = await loader({ request, params: { id: mockBookingId }, context: {} });
 
       expect(result.booking.createdAt).toBeNull();
@@ -180,7 +180,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "cancel");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });
@@ -197,7 +197,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "confirm");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });
@@ -214,7 +214,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "complete");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });
@@ -231,7 +231,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "no-show");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });
@@ -251,7 +251,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       formData.append("paymentMethod", "card");
       formData.append("notes", "Partial payment");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });
@@ -273,7 +273,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       formData.append("amount", "0");
       formData.append("paymentMethod", "card");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });
@@ -290,7 +290,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       formData.append("amount", "50.00");
       formData.append("paymentMethod", "");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });
@@ -310,7 +310,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       formData.append("paymentMethod", "cash");
       formData.append("notes", "");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });
@@ -330,7 +330,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "send-confirmation");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });
@@ -344,7 +344,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "unknown-action");
 
-      const request = new Request("http://test.com/app/bookings/booking-456", {
+      const request = new Request("http://test.com/tenant/bookings/booking-456", {
         method: "POST",
         body: formData,
       });

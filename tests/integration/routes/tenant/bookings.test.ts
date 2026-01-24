@@ -119,7 +119,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings");
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
@@ -156,7 +156,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(db.select).toHaveBeenCalled();
@@ -194,7 +194,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings?status=confirmed");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings?status=confirmed");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.status).toBe("confirmed");
@@ -231,7 +231,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings?page=3");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings?page=3");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.page).toBe(3);
@@ -290,7 +290,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.bookings).toHaveLength(1);
@@ -367,7 +367,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.stats).toBeDefined();
@@ -444,7 +444,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.stats.pendingPayment).toBe(1);
@@ -481,7 +481,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.bookings).toEqual([]);
@@ -522,7 +522,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings?page=2");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings?page=2");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.page).toBe(2);
@@ -560,7 +560,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings?search=john&status=pending");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings?search=john&status=pending");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.search).toBe("john");
@@ -598,7 +598,7 @@ describe("tenant/bookings route", () => {
         return mockMonthlyCountQuery;
       });
 
-      const request = new Request("https://demo.divestreams.com/app/bookings");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
       expect(result.canAddBooking).toBe(true);

@@ -137,7 +137,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
         },
       } as any);
 
-      const request = new Request("http://test.com/app/boats/boat-456");
+      const request = new Request("http://test.com/tenant/boats/boat-456");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
 
       expect(queries.getBoatById).toHaveBeenCalledWith(mockOrganizationId, mockBoatId);
@@ -154,7 +154,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
     });
 
     it("should throw 400 if boat ID is missing", async () => {
-      const request = new Request("http://test.com/app/boats/");
+      const request = new Request("http://test.com/tenant/boats/");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -169,7 +169,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
     it("should throw 404 if boat not found", async () => {
       vi.mocked(queries.getBoatById).mockResolvedValue(null);
 
-      const request = new Request("http://test.com/app/boats/nonexistent");
+      const request = new Request("http://test.com/tenant/boats/nonexistent");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -221,7 +221,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
         schema: { images: {}, maintenanceLogs: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/boats/boat-456");
+      const request = new Request("http://test.com/tenant/boats/boat-456");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
 
       // Only createdAt and updatedAt are formatted to strings
@@ -279,7 +279,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
         schema: { images: {}, maintenanceLogs: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/boats/boat-456");
+      const request = new Request("http://test.com/tenant/boats/boat-456");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
 
       expect(result.maintenanceDue).toBe(true);
@@ -330,7 +330,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
         schema: { images: {}, maintenanceLogs: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/boats/boat-456");
+      const request = new Request("http://test.com/tenant/boats/boat-456");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
 
       expect(result.boat.insuranceExpiry).toBeNull();
@@ -353,7 +353,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "toggle-active");
 
-      const request = new Request("http://test.com/app/boats/boat-456", {
+      const request = new Request("http://test.com/tenant/boats/boat-456", {
         method: "POST",
         body: formData,
       });
@@ -391,7 +391,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       formData.append("cost", "5000.00");
       formData.append("nextMaintenanceDate", "2024-12-01");
 
-      const request = new Request("http://test.com/app/boats/boat-456", {
+      const request = new Request("http://test.com/tenant/boats/boat-456", {
         method: "POST",
         body: formData,
       });
@@ -408,7 +408,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "delete");
 
-      const request = new Request("http://test.com/app/boats/boat-456", {
+      const request = new Request("http://test.com/tenant/boats/boat-456", {
         method: "POST",
         body: formData,
       });
@@ -425,7 +425,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "unknown-action");
 
-      const request = new Request("http://test.com/app/boats/boat-456", {
+      const request = new Request("http://test.com/tenant/boats/boat-456", {
         method: "POST",
         body: formData,
       });

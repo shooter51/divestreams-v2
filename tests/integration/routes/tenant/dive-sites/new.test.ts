@@ -39,7 +39,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       formData.append("visibility", "15-25m");
       formData.append("currentStrength", "moderate");
 
-      const request = new Request("http://test.com/app/dive-sites/new", {
+      const request = new Request("http://test.com/tenant/dive-sites/new", {
         method: "POST",
         body: formData,
       });
@@ -81,7 +81,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       const formData = new FormData();
       formData.append("name", "");
 
-      const request = new Request("http://test.com/app/dive-sites/new", {
+      const request = new Request("http://test.com/tenant/dive-sites/new", {
         method: "POST",
         body: formData,
       });
@@ -109,7 +109,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       formData.append("name", "Test Site");
       formData.append("maxDepth", "");
 
-      const request = new Request("http://test.com/app/dive-sites/new", {
+      const request = new Request("http://test.com/tenant/dive-sites/new", {
         method: "POST",
         body: formData,
       });
@@ -132,7 +132,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       formData.append("name", "Simple Site");
       formData.append("maxDepth", "20");
 
-      const request = new Request("http://test.com/app/dive-sites/new", {
+      const request = new Request("http://test.com/tenant/dive-sites/new", {
         method: "POST",
         body: formData,
       });
@@ -164,7 +164,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       formData.append("maxDepth", "18");
       formData.append("highlights", "Sharks, Turtles, Coral Wall");
 
-      const request = new Request("http://test.com/app/dive-sites/new", {
+      const request = new Request("http://test.com/tenant/dive-sites/new", {
         method: "POST",
         body: formData,
       });
@@ -189,7 +189,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       formData.append("maxDepth", "15");
       formData.append("highlights", "");
 
-      const request = new Request("http://test.com/app/dive-sites/new", {
+      const request = new Request("http://test.com/tenant/dive-sites/new", {
         method: "POST",
         body: formData,
       });
@@ -214,7 +214,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       formData.append("latitude", "7.165432");
       formData.append("longitude", "134.271890");
 
-      const request = new Request("http://test.com/app/dive-sites/new", {
+      const request = new Request("http://test.com/tenant/dive-sites/new", {
         method: "POST",
         body: formData,
       });
@@ -247,7 +247,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       formData.append("name", "Test Site");
       formData.append("difficulty", "super-hard");
 
-      const request = new Request("http://test.com/app/dive-sites/new", {
+      const request = new Request("http://test.com/tenant/dive-sites/new", {
         method: "POST",
         body: formData,
       });

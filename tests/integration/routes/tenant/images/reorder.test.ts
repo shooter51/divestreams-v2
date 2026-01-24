@@ -20,7 +20,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
 
   describe("action", () => {
     it("should return 405 for non-POST requests", async () => {
-      const request = new Request("http://test.com/app/images/reorder", {
+      const request = new Request("http://test.com/tenant/images/reorder", {
         method: "GET",
       });
 
@@ -32,7 +32,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
     });
 
     it("should return 400 if required fields are missing", async () => {
-      const request = new Request("http://test.com/app/images/reorder", {
+      const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ entityType: "tour" }), // Missing entityId and images
@@ -46,7 +46,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
     });
 
     it("should return 400 if images is not an array", async () => {
-      const request = new Request("http://test.com/app/images/reorder", {
+      const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -74,7 +74,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images/reorder", {
+      const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,7 +119,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images/reorder", {
+      const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -164,7 +164,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images/reorder", {
+      const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -207,7 +207,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/images/reorder", {
+      const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

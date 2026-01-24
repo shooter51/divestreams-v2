@@ -42,7 +42,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
       vi.mocked(queries.getProducts).mockResolvedValue(mockProducts as any);
       vi.mocked(queries.getProductCategories).mockResolvedValue(mockCategories);
 
-      const request = new Request("http://test.com/app/pos/products");
+      const request = new Request("http://test.com/tenant/pos/products");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(queries.getProducts).toHaveBeenCalledWith(
@@ -59,7 +59,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
       vi.mocked(queries.getProducts).mockResolvedValue(filteredProducts as any);
       vi.mocked(queries.getProductCategories).mockResolvedValue(mockCategories);
 
-      const request = new Request("http://test.com/app/pos/products?category=equipment");
+      const request = new Request("http://test.com/tenant/pos/products?category=equipment");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(queries.getProducts).toHaveBeenCalledWith(
@@ -74,7 +74,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
       vi.mocked(queries.getProducts).mockResolvedValue(filteredProducts as any);
       vi.mocked(queries.getProductCategories).mockResolvedValue(mockCategories);
 
-      const request = new Request("http://test.com/app/pos/products?search=mask");
+      const request = new Request("http://test.com/tenant/pos/products?search=mask");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(queries.getProducts).toHaveBeenCalledWith(
@@ -88,7 +88,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
       vi.mocked(queries.getProducts).mockResolvedValue([mockProducts[0]] as any);
       vi.mocked(queries.getProductCategories).mockResolvedValue(mockCategories);
 
-      const request = new Request("http://test.com/app/pos/products?category=equipment&search=mask");
+      const request = new Request("http://test.com/tenant/pos/products?category=equipment&search=mask");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(queries.getProducts).toHaveBeenCalledWith(
@@ -101,7 +101,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
       vi.mocked(queries.getProducts).mockResolvedValue([]);
       vi.mocked(queries.getProductCategories).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/pos/products");
+      const request = new Request("http://test.com/tenant/pos/products");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.products).toEqual([]);
@@ -117,7 +117,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
       formData.append("intent", "delete");
       formData.append("id", "prod-1");
 
-      const request = new Request("http://test.com/app/pos/products", {
+      const request = new Request("http://test.com/tenant/pos/products", {
         method: "POST",
         body: formData,
       });
@@ -134,7 +134,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "delete");
 
-      const request = new Request("http://test.com/app/pos/products", {
+      const request = new Request("http://test.com/tenant/pos/products", {
         method: "POST",
         body: formData,
       });
@@ -150,7 +150,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "unknown");
 
-      const request = new Request("http://test.com/app/pos/products", {
+      const request = new Request("http://test.com/tenant/pos/products", {
         method: "POST",
         body: formData,
       });

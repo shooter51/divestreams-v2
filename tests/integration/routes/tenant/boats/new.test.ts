@@ -51,7 +51,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       formData.append("insuranceExpiry", "2025-12-31");
       formData.append("isActive", "true");
 
-      const request = new Request("http://test.com/app/boats/new", {
+      const request = new Request("http://test.com/tenant/boats/new", {
         method: "POST",
         body: formData,
       });
@@ -91,7 +91,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       const formData = new FormData();
       formData.append("name", "");
 
-      const request = new Request("http://test.com/app/boats/new", {
+      const request = new Request("http://test.com/tenant/boats/new", {
         method: "POST",
         body: formData,
       });
@@ -119,7 +119,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       formData.append("name", "Test Boat");
       formData.append("capacity", "");
 
-      const request = new Request("http://test.com/app/boats/new", {
+      const request = new Request("http://test.com/tenant/boats/new", {
         method: "POST",
         body: formData,
       });
@@ -142,7 +142,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       formData.append("name", "Simple Boat");
       formData.append("capacity", "6");
 
-      const request = new Request("http://test.com/app/boats/new", {
+      const request = new Request("http://test.com/tenant/boats/new", {
         method: "POST",
         body: formData,
       });
@@ -177,7 +177,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       // Amenities should be passed as comma-separated string, then converted to JSON by validation
       formData.append("amenities", "WiFi, AC, Kitchen");
 
-      const request = new Request("http://test.com/app/boats/new", {
+      const request = new Request("http://test.com/tenant/boats/new", {
         method: "POST",
         body: formData,
       });
@@ -205,7 +205,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       formData.append("capacity", "20");
       formData.append("crewSize", "5");
 
-      const request = new Request("http://test.com/app/boats/new", {
+      const request = new Request("http://test.com/tenant/boats/new", {
         method: "POST",
         body: formData,
       });
@@ -238,7 +238,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       formData.append("name", "Test Boat");
       formData.append("type", "invalid-type");
 
-      const request = new Request("http://test.com/app/boats/new", {
+      const request = new Request("http://test.com/tenant/boats/new", {
         method: "POST",
         body: formData,
       });
@@ -262,7 +262,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       formData.append("capacity", "10");
       formData.append("isActive", "true");
 
-      const request = new Request("http://test.com/app/boats/new", {
+      const request = new Request("http://test.com/tenant/boats/new", {
         method: "POST",
         body: formData,
       });
@@ -290,7 +290,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       formData.append("capacity", "8");
       formData.append("amenities", "");
 
-      const request = new Request("http://test.com/app/boats/new", {
+      const request = new Request("http://test.com/tenant/boats/new", {
         method: "POST",
         body: formData,
       });

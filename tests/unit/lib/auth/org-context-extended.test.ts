@@ -302,7 +302,7 @@ describe("org-context.server - extended tests", () => {
     });
 
     it("handles deep nested paths", () => {
-      const request = new Request("http://test.localhost:5173/app/customers/123/edit");
+      const request = new Request("http://test.localhost:5173/tenant/customers/123/edit");
       expect(getSubdomainFromRequest(request)).toBe("test");
     });
 

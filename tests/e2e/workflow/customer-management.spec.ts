@@ -531,7 +531,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
     await page.waitForTimeout(1500);
-    expect(page.url()).toMatch(/\/app\/customers\/[a-f0-9-]+/);
+    expect(page.url()).toMatch(/\/tenant\/customers\/[a-f0-9-]+/);
   });
 
   test("D.2 Detail page shows customer name", async ({ page }) => {

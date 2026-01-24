@@ -62,7 +62,7 @@ describe("tenant/customers/new route", () => {
 
       (createCustomer as Mock).mockResolvedValue({ id: "cust-1" });
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -77,7 +77,7 @@ describe("tenant/customers/new route", () => {
       formData.append("lastName", "Doe");
       formData.append("email", "john@example.com");
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -93,7 +93,7 @@ describe("tenant/customers/new route", () => {
       formData.append("firstName", "John");
       formData.append("email", "john@example.com");
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -109,7 +109,7 @@ describe("tenant/customers/new route", () => {
       formData.append("firstName", "John");
       formData.append("lastName", "Doe");
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -126,7 +126,7 @@ describe("tenant/customers/new route", () => {
       formData.append("lastName", "Doe");
       formData.append("email", "notanemail");
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -140,7 +140,7 @@ describe("tenant/customers/new route", () => {
     it("returns multiple errors when multiple fields invalid", async () => {
       const formData = new FormData();
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -161,7 +161,7 @@ describe("tenant/customers/new route", () => {
       formData.append("lastName", "Doe");
       formData.append("email", "john@example.com");
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -203,7 +203,7 @@ describe("tenant/customers/new route", () => {
       formData.append("country", "USA");
       formData.append("notes", "VIP customer");
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -239,7 +239,7 @@ describe("tenant/customers/new route", () => {
       formData.append("certAgency", "PADI");
       // Missing certLevel - should not create certification
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -259,7 +259,7 @@ describe("tenant/customers/new route", () => {
       formData.append("lastName", "Doe");
       formData.append("email", "john@example.com");
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -279,7 +279,7 @@ describe("tenant/customers/new route", () => {
       formData.append("email", "john@example.com");
       formData.append("phone", "+1-555-0101");
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -299,7 +299,7 @@ describe("tenant/customers/new route", () => {
       formData.append("firstName", "John");
       // Missing lastName and email
 
-      const request = new Request("https://demo.divestreams.com/app/customers/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });

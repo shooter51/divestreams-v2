@@ -58,14 +58,14 @@ describe("tenant/discounts route", () => {
 
   describe("Discount Data Requirements", () => {
     it("requires organization context", async () => {
-      const request = new Request("https://demo.divestreams.com/app/discounts");
+      const request = new Request("https://demo.divestreams.com/tenant/discounts");
       await requireOrgContext(request);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns premium status from context", async () => {
-      const request = new Request("https://demo.divestreams.com/app/discounts");
+      const request = new Request("https://demo.divestreams.com/tenant/discounts");
       const ctx = await requireOrgContext(request);
 
       expect(ctx.isPremium).toBe(true);

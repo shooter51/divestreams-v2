@@ -67,7 +67,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/customers");
+      const request = new Request("http://test.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.customers).toHaveLength(1);
@@ -114,7 +114,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/customers?search=john");
+      const request = new Request("http://test.com/tenant/customers?search=john");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.search).toBe("john");
@@ -156,7 +156,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/customers?page=2");
+      const request = new Request("http://test.com/tenant/customers?page=2");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.page).toBe(2);
@@ -208,7 +208,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/customers");
+      const request = new Request("http://test.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.canAddCustomer).toBe(false);
@@ -265,7 +265,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/customers");
+      const request = new Request("http://test.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.customers[0].createdAt).toBe("2024-01-15");

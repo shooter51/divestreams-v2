@@ -32,7 +32,7 @@ describe("app/routes/tenant/pos/index.tsx", () => {
         limits: { hasPOS: false },
       } as any);
 
-      const request = new Request("http://test.com/app/pos");
+      const request = new Request("http://test.com/tenant/pos");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.isPremium).toBe(false);
@@ -70,7 +70,7 @@ describe("app/routes/tenant/pos/index.tsx", () => {
         }
       });
 
-      const request = new Request("http://test.com/app/pos");
+      const request = new Request("http://test.com/tenant/pos");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.isPremium).toBe(true);
@@ -106,7 +106,7 @@ describe("app/routes/tenant/pos/index.tsx", () => {
         }
       });
 
-      const request = new Request("http://test.com/app/pos");
+      const request = new Request("http://test.com/tenant/pos");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.summary).toHaveProperty("totalSales");
@@ -126,7 +126,7 @@ describe("app/routes/tenant/pos/index.tsx", () => {
       formData.append("items", JSON.stringify([{ id: "prod-1", quantity: 1, price: 50 }]));
       formData.append("paymentMethod", "cash");
 
-      const request = new Request("http://test.com/app/pos", {
+      const request = new Request("http://test.com/tenant/pos", {
         method: "POST",
         body: formData,
       });
@@ -165,7 +165,7 @@ describe("app/routes/tenant/pos/index.tsx", () => {
       formData.append("paymentMethod", "card");
       formData.append("total", "100");
 
-      const request = new Request("http://test.com/app/pos", {
+      const request = new Request("http://test.com/tenant/pos", {
         method: "POST",
         body: formData,
       });
@@ -198,7 +198,7 @@ describe("app/routes/tenant/pos/index.tsx", () => {
         formData.append("paymentMethod", method);
         formData.append("total", "50");
 
-        const request = new Request("http://test.com/app/pos", {
+        const request = new Request("http://test.com/tenant/pos", {
           method: "POST",
           body: formData,
         });
@@ -232,7 +232,7 @@ describe("app/routes/tenant/pos/index.tsx", () => {
       formData.append("paymentMethod", "cash");
       formData.append("total", "50");
 
-      const request = new Request("http://test.com/app/pos", {
+      const request = new Request("http://test.com/tenant/pos", {
         method: "POST",
         body: formData,
       });

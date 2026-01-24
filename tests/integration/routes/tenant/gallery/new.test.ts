@@ -35,7 +35,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       formData.append("sortOrder", "0");
       formData.append("isPublic", "true");
 
-      const request = new Request("http://test.com/app/gallery/new", {
+      const request = new Request("http://test.com/tenant/gallery/new", {
         method: "POST",
         body: formData,
       });
@@ -64,7 +64,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       formData.append("name", "");
       formData.append("slug", "fallback-slug"); // Provide slug to avoid null.toLowerCase() crash
 
-      const request = new Request("http://test.com/app/gallery/new", {
+      const request = new Request("http://test.com/tenant/gallery/new", {
         method: "POST",
         body: formData,
       });
@@ -83,7 +83,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       formData.append("name", "Coral Sea Adventure");
       formData.append("description", "Dive expedition");
 
-      const request = new Request("http://test.com/app/gallery/new", {
+      const request = new Request("http://test.com/tenant/gallery/new", {
         method: "POST",
         body: formData,
       });
@@ -105,7 +105,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       const formData = new FormData();
       formData.append("name", "Simple Album");
 
-      const request = new Request("http://test.com/app/gallery/new", {
+      const request = new Request("http://test.com/tenant/gallery/new", {
         method: "POST",
         body: formData,
       });
@@ -131,7 +131,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       const formData = new FormData();
       formData.append("name", "Amazing Dive Trip! 2024");
 
-      const request = new Request("http://test.com/app/gallery/new", {
+      const request = new Request("http://test.com/tenant/gallery/new", {
         method: "POST",
         body: formData,
       });
@@ -154,7 +154,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       formData.append("name", "Album Name");
       formData.append("slug", "custom-slug-here");
 
-      const request = new Request("http://test.com/app/gallery/new", {
+      const request = new Request("http://test.com/tenant/gallery/new", {
         method: "POST",
         body: formData,
       });
@@ -177,7 +177,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       formData.append("name", "Sorted Album");
       formData.append("sortOrder", "5");
 
-      const request = new Request("http://test.com/app/gallery/new", {
+      const request = new Request("http://test.com/tenant/gallery/new", {
         method: "POST",
         body: formData,
       });
@@ -200,7 +200,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       formData.append("name", "Public Album");
       formData.append("isPublic", "true");
 
-      const request = new Request("http://test.com/app/gallery/new", {
+      const request = new Request("http://test.com/tenant/gallery/new", {
         method: "POST",
         body: formData,
       });
@@ -223,7 +223,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       formData.append("name", "No Description");
       formData.append("description", "");
 
-      const request = new Request("http://test.com/app/gallery/new", {
+      const request = new Request("http://test.com/tenant/gallery/new", {
         method: "POST",
         body: formData,
       });

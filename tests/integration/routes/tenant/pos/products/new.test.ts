@@ -31,7 +31,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
       formData.append("stockQuantity", "10");
       formData.append("trackInventory", "on");
 
-      const request = new Request("http://test.com/app/pos/products/new", {
+      const request = new Request("http://test.com/tenant/pos/products/new", {
         method: "POST",
         body: formData,
       });
@@ -59,7 +59,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
       formData.append("category", "equipment");
       formData.append("price", "50");
 
-      const request = new Request("http://test.com/app/pos/products/new", {
+      const request = new Request("http://test.com/tenant/pos/products/new", {
         method: "POST",
         body: formData,
       });
@@ -76,7 +76,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
       formData.append("category", "");
       formData.append("price", "50");
 
-      const request = new Request("http://test.com/app/pos/products/new", {
+      const request = new Request("http://test.com/tenant/pos/products/new", {
         method: "POST",
         body: formData,
       });
@@ -93,7 +93,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
       formData.append("category", "equipment");
       formData.append("price", "invalid");
 
-      const request = new Request("http://test.com/app/pos/products/new", {
+      const request = new Request("http://test.com/tenant/pos/products/new", {
         method: "POST",
         body: formData,
       });
@@ -114,7 +114,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
       formData.append("price", "50");
       // trackInventory not included = checkbox unchecked
 
-      const request = new Request("http://test.com/app/pos/products/new", {
+      const request = new Request("http://test.com/tenant/pos/products/new", {
         method: "POST",
         body: formData,
       });
@@ -139,7 +139,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
       formData.append("price", "50");
       formData.append("cost", "");
 
-      const request = new Request("http://test.com/app/pos/products/new", {
+      const request = new Request("http://test.com/tenant/pos/products/new", {
         method: "POST",
         body: formData,
       });
@@ -159,7 +159,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
       formData.append("price", "50");
       formData.append("stockQuantity", "");
 
-      const request = new Request("http://test.com/app/pos/products/new", {
+      const request = new Request("http://test.com/tenant/pos/products/new", {
         method: "POST",
         body: formData,
       });
@@ -182,7 +182,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
       formData.append("trackInventory", "on");
       formData.append("description", "High-quality mask");
 
-      const request = new Request("http://test.com/app/pos/products/new", {
+      const request = new Request("http://test.com/tenant/pos/products/new", {
         method: "POST",
         body: formData,
       });

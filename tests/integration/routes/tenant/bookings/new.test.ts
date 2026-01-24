@@ -62,7 +62,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(queries.getTrips).mockResolvedValue(mockTrips as any);
       vi.mocked(queries.getEquipment).mockResolvedValue(mockEquipment as any);
 
-      const request = new Request("http://test.com/app/bookings/new");
+      const request = new Request("http://test.com/tenant/bookings/new");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(queries.getCustomers).toHaveBeenCalledWith(mockOrganizationId, { limit: 100 });
@@ -92,7 +92,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(queries.getTrips).mockResolvedValue([]);
       vi.mocked(queries.getEquipment).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/bookings/new?customerId=cust-1");
+      const request = new Request("http://test.com/tenant/bookings/new?customerId=cust-1");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.selectedCustomer).toEqual({
@@ -120,7 +120,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(queries.getTrips).mockResolvedValue(mockTrips as any);
       vi.mocked(queries.getEquipment).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/bookings/new?tripId=trip-1");
+      const request = new Request("http://test.com/tenant/bookings/new?tripId=trip-1");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.selectedTrip).toBeDefined();
@@ -145,7 +145,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(queries.getTrips).mockResolvedValue(mockTrips as any);
       vi.mocked(queries.getEquipment).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/bookings/new");
+      const request = new Request("http://test.com/tenant/bookings/new");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.upcomingTrips[0].tourName).toBe("Trip");
@@ -171,7 +171,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(queries.getTrips).mockResolvedValue(mockTrips as any);
       vi.mocked(queries.getEquipment).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/bookings/new");
+      const request = new Request("http://test.com/tenant/bookings/new");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.upcomingTrips).toHaveLength(0);
@@ -223,7 +223,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       formData.append("specialRequests", "Vegetarian meals");
       formData.append("source", "direct");
 
-      const request = new Request("http://test.com/app/bookings/new", {
+      const request = new Request("http://test.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -279,7 +279,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       formData.append("customerId", "");
       formData.append("tripId", "");
 
-      const request = new Request("http://test.com/app/bookings/new", {
+      const request = new Request("http://test.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -313,7 +313,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(validation.getFormValues).mockReturnValue({});
 
       const formData = new FormData();
-      const request = new Request("http://test.com/app/bookings/new", {
+      const request = new Request("http://test.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -341,7 +341,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(validation.getFormValues).mockReturnValue({});
 
       const formData = new FormData();
-      const request = new Request("http://test.com/app/bookings/new", {
+      const request = new Request("http://test.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -392,7 +392,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const formData = new FormData();
-      const request = new Request("http://test.com/app/bookings/new", {
+      const request = new Request("http://test.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -443,7 +443,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(emailTriggers.triggerBookingConfirmation).mockResolvedValue(undefined);
 
       const formData = new FormData();
-      const request = new Request("http://test.com/app/bookings/new", {
+      const request = new Request("http://test.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -494,7 +494,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(emailTriggers.triggerBookingConfirmation).mockResolvedValue(undefined);
 
       const formData = new FormData();
-      const request = new Request("http://test.com/app/bookings/new", {
+      const request = new Request("http://test.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -542,7 +542,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
       vi.mocked(emailTriggers.triggerBookingConfirmation).mockResolvedValue(undefined);
 
       const formData = new FormData();
-      const request = new Request("http://test.com/app/bookings/new", {
+      const request = new Request("http://test.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });

@@ -31,7 +31,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       formData.append("emergencyContactName", "Jane Doe");
       formData.append("emergencyContactPhone", "555-5678");
 
-      const request = new Request("http://test.com/app/customers/new", {
+      const request = new Request("http://test.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -60,7 +60,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       formData.append("lastName", "Doe");
       formData.append("email", "john@example.com");
 
-      const request = new Request("http://test.com/app/customers/new", {
+      const request = new Request("http://test.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -77,7 +77,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       formData.append("lastName", "");
       formData.append("email", "john@example.com");
 
-      const request = new Request("http://test.com/app/customers/new", {
+      const request = new Request("http://test.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -94,7 +94,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       formData.append("lastName", "Doe");
       formData.append("email", "");
 
-      const request = new Request("http://test.com/app/customers/new", {
+      const request = new Request("http://test.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -111,7 +111,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       formData.append("lastName", "Doe");
       formData.append("email", "invalid-email");
 
-      const request = new Request("http://test.com/app/customers/new", {
+      const request = new Request("http://test.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -132,7 +132,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       formData.append("certAgency", "");
       formData.append("certLevel", "");
 
-      const request = new Request("http://test.com/app/customers/new", {
+      const request = new Request("http://test.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });
@@ -158,7 +158,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       formData.append("certLevel", "Advanced Open Water");
       formData.append("certNumber", "12345");
 
-      const request = new Request("http://test.com/app/customers/new", {
+      const request = new Request("http://test.com/tenant/customers/new", {
         method: "POST",
         body: formData,
       });

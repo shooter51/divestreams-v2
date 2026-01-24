@@ -71,7 +71,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
         return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/equipment");
+      const request = new Request("http://test.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.equipment).toHaveLength(2);
@@ -114,7 +114,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
         return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/equipment?q=aqualung");
+      const request = new Request("http://test.com/tenant/equipment?q=aqualung");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.search).toBe("aqualung");
@@ -154,7 +154,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
         return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/equipment?category=bcd");
+      const request = new Request("http://test.com/tenant/equipment?category=bcd");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.category).toBe("bcd");
@@ -194,7 +194,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
         return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/equipment?status=maintenance");
+      const request = new Request("http://test.com/tenant/equipment?status=maintenance");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.status).toBe("maintenance");
@@ -229,7 +229,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
         return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
       });
 
-      const request = new Request("http://test.com/app/equipment");
+      const request = new Request("http://test.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.stats.total).toBe(5);
@@ -270,7 +270,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
         isPremium: false,
       } as any);
 
-      const request = new Request("http://test.com/app/equipment");
+      const request = new Request("http://test.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.hasEquipmentRentals).toBe(false);
@@ -298,7 +298,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       formData.append("intent", "barcode-lookup");
       formData.append("barcode", "123456789");
 
-      const request = new Request("http://test.com/app/equipment", {
+      const request = new Request("http://test.com/tenant/equipment", {
         method: "POST",
         body: formData,
       });
@@ -325,7 +325,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       formData.append("intent", "barcode-lookup");
       formData.append("barcode", "999999999");
 
-      const request = new Request("http://test.com/app/equipment", {
+      const request = new Request("http://test.com/tenant/equipment", {
         method: "POST",
         body: formData,
       });
@@ -343,7 +343,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       formData.append("intent", "barcode-lookup");
       formData.append("barcode", "");
 
-      const request = new Request("http://test.com/app/equipment", {
+      const request = new Request("http://test.com/tenant/equipment", {
         method: "POST",
         body: formData,
       });
@@ -357,7 +357,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "unknown-action");
 
-      const request = new Request("http://test.com/app/equipment", {
+      const request = new Request("http://test.com/tenant/equipment", {
         method: "POST",
         body: formData,
       });

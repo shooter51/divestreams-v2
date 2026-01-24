@@ -111,7 +111,7 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
         schema: mockSchema,
       } as any);
 
-      const request = new Request("http://test.com/app/dive-sites/site-456");
+      const request = new Request("http://test.com/tenant/dive-sites/site-456");
       const result = await loader({ request, params: { id: mockSiteId }, context: {} });
 
       expect(queries.getDiveSiteById).toHaveBeenCalledWith(mockOrganizationId, mockSiteId);
@@ -128,7 +128,7 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
     });
 
     it("should throw 400 if site ID is missing", async () => {
-      const request = new Request("http://test.com/app/dive-sites/");
+      const request = new Request("http://test.com/tenant/dive-sites/");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -143,7 +143,7 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
     it("should throw 404 if site not found", async () => {
       vi.mocked(queries.getDiveSiteById).mockResolvedValue(null);
 
-      const request = new Request("http://test.com/app/dive-sites/nonexistent");
+      const request = new Request("http://test.com/tenant/dive-sites/nonexistent");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -200,7 +200,7 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/dive-sites/site-456");
+      const request = new Request("http://test.com/tenant/dive-sites/site-456");
       const result = await loader({ request, params: { id: mockSiteId }, context: {} });
 
       expect(result.diveSite.createdAt).toBe("2024-01-15");
@@ -245,7 +245,7 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/dive-sites/site-456");
+      const request = new Request("http://test.com/tenant/dive-sites/site-456");
       const result = await loader({ request, params: { id: mockSiteId }, context: {} });
 
       expect(result.diveSite.coordinates).toBeNull();
@@ -265,7 +265,7 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "toggle-active");
 
-      const request = new Request("http://test.com/app/dive-sites/site-456", {
+      const request = new Request("http://test.com/tenant/dive-sites/site-456", {
         method: "POST",
         body: formData,
       });
@@ -286,7 +286,7 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "delete");
 
-      const request = new Request("http://test.com/app/dive-sites/site-456", {
+      const request = new Request("http://test.com/tenant/dive-sites/site-456", {
         method: "POST",
         body: formData,
       });
@@ -301,7 +301,7 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "unknown-action");
 
-      const request = new Request("http://test.com/app/dive-sites/site-456", {
+      const request = new Request("http://test.com/tenant/dive-sites/site-456", {
         method: "POST",
         body: formData,
       });

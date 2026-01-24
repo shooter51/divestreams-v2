@@ -42,7 +42,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
       formData.append("barcode", "123456789");
       formData.append("isPublic", "true");
 
-      const request = new Request("http://test.com/app/equipment/new", {
+      const request = new Request("http://test.com/tenant/equipment/new", {
         method: "POST",
         body: formData,
       });
@@ -87,7 +87,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
       const formData = new FormData();
       formData.append("name", "");
 
-      const request = new Request("http://test.com/app/equipment/new", {
+      const request = new Request("http://test.com/tenant/equipment/new", {
         method: "POST",
         body: formData,
       });
@@ -115,7 +115,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
       formData.append("name", "Test Equipment");
       formData.append("category", "");
 
-      const request = new Request("http://test.com/app/equipment/new", {
+      const request = new Request("http://test.com/tenant/equipment/new", {
         method: "POST",
         body: formData,
       });
@@ -138,7 +138,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
       formData.append("name", "Simple Equipment");
       formData.append("category", "other");
 
-      const request = new Request("http://test.com/app/equipment/new", {
+      const request = new Request("http://test.com/tenant/equipment/new", {
         method: "POST",
         body: formData,
       });
@@ -174,7 +174,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
       formData.append("isRentable", "true");
       formData.append("rentalPrice", "35.50");
 
-      const request = new Request("http://test.com/app/equipment/new", {
+      const request = new Request("http://test.com/tenant/equipment/new", {
         method: "POST",
         body: formData,
       });
@@ -206,7 +206,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
       formData.append("name", "Test Equipment");
       formData.append("category", "invalid-category");
 
-      const request = new Request("http://test.com/app/equipment/new", {
+      const request = new Request("http://test.com/tenant/equipment/new", {
         method: "POST",
         body: formData,
       });
@@ -234,7 +234,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
       formData.append("name", "Test Equipment");
       formData.append("status", "invalid-status");
 
-      const request = new Request("http://test.com/app/equipment/new", {
+      const request = new Request("http://test.com/tenant/equipment/new", {
         method: "POST",
         body: formData,
       });
@@ -258,7 +258,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
       formData.append("category", "wetsuit");
       formData.append("size", "L");
 
-      const request = new Request("http://test.com/app/equipment/new", {
+      const request = new Request("http://test.com/tenant/equipment/new", {
         method: "POST",
         body: formData,
       });

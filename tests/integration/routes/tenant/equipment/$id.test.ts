@@ -129,7 +129,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
         schema: mockSchema,
       } as any);
 
-      const request = new Request("http://test.com/app/equipment/eq-456");
+      const request = new Request("http://test.com/tenant/equipment/eq-456");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
 
       expect(queries.getEquipmentById).toHaveBeenCalledWith(mockOrganizationId, mockEquipmentId);
@@ -145,7 +145,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
     });
 
     it("should throw 400 if equipment ID is missing", async () => {
-      const request = new Request("http://test.com/app/equipment/");
+      const request = new Request("http://test.com/tenant/equipment/");
 
       try {
         await loader({ request, params: {}, context: {} });
@@ -160,7 +160,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
     it("should throw 404 if equipment not found", async () => {
       vi.mocked(queries.getEquipmentById).mockResolvedValue(null);
 
-      const request = new Request("http://test.com/app/equipment/nonexistent");
+      const request = new Request("http://test.com/tenant/equipment/nonexistent");
 
       try {
         await loader({ request, params: { id: "nonexistent" }, context: {} });
@@ -219,7 +219,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/equipment/eq-456");
+      const request = new Request("http://test.com/tenant/equipment/eq-456");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
 
       expect(result.equipment.purchaseDate).toBe("2024-01-15");
@@ -265,7 +265,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
         schema: { images: {} },
       } as any);
 
-      const request = new Request("http://test.com/app/equipment/eq-456");
+      const request = new Request("http://test.com/tenant/equipment/eq-456");
       const result = await loader({ request, params: { id: mockEquipmentId }, context: {} });
 
       expect(result.equipment.purchaseDate).toBeNull();
@@ -282,7 +282,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       formData.append("intent", "update-status");
       formData.append("status", "rented");
 
-      const request = new Request("http://test.com/app/equipment/eq-456", {
+      const request = new Request("http://test.com/tenant/equipment/eq-456", {
         method: "POST",
         body: formData,
       });
@@ -311,7 +311,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       formData.append("notes", "Regular maintenance");
       formData.append("cost", "50.00");
 
-      const request = new Request("http://test.com/app/equipment/eq-456", {
+      const request = new Request("http://test.com/tenant/equipment/eq-456", {
         method: "POST",
         body: formData,
       });
@@ -328,7 +328,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "retire");
 
-      const request = new Request("http://test.com/app/equipment/eq-456", {
+      const request = new Request("http://test.com/tenant/equipment/eq-456", {
         method: "POST",
         body: formData,
       });
@@ -349,7 +349,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "delete");
 
-      const request = new Request("http://test.com/app/equipment/eq-456", {
+      const request = new Request("http://test.com/tenant/equipment/eq-456", {
         method: "POST",
         body: formData,
       });
@@ -366,7 +366,7 @@ describe("app/routes/tenant/equipment/$id.tsx", () => {
       const formData = new FormData();
       formData.append("intent", "unknown-action");
 
-      const request = new Request("http://test.com/app/equipment/eq-456", {
+      const request = new Request("http://test.com/tenant/equipment/eq-456", {
         method: "POST",
         body: formData,
       });

@@ -26,7 +26,7 @@ export class LoginPage extends TenantBasePage {
   }
 
   async expectRedirectToDashboard(): Promise<void> {
-    await expect(this.page).toHaveURL(/\/app/);
+    await expect(this.page).toHaveURL(/\/tenant/);
   }
 
   async clickForgotPassword(): Promise<void> {

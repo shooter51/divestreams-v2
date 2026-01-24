@@ -121,7 +121,7 @@ describe("tenant/bookings/new route", () => {
 
   describe("loader", () => {
     it("requires tenant context", async () => {
-      const request = new Request("https://demo.divestreams.com/app/bookings/new");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new");
 
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
@@ -129,7 +129,7 @@ describe("tenant/bookings/new route", () => {
     });
 
     it("fetches customers, trips, and equipment", async () => {
-      const request = new Request("https://demo.divestreams.com/app/bookings/new");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new");
 
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
@@ -139,7 +139,7 @@ describe("tenant/bookings/new route", () => {
     });
 
     it("returns customers list", async () => {
-      const request = new Request("https://demo.divestreams.com/app/bookings/new");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new");
 
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
@@ -153,7 +153,7 @@ describe("tenant/bookings/new route", () => {
     });
 
     it("returns upcoming trips with availability", async () => {
-      const request = new Request("https://demo.divestreams.com/app/bookings/new");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new");
 
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
@@ -167,7 +167,7 @@ describe("tenant/bookings/new route", () => {
     });
 
     it("returns rental equipment", async () => {
-      const request = new Request("https://demo.divestreams.com/app/bookings/new");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new");
 
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
@@ -180,7 +180,7 @@ describe("tenant/bookings/new route", () => {
     });
 
     it("pre-selects customer when customerId in URL", async () => {
-      const request = new Request("https://demo.divestreams.com/app/bookings/new?customerId=cust-1");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new?customerId=cust-1");
 
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
@@ -191,7 +191,7 @@ describe("tenant/bookings/new route", () => {
     });
 
     it("pre-selects trip when tripId in URL", async () => {
-      const request = new Request("https://demo.divestreams.com/app/bookings/new?tripId=trip-1");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new?tripId=trip-1");
 
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
@@ -202,7 +202,7 @@ describe("tenant/bookings/new route", () => {
     });
 
     it("returns undefined for non-existent customer", async () => {
-      const request = new Request("https://demo.divestreams.com/app/bookings/new?customerId=nonexistent");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new?customerId=nonexistent");
 
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
@@ -211,7 +211,7 @@ describe("tenant/bookings/new route", () => {
     });
 
     it("returns undefined for non-existent trip", async () => {
-      const request = new Request("https://demo.divestreams.com/app/bookings/new?tripId=nonexistent");
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new?tripId=nonexistent");
 
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
@@ -248,7 +248,7 @@ describe("tenant/bookings/new route", () => {
       formData.append("customerId", "cust-1");
       formData.append("participants", "1");
 
-      const request = new Request("https://demo.divestreams.com/app/bookings/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -267,7 +267,7 @@ describe("tenant/bookings/new route", () => {
 
       const formData = new FormData();
 
-      const request = new Request("https://demo.divestreams.com/app/bookings/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -293,7 +293,7 @@ describe("tenant/bookings/new route", () => {
       formData.append("customerId", "nonexistent");
       formData.append("participants", "1");
 
-      const request = new Request("https://demo.divestreams.com/app/bookings/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -317,7 +317,7 @@ describe("tenant/bookings/new route", () => {
       formData.append("customerId", "cust-1");
       formData.append("participants", "1");
 
-      const request = new Request("https://demo.divestreams.com/app/bookings/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -339,7 +339,7 @@ describe("tenant/bookings/new route", () => {
       formData.append("customerId", "cust-1");
       formData.append("participants", "2");
 
-      const request = new Request("https://demo.divestreams.com/app/bookings/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -375,7 +375,7 @@ describe("tenant/bookings/new route", () => {
       formData.append("specialRequests", "Need extra weight belt");
       formData.append("source", "website");
 
-      const request = new Request("https://demo.divestreams.com/app/bookings/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -399,7 +399,7 @@ describe("tenant/bookings/new route", () => {
       formData.append("customerId", "cust-1");
       formData.append("participants", "1");
 
-      const request = new Request("https://demo.divestreams.com/app/bookings/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -427,7 +427,7 @@ describe("tenant/bookings/new route", () => {
       formData.append("customerId", "cust-1");
       formData.append("participants", "1");
 
-      const request = new Request("https://demo.divestreams.com/app/bookings/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });
@@ -451,7 +451,7 @@ describe("tenant/bookings/new route", () => {
       formData.append("customerId", "cust-1");
       formData.append("participants", "1");
 
-      const request = new Request("https://demo.divestreams.com/app/bookings/new", {
+      const request = new Request("https://demo.divestreams.com/tenant/bookings/new", {
         method: "POST",
         body: formData,
       });

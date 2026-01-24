@@ -59,7 +59,7 @@ describe("tenant/settings/billing route", () => {
 
   describe("Billing Context", () => {
     it("requires organization context", async () => {
-      const request = new Request("https://demo.divestreams.com/app/settings/billing");
+      const request = new Request("https://demo.divestreams.com/tenant/settings/billing");
       await requireOrgContext(request);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);

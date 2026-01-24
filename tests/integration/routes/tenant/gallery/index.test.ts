@@ -49,7 +49,7 @@ describe("app/routes/tenant/gallery/index.tsx", () => {
 
       vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue(mockAlbums as any);
 
-      const request = new Request("http://test.com/app/gallery");
+      const request = new Request("http://test.com/tenant/gallery");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(gallery.getAllGalleryAlbums).toHaveBeenCalledWith(mockOrganizationId);
@@ -63,7 +63,7 @@ describe("app/routes/tenant/gallery/index.tsx", () => {
     it("should handle empty albums list", async () => {
       vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue([]);
 
-      const request = new Request("http://test.com/app/gallery");
+      const request = new Request("http://test.com/tenant/gallery");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.albums).toHaveLength(0);
@@ -83,7 +83,7 @@ describe("app/routes/tenant/gallery/index.tsx", () => {
 
       vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue(mockAlbums as any);
 
-      const request = new Request("http://test.com/app/gallery");
+      const request = new Request("http://test.com/tenant/gallery");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.albums[0].coverImageUrl).toBeNull();
@@ -98,7 +98,7 @@ describe("app/routes/tenant/gallery/index.tsx", () => {
 
       vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue(mockAlbums as any);
 
-      const request = new Request("http://test.com/app/gallery");
+      const request = new Request("http://test.com/tenant/gallery");
       const result = await loader({ request, params: {}, context: {} });
 
       expect(result.albums[0].isPublic).toBe(true);
