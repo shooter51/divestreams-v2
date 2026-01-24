@@ -305,7 +305,7 @@ export default function EnrollmentDetailPage() {
               <div>
                 <p className="text-sm text-gray-500">Name</p>
                 <Link
-                  to={`/app/customers/${enrollment.customerId}`}
+                  to={`/tenant/customers/${enrollment.customerId}`}
                   className="font-medium text-blue-600 hover:underline"
                 >
                   {enrollment.customerFirstName} {enrollment.customerLastName}
@@ -329,7 +329,7 @@ export default function EnrollmentDetailPage() {
               <div>
                 <p className="text-sm text-gray-500">Course</p>
                 <Link
-                  to={`/app/training/courses/${enrollment.courseId}`}
+                  to={`/tenant/training/courses/${enrollment.courseId}`}
                   className="font-medium text-blue-600 hover:underline"
                 >
                   {enrollment.courseName}

@@ -48,7 +48,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     isActive: formData.get("isActive") === "on",
   });
 
-  return redirect(`/app/pos/products/${params.id}`);
+  return redirect(`/tenant/pos/products/${params.id}`);
 }
 
 const categories = [
@@ -67,7 +67,7 @@ export default function EditProductPage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-4 mb-6">
-        <Link to={`/app/pos/products/${product.id}`} className="text-gray-400 hover:text-gray-600">
+        <Link to={`/tenant/pos/products/${product.id}`} className="text-gray-400 hover:text-gray-600">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -269,7 +269,7 @@ export default function EditProductPage() {
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
-            to={`/app/pos/products/${product.id}`}
+            to={`/tenant/pos/products/${product.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

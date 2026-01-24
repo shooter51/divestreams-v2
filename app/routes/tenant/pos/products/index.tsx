@@ -150,7 +150,7 @@ export default function ProductsPage() {
                 <tr key={product.id} className="border-b last:border-0 hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <Link
-                      to={`/app/pos/products/${product.id}`}
+                      to={`/tenant/pos/products/${product.id}`}
                       className="font-medium text-blue-600 hover:underline"
                     >
                       {product.name}
@@ -205,7 +205,7 @@ export default function ProductsPage() {
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <Link
-                        to={`/app/pos/products/${product.id}/edit`}
+                        to={`/tenant/pos/products/${product.id}/edit`}
                         className="text-sm text-blue-600 hover:underline"
                       >
                         Edit

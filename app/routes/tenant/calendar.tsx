@@ -239,13 +239,13 @@ function TripModal({ trip, onClose }: TripModalProps) {
         {/* Actions */}
         <div className="flex gap-3 mt-6">
           <Link
-            to={`/app/trips/${trip.id}`}
+            to={`/tenant/trips/${trip.id}`}
             className="flex-1 text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
             View Trip
           </Link>
           <Link
-            to={`/app/bookings/new?tripId=${trip.id}`}
+            to={`/tenant/bookings/new?tripId=${trip.id}`}
             className={`flex-1 text-center py-2 rounded-lg transition-colors ${
               isFull
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"

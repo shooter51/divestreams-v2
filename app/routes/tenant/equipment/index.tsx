@@ -169,7 +169,7 @@ export default function EquipmentPage() {
 
   // Navigate to equipment details when barcode lookup succeeds
   if (fetcher.data?.found && fetcher.data.equipmentId) {
-    window.location.href = `/app/equipment/${fetcher.data.equipmentId}`;
+    window.location.href = `/tenant/equipment/${fetcher.data.equipmentId}`;
   }
 
   // Show error if barcode lookup failed
@@ -363,7 +363,7 @@ export default function EquipmentPage() {
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <Link
-                      to={`/app/equipment/${item.id}`}
+                      to={`/tenant/equipment/${item.id}`}
                       className="font-medium text-blue-600 hover:underline"
                     >
                       {item.name}

@@ -231,7 +231,7 @@ export default function EnrollmentsPage() {
                 <tr key={enrollment.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <Link
-                      to={`/app/customers/${enrollment.student.id}`}
+                      to={`/tenant/customers/${enrollment.student.id}`}
                       className="font-medium text-blue-600 hover:underline"
                     >
                       {enrollment.student.firstName} {enrollment.student.lastName}
@@ -293,7 +293,7 @@ export default function EnrollmentsPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link
-                      to={`/app/training/enrollments/${enrollment.id}`}
+                      to={`/tenant/training/enrollments/${enrollment.id}`}
                       className="text-blue-600 hover:underline text-sm"
                     >
                       View

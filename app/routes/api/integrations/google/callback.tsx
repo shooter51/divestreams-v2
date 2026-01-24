@@ -43,7 +43,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         : `Google authorization failed: ${error}`
     );
     return redirect(
-      getRedirectUrl(`/app/settings/integrations?error=${errorMessage}`)
+      getRedirectUrl(`/tenant/settings/integrations?error=${errorMessage}`)
     );
   }
 
@@ -90,7 +90,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       err instanceof Error ? err.message : "Failed to connect Google Calendar";
     return redirect(
       getRedirectUrl(
-        `/app/settings/integrations?error=${encodeURIComponent(errorMessage)}`
+        `/tenant/settings/integrations?error=${encodeURIComponent(errorMessage)}`
       )
     );
   }

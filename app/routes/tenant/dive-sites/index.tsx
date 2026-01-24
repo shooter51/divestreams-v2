@@ -135,7 +135,7 @@ export default function DiveSitesPage() {
           {diveSites.map((site) => (
             <Link
               key={site.id}
-              to={`/app/dive-sites/${site.id}`}
+              to={`/tenant/dive-sites/${site.id}`}
               className={`bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow ${
                 !site.isActive ? "opacity-60" : ""
               }`}

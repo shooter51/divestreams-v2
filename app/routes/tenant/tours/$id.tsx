@@ -195,13 +195,13 @@ export default function TourDetailPage() {
         </div>
         <div className="flex gap-2">
           <Link
-            to={`/app/trips/new?tourId=${tour.id}`}
+            to={`/tenant/trips/new?tourId=${tour.id}`}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             Schedule Trip
           </Link>
           <Link
-            to={`/app/tours/${tour.id}/edit`}
+            to={`/tenant/tours/${tour.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Edit
@@ -316,7 +316,7 @@ export default function TourDetailPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Dive Sites Visited</h2>
               <Link
-                to={`/app/dive-sites`}
+                to={`/tenant/dive-sites`}
                 className="text-blue-600 text-sm hover:underline"
               >
                 View all sites
@@ -329,7 +329,7 @@ export default function TourDetailPage() {
                 {diveSites.map((site) => (
                   <Link
                     key={site.id}
-                    to={`/app/dive-sites/${site.id}`}
+                    to={`/tenant/dive-sites/${site.id}`}
                     className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <div className="flex justify-between items-center">
@@ -354,7 +354,7 @@ export default function TourDetailPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Upcoming Trips</h2>
               <Link
-                to={`/app/trips?tourId=${tour.id}`}
+                to={`/tenant/trips?tourId=${tour.id}`}
                 className="text-blue-600 text-sm hover:underline"
               >
                 View all
@@ -367,7 +367,7 @@ export default function TourDetailPage() {
                 {upcomingTrips.map((trip) => (
                   <Link
                     key={trip.id}
-                    to={`/app/trips/${trip.id}`}
+                    to={`/tenant/trips/${trip.id}`}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <div>
@@ -406,7 +406,7 @@ export default function TourDetailPage() {
             <h2 className="font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <Link
-                to={`/app/trips/new?tourId=${tour.id}`}
+                to={`/tenant/trips/new?tourId=${tour.id}`}
                 className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 Schedule Trip
@@ -421,7 +421,7 @@ export default function TourDetailPage() {
                 </button>
               </fetcher.Form>
               <Link
-                to={`/app/tours/${tour.id}/duplicate`}
+                to={`/tenant/tours/${tour.id}/duplicate`}
                 className="block w-full text-center border px-4 py-2 rounded-lg hover:bg-gray-50"
               >
                 Duplicate Tour

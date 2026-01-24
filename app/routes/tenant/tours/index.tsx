@@ -236,7 +236,7 @@ export default function ToursPage() {
           {tours.map((tour) => (
             <Link
               key={tour.id}
-              to={`/app/tours/${tour.id}`}
+              to={`/tenant/tours/${tour.id}`}
               className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start mb-3">

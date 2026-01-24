@@ -33,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
     coverImageUrl: null,
   });
 
-  return redirect(`/app/gallery/${album.id}`);
+  return redirect(`/tenant/gallery/${album.id}`);
 }
 
 export default function NewGalleryAlbumPage() {

@@ -1,7 +1,7 @@
 /**
  * Image List API
  *
- * GET /app/images?entityType=tour&entityId=123
+ * GET /tenant/images?entityType=tour&entityId=123
  * Lists images for a specific entity.
  */
 

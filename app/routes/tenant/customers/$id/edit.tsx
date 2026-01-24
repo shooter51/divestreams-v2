@@ -99,7 +99,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.customers.organizationId, organizationId), eq(schema.customers.id, customerId)));
 
-  return redirect(`/app/customers/${customerId}`);
+  return redirect(`/tenant/customers/${customerId}`);
 }
 
 export default function EditCustomerPage() {
@@ -111,7 +111,7 @@ export default function EditCustomerPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/app/customers/${customer.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/customers/${customer.id}`} className="text-blue-600 hover:underline text-sm">
           ← Back to Customer
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Customer</h1>
@@ -410,7 +410,7 @@ export default function EditCustomerPage() {
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
-            to={`/app/customers/${customer.id}`}
+            to={`/tenant/customers/${customer.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

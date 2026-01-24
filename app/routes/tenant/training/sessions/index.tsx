@@ -172,7 +172,7 @@ export default function SessionsPage() {
                   {dateSessions.map((session) => (
                     <Link
                       key={session.id}
-                      to={`/app/training/sessions/${session.id}`}
+                      to={`/tenant/training/sessions/${session.id}`}
                       className="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-4">

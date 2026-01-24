@@ -101,13 +101,13 @@ export default function CourseDetailPage() {
         </div>
         <div className="flex gap-2">
           <Link
-            to={`/app/training/sessions/new?courseId=${course.id}`}
+            to={`/tenant/training/sessions/new?courseId=${course.id}`}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             Schedule Session
           </Link>
           <Link
-            to={`/app/training/courses/${course.id}/edit`}
+            to={`/tenant/training/courses/${course.id}/edit`}
             className="px-4 py-2 border rounded-lg hover:bg-gray-50"
           >
             Edit
@@ -209,7 +209,7 @@ export default function CourseDetailPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Sessions</h2>
               <Link
-                to={`/app/training/sessions?courseId=${course.id}`}
+                to={`/tenant/training/sessions?courseId=${course.id}`}
                 className="text-blue-600 text-sm hover:underline"
               >
                 View all
@@ -222,7 +222,7 @@ export default function CourseDetailPage() {
                 {sessions.slice(0, 5).map((session) => (
                   <Link
                     key={session.id}
-                    to={`/app/training/sessions/${session.id}`}
+                    to={`/tenant/training/sessions/${session.id}`}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <div>
@@ -268,7 +268,7 @@ export default function CourseDetailPage() {
             <h2 className="font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <Link
-                to={`/app/training/sessions/new?courseId=${course.id}`}
+                to={`/tenant/training/sessions/new?courseId=${course.id}`}
                 className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 Schedule Session

@@ -282,7 +282,7 @@ export default function BookingsPage() {
                 <tr key={booking.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <Link
-                      to={`/app/bookings/${booking.id}`}
+                      to={`/tenant/bookings/${booking.id}`}
                       className="font-medium text-blue-600 hover:underline"
                     >
                       {booking.bookingNumber}
@@ -291,7 +291,7 @@ export default function BookingsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <Link
-                      to={`/app/customers/${booking.customer.id}`}
+                      to={`/tenant/customers/${booking.customer.id}`}
                       className="hover:text-blue-600"
                     >
                       {booking.customer.firstName} {booking.customer.lastName}
@@ -324,7 +324,7 @@ export default function BookingsPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link
-                      to={`/app/bookings/${booking.id}`}
+                      to={`/tenant/bookings/${booking.id}`}
                       className="text-blue-600 hover:underline text-sm"
                     >
                       View

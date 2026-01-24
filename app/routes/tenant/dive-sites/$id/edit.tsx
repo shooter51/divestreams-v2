@@ -121,7 +121,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.diveSites.organizationId, organizationId), eq(schema.diveSites.id, siteId)));
 
-  return redirect(`/app/dive-sites/${siteId}`);
+  return redirect(`/tenant/dive-sites/${siteId}`);
 }
 
 export default function EditDiveSitePage() {
@@ -133,7 +133,7 @@ export default function EditDiveSitePage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/app/dive-sites/${site.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/dive-sites/${site.id}`} className="text-blue-600 hover:underline text-sm">
           ← Back to Dive Site
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Dive Site</h1>
@@ -338,7 +338,7 @@ export default function EditDiveSitePage() {
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
-            to={`/app/dive-sites/${site.id}`}
+            to={`/tenant/dive-sites/${site.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

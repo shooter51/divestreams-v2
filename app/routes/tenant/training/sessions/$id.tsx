@@ -178,7 +178,7 @@ export default function SessionDetailPage() {
         <div className="flex gap-2">
           {session.status !== "cancelled" && session.status !== "completed" && spotsAvailable > 0 && (
             <Link
-              to={`/app/training/enrollments/new?sessionId=${session.id}`}
+              to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Enroll Student
@@ -383,7 +383,7 @@ export default function SessionDetailPage() {
                 </div>
                 <div>
                   <p className="text-gray-500">Course</p>
-                  <Link to={`/app/training/courses/${session.courseId}`} className="text-blue-600 hover:underline">
+                  <Link to={`/tenant/training/courses/${session.courseId}`} className="text-blue-600 hover:underline">
                     {session.courseName}
                   </Link>
                 </div>
@@ -423,7 +423,7 @@ export default function SessionDetailPage() {
               <h2 className="font-semibold">Enrolled Students ({enrollments.length})</h2>
               {spotsAvailable > 0 && session.status !== "cancelled" && session.status !== "completed" && (
                 <Link
-                  to={`/app/training/enrollments/new?sessionId=${session.id}`}
+                  to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
                   className="text-blue-600 text-sm hover:underline"
                 >
                   + Enroll Student
@@ -437,7 +437,7 @@ export default function SessionDetailPage() {
                 {enrollments.map((enrollment) => (
                   <Link
                     key={enrollment.id}
-                    to={`/app/training/enrollments/${enrollment.id}`}
+                    to={`/tenant/training/enrollments/${enrollment.id}`}
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <div>
@@ -506,13 +506,13 @@ export default function SessionDetailPage() {
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <Link
-                to={`/app/training/enrollments/new?sessionId=${session.id}`}
+                to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
               >
                 Add Enrollment
               </Link>
               <Link
-                to={`/app/training/courses/${session.courseId}`}
+                to={`/tenant/training/courses/${session.courseId}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
               >
                 View Course

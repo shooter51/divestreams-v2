@@ -122,7 +122,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     requiredItems,
   });
 
-  return redirect(`/app/training/courses/${courseId}`);
+  return redirect(`/tenant/training/courses/${courseId}`);
 }
 
 export default function EditCoursePage() {
@@ -135,7 +135,7 @@ export default function EditCoursePage() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link
-          to={`/app/training/courses/${course.id}`}
+          to={`/tenant/training/courses/${course.id}`}
           className="text-blue-600 hover:underline text-sm"
         >
           &larr; Back to Course
@@ -544,7 +544,7 @@ export default function EditCoursePage() {
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
-            to={`/app/training/courses/${course.id}`}
+            to={`/tenant/training/courses/${course.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

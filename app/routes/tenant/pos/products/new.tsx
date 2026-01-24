@@ -34,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
     lowStockThreshold: formData.get("lowStockThreshold") ? parseInt(formData.get("lowStockThreshold") as string) : undefined,
   });
 
-  return redirect(`/app/pos/products/${product.id}`);
+  return redirect(`/tenant/pos/products/${product.id}`);
 }
 
 const categories = [

@@ -38,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     // Redirect back to integrations page with error
     return redirect(
-      `/app/settings/integrations?error=${encodeURIComponent(errorMessage)}`
+      `/tenant/settings/integrations?error=${encodeURIComponent(errorMessage)}`
     );
   }
 }

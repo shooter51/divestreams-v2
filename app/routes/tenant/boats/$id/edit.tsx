@@ -115,7 +115,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.boats.organizationId, organizationId), eq(schema.boats.id, boatId)));
 
-  return redirect(`/app/boats/${boatId}`);
+  return redirect(`/tenant/boats/${boatId}`);
 }
 
 export default function EditBoatPage() {
@@ -127,7 +127,7 @@ export default function EditBoatPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/app/boats/${boat.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/boats/${boat.id}`} className="text-blue-600 hover:underline text-sm">
           ← Back to Boat
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Boat</h1>
@@ -278,7 +278,7 @@ export default function EditBoatPage() {
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
-            to={`/app/boats/${boat.id}`}
+            to={`/tenant/boats/${boat.id}`}
             className="px-6 py-2 border rounded-lg hover:bg-gray-50"
           >
             Cancel

@@ -1,7 +1,7 @@
 /**
  * Image Upload API
  *
- * POST /app/images/upload
+ * POST /tenant/images/upload
  * Handles multipart form data for image uploads.
  */
 
