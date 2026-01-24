@@ -1,10 +1,11 @@
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
-import { useLoaderData, Link } from "react-router";
+import { useLoaderData, Link, useSearchParams, useNavigate } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
-import { trips, bookings, customers, tours } from "../../../lib/db/schema";
+import { trips, bookings, customers, tours, member } from "../../../lib/db/schema";
 import { eq, sql, and, gte, count, desc } from "drizzle-orm";
 import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
+import { LIMIT_LABELS, LIMIT_WARNING_THRESHOLD } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Dashboard - DiveStreams" }];
@@ -156,6 +157,36 @@ export async function loader({ request }: LoaderFunctionArgs) {
     date: formatDate(booking.date),
   }));
 
+  // Get team member count
+  const [teamMemberCount] = await db
+    .select({ count: count() })
+    .from(member)
+    .where(eq(member.organizationId, ctx.org.id));
+
+  // Build extended usage stats for the UsageCard
+  const extendedUsage = {
+    users: teamMemberCount?.count ?? 0,
+    customers: ctx.usage.customers,
+    toursPerMonth: ctx.usage.tours,
+    storageGb: 0, // Storage tracking not yet implemented
+  };
+
+  // Get plan limits from subscription plan details or use defaults
+  const planLimits = ctx.subscription?.planDetails?.limits ?? {
+    users: ctx.limits.teamMembers,
+    customers: ctx.limits.customers,
+    toursPerMonth: ctx.limits.tours,
+    storageGb: 1,
+  };
+
+  // Calculate limit checks for each resource
+  const limitChecks = {
+    users: calculateLimitCheck(extendedUsage.users, planLimits.users),
+    customers: calculateLimitCheck(extendedUsage.customers, planLimits.customers),
+    toursPerMonth: calculateLimitCheck(extendedUsage.toursPerMonth, planLimits.toursPerMonth),
+    storageGb: calculateLimitCheck(extendedUsage.storageGb, planLimits.storageGb),
+  };
+
   return {
     stats,
     upcomingTrips: formattedTrips,
@@ -163,13 +194,61 @@ export async function loader({ request }: LoaderFunctionArgs) {
     subscription: ctx.subscription,
     limits: ctx.limits,
     usage: ctx.usage,
+    extendedUsage,
+    planLimits,
+    limitChecks,
+    planName: ctx.subscription?.planDetails?.displayName ?? ctx.subscription?.plan ?? "Free",
     isPremium: ctx.isPremium,
     orgName: ctx.org.name,
   };
 }
 
+// Helper function to calculate limit check for a resource
+function calculateLimitCheck(current: number, limit: number) {
+  if (limit === -1) {
+    return { allowed: true, warning: false, percent: 0, current, limit, remaining: -1 };
+  }
+  const percent = limit > 0 ? Math.round((current / limit) * 100) : 0;
+  return {
+    allowed: current < limit,
+    warning: current < limit && (current / limit) >= LIMIT_WARNING_THRESHOLD,
+    percent: Math.min(percent, 100),
+    current,
+    limit,
+    remaining: Math.max(0, limit - current),
+  };
+}
+
 export default function DashboardPage() {
-  const { stats, upcomingTrips, recentBookings, subscription, limits, usage, isPremium, orgName } = useLoaderData<typeof loader>();
+  const {
+    stats,
+    upcomingTrips,
+    recentBookings,
+    subscription,
+    limits,
+    usage,
+    extendedUsage,
+    planLimits,
+    limitChecks,
+    planName,
+    isPremium,
+    orgName
+  } = useLoaderData<typeof loader>();
+
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Handle upgrade modal from query params
+  const upgradeParam = searchParams.get("upgrade");
+  const limitExceededParam = searchParams.get("limit_exceeded");
+  const showUpgradeModal = !!(upgradeParam || limitExceededParam);
+
+  const closeUpgradeModal = () => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("upgrade");
+    newParams.delete("limit_exceeded");
+    navigate({ search: newParams.toString() }, { replace: true });
+  };
 
   // Calculate usage percentages - using correct property names from TierLimits and OrgUsage
   const bookingsUsagePercent = limits.bookingsPerMonth > 0
@@ -178,6 +257,9 @@ export default function DashboardPage() {
   const customersUsagePercent = limits.customers > 0
     ? Math.round((usage.customers / limits.customers) * 100)
     : 0;
+
+  // Check if any limit is approaching warning threshold
+  const hasWarning = Object.values(limitChecks).some(check => check.warning || !check.allowed);
 
   return (
     <div>
@@ -217,15 +299,25 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-4 gap-6 mb-8">
-        <StatCard title="Today's Bookings" value={stats.todayBookings} icon="📅" />
+        <StatCard title="Today's Bookings" value={stats.todayBookings} icon="calendar" />
         <StatCard
           title="This Week's Revenue"
           value={`$${stats.weekRevenue.toLocaleString()}`}
-          icon="💰"
+          icon="dollar"
         />
-        <StatCard title="Active Trips" value={stats.activeTrips} icon="🚤" />
-        <StatCard title="Total Customers" value={stats.totalCustomers} icon="👥" />
+        <StatCard title="Active Trips" value={stats.activeTrips} icon="boat" />
+        <StatCard title="Total Customers" value={stats.totalCustomers} icon="users" />
       </div>
+
+      {/* Usage Card */}
+      <UsageCard
+        planName={planName}
+        limitChecks={limitChecks}
+        extendedUsage={extendedUsage}
+        planLimits={planLimits}
+        isPremium={isPremium}
+        hasWarning={hasWarning}
+      />
 
       <div className="grid grid-cols-2 gap-6">
         {/* Upcoming Trips */}
@@ -298,6 +390,15 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <UpgradeModal
+          onClose={closeUpgradeModal}
+          limitExceeded={limitExceededParam}
+          feature={upgradeParam}
+        />
+      )}
     </div>
   );
 }
@@ -311,13 +412,262 @@ function StatCard({
   value: string | number;
   icon: string;
 }) {
+  const iconMap: Record<string, React.ReactNode> = {
+    calendar: (
+      <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+    dollar: (
+      <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    boat: (
+      <svg className="w-6 h-6 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15l9-9 9 9M12 3v18" />
+      </svg>
+    ),
+    users: (
+      <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+      </svg>
+    ),
+  };
+
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-2xl">{icon}</span>
+        {iconMap[icon] || <span className="text-2xl">{icon}</span>}
       </div>
       <p className="text-2xl font-bold">{value}</p>
       <p className="text-gray-500 text-sm">{title}</p>
+    </div>
+  );
+}
+
+interface LimitCheck {
+  allowed: boolean;
+  warning: boolean;
+  percent: number;
+  current: number;
+  limit: number;
+  remaining: number;
+}
+
+interface UsageCardProps {
+  planName: string;
+  limitChecks: Record<string, LimitCheck>;
+  extendedUsage: {
+    users: number;
+    customers: number;
+    toursPerMonth: number;
+    storageGb: number;
+  };
+  planLimits: {
+    users: number;
+    customers: number;
+    toursPerMonth: number;
+    storageGb: number;
+  };
+  isPremium: boolean;
+  hasWarning: boolean;
+}
+
+function UsageCard({ planName, limitChecks, extendedUsage, planLimits, isPremium, hasWarning }: UsageCardProps) {
+  const usageItems: Array<{
+    key: keyof typeof LIMIT_LABELS;
+    label: string;
+    current: number;
+    limit: number;
+    check: LimitCheck;
+    unit?: string;
+  }> = [
+    { key: "users", label: LIMIT_LABELS.users, current: extendedUsage.users, limit: planLimits.users, check: limitChecks.users },
+    { key: "customers", label: LIMIT_LABELS.customers, current: extendedUsage.customers, limit: planLimits.customers, check: limitChecks.customers },
+    { key: "toursPerMonth", label: LIMIT_LABELS.toursPerMonth, current: extendedUsage.toursPerMonth, limit: planLimits.toursPerMonth, check: limitChecks.toursPerMonth },
+    { key: "storageGb", label: LIMIT_LABELS.storageGb, current: extendedUsage.storageGb, limit: planLimits.storageGb, check: limitChecks.storageGb, unit: "GB" },
+  ];
+
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-lg font-semibold">Usage Overview</h2>
+          <p className="text-sm text-gray-500">Current plan: <span className="font-medium text-gray-700">{planName}</span></p>
+        </div>
+        {hasWarning && !isPremium && (
+          <Link
+            to="/tenant/settings/billing"
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Upgrade Plan
+          </Link>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {usageItems.map((item) => (
+          <UsageItem
+            key={item.key}
+            label={item.label}
+            current={item.current}
+            limit={item.limit}
+            check={item.check}
+            unit={item.unit}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface UsageItemProps {
+  label: string;
+  current: number;
+  limit: number;
+  check: LimitCheck;
+  unit?: string;
+}
+
+function UsageItem({ label, current, limit, check, unit }: UsageItemProps) {
+  const isUnlimited = limit === -1;
+  const isOverLimit = !check.allowed;
+  const isWarning = check.warning;
+
+  // Determine progress bar color
+  let progressColor = "bg-blue-500";
+  if (isOverLimit) {
+    progressColor = "bg-red-500";
+  } else if (isWarning) {
+    progressColor = "bg-yellow-500";
+  }
+
+  // Determine text color for the count
+  let textColor = "text-gray-900";
+  if (isOverLimit) {
+    textColor = "text-red-600";
+  } else if (isWarning) {
+    textColor = "text-yellow-600";
+  }
+
+  const formatValue = (val: number) => {
+    if (unit === "GB") {
+      return val.toFixed(1);
+    }
+    return val.toLocaleString();
+  };
+
+  return (
+    <div className="p-3 bg-gray-50 rounded-lg">
+      <p className="text-sm text-gray-600 mb-1">{label}</p>
+      <p className={`text-lg font-semibold ${textColor}`}>
+        {formatValue(current)} / {isUnlimited ? <span className="text-xl">&#8734;</span> : formatValue(limit)}
+        {unit && <span className="text-sm font-normal text-gray-500 ml-1">{unit}</span>}
+      </p>
+
+      {/* Progress bar */}
+      {!isUnlimited && (
+        <div className="mt-2">
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${progressColor} transition-all duration-300`}
+              style={{ width: `${Math.min(check.percent, 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            {check.percent}% used
+            {check.remaining > 0 && ` - ${check.remaining} remaining`}
+          </p>
+        </div>
+      )}
+
+      {isUnlimited && (
+        <p className="text-xs text-green-600 mt-2">Unlimited</p>
+      )}
+    </div>
+  );
+}
+
+interface UpgradeModalProps {
+  onClose: () => void;
+  limitExceeded: string | null;
+  feature: string | null;
+}
+
+function UpgradeModal({ onClose, limitExceeded, feature }: UpgradeModalProps) {
+  const limitLabels: Record<string, string> = {
+    users: "team members",
+    customers: "customers",
+    toursPerMonth: "tours this month",
+    storageGb: "storage",
+  };
+
+  const featureLabels: Record<string, string> = {
+    pos: "Point of Sale",
+    training: "Training Management",
+    equipment: "Equipment & Boats",
+    integrations: "Integrations",
+    api: "API Access",
+  };
+
+  const title = limitExceeded
+    ? `${limitLabels[limitExceeded] || limitExceeded} Limit Reached`
+    : feature
+      ? `Upgrade to Access ${featureLabels[feature] || feature}`
+      : "Upgrade Your Plan";
+
+  const description = limitExceeded
+    ? `You've reached the maximum number of ${limitLabels[limitExceeded] || limitExceeded} for your current plan. Upgrade to get more.`
+    : feature
+      ? `The ${featureLabels[feature] || feature} feature requires a higher tier plan.`
+      : "Unlock more features and higher limits with an upgraded plan.";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="text-center">
+          <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+          <p className="text-gray-600 mb-6">{description}</p>
+
+          <div className="space-y-3">
+            <Link
+              to="/tenant/settings/billing"
+              className="block w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              View Upgrade Options
+            </Link>
+            <button
+              onClick={onClose}
+              className="block w-full px-4 py-3 text-gray-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
