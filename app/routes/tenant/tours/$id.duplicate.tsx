@@ -1,8 +1,8 @@
-import { redirect, type Route } from "react-router";
-import { requireTenant } from "~/lib/auth/org-context.server";
-import { duplicateTour } from "~/lib/db/queries.server";
+import { redirect, type ActionFunctionArgs } from "react-router";
+import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { duplicateTour } from "../../../../lib/db/queries.server";
 
-export const action: Route.ActionFunction = async ({ params, request }: { params: Record<string, string | undefined>; request: Request }) => {
+export async function action({ params, request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
     throw new Response("Method not allowed", { status: 405 });
   }
@@ -24,4 +24,4 @@ export const action: Route.ActionFunction = async ({ params, request }: { params
     console.error("Error duplicating tour:", error);
     throw new Response("Failed to duplicate tour", { status: 500 });
   }
-};
+}
