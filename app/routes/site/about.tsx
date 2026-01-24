@@ -81,10 +81,11 @@ export default function SiteAboutPage() {
     );
   }
 
-  const { organization } = loaderData;
+  const { organization, settings } = loaderData;
 
-  // Use CMS content if available
+  // Priority: CMS content > settings.aboutContent > hardcoded fallback
   const useCmsContent = pageContent && pageContent.content.blocks.length > 0;
+  const useSettingsContent = !useCmsContent && settings.aboutContent;
 
   return (
     <div className="min-h-screen">
@@ -111,8 +112,15 @@ export default function SiteAboutPage() {
         {useCmsContent ? (
           // Render CMS content blocks
           <ContentBlockRenderer blocks={pageContent!.content.blocks} />
+        ) : useSettingsContent ? (
+          // Render content from Settings → Public Site → Content
+          <div className="prose prose-lg max-w-none">
+            <div className="whitespace-pre-line opacity-85">
+              {settings.aboutContent}
+            </div>
+          </div>
         ) : (
-          // Legacy fallback content - shown when no CMS content exists
+          // Hardcoded fallback - shown when no content has been configured
           <div className="prose prose-lg max-w-none">
             <h2 className="text-2xl font-bold mb-6">Our Story</h2>
             <p className="opacity-75">
