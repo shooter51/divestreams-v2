@@ -1,13 +1,27 @@
 import { test, expect } from "@playwright/test";
 
+/**
+ * Training Import Wizard E2E Tests
+ *
+ * DEPENDENCIES:
+ * - Test user "e2e-user@example.com" must exist (created by 00-full-workflow.spec.ts test 3.4)
+ * - Run 00-full-workflow.spec.ts first if tests fail due to missing user
+ */
+
 const BASE_URL = process.env.BASE_URL || "http://e2etest.localhost:5173";
 const getTenantUrl = (path: string) => `${BASE_URL}${path}`;
+
+// Shared test data (consistent with other test files)
+const testUser = {
+  email: "e2e-user@example.com", // Shared with 00-full-workflow.spec.ts
+  password: "TestPass123!",
+};
 
 // Helper function to login
 async function loginToTenant(page: any) {
   await page.goto(getTenantUrl("/auth/login"));
-  await page.fill('input[name="email"]', "admin@e2etest.com");
-  await page.fill('input[name="password"]', "admin123");
+  await page.fill('input[name="email"]', testUser.email);
+  await page.fill('input[name="password"]', testUser.password);
   await page.click('button[type="submit"]');
   await page.waitForURL(getTenantUrl("/tenant"));
 }
