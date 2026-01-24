@@ -66,12 +66,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
   // Parse arrays
   const includedItemsStr = formData.get("includedItemsStr") as string;
   const requiredItemsStr = formData.get("requiredItemsStr") as string;
+  const imagesStr = formData.get("imagesStr") as string;
 
   const includedItems = includedItemsStr
     ? includedItemsStr.split(",").map((s) => s.trim()).filter(Boolean)
     : null;
   const requiredItems = requiredItemsStr
     ? requiredItemsStr.split(",").map((s) => s.trim()).filter(Boolean)
+    : null;
+  // Parse images (newline-separated URLs)
+  const images = imagesStr
+    ? imagesStr.split("\n").map((s) => s.trim()).filter(Boolean)
     : null;
 
   // Basic validation
@@ -120,6 +125,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     equipmentIncluded,
     includedItems,
     requiredItems,
+    images,
   });
 
   return redirect(`/tenant/training/courses/${courseId}`);
@@ -232,6 +238,52 @@ export default function EditCoursePage() {
                 </select>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Course Images */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Course Images</h2>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="imagesStr" className="block text-sm font-medium mb-1">
+                Image URLs
+              </label>
+              <textarea
+                id="imagesStr"
+                name="imagesStr"
+                rows={3}
+                placeholder="Paste image URLs, one per line&#10;https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+                defaultValue={
+                  actionData?.values?.imagesStr ||
+                  course.images?.join("\n") ||
+                  ""
+                }
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                The first image will be used as the main course image on public pages.
+              </p>
+            </div>
+            {/* Image Preview */}
+            {course.images && course.images.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {course.images.map((img, idx) => (
+                  <div key={idx} className="relative">
+                    <img
+                      src={img}
+                      alt={`Course image ${idx + 1}`}
+                      className="w-20 h-20 object-cover rounded border"
+                    />
+                    {idx === 0 && (
+                      <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs px-1 rounded">
+                        Main
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
