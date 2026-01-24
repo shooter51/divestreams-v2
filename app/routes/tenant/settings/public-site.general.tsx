@@ -12,6 +12,7 @@ type OutletContextType = {
   orgSlug: string;
   baseDomain: string;
   publicSiteUrl: string;
+  customDomain: string | null;
   isPremium: boolean;
 };
 
@@ -56,7 +57,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function PublicSiteGeneralSettings() {
-  const { settings, orgSlug, baseDomain, publicSiteUrl, isPremium } = useOutletContext<OutletContextType>();
+  const { settings, orgSlug, baseDomain, publicSiteUrl, customDomain, isPremium } = useOutletContext<OutletContextType>();
   const fetcher = useFetcher<{ success?: boolean; message?: string }>();
   const isSubmitting = fetcher.state === "submitting";
 
@@ -108,6 +109,7 @@ export default function PublicSiteGeneralSettings() {
               type="text"
               id="customDomain"
               name="customDomain"
+              defaultValue={customDomain || ""}
               placeholder="www.yourdiveshop.com"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               disabled={!isPremium}

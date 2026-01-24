@@ -14,6 +14,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     orgSlug: ctx.org.slug,
     baseDomain: getBaseDomain(),
     publicSiteUrl: getTenantUrl(ctx.org.slug, "/site"),
+    customDomain: ctx.org.customDomain ?? null,
     settings: settings ?? {
       enabled: false,
       theme: "ocean" as const,
@@ -45,7 +46,7 @@ const tabs = [
 ];
 
 export default function PublicSiteSettingsLayout() {
-  const { orgSlug, baseDomain, publicSiteUrl, settings, isPremium } = useLoaderData<typeof loader>();
+  const { orgSlug, baseDomain, publicSiteUrl, customDomain, settings, isPremium } = useLoaderData<typeof loader>();
   const location = useLocation();
 
   // Determine active tab
@@ -119,7 +120,7 @@ export default function PublicSiteSettingsLayout() {
       </div>
 
       {/* Tab Content */}
-      <Outlet context={{ settings, orgSlug, baseDomain, publicSiteUrl, isPremium }} />
+      <Outlet context={{ settings, orgSlug, baseDomain, publicSiteUrl, customDomain, isPremium }} />
     </div>
   );
 }
