@@ -35,14 +35,14 @@ describe("tenant/dashboard route", () => {
 
   describe("Dashboard Data Requirements", () => {
     it("requires organization context", async () => {
-      const request = new Request("https://demo.divestreams.com/tenant/dashboard");
+      const request = new Request("https://demo.divestreams.com/tenant");
       await requireOrgContext(request);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns organization context with all required fields", async () => {
-      const request = new Request("https://demo.divestreams.com/tenant/dashboard");
+      const request = new Request("https://demo.divestreams.com/tenant");
       const ctx = await requireOrgContext(request);
 
       expect(ctx.org).toBeDefined();
@@ -52,14 +52,14 @@ describe("tenant/dashboard route", () => {
     });
 
     it("includes membership role", async () => {
-      const request = new Request("https://demo.divestreams.com/tenant/dashboard");
+      const request = new Request("https://demo.divestreams.com/tenant");
       const ctx = await requireOrgContext(request);
 
       expect(ctx.membership.role).toBe("owner");
     });
 
     it("includes usage statistics", async () => {
-      const request = new Request("https://demo.divestreams.com/tenant/dashboard");
+      const request = new Request("https://demo.divestreams.com/tenant");
       const ctx = await requireOrgContext(request);
 
       expect(ctx.usage).toBeDefined();
@@ -67,7 +67,7 @@ describe("tenant/dashboard route", () => {
     });
 
     it("includes subscription info", async () => {
-      const request = new Request("https://demo.divestreams.com/tenant/dashboard");
+      const request = new Request("https://demo.divestreams.com/tenant");
       const ctx = await requireOrgContext(request);
 
       expect(ctx.subscription).toBeDefined();
@@ -75,14 +75,14 @@ describe("tenant/dashboard route", () => {
     });
 
     it("includes premium status", async () => {
-      const request = new Request("https://demo.divestreams.com/tenant/dashboard");
+      const request = new Request("https://demo.divestreams.com/tenant");
       const ctx = await requireOrgContext(request);
 
       expect(ctx.isPremium).toBe(false);
     });
 
     it("includes feature access flags", async () => {
-      const request = new Request("https://demo.divestreams.com/tenant/dashboard");
+      const request = new Request("https://demo.divestreams.com/tenant");
       const ctx = await requireOrgContext(request);
 
       expect(ctx.canAddCustomer).toBe(true);
