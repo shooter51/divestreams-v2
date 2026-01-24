@@ -355,7 +355,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
       page.waitForTimeout(3000),
     ]).catch(() => null);
 
-    const redirectedToList = page.url().includes("/tenant/customers") && !page.url().includes("/new");
+    const redirectedToList = page.url().includes("/app/customers") && !page.url().includes("/new");
     const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
     expect(redirectedToList || hasSuccessMessage || page.url().includes("/customers")).toBeTruthy();
   });
@@ -370,7 +370,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(hasCustomer || page.url().includes("/customers")).toBeTruthy();
 
     // Extract customer UUID for later tests
-    const customerUuid = await extractEntityUuid(page, testData.customer.lastName, "/tenant/customers");
+    const customerUuid = await extractEntityUuid(page, testData.customer.lastName, "/app/customers");
     if (customerUuid) testData.createdIds.customer = customerUuid;
   });
 });
@@ -389,7 +389,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
     expect(page.url()).toContain("/edit");
   });
@@ -402,7 +402,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasForm = await page.locator("form").isVisible().catch(() => false);
@@ -417,7 +417,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const firstNameField = page.getByLabel(/first.*name/i);
@@ -433,7 +433,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const firstNameField = page.getByLabel(/first.*name/i);
@@ -451,7 +451,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const phoneField = page.getByLabel(/phone/i);
@@ -469,7 +469,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
@@ -484,7 +484,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
 
@@ -494,7 +494,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       await page.waitForTimeout(3000);
     }
 
-    const redirected = page.url().includes("/tenant/customers") && !page.url().includes("/edit");
+    const redirected = page.url().includes("/app/customers") && !page.url().includes("/edit");
     const hasSuccess = await page.getByText(/success|updated|saved/i).isVisible().catch(() => false);
     expect(redirected || hasSuccess || page.url().includes("/customers")).toBeTruthy();
   });
@@ -507,7 +507,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const cancelBtn = await page.getByRole("link", { name: /cancel|back/i }).isVisible().catch(() => false);
@@ -529,7 +529,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     expect(page.url()).toMatch(/\/app\/customers\/[a-f0-9-]+/);
   });
@@ -542,7 +542,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasName = await page.getByText(/Test|Customer/i).isVisible().catch(() => false);
@@ -557,7 +557,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasContact = await page.getByText(/@|email|phone|\d{3}/i).isVisible().catch(() => false);
@@ -572,7 +572,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasCert = await page.getByText(/certification|certified/i).isVisible().catch(() => false);
@@ -587,7 +587,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasEmergency = await page.getByText(/emergency/i).isVisible().catch(() => false);
@@ -602,7 +602,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasEdit = await page.getByRole("link", { name: /edit/i }).isVisible().catch(() => false);
@@ -617,7 +617,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasHistory = await page.getByText(/booking|trip|history/i).isVisible().catch(() => false);
@@ -632,7 +632,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasNotes = await page.getByText(/note/i).isVisible().catch(() => false);
@@ -647,7 +647,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasBack = await page.getByRole("link", { name: /back|customer/i }).isVisible().catch(() => false);
@@ -659,7 +659,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     await page.goto(getTenantUrl("/tenant/customers/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
     const hasError = await page.getByText(/not found|error/i).isVisible().catch(() => false);
-    const redirected = page.url().includes("/tenant/customers") && !page.url().includes("000000");
+    const redirected = page.url().includes("/app/customers") && !page.url().includes("000000");
     expect(hasError || redirected || page.url().includes("/customers")).toBeTruthy();
   });
 });
@@ -678,7 +678,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasTotal = await page.getByText(/total.*trip|\d+.*trip/i).isVisible().catch(() => false);
@@ -693,7 +693,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasUpcoming = await page.getByText(/upcoming|future|next/i).isVisible().catch(() => false);
@@ -708,7 +708,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasPast = await page.getByText(/past|history|previous/i).isVisible().catch(() => false);
@@ -723,7 +723,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasAddNote = await page.getByRole("button", { name: /add.*note/i }).isVisible().catch(() => false);
@@ -775,7 +775,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       expect(page.url()).toContain("/customers");
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     const hasDelete = await page.getByRole("button", { name: /delete/i }).isVisible().catch(() => false);

@@ -137,7 +137,7 @@ async function isAuthenticated(page: Page): Promise<boolean> {
   return !page.url().includes("/login");
 }
 
-// Helper to extract UUID from a link href (e.g., /tenant/boats/uuid-here -> uuid-here)
+// Helper to extract UUID from a link href (e.g., /app/boats/uuid-here -> uuid-here)
 async function extractEntityUuid(page: Page, entityName: string, basePath: string): Promise<string | null> {
   try {
     const link = page.locator(`a[href*="${basePath}/"]`).filter({ hasText: new RegExp(entityName, "i") }).first();
@@ -597,7 +597,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/boats")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/boats/${boatId}`));
+    await page.goto(getTenantUrl(`/app/boats/${boatId}`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/boats")).toBeTruthy();
   });
@@ -611,7 +611,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/boats")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/boats/${boatId}/edit`));
+    await page.goto(getTenantUrl(`/app/boats/${boatId}/edit`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/boats")).toBeTruthy();
   });
@@ -624,7 +624,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/boats")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/boats/${boatId}/edit`));
+    await page.goto(getTenantUrl(`/app/boats/${boatId}/edit`));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
@@ -762,7 +762,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/tours")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
+    await page.goto(getTenantUrl(`/app/tours/${tourId}`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/tours")).toBeTruthy();
   });
@@ -775,7 +775,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/tours")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
+    await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/tours")).toBeTruthy();
   });
@@ -788,7 +788,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/tours")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
+    await page.goto(getTenantUrl(`/app/tours/${tourId}/edit`));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
@@ -1043,7 +1043,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/customers")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/customers")).toBeTruthy();
   });
@@ -1056,7 +1056,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/customers")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}/edit`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/customers")).toBeTruthy();
   });
@@ -1069,7 +1069,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       expect(page.url().includes("/customers")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
+    await page.goto(getTenantUrl(`/app/customers/${customerId}`));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const hasInfo = await page.getByText(/email|phone|name/i).first().isVisible().catch(() => false);
@@ -1520,7 +1520,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       expect(page.url().includes("/trips")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/trips")).toBeTruthy();
@@ -1537,7 +1537,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       expect(page.url().includes("/trips")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/trips")).toBeTruthy();
@@ -1551,7 +1551,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       expect(page.url().includes("/trips")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}`));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const hasManifest = await page.getByText(/manifest|passenger|participant/i).first().isVisible().catch(() => false);
@@ -1566,7 +1566,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       expect(page.url().includes("/trips")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
+    await page.goto(getTenantUrl(`/app/trips/${tripId}/edit`));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
@@ -1647,7 +1647,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
         page.getByRole("button", { name: /create|save|book/i }).click(),
         page.waitForTimeout(3000)
       ]).catch(() => null);
-      const redirectedToList = page.url().includes("/tenant/bookings") && !page.url().includes("/new");
+      const redirectedToList = page.url().includes("/app/bookings") && !page.url().includes("/new");
       const hasSuccessMessage = await page.getByText(/success|created|booked/i).isVisible().catch(() => false);
       expect(redirectedToList || hasSuccessMessage || page.url().includes("/bookings")).toBeTruthy();
     } else {
@@ -1663,7 +1663,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     const hasBookings = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no bookings|empty|nothing/i).isVisible().catch(() => false);
     expect(hasBookings || emptyState).toBeTruthy();
-    const bookingUuid = await extractEntityUuid(page, "", "/tenant/bookings");
+    const bookingUuid = await extractEntityUuid(page, "", "/app/bookings");
     if (bookingUuid) testData.createdIds.booking = bookingUuid;
   });
 
@@ -1693,7 +1693,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       expect(page.url().includes("/bookings")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}`));
+    await page.goto(getTenantUrl(`/app/bookings/${bookingId}`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
@@ -1706,7 +1706,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       expect(page.url().includes("/bookings")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}/edit`));
+    await page.goto(getTenantUrl(`/app/bookings/${bookingId}/edit`));
     await page.waitForTimeout(1500);
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
@@ -1719,7 +1719,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       expect(page.url().includes("/bookings")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}`));
+    await page.goto(getTenantUrl(`/app/bookings/${bookingId}`));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const hasPaymentInfo = await page.getByText(/payment|total|amount/i).first().isVisible().catch(() => false);
@@ -1734,7 +1734,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       expect(page.url().includes("/bookings")).toBeTruthy();
       return;
     }
-    await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}/edit`));
+    await page.goto(getTenantUrl(`/app/bookings/${bookingId}/edit`));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
