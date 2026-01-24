@@ -54,7 +54,7 @@ const NEW_FEATURES = [
         title: "Import Page Access and Display",
         steps: [
           "Login as tenant admin",
-          "Navigate to /app/training/import",
+          "Navigate to /tenant/training/import",
           "Verify page loads with 'Import Training Courses' heading",
           "Verify 'Select Certification Agency' section is visible",
           "Verify agency dropdown is present",
