@@ -1,6 +1,8 @@
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireFeature } from "../../../../lib/require-feature.server";
+import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import {
   getTrainingDashboardStats,
   getUpcomingTrainingSessions,
@@ -13,6 +15,7 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_TRAINING);
 
   const [stats, upcomingSessions, recentEnrollments] = await Promise.all([
     getTrainingDashboardStats(ctx.org.id),

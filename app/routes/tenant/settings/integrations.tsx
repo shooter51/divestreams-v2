@@ -3,6 +3,8 @@ import { useLoaderData, useFetcher, Link, redirect, useSearchParams } from "reac
 import { useState, useEffect } from "react";
 // Server-only imports for loader/action
 import { requireOrgContext, getSubdomainFromRequest } from "../../../../lib/auth/org-context.server";
+import { requireFeature } from "../../../../lib/require-feature.server";
+import { PLAN_FEATURES } from "../../../../lib/plan-features";
 // API keys and webhooks removed - DIVE-031
 // import { createApiKey, listApiKeys, revokeApiKey } from "../../../../lib/api-keys/index.server";
 // import {
@@ -236,6 +238,7 @@ const Icons: Record<string, React.FC<{ className?: string }>> = {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_INTEGRATIONS);
   const subdomain = getSubdomainFromRequest(request);
 
   // Parse metadata if it exists

@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireFeature } from "../../../../lib/require-feature.server";
+import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { organization, member, user } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -33,6 +35,7 @@ const defaultSettings: NotificationSettings = {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_ADVANCED_NOTIFICATIONS);
 
   // Parse notification settings from org metadata
   let metadata: { notifications?: Partial<NotificationSettings> } = {};
