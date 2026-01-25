@@ -2,11 +2,10 @@ import { useState } from "react";
 import { Form, useLoaderData, useActionData, useNavigation } from "react-router";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { db } from "../../../../lib/db/client.server";
+import { db } from "../../../../lib/db";
 import { invitation, user, member, organization, account } from "../../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { hashPassword } from "../../../../lib/auth/password.server";
-import { createId } from "@paralleldrive/cuid2";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -135,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
       userId = existingUser.id;
     } else {
       // Create user
-      userId = createId();
+      userId = crypto.randomUUID();
       const hashedPassword = await hashPassword(password);
 
       await db.insert(user).values({
@@ -147,7 +146,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       // Create account with password
       await db.insert(account).values({
-        id: createId(),
+        id: crypto.randomUUID(),
         userId,
         accountId: userId,
         providerId: "credential",
@@ -171,7 +170,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!existingMember) {
     // Add as member of the organization
     await db.insert(member).values({
-      id: createId(),
+      id: crypto.randomUUID(),
       userId,
       organizationId: invite.organizationId,
       role: invite.role,
