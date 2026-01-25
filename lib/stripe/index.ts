@@ -159,12 +159,22 @@ export async function createBillingPortalSession(
   if (!stripe) return null;
 
   const data = await getOrgWithSubscription(orgId);
-  if (!data?.sub?.stripeCustomerId) {
-    throw new Error("Organization has no Stripe customer");
+  if (!data) {
+    throw new Error("Organization not found");
+  }
+
+  // Get or create Stripe customer
+  let customerId = data.sub?.stripeCustomerId;
+  if (!customerId) {
+    customerId = await createStripeCustomer(orgId);
+  }
+
+  if (!customerId) {
+    throw new Error("Could not create Stripe customer");
   }
 
   const session = await stripe.billingPortal.sessions.create({
-    customer: data.sub.stripeCustomerId,
+    customer: customerId,
     return_url: returnUrl,
   });
 
