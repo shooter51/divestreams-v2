@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 // Server-only imports for loader/action
 import { requireOrgContext, getSubdomainFromRequest } from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
-import { PLAN_FEATURES } from "../../../../lib/plan-features";
+import { PLAN_FEATURES, FEATURE_UPGRADE_INFO, type PlanFeaturesObject } from "../../../../lib/plan-features";
+import { db } from "../../../../lib/db";
+import { subscriptionPlans } from "../../../../lib/db/schema";
+import { eq, asc } from "drizzle-orm";
 // API keys and webhooks removed - DIVE-031
 // import { createApiKey, listApiKeys, revokeApiKey } from "../../../../lib/api-keys/index.server";
 // import {
@@ -280,8 +283,43 @@ export async function loader({ request }: LoaderFunctionArgs) {
     });
   }
 
-  // Get current plan name from subscription
+  // Get current plan name and features from subscription
   const currentPlan = ctx.subscription?.plan || "free";
+  const planFeatures = ctx.subscription?.planDetails?.features || {};
+
+  // Load all active plans to determine which plan is required for each integration
+  const allPlans = await db
+    .select({
+      name: subscriptionPlans.name,
+      displayName: subscriptionPlans.displayName,
+      monthlyPrice: subscriptionPlans.monthlyPrice,
+      features: subscriptionPlans.features,
+    })
+    .from(subscriptionPlans)
+    .where(eq(subscriptionPlans.isActive, true))
+    .orderBy(asc(subscriptionPlans.monthlyPrice));
+
+  // Build a map of integration feature -> required plan (cheapest plan that has it enabled)
+  const integrationFeatures = [
+    "has_stripe",
+    "has_google_calendar",
+    "has_mailchimp",
+    "has_quickbooks",
+    "has_zapier",
+    "has_twilio",
+    "has_whatsapp",
+    "has_xero",
+  ] as const;
+
+  const requiredPlanForIntegration: Record<string, string | null> = {};
+  for (const feature of integrationFeatures) {
+    // Find the cheapest plan that has this feature enabled
+    const requiredPlan = allPlans.find((plan) => {
+      const features = plan.features as PlanFeaturesObject | null;
+      return features?.[feature] === true;
+    });
+    requiredPlanForIntegration[feature] = requiredPlan?.displayName || null;
+  }
 
   // Get API keys for this organization
   // DIVE-031: Removed API keys loading
@@ -354,6 +392,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     mailchimpSettings,
     mailchimpAudiences,
     stripeSettings: stripeSettingsData,
+    planFeatures: planFeatures as PlanFeaturesObject,
+    featureUpgradeInfo: FEATURE_UPGRADE_INFO,
+    requiredPlanForIntegration,
   };
 }
 
@@ -913,6 +954,8 @@ export default function IntegrationsPage() {
     mailchimpAudiences,
     stripeSettings,
     zapierSettings,
+    planFeatures,
+    requiredPlanForIntegration,
   } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher();
@@ -1120,6 +1163,33 @@ export default function IntegrationsPage() {
     }
   };
 
+  // Map integration IDs to their feature keys
+  const integrationFeatureMap: Record<string, string> = {
+    stripe: "has_stripe",
+    "google-calendar": "has_google_calendar",
+    mailchimp: "has_mailchimp",
+    quickbooks: "has_quickbooks",
+    zapier: "has_zapier",
+    twilio: "has_twilio",
+    whatsapp: "has_whatsapp",
+    xero: "has_xero",
+  };
+
+  // Check if integration is enabled based on plan features
+  const isIntegrationEnabled = (integrationId: string): boolean => {
+    const featureKey = integrationFeatureMap[integrationId];
+    if (!featureKey) return true; // Unknown integrations are allowed
+    return planFeatures?.[featureKey as keyof typeof planFeatures] === true;
+  };
+
+  // Get the required plan name for an integration
+  const getRequiredPlanName = (integrationId: string): string | null => {
+    const featureKey = integrationFeatureMap[integrationId];
+    if (!featureKey) return null;
+    return requiredPlanForIntegration[featureKey] || null;
+  };
+
+  // Legacy function for backwards compatibility
   const isIntegrationAvailable = (requiredPlan: string) => {
     const normalizedCurrent = normalizePlan(currentPlan);
     const normalizedRequired = normalizePlan(requiredPlan);
@@ -1322,7 +1392,9 @@ export default function IntegrationsPage() {
             <h2 className="font-semibold mb-4">{category.name}</h2>
             <div className="grid grid-cols-2 gap-4">
               {categoryIntegrations.map((integration) => {
-                const available = isIntegrationAvailable(integration.requiredPlan);
+                // Use plan features to determine if integration is enabled
+                const available = isIntegrationEnabled(integration.id);
+                const requiredPlanName = getRequiredPlanName(integration.id);
                 const IconComponent = Icons[integration.icon];
 
                 return (
@@ -1367,7 +1439,10 @@ export default function IntegrationsPage() {
                     ) : (
                       <div className="text-center">
                         <p className="text-xs text-gray-500 mb-2">
-                          Requires {integration.requiredPlan} plan
+                          {requiredPlanName
+                            ? `Requires ${requiredPlanName} plan`
+                            : "Not available on your plan"
+                          }
                         </p>
                         <Link
                           to="/tenant/settings/billing"
@@ -2676,7 +2751,7 @@ export default function IntegrationsPage() {
                   <br />
                   2. Create OAuth 2.0 Client ID
                   <br />
-                  3. Add redirect URI: <code className="bg-white px-1">{window.location.origin}/api/integrations/google/callback</code>
+                  3. Add redirect URI: <code className="bg-white px-1 break-all text-xs">{window.location.origin}/api/integrations/google/callback</code>
                 </p>
               </div>
 
@@ -2772,7 +2847,7 @@ export default function IntegrationsPage() {
                   <br />
                   2. Register your OAuth app
                   <br />
-                  3. Add redirect URI: <code className="bg-white px-1">{window.location.origin}/api/integrations/mailchimp/callback</code>
+                  3. Add redirect URI: <code className="bg-white px-1 break-all text-xs">{window.location.origin}/api/integrations/mailchimp/callback</code>
                 </p>
               </div>
 
@@ -2868,7 +2943,7 @@ export default function IntegrationsPage() {
                   <br />
                   2. Create an app with QuickBooks Online API
                   <br />
-                  3. Add redirect URI: <code className="bg-white px-1">{window.location.origin}/api/integrations/quickbooks/callback</code>
+                  3. Add redirect URI: <code className="bg-white px-1 break-all text-xs">{window.location.origin}/api/integrations/quickbooks/callback</code>
                 </p>
               </div>
 
@@ -2964,7 +3039,7 @@ export default function IntegrationsPage() {
                   <br />
                   2. Create an OAuth 2.0 app
                   <br />
-                  3. Add redirect URI: <code className="bg-white px-1">{window.location.origin}/api/integrations/xero/callback</code>
+                  3. Add redirect URI: <code className="bg-white px-1 break-all text-xs">{window.location.origin}/api/integrations/xero/callback</code>
                 </p>
               </div>
 
