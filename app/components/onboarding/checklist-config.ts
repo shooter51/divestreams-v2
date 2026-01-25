@@ -27,7 +27,7 @@ export const ONBOARDING_SECTIONS: OnboardingSection[] = [
         id: "view-dashboard",
         title: "View your dashboard",
         description: "See an overview of your dive shop",
-        href: "/tenant/dashboard",
+        href: "/tenant",
         tourTarget: "[data-tour='dashboard']",
       },
       {
