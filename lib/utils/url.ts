@@ -74,11 +74,11 @@ export function getTenantUrl(subdomain: string, path = ""): string {
 
 /**
  * Get the admin URL for the current environment
- * @returns Admin URL like "https://admin.divestreams.com" or "https://admin-staging.divestreams.com"
+ * @returns Admin URL like "https://admin.divestreams.com" or "https://admin.staging.divestreams.com"
  */
 export function getAdminUrl(path = ""): string {
   if (isStaging()) {
-    return `https://admin-staging.divestreams.com${path}`;
+    return `https://admin.staging.divestreams.com${path}`;
   }
   return `https://admin.divestreams.com${path}`;
 }
