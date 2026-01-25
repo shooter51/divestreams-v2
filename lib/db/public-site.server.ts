@@ -6,7 +6,7 @@
  * publicly visible content like trips, courses, and equipment.
  */
 
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray, asc } from "drizzle-orm";
 import { db } from "./index";
 import {
   organization,
@@ -16,6 +16,7 @@ import {
   trainingCourses,
   certificationAgencies,
   certificationLevels,
+  images,
   type PublicSiteSettings,
 } from "./schema";
 
@@ -87,6 +88,58 @@ export interface PaginatedEquipmentResult extends PaginatedResult<unknown> {
     rentalPrice: string | null;
     isRentable: boolean | null;
   }>;
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Get images for courses from the images table
+ * Returns a map of courseId -> array of image URLs (primary first)
+ */
+async function getCourseImagesMap(
+  organizationId: string,
+  courseIds: string[]
+): Promise<Map<string, string[]>> {
+  if (courseIds.length === 0) {
+    return new Map();
+  }
+
+  const courseImages = await db
+    .select({
+      entityId: images.entityId,
+      url: images.url,
+      isPrimary: images.isPrimary,
+      sortOrder: images.sortOrder,
+    })
+    .from(images)
+    .where(
+      and(
+        eq(images.organizationId, organizationId),
+        eq(images.entityType, "course"),
+        inArray(images.entityId, courseIds)
+      )
+    )
+    .orderBy(images.entityId, asc(images.sortOrder));
+
+  const imageMap = new Map<string, string[]>();
+
+  for (const img of courseImages) {
+    const courseId = img.entityId;
+    if (!imageMap.has(courseId)) {
+      imageMap.set(courseId, []);
+    }
+    const urls = imageMap.get(courseId)!;
+    // Put primary image first
+    if (img.isPrimary) {
+      urls.unshift(img.url);
+    } else {
+      urls.push(img.url);
+    }
+  }
+
+  return imageMap;
 }
 
 // ============================================================================
@@ -268,7 +321,6 @@ export async function getPublicCourses(
       prerequisites: trainingCourses.prerequisites,
       materialsIncluded: trainingCourses.materialsIncluded,
       equipmentIncluded: trainingCourses.equipmentIncluded,
-      images: trainingCourses.images,
       agencyName: certificationAgencies.name,
       levelName: certificationLevels.name,
     })
@@ -300,6 +352,10 @@ export async function getPublicCourses(
 
   const total = Number(countResult[0]?.count ?? 0);
 
+  // Get images from images table for all courses
+  const courseIds = coursesData.map((c) => c.id);
+  const imageMap = await getCourseImagesMap(organizationId, courseIds);
+
   return {
     courses: coursesData.map((course) => ({
       id: course.id,
@@ -313,7 +369,7 @@ export async function getPublicCourses(
       prerequisites: course.prerequisites,
       materialsIncluded: course.materialsIncluded,
       equipmentIncluded: course.equipmentIncluded,
-      images: course.images,
+      images: imageMap.get(course.id) || null,
       agencyName: course.agencyName,
       levelName: course.levelName,
     })),
@@ -439,7 +495,6 @@ export async function getPublicCourseById(
       minAge: trainingCourses.minAge,
       prerequisites: trainingCourses.prerequisites,
       medicalRequirements: trainingCourses.medicalRequirements,
-      images: trainingCourses.images,
       agencyName: certificationAgencies.name,
       levelName: certificationLevels.name,
     })
@@ -456,7 +511,18 @@ export async function getPublicCourseById(
     )
     .limit(1);
 
-  return course || null;
+  if (!course) {
+    return null;
+  }
+
+  // Get images from images table
+  const imageMap = await getCourseImagesMap(organizationId, [courseId]);
+  const courseImages = imageMap.get(courseId) || null;
+
+  return {
+    ...course,
+    images: courseImages,
+  };
 }
 
 /**

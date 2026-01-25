@@ -1,5 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
+import { eq, and, asc } from "drizzle-orm";
 import { requireOrgContext } from "../../../../../../lib/auth/org-context.server";
 import {
   getCourseById,
@@ -7,6 +8,8 @@ import {
   getLevels,
   updateCourse,
 } from "../../../../../../lib/db/training.server";
+import { getTenantDb } from "../../../../../../lib/db/tenant.server";
+import { ImageManager, type Image } from "../../../../../components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Edit Course - DiveStreams" }];
 
@@ -28,7 +31,42 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Course not found", { status: 404 });
   }
 
-  return { course, agencies, levels };
+  // Get images from tenant schema
+  const { db, schema } = getTenantDb(ctx.org.slug);
+  const courseImages = await db
+    .select({
+      id: schema.images.id,
+      url: schema.images.url,
+      thumbnailUrl: schema.images.thumbnailUrl,
+      filename: schema.images.filename,
+      width: schema.images.width,
+      height: schema.images.height,
+      alt: schema.images.alt,
+      sortOrder: schema.images.sortOrder,
+      isPrimary: schema.images.isPrimary,
+    })
+    .from(schema.images)
+    .where(
+      and(
+        eq(schema.images.entityType, "course"),
+        eq(schema.images.entityId, courseId)
+      )
+    )
+    .orderBy(asc(schema.images.sortOrder));
+
+  const images: Image[] = courseImages.map((img) => ({
+    id: img.id,
+    url: img.url,
+    thumbnailUrl: img.thumbnailUrl || img.url,
+    filename: img.filename,
+    width: img.width ?? undefined,
+    height: img.height ?? undefined,
+    alt: img.alt ?? undefined,
+    sortOrder: img.sortOrder,
+    isPrimary: img.isPrimary,
+  }));
+
+  return { course, agencies, levels, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -66,7 +104,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
   // Parse arrays
   const includedItemsStr = formData.get("includedItemsStr") as string;
   const requiredItemsStr = formData.get("requiredItemsStr") as string;
-  const imagesStr = formData.get("imagesStr") as string;
 
   const includedItems = includedItemsStr
     ? includedItemsStr.split(",").map((s) => s.trim()).filter(Boolean)
@@ -74,10 +111,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const requiredItems = requiredItemsStr
     ? requiredItemsStr.split(",").map((s) => s.trim()).filter(Boolean)
     : null;
-  // Parse images (newline-separated URLs)
-  const images = imagesStr
-    ? imagesStr.split("\n").map((s) => s.trim()).filter(Boolean)
-    : null;
+  // Note: Images are handled separately by ImageManager component
 
   // Basic validation
   const errors: Record<string, string> = {};
@@ -125,14 +159,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
     equipmentIncluded,
     includedItems,
     requiredItems,
-    images,
   });
 
   return redirect(`/tenant/training/courses/${courseId}`);
 }
 
 export default function EditCoursePage() {
-  const { course, agencies, levels } = useLoaderData<typeof loader>();
+  const { course, agencies, levels, images } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -244,47 +277,12 @@ export default function EditCoursePage() {
         {/* Course Images */}
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Course Images</h2>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="imagesStr" className="block text-sm font-medium mb-1">
-                Image URLs
-              </label>
-              <textarea
-                id="imagesStr"
-                name="imagesStr"
-                rows={3}
-                placeholder="https://example.com/image1.jpg"
-                defaultValue={
-                  actionData?.values?.imagesStr ||
-                  course.images?.join("\n") ||
-                  ""
-                }
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                The first image will be used as the main course image on public pages.
-              </p>
-            </div>
-            {/* Image Preview */}
-            {course.images && course.images.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {course.images.map((img, idx) => (
-                  <div key={idx} className="relative">
-                    <img
-                      src={img}
-                      alt={`Course image ${idx + 1}`}
-                      className="w-20 h-20 object-cover rounded border"
-                    />
-                    {idx === 0 && (
-                      <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs px-1 rounded">
-                        Main
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ImageManager
+            entityType="course"
+            entityId={course.id}
+            images={images}
+            maxImages={5}
+          />
         </div>
 
         {/* Duration & Structure */}
