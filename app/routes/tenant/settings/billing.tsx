@@ -217,6 +217,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     console.error("Error fetching invoice history:", error);
   }
 
+  // Calculate trial days left on the server to avoid hydration mismatch
+  const trialEndsAt = ctx.subscription?.trialEndsAt;
+  const trialDaysLeft = trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
   const billing = {
     currentPlan,
     currentPlanName: currentPlanData?.name || "Free",
@@ -224,7 +230,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     nextBillingDate,
     amount: currentPlanData?.price || 0,
     subscriptionStatus: ctx.subscription?.status || "active",
-    trialEndsAt: ctx.subscription?.trialEndsAt?.toISOString(),
+    trialEndsAt: trialEndsAt?.toISOString(),
+    trialDaysLeft,
     paymentMethod,
     billingHistory,
     usage: {
@@ -339,11 +346,8 @@ export default function BillingPage() {
   // Find current plan data for features display
   const currentPlanData = plans.find((p) => p.id === billing.currentPlan);
   const isTrialing = billing.subscriptionStatus === "trialing";
-  const trialDaysLeft = billing.trialEndsAt
-    ? Math.ceil(
-        (new Date(billing.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-      )
-    : 0;
+  // Use pre-calculated trialDaysLeft from loader to avoid hydration mismatch
+  const trialDaysLeft = billing.trialDaysLeft;
 
   const usagePercent = billing.usage.bookingsLimit > 0
     ? Math.round((billing.usage.bookingsThisMonth / billing.usage.bookingsLimit) * 100)
