@@ -148,7 +148,7 @@ async function extractEntityUuid(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Training Dashboard & Navigation", () => {
-  test("A.1 Training dashboard loads after login @smoke", async ({ page }) => {
+  test("[KAN-443] A.1 Training dashboard loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
     await page.waitForTimeout(1500);
@@ -166,7 +166,7 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
     expect(hasHeading || hasTrainingContent || page.url().includes("/training")).toBeTruthy();
   });
 
-  test("A.2 Navigation link to courses works", async ({ page }) => {
+  test("[KAN-444] A.2 Navigation link to courses works", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
     await page.waitForTimeout(1500);
@@ -183,7 +183,7 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
-  test("A.3 Navigation link to sessions works", async ({ page }) => {
+  test("[KAN-445] A.3 Navigation link to sessions works", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
     await page.waitForTimeout(1500);
@@ -199,7 +199,7 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
-  test("A.4 Navigation link to enrollments works", async ({ page }) => {
+  test("[KAN-446] A.4 Navigation link to enrollments works", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
     await page.waitForTimeout(1500);
@@ -215,7 +215,7 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
-  test("A.5 Dashboard shows empty state or stats when no courses", async ({ page }) => {
+  test("[KAN-447] A.5 Dashboard shows empty state or stats when no courses", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
     await page.waitForTimeout(1500);
@@ -242,7 +242,7 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block B: Course CRUD Operations", () => {
-  test("B.1 Navigate to courses list page", async ({ page }) => {
+  test("[KAN-448] B.1 Navigate to courses list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses"));
     await page.waitForTimeout(1500);
@@ -254,7 +254,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     expect(hasHeading || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("B.2 Courses page has Add/Create Course button", async ({ page }) => {
+  test("[KAN-449] B.2 Courses page has Add/Create Course button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses"));
     await page.waitForTimeout(1500);
@@ -271,7 +271,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     expect(addButton || addButtonAlt || plusLink).toBeTruthy();
   });
 
-  test("B.3 Navigate to new course form", async ({ page }) => {
+  test("[KAN-450] B.3 Navigate to new course form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
     await page.waitForTimeout(1500);
@@ -284,7 +284,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     expect(hasHeading || hasForm || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("B.4 New course form has name field", async ({ page }) => {
+  test("[KAN-451] B.4 New course form has name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
     await page.waitForTimeout(1500);
@@ -298,7 +298,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     expect(nameField || nameInput).toBeTruthy();
   });
 
-  test("B.5 New course form has agency dropdown", async ({ page }) => {
+  test("[KAN-452] B.5 New course form has agency dropdown", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
     await page.waitForTimeout(1500);
@@ -311,7 +311,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     expect(agencySelect || agencyDropdown || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("B.6 New course form has price field", async ({ page }) => {
+  test("[KAN-453] B.6 New course form has price field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
     await page.waitForTimeout(1500);
@@ -325,7 +325,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     expect(priceField || priceInput || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("B.7 Create new course @critical", async ({ page }) => {
+  test("[KAN-454] B.7 Create new course @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
     await page.waitForTimeout(1500);
@@ -381,7 +381,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     expect(redirectedToList || hasSuccessMessage || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("B.8 Courses list shows created course", async ({ page }) => {
+  test("[KAN-455] B.8 Courses list shows created course", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses"));
     await page.waitForTimeout(1500);
@@ -407,7 +407,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     if (courseUuid) trainingTestData.createdIds.course = courseUuid;
   });
 
-  test("B.9 Navigate to course detail page", async ({ page }) => {
+  test("[KAN-456] B.9 Navigate to course detail page", async ({ page }) => {
     await loginToTenant(page);
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
@@ -425,7 +425,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     expect(currentUrl.includes("/courses") || currentUrl.includes("/training")).toBeTruthy();
   });
 
-  test("B.10 Navigate to course edit page and verify save button", async ({ page }) => {
+  test("[KAN-457] B.10 Navigate to course edit page and verify save button", async ({ page }) => {
     await loginToTenant(page);
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
@@ -450,7 +450,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Session Management", () => {
-  test("C.1 Navigate to sessions list page", async ({ page }) => {
+  test("[KAN-458] C.1 Navigate to sessions list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/sessions"));
     await page.waitForTimeout(1500);
@@ -462,7 +462,7 @@ test.describe.serial("Block C: Session Management", () => {
     expect(hasHeading || page.url().includes("/sessions")).toBeTruthy();
   });
 
-  test("C.2 Sessions page shows calendar or list view", async ({ page }) => {
+  test("[KAN-459] C.2 Sessions page shows calendar or list view", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/sessions"));
     await page.waitForTimeout(1500);
@@ -479,7 +479,7 @@ test.describe.serial("Block C: Session Management", () => {
     expect(hasCalendar || hasEmptyState || page.url().includes("/sessions")).toBeTruthy();
   });
 
-  test("C.3 Can access session creation from course detail", async ({ page }) => {
+  test("[KAN-460] C.3 Can access session creation from course detail", async ({ page }) => {
     await loginToTenant(page);
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
@@ -503,7 +503,7 @@ test.describe.serial("Block C: Session Management", () => {
     expect(scheduleBtn || scheduleLink || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("C.4 Create a session for the course @critical", async ({ page }) => {
+  test("[KAN-461] C.4 Create a session for the course @critical", async ({ page }) => {
     await loginToTenant(page);
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
@@ -555,7 +555,7 @@ test.describe.serial("Block C: Session Management", () => {
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
-  test("C.5 Session appears in sessions list", async ({ page }) => {
+  test("[KAN-462] C.5 Session appears in sessions list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/sessions"));
     await page.waitForTimeout(1500);
@@ -577,7 +577,7 @@ test.describe.serial("Block C: Session Management", () => {
     if (sessionUuid) trainingTestData.createdIds.session = sessionUuid;
   });
 
-  test("C.6 View session detail page", async ({ page }) => {
+  test("[KAN-463] C.6 View session detail page", async ({ page }) => {
     await loginToTenant(page);
     const sessionId = trainingTestData.createdIds.session;
     if (!sessionId) {
@@ -590,7 +590,7 @@ test.describe.serial("Block C: Session Management", () => {
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
-  test("C.7 Session detail shows linked course info", async ({ page }) => {
+  test("[KAN-464] C.7 Session detail shows linked course info", async ({ page }) => {
     await loginToTenant(page);
     const sessionId = trainingTestData.createdIds.session;
     if (!sessionId) {
@@ -610,7 +610,7 @@ test.describe.serial("Block C: Session Management", () => {
     expect(hasCourseLink || page.url().includes("/sessions")).toBeTruthy();
   });
 
-  test("C.8 Session handles invalid ID gracefully", async ({ page }) => {
+  test("[KAN-465] C.8 Session handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(
       getTenantUrl("/tenant/training/sessions/00000000-0000-0000-0000-000000000000")
@@ -627,7 +627,7 @@ test.describe.serial("Block C: Session Management", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block D: Enrollment Workflow", () => {
-  test("D.1 Navigate to enrollments list page", async ({ page }) => {
+  test("[KAN-466] D.1 Navigate to enrollments list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/enrollments"));
     await page.waitForTimeout(1500);
@@ -639,7 +639,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     expect(hasHeading || page.url().includes("/enrollments")).toBeTruthy();
   });
 
-  test("D.2 Enrollments page shows list or empty state", async ({ page }) => {
+  test("[KAN-467] D.2 Enrollments page shows list or empty state", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/enrollments"));
     await page.waitForTimeout(1500);
@@ -656,7 +656,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     expect(hasEnrollments || emptyState || page.url().includes("/enrollments")).toBeTruthy();
   });
 
-  test("D.3 Can initiate enrollment from course detail", async ({ page }) => {
+  test("[KAN-468] D.3 Can initiate enrollment from course detail", async ({ page }) => {
     await loginToTenant(page);
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
@@ -679,7 +679,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     expect(enrollBtn || enrollLink || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("D.4 Create enrollment for course @critical", async ({ page }) => {
+  test("[KAN-469] D.4 Create enrollment for course @critical", async ({ page }) => {
     await loginToTenant(page);
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
@@ -721,7 +721,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
-  test("D.5 Enrollment appears in enrollments list", async ({ page }) => {
+  test("[KAN-470] D.5 Enrollment appears in enrollments list", async ({ page }) => {
     test.setTimeout(60000); // Increase timeout for slow loading in full suite
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/enrollments"));
@@ -744,7 +744,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     if (enrollmentUuid) trainingTestData.createdIds.enrollment = enrollmentUuid;
   });
 
-  test("D.6 View enrollment detail page", async ({ page }) => {
+  test("[KAN-471] D.6 View enrollment detail page", async ({ page }) => {
     await loginToTenant(page);
     const enrollmentId = trainingTestData.createdIds.enrollment;
     if (!enrollmentId) {
@@ -757,7 +757,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
-  test("D.7 Enrollment detail shows progress and status", async ({ page }) => {
+  test("[KAN-472] D.7 Enrollment detail shows progress and status", async ({ page }) => {
     await loginToTenant(page);
     const enrollmentId = trainingTestData.createdIds.enrollment;
     if (!enrollmentId) {
@@ -777,7 +777,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     expect(hasStatus || page.url().includes("/enrollments")).toBeTruthy();
   });
 
-  test("D.8 Enrollment handles invalid ID gracefully", async ({ page }) => {
+  test("[KAN-473] D.8 Enrollment handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(
       getTenantUrl("/tenant/training/enrollments/00000000-0000-0000-0000-000000000000")
@@ -793,7 +793,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block E: Training Settings", () => {
-  test("E.1 Navigate to agencies settings page", async ({ page }) => {
+  test("[KAN-474] E.1 Navigate to agencies settings page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/agencies"));
     await page.waitForTimeout(1500);
@@ -805,7 +805,7 @@ test.describe.serial("Block E: Training Settings", () => {
     expect(hasHeading || page.url().includes("/agencies") || page.url().includes("/settings")).toBeTruthy();
   });
 
-  test("E.2 Agencies page shows list or add option", async ({ page }) => {
+  test("[KAN-475] E.2 Agencies page shows list or add option", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/agencies"));
     await page.waitForTimeout(1500);
@@ -823,7 +823,7 @@ test.describe.serial("Block E: Training Settings", () => {
     expect(hasAgencies || hasAddButton || page.url().includes("/settings")).toBeTruthy();
   });
 
-  test("E.3 Can add a new agency", async ({ page }) => {
+  test("[KAN-476] E.3 Can add a new agency", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/agencies"));
     await page.waitForTimeout(1500);
@@ -858,7 +858,7 @@ test.describe.serial("Block E: Training Settings", () => {
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
-  test("E.4 Navigate to levels settings page", async ({ page }) => {
+  test("[KAN-477] E.4 Navigate to levels settings page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/levels"));
     await page.waitForTimeout(1500);
@@ -870,7 +870,7 @@ test.describe.serial("Block E: Training Settings", () => {
     expect(hasHeading || page.url().includes("/levels") || page.url().includes("/settings")).toBeTruthy();
   });
 
-  test("E.5 Levels page shows list or add option", async ({ page }) => {
+  test("[KAN-478] E.5 Levels page shows list or add option", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/levels"));
     await page.waitForTimeout(1500);
@@ -888,7 +888,7 @@ test.describe.serial("Block E: Training Settings", () => {
     expect(hasLevels || hasAddButton || page.url().includes("/settings")).toBeTruthy();
   });
 
-  test("E.6 Can add a new level", async ({ page }) => {
+  test("[KAN-479] E.6 Can add a new level", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/levels"));
     await page.waitForTimeout(1500);
@@ -930,7 +930,7 @@ test.describe.serial("Block E: Training Settings", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block F: Advanced Course Features", () => {
-  test("F.1 Course form has isPublic toggle", async ({ page }) => {
+  test("[KAN-480] F.1 Course form has isPublic toggle", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
     await page.waitForTimeout(1500);
@@ -945,7 +945,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
     expect(publicToggle || checkbox || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("F.2 Course form has schedule type option", async ({ page }) => {
+  test("[KAN-481] F.2 Course form has schedule type option", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
     await page.waitForTimeout(1500);
@@ -956,7 +956,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
     expect(scheduleSelect || scheduleRadios || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("F.3 Course detail shows enrollment count", async ({ page }) => {
+  test("[KAN-482] F.3 Course detail shows enrollment count", async ({ page }) => {
     await loginToTenant(page);
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
@@ -976,7 +976,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
     expect(hasEnrollmentInfo || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("F.4 Course detail shows sessions list", async ({ page }) => {
+  test("[KAN-483] F.4 Course detail shows sessions list", async ({ page }) => {
     await loginToTenant(page);
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
@@ -996,7 +996,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
     expect(hasSessionsSection || page.url().includes("/courses")).toBeTruthy();
   });
 
-  test("F.5 Course handles invalid ID gracefully", async ({ page }) => {
+  test("[KAN-484] F.5 Course handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(
       getTenantUrl("/tenant/training/courses/00000000-0000-0000-0000-000000000000")
@@ -1012,7 +1012,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block G: Skill Tracking & Certification", () => {
-  test("G.1 Session detail has skill checkoff section", async ({ page }) => {
+  test("[KAN-485] G.1 Session detail has skill checkoff section", async ({ page }) => {
     await loginToTenant(page);
     const sessionId = trainingTestData.createdIds.session;
     if (!sessionId) {
@@ -1032,7 +1032,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
     expect(hasSkillsSection || page.url().includes("/sessions")).toBeTruthy();
   });
 
-  test("G.2 Enrollment detail shows skills progress", async ({ page }) => {
+  test("[KAN-486] G.2 Enrollment detail shows skills progress", async ({ page }) => {
     await loginToTenant(page);
     const enrollmentId = trainingTestData.createdIds.enrollment;
     if (!enrollmentId) {
@@ -1052,7 +1052,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
     expect(hasProgress || page.url().includes("/enrollments")).toBeTruthy();
   });
 
-  test("G.3 Enrollment detail has certification section", async ({ page }) => {
+  test("[KAN-487] G.3 Enrollment detail has certification section", async ({ page }) => {
     await loginToTenant(page);
     const enrollmentId = trainingTestData.createdIds.enrollment;
     if (!enrollmentId) {
@@ -1072,7 +1072,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
     expect(hasCertSection || page.url().includes("/enrollments")).toBeTruthy();
   });
 
-  test("G.4 Enrollment detail shows exam status", async ({ page }) => {
+  test("[KAN-488] G.4 Enrollment detail shows exam status", async ({ page }) => {
     await loginToTenant(page);
     const enrollmentId = trainingTestData.createdIds.enrollment;
     if (!enrollmentId) {
@@ -1092,7 +1092,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
     expect(hasExamInfo || page.url().includes("/enrollments")).toBeTruthy();
   });
 
-  test("G.5 Can update enrollment status", async ({ page }) => {
+  test("[KAN-489] G.5 Can update enrollment status", async ({ page }) => {
     await loginToTenant(page);
     const enrollmentId = trainingTestData.createdIds.enrollment;
     if (!enrollmentId) {

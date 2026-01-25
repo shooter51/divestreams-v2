@@ -252,7 +252,7 @@ async function isCustomerLoggedIn(page: Page): Promise<boolean> {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Public Site Navigation", () => {
-  test("A.1 Public site homepage loads @smoke", async ({ page }) => {
+  test("[KAN-490] A.1 Public site homepage loads @smoke", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/"));
     await expect(page.locator("body")).toBeVisible();
     // Should have some content - either hero section or empty state
@@ -261,7 +261,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     expect(hasHero || (hasContent && hasContent.length > 100)).toBeTruthy();
   });
 
-  test("A.2 Public site about page loads", async ({ page }) => {
+  test("[KAN-491] A.2 Public site about page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/about"));
     await page.waitForTimeout(1000);
     // Should load without error - might be disabled or have content
@@ -271,7 +271,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     expect(isAboutPage || !has404 || (hasContent && hasContent.length > 50)).toBeTruthy();
   });
 
-  test("A.3 Public site contact page loads", async ({ page }) => {
+  test("[KAN-492] A.3 Public site contact page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/contact"));
     await page.waitForTimeout(1000);
 
@@ -290,7 +290,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     expect(isContactPage || isOnSite || hasForm || hasContactInfo).toBeTruthy();
   });
 
-  test("A.4 Public site trips page loads", async ({ page }) => {
+  test("[KAN-493] A.4 Public site trips page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/trips"));
     await page.waitForTimeout(1500);
     // Should show trips list or empty state
@@ -300,7 +300,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     expect(isTripsPage && (hasTripCards || hasEmptyState || true)).toBeTruthy();
   });
 
-  test("A.5 Public site courses page loads", async ({ page }) => {
+  test("[KAN-494] A.5 Public site courses page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/courses"));
     await page.waitForTimeout(1500);
     // Should show courses list or empty state
@@ -310,7 +310,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     expect(isCoursesPage && (hasCourseCards || hasEmptyState || true)).toBeTruthy();
   });
 
-  test("A.6 Trip detail page route works", async ({ page }) => {
+  test("[KAN-495] A.6 Trip detail page route works", async ({ page }) => {
     // SKIPPED: Flaky test - intermittent failures in CI
     // First go to trips list to find a trip
     await page.goto(getPublicSiteUrl("/trips"));
@@ -333,7 +333,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     }
   });
 
-  test("A.7 Course detail page route works", async ({ page }) => {
+  test("[KAN-496] A.7 Course detail page route works", async ({ page }) => {
     // First go to courses list to find a course
     await page.goto(getPublicSiteUrl("/courses"));
     await page.waitForTimeout(2000);
@@ -362,7 +362,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     }
   });
 
-  test("A.8 Navigation between public pages works", async ({ page }) => {
+  test("[KAN-497] A.8 Navigation between public pages works", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/"));
     await page.waitForTimeout(1000);
 
@@ -397,7 +397,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block B: Customer Registration & Login", () => {
-  test("B.1 Registration page loads @smoke", async ({ page }) => {
+  test("[KAN-498] B.1 Registration page loads @smoke", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/register"));
     await page.waitForTimeout(1000);
     expect(page.url()).toContain("/register");
@@ -406,7 +406,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     expect(hasForm).toBeTruthy();
   });
 
-  test("B.2 Registration form has required fields", async ({ page }) => {
+  test("[KAN-499] B.2 Registration form has required fields", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/register"));
     await page.waitForTimeout(1000);
 
@@ -421,7 +421,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     expect(hasFirstName || hasLastName || await page.getByLabel(/name/i).isVisible().catch(() => false)).toBeTruthy();
   });
 
-  test("B.3 Register a new customer account @critical", async ({ page }) => {
+  test("[KAN-500] B.3 Register a new customer account @critical", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/register"));
     await page.waitForTimeout(1000);
 
@@ -480,7 +480,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     expect(redirectedToAccount || hasSuccessMessage || page.url().includes("/login")).toBeTruthy();
   });
 
-  test("B.4 Login page loads @smoke", async ({ page }) => {
+  test("[KAN-501] B.4 Login page loads @smoke", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
     await page.waitForTimeout(1000);
     expect(page.url()).toContain("/login");
@@ -491,7 +491,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     expect(hasEmail && hasPassword).toBeTruthy();
   });
 
-  test("B.5 Login form has sign in button", async ({ page }) => {
+  test("[KAN-502] B.5 Login form has sign in button", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
     await page.waitForTimeout(1000);
 
@@ -499,7 +499,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     expect(hasSignIn).toBeTruthy();
   });
 
-  test("B.6 Login with registered credentials @critical", async ({ page }) => {
+  test("[KAN-503] B.6 Login with registered credentials @critical", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
     await page.waitForTimeout(1000);
 
@@ -521,7 +521,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     }
   });
 
-  test("B.7 Invalid login shows error", async ({ page }) => {
+  test("[KAN-504] B.7 Invalid login shows error", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
     await page.waitForTimeout(1000);
 
@@ -538,7 +538,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     expect(hasError || stayedOnLogin).toBeTruthy();
   });
 
-  test("B.8 Login validates required email", async ({ page }) => {
+  test("[KAN-505] B.8 Login validates required email", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
     await page.waitForTimeout(1000);
 
@@ -551,7 +551,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     expect(page.url()).toContain("/login");
   });
 
-  test("B.9 Login validates required password", async ({ page }) => {
+  test("[KAN-506] B.9 Login validates required password", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
     await page.waitForTimeout(1000);
 
@@ -564,7 +564,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     expect(page.url()).toContain("/login");
   });
 
-  test("B.10 Registration form has password requirements", async ({ page }) => {
+  test("[KAN-507] B.10 Registration form has password requirements", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/register"));
     await page.waitForTimeout(1000);
 
@@ -584,7 +584,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Customer Account Dashboard", () => {
-  test("C.1 Account dashboard requires authentication", async ({ page }) => {
+  test("[KAN-508] C.1 Account dashboard requires authentication", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/account"));
     await page.waitForTimeout(1500);
 
@@ -596,7 +596,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     expect(redirectedToLogin || isOnAccount).toBeTruthy();
   });
 
-  test("C.2 Account dashboard loads after login", async ({ page }) => {
+  test("[KAN-509] C.2 Account dashboard loads after login", async ({ page }) => {
     await loginCustomer(page);
 
     const isLoggedIn = await isCustomerLoggedIn(page);
@@ -618,7 +618,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     await expect(page.locator("h1:has-text('My Account'), h2:has-text('Welcome back')").first()).toBeVisible({ timeout: 5000 });
   });
 
-  test("C.3 Account dashboard shows bookings section", async ({ page }) => {
+  test("[KAN-510] C.3 Account dashboard shows bookings section", async ({ page }) => {
     await loginCustomer(page);
 
     const isLoggedIn = await isCustomerLoggedIn(page);
@@ -634,7 +634,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     expect(hasBookingsSection || hasBookingsLink || page.url().includes("/account")).toBeTruthy();
   });
 
-  test("C.4 Bookings page loads", async ({ page }) => {
+  test("[KAN-511] C.4 Bookings page loads", async ({ page }) => {
     await loginCustomer(page);
 
     const isLoggedIn = await isCustomerLoggedIn(page);
@@ -658,7 +658,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
   // Coverage: C.6 and C.7 test profile page features (editable fields, save button)
   // which would fail if profile page didn't load, providing equivalent coverage
 
-  test("C.6 Profile page has editable fields", async ({ page }) => {
+  test("[KAN-512] C.6 Profile page has editable fields", async ({ page }) => {
     await loginCustomer(page);
 
     const isLoggedIn = await isCustomerLoggedIn(page);
@@ -678,7 +678,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     expect(hasNameField || hasEmailField || hasPhoneField).toBeTruthy();
   });
 
-  test("C.7 Profile page has save button", async ({ page }) => {
+  test("[KAN-513] C.7 Profile page has save button", async ({ page }) => {
     await loginCustomer(page);
 
     const isLoggedIn = await isCustomerLoggedIn(page);
@@ -694,7 +694,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     expect(hasSaveButton || page.url().includes("/profile")).toBeTruthy();
   });
 
-  test("C.8 Logout works", async ({ page }) => {
+  test("[KAN-514] C.8 Logout works", async ({ page }) => {
     await loginCustomer(page);
 
     const isLoggedIn = await isCustomerLoggedIn(page);
@@ -735,7 +735,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block D: Booking Flow", () => {
-  test("D.1 Booking route for trip exists", async ({ page }) => {
+  test("[KAN-515] D.1 Booking route for trip exists", async ({ page }) => {
     // Go to trips page and find a trip to book
     await page.goto(getPublicSiteUrl("/trips"));
     await page.waitForTimeout(1500);
@@ -766,7 +766,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     }
   });
 
-  test("D.2 Booking route for course exists", async ({ page }) => {
+  test("[KAN-516] D.2 Booking route for course exists", async ({ page }) => {
     // Go to courses page and find a course to book
     await page.goto(getPublicSiteUrl("/courses"));
     await page.waitForTimeout(1500);
@@ -795,7 +795,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     }
   });
 
-  test("D.3 Booking page requires authentication", async ({ page }) => {
+  test("[KAN-517] D.3 Booking page requires authentication", async ({ page }) => {
     // Try to access booking directly without auth
     await page.goto(getPublicSiteUrl("/book/trip/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
@@ -809,7 +809,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     expect(redirectedToLogin || hasAuthRequired || is404 || page.url().includes("/site")).toBeTruthy();
   });
 
-  test("D.4 Booking flow starts from trip detail", async ({ page }) => {
+  test("[KAN-518] D.4 Booking flow starts from trip detail", async ({ page }) => {
     // First login
     await loginCustomer(page);
 
@@ -839,7 +839,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     expect(hasBookOption || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("D.5 Booking page shows trip details", async ({ page }) => {
+  test("[KAN-519] D.5 Booking page shows trip details", async ({ page }) => {
     await loginCustomer(page);
 
     await page.goto(getPublicSiteUrl("/trips"));
@@ -872,7 +872,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     }
   });
 
-  test("D.6 Booking page has participant selection", async ({ page }) => {
+  test("[KAN-520] D.6 Booking page has participant selection", async ({ page }) => {
     await loginCustomer(page);
 
     await page.goto(getPublicSiteUrl("/trips"));
@@ -903,7 +903,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     }
   });
 
-  test("D.7 Confirm booking route exists", async ({ page }) => {
+  test("[KAN-521] D.7 Confirm booking route exists", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/book/confirm"));
     await page.waitForTimeout(1500);
 
@@ -914,7 +914,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     expect(isConfirmPage || redirected).toBeTruthy();
   });
 
-  test("D.8 Booking shows price calculation", async ({ page }) => {
+  test("[KAN-522] D.8 Booking shows price calculation", async ({ page }) => {
     await loginCustomer(page);
 
     await page.goto(getPublicSiteUrl("/trips"));
@@ -949,7 +949,7 @@ test.describe.serial("Block D: Booking Flow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block E: Admin Public Site Settings", () => {
-  test("E.1 Public site settings requires staff auth", async ({ page }) => {
+  test("[KAN-523] E.1 Public site settings requires staff auth", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/settings/public-site"));
     await page.waitForTimeout(1500);
 
@@ -960,7 +960,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     expect(redirectedToLogin || isOnSettings).toBeTruthy();
   });
 
-  test("E.2 Navigate to public site settings", async ({ page }) => {
+  test("[KAN-524] E.2 Navigate to public site settings", async ({ page }) => {
     await loginToTenant(page);
 
     if (!await isAuthenticated(page)) {
@@ -980,7 +980,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
   // - Page loads correctly but selectors fail intermittently
   // - Coverage maintained by E.2 (navigation) and E.6-E.10 (other tabs)
 
-  test("E.6 Content settings page loads", async ({ page }) => {
+  test("[KAN-525] E.6 Content settings page loads", async ({ page }) => {
     await loginToTenant(page);
 
     if (!await isAuthenticated(page)) {
@@ -1006,7 +1006,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     expect(hasAboutField || hasTextarea || page.url().includes("/public-site")).toBeTruthy();
   });
 
-  test("E.7 Appearance settings page loads", async ({ page }) => {
+  test("[KAN-526] E.7 Appearance settings page loads", async ({ page }) => {
     await loginToTenant(page);
 
     if (!await isAuthenticated(page)) {
@@ -1022,7 +1022,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     expect(hasColorSettings || page.url().includes("/public-site")).toBeTruthy();
   });
 
-  test("E.8 Appearance settings has color options", async ({ page }) => {
+  test("[KAN-527] E.8 Appearance settings has color options", async ({ page }) => {
     await loginToTenant(page);
 
     if (!await isAuthenticated(page)) {
@@ -1041,7 +1041,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     expect(hasColorInput || hasColorText || hasColorFields || page.url().includes("/public-site")).toBeTruthy();
   });
 
-  test("E.9 Settings have save button", async ({ page }) => {
+  test("[KAN-528] E.9 Settings have save button", async ({ page }) => {
     await loginToTenant(page);
 
     if (!await isAuthenticated(page)) {
@@ -1059,7 +1059,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     expect(hasSaveButton || hasSubmitButton || page.url().includes("/public-site")).toBeTruthy();
   });
 
-  test("E.10 Can navigate between settings tabs", async ({ page }) => {
+  test("[KAN-529] E.10 Can navigate between settings tabs", async ({ page }) => {
     await loginToTenant(page);
 
     if (!await isAuthenticated(page)) {

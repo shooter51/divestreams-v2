@@ -124,7 +124,7 @@ async function extractEntityUuid(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Navigation & Calendar View", () => {
-  test("A.1 Trips page loads after login @smoke", async ({ page }) => {
+  test("[KAN-383] A.1 Trips page loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -136,7 +136,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     expect(hasHeading || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("A.2 Trips page has calendar view option", async ({ page }) => {
+  test("[KAN-384] A.2 Trips page has calendar view option", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -146,7 +146,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     expect(hasCalendar || hasCalendarIcon || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("A.3 Trips page has list view option", async ({ page }) => {
+  test("[KAN-385] A.3 Trips page has list view option", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -156,7 +156,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     expect(hasList || hasTable || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("A.4 Can toggle between calendar and list views", async ({ page }) => {
+  test("[KAN-386] A.4 Can toggle between calendar and list views", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -169,7 +169,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     expect(page.url()).toContain("/trips");
   });
 
-  test("A.5 Trips page has Add/Schedule button", async ({ page }) => {
+  test("[KAN-387] A.5 Trips page has Add/Schedule button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -185,7 +185,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     expect(addButton || addButtonAlt).toBeTruthy();
   });
 
-  test("A.6 Calendar shows current month", async ({ page }) => {
+  test("[KAN-388] A.6 Calendar shows current month", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -195,7 +195,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     expect(hasMonthDisplay || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("A.7 Can navigate to next month", async ({ page }) => {
+  test("[KAN-389] A.7 Can navigate to next month", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -208,7 +208,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     expect(page.url()).toContain("/trips");
   });
 
-  test("A.8 Can navigate to previous month", async ({ page }) => {
+  test("[KAN-390] A.8 Can navigate to previous month", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -221,7 +221,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     expect(page.url()).toContain("/trips");
   });
 
-  test("A.9 Trips page shows upcoming trips", async ({ page }) => {
+  test("[KAN-391] A.9 Trips page shows upcoming trips", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -231,7 +231,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     expect(hasUpcoming || hasEmptyState || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("A.10 Can filter trips by status", async ({ page }) => {
+  test("[KAN-392] A.10 Can filter trips by status", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -248,7 +248,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block B: Create Trip Flow", () => {
-  test("B.1 Navigate to new trip page", async ({ page }) => {
+  test("[KAN-393] B.1 Navigate to new trip page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -256,7 +256,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(page.url()).toContain("/trips/new");
   });
 
-  test("B.2 New trip form loads", async ({ page }) => {
+  test("[KAN-394] B.2 New trip form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -265,7 +265,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(hasForm).toBeTruthy();
   });
 
-  test("B.3 New trip form has tour selection", async ({ page }) => {
+  test("[KAN-395] B.3 New trip form has tour selection", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -275,7 +275,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(tourSelect || tourSelectAlt).toBeTruthy();
   });
 
-  test("B.4 New trip form has date field", async ({ page }) => {
+  test("[KAN-396] B.4 New trip form has date field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -285,7 +285,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(dateField || dateInput).toBeTruthy();
   });
 
-  test("B.5 New trip form has time field", async ({ page }) => {
+  test("[KAN-397] B.5 New trip form has time field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -295,7 +295,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(timeField || timeInput || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("B.6 New trip form has capacity field", async ({ page }) => {
+  test("[KAN-398] B.6 New trip form has capacity field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -304,7 +304,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(capacityField || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("B.7 New trip form has price field", async ({ page }) => {
+  test("[KAN-399] B.7 New trip form has price field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -313,7 +313,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(priceField || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("B.8 New trip form has boat selection", async ({ page }) => {
+  test("[KAN-400] B.8 New trip form has boat selection", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -322,7 +322,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(boatSelect || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("B.9 New trip form has notes field", async ({ page }) => {
+  test("[KAN-401] B.9 New trip form has notes field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -332,7 +332,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(notesField || textarea || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("B.10 Create a new trip @critical", async ({ page }) => {
+  test("[KAN-402] B.10 Create a new trip @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -379,7 +379,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(redirectedToList || hasSuccessMessage || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("B.11 Created trip appears in list", async ({ page }) => {
+  test("[KAN-403] B.11 Created trip appears in list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -394,7 +394,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     if (tripUuid) testData.createdIds.trip = tripUuid;
   });
 
-  test("B.12 New trip form has submit button", async ({ page }) => {
+  test("[KAN-404] B.12 New trip form has submit button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);
@@ -410,7 +410,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Edit Trip Flow", () => {
-  test("C.1 Navigate to trip edit page", async ({ page }) => {
+  test("[KAN-405] C.1 Navigate to trip edit page", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -423,7 +423,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     expect(page.url()).toContain("/edit");
   });
 
-  test("C.2 Edit trip form loads with existing data", async ({ page }) => {
+  test("[KAN-406] C.2 Edit trip form loads with existing data", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -438,7 +438,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     expect(hasForm).toBeTruthy();
   });
 
-  test("C.3 Edit form date field has current value", async ({ page }) => {
+  test("[KAN-407] C.3 Edit form date field has current value", async ({ page }) => {
     // SKIPPED: Flaky test - intermittent auth/session failures in CI
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
@@ -455,7 +455,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     expect(hasValue || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("C.4 Can modify trip date", async ({ page }) => {
+  test("[KAN-408] C.4 Can modify trip date", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -488,7 +488,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     }
   });
 
-  test("C.5 Can modify trip time", async ({ page }) => {
+  test("[KAN-409] C.5 Can modify trip time", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -511,7 +511,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     }
   });
 
-  test("C.6 Can modify capacity", async ({ page }) => {
+  test("[KAN-410] C.6 Can modify capacity", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -534,7 +534,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     }
   });
 
-  test("C.7 Edit form has save button", async ({ page }) => {
+  test("[KAN-411] C.7 Edit form has save button", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -549,7 +549,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     expect(saveBtn).toBeTruthy();
   });
 
-  test("C.8 Save trip changes @critical", async ({ page }) => {
+  test("[KAN-412] C.8 Save trip changes @critical", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -572,7 +572,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     expect(redirected || hasSuccess || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("C.9 Updated values appear in detail view", async ({ page }) => {
+  test("[KAN-413] C.9 Updated values appear in detail view", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -587,7 +587,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     expect(hasContent || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("C.10 Edit form has cancel option", async ({ page }) => {
+  test("[KAN-414] C.10 Edit form has cancel option", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -610,7 +610,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block D: Trip Detail View", () => {
-  test("D.1 Navigate to trip detail page", async ({ page }) => {
+  test("[KAN-415] D.1 Navigate to trip detail page", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -623,7 +623,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     expect(page.url()).toMatch(/\/tenant\/trips\/[a-f0-9-]+/);
   });
 
-  test("D.2 Detail page shows trip date and time", async ({ page }) => {
+  test("[KAN-416] D.2 Detail page shows trip date and time", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -638,7 +638,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     expect(hasDateTime || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("D.3 Detail page shows capacity info", async ({ page }) => {
+  test("[KAN-417] D.3 Detail page shows capacity info", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -653,7 +653,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     expect(hasCapacity || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("D.4 Detail page shows available spots", async ({ page }) => {
+  test("[KAN-418] D.4 Detail page shows available spots", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -668,7 +668,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     expect(hasAvailable || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("D.5 Detail page shows pricing", async ({ page }) => {
+  test("[KAN-419] D.5 Detail page shows pricing", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -683,7 +683,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     expect(hasPrice || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("D.6 Detail page shows linked tour info", async ({ page }) => {
+  test("[KAN-420] D.6 Detail page shows linked tour info", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -698,7 +698,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     expect(hasTour || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("D.7 Detail page has edit button", async ({ page }) => {
+  test("[KAN-421] D.7 Detail page has edit button", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -714,7 +714,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     expect(hasEdit || hasEditBtn || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("D.8 Detail page shows bookings list", async ({ page }) => {
+  test("[KAN-422] D.8 Detail page shows bookings list", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -729,7 +729,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     expect(hasBookings || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("D.9 Detail page has back to list link", async ({ page }) => {
+  test("[KAN-423] D.9 Detail page has back to list link", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -744,7 +744,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
     expect(hasBack || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("D.10 Invalid trip ID shows error", async ({ page }) => {
+  test("[KAN-424] D.10 Invalid trip ID shows error", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
@@ -760,7 +760,7 @@ test.describe.serial("Block D: Trip Detail View", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block E: Trip Status & Management", () => {
-  test("E.1 Trip has status indicator", async ({ page }) => {
+  test("[KAN-425] E.1 Trip has status indicator", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -775,7 +775,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
     expect(hasStatus || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("E.2 Can change trip status", async ({ page }) => {
+  test("[KAN-426] E.2 Can change trip status", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -790,7 +790,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
     expect(statusBtn || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("E.3 Trip detail has cancel button", async ({ page }) => {
+  test("[KAN-427] E.3 Trip detail has cancel button", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -805,7 +805,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
     expect(hasCancel || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("E.4 Can mark trip as completed", async ({ page }) => {
+  test("[KAN-428] E.4 Can mark trip as completed", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -820,7 +820,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
     expect(completeBtn || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("E.5 Completed trips show in history", async ({ page }) => {
+  test("[KAN-429] E.5 Completed trips show in history", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -829,7 +829,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
     expect(hasHistory || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("E.6 Can filter by trip status", async ({ page }) => {
+  test("[KAN-430] E.6 Can filter by trip status", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -842,7 +842,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
     expect(page.url()).toContain("/trips");
   });
 
-  test("E.7 Trip detail has delete option", async ({ page }) => {
+  test("[KAN-431] E.7 Trip detail has delete option", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -857,7 +857,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
     expect(hasDelete || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("E.8 Delete shows confirmation", async ({ page }) => {
+  test("[KAN-432] E.8 Delete shows confirmation", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -881,7 +881,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
     }
   });
 
-  test("E.9 Trip list shows status badges", async ({ page }) => {
+  test("[KAN-433] E.9 Trip list shows status badges", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -890,7 +890,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
     expect(hasBadges || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("E.10 Can export trip data", async ({ page }) => {
+  test("[KAN-434] E.10 Can export trip data", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -906,7 +906,7 @@ test.describe.serial("Block E: Trip Status & Management", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block F: Capacity & Bookings", () => {
-  test("F.1 Trip shows capacity utilization", async ({ page }) => {
+  test("[KAN-435] F.1 Trip shows capacity utilization", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -921,7 +921,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
     expect(hasCapacityInfo || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("F.2 Trip shows when fully booked", async ({ page }) => {
+  test("[KAN-436] F.2 Trip shows when fully booked", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -930,7 +930,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
     expect(hasFull || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("F.3 Can view participant list", async ({ page }) => {
+  test("[KAN-437] F.3 Can view participant list", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -945,7 +945,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
     expect(hasParticipants || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("F.4 Can add booking from trip detail", async ({ page }) => {
+  test("[KAN-438] F.4 Can add booking from trip detail", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -960,7 +960,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
     expect(hasAddBooking || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("F.5 Trip prevents overbooking", async ({ page }) => {
+  test("[KAN-439] F.5 Trip prevents overbooking", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -975,7 +975,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
     expect(page.url()).toContain("/trips");
   });
 
-  test("F.6 Trip shows waitlist option when full", async ({ page }) => {
+  test("[KAN-440] F.6 Trip shows waitlist option when full", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForTimeout(1500);
@@ -984,7 +984,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
     expect(hasWaitlist || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("F.7 Can view booking details from trip", async ({ page }) => {
+  test("[KAN-441] F.7 Can view booking details from trip", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {
@@ -999,7 +999,7 @@ test.describe.serial("Block F: Capacity & Bookings", () => {
     expect(hasBookingLink || page.url().includes("/trips")).toBeTruthy();
   });
 
-  test("F.8 Trip capacity updates dynamically", async ({ page }) => {
+  test("[KAN-442] F.8 Trip capacity updates dynamically", async ({ page }) => {
     await loginToTenant(page);
     const tripId = testData.createdIds.trip;
     if (!tripId) {

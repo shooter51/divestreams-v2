@@ -92,7 +92,7 @@ function extractEnrollmentId(url: string): string | null {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Course Listing", () => {
-  test("A.1 Course listing page loads @smoke", async ({ page }) => {
+  test("[KAN-555] A.1 Course listing page loads @smoke", async ({ page }) => {
     await page.goto(getEmbedUrl("/courses"));
     await page.waitForTimeout(1500);
 
@@ -105,7 +105,7 @@ test.describe.serial("Block A: Course Listing", () => {
     expect(hasBody).toBeTruthy();
   });
 
-  test("A.2 Course listing shows course cards or empty state", async ({ page }) => {
+  test("[KAN-556] A.2 Course listing shows course cards or empty state", async ({ page }) => {
     await page.goto(getEmbedUrl("/courses"));
     await page.waitForTimeout(1500);
 
@@ -117,7 +117,7 @@ test.describe.serial("Block A: Course Listing", () => {
     expect(hasCourseCards || hasEmptyState || hasHeader).toBeTruthy();
   });
 
-  test("A.3 Course cards show agency and level badges", async ({ page }) => {
+  test("[KAN-557] A.3 Course cards show agency and level badges", async ({ page }) => {
     await page.goto(getEmbedUrl("/courses"));
     await page.waitForTimeout(1500);
 
@@ -135,7 +135,7 @@ test.describe.serial("Block A: Course Listing", () => {
     }
   });
 
-  test("A.4 Course cards link to detail pages", async ({ page }) => {
+  test("[KAN-558] A.4 Course cards link to detail pages", async ({ page }) => {
     await page.goto(getEmbedUrl("/courses"));
     await page.waitForTimeout(1500);
 
@@ -163,7 +163,7 @@ test.describe.serial("Block A: Course Listing", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block B: Course Detail", () => {
-  test("B.1 Course detail page loads", async ({ page }) => {
+  test("[KAN-559] B.1 Course detail page loads", async ({ page }) => {
     // First go to listing to find a course
     await page.goto(getEmbedUrl("/courses"));
     await page.waitForTimeout(1500);
@@ -186,7 +186,7 @@ test.describe.serial("Block B: Course Detail", () => {
     }
   });
 
-  test("B.2 Course detail shows agency and level info", async ({ page }) => {
+  test("[KAN-560] B.2 Course detail shows agency and level info", async ({ page }) => {
     if (!testData.createdIds.courseId) {
       console.log("No course ID - skipping test");
       return;
@@ -202,7 +202,7 @@ test.describe.serial("Block B: Course Detail", () => {
     expect(hasAgencyInfo || hasLevelBadge).toBeTruthy();
   });
 
-  test("B.3 Course detail shows course stats (days, students, hours, dives)", async ({ page }) => {
+  test("[KAN-561] B.3 Course detail shows course stats (days, students, hours, dives)", async ({ page }) => {
     if (!testData.createdIds.courseId) {
       console.log("No course ID - skipping test");
       return;
@@ -220,7 +220,7 @@ test.describe.serial("Block B: Course Detail", () => {
     expect(hasDays || hasStudents || hasHours).toBeTruthy();
   });
 
-  test("B.4 Course detail lists available training sessions", async ({ page }) => {
+  test("[KAN-562] B.4 Course detail lists available training sessions", async ({ page }) => {
     if (!testData.createdIds.courseId) {
       console.log("No course ID - skipping test");
       return;
@@ -237,7 +237,7 @@ test.describe.serial("Block B: Course Detail", () => {
     expect(hasSessionsHeader || hasSessionList || hasNoSessionsMessage).toBeTruthy();
   });
 
-  test("B.5 Sessions show enroll buttons with available spots", async ({ page }) => {
+  test("[KAN-563] B.5 Sessions show enroll buttons with available spots", async ({ page }) => {
     if (!testData.createdIds.courseId) {
       console.log("No course ID - skipping test");
       return;
@@ -275,7 +275,7 @@ test.describe.serial("Block B: Course Detail", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Enrollment Form", () => {
-  test("C.1 Enrollment form requires session ID", async ({ page }) => {
+  test("[KAN-564] C.1 Enrollment form requires session ID", async ({ page }) => {
     if (!testData.createdIds.courseId) {
       console.log("No course ID - skipping test");
       return;
@@ -292,7 +292,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     expect(hasError || redirectedBack).toBeTruthy();
   });
 
-  test("C.2 Enrollment form loads with valid session ID", async ({ page }) => {
+  test("[KAN-565] C.2 Enrollment form loads with valid session ID", async ({ page }) => {
     if (!testData.createdIds.courseId || !testData.createdIds.sessionId) {
       console.log("No course or session ID - skipping test");
       return;
@@ -310,7 +310,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     expect(hasForm).toBeTruthy();
   });
 
-  test("C.3 Enrollment form has required fields", async ({ page }) => {
+  test("[KAN-566] C.3 Enrollment form has required fields", async ({ page }) => {
     if (!testData.createdIds.courseId || !testData.createdIds.sessionId) {
       console.log("No course or session ID - skipping test");
       return;
@@ -327,7 +327,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     expect(hasFirstName && hasLastName && hasEmail).toBeTruthy();
   });
 
-  test("C.4 Enrollment form has optional fields", async ({ page }) => {
+  test("[KAN-567] C.4 Enrollment form has optional fields", async ({ page }) => {
     if (!testData.createdIds.courseId || !testData.createdIds.sessionId) {
       console.log("No course or session ID - skipping test");
       return;
@@ -345,7 +345,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     expect(hasPhone || hasDOB || hasNotes).toBeTruthy();
   });
 
-  test("C.5 Enrollment form shows session details in sidebar", async ({ page }) => {
+  test("[KAN-568] C.5 Enrollment form shows session details in sidebar", async ({ page }) => {
     if (!testData.createdIds.courseId || !testData.createdIds.sessionId) {
       console.log("No course or session ID - skipping test");
       return;
@@ -361,7 +361,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     expect(hasSummary || hasSessionDate).toBeTruthy();
   });
 
-  test("C.6 Enrollment form validates required fields", async ({ page }) => {
+  test("[KAN-569] C.6 Enrollment form validates required fields", async ({ page }) => {
     if (!testData.createdIds.courseId || !testData.createdIds.sessionId) {
       console.log("No course or session ID - skipping test");
       return;
@@ -383,7 +383,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     }
   });
 
-  test("C.7 Enrollment form validates email format", async ({ page }) => {
+  test("[KAN-570] C.7 Enrollment form validates email format", async ({ page }) => {
     if (!testData.createdIds.courseId || !testData.createdIds.sessionId) {
       console.log("No course or session ID - skipping test");
       return;
@@ -410,7 +410,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     }
   });
 
-  test("C.8 Enrollment form submits successfully @critical", async ({ page }) => {
+  test("[KAN-571] C.8 Enrollment form submits successfully @critical", async ({ page }) => {
     if (!testData.createdIds.courseId || !testData.createdIds.sessionId) {
       console.log("No course or session ID - skipping test");
       return;
@@ -464,7 +464,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block D: Confirmation Page", () => {
-  test("D.1 Confirmation page loads with enrollment ID", async ({ page }) => {
+  test("[KAN-572] D.1 Confirmation page loads with enrollment ID", async ({ page }) => {
     if (!testData.createdIds.enrollmentId) {
       console.log("No enrollment ID - skipping test");
       return;
@@ -478,7 +478,7 @@ test.describe.serial("Block D: Confirmation Page", () => {
     expect(page.url()).toContain("enrollmentId=");
   });
 
-  test("D.2 Confirmation page shows success message", async ({ page }) => {
+  test("[KAN-573] D.2 Confirmation page shows success message", async ({ page }) => {
     if (!testData.createdIds.enrollmentId) {
       console.log("No enrollment ID - skipping test");
       return;
@@ -494,7 +494,7 @@ test.describe.serial("Block D: Confirmation Page", () => {
     expect(hasSuccessMessage || hasCheckmark).toBeTruthy();
   });
 
-  test("D.3 Confirmation page shows enrollment details", async ({ page }) => {
+  test("[KAN-574] D.3 Confirmation page shows enrollment details", async ({ page }) => {
     if (!testData.createdIds.enrollmentId) {
       console.log("No enrollment ID - skipping test");
       return;
@@ -511,7 +511,7 @@ test.describe.serial("Block D: Confirmation Page", () => {
     expect(hasCourseName || hasStudentInfo || hasEmail).toBeTruthy();
   });
 
-  test("D.4 Confirmation page has action buttons", async ({ page }) => {
+  test("[KAN-575] D.4 Confirmation page has action buttons", async ({ page }) => {
     if (!testData.createdIds.enrollmentId) {
       console.log("No enrollment ID - skipping test");
       return;

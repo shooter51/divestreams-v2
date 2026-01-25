@@ -126,7 +126,7 @@ async function extractEntityUuid(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Navigation & List View", () => {
-  test("A.1 Tours list page loads after login @smoke", async ({ page }) => {
+  test("[KAN-323] A.1 Tours list page loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -138,7 +138,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasHeading || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("A.2 Tours list shows table or grid layout", async ({ page }) => {
+  test("[KAN-324] A.2 Tours list shows table or grid layout", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -149,7 +149,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasTable || hasGrid || hasCards || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("A.3 Tours list has Add/Create button", async ({ page }) => {
+  test("[KAN-325] A.3 Tours list has Add/Create button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -165,7 +165,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(addButton || addButtonAlt).toBeTruthy();
   });
 
-  test("A.4 Tours list displays tour names", async ({ page }) => {
+  test("[KAN-326] A.4 Tours list displays tour names", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -175,7 +175,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasContent || hasEmptyState || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("A.5 Tours list shows pricing information", async ({ page }) => {
+  test("[KAN-327] A.5 Tours list shows pricing information", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -184,7 +184,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasPrice || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("A.6 Tours list shows tour type/category", async ({ page }) => {
+  test("[KAN-328] A.6 Tours list shows tour type/category", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -193,7 +193,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasType || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("A.7 Tours list has action buttons", async ({ page }) => {
+  test("[KAN-329] A.7 Tours list has action buttons", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -207,7 +207,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasActions || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("A.8 Can navigate from dashboard to tours", async ({ page }) => {
+  test("[KAN-330] A.8 Can navigate from dashboard to tours", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
@@ -223,14 +223,14 @@ test.describe.serial("Block A: Navigation & List View", () => {
     }
   });
 
-  test("A.9 Tours list URL is correct", async ({ page }) => {
+  test("[KAN-331] A.9 Tours list URL is correct", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1000);
     expect(page.url()).toContain("/tenant/tours");
   });
 
-  test("A.10 Tours list responds to direct navigation", async ({ page }) => {
+  test("[KAN-332] A.10 Tours list responds to direct navigation", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -245,7 +245,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block B: Create Tour Flow", () => {
-  test("B.1 Navigate to new tour page", async ({ page }) => {
+  test("[KAN-333] B.1 Navigate to new tour page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -253,7 +253,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(page.url()).toContain("/tours/new");
   });
 
-  test("B.2 New tour form loads", async ({ page }) => {
+  test("[KAN-334] B.2 New tour form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -262,7 +262,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(hasForm).toBeTruthy();
   });
 
-  test("B.3 New tour form has name field", async ({ page }) => {
+  test("[KAN-335] B.3 New tour form has name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -271,7 +271,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(nameField).toBeTruthy();
   });
 
-  test("B.4 New tour form has type selection", async ({ page }) => {
+  test("[KAN-336] B.4 New tour form has type selection", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -281,7 +281,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(typeSelect || typeRadio).toBeTruthy();
   });
 
-  test("B.5 New tour form has price field", async ({ page }) => {
+  test("[KAN-337] B.5 New tour form has price field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -290,7 +290,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(priceField).toBeTruthy();
   });
 
-  test("B.6 New tour form has duration field", async ({ page }) => {
+  test("[KAN-338] B.6 New tour form has duration field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -299,7 +299,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(durationField || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("B.7 New tour form has max participants field", async ({ page }) => {
+  test("[KAN-339] B.7 New tour form has max participants field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -308,7 +308,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(maxField || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("B.8 New tour form has description field", async ({ page }) => {
+  test("[KAN-340] B.8 New tour form has description field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -318,7 +318,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(descField || textarea).toBeTruthy();
   });
 
-  test("B.9 New tour form has requirements field", async ({ page }) => {
+  test("[KAN-341] B.9 New tour form has requirements field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -327,7 +327,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(reqField || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("B.10 Create a new tour @critical", async ({ page }) => {
+  test("[KAN-342] B.10 Create a new tour @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -370,7 +370,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(redirectedToList || hasSuccessMessage || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("B.11 Created tour appears in list", async ({ page }) => {
+  test("[KAN-343] B.11 Created tour appears in list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -384,7 +384,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     if (tourUuid) testData.createdIds.tour = tourUuid;
   });
 
-  test("B.12 New tour form has submit button", async ({ page }) => {
+  test("[KAN-344] B.12 New tour form has submit button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);
@@ -400,7 +400,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Edit Tour Flow", () => {
-  test("C.1 Navigate to tour edit page", async ({ page }) => {
+  test("[KAN-345] C.1 Navigate to tour edit page", async ({ page }) => {
     // SKIPPED: Flaky test - intermittent auth/session failures in CI
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
@@ -414,7 +414,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     expect(page.url()).toContain("/edit");
   });
 
-  test("C.2 Edit tour form loads with existing data", async ({ page }) => {
+  test("[KAN-346] C.2 Edit tour form loads with existing data", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -439,7 +439,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     expect(hasForm).toBeTruthy();
   });
 
-  test("C.3 Edit form name field has current value", async ({ page }) => {
+  test("[KAN-347] C.3 Edit form name field has current value", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -471,7 +471,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     expect(hasValue.length).toBeGreaterThan(0);
   });
 
-  test("C.4 Can modify tour name", async ({ page }) => {
+  test("[KAN-348] C.4 Can modify tour name", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -492,7 +492,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     }
   });
 
-  test("C.5 Can modify tour price", async ({ page }) => {
+  test("[KAN-349] C.5 Can modify tour price", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -513,7 +513,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     }
   });
 
-  test("C.6 Can modify max participants", async ({ page }) => {
+  test("[KAN-350] C.6 Can modify max participants", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -533,7 +533,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     expect(page.url()).toContain("/tours");
   });
 
-  test("C.7 Edit form has save button", async ({ page }) => {
+  test("[KAN-351] C.7 Edit form has save button", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -550,7 +550,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     expect(saveBtn).toBeTruthy();
   });
 
-  test("C.8 Save tour changes @critical", async ({ page }) => {
+  test("[KAN-352] C.8 Save tour changes @critical", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -575,7 +575,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     expect(redirected || hasSuccess || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("C.9 Updated values appear in list", async ({ page }) => {
+  test("[KAN-353] C.9 Updated values appear in list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -584,7 +584,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     expect(hasEdited || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("C.10 Edit form has cancel option", async ({ page }) => {
+  test("[KAN-354] C.10 Edit form has cancel option", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -609,7 +609,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block D: Tour Detail View", () => {
-  test("D.1 Navigate to tour detail page", async ({ page }) => {
+  test("[KAN-355] D.1 Navigate to tour detail page", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -622,7 +622,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     expect(page.url()).toMatch(/\/tenant\/tours\/[a-f0-9-]+/);
   });
 
-  test("D.2 Detail page shows tour name", async ({ page }) => {
+  test("[KAN-356] D.2 Detail page shows tour name", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -637,7 +637,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     expect(hasName || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("D.3 Detail page shows pricing info", async ({ page }) => {
+  test("[KAN-357] D.3 Detail page shows pricing info", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -652,7 +652,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     expect(hasPrice || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("D.4 Detail page shows duration", async ({ page }) => {
+  test("[KAN-358] D.4 Detail page shows duration", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -667,7 +667,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     expect(hasDuration || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("D.5 Detail page shows max participants", async ({ page }) => {
+  test("[KAN-359] D.5 Detail page shows max participants", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -682,7 +682,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     expect(hasMax || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("D.6 Detail page shows description", async ({ page }) => {
+  test("[KAN-360] D.6 Detail page shows description", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -697,7 +697,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     expect(hasDesc || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("D.7 Detail page has edit button", async ({ page }) => {
+  test("[KAN-361] D.7 Detail page has edit button", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -713,7 +713,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     expect(hasEdit || hasEditBtn || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("D.8 Detail page has back to list link", async ({ page }) => {
+  test("[KAN-362] D.8 Detail page has back to list link", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -728,7 +728,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     expect(hasBack || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("D.9 Detail page shows related trips section", async ({ page }) => {
+  test("[KAN-363] D.9 Detail page shows related trips section", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -743,7 +743,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
     expect(hasTrips || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("D.10 Invalid tour ID shows error", async ({ page }) => {
+  test("[KAN-364] D.10 Invalid tour ID shows error", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
@@ -759,7 +759,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block E: Tour Status & Delete", () => {
-  test("E.1 Tour has active/inactive status", async ({ page }) => {
+  test("[KAN-365] E.1 Tour has active/inactive status", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -774,7 +774,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
     expect(hasStatus || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("E.2 Can toggle tour status", async ({ page }) => {
+  test("[KAN-366] E.2 Can toggle tour status", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -789,7 +789,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
     expect(toggleBtn || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("E.3 Tour detail has delete button", async ({ page }) => {
+  test("[KAN-367] E.3 Tour detail has delete button", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -804,7 +804,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
     expect(hasDelete || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("E.4 Delete shows confirmation dialog", async ({ page }) => {
+  test("[KAN-368] E.4 Delete shows confirmation dialog", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -828,7 +828,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
     }
   });
 
-  test("E.5 Can cancel delete operation", async ({ page }) => {
+  test("[KAN-369] E.5 Can cancel delete operation", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -852,7 +852,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
     expect(page.url()).toContain("/tours");
   });
 
-  test("E.6 Tour list has quick actions", async ({ page }) => {
+  test("[KAN-370] E.6 Tour list has quick actions", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -861,7 +861,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
     expect(hasActions || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("E.7 Tour has duplicate option", async ({ page }) => {
+  test("[KAN-371] E.7 Tour has duplicate option", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -877,7 +877,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
     expect(hasDuplicate || hasDuplicateLink || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("E.8 Duplicate creates copy", async ({ page }) => {
+  test("[KAN-372] E.8 Duplicate creates copy", async ({ page }) => {
     await loginToTenant(page);
     const tourId = testData.createdIds.tour;
     if (!tourId) {
@@ -892,7 +892,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
     expect(isNewForm || hasForm || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("E.9 Archived tours are hidden by default", async ({ page }) => {
+  test("[KAN-373] E.9 Archived tours are hidden by default", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -901,7 +901,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
     expect(hasFilter || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("E.10 Can view archived tours", async ({ page }) => {
+  test("[KAN-374] E.10 Can view archived tours", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -921,7 +921,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block F: Tour Filtering & Search", () => {
-  test("F.1 Tours list has search field", async ({ page }) => {
+  test("[KAN-375] F.1 Tours list has search field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -931,7 +931,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
     expect(hasSearch || hasSearchAlt || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("F.2 Can search tours by name", async ({ page }) => {
+  test("[KAN-376] F.2 Can search tours by name", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -945,7 +945,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
     }
   });
 
-  test("F.3 Tours list has type filter", async ({ page }) => {
+  test("[KAN-377] F.3 Tours list has type filter", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -955,7 +955,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
     expect(hasFilter || hasSelect || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("F.4 Can filter by tour type", async ({ page }) => {
+  test("[KAN-378] F.4 Can filter by tour type", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -968,7 +968,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
     expect(page.url()).toContain("/tours");
   });
 
-  test("F.5 Tours list has price range filter", async ({ page }) => {
+  test("[KAN-379] F.5 Tours list has price range filter", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -977,7 +977,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
     expect(hasPriceFilter || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("F.6 Can sort tours", async ({ page }) => {
+  test("[KAN-380] F.6 Can sort tours", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -987,7 +987,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
     expect(hasSortOption || hasTableHeader || page.url().includes("/tours")).toBeTruthy();
   });
 
-  test("F.7 Empty search shows no results", async ({ page }) => {
+  test("[KAN-381] F.7 Empty search shows no results", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
@@ -1001,7 +1001,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
     }
   });
 
-  test("F.8 Can clear filters", async ({ page }) => {
+  test("[KAN-382] F.8 Can clear filters", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
     await page.waitForTimeout(1500);
