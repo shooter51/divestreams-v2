@@ -5,7 +5,7 @@ import { db } from "../../../lib/db";
 import { trips, bookings, customers, tours } from "../../../lib/db/schema";
 import { eq, sql, and, gte, count, desc } from "drizzle-orm";
 import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
-import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS, type PlanLimits } from "../../../lib/plan-features";
+import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../lib/plan-features";
 import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
 
 export const meta: MetaFunction = () => {
@@ -543,24 +543,29 @@ function UpgradeModal({ onClose, limitExceeded, feature }: UpgradeModalProps) {
     storageGb: "storage",
   };
 
-  const featureLabels: Record<string, string> = {
-    pos: "Point of Sale",
-    training: "Training Management",
-    equipment: "Equipment & Boats",
-    integrations: "Integrations",
-    api: "API Access",
+  // Get feature label from centralized FEATURE_LABELS, with fallback formatting
+  const getFeatureLabel = (featureKey: string): string => {
+    // Check centralized FEATURE_LABELS first
+    if (featureKey in FEATURE_LABELS) {
+      return FEATURE_LABELS[featureKey as keyof typeof FEATURE_LABELS];
+    }
+    // Fallback: format snake_case or kebab-case to Title Case
+    return featureKey
+      .replace(/^has_/, "")
+      .replace(/[_-]/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
   const title = limitExceeded
     ? `${limitLabels[limitExceeded] || limitExceeded} Limit Reached`
     : feature
-      ? `Upgrade to Access ${featureLabels[feature] || feature}`
+      ? `Upgrade to Access ${getFeatureLabel(feature)}`
       : "Upgrade Your Plan";
 
   const description = limitExceeded
     ? `You've reached the maximum number of ${limitLabels[limitExceeded] || limitExceeded} for your current plan. Upgrade to get more.`
     : feature
-      ? `The ${featureLabels[feature] || feature} feature requires a higher tier plan.`
+      ? `The ${getFeatureLabel(feature)} feature requires a higher tier plan.`
       : "Unlock more features and higher limits with an upgraded plan.";
 
   return (

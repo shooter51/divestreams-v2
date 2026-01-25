@@ -2,6 +2,8 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useActionData, useNavigation, useFetcher, Link } from "react-router";
 import { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireFeature } from "../../../../../lib/require-feature.server";
+import { PLAN_FEATURES } from "../../../../../lib/plan-features";
 import {
   getAgencies,
   createAgency,
@@ -22,6 +24,7 @@ const commonAgencies = [
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_TRAINING);
   const agencies = await getAgencies(ctx.org.id);
 
   return {

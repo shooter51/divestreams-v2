@@ -16,6 +16,7 @@ import {
   getInvoiceHistory,
   fetchInvoicesFromStripe,
 } from "../../../../lib/stripe/stripe-billing.server";
+import { FEATURE_LABELS, type PlanFeaturesObject } from "../../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
@@ -29,13 +30,40 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .where(eq(subscriptionPlans.isActive, true))
     .orderBy(asc(subscriptionPlans.monthlyPrice));
 
+  // Helper function to extract display features from plan features object
+  const getDisplayFeatures = (features: unknown): string[] => {
+    if (!features) return [];
+
+    // If it's already an array (legacy format), return it
+    if (Array.isArray(features)) {
+      return features as string[];
+    }
+
+    // If it's a features object, extract descriptions or generate from enabled flags
+    const featuresObj = features as PlanFeaturesObject;
+
+    // If descriptions array exists, use it
+    if (featuresObj.descriptions && Array.isArray(featuresObj.descriptions)) {
+      return featuresObj.descriptions;
+    }
+
+    // Otherwise, generate descriptions from enabled feature flags
+    const enabledFeatures: string[] = [];
+    for (const [key, value] of Object.entries(featuresObj)) {
+      if (value === true && key in FEATURE_LABELS) {
+        enabledFeatures.push(FEATURE_LABELS[key as keyof typeof FEATURE_LABELS]);
+      }
+    }
+    return enabledFeatures;
+  };
+
   // Map database plans to billing page format
   const finalPlans = dbPlans.length > 0 ? dbPlans.map((plan, index) => ({
     id: plan.name, // Plan name (e.g., "free", "professional", "enterprise")
     name: plan.displayName, // Display name for UI
     price: plan.monthlyPrice / 100, // cents to dollars
     yearlyPrice: plan.yearlyPrice / 100,
-    features: plan.features as string[],
+    features: getDisplayFeatures(plan.features),
     limits: {
       bookings: (plan.limits as { toursPerMonth?: number })?.toursPerMonth ?? -1,
       team: (plan.limits as { users?: number })?.users ?? -1
