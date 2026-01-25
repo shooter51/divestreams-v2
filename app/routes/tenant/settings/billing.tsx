@@ -9,7 +9,6 @@ import {
   createCheckoutSession,
   cancelSubscription,
   createBillingPortalSession,
-  createSetupSession,
   getPaymentMethod,
 } from "../../../../lib/stripe";
 import {
@@ -310,24 +309,6 @@ export async function action({ request }: ActionFunctionArgs) {
     } catch (error) {
       console.error("Billing portal error:", error);
       return { error: error instanceof Error ? error.message : "Failed to open billing portal" };
-    }
-  }
-
-  if (intent === "add-payment") {
-    try {
-      const sessionUrl = await createSetupSession(
-        orgId,
-        `${baseUrl}/tenant/settings/billing?payment_added=true`,
-        `${baseUrl}/tenant/settings/billing?canceled=true`
-      );
-
-      if (sessionUrl) {
-        return redirect(sessionUrl);
-      }
-      return { error: "Failed to create setup session" };
-    } catch (error) {
-      console.error("Setup session error:", error);
-      return { error: error instanceof Error ? error.message : "Failed to create setup session" };
     }
   }
 
@@ -634,7 +615,7 @@ export default function BillingPage() {
           <div className="text-center py-4">
             <p className="text-gray-500 mb-3">No payment method on file</p>
             <fetcher.Form method="post">
-              <input type="hidden" name="intent" value="add-payment" />
+              <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
                 disabled={isSubmitting}
