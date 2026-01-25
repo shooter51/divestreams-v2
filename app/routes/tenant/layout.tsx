@@ -7,6 +7,12 @@ import { FeaturesContext } from "../../../lib/features-context";
 import { UpgradeModal } from "../../components/upgrade-modal";
 import type { PlanFeatureKey, PlanFeaturesObject, PlanLimits } from "../../../lib/plan-features";
 import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../../lib/plan-features";
+import { getOrCreateOnboardingProgress } from "../../../lib/db/onboarding.server";
+import {
+  OnboardingProvider,
+  OnboardingButton,
+  OnboardingSidebar,
+} from "../../components/onboarding";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -35,6 +41,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const limits: PlanLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
   const planName = ctx.subscription?.planDetails?.displayName ?? "Free";
 
+  // Get onboarding progress for the user
+  const onboardingProgress = await getOrCreateOnboardingProgress(ctx.user.id);
+
   return {
     tenant: {
       name: ctx.org.name,
@@ -45,11 +54,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     features,
     limits,
     planName,
+    onboardingProgress,
   };
 }
 
 export default function TenantLayout() {
-  const { tenant, features, limits, planName } = useLoaderData<typeof loader>();
+  const { tenant, features, limits, planName, onboardingProgress } = useLoaderData<typeof loader>();
   const location = useLocation();
   const [upgradeFeature, setUpgradeFeature] = useState<PlanFeatureKey | null>(null);
 
@@ -82,104 +92,110 @@ export default function TenantLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Trial Banner */}
-      {isTrialing && trialDaysLeft > 0 && (
-        <div className="bg-blue-600 text-white text-center py-2 text-sm">
-          You have {trialDaysLeft} days left in your free trial.{" "}
-          <Link to="/tenant/settings/billing" className="underline font-medium">
-            Upgrade now
-          </Link>
-        </div>
-      )}
-
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white h-screen border-r border-gray-200 fixed flex flex-col">
-          <div className="p-4 border-b flex-shrink-0">
-            <h1 className="text-xl font-bold text-blue-600">{tenant.name}</h1>
-            <p className="text-sm text-gray-500">{tenant.subdomain}.{getBaseDomain()}</p>
+    <OnboardingProvider initialProgress={onboardingProgress}>
+      <div className="min-h-screen bg-gray-100">
+        {/* Trial Banner */}
+        {isTrialing && trialDaysLeft > 0 && (
+          <div className="bg-blue-600 text-white text-center py-2 text-sm">
+            You have {trialDaysLeft} days left in your free trial.{" "}
+            <Link to="/tenant/settings/billing" className="underline font-medium">
+              Upgrade now
+            </Link>
           </div>
+        )}
 
-          <nav className="p-4 flex-1 overflow-y-auto">
-            <ul className="space-y-1">
-              {navItems.map((item) => {
-                const isActive =
-                  item.href === "/tenant"
-                    ? location.pathname === "/tenant"
-                    : location.pathname.startsWith(item.href);
-
-                // Check if feature is available
-                const hasAccess = !item.feature || features[item.feature];
-
-                if (hasAccess) {
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        to={item.href}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                          isActive
-                            ? "bg-blue-50 text-blue-600"
-                            : "text-gray-600 hover:bg-gray-50"
-                        }`}
-                      >
-                        <span>{item.icon}</span>
-                        {item.label}
-                      </Link>
-                    </li>
-                  );
-                } else {
-                  // Locked feature - show with lock icon
-                  return (
-                    <li key={item.href}>
-                      <button
-                        onClick={() => setUpgradeFeature(item.feature!)}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-50"
-                        aria-label={`${item.label} - locked feature, click to upgrade`}
-                      >
-                        <span className="opacity-50">{item.icon}</span>
-                        <span className="flex-1 text-left">{item.label}</span>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                      </button>
-                    </li>
-                  );
-                }
-              })}
-            </ul>
-          </nav>
-
-          <div className="p-4 border-t bg-white flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                👤
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Staff User</p>
-                <p className="text-xs text-gray-500">Manager</p>
-              </div>
-              <Link to="/auth/logout" className="text-gray-400 hover:text-gray-600">
-                ↪️
-              </Link>
+        <div className="flex">
+          {/* Sidebar */}
+          <aside className="w-64 bg-white h-screen border-r border-gray-200 fixed flex flex-col">
+            <div className="p-4 border-b flex-shrink-0">
+              <h1 className="text-xl font-bold text-blue-600">{tenant.name}</h1>
+              <p className="text-sm text-gray-500">{tenant.subdomain}.{getBaseDomain()}</p>
             </div>
-          </div>
-        </aside>
 
-        {/* Main Content */}
-        <FeaturesContext.Provider value={{ features, limits, planName }}>
-          <main className="flex-1 ml-64 p-8">
-            <Outlet />
-          </main>
-        </FeaturesContext.Provider>
+            <nav className="p-4 flex-1 overflow-y-auto">
+              <ul className="space-y-1">
+                {navItems.map((item) => {
+                  const isActive =
+                    item.href === "/tenant"
+                      ? location.pathname === "/tenant"
+                      : location.pathname.startsWith(item.href);
+
+                  // Check if feature is available
+                  const hasAccess = !item.feature || features[item.feature];
+
+                  if (hasAccess) {
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          to={item.href}
+                          className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                            isActive
+                              ? "bg-blue-50 text-blue-600"
+                              : "text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          <span>{item.icon}</span>
+                          {item.label}
+                        </Link>
+                      </li>
+                    );
+                  } else {
+                    // Locked feature - show with lock icon
+                    return (
+                      <li key={item.href}>
+                        <button
+                          onClick={() => setUpgradeFeature(item.feature!)}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-50"
+                          aria-label={`${item.label} - locked feature, click to upgrade`}
+                        >
+                          <span className="opacity-50">{item.icon}</span>
+                          <span className="flex-1 text-left">{item.label}</span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                        </button>
+                      </li>
+                    );
+                  }
+                })}
+              </ul>
+            </nav>
+
+            <div className="p-4 border-t bg-white flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                  👤
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">Staff User</p>
+                  <p className="text-xs text-gray-500">Manager</p>
+                </div>
+                <Link to="/auth/logout" className="text-gray-400 hover:text-gray-600">
+                  ↪️
+                </Link>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <FeaturesContext.Provider value={{ features, limits, planName }}>
+            <main className="flex-1 ml-64 p-8">
+              <Outlet />
+            </main>
+          </FeaturesContext.Provider>
+        </div>
+
+        {upgradeFeature && (
+          <UpgradeModal
+            feature={upgradeFeature}
+            onClose={() => setUpgradeFeature(null)}
+          />
+        )}
+
+        {/* Onboarding Components */}
+        <OnboardingButton />
+        <OnboardingSidebar />
       </div>
-
-      {upgradeFeature && (
-        <UpgradeModal
-          feature={upgradeFeature}
-          onClose={() => setUpgradeFeature(null)}
-        />
-      )}
-    </div>
+    </OnboardingProvider>
   );
 }
