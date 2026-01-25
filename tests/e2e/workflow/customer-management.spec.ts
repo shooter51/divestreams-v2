@@ -124,7 +124,7 @@ async function extractEntityUuid(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Navigation & List View", () => {
-  test("A.1 Customers list page loads after login @smoke", async ({ page }) => {
+  test("[KAN-277] A.1 Customers list page loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -136,7 +136,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasHeading || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("A.2 Customers list shows table layout", async ({ page }) => {
+  test("[KAN-278] A.2 Customers list shows table layout", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -146,7 +146,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasTable || hasGrid || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("A.3 Customers list has Add button", async ({ page }) => {
+  test("[KAN-279] A.3 Customers list has Add button", async ({ page }) => {
     // SKIPPED: Flaky test - intermittent auth/session failures in CI
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
@@ -159,7 +159,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(addButton).toBeTruthy();
   });
 
-  test("A.4 Customers list displays customer names", async ({ page }) => {
+  test("[KAN-280] A.4 Customers list displays customer names", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(2000);
@@ -174,7 +174,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasContent || hasEmptyState || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("A.5 Customers list shows contact info", async ({ page }) => {
+  test("[KAN-281] A.5 Customers list shows contact info", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -183,7 +183,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasContact || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("A.6 Customers list has search field", async ({ page }) => {
+  test("[KAN-282] A.6 Customers list has search field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -193,7 +193,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasSearch || hasSearchAlt || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("A.7 Customers list has action buttons", async ({ page }) => {
+  test("[KAN-283] A.7 Customers list has action buttons", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -207,7 +207,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasActions || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("A.8 Can navigate from dashboard to customers", async ({ page }) => {
+  test("[KAN-284] A.8 Can navigate from dashboard to customers", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
     await page.waitForTimeout(1500);
@@ -223,7 +223,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     }
   });
 
-  test("A.9 Customers list shows certification levels", async ({ page }) => {
+  test("[KAN-285] A.9 Customers list shows certification levels", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -232,7 +232,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     expect(hasCert || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("A.10 Customers list has pagination or scroll", async ({ page }) => {
+  test("[KAN-286] A.10 Customers list has pagination or scroll", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -248,7 +248,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block B: Create Customer Flow", () => {
-  test("B.1 Navigate to new customer page", async ({ page }) => {
+  test("[KAN-287] B.1 Navigate to new customer page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
@@ -256,7 +256,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(page.url()).toContain("/customers/new");
   });
 
-  test("B.2 New customer form loads", async ({ page }) => {
+  test("[KAN-288] B.2 New customer form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
@@ -265,7 +265,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(hasForm).toBeTruthy();
   });
 
-  test("B.3 New customer form has first name field", async ({ page }) => {
+  test("[KAN-289] B.3 New customer form has first name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
@@ -274,7 +274,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(firstNameField).toBeTruthy();
   });
 
-  test("B.4 New customer form has last name field", async ({ page }) => {
+  test("[KAN-290] B.4 New customer form has last name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
@@ -283,7 +283,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(lastNameField).toBeTruthy();
   });
 
-  test("B.5 New customer form has email field", async ({ page }) => {
+  test("[KAN-291] B.5 New customer form has email field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
@@ -295,7 +295,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(emailByLabel || emailById || emailByName).toBeTruthy();
   });
 
-  test("B.6 New customer form has phone field", async ({ page }) => {
+  test("[KAN-292] B.6 New customer form has phone field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
@@ -304,7 +304,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(phoneField || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("B.7 New customer form has emergency contact section", async ({ page }) => {
+  test("[KAN-293] B.7 New customer form has emergency contact section", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
@@ -313,7 +313,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(emergencySection || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("B.8 New customer form has certification fields", async ({ page }) => {
+  test("[KAN-294] B.8 New customer form has certification fields", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
@@ -322,7 +322,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(certField || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("B.9 Create a new customer @critical", async ({ page }) => {
+  test("[KAN-295] B.9 Create a new customer @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
@@ -360,7 +360,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(redirectedToList || hasSuccessMessage || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("B.10 Created customer appears in list", async ({ page }) => {
+  test("[KAN-296] B.10 Created customer appears in list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -381,7 +381,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Edit Customer Flow", () => {
-  test("C.1 Navigate to customer edit page", async ({ page }) => {
+  test("[KAN-297] C.1 Navigate to customer edit page", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -394,7 +394,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
     expect(page.url()).toContain("/edit");
   });
 
-  test("C.2 Edit customer form loads with existing data", async ({ page }) => {
+  test("[KAN-298] C.2 Edit customer form loads with existing data", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -409,7 +409,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
     expect(hasForm).toBeTruthy();
   });
 
-  test("C.3 Edit form name fields have current values", async ({ page }) => {
+  test("[KAN-299] C.3 Edit form name fields have current values", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -425,7 +425,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
     expect(hasValue || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("C.4 Can modify customer first name", async ({ page }) => {
+  test("[KAN-300] C.4 Can modify customer first name", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -443,7 +443,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
     expect(page.url()).toContain("/customers");
   });
 
-  test("C.5 Can modify customer phone", async ({ page }) => {
+  test("[KAN-301] C.5 Can modify customer phone", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -461,7 +461,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
     expect(page.url()).toContain("/customers");
   });
 
-  test("C.6 Edit form has save button", async ({ page }) => {
+  test("[KAN-302] C.6 Edit form has save button", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -476,7 +476,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
     expect(saveBtn).toBeTruthy();
   });
 
-  test("C.7 Save customer changes @critical", async ({ page }) => {
+  test("[KAN-303] C.7 Save customer changes @critical", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -499,7 +499,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
     expect(redirected || hasSuccess || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("C.8 Edit form has cancel option", async ({ page }) => {
+  test("[KAN-304] C.8 Edit form has cancel option", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -521,7 +521,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block D: Customer Detail View", () => {
-  test("D.1 Navigate to customer detail page", async ({ page }) => {
+  test("[KAN-305] D.1 Navigate to customer detail page", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -534,7 +534,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     expect(page.url()).toMatch(/\/tenant\/customers\/[a-f0-9-]+/);
   });
 
-  test("D.2 Detail page shows customer name", async ({ page }) => {
+  test("[KAN-306] D.2 Detail page shows customer name", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -549,7 +549,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     expect(hasName || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("D.3 Detail page shows contact information", async ({ page }) => {
+  test("[KAN-307] D.3 Detail page shows contact information", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -564,7 +564,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     expect(hasContact || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("D.4 Detail page shows certification info", async ({ page }) => {
+  test("[KAN-308] D.4 Detail page shows certification info", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -579,7 +579,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     expect(hasCert || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("D.5 Detail page shows emergency contact", async ({ page }) => {
+  test("[KAN-309] D.5 Detail page shows emergency contact", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -594,7 +594,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     expect(hasEmergency || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("D.6 Detail page has edit button", async ({ page }) => {
+  test("[KAN-310] D.6 Detail page has edit button", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -609,7 +609,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     expect(hasEdit || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("D.7 Detail page shows booking history", async ({ page }) => {
+  test("[KAN-311] D.7 Detail page shows booking history", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -624,7 +624,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     expect(hasHistory || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("D.8 Detail page shows customer notes section", async ({ page }) => {
+  test("[KAN-312] D.8 Detail page shows customer notes section", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -639,7 +639,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     expect(hasNotes || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("D.9 Detail page has back to list link", async ({ page }) => {
+  test("[KAN-313] D.9 Detail page has back to list link", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -654,7 +654,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
     expect(hasBack || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("D.10 Invalid customer ID shows error", async ({ page }) => {
+  test("[KAN-314] D.10 Invalid customer ID shows error", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/00000000-0000-0000-0000-000000000000"));
     await page.waitForTimeout(1500);
@@ -670,7 +670,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block E: Customer History & Activity", () => {
-  test("E.1 Customer detail shows total trips", async ({ page }) => {
+  test("[KAN-315] E.1 Customer detail shows total trips", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -685,7 +685,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
     expect(hasTotal || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("E.2 Customer detail shows upcoming bookings", async ({ page }) => {
+  test("[KAN-316] E.2 Customer detail shows upcoming bookings", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -700,7 +700,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
     expect(hasUpcoming || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("E.3 Customer detail shows past bookings", async ({ page }) => {
+  test("[KAN-317] E.3 Customer detail shows past bookings", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -715,7 +715,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
     expect(hasPast || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("E.4 Can add note to customer", async ({ page }) => {
+  test("[KAN-318] E.4 Can add note to customer", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {
@@ -731,7 +731,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
     expect(hasAddNote || hasTextarea || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("E.5 Customer list can be filtered by certification", async ({ page }) => {
+  test("[KAN-319] E.5 Customer list can be filtered by certification", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -740,7 +740,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
     expect(hasFilter || page.url().includes("/customers")).toBeTruthy();
   });
 
-  test("E.6 Can search customers by name", async ({ page }) => {
+  test("[KAN-320] E.6 Can search customers by name", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -754,7 +754,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
     }
   });
 
-  test("E.7 Can search customers by email", async ({ page }) => {
+  test("[KAN-321] E.7 Can search customers by email", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForTimeout(1500);
@@ -767,7 +767,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
     expect(page.url()).toContain("/customers");
   });
 
-  test("E.8 Customer detail has delete option", async ({ page }) => {
+  test("[KAN-322] E.8 Customer detail has delete option", async ({ page }) => {
     await loginToTenant(page);
     const customerId = testData.createdIds.customer;
     if (!customerId) {

@@ -53,7 +53,7 @@ test.describe("Training Import Wizard", () => {
     await loginToTenant(page);
   });
 
-  test("A.1 Navigate to training import from dashboard @smoke", async ({ page }) => {
+  test("[KAN-576] A.1 Navigate to training import from dashboard @smoke", async ({ page }) => {
     // Go to training dashboard
     await page.goto(getTenantUrl("/tenant/training"));
     await page.waitForLoadState("networkidle");
@@ -74,7 +74,7 @@ test.describe("Training Import Wizard", () => {
     await expect(heading).toBeVisible({ timeout: 5000 });
   });
 
-  test("B.1 Step 1: Select agency displays correctly @smoke", async ({ page }) => {
+  test("[KAN-577] B.1 Step 1: Select agency displays correctly @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -100,7 +100,7 @@ test.describe("Training Import Wizard", () => {
     await expect(nextButton).toBeVisible();
   });
 
-  test("B.2 Step 1: Cannot submit without selecting agency @validation", async ({ page }) => {
+  test("[KAN-578] B.2 Step 1: Cannot submit without selecting agency @validation", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -114,7 +114,7 @@ test.describe("Training Import Wizard", () => {
     expect(isInvalid).toBeTruthy();
   });
 
-  test("C.1 Step 2: Select courses after choosing agency @critical", async ({ page }) => {
+  test("[KAN-579] C.1 Step 2: Select courses after choosing agency @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -145,7 +145,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("C.2 Step 2: Select All and Select None buttons work @critical", async ({ page }) => {
+  test("[KAN-580] C.2 Step 2: Select All and Select None buttons work @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -183,7 +183,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("C.3 Step 2: Individual course selection toggles correctly @critical", async ({ page }) => {
+  test("[KAN-581] C.3 Step 2: Individual course selection toggles correctly @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -217,7 +217,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("C.4 Step 2: Cannot proceed without selecting courses @validation", async ({ page }) => {
+  test("[KAN-582] C.4 Step 2: Cannot proceed without selecting courses @validation", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -237,7 +237,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("C.5 Step 2: Course cards display all information @smoke", async ({ page }) => {
+  test("[KAN-583] C.5 Step 2: Course cards display all information @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -268,7 +268,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("D.1 Step 3: Preview displays after selecting courses @critical", async ({ page }) => {
+  test("[KAN-584] D.1 Step 3: Preview displays after selecting courses @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -304,7 +304,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("D.2 Step 3: Import button is enabled when courses selected @smoke", async ({ page }) => {
+  test("[KAN-585] D.2 Step 3: Import button is enabled when courses selected @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -334,7 +334,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("D.3 Step 3: What will happen section displays correctly @smoke", async ({ page }) => {
+  test("[KAN-586] D.3 Step 3: What will happen section displays correctly @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -371,7 +371,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("E.1 Progress indicator shows current step @smoke", async ({ page }) => {
+  test("[KAN-587] E.1 Progress indicator shows current step @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 
@@ -404,7 +404,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("E.2 Back button navigation works @smoke", async ({ page }) => {
+  test("[KAN-588] E.2 Back button navigation works @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
 

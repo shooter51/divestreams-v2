@@ -154,7 +154,7 @@ async function extractEntityId(page: Page, entityName: string, basePath: string)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Customer & Booking Deletion", () => {
-  test("A.1 Create test customer for deletion testing", async ({ page }) => {
+  test("[KAN-530] A.1 Create test customer for deletion testing", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -184,7 +184,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     expect(testData.createdIds.customer).toBeTruthy();
   });
 
-  test("A.2 Create test booking for deletion testing", async ({ page }) => {
+  test("[KAN-531] A.2 Create test booking for deletion testing", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
     if (!testData.createdIds.customer) {
@@ -226,7 +226,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     expect(page.url()).toContain("/bookings");
   });
 
-  test("A.3 Customer deletion succeeds without 500 error @critical", async ({ page }) => {
+  test("[KAN-532] A.3 Customer deletion succeeds without 500 error @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
     if (!testData.createdIds.customer) {
@@ -261,7 +261,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     expect(customerStillExists).toBeFalsy();
   });
 
-  test("A.4 Booking deletion succeeds without 500 error", async ({ page }) => {
+  test("[KAN-533] A.4 Booking deletion succeeds without 500 error", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
     if (!testData.createdIds.booking) {
@@ -292,7 +292,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     expect(page.url()).not.toContain(testData.createdIds.booking);
   });
 
-  test("A.5 Cascade delete removes related records", async ({ page }) => {
+  test("[KAN-534] A.5 Cascade delete removes related records", async ({ page }) => {
     // This test verifies that when a customer is deleted, related records are also deleted
     // We already deleted the customer in A.3, so bookings should also be gone
     await loginToTenant(page);
@@ -324,7 +324,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block B: Discount Code Modal Issues", () => {
-  test("B.1 Navigate to discount codes page", async ({ page }) => {
+  test("[KAN-535] B.1 Navigate to discount codes page", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -334,7 +334,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     expect(page.url()).toContain("/discounts");
   });
 
-  test("B.2 Create discount code - modal closes after success @critical", async ({ page }) => {
+  test("[KAN-536] B.2 Create discount code - modal closes after success @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -373,7 +373,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     if (discountId) testData.createdIds.discount = discountId;
   });
 
-  test("B.3 Update discount code - modal closes after success @critical", async ({ page }) => {
+  test("[KAN-537] B.3 Update discount code - modal closes after success @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -417,7 +417,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     expect(modalStillVisible).toBeFalsy();
   });
 
-  test("B.4 Delete discount code - modal closes after success @critical", async ({ page }) => {
+  test("[KAN-538] B.4 Delete discount code - modal closes after success @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -478,7 +478,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block C: Product Modal Issues", () => {
-  test("C.1 Create test product", async ({ page }) => {
+  test("[KAN-539] C.1 Create test product", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -510,7 +510,7 @@ test.describe.serial("Block C: Product Modal Issues", () => {
     expect(page.url()).toContain("/products");
   });
 
-  test("C.2 Delete product - modal closes after success @critical", async ({ page }) => {
+  test("[KAN-540] C.2 Delete product - modal closes after success @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -571,7 +571,7 @@ test.describe.serial("Block C: Product Modal Issues", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block D: Entity Deletion", () => {
-  test("D.1 Create and delete boat - actually deletes @critical", async ({ page }) => {
+  test("[KAN-541] D.1 Create and delete boat - actually deletes @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -617,7 +617,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
     expect(boatStillExists).toBeFalsy();
   });
 
-  test("D.2 Create and delete dive site - actually deletes @critical", async ({ page }) => {
+  test("[KAN-542] D.2 Create and delete dive site - actually deletes @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -663,7 +663,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
     expect(diveSiteStillExists).toBeFalsy();
   });
 
-  test("D.3 Create and delete tour - actually deletes @critical", async ({ page }) => {
+  test("[KAN-543] D.3 Create and delete tour - actually deletes @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -717,7 +717,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block E: Gallery Navigation", () => {
-  test("E.1 Gallery list page loads @smoke", async ({ page }) => {
+  test("[KAN-544] E.1 Gallery list page loads @smoke", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -732,7 +732,7 @@ test.describe.serial("Block E: Gallery Navigation", () => {
     expect(page.url()).toContain("/gallery");
   });
 
-  test("E.2 Gallery list shows content or empty state", async ({ page }) => {
+  test("[KAN-545] E.2 Gallery list shows content or empty state", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -746,7 +746,7 @@ test.describe.serial("Block E: Gallery Navigation", () => {
     expect(hasGalleryItems || hasEmptyState || page.url().includes("/gallery")).toBeTruthy();
   });
 
-  test("E.3 Gallery new page loads", async ({ page }) => {
+  test("[KAN-546] E.3 Gallery new page loads", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -760,7 +760,7 @@ test.describe.serial("Block E: Gallery Navigation", () => {
     expect(page.url()).toContain("/gallery/new");
   });
 
-  test("E.4 Gallery detail route works", async ({ page }) => {
+  test("[KAN-547] E.4 Gallery detail route works", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -780,7 +780,7 @@ test.describe.serial("Block E: Gallery Navigation", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block F: Public Site Settings", () => {
-  test("F.1 Public site appearance page loads", async ({ page }) => {
+  test("[KAN-548] F.1 Public site appearance page loads", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -790,7 +790,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     expect(page.url()).toContain("/public-site/appearance");
   });
 
-  test("F.2 Theme selection updates visually @critical", async ({ page }) => {
+  test("[KAN-549] F.2 Theme selection updates visually @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -821,7 +821,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     }
   });
 
-  test("F.3 Color picker updates preview live @critical", async ({ page }) => {
+  test("[KAN-550] F.3 Color picker updates preview live @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -848,7 +848,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     }
   });
 
-  test("F.4 Font selection updates visually @critical", async ({ page }) => {
+  test("[KAN-551] F.4 Font selection updates visually @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -873,7 +873,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     }
   });
 
-  test("F.5 Preview button links to correct URL @critical", async ({ page }) => {
+  test("[KAN-552] F.5 Preview button links to correct URL @critical", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -894,7 +894,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     expect(href).not.toContain("/site"); // Bug was linking to /site which 404'd
   });
 
-  test("F.6 General settings page does not crash on navigation", async ({ page }) => {
+  test("[KAN-553] F.6 General settings page does not crash on navigation", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
@@ -918,7 +918,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     expect(page.url()).toContain("/public-site");
   });
 
-  test("F.7 Page toggles work after save", async ({ page }) => {
+  test("[KAN-554] F.7 Page toggles work after save", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
