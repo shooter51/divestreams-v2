@@ -7,12 +7,6 @@ import { FeaturesContext } from "../../../lib/features-context";
 import { UpgradeModal } from "../../components/upgrade-modal";
 import type { PlanFeatureKey, PlanFeaturesObject, PlanLimits } from "../../../lib/plan-features";
 import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../../lib/plan-features";
-import { getOrCreateOnboardingProgress } from "../../../lib/db/onboarding.server";
-import {
-  OnboardingProvider,
-  OnboardingButton,
-  OnboardingSidebar,
-} from "../../components/onboarding";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -41,9 +35,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const limits: PlanLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
   const planName = ctx.subscription?.planDetails?.displayName ?? "Free";
 
-  // Get onboarding progress for the user
-  const onboardingProgress = await getOrCreateOnboardingProgress(ctx.user.id);
-
   return {
     tenant: {
       name: ctx.org.name,
@@ -54,12 +45,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     features,
     limits,
     planName,
-    onboardingProgress,
   };
 }
 
 export default function TenantLayout() {
-  const { tenant, features, limits, planName, onboardingProgress } = useLoaderData<typeof loader>();
+  const { tenant, features, limits, planName } = useLoaderData<typeof loader>();
   const location = useLocation();
   const [upgradeFeature, setUpgradeFeature] = useState<PlanFeatureKey | null>(null);
 
@@ -92,7 +82,6 @@ export default function TenantLayout() {
   ];
 
   return (
-    <OnboardingProvider initialProgress={onboardingProgress}>
       <div className="min-h-screen bg-gray-100">
         {/* Trial Banner */}
         {isTrialing && trialDaysLeft > 0 && (
@@ -192,10 +181,6 @@ export default function TenantLayout() {
           />
         )}
 
-        {/* Onboarding Components */}
-        <OnboardingButton />
-        <OnboardingSidebar />
       </div>
-    </OnboardingProvider>
   );
 }
