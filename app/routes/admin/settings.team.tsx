@@ -6,7 +6,7 @@ import { db } from "../../../lib/db";
 import { member, user, invitation, organization } from "../../../lib/db/schema/auth";
 import { eq, and, desc } from "drizzle-orm";
 import { sendEmail } from "../../../lib/email";
-import { getAppUrl } from "../../../lib/utils/url";
+import { getAppUrl, getAdminUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams Admin" }];
 
@@ -169,7 +169,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
 
       // Send invitation email
-      const inviteUrl = `${getAppUrl()}/admin/auth/accept-invite?token=${inviteId}`;
+      const inviteUrl = getAdminUrl(`/auth/accept-invite?token=${inviteId}`);
       try {
         await sendEmail({
           to: email,
@@ -272,7 +272,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
 
       // Send invitation email
-      const inviteUrl = `${getAppUrl()}/admin/auth/accept-invite?token=${inviteId}`;
+      const inviteUrl = getAdminUrl(`/auth/accept-invite?token=${inviteId}`);
       try {
         await sendEmail({
           to: existingInvite.email,

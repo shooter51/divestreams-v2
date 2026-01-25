@@ -145,6 +145,7 @@ export default [
   // Login is outside the layout so it doesn't require auth
   route("login", "routes/admin/login.tsx"),
   route("logout", "routes/admin/logout.tsx"),
+  route("auth/accept-invite", "routes/admin/auth/accept-invite.tsx"),
 
   // Admin protected routes with layout
   layout("routes/admin/layout.tsx", [
