@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { db } from "../db";
-import { tenants, subscriptionPlans } from "../db/schema";
+import { organization, subscription, subscriptionPlans } from "../db/schema";
 import { eq } from "drizzle-orm";
 
 // Initialize Stripe
@@ -13,40 +13,76 @@ export const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey)
   : null;
 
-// Create a Stripe customer for a tenant
-export async function createStripeCustomer(tenantId: string): Promise<string | null> {
+// Helper to get organization and subscription data
+async function getOrgWithSubscription(orgId: string) {
+  const [org] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.id, orgId))
+    .limit(1);
+
+  if (!org) return null;
+
+  const [sub] = await db
+    .select()
+    .from(subscription)
+    .where(eq(subscription.organizationId, orgId))
+    .limit(1);
+
+  return { org, sub };
+}
+
+// Create a Stripe customer for an organization
+export async function createStripeCustomer(orgId: string): Promise<string | null> {
   if (!stripe) return null;
 
-  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
-
-  if (!tenant) {
-    throw new Error("Tenant not found");
+  const data = await getOrgWithSubscription(orgId);
+  if (!data) {
+    throw new Error("Organization not found");
   }
 
-  if (tenant.stripeCustomerId) {
-    return tenant.stripeCustomerId;
+  const { org, sub } = data;
+
+  // Return existing customer ID if we have one
+  if (sub?.stripeCustomerId) {
+    return sub.stripeCustomerId;
   }
+
+  // Get email from organization metadata or use a default
+  const metadata = org.metadata ? JSON.parse(org.metadata) : {};
+  const email = metadata.email || `${org.slug}@divestreams.com`;
 
   const customer = await stripe.customers.create({
-    email: tenant.email,
-    name: tenant.name,
+    email,
+    name: org.name,
     metadata: {
-      tenantId: tenant.id,
-      subdomain: tenant.subdomain,
+      organizationId: org.id,
+      slug: org.slug,
     },
   });
 
-  await db
-    .update(tenants)
-    .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
-    .where(eq(tenants.id, tenantId));
+  // Update or create subscription record with Stripe customer ID
+  if (sub) {
+    await db
+      .update(subscription)
+      .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
+      .where(eq(subscription.organizationId, orgId));
+  } else {
+    // Create a new subscription record if none exists
+    await db.insert(subscription).values({
+      organizationId: orgId,
+      plan: "free",
+      status: "active",
+      stripeCustomerId: customer.id,
+    });
+  }
 
   return customer.id;
 }
 
 // Create a checkout session for subscription
 export async function createCheckoutSession(
-  tenantId: string,
+  orgId: string,
   planName: "starter" | "pro" | "enterprise",
   billingPeriod: "monthly" | "yearly",
   successUrl: string,
@@ -54,11 +90,12 @@ export async function createCheckoutSession(
 ): Promise<string | null> {
   if (!stripe) return null;
 
-  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
-
-  if (!tenant) {
-    throw new Error("Tenant not found");
+  const data = await getOrgWithSubscription(orgId);
+  if (!data) {
+    throw new Error("Organization not found");
   }
+
+  const { org, sub } = data;
 
   // Get the plan
   const [plan] = await db
@@ -72,9 +109,9 @@ export async function createCheckoutSession(
   }
 
   // Get or create Stripe customer
-  let customerId = tenant.stripeCustomerId;
+  let customerId = sub?.stripeCustomerId;
   if (!customerId) {
-    customerId = await createStripeCustomer(tenantId);
+    customerId = await createStripeCustomer(orgId);
   }
 
   if (!customerId) {
@@ -102,12 +139,12 @@ export async function createCheckoutSession(
     cancel_url: cancelUrl,
     subscription_data: {
       metadata: {
-        tenantId: tenant.id,
+        organizationId: org.id,
         planName,
       },
     },
     metadata: {
-      tenantId: tenant.id,
+      organizationId: org.id,
     },
   });
 
@@ -116,19 +153,18 @@ export async function createCheckoutSession(
 
 // Create a billing portal session
 export async function createBillingPortalSession(
-  tenantId: string,
+  orgId: string,
   returnUrl: string
 ): Promise<string | null> {
   if (!stripe) return null;
 
-  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
-
-  if (!tenant?.stripeCustomerId) {
-    throw new Error("Tenant has no Stripe customer");
+  const data = await getOrgWithSubscription(orgId);
+  if (!data?.sub?.stripeCustomerId) {
+    throw new Error("Organization has no Stripe customer");
   }
 
   const session = await stripe.billingPortal.sessions.create({
-    customer: tenant.stripeCustomerId,
+    customer: data.sub.stripeCustomerId,
     return_url: returnUrl,
   });
 
@@ -137,22 +173,23 @@ export async function createBillingPortalSession(
 
 // Create a setup session for adding a payment method (used when no customer exists yet)
 export async function createSetupSession(
-  tenantId: string,
+  orgId: string,
   successUrl: string,
   cancelUrl: string
 ): Promise<string | null> {
   if (!stripe) return null;
 
-  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
-
-  if (!tenant) {
-    throw new Error("Tenant not found");
+  const data = await getOrgWithSubscription(orgId);
+  if (!data) {
+    throw new Error("Organization not found");
   }
 
+  const { org, sub } = data;
+
   // Get or create Stripe customer
-  let customerId = tenant.stripeCustomerId;
+  let customerId = sub?.stripeCustomerId;
   if (!customerId) {
-    customerId = await createStripeCustomer(tenantId);
+    customerId = await createStripeCustomer(orgId);
   }
 
   if (!customerId) {
@@ -167,7 +204,7 @@ export async function createSetupSession(
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata: {
-      tenantId: tenant.id,
+      organizationId: org.id,
     },
   });
 
@@ -175,15 +212,15 @@ export async function createSetupSession(
 }
 
 // Handle subscription updated (from webhook)
-export async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-  const tenantId = subscription.metadata.tenantId;
-  if (!tenantId) {
-    console.error("No tenantId in subscription metadata");
+export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subscription) {
+  const orgId = stripeSubscription.metadata.organizationId || stripeSubscription.metadata.tenantId;
+  if (!orgId) {
+    console.error("No organizationId in subscription metadata");
     return;
   }
 
   let status: string;
-  switch (subscription.status) {
+  switch (stripeSubscription.status) {
     case "active":
       status = "active";
       break;
@@ -198,94 +235,102 @@ export async function handleSubscriptionUpdated(subscription: Stripe.Subscriptio
       status = "canceled";
       break;
     default:
-      status = subscription.status;
+      status = stripeSubscription.status;
   }
 
   // Use type assertion for Stripe API response properties
-  const sub = subscription as unknown as { current_period_end?: number };
+  const sub = stripeSubscription as unknown as { current_period_end?: number };
   const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
 
   await db
-    .update(tenants)
+    .update(subscription)
     .set({
-      stripeSubscriptionId: subscription.id,
-      subscriptionStatus: status,
+      stripeSubscriptionId: stripeSubscription.id,
+      status: status,
       currentPeriodEnd: periodEnd,
       updatedAt: new Date(),
     })
-    .where(eq(tenants.id, tenantId));
+    .where(eq(subscription.organizationId, orgId));
 }
 
 // Handle subscription deleted (from webhook)
-export async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  const tenantId = subscription.metadata.tenantId;
-  if (!tenantId) return;
+export async function handleSubscriptionDeleted(stripeSubscription: Stripe.Subscription) {
+  const orgId = stripeSubscription.metadata.organizationId || stripeSubscription.metadata.tenantId;
+  if (!orgId) return;
 
   await db
-    .update(tenants)
+    .update(subscription)
     .set({
-      subscriptionStatus: "canceled",
+      status: "canceled",
       updatedAt: new Date(),
     })
-    .where(eq(tenants.id, tenantId));
+    .where(eq(subscription.organizationId, orgId));
 }
 
 // Get subscription status
-export async function getSubscriptionStatus(tenantId: string) {
+export async function getSubscriptionStatus(orgId: string) {
   if (!stripe) return null;
 
-  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+  const [sub] = await db
+    .select()
+    .from(subscription)
+    .where(eq(subscription.organizationId, orgId))
+    .limit(1);
 
-  if (!tenant?.stripeSubscriptionId) {
+  if (!sub?.stripeSubscriptionId) {
     return null;
   }
 
-  const subscription = await stripe.subscriptions.retrieve(tenant.stripeSubscriptionId);
+  const stripeSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
 
   // Use type assertion for Stripe API response properties
-  const sub = subscription as unknown as {
+  const subData = stripeSubscription as unknown as {
     status: string;
     current_period_end?: number;
     cancel_at_period_end?: boolean;
   };
 
   return {
-    status: sub.status,
-    currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000) : null,
-    cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
+    status: subData.status,
+    currentPeriodEnd: subData.current_period_end ? new Date(subData.current_period_end * 1000) : null,
+    cancelAtPeriodEnd: subData.cancel_at_period_end ?? false,
   };
 }
 
 // Cancel subscription at period end
-export async function cancelSubscription(tenantId: string): Promise<boolean> {
+export async function cancelSubscription(orgId: string): Promise<boolean> {
   if (!stripe) return false;
 
-  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+  const [sub] = await db
+    .select()
+    .from(subscription)
+    .where(eq(subscription.organizationId, orgId))
+    .limit(1);
 
-  if (!tenant?.stripeSubscriptionId) {
+  if (!sub?.stripeSubscriptionId) {
     // No subscription to cancel - just mark as canceled
     await db
-      .update(tenants)
+      .update(subscription)
       .set({
-        subscriptionStatus: "canceled",
+        status: "canceled",
         updatedAt: new Date(),
       })
-      .where(eq(tenants.id, tenantId));
+      .where(eq(subscription.organizationId, orgId));
     return true;
   }
 
   // Cancel at period end (user keeps access until billing period ends)
-  await stripe.subscriptions.update(tenant.stripeSubscriptionId, {
+  await stripe.subscriptions.update(sub.stripeSubscriptionId, {
     cancel_at_period_end: true,
   });
 
   await db
-    .update(tenants)
+    .update(subscription)
     .set({
-      subscriptionStatus: "canceled",
+      status: "canceled",
       updatedAt: new Date(),
     })
-    .where(eq(tenants.id, tenantId));
+    .where(eq(subscription.organizationId, orgId));
 
   return true;
 }
@@ -318,8 +363,8 @@ export async function setDefaultPaymentMethod(
   });
 }
 
-// Get payment method details for a tenant
-export async function getPaymentMethod(tenantId: string): Promise<{
+// Get payment method details for an organization
+export async function getPaymentMethod(orgId: string): Promise<{
   type: string;
   brand: string;
   last4: string;
@@ -328,15 +373,19 @@ export async function getPaymentMethod(tenantId: string): Promise<{
 } | null> {
   if (!stripe) return null;
 
-  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+  const [sub] = await db
+    .select()
+    .from(subscription)
+    .where(eq(subscription.organizationId, orgId))
+    .limit(1);
 
-  if (!tenant?.stripeCustomerId) {
+  if (!sub?.stripeCustomerId) {
     return null;
   }
 
   try {
     // Get the customer's default payment method
-    const customer = await stripe.customers.retrieve(tenant.stripeCustomerId);
+    const customer = await stripe.customers.retrieve(sub.stripeCustomerId);
 
     if (customer.deleted) {
       return null;
@@ -362,7 +411,7 @@ export async function getPaymentMethod(tenantId: string): Promise<{
 
     // Fallback: list payment methods
     const paymentMethods = await stripe.paymentMethods.list({
-      customer: tenant.stripeCustomerId,
+      customer: sub.stripeCustomerId,
       type: "card",
       limit: 1,
     });
