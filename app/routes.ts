@@ -153,6 +153,9 @@ export default [
     route("tenants/:id", "routes/admin/tenants.$id.tsx"),
     route("plans", "routes/admin/plans.tsx"),
     route("plans/:id", "routes/admin/plans.$id.tsx"),
+    route("settings", "routes/admin/settings.tsx"),
+    route("settings/team", "routes/admin/settings.team.tsx"),
+    route("contact-messages", "routes/admin/contact-messages.tsx"),
   ]),
   // Public site routes (accessed via subdomain/site)
   // These routes are for the customer-facing public website
