@@ -21,7 +21,7 @@ export interface Image {
 }
 
 interface ImageManagerProps {
-  entityType: "tour" | "diveSite" | "boat" | "equipment" | "staff";
+  entityType: "tour" | "diveSite" | "boat" | "equipment" | "staff" | "course";
   entityId: string;
   images: Image[];
   maxImages?: number;
