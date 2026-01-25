@@ -40,7 +40,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Run lint
         run: npm run lint
@@ -99,7 +99,7 @@ jobs:
           echo "127.0.0.1 admin.localhost demo.localhost test.localhost e2etest.localhost" | sudo tee -a /etc/hosts
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -229,7 +229,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
