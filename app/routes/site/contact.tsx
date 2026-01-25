@@ -10,8 +10,37 @@ import type { ActionFunctionArgs } from "react-router";
 import type { SiteLoaderData } from "./_layout";
 import { db } from "../../../lib/db";
 import { contactMessages } from "../../../lib/db/schema/public-site";
+import { organization } from "../../../lib/db/schema/auth";
+import { eq } from "drizzle-orm";
 import { sendEmail, contactFormNotificationEmail, contactFormAutoReplyEmail } from "../../../lib/email";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+
+/**
+ * Extract subdomain from request host
+ */
+function getSubdomainFromHost(host: string): string | null {
+  // Handle localhost development: subdomain.localhost:5173
+  if (host.includes("localhost")) {
+    const parts = host.split(".");
+    if (parts.length >= 2 && parts[0] !== "localhost") {
+      return parts[0].toLowerCase();
+    }
+    return null;
+  }
+
+  // Handle production: subdomain.divestreams.com
+  const parts = host.split(".");
+  if (parts.length >= 3) {
+    const subdomain = parts[0].toLowerCase();
+    // Ignore www and admin as they're not tenant subdomains
+    if (subdomain === "www" || subdomain === "admin") {
+      return null;
+    }
+    return subdomain;
+  }
+
+  return null;
+}
 
 // ============================================================================
 // ICONS
@@ -161,7 +190,7 @@ interface ActionData {
 // ACTION
 // ============================================================================
 
-export async function action({ request, context }: ActionFunctionArgs): Promise<ActionData> {
+export async function action({ request }: ActionFunctionArgs): Promise<ActionData> {
   const formData = await request.formData();
 
   const name = formData.get("name") as string;
@@ -222,15 +251,33 @@ export async function action({ request, context }: ActionFunctionArgs): Promise<
     return { success: false, errors };
   }
 
-  // Get organization from context (set by _layout loader)
-  const { organization, contactInfo } = context as any;
+  // Look up organization from subdomain
+  const url = new URL(request.url);
+  const host = url.host;
+  const subdomain = getSubdomainFromHost(host);
 
-  if (!organization?.id) {
+  if (!subdomain) {
     return {
       success: false,
       error: "Unable to process your request. Please try again later.",
     };
   }
+
+  const [org] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.slug, subdomain))
+    .limit(1);
+
+  if (!org) {
+    return {
+      success: false,
+      error: "Unable to process your request. Please try again later.",
+    };
+  }
+
+  // Get contact info from org settings
+  const contactInfo = org.publicSiteSettings?.contactInfo;
 
   try {
     // Store message in database
@@ -238,7 +285,7 @@ export async function action({ request, context }: ActionFunctionArgs): Promise<
     const userAgent = request.headers.get("user-agent") || undefined;
 
     await db.insert(contactMessages).values({
-      organizationId: organization.id,
+      organizationId: org.id,
       name: name.trim(),
       email: email.trim().toLowerCase(),
       phone: phone?.trim() || null,
@@ -263,7 +310,7 @@ export async function action({ request, context }: ActionFunctionArgs): Promise<
         email: email.trim(),
         phone: phone?.trim(),
         message: message.trim(),
-        shopName: organization.name,
+        shopName: org.name,
         referrerPage: referrer,
         submittedAt: formattedDate,
       });
@@ -279,9 +326,9 @@ export async function action({ request, context }: ActionFunctionArgs): Promise<
     // Send auto-reply confirmation to customer
     const autoReplyEmail = contactFormAutoReplyEmail({
       name: name.trim(),
-      shopName: organization.name,
-      contactEmail: contactInfo?.email || organization.email || "info@example.com",
-      contactPhone: contactInfo?.phone,
+      shopName: org.name,
+      contactEmail: contactInfo?.email || "info@example.com",
+      contactPhone: contactInfo?.phone ?? undefined,
     });
 
     await sendEmail({
