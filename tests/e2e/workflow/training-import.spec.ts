@@ -45,7 +45,7 @@ async function loginToTenant(page: any) {
   await page.fill('input[name="email"]', testUser.email);
   await page.fill('input[name="password"]', testUser.password);
   await page.click('button[type="submit"]');
-  await page.waitForURL(getTenantUrl("/tenant"));
+  await page.waitForURL(/\/tenant/, { timeout: 10000 });
 }
 
 test.describe("Training Import Wizard", () => {

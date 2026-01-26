@@ -67,7 +67,7 @@ async function loginToTenant(page: Page) {
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
-    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     await page.waitForTimeout(2000);
   }
