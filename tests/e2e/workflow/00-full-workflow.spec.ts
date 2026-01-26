@@ -213,6 +213,8 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await expect(page.getByLabel("Dive Shop Name")).toBeVisible();
     await expect(page.getByLabel("Choose Your URL")).toBeVisible();
     await expect(page.getByLabel("Email Address")).toBeVisible();
+    await expect(page.locator("#password")).toBeVisible();
+    await expect(page.locator("#confirmPassword")).toBeVisible();
   });
 
   test("[KAN-2] 2.3 Create tenant via signup @critical", async ({ page, context }) => {
@@ -220,6 +222,8 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.getByLabel("Dive Shop Name").fill(testData.tenant.shopName);
     await page.getByLabel("Choose Your URL").fill(testData.tenant.subdomain);
     await page.getByLabel("Email Address").fill(testData.tenant.email);
+    await page.locator("#password").fill(testData.user.password);
+    await page.locator("#confirmPassword").fill(testData.user.password);
     await page.getByRole("button", { name: "Start Free Trial" }).click();
     await page.waitForTimeout(3000);
     const alreadyTaken = await page.locator("text=already taken").isVisible().catch(() => false);
@@ -239,6 +243,8 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.getByLabel("Dive Shop Name").fill("Test");
     await page.getByLabel("Choose Your URL").fill("invalid subdomain!");
     await page.getByLabel("Email Address").fill("test@test.com");
+    await page.locator("#password").fill("TestPass123!");
+    await page.locator("#confirmPassword").fill("TestPass123!");
     await page.getByRole("button", { name: "Start Free Trial" }).click();
     await page.waitForTimeout(1000);
     expect(page.url().includes("/signup")).toBeTruthy();
@@ -249,6 +255,8 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.getByLabel("Dive Shop Name").fill("Test Shop");
     await page.getByLabel("Choose Your URL").fill("validtest");
     await page.getByLabel("Email Address").fill("invalid-email");
+    await page.locator("#password").fill("TestPass123!");
+    await page.locator("#confirmPassword").fill("TestPass123!");
     await page.getByRole("button", { name: "Start Free Trial" }).click();
     await page.waitForTimeout(1000);
     expect(page.url().includes("/signup")).toBeTruthy();
