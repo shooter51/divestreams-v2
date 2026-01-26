@@ -1,0 +1,2105 @@
+{
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "SDI/TDI/ERDI Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import. SDI (Scuba Diving International) covers recreational diving, TDI (Technical Diving International) covers technical diving, and ERDI (Emergency Response Diving International) covers public safety diving. All three agencies are part of International Training (ITI). Data sourced from tdisdi.com.",
+  "agency": "sdi-tdi",
+  "agencyName": "Scuba Diving International / Technical Diving International",
+  "version": "2026.1",
+  "lastUpdated": "2026-01-25",
+  "courses": [
+    {
+      "name": "SDI Open Water Scuba Diver",
+      "code": "SDI-OWD",
+      "levelCode": "beginner",
+      "description": "The SDI Open Water Scuba Diver certification is your entry point to the underwater world. This comprehensive course covers aquatic environment principles (vision, light, sound underwater effects), physics and physiology fundamentals (buoyancy, pressure, breathing compressed air), equipment selection, assembly, and maintenance, plus dive planning, safety protocols, navigation, buddy systems, and basic rescue techniques.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-open-water-scuba-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": "Medical clearance required for certain conditions",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "BCD (Buoyancy Control Device)",
+        "Regulator with alternate air source",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Junior Open Water Scuba Diver",
+      "code": "SDI-JOWD",
+      "levelCode": "beginner",
+      "description": "The Junior Open Water Scuba Diver course is designed for younger enthusiasts aged 10-14 who want to learn scuba diving. The course covers the same material as the adult version but with supervision requirements and depth restrictions appropriate for younger divers.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-junior-open-water.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "Parental consent and medical clearance required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Exposure protection",
+        "Youth-sized dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Scuba Discovery",
+      "code": "SDI-DISC",
+      "levelCode": "beginner",
+      "description": "The SDI Scuba Discovery program is an introductory experience for those who want to try scuba diving before committing to a full certification course. Participants experience breathing underwater in a controlled environment under direct instructor supervision.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-scuba-discovery.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "Basic health questionnaire",
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Shallow Water Scuba Diver",
+      "code": "SDI-SWD",
+      "levelCode": "beginner",
+      "description": "The SDI Shallow Water Scuba Diver course provides basic scuba training for diving in shallow water environments. This certification allows diving to limited depths under supervision and serves as a stepping stone to full Open Water certification.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-shallow-water.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "Medical clearance required for certain conditions",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Exposure protection"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Future Buddies",
+      "code": "SDI-FB",
+      "levelCode": "beginner",
+      "description": "The SDI Future Buddies program introduces children to the underwater world through snorkeling and basic underwater skills. This program is designed for children who are too young for scuba certification but want to start their aquatic journey.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-future-buddies.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 5,
+      "medicalRequirements": "Parental consent required",
+      "requiredItems": [
+        "Mask, fins, and snorkel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Snorkeler",
+      "code": "SDI-SNK",
+      "levelCode": "beginner",
+      "description": "The SDI Snorkeler course teaches proper snorkeling techniques, equipment use, and water safety skills. This certification is ideal for non-divers who want to enjoy the underwater world from the surface.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-snorkeler.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 8,
+      "medicalRequirements": "Basic health questionnaire",
+      "requiredItems": [
+        "Mask, fins, and snorkel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Inactive Diver/Refresher",
+      "code": "SDI-REF",
+      "levelCode": "beginner",
+      "description": "The SDI Inactive Diver/Refresher program is designed for certified divers who have been away from diving and want to refresh their skills and knowledge before returning to the water.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-refresher.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 1,
+      "prerequisites": "Certified diver",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance recommended",
+      "requiredItems": [
+        "Personal dive equipment or rental"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Scubility Diver",
+      "code": "SDI-SCUB",
+      "levelCode": "beginner",
+      "description": "The SDI Scubility Diver program is an adaptive diving course designed for individuals with physical or cognitive disabilities. The program adapts standard diving techniques to meet each diver's specific needs and abilities.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-scubility.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "Physician approval required",
+      "requiredItems": [
+        "Adaptive equipment as needed"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Advanced Adventure Diver",
+      "code": "SDI-AAD",
+      "levelCode": "advanced",
+      "description": "The SDI Advanced Adventure Diver course provides an overview of five different SDI specialties. Two required specialties are Deep Diver and Navigation Diver, while three can be selected from options including Advanced Buoyancy Control, Altitude Diver, Boat Diver, Computer Nitrox Diver, Drift Diver, and Marine Ecosystem Awareness. One dive from selected specialties may count toward full specialty certification.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-advanced-adventure.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 5,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Compass"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Advanced Diver Development Program",
+      "code": "SDI-ADDP",
+      "levelCode": "advanced",
+      "description": "The SDI Advanced Diver certification is designed to transition divers from novice to advanced, enhancing comfort and competence in the water. Participants explore four specialty areas from SDI, TDI, or ERDI offerings, such as Deep Diving, Navigation, or Intro to Tech. This certification prepares participants for the SDI Rescue Diver course.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-advanced-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent with solid diving skills",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Compass",
+        "Specialty-specific equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Rescue Diver",
+      "code": "SDI-RD",
+      "levelCode": "advanced",
+      "description": "The SDI Rescue Diver Course teaches divers to become the diver everyone relies on, skilled in managing dive emergencies and providing essential first aid. The course covers accident prevention, stress management, equipment use, rescue techniques, panic response handling, and dive-related injury management. Trainees practice self-rescue methods and learn to assist distressed divers effectively.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-rescue-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 6,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Advanced Adventure Diver or equivalent, current CPR and first aid certifications",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Pocket mask",
+        "Emergency signaling devices"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Master Scuba Diver",
+      "code": "SDI-MSD",
+      "levelCode": "advanced",
+      "description": "The SDI Master Scuba Diver program represents the highest non-professional diver certification available. Designed to set divers apart and distinguish them as true masters, this certification provides knowledge, experience, and necessary skills associated with diving in a variety of underwater environments and settings. Requirements include completing four SDI specialty courses, the Rescue Diver course, and logging a minimum of 50 dives.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-master-scuba-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SDI Rescue Diver, four SDI specialty courses, minimum 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Dive log with verified dives"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Computer Nitrox Diver",
+      "code": "SDI-CNX",
+      "levelCode": "specialty",
+      "description": "The SDI Computer Nitrox Diver course is one of the most popular courses available. By breathing an oxygen-enriched mix, divers can extend their bottom time and increase the flexibility in their dive profiles. This course covers the benefits, hazards, and proper procedures for using enriched air nitrox with dive computers.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-computer-nitrox.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Nitrox-compatible dive computer",
+        "Oxygen analyzer (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Deep Diver",
+      "code": "SDI-DD",
+      "levelCode": "specialty",
+      "description": "The SDI Deep Diver specialty course teaches the techniques, equipment, and planning required for diving deeper than recreational limits. Topics include narcosis management, gas consumption at depth, emergency procedures, and proper ascent techniques.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-deep-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Delayed surface marker buoy (DSMB)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Wreck Diver",
+      "code": "SDI-WRK",
+      "levelCode": "specialty",
+      "description": "The SDI Wreck Diver specialty course teaches safe wreck exploration techniques for external wreck diving. Topics include wreck diving hazards, navigation, penetration awareness, historical research, and proper buoyancy control around delicate structures.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-wreck-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive light",
+        "Cutting device"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Night/Limited Visibility Diver",
+      "code": "SDI-NLV",
+      "levelCode": "specialty",
+      "description": "The SDI Night/Limited Visibility Diver course covers techniques for safe diving in low-light conditions. Topics include dive light use, navigation without visual references, communication techniques, and emergency procedures specific to night diving.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-night-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 3,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Primary dive light",
+        "Backup dive light",
+        "Glow sticks or marker lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Underwater Navigation Diver",
+      "code": "SDI-NAV",
+      "levelCode": "specialty",
+      "description": "The SDI Underwater Navigation Diver course teaches compass navigation, natural navigation techniques, and underwater mapping skills. Students learn to navigate to and from dive sites using multiple reference points.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-navigation.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive compass",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Advanced Buoyancy Control Diver",
+      "code": "SDI-ABC",
+      "levelCode": "specialty",
+      "description": "The SDI Advanced Buoyancy Control course helps divers master precise buoyancy control. Topics include proper weighting, trim adjustment, breathing techniques for buoyancy, and hovering skills.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-advanced-buoyancy.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Boat Diver",
+      "code": "SDI-BOAT",
+      "levelCode": "specialty",
+      "description": "The SDI Boat Diver course teaches techniques for diving from various types of vessels. Topics include boat diving etiquette, entry and exit techniques, emergency procedures, and understanding boat operations.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-boat-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Surface signaling device"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Drift Diver",
+      "code": "SDI-DRIFT",
+      "levelCode": "specialty",
+      "description": "The SDI Drift Diver course teaches techniques for safely diving in currents. Topics include reading water conditions, entry/exit timing, buddy separation procedures, and emergency protocols.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-drift-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Delayed surface marker buoy (DSMB)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Dry Suit Diver",
+      "code": "SDI-DRY",
+      "levelCode": "specialty",
+      "description": "The SDI Dry Suit Diver course teaches proper dry suit selection, use, and maintenance. Topics include thermal protection principles, dry suit valves, underwear selection, buoyancy control with a dry suit, and emergency procedures including inverted position recovery.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-drysuit.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Dry suit (rental available)",
+        "Dry suit underwear",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Altitude Diver",
+      "code": "SDI-ALT",
+      "levelCode": "specialty",
+      "description": "The SDI Altitude Diver course covers the special considerations for diving at elevations above 300 meters/1000 feet. Topics include altitude adjustments to dive tables and computers, decompression considerations, and emergency procedures.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-altitude-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Altitude-capable dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Ice Diver",
+      "code": "SDI-ICE",
+      "levelCode": "specialty",
+      "description": "The SDI Ice Diver course teaches techniques for safely diving under ice. Topics include ice diving hazards, equipment requirements, tethered diving techniques, and emergency procedures in overhead environments.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-ice-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "SDI Advanced Adventure Diver or equivalent, Dry Suit certification recommended",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance, cold water fitness",
+      "requiredItems": [
+        "Dry suit",
+        "Cold water regulator",
+        "Dive knife/cutting device",
+        "Safety line"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Equipment Specialist Diver",
+      "code": "SDI-EQS",
+      "levelCode": "specialty",
+      "description": "The SDI Equipment Specialist Diver course provides an in-depth look at how dive equipment works, covering general repairs and maintenance of various types of exposure suits, BCDs, regulators, and other accessories.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-equipment-specialist.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Equipment service tools (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Full Face Mask Diver",
+      "code": "SDI-FFM",
+      "levelCode": "specialty",
+      "description": "The SDI Full Face Mask Diver course teaches proper use of full face masks for recreational diving. Topics include mask selection, fitting, clearing techniques, emergency bailout procedures, and communication systems.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-full-face-mask.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Full face mask (rental available)",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Search and Recovery Diver",
+      "code": "SDI-SR",
+      "levelCode": "specialty",
+      "description": "The SDI Search and Recovery Diver course teaches special skills and techniques necessary to successfully plan, execute, and evaluate a search and recovery dive. Topics include search patterns, lift bag use, and underwater object recovery techniques.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-search-recovery.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Lift bag",
+        "Search reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Shore/Beach Diver",
+      "code": "SDI-SB",
+      "levelCode": "specialty",
+      "description": "The SDI Shore/Beach Diver course covers techniques for safe shore diving, including surf entries and exits, navigation from shore, and dealing with conditions unique to shore diving.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-shore-beach.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Sidemount Diver",
+      "code": "SDI-SM",
+      "levelCode": "specialty",
+      "description": "The SDI Sidemount Diver course teaches certified divers how to safely utilize side-mounted primary cylinders as an alternative to traditional back-mounted configuration. The course is strictly non-decompression with a maximum depth of 40 metres/130 feet. Sidemount configuration provides better weight distribution and streamlined profile.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-sidemount.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 3,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Sidemount BCD system",
+        "Two cylinders with appropriate regulators"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Solo Diver",
+      "code": "SDI-SOLO",
+      "levelCode": "specialty",
+      "description": "The SDI Solo Diver course teaches self-reliant scuba diving without a dive buddy. The course stresses proper dive planning, personal limitations, and accident prevention, as well as the benefits, hazards, and proper procedures for diving solo. Perfect for underwater photography/video divers who may need to focus on their subjects independently.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-solo-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "SDI Advanced Diver or equivalent, minimum 100 logged dives",
+      "minAge": 21,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Redundant air source",
+        "Surface signaling devices"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Diver Propulsion Vehicle Diver",
+      "code": "SDI-DPV",
+      "levelCode": "specialty",
+      "description": "The SDI Diver Propulsion Vehicle (DPV) Diver course familiarizes divers with the skills, knowledge, planning, organization, procedures, techniques, problems, and hazards of using a DPV in a non-overhead environment.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-dpv.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "DPV (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Underwater Photographer",
+      "code": "SDI-UP",
+      "levelCode": "specialty",
+      "description": "The SDI Underwater Photographer course covers the fundamentals of underwater photography including camera systems, lighting, composition, and post-processing techniques for capturing stunning underwater images.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-underwater-photo.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater camera system"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Underwater Videographer",
+      "code": "SDI-UV",
+      "levelCode": "specialty",
+      "description": "The SDI Underwater Videographer course covers techniques for capturing high-quality underwater video including camera operation, lighting, stability, storytelling, and video editing basics.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-underwater-video.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater video camera system"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Underwater Hunter and Collector",
+      "code": "SDI-UHC",
+      "levelCode": "specialty",
+      "description": "The SDI Underwater Hunter and Collector course teaches responsible harvesting techniques for underwater game and specimens, including local regulations, equipment use, and conservation practices.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-hunter-collector.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Spearfishing/collection equipment (as appropriate)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Marine Ecosystems Awareness Diver",
+      "code": "SDI-MEA",
+      "levelCode": "specialty",
+      "description": "The SDI Marine Ecosystems Awareness Diver course provides education on marine ecosystems, conservation, and responsible diving practices. Learn to identify marine life and understand the importance of protecting underwater environments.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-marine-ecosystems.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Research Diver",
+      "code": "SDI-RES",
+      "levelCode": "specialty",
+      "description": "The SDI Research Diver course introduces divers to scientific diving methods including data collection, transect surveys, species identification, and proper research protocols.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-research-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Advanced Adventure Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater slate",
+        "Data collection tools"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Visual Inspection Procedures",
+      "code": "SDI-VIP",
+      "levelCode": "specialty",
+      "description": "The SDI Visual Inspection Procedures course trains divers in the proper inspection of scuba cylinders for internal and external damage, preparing them to perform annual cylinder inspections.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-vip.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "VIP inspection equipment (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Computer Diver",
+      "code": "SDI-COMP",
+      "levelCode": "specialty",
+      "description": "The SDI Computer Diver course teaches proper dive computer use, including understanding algorithms, setting parameters, managing ascents, and interpreting computer data for safe diving.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-computer-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Divemaster",
+      "code": "SDI-DM",
+      "levelCode": "professional",
+      "description": "The SDI Divemaster certification transforms advanced divers into professional dive leaders. The program provides comprehensive skills in dive leadership, safety management, and underwater guidance, enabling graduates to lead certified divers and manage dive operations professionally. Training covers diving science, SDI standards and procedures, risk management, dive planning, emergency response, and group leadership techniques.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-divemaster.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 10,
+      "prerequisites": "SDI Advanced Adventure Diver or equivalent, SDI Rescue Diver, current CPR/first aid/oxygen provider certifications, minimum 40 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer",
+        "Rescue equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Assistant Instructor",
+      "code": "SDI-AI",
+      "levelCode": "professional",
+      "description": "The SDI Assistant Instructor course prepares divemasters for the instructor level by developing teaching skills and classroom management abilities. Graduates can assist with SDI courses and conduct certain programs under instructor supervision.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-assistant-instructor.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Divemaster, minimum 60 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Open Water Scuba Diver Instructor",
+      "code": "SDI-OWSDI",
+      "levelCode": "instructor",
+      "description": "The SDI Open Water Scuba Diver Instructor program provides comprehensive instructor training covering SDI Standards and Procedures and teaching methodologies. Students learn about liability, risk management, retail sales strategies, and instructor ethics alongside diving physics and physiology. Graduates may teach SDI Open Water Scuba Diver courses, Advanced Adventure Diver specialties, Computer Diver, Rescue Diver, and Divemaster courses.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-instructor.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 40,
+      "poolHours": 16,
+      "openWaterDives": 8,
+      "prerequisites": "Certified diver with minimum 6 months experience, 100 logged dives in varied environments and depths, SDI Divemaster/Assistant Instructor or equivalent, valid CPR/first aid/oxygen provider certifications",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Instructor manual",
+        "Teaching aids"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Specialty Instructor",
+      "code": "SDI-SI",
+      "levelCode": "instructor",
+      "description": "The SDI Specialty Instructor courses qualify instructors to teach specific SDI specialty courses. Each specialty instructor rating requires completion of the corresponding diver-level specialty and additional instructor training.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-specialty-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Instructor, certified in the specific specialty",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Specialty-specific equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Scubility Instructor",
+      "code": "SDI-SCUBI",
+      "levelCode": "instructor",
+      "description": "The SDI Scubility Instructor course trains instructors to teach adaptive diving to individuals with physical or cognitive disabilities. This specialized training covers assessment, adaptation techniques, and safety considerations for diverse abilities.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-scubility-instructor.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Instructor",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Adaptive equipment",
+        "Standard dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Course Director",
+      "code": "SDI-CD",
+      "levelCode": "instructor",
+      "description": "The SDI Course Director Course is the first module of SDI's Instructor Trainer Development Program. This program trains candidates to conduct the SDI Instructor Development Course (IDC) independently. Course Directors may also conduct SDI Non-Diving Specialty Instructor Course and specialty ratings for SDI Instructors and Assistant Instructors.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-course-director.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "Active SDI Open Water Scuba Diver Instructor for minimum 2 years with no quality assurance issues for past 12 months",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "IDC materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SDI Instructor Trainer",
+      "code": "SDI-IT",
+      "levelCode": "instructor",
+      "description": "The SDI Instructor Trainer course is the highest level in SDI's professional ladder. Graduates may teach and evaluate instructor level courses for all approved levels, conduct Staff Instructor Trainer Workshops, administrative crossover programs for SDI Professionals, and the SDI Course Director Program when qualified. Requires minimum 200 SDI Diver certifications at various levels.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/sdi-instructor-trainer.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "Active SDI Course Director with minimum 1 IDC conducted, OR active SDI Instructor who has assisted with 1 complete IDC, minimum 200 SDI Diver certifications",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "IT program materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Nitrox Diver",
+      "code": "TDI-NX",
+      "levelCode": "specialty",
+      "description": "The TDI Nitrox Diver is an entry-level certification designed for recreational divers seeking to expand their knowledge and utilize enriched air nitrox as a breathing gas to extend no-decompression limits at depth. The course covers the benefits, hazards, and proper procedures for using nitrox mixes from 22 through 40 percent oxygen content, along with equipment considerations, cylinder labeling, mixture analysis, and blending procedures.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-nitrox.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent, or enrolled in Open Water course",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Nitrox-compatible equipment",
+        "Oxygen analyzer (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Intro to Tech Diving",
+      "code": "TDI-ITT",
+      "levelCode": "advanced",
+      "description": "The TDI Intro to Tech course is an introductory technical diving program that expands on recreational training by improving dive planning methods, in-water skills, and streamlining existing gear configurations in a controlled and fun learning environment. Participants receive instruction in in-depth dive planning, advanced buoyancy control, gas management, situational awareness, proper trim, gear configuration and selection.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-intro-to-tech.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent, proof of 25 logged open water dives",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Backplate and wing system recommended"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Advanced Nitrox Diver",
+      "code": "TDI-ANX",
+      "levelCode": "advanced",
+      "description": "The TDI Advanced Nitrox Diver certification qualifies divers to use enriched air nitrox mixtures ranging from EAN 21 through EAN 100 percent within your current certification level to a maximum depth of 40 metres/130 feet during dives that do not require staged decompression. Training includes physics and physiology relating to diving with gas mixes containing more than 40% oxygen, gas planning, cylinder labeling, analyzing nitrox mixtures, gas blending procedures, and oxygen service ratings.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-advanced-nitrox.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Nitrox Diver or equivalent, minimum 25 logged open water dives",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Nitrox-compatible gear",
+        "Oxygen analyzer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Decompression Procedures Diver",
+      "code": "TDI-DPD",
+      "levelCode": "advanced",
+      "description": "The TDI Decompression Procedures course introduces planned staged decompression diving beyond standard sport diving limits. The curriculum covers decompression dive planning including gas selection, computer versus table navigation, emergency contingency protocols, equipment configuration, buoyancy refinement, gas switching procedures, and response protocols for equipment failures. Maximum operating depth is 45 metres/150 feet.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-decompression.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Advanced Adventure Diver or equivalent, proof of 25 logged open water dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Decompression gas cylinders",
+        "Lift bag/DSMB",
+        "Dive computer with deco capability"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Extended Range Diver",
+      "code": "TDI-ER",
+      "levelCode": "advanced",
+      "description": "The TDI Extended Range Diver course trains divers to use compressed air for deep diving up to 55 metres/180 feet with staged decompression using nitrox mixtures or oxygen. The course teaches proper techniques, equipment requirements, and hazards of deep air diving, including physics, physiology (nitrogen narcosis and oxygen toxicity), decompression options, dive planning, emergency procedures, and technical navigation skills.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-extended-range.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Advanced Nitrox and TDI Decompression Procedures certifications or equivalent, minimum 100 logged dives with at least 25 deeper than 30m/100ft",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Double cylinders",
+        "Stage/deco cylinders",
+        "Lift bag/DSMB"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Helitrox Diver",
+      "code": "TDI-HTX",
+      "levelCode": "advanced",
+      "description": "The TDI Helitrox Diver Course examines the theory, methods, and procedures for planning staged decompression dives utilizing helium in the breathing mixture to reduce the effects of inert gas narcosis. Students are trained to plan and conduct dives to a maximum depth of 45 metres/150 feet using enriched air nitrox and helium mixes with no greater than 35% helium content, and up to 100% oxygen for decompression.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-helitrox.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Advanced Diver (with Deep specialty) or TDI Intro to Tech Diver, TDI Advanced Nitrox Diver (or concurrent), minimum 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Helitrox-capable cylinders",
+        "Decompression cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Trimix Diver",
+      "code": "TDI-TMX",
+      "levelCode": "advanced",
+      "description": "The TDI Trimix Diver course teaches divers to minimize the effects of narcosis by adding helium to offset the nitrogen in your breathing gas. Students learn to plan and execute dives utilizing as little as 18 percent oxygen while diving to a maximum depth of 60 metres/200 feet with appropriate helium blends. Training covers advanced decompression planning, gas management, equipment selection, buoyancy techniques, emergency procedures, stress analysis and mitigation, and team awareness.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-trimix.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Advanced Nitrox AND Decompression Procedures Diver or equivalent, proof of 100 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Double cylinders",
+        "Multiple stage/deco cylinders",
+        "Lift bag/DSMB"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Advanced Trimix Diver",
+      "code": "TDI-ATMX",
+      "levelCode": "advanced",
+      "description": "The TDI Advanced Trimix Diver Course is the top level of training for open circuit divers wishing to dive to depths as deep as 100 metres/330 feet utilizing hypoxic levels of oxygen (below 17 percent). This is perhaps one of the most informative and challenging of all TDI open circuit courses. Training covers advanced decompression planning, hypoxic gas utilization, HPNS management, and multi-cylinder management.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-advanced-trimix.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Extended Range or Trimix Diver certification, 100 logged dives with at least 25 deeper than 30m/100ft",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Double cylinders",
+        "Multiple stage/deco cylinders",
+        "Advanced diving accessories"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Sidemount Diver",
+      "code": "TDI-SM",
+      "levelCode": "specialty",
+      "description": "The TDI Sidemount Diver course teaches divers to safely utilize side-mounted cylinders for technical diving applications. Originally used by cave divers to navigate tight spaces, sidemount configuration provides better weight distribution and streamlined profile. Can be combined with courses including Trimix, Advanced Trimix, and Advanced Wreck.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-sidemount.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Sidemount harness system",
+        "Two cylinders with appropriate regulators"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Cavern Diver",
+      "code": "TDI-CAV",
+      "levelCode": "advanced",
+      "description": "The TDI Cavern Diver course develops minimum skills and knowledge for cavern and overhead environment diving within the limits of light penetration. Training covers gas management, equipment configurations, swimming techniques, physiology, emergency procedures, and buoyancy control. Students learn guideline deployment, air shares, anti-silting techniques. Maximum depth 40m/130ft, linear penetration limited to 61m/200ft.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-cavern.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent, minimum 25 logged dives",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Primary reel",
+        "Safety reel",
+        "Primary light",
+        "Backup lights (2)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Intro to Cave Diver",
+      "code": "TDI-ITC",
+      "levelCode": "advanced",
+      "description": "The TDI Intro to Cave Diver course is an introduction to the basic principles of cave diving utilizing a single primary guide line. This is the second level in development of proper cave diving techniques, directly building upon the cavern diver course. Training covers gas management, equipment configuration, swimming techniques, psychological considerations, problem-solving, and emergency procedures. Penetration is limited to the rule of thirds or 1/6th if using doubles.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-intro-cave.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "TDI Cavern Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Double cylinders",
+        "Primary reel",
+        "Safety reels",
+        "Primary light",
+        "Backup lights (2)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Full Cave Diver",
+      "code": "TDI-FC",
+      "levelCode": "advanced",
+      "description": "The TDI Full Cave Diver course is the third and final stage of overhead environment training, focusing on advanced cave dive planning and practical execution of different cave systems and scenarios. Emphasis is placed on dive planning and skill perfection through actual cave penetration including complex circuits with jumps off the mainline and decompression dives. This is the pinnacle of cave training.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-full-cave.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "TDI Intro to Cave Diver, TDI Decompression Procedures (if decompression dives included)",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Double cylinders",
+        "Multiple reels",
+        "Primary light",
+        "Backup lights (2)",
+        "Decompression cylinders (if required)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Stage Cave Diver",
+      "code": "TDI-SCD",
+      "levelCode": "advanced",
+      "description": "The TDI Stage Cave Diver course trains full cave divers to extend their range using stage cylinders in cave environments. Topics include stage cylinder configuration, gas management with multiple cylinders, extended penetration planning, and emergency procedures.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-stage-cave.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Full Cave Diver",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Double cylinders",
+        "Stage cylinders",
+        "Cave diving accessories"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Cave Surveying Diver",
+      "code": "TDI-CSV",
+      "levelCode": "advanced",
+      "description": "The TDI Cave Surveying Diver course teaches full cave divers the techniques for underwater cave survey and mapping. Topics include survey methods, data collection, cartography basics, and proper documentation techniques.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-cave-survey.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Full Cave Diver",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Survey tools",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI DPV Cave Diver",
+      "code": "TDI-DPVC",
+      "levelCode": "advanced",
+      "description": "The TDI DPV Cave Diver course is designed to teach trained cave divers how to utilize Diver Propulsion Vehicles (DPVs) in the cave environment. Divers learn about safe DPV use, DPV components, care and maintenance, failure procedures, and tow techniques.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-dpv-cave.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Full Cave Diver",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "DPV (provided or personal)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Mine Diver",
+      "code": "TDI-MINE",
+      "levelCode": "advanced",
+      "description": "The TDI Mine Diver course trains divers for overhead environment diving in flooded mines. The course covers mine-specific hazards, navigation techniques, emergency procedures, and proper equipment configuration for mine diving.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-mine-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Cavern Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Overhead environment gear"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Advanced Wreck Diver",
+      "code": "TDI-AWR",
+      "levelCode": "advanced",
+      "description": "The TDI Advanced Wreck Diver course teaches proper techniques for locating and planning advanced wreck penetration dives. Students learn advanced equipment deployment including dual outlets, independent doubles, decompression cylinders, redundant regulators, and penetration reels. Training covers guideline procedures, team communication, buoyancy techniques, and emergency management for equipment failures, entanglement, and navigational errors.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-advanced-wreck.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Advanced Adventure Diver or equivalent, SDI Wreck Diver or TDI Cavern Diver, minimum 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Penetration reel",
+        "Primary light",
+        "Backup lights (2)",
+        "Cutting device"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI DPV Diver",
+      "code": "TDI-DPV",
+      "levelCode": "specialty",
+      "description": "The TDI Diver Propulsion Vehicle (DPV) Course familiarizes divers with the skills, knowledge, planning, organization, procedures, techniques, problems, and hazards of using DPVs while technical diving. Topics include proper planning, pre-dive checks, bail-out procedures, and PO2 monitoring.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-dpv.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Intro to Tech Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "DPV (provided or personal)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Semi-Closed Rebreather Diver",
+      "code": "TDI-SCR",
+      "levelCode": "advanced",
+      "description": "The TDI Semi-Closed Rebreather Diver course trains students to safely operate semi-closed circuit rebreathers. Graduates may engage in no decompression diving utilizing approved semi-closed circuit rebreathers to a maximum depth of 40 metres/130 feet using nitrox mixes not exceeding their certification level. Training covers breathing loop decontamination, bail-out procedures, safety stops, and equipment maintenance.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-scr.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent, TDI Nitrox Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Semi-closed rebreather unit",
+        "Bailout equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI CCR Air Diluent Diver",
+      "code": "TDI-CCRAD",
+      "levelCode": "advanced",
+      "description": "The TDI Closed Circuit Rebreather (CCR) Air Diluent Diver Course is your first step into closed circuit rebreather diving and your first truly quiet dive experience. This entry-level CCR course covers rebreather theory, pre-dive checks, emergency procedures, and proper operation of closed circuit units using air as a diluent.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-ccr-air-diluent.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "SDI Open Water Scuba Diver or equivalent, TDI Nitrox Diver",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance specific to CCR diving",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Bailout equipment",
+        "Oxygen analyzer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI CCR Air Diluent Decompression Procedures Diver",
+      "code": "TDI-CCRADD",
+      "levelCode": "advanced",
+      "description": "The TDI Air Diluent CCR Decompression Procedures course uses the latest CCR technology to maximize gas supply and provide an optimum breathing gas by maintaining a constant partial pressure of oxygen. Students learn to conduct decompression CCR dives to a maximum depth of 40 metres/130 feet using air diluent.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-ccr-deco.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI CCR Air Diluent Diver on same unit",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Decompression bailout equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI CCR Helitrox Diver",
+      "code": "TDI-CCRHTX",
+      "levelCode": "advanced",
+      "description": "The TDI CCR Helitrox Decompression Procedures course is the second level certification for divers utilizing a CCR for mixed gas diving using a Helitrox Diluent. Training to a maximum of 45 metres/150 feet using diluent with no greater than 35% helium content and no less than 21% oxygen content, with up to 100% oxygen for decompression.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-ccr-helitrox.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI CCR Air Diluent Decompression Procedures Diver or equivalent on same unit",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Helitrox supplies",
+        "Decompression bailout equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Mixed Gas CCR Diver",
+      "code": "TDI-CCRMG",
+      "levelCode": "advanced",
+      "description": "The TDI Mixed Gas CCR Diver course is the next step for certified CCR Air Diluent Decompression or Helitrox Diluent Decompression Divers to explore deeper. Graduates may dive to a maximum of 60 metres/200 feet utilizing a mixed gas diluent containing 16 percent or greater oxygen.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-ccr-mixedgas.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI CCR Air Diluent Decompression or Helitrox Diluent Decompression Diver on same unit",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Mixed gas supplies",
+        "Advanced bailout equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Advanced Mixed Gas CCR Diver",
+      "code": "TDI-CCRAMG",
+      "levelCode": "advanced",
+      "description": "The TDI Advanced Mixed Gas CCR Diver is the highest level CCR certification. Requires minimum 100 hours as a certified CCR diver over at least 100 dives, with at least 50 hours and 50 dives on the unit specific CCR (50% deeper than 30m/100ft). Graduates may dive to a maximum depth of 100 metres/330 feet utilizing any mixed gas diluent appropriate to the dive plan.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-ccr-advanced.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI Mixed Gas CCR Diver, 100 hours and 100 dives as CCR diver with 50 hours/dives on specific unit",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Hypoxic gas supplies",
+        "Advanced bailout equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Rebreather Cavern Diver",
+      "code": "TDI-RCAV",
+      "levelCode": "advanced",
+      "description": "The TDI Rebreather Cavern Diver course teaches closed circuit rebreather divers the skills for cavern diving within the limits of light penetration. Combines cavern diving techniques with rebreather operations.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-rebreather-cavern.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "TDI CCR certification, TDI Cavern Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Cavern diving equipment",
+        "Bailout equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Rebreather Intro to Cave Diver",
+      "code": "TDI-RITC",
+      "levelCode": "advanced",
+      "description": "The TDI Rebreather Intro to Cave Diver course combines introductory cave diving with closed circuit rebreather operations. Training covers single guideline navigation, gas management with CCR, and emergency procedures in overhead environments.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-rebreather-intro-cave.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "TDI Rebreather Cavern Diver or TDI Intro to Cave Diver with CCR certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Cave diving equipment",
+        "Bailout equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Rebreather Full Cave Diver",
+      "code": "TDI-RFC",
+      "levelCode": "advanced",
+      "description": "The TDI Rebreather Full Cave Diver course is the pinnacle of CCR cave diving training, combining full cave diving techniques with advanced rebreather operations. Training covers complex navigation, extended penetration, and emergency procedures.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-rebreather-full-cave.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "TDI Rebreather Intro to Cave Diver or TDI Full Cave Diver with appropriate CCR certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Full cave diving equipment",
+        "Advanced bailout equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Nitrox Gas Blender",
+      "code": "TDI-NGB",
+      "levelCode": "specialty",
+      "description": "The TDI Nitrox Gas Blender Course provides training to competently blend nitrox gas. The course covers proper techniques, equipment requirements, and hazards involved in blending nitrox gases for recreational scuba diving activities. Students must successfully blend and analyze 5 nitrox cylinders.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-gas-blender.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Gas blending equipment (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Advanced Gas Blender",
+      "code": "TDI-AGB",
+      "levelCode": "specialty",
+      "description": "The TDI Advanced Gas Blender Course builds on the Nitrox Gas Blender course, training candidates in the proper procedures for blending oxygen and helium based gases for technical diving. Students must successfully blend and analyze 5 nitrox cylinders and 3 trimix cylinders.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-advanced-gas-blender.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "TDI Nitrox Gas Blender",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Gas blending equipment (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Oxygen Service Technician",
+      "code": "TDI-O2T",
+      "levelCode": "specialty",
+      "description": "The TDI Oxygen (O2) Equipment Service Technician course qualifies technicians to service scuba regulators, cylinders, valves, and manifolds for use with enriched air nitrox and other technical mixed gases. Training covers oxygen-compatible materials, cleaning procedures, and service protocols.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-o2-tech.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "O2 service equipment (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Technical Divemaster",
+      "code": "TDI-TDM",
+      "levelCode": "professional",
+      "description": "The TDI Technical Divemaster is the first professional-level certification in TDI's leadership pathway. Candidates learn dive management, leadership skills, and technical diving principles. Students will be challenged and learn what it is like to work with divers as they begin or continue their technical diving experiences, including managing divers, working as land or boat support, and conducting enjoyable dives.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-technical-divemaster.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SDI Divemaster certification (crossovers not accepted), current CPR/first aid, medical exam within 12 months, minimum 50 logged dives, current technical diver certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance within 12 months",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Professional kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Instructor",
+      "code": "TDI-INST",
+      "levelCode": "instructor",
+      "description": "The TDI Instructor course trains qualified candidates to teach TDI courses. Instructors can teach courses up to their qualification level, helping develop the next generation of technical divers.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-instructor.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 32,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "TDI Technical Divemaster or equivalent, current instructor certification from recognized agency, specific technical certifications for courses to be taught",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Instructor materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "TDI Instructor Trainer",
+      "code": "TDI-IT",
+      "levelCode": "instructor",
+      "description": "The TDI Instructor Trainer course is the highest professional level in TDI. Instructor Trainers can train and certify new TDI Instructors, conduct quality assurance, and represent TDI at the highest level.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/tdi-instructor-trainer.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "Active TDI Instructor for minimum 2 years, minimum certifications issued, quality assurance record",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Technical diving equipment",
+        "IT program materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI ERD I",
+      "code": "ERDI-1",
+      "levelCode": "specialty",
+      "description": "The ERDI ERD I is an introductory public safety diving certification designed to equip certified open water divers with fundamental skills needed to safely function as part of an OSHA and NFPA compliant public safety dive team in both diver and tender capacities. Training covers equipment selection, tender operations, search patterns, scene assessment, environmental hazard recognition, evidence management, line signals, buddy communications, victim recovery, emergency protocols, and decontamination procedures.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-erd1.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "SDI Open Water Diver or equivalent, current CPR/first aid/oxygen administration certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance for public safety diving",
+      "requiredItems": [
+        "Full face mask or standard mask",
+        "Dry suit recommended",
+        "Search and rescue equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI ERD II",
+      "code": "ERDI-2",
+      "levelCode": "specialty",
+      "description": "The ERDI ERD II course advances public safety divers' knowledge and skills for emergency response diving. It covers lifting techniques, encapsulation, victim physiological changes, mechanics of drowning, handling of remains, environmental issues, full face mask and dry suit operations. Skills include locating objects, rigging lift bags, maintaining evidence continuity, and advanced decontamination procedures.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-erd2.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "ERDI ERD I or equivalent, minimum 10 logged public safety dives, current CPR/AED/O2/first aid certifications",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Full face mask",
+        "Dry suit",
+        "Lift bags",
+        "Evidence handling equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Tender Operations",
+      "code": "ERDI-TEND",
+      "levelCode": "specialty",
+      "description": "The ERDI Tender Operations course trains non-diving team members to support public safety dive operations. Training covers line handling, communications, equipment preparation, safety protocols, and emergency response procedures from the surface.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-tender.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "Must be affiliated with public safety organization",
+      "minAge": 18,
+      "medicalRequirements": "Basic health clearance",
+      "requiredItems": [
+        "Surface support equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Full Face Mask Operations",
+      "code": "ERDI-FFM",
+      "levelCode": "specialty",
+      "description": "The ERDI Full Face Mask course provides skills and knowledge for utilizing full face masks for emergency response diving. Topics include encapsulation, communications with a full face mask, selecting proper masks for emergency response diving, and decontamination procedures. Full face masks offer distinct advantages in contaminated environments.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-ffm.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "ERDI ERD I or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Full face mask system",
+        "Communications equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Dry Suit Operations",
+      "code": "ERDI-DRY",
+      "levelCode": "specialty",
+      "description": "The ERDI Dry Suit Operations course trains public safety divers in proper dry suit use for emergency response operations. Training covers dry suit selection, maintenance, buoyancy control, and emergency procedures specific to public safety diving applications.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-drysuit.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "ERDI ERD I or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Dry suit",
+        "Dry suit underwear"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Contaminated Water Operations",
+      "code": "ERDI-CWO",
+      "levelCode": "specialty",
+      "description": "The ERDI Contaminated Water Operations course is one of the most challenging public safety diver training programs. It incorporates proficiency of all contaminated water skills and techniques including hazard recognition, use of specialized equipment, decontamination procedures, full face mask and surface supplied air delivery systems. Divers should be prepared for extended time in PPE.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-contaminated-water.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "ERDI ERD II, ERDI Full Face Mask, ERDI Dry Suit",
+      "minAge": 18,
+      "medicalRequirements": "Comprehensive medical clearance for hazmat operations",
+      "requiredItems": [
+        "Contaminated water diving system",
+        "Decontamination equipment",
+        "Surface supply system (if applicable)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Ice Diving Operations",
+      "code": "ERDI-ICE",
+      "levelCode": "specialty",
+      "description": "The ERDI Ice Diving Operations course covers emergency response diving in overhead ice environments. Important topics include physiological aspects of cold-water diving, appropriate equipment for ice diving, surface support procedures, scene preparation, and lost diver drills specific to ice environments.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-ice.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 3,
+      "prerequisites": "ERDI ERD I, Dry Suit certification",
+      "minAge": 18,
+      "medicalRequirements": "Cold water fitness certification",
+      "requiredItems": [
+        "Dry suit",
+        "Cold water regulators",
+        "Ice diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Ice Surface Rescue",
+      "code": "ERDI-ISR",
+      "levelCode": "specialty",
+      "description": "The ERDI Ice Surface Rescue course trains rescue teams to properly respond and execute operations to retrieve victims who have broken through thin ice conditions. The course covers ice characteristics and formation, types of victims, team operations, equipment, and rescue techniques - all without requiring divers to enter the water.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-ice-surface.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "Must be affiliated with public safety organization",
+      "minAge": 18,
+      "medicalRequirements": "Basic health clearance",
+      "requiredItems": [
+        "Ice rescue equipment",
+        "Exposure protection"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Night Operations",
+      "code": "ERDI-NIGHT",
+      "levelCode": "specialty",
+      "description": "The ERDI Night Operations course prepares public safety divers for emergency response diving in darkness or limited visibility conditions. Training covers lighting equipment, navigation techniques, communications, and emergency procedures specific to night diving operations.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-night.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "ERDI ERD I or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Primary dive light",
+        "Backup lights",
+        "Marker lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Swift Water Operations",
+      "code": "ERDI-SWO",
+      "levelCode": "specialty",
+      "description": "The ERDI Swift Water Operations course trains public safety divers for operations in moving water environments. Training covers current assessment, entry/exit techniques, search patterns in current, and safety procedures specific to swift water conditions.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-swift-water.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "ERDI ERD I or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance, swift water fitness",
+      "requiredItems": [
+        "Swift water equipment",
+        "Exposure protection"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Small Boat Operations",
+      "code": "ERDI-SBO",
+      "levelCode": "specialty",
+      "description": "The ERDI Small Boat Operations course trains public safety dive teams in boat handling, dive platform operations, and vessel-based search techniques for emergency response diving.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-small-boat.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "ERDI ERD I or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Underwater Crime Scene",
+      "code": "ERDI-UCS",
+      "levelCode": "specialty",
+      "description": "The ERDI Underwater Crime Scene course trains public safety divers in evidence recognition, preservation, documentation, and recovery from underwater crime scenes. Training covers chain of custody, photography/videography, mapping, and proper evidence handling.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-crime-scene.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "ERDI ERD I or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Evidence collection equipment",
+        "Documentation tools"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Hull Inspection",
+      "code": "ERDI-HULL",
+      "levelCode": "specialty",
+      "description": "The ERDI Hull Inspection course trains public safety divers to conduct security and safety inspections of vessel hulls. Training covers inspection patterns, threat recognition, documentation, and reporting procedures.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-hull.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "ERDI ERD I or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Inspection equipment",
+        "Documentation tools"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Underwater Threat Assessment",
+      "code": "ERDI-UTA",
+      "levelCode": "specialty",
+      "description": "The ERDI Underwater Threat Assessment (UTA) course trains public safety divers to recognize, assess, and respond to underwater security threats. Training covers threat identification, assessment protocols, and appropriate response procedures.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-uta.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "ERDI ERD I, security clearance may be required",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Assessment equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Underwater Explosive Recovery Specialist",
+      "code": "ERDI-UER",
+      "levelCode": "specialty",
+      "description": "The ERDI Underwater Explosive Recovery Specialist course trains qualified public safety divers in the recognition and proper handling of underwater explosive ordnance. This specialized course requires additional security clearances and specific organizational affiliation.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-explosive.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "ERDI ERD II, specific organizational affiliation, security clearance",
+      "minAge": 18,
+      "medicalRequirements": "Comprehensive medical clearance",
+      "requiredItems": [
+        "Specialized equipment (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Confined Space Operations",
+      "code": "ERDI-CSO",
+      "levelCode": "specialty",
+      "description": "The ERDI Confined Space Operations course trains public safety divers for emergency response in confined underwater spaces such as culverts, tanks, and submerged vehicles. Training covers hazard assessment, entry procedures, and rescue techniques.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-confined-space.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "ERDI ERD I or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Confined space equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Testifying in Court",
+      "code": "ERDI-TIC",
+      "levelCode": "specialty",
+      "description": "The ERDI Testifying in Court course prepares public safety divers to provide expert testimony in legal proceedings. Training covers courtroom procedures, documentation review, testimony preparation, and cross-examination techniques.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-testifying.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "ERDI ERD I or equivalent",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Supervisor",
+      "code": "ERDI-SUP",
+      "levelCode": "professional",
+      "description": "The ERDI Supervisor course trains experienced public safety divers to lead and manage dive team operations. Training covers team management, operational planning, risk assessment, and incident command integration. ERDI recommends at least one team member trains as a Supervisor for every four team members.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-supervisor.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "ERDI ERD II, significant public safety dive experience",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Supervisor equipment kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Instructor",
+      "code": "ERDI-INST",
+      "levelCode": "instructor",
+      "description": "The ERDI Instructor course trains qualified candidates to teach ERDI public safety diving courses. Instructors can train the next generation of public safety divers within their certification scope.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "ERDI Supervisor, current diving instructor certification, significant public safety dive experience",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Full instructor kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Instructor Trainer",
+      "code": "ERDI-IT",
+      "levelCode": "instructor",
+      "description": "The ERDI Instructor Trainer course is the highest professional level in ERDI. Instructor Trainers can train and certify new ERDI Instructors and represent ERDI at the highest level of public safety diving education.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-instructor-trainer.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "Active ERDI Instructor for minimum 2 years, minimum certifications issued, quality assurance record",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical clearance",
+      "requiredItems": [
+        "Full IT program materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "ERDI Non-Diving Specialty Instructor",
+      "code": "ERDI-NDSI",
+      "levelCode": "instructor",
+      "description": "The ERDI Non-Diving Specialty Instructor course qualifies instructors to teach ERDI non-diving courses such as Tender Operations, Ice Surface Rescue, and Testifying in Court without holding a diving instructor certification.",
+      "images": [
+        "https://www.tdisdi.com/wp-content/uploads/2019/06/erdi-nd-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "Relevant non-diving ERDI certifications, professional background in public safety",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Instructor materials"
+      ],
+      "materialsIncluded": true
+    }
+  ]
+}

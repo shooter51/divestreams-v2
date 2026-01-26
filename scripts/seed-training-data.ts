@@ -76,6 +76,27 @@ const AGENCIES = [
     website: "https://www.gue.com",
     logoUrl: "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=200&q=80",
   },
+  {
+    code: "raid",
+    name: "RAID",
+    description: "Rebreather Association of International Divers - Modern approach to dive training with rebreather specialization",
+    website: "https://www.diveraid.com",
+    logoUrl: "https://images.unsplash.com/photo-1682687982501-1e58ab814714?w=200&q=80",
+  },
+  {
+    code: "iantd",
+    name: "IANTD",
+    description: "International Association of Nitrox and Technical Divers - Pioneers in technical and cave diving education",
+    website: "https://www.iantd.com",
+    logoUrl: "https://images.unsplash.com/photo-1544551763-8dd44758c2dd?w=200&q=80",
+  },
+  {
+    code: "andi",
+    name: "ANDI",
+    description: "American Nitrox Divers International - SafeAir innovators and technical diving specialists",
+    website: "https://www.andihq.com",
+    logoUrl: "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=200&q=80",
+  },
 ];
 
 // ============================================================================

@@ -1,0 +1,1646 @@
+{
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "IANTD Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import, not a direct database dump. IANTD (International Association of Nitrox and Technical Divers) was founded in 1985 as the first agency to introduce enriched air nitrox to recreational diving. Known for pioneering technical diving, trimix, and rebreather training.",
+  "agency": "iantd",
+  "agencyName": "International Association of Nitrox and Technical Divers",
+  "version": "2026.1",
+  "lastUpdated": "2026-01-25",
+  "courses": [
+    {
+      "name": "Supervised Diver",
+      "code": "SD",
+      "levelCode": "beginner",
+      "description": "Entry-level program providing basic training for those who wish to enter SCUBA diving adventures within limited time. Qualifies a diver to dive to a maximum depth of 40 fsw (12 msw) under direct supervision.",
+      "images": [
+        "https://iantd.com/images/courses/supervised-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Open Water Student Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Diver",
+      "code": "OWD",
+      "levelCode": "beginner",
+      "description": "Comprehensive entry-level certification based on IANTD's training philosophy of repetition. A relaxed, confident diver is a safe diver who will enjoy exploring inner-space and pursue diving adventures for a lifetime.",
+      "images": [
+        "https://iantd.com/images/courses/open-water-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Open Water Student Kit",
+        "Mask, fins, snorkel",
+        "Exposure protection",
+        "BCD and regulator"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Open Water Diver",
+      "code": "AOWD",
+      "levelCode": "advanced",
+      "description": "Mid-level Continuing Education Program designed to enable IANTD Open Water Divers to extend their proficiency in the water and gain more supervised practical experience. Qualifies diver to dive to a maximum depth of 100 fsw (30 msw).",
+      "images": [
+        "https://iantd.com/images/courses/advanced-open-water.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 5,
+      "prerequisites": "IANTD Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Advanced Open Water Student Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Rescue Diver",
+      "code": "RD",
+      "levelCode": "advanced",
+      "description": "Comprehensive training in self-rescue and buddy rescue techniques. The Diving First Aid, CPR and Oxygen Administrator Programs may be taken concurrently.",
+      "images": [
+        "https://iantd.com/images/courses/rescue-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Advanced Open Water Diver or equivalent, proof of minimum 10 logged dives",
+      "minAge": 15,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Rescue Diver Student Kit",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Enriched Air Nitrox Diver (EANx)",
+      "code": "EANX",
+      "levelCode": "specialty",
+      "description": "IANTD pioneered nitrox training for recreational divers. This program covers the use of EANx mixes in the range of 21% to a maximum of 40% oxygen. No dives may be conducted to depths greater than the student's previous qualification, or maximum 132 fsw (40 msw).",
+      "images": [
+        "https://iantd.com/images/courses/eanx-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "IANTD Open Water Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD EANx Diver Student Kit",
+        "Nitrox-compatible equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deep Diver",
+      "code": "DD",
+      "levelCode": "advanced",
+      "description": "Designed to provide responsible training to divers who plan to dive to a maximum of 130 fsw (39 msw) on air. Training covers skills, performance, theory and planning of deep dives. No dives having mandatory decompression exceeding 3 minutes may be made.",
+      "images": [
+        "https://iantd.com/images/courses/deep-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Advanced Open Water Diver or equivalent, minimum 30 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Deep Diver Student Kit",
+        "Redundant air source"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced EANx Diver",
+      "code": "AEANX",
+      "levelCode": "advanced",
+      "description": "The first and most complete programme of its kind, designed for dives using two Nitrox mixes - one for bottom and one for decompression - to maximum depth of 42 msw (140 fsw) with decompression stops up to 15 minutes. Uses EANx mixtures up to 1.5 PO2 for decompression.",
+      "images": [
+        "https://iantd.com/images/courses/advanced-eanx.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD EANx Diver and IANTD Deep Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Advanced EANx Student Kit",
+        "Double cylinders or sidemount configuration",
+        "Stage cylinder"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Diver",
+      "code": "TD",
+      "levelCode": "advanced",
+      "description": "Designed to train divers to conduct dives to depths between 100 fsw (30 msw) and up to 170 fsw (51 msw). Allows dives to maximum depth of 48 metres using air, and up to 51 metres using optimal Nitrox mixes.",
+      "images": [
+        "https://iantd.com/images/courses/technical-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "IANTD Advanced EANx Diver or equivalent, IANTD Rescue Diver and Oxygen Provider certifications, minimum 100 logged dives with 30 deeper than 30m",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Technical Diver Student Kit",
+        "Double cylinders with isolation manifold",
+        "Multiple stage cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Recreational Trimix Diver",
+      "code": "ART",
+      "levelCode": "advanced",
+      "description": "Qualifies divers to dive up to 150 fsw (45 msw) and perform decompression stops required dives using trimix to reduce narcosis. Equivalent Narcotic Depth (END) managed to maximum 36 msw (120 fsw).",
+      "images": [
+        "https://iantd.com/images/courses/art-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD EANx Diver or equivalent, minimum 30 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Advanced Recreational Trimix Student Kit",
+        "Double cylinders",
+        "Decompression cylinder"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Recreational Trimix Plus Diver",
+      "code": "ARTP",
+      "levelCode": "advanced",
+      "description": "Qualifies divers to dive up to 170 fsw (51 msw) and perform decompression stops required dives. Extended depth capability using trimix for narcosis management.",
+      "images": [
+        "https://iantd.com/images/courses/art-plus-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Advanced Recreational Trimix Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD ART Plus Student Kit",
+        "Technical diving equipment configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Normoxic Trimix Diver",
+      "code": "NTX",
+      "levelCode": "advanced",
+      "description": "Designed to train divers who wish to dive to depths between 39 and 60 msw (130 and 200 fsw), using normoxic trimix to avoid breathing air below 39 msw. Trimix affords managing nitrogen narcosis by reducing END to maximum 36 msw (120 fsw).",
+      "images": [
+        "https://iantd.com/images/courses/normoxic-trimix.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Advanced EANx Diver or higher, minimum 100 logged dives with 30 deeper than 90 fsw (27 msw)",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Normoxic Trimix Student Kit",
+        "Double cylinders with isolation manifold",
+        "Multiple stage cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Normoxic Trimix Plus Diver",
+      "code": "NTXP",
+      "levelCode": "advanced",
+      "description": "Extended normoxic trimix training for deeper operations. Builds on Normoxic Trimix certification with additional depth capability and gas management skills.",
+      "images": [
+        "https://iantd.com/images/courses/normoxic-trimix-plus.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Normoxic Trimix Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Multiple decompression cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Trimix Diver",
+      "code": "TMX",
+      "levelCode": "advanced",
+      "description": "Full trimix certification qualifying divers to perform trimix dives outside of training up to 333 fsw (100 msw). Comprehensive training in hypoxic trimix operations and advanced decompression procedures.",
+      "images": [
+        "https://iantd.com/images/courses/trimix-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Normoxic Trimix Diver or equivalent, minimum 200 logged dives with 25 between 140-200 fsw (42-60 msw)",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Trimix Diver Student Kit",
+        "Full technical diving equipment",
+        "Multiple stage cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Expedition Trimix Diver",
+      "code": "ETX",
+      "levelCode": "advanced",
+      "description": "The pinnacle of open circuit technical diving. Qualifies divers to perform trimix dives to maximum depth of 120 msw (400 fsw) with multiple stages and use of surface and in-water support team.",
+      "images": [
+        "https://iantd.com/images/courses/expedition-trimix.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 20,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "IANTD Trimix Diver or equivalent, minimum 300 logged dives with 100 trimix dives",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Full expedition diving equipment",
+        "Multiple stage cylinders",
+        "Surface support equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Elite Technical Diver",
+      "code": "ETD",
+      "levelCode": "advanced",
+      "description": "Recognition of the highest achievement in technical diving before entering the professional diving circle. Comprehensive skills in all aspects of technical diving operations.",
+      "images": [
+        "https://iantd.com/images/courses/elite-technical-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Trimix Diver or equivalent with extensive technical diving experience",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Full technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cavern Diver",
+      "code": "CAV",
+      "levelCode": "specialty",
+      "description": "First step between recreational and technical diving for overhead environments. Develops awareness, personal responsibility, and risk management within the limits of light zones. Always maintains visible exit.",
+      "images": [
+        "https://iantd.com/images/courses/cavern-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Advanced Open Water Diver or equivalent, minimum 50 dives including 10 night dives",
+      "minAge": 16,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Cavern Diver Student Kit",
+        "Primary reel",
+        "Primary light and backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Introductory Cave Diver",
+      "code": "ICD",
+      "levelCode": "specialty",
+      "description": "Introduction to the cave diving environment for Sport Divers. Trains navigation using primary guidelines with basic jump and gap procedures. No dives to depths greater than 132 fsw (40 msw).",
+      "images": [
+        "https://iantd.com/images/courses/intro-cave.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Cavern Diver, Wreck Diver, or Limited Mine Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Intro Cave Student Kit",
+        "Double cylinders or sidemount",
+        "Primary and backup lights",
+        "Reels and line arrows"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diver",
+      "code": "CD",
+      "levelCode": "specialty",
+      "description": "Full cave certification training divers in safe cave diving. Master navigation through complex cave systems, manage gas reserves, and handle unique challenges of overhead environments. No dives to depths greater than 132 fsw (40 msw).",
+      "images": [
+        "https://iantd.com/images/courses/cave-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "IANTD Introductory Cave Diver or equivalent, minimum 18 years old",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Cave Diver Student Kit",
+        "Full cave diving equipment",
+        "Multiple reels and line markers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Cave Diver",
+      "code": "TCD",
+      "levelCode": "advanced",
+      "description": "Advanced cave diving using mixed gas for exploration, including EANx and oxygen for decompression. Exposure to wide variety of conditions: silt, halocline, circuits, traverses, gaps, jumps, T's, siphons, and restrictions.",
+      "images": [
+        "https://iantd.com/images/courses/technical-cave-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Cave Diver and IANTD Advanced EANx Diver or equivalent, minimum 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Full technical cave diving equipment",
+        "Decompression cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Cave Diver - Stage/Multi-Stage",
+      "code": "ACSS",
+      "levelCode": "advanced",
+      "description": "Advanced training for extended penetration using staging and multiple staging techniques. Learn complex dive planning, multiple gas management methods, and extended bottom times.",
+      "images": [
+        "https://iantd.com/images/courses/adv-cave-stage.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Technical Cave Diver or equivalent, minimum 25 logged cave dives, 10 dives with stage cylinders",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Multiple stage cylinders",
+        "Stage rigging equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Cave Diver - DPV",
+      "code": "ACDPV",
+      "levelCode": "advanced",
+      "description": "Specialized advanced course for highly experienced cave divers. Learn DPV mechanics, turn pressure calculations with DPV, navigation at higher speeds, and emergency procedures including towing.",
+      "images": [
+        "https://iantd.com/images/courses/adv-cave-dpv.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Technical Cave Diver and/or Stage Cave Diver, minimum 50 cave dives, 25 dives with DPV",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "DPV (Diver Propulsion Vehicle)",
+        "Full technical cave equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Cave Diver - Sidemount/No Mount",
+      "code": "ACSM",
+      "levelCode": "advanced",
+      "description": "Familiarizes experienced technical cave divers with techniques, equipment and mindset for sidemount and no-mount diving in overhead environments. Addresses conservation concerns and ethical responsibilities.",
+      "images": [
+        "https://iantd.com/images/courses/adv-cave-sidemount.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Technical Cave Diver or equivalent, minimum 50 logged cave dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Sidemount configuration",
+        "Cave diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Cave Diver - Survey",
+      "code": "ACSU",
+      "levelCode": "advanced",
+      "description": "Training in cave surveying techniques, exploration methodology, data collection, and documentation procedures. Covers proper survey protocols and conservation considerations.",
+      "images": [
+        "https://iantd.com/images/courses/adv-cave-survey.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Technical Cave Diver or equivalent, minimum 50 logged cave dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Survey equipment",
+        "Underwater slate and pencil"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Elite Technical Cave Diver",
+      "code": "ETCD",
+      "levelCode": "advanced",
+      "description": "Highest recognition at cave level before entering the professional diving circle. Comprehensive mastery of all cave diving techniques and environments.",
+      "images": [
+        "https://iantd.com/images/courses/elite-cave-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Technical Cave Diver with all advanced specialties, extensive cave diving experience",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Full technical cave diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Limited Mine Diver",
+      "code": "LMD",
+      "levelCode": "specialty",
+      "description": "Entry-level overhead environment training for mine diving within the limits of light penetration. Develops awareness, self-responsibility and risk management skills.",
+      "images": [
+        "https://iantd.com/images/courses/limited-mine.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Advanced Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Primary reel",
+        "Primary and backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Introductory Mine Diver",
+      "code": "IMD",
+      "levelCode": "specialty",
+      "description": "Introduction to mine diving beyond cavern zone. Develops navigation skills and emergency procedures specific to mine environments.",
+      "images": [
+        "https://iantd.com/images/courses/intro-mine.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Cavern Diver, Limited Mine Diver, or Wreck Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Double cylinders or sidemount",
+        "Primary and backup lights",
+        "Reels"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mine Diver",
+      "code": "MD",
+      "levelCode": "specialty",
+      "description": "Full mine diver certification training divers in safe mine diving techniques, navigation, and emergency procedures specific to flooded mine environments.",
+      "images": [
+        "https://iantd.com/images/courses/mine-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "IANTD Introductory Mine Diver and IANTD Advanced EANx Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Full technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Mine Diver",
+      "code": "TMD",
+      "levelCode": "advanced",
+      "description": "Technical mine diving using mixed gas for extended penetration and decompression operations in flooded mine environments.",
+      "images": [
+        "https://iantd.com/images/courses/technical-mine.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Mine Diver or equivalent, minimum 50 logged mine dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Full technical diving equipment",
+        "Decompression cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Mine Diver - Sidemount",
+      "code": "AMSM",
+      "levelCode": "advanced",
+      "description": "Advanced sidemount techniques for mine diving environments. Enables technical mine divers to proficiently assemble and use sidemount diving equipment in mine conditions.",
+      "images": [
+        "https://iantd.com/images/courses/adv-mine-sidemount.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Technical Mine Diver or higher, minimum 50 logged mine dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Sidemount configuration",
+        "Mine diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Mine Diver - DPV",
+      "code": "AMDPV",
+      "levelCode": "advanced",
+      "description": "Advanced training in mine diving skills for dives warranting Diver Propulsion Vehicle use and techniques in mine environments.",
+      "images": [
+        "https://iantd.com/images/courses/adv-mine-dpv.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Technical Mine Diver or equivalent, minimum 50 logged mine dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "DPV",
+        "Full technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Wreck Diver",
+      "code": "WD",
+      "levelCode": "specialty",
+      "description": "Develops wreck diving skills within limits of light penetration. Ensures divers are aware of self-responsibility and capable of risk management in overhead wreck environments.",
+      "images": [
+        "https://iantd.com/images/courses/wreck-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Advanced Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Wreck Diver Student Kit",
+        "Primary reel",
+        "Primary and backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tek Lite Wreck Diver",
+      "code": "TLWD",
+      "levelCode": "advanced",
+      "description": "Training in wreck penetration diving and utilization of EANx for wreck exploration with EANx and oxygen for decompression. Bridge between sport and technical wreck diving.",
+      "images": [
+        "https://iantd.com/images/courses/teklite-wreck.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Wreck Diver or Cavern Diver, IANTD Deep Diver, minimum 40 logged dives; or IANTD Advanced EANx Diver with 70 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Double cylinders or sidemount",
+        "Stage cylinder",
+        "Penetration equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Wreck Diver",
+      "code": "TWD",
+      "levelCode": "advanced",
+      "description": "Extended wreck penetration diving using EANx for exploration and decompression. Minimum 240 minutes bottom time in 6 wreck penetration dives. No dives deeper than 170 fsw (51 msw).",
+      "images": [
+        "https://iantd.com/images/courses/technical-wreck.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Tek Lite Wreck Diver or equivalent, minimum 100 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Full technical diving equipment",
+        "Decompression cylinders",
+        "Penetration equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Wreck Diver",
+      "code": "AWD",
+      "levelCode": "advanced",
+      "description": "Advanced skills and knowledge for safe wreck exploration and penetration with strong sense of personal responsibility and risk management. Conducted using Nitrox or Trimix based on diver certification.",
+      "images": [
+        "https://iantd.com/images/courses/advanced-wreck.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Technical Wreck Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Full technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational Oxygen CCR Diver",
+      "code": "ROCCR",
+      "levelCode": "specialty",
+      "description": "Basic oxygen-only rebreather training. Qualifies diver to dive to maximum depth of 20 fsw (6 msw) using oxygen CCR. Introduction to rebreather technology.",
+      "images": [
+        "https://iantd.com/images/courses/rec-oxygen-ccr.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "Proof of 20 open-water dives with at least 15 hours underwater time",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Approved CCR unit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational CCR Diver",
+      "code": "RCCR",
+      "levelCode": "specialty",
+      "description": "Entry-level CCR certification. Train in safer use and technology of basic CCR diving with no decompression, up to 1.2 PO2 to depths up to 70 fsw (21 msw). Can be entry-level to SCUBA if combined with Open Water.",
+      "images": [
+        "https://iantd.com/images/courses/rec-ccr-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD EANx Diver or equivalent, or may be taken with EANx class",
+      "minAge": 17,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Backup open circuit bailout"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational Deep CCR Diver",
+      "code": "RDCCR",
+      "levelCode": "specialty",
+      "description": "Extends recreational CCR limits to 40m. Training in deeper CCR operations within recreational no-decompression limits.",
+      "images": [
+        "https://iantd.com/images/courses/rec-deep-ccr.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Recreational CCR Diver, IANTD Deep Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Bailout configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational Trimix CCR Diver",
+      "code": "RTCCR",
+      "levelCode": "specialty",
+      "description": "Provides RCCR divers with trimix breathing medium for extending diving capabilities while managing narcosis at recreational depths.",
+      "images": [
+        "https://iantd.com/images/courses/rec-trimix-ccr.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Recreational CCR Diver or Recreational SCR Diver",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Trimix-capable CCR unit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Advanced EANx Diver",
+      "code": "CCRAEANX",
+      "levelCode": "advanced",
+      "description": "Train recreational divers in safer use and technology of CCR diving for dives requiring up to 15 minutes decompression to depths up to 132 fsw (40 msw). MOD1 certification level.",
+      "images": [
+        "https://iantd.com/images/courses/ccr-adv-eanx.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "20 CCR dives with 20 hours underwater, IANTD EANx Diver and Deep Diver or RCCR Deep Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Approved CCR unit",
+        "Bailout cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Advanced Recreational Trimix Diver",
+      "code": "CCRART",
+      "levelCode": "advanced",
+      "description": "CCR training using trimix diluent for dives to 150 fsw (45 msw) with decompression. Manages narcosis through helium addition to diluent.",
+      "images": [
+        "https://iantd.com/images/courses/ccr-art.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "20 CCR dives with 20 hours underwater, IANTD EANx Diver and Deep Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Trimix-capable CCR unit",
+        "Bailout cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Advanced Recreational Trimix Plus Diver",
+      "code": "CCRARTP",
+      "levelCode": "advanced",
+      "description": "Train recreational divers in safer use of trimix and CCR technology for dives with mandatory decompression using up to 1.3 PO2 to depths up to 170 fsw (51 msw).",
+      "images": [
+        "https://iantd.com/images/courses/ccr-art-plus.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD CCR Advanced Recreational Trimix Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Trimix-capable CCR unit",
+        "Bailout configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Normoxic Trimix Diver",
+      "code": "CCRNTX",
+      "levelCode": "advanced",
+      "description": "Train divers in safe use of CCR for dives using normoxic helium-based gas mixtures for diluent and stages. Requires 50 logged CCR dives with 50 hours, 25 on specific unit.",
+      "images": [
+        "https://iantd.com/images/courses/ccr-normoxic-trimix.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD CCR Advanced EANx Diver or equivalent, 50 logged CCR dives with 50 hours",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Trimix-capable CCR unit",
+        "Multiple bailout cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Trimix Diver",
+      "code": "CCRTMX",
+      "levelCode": "advanced",
+      "description": "Full CCR trimix certification for dives up to 100m using trimix diluent. MOD3 level training for deep CCR diving. Requires 100 logged CCR dives with 100 hours.",
+      "images": [
+        "https://iantd.com/images/courses/ccr-trimix.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD CCR Normoxic Trimix Diver, minimum 100 logged CCR dives with 100 hours",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Trimix-capable CCR unit",
+        "Multiple bailout cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Expedition Trimix Diver",
+      "code": "CCRETX",
+      "levelCode": "advanced",
+      "description": "Pinnacle of CCR diving. Certifies to 120 msw (400 fsw) for expedition-level dives. Covers skills necessary for deep expedition operations. Requires 200 CCR dives and 300 hours.",
+      "images": [
+        "https://iantd.com/images/courses/ccr-expedition-trimix.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 20,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "IANTD CCR Trimix Diver, minimum 200 CCR dives of 300 total dives, 300 hours on CCR unit to be used",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Expedition-ready CCR unit",
+        "Multiple bailout cylinders",
+        "Support equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "RCCR Cavern and Limited Mine Diver",
+      "code": "RCCRCAV",
+      "levelCode": "specialty",
+      "description": "Develop cavern diving skills within light penetration limits using recreational CCR. Focus on self-responsibility and risk management in overhead environments.",
+      "images": [
+        "https://iantd.com/images/courses/rccr-cavern.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Recreational Rebreather Advanced Open Water Diver, minimum 20 CCR dives and 25 hours",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "CCR unit",
+        "Cave/cavern diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "RCCR Introductory Cave Diver",
+      "code": "RCCRICD",
+      "levelCode": "specialty",
+      "description": "Introduction to cave diving using recreational CCR. Navigation using primary guidelines with basic jump and gap procedures.",
+      "images": [
+        "https://iantd.com/images/courses/rccr-intro-cave.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD RCCR Cavern Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "CCR unit",
+        "Cave diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Cave Diver",
+      "code": "CCRCD",
+      "levelCode": "advanced",
+      "description": "Full CCR cave diving certification. Training in safe CCR cave diving techniques, navigation, and emergency procedures.",
+      "images": [
+        "https://iantd.com/images/courses/ccr-cave.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "IANTD CCR Introductory Cave Diver and IANTD CCR Advanced EANx Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "CCR unit",
+        "Full cave diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Technical Wreck Diver",
+      "code": "CCRTWD",
+      "levelCode": "advanced",
+      "description": "Extended wreck penetration using CCR with EANx for exploration and decompression. No dives deeper than 150 fsw (45 msw). Requires 100 CCR dives.",
+      "images": [
+        "https://iantd.com/images/courses/ccr-tech-wreck.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD CCR Advanced EANx Diver or equivalent with 100 CCR dives; or OC Technical Wreck Diver to CCR crossover with 25 CCR dives and 50 hours",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "CCR unit",
+        "Penetration equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Cave DPV Rebreather Diver",
+      "code": "ACDRCCR",
+      "levelCode": "advanced",
+      "description": "Advanced training in cave diving with DPV use on rebreathers. For experienced certified cave divers conducting extended penetration dives.",
+      "images": [
+        "https://iantd.com/images/courses/adv-cave-dpv-ccr.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD CCR Cave Diver or equivalent, minimum 50 cave dives and 50 hours on CCR",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "CCR unit",
+        "DPV",
+        "Cave diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational SCR Diver",
+      "code": "RSCR",
+      "levelCode": "specialty",
+      "description": "Train competent divers in safer use and technology of basic SCR diving with no decompression, using mixtures EAN 40 and higher to depths up to 70 fsw (21 msw). Can be combined with Open Water for entry-level.",
+      "images": [
+        "https://iantd.com/images/courses/rec-scr.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD EANx Diver or equivalent, or may be taken with EANx class",
+      "minAge": 17,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Approved SCR unit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Sidemount Diver",
+      "code": "OWSM",
+      "levelCode": "specialty",
+      "description": "Familiarize divers with techniques, equipment, and mindset for sidemount diving. Enables proficient assembly and use of sidemount equipment in open water.",
+      "images": [
+        "https://iantd.com/images/courses/ow-sidemount.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Open Water Diver or equivalent. May be combined with Open Water course.",
+      "minAge": 12,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Sidemount harness and wing",
+        "Two independent cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tek Open Water Sidemount Diver",
+      "code": "TOWSM",
+      "levelCode": "advanced",
+      "description": "Advanced sidemount techniques for technical diving. Covers dives up to 42 meters (140 feet) with decompression procedures. Prepares for cave or trimix training.",
+      "images": [
+        "https://iantd.com/images/courses/tek-ow-sidemount.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Advanced EANx Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Technical sidemount configuration",
+        "Decompression cylinder"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water DPV Diver",
+      "code": "OWDPV",
+      "levelCode": "specialty",
+      "description": "Provides overall awareness of DPV diving and ability to perform DPV dives in open water. No dives deeper than previous certification level.",
+      "images": [
+        "https://iantd.com/images/courses/ow-dpv.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Open Water Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "DPV (Diver Propulsion Vehicle)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical DPV Diver",
+      "code": "TDPV",
+      "levelCode": "advanced",
+      "description": "Skills and knowledge for safe use of Underwater Propulsion Vehicles (DPV) in open water with technical diving equipment and procedures. Minimum 5 dives over 3 days.",
+      "images": [
+        "https://iantd.com/images/courses/tech-dpv.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 5,
+      "prerequisites": "IANTD Advanced EANx Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "DPV",
+        "Technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ice Diver",
+      "code": "ID",
+      "levelCode": "specialty",
+      "description": "Training in safe ice diving techniques, preparation, and overall awareness of ice environment. Covers ice evaluation, hole cutting, diver deployment, communications, safety procedures, and emergency protocols.",
+      "images": [
+        "https://iantd.com/images/courses/ice-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 3,
+      "prerequisites": "IANTD Advanced Open Water Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Drysuit with dry hood",
+        "Dry gloves",
+        "Full face mask (optional)",
+        "Reel with 100' line"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Dry Suit Diver",
+      "code": "DSD",
+      "levelCode": "specialty",
+      "description": "Training on how to use, care for, and handle specific emergencies related to dry suit diving. No dives deeper than previous certification level.",
+      "images": [
+        "https://iantd.com/images/courses/dry-suit.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "IANTD Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Dry suit",
+        "Appropriate undergarments"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Night Diver",
+      "code": "ND",
+      "levelCode": "specialty",
+      "description": "Training in night diving techniques including proper use of lights, communication, navigation, and emergency procedures in limited visibility conditions.",
+      "images": [
+        "https://iantd.com/images/courses/night-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 3,
+      "prerequisites": "IANTD Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Primary dive light",
+        "Backup light",
+        "Marker light/cyalume"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Navigation Diver",
+      "code": "NAVD",
+      "levelCode": "specialty",
+      "description": "Compass use, kick cycles, visual landmarks, and time-based navigation techniques. Improves underwater navigation skills for all diving environments.",
+      "images": [
+        "https://iantd.com/images/courses/navigation-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "IANTD Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Compass",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Search and Recovery Diver",
+      "code": "SRD",
+      "levelCode": "specialty",
+      "description": "Training in search patterns, recovery techniques, and proper use of lift bags. Develops skills for locating and recovering objects underwater.",
+      "images": [
+        "https://iantd.com/images/courses/search-recovery.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Advanced Open Water Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Search reel",
+        "Lift bag",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Public Safety Diver",
+      "code": "PSD",
+      "levelCode": "specialty",
+      "description": "OSHA approved and NFPA compliant program for Search and Recovery Dive Teams. Covers team composition, liability, safety procedures, site evaluation, search operations, underwater investigation and recovery.",
+      "images": [
+        "https://iantd.com/images/courses/public-safety.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Advanced Open Water Diver or equivalent, active public safety team member or volunteer",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Full face mask",
+        "Dry suit",
+        "Communication equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Nitrox (EANx) Gas Blender",
+      "code": "NGB",
+      "levelCode": "specialty",
+      "description": "Training in safe handling of oxygen and preparation of Nitrox breathing gases. Covers blending methods, quality control, and safety protocols. Any person can take this class - does not need to be a diver.",
+      "images": [
+        "https://iantd.com/images/courses/nitrox-blender.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "Need to become a blender (work for EANx facility) or IANTD EANx Diver in remote area. Must be recommended by IANTD Instructor or Facility.",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Access to blending equipment for practical training"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Trimix Gas Blender",
+      "code": "TGB",
+      "levelCode": "specialty",
+      "description": "Training in safe handling of oxygen and preparation of Trimix and Heliox breathing gases. Comprehensive training in blending techniques and safety procedures.",
+      "images": [
+        "https://iantd.com/images/courses/trimix-blender.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "Need to become a blender (work for facility) or IANTD Trimix Diver in remote area. Must be recommended by IANTD Instructor or Facility.",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Access to trimix blending equipment for practical training"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Oxygen Provider",
+      "code": "O2P",
+      "levelCode": "specialty",
+      "description": "Training in emergency oxygen administration for diving accidents. Essential prerequisite for many advanced and professional courses.",
+      "images": [
+        "https://iantd.com/images/courses/oxygen-provider.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Oxygen administration kit (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Diving First Aid",
+      "code": "DFA",
+      "levelCode": "specialty",
+      "description": "Comprehensive first aid training specifically designed for dive-related injuries and emergencies. Covers assessment, treatment, and management of diving accidents.",
+      "images": [
+        "https://iantd.com/images/courses/diving-first-aid.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "First aid kit (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Divemaster",
+      "code": "DM",
+      "levelCode": "professional",
+      "description": "First professional level designed to provide responsible training for those wishing to supervise IANTD divers including Open Water, Advanced Open Water, EANx, and Rescue Divers. 40 total training hours minimum.",
+      "images": [
+        "https://iantd.com/images/courses/divemaster.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 10,
+      "prerequisites": "IANTD Rescue Diver or equivalent, Oxygen Provider and Diving First Aid certifications",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Divemaster Student Kit",
+        "Full personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Assistant Instructor",
+      "code": "AI",
+      "levelCode": "professional",
+      "description": "Leadership training for those preparing to become full instructors. Assists qualified instructors with student training and gains teaching experience.",
+      "images": [
+        "https://iantd.com/images/courses/assistant-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Divemaster or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Assistant Instructor Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Instructor",
+      "code": "OWI",
+      "levelCode": "instructor",
+      "description": "Train qualified IANTD Divemasters or Assistant Instructors as IANTD Open Water Instructors. Upon completion, may teach and evaluate IANTD courses and conduct Crossover Programs.",
+      "images": [
+        "https://iantd.com/images/courses/ow-instructor.jpg"
+      ],
+      "durationDays": 12,
+      "classroomHours": 40,
+      "poolHours": 16,
+      "openWaterDives": 10,
+      "prerequisites": "IANTD Divemaster or Assistant Instructor or equivalent, minimum 100 logged dives with 15 to appropriate depths",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Instructor Development Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "EANx Instructor",
+      "code": "EANXI",
+      "levelCode": "instructor",
+      "description": "Training to teach IANTD EANx Diver courses. Covers curriculum, teaching methods, and evaluation procedures specific to nitrox training.",
+      "images": [
+        "https://iantd.com/images/courses/eanx-instructor.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Open Water Instructor and IANTD EANx Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD EANx Instructor Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced EANx Instructor",
+      "code": "AEANXI",
+      "levelCode": "instructor",
+      "description": "Training to teach IANTD Advanced EANx Diver courses. Covers technical diving instruction, curriculum delivery, and student evaluation.",
+      "images": [
+        "https://iantd.com/images/courses/adv-eanx-instructor.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD EANx Instructor and IANTD Advanced EANx Diver or equivalent, minimum 150 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Advanced EANx Instructor Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Diver Instructor",
+      "code": "TDI",
+      "levelCode": "instructor",
+      "description": "Training to teach IANTD Technical Diver courses. Comprehensive instructor preparation for technical diving education.",
+      "images": [
+        "https://iantd.com/images/courses/tech-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Advanced EANx Instructor and IANTD Technical Diver or equivalent, minimum 200 logged dives",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Technical Diver Instructor Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Trimix Instructor",
+      "code": "TMXI",
+      "levelCode": "instructor",
+      "description": "Training to teach IANTD Trimix Diver courses at all levels. Comprehensive instruction in teaching hypoxic and normoxic trimix diving.",
+      "images": [
+        "https://iantd.com/images/courses/trimix-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Technical Diver Instructor and IANTD Trimix Diver or equivalent, minimum 300 logged dives with 50 trimix dives",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Trimix Instructor Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Instructor",
+      "code": "CI",
+      "levelCode": "instructor",
+      "description": "Training to teach IANTD Cave Diver courses through full cave level. Comprehensive instructor preparation for cave diving education.",
+      "images": [
+        "https://iantd.com/images/courses/cave-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "IANTD Open Water Instructor and IANTD Cave Diver or equivalent, minimum 100 logged cave dives",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Cave Instructor Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Cave Instructor",
+      "code": "TCI",
+      "levelCode": "instructor",
+      "description": "Training to teach IANTD Technical Cave Diver and advanced cave courses. Highest cave instructor certification before Course Director level.",
+      "images": [
+        "https://iantd.com/images/courses/tech-cave-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Cave Instructor and IANTD Technical Cave Diver or equivalent, minimum 200 logged cave dives",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Technical Cave Instructor Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Rebreather Instructor",
+      "code": "CCRI",
+      "levelCode": "instructor",
+      "description": "Training to teach IANTD Rebreather Diver courses on specific units. Must be qualified instructor on the specific rebreather being taught.",
+      "images": [
+        "https://iantd.com/images/courses/ccr-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "IANTD Open Water Instructor and CCR Diver on specific unit, minimum 100 hours on unit",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD CCR Instructor Kit",
+        "Specific rebreather unit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Instructor Crossover",
+      "code": "OWIC",
+      "levelCode": "instructor",
+      "description": "Crossover program for instructors from other agencies to become IANTD Open Water Instructors. Must be active teaching status with internationally accredited association.",
+      "images": [
+        "https://iantd.com/images/courses/ow-instructor-crossover.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "Sport Diving Instructor in active teaching status with internationally accredited association, Oxygen Provider and Diving First Aid certifications, minimum 110 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "Proof of current instructor status"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Trainer",
+      "code": "IT",
+      "levelCode": "instructor",
+      "description": "Open Water EANx Instructor Trainer program to provide training for IANTD Instructor Trainers. May conduct instructor level training and evaluation.",
+      "images": [
+        "https://iantd.com/images/courses/instructor-trainer.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Open Water and EANx Instructor, minimum 2 years teaching experience, 100+ certifications issued",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Instructor Trainer Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Assistant Course Director",
+      "code": "ACD",
+      "levelCode": "instructor",
+      "description": "Preparation for Course Director level. Assists Course Directors with instructor development programs and gains experience in instructor training.",
+      "images": [
+        "https://iantd.com/images/courses/assistant-cd.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Instructor Trainer, minimum 2 years as IT without Quality Assurance complaints",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD ACD Kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Course Director",
+      "code": "CD",
+      "levelCode": "instructor",
+      "description": "Elite group of professionals who provide training to next generation of IANTD Instructors. Teach Assistant Course Director Programs and Instructor Development Programs (IDP).",
+      "images": [
+        "https://iantd.com/images/courses/course-director.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 32,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "IANTD Assistant Course Director, minimum 2 years teaching without Quality Assurance complaints, 100+ certifications in combination of OW, AOW, EANx, Deep, Rescue, and Divemaster programs",
+      "minAge": 21,
+      "medicalRequirements": "Medical clearance required",
+      "requiredItems": [
+        "IANTD Course Director Kit"
+      ],
+      "materialsIncluded": true
+    }
+  ]
+}

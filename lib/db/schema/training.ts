@@ -82,8 +82,12 @@ export const agencyCourseTemplates = pgTable(
   "agency_course_templates",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    // Optional FK to tenant-specific agency (for imported courses)
     agencyId: uuid("agency_id").references(() => certificationAgencies.id, { onDelete: "cascade" }),
     levelId: uuid("level_id").references(() => certificationLevels.id, { onDelete: "set null" }),
+    // Agency/level codes for global templates (no FK needed)
+    agencyCode: text("agency_code"), // e.g., "padi", "ssi" - for global template lookup
+    levelCode: text("level_code"), // e.g., "beginner", "advanced" - for display/filtering
 
     // Agency-controlled fields
     name: text("name").notNull(),
@@ -113,8 +117,9 @@ export const agencyCourseTemplates = pgTable(
   },
   (table) => ({
     agencyIdx: index("idx_agency_templates_agency").on(table.agencyId),
+    agencyCodeIdx: index("idx_agency_templates_agency_code").on(table.agencyCode),
     hashIdx: index("idx_agency_templates_hash").on(table.contentHash),
-    uniqueCode: uniqueIndex("idx_agency_templates_code").on(table.agencyId, table.code),
+    uniqueCode: uniqueIndex("idx_agency_templates_unique_code").on(table.agencyCode, table.code),
   })
 );
 

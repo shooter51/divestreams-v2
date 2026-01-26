@@ -1,0 +1,997 @@
+{
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "GUE Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import. GUE (Global Underwater Explorers) uses the DIR (Doing It Right) methodology emphasizing team diving, standardized equipment configuration, and comprehensive skill development. GUE Fundamentals is the cornerstone course that serves as a gateway to all technical and cave programs. All GUE courses include rigorous skill assessments and swim tests.",
+  "agency": "gue",
+  "agencyName": "Global Underwater Explorers",
+  "version": "2026.1",
+  "lastUpdated": "2026-01-25",
+  "courses": [
+    {
+      "name": "Discover Diving",
+      "code": "DD",
+      "levelCode": "beginner",
+      "description": "GUE's Discover Diving program is an introduction for individuals with no previous scuba diving experience. This program does not result in certification but serves as an introduction to scuba diving using the GUE system and DIR methodology. Training takes place under direct instructor supervision.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/discover-diving.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": "Physician authorization required for prescription drugs or medical conditions that may pose risk while diving",
+      "requiredItems": [
+        "Swimwear",
+        "Towel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Supervised Diver",
+      "code": "SD",
+      "levelCode": "beginner",
+      "description": "GUE Supervised Diver teaches all the basic skills required for safe and comfortable diving while limiting depth to 12m/40ft. Divers must always dive under supervision of a dive professional. This course may count toward Recreational Diver Level 1 qualification.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/supervised-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 16,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": "Physician authorization required for prescription drugs or medical conditions. Must be physically and mentally fit, non-smoker, and able to swim.",
+      "requiredItems": [
+        "Swimwear",
+        "Personal mask, fins, and snorkel recommended"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational Diver Level 1 (Open Water)",
+      "code": "REC1",
+      "levelCode": "beginner",
+      "description": "GUE's entry-level scuba course introducing the proven GUE training method for basic underwater body positioning, kicking techniques, equipment configuration, buoyancy, situational awareness, and team diving. Divers are certified to a maximum depth of 21m/70ft. Course includes at least 10 aquatic sessions and 6 open water dives over 5-6 days.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rec1-open-water.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 20,
+      "poolHours": 10,
+      "openWaterDives": 6,
+      "prerequisites": "Must pass swim test: 275m/300yds in 14 minutes without stopping, plus 15m/50ft underwater breath hold",
+      "minAge": 12,
+      "medicalRequirements": "Physician authorization required for prescription drugs or medical conditions. Must be physically and mentally fit, non-smoker, and able to swim.",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Exposure protection appropriate to environment",
+        "GUE-configured equipment (backplate, wing, long hose)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Performance Diver",
+      "code": "PD",
+      "levelCode": "beginner",
+      "description": "GUE Performance Diver is the gateway course for certified divers to experience the GUE system without compromising on standards. Course outcomes include GUE single or double-tank equipment configuration, trim and buoyancy, propulsion techniques including backwards kick, gas sharing, ascent training, and theory and use of nitrox.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/performance-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "Autonomous entry-level scuba diver certification from a recognized training agency",
+      "minAge": 12,
+      "medicalRequirements": "Physician authorization required for prescription drugs or medical conditions. Must be physically and mentally fit, non-smoker.",
+      "requiredItems": [
+        "Personal dive equipment",
+        "GUE-configured equipment recommended"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational Diver Level 2 (Advanced Open Water)",
+      "code": "REC2",
+      "levelCode": "advanced",
+      "description": "GUE Rec 2 strengthens previously learned skills and introduces navigational techniques, rescue methods, and deep diving procedures. This course is essentially 3 courses in one: Navigation, Rescue, and Deep. Prepares divers for deeper recreational diving to 30m/100ft. Includes 11 dives over 6 days.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rec2-advanced.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 11,
+      "prerequisites": "GUE Recreational Diver Level 1, GUE Performance Diver, or GUE Fundamentals. Minimum 15 non-training dives. BLS training within 24 months.",
+      "minAge": 16,
+      "medicalRequirements": "Physician authorization required. Must be physically and mentally fit, non-smoker.",
+      "requiredItems": [
+        "Full GUE-configured equipment",
+        "Dive computer",
+        "Compass",
+        "Underwater slate",
+        "SMB and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational Diver Level 3 (Master Diver)",
+      "code": "REC3",
+      "levelCode": "advanced",
+      "description": "GUE Rec 3 bridges recreational and technical diving, expanding depth limits to 39m/130ft. A limited decompression course teaching advanced skills, decompression cylinder use, double tanks, and helium-based breathing mixtures (triox 30/30 and 21/35) to minimize narcosis and gas density effects.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rec3-master.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "GUE Advanced Open Water (Rec 2) or GUE Fundamentals. Minimum 75 non-training dives (25 after prerequisite course, 15 with doubles).",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must be physically and mentally fit, non-smoker.",
+      "requiredItems": [
+        "GUE double tank configuration",
+        "Decompression cylinder",
+        "Dive computer",
+        "Primary and backup lights",
+        "SMB and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "GUE Fundamentals",
+      "code": "FUND",
+      "levelCode": "advanced",
+      "description": "GUE's most popular course and the cornerstone of the GUE training system. Provides all divers an opportunity to advance basic diving skills and serves as a gateway to all GUE technical and cave programs. Course outcomes include GUE equipment configuration, trim and buoyancy, propulsion techniques (including backwards kick), valve management, gas sharing, and SMB deployment. Can be completed with single or double tanks.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/fundamentals.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 6,
+      "openWaterDives": 6,
+      "prerequisites": "Certified diver from recognized agency. Swim test: 275m/300yds in 14 minutes. If using doubles, 10 non-training dives in doubles or GUE Doubles Primer. If using drysuit, 10 non-training drysuit dives or GUE Drysuit Primer.",
+      "minAge": 16,
+      "medicalRequirements": "Physician authorization required for prescription drugs or medical conditions. Must be physically and mentally fit, non-smoker.",
+      "requiredItems": [
+        "GUE-configured backplate and wing",
+        "Primary regulator with long hose",
+        "Backup mask",
+        "Dive computer",
+        "Primary light",
+        "SMB and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Basic Fundamentals",
+      "code": "BFUND",
+      "levelCode": "advanced",
+      "description": "GUE Basic Fundamentals is designed for divers seeking to enhance foundational diving skills. A gateway for other recreational GUE courses including Navigation, Rescue, Deep Primers, Scientific Diver, and DPV 1. Covers GUE equipment configuration, trim, buoyancy, and propulsion techniques.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/basic-fundamentals.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "Certified diver from recognized agency. Swim test required.",
+      "minAge": 16,
+      "medicalRequirements": "Physician authorization required. Must be physically and mentally fit, non-smoker.",
+      "requiredItems": [
+        "GUE-configured equipment",
+        "Dive computer",
+        "SMB and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Fundamentals",
+      "code": "TFUND",
+      "levelCode": "advanced",
+      "description": "GUE Technical Fundamentals is designed for experienced divers to enhance skills in preparation for GUE's technical, rebreather, or cave programs. Many divers see this course as a pathway to participate in GUE's advanced diving projects and activities. Provides the Technical Endorsement needed for Tech 1 and Cave 1.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-fundamentals.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 6,
+      "openWaterDives": 6,
+      "prerequisites": "Advanced Open Water or equivalent certification. Minimum 75 logged dives. If using drysuit, 15 non-training drysuit dives. If using doubles, 10 non-training dives in GUE double configuration or Doubles Primer.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must be physically and mentally fit, non-smoker.",
+      "requiredItems": [
+        "GUE double tank configuration with isolator manifold",
+        "Primary and backup regulators",
+        "Dive computer",
+        "Primary and backup lights",
+        "SMB and reel",
+        "Backup mask"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Doubles Primer",
+      "code": "DBL",
+      "levelCode": "specialty",
+      "description": "Non-certification course teaching divers how to safely and comfortably dive a double tank configuration using proper equipment and techniques. Essential for extending dive time and depth by increasing available breathing gas and adding equipment redundancy.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/doubles-primer.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "Autonomous scuba diver certification from recognized agency. Nitrox certification if using nitrox. If using drysuit, 15 non-training drysuit dives or 10 dives after Drysuit Primer.",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Double tank configuration (can be provided)",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Drysuit Primer",
+      "code": "DRY",
+      "levelCode": "specialty",
+      "description": "Non-certification course preparing divers for drysuit diving using proper equipment and techniques. Course covers buoyancy and trim practice, types and fitting of drysuits, inflation systems, undergarments, cold water diving specifics, and management of basic drysuit emergencies.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/drysuit-primer.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "Autonomous scuba diver certification from recognized agency",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Drysuit (can be provided)",
+        "Appropriate undergarments",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Navigation Primer",
+      "code": "NAV",
+      "levelCode": "specialty",
+      "description": "Course teaching basics of underwater compass use and natural navigation techniques. Increases comfort and confidence for safe team diving. Outcomes include compass use (simple and complex navigation), natural navigation, basic navigational strategies, and managing a spool as guideline underwater.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/navigation-primer.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "Minimum 25 non-training dives",
+      "minAge": 16,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Compass",
+        "Reel or spool",
+        "Underwater slate",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Rescue Primer",
+      "code": "RSC",
+      "levelCode": "specialty",
+      "description": "Course teaching basic rescue techniques relevant to scuba diving emergencies. Skills include managing rescue scenarios, swimming and non-swimming assists, egression techniques, controlling panicked divers, underwater search patterns, and managing/surfacing unconscious divers.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rescue-primer.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 3,
+      "prerequisites": "Navigation Primer recommended. Minimum 25 non-training dives.",
+      "minAge": 16,
+      "medicalRequirements": "Current BLS/CPR certification recommended. Must be physically fit.",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Pocket mask (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deep Primer (Triox)",
+      "code": "DEEP",
+      "levelCode": "specialty",
+      "description": "Course teaching use of triox 30/30 as a GUE standard gas to reduce effects of increased gas density in recreational divers. Covers deeper dive planning, ascent protocols, and effects of hypercapnia. Prepares divers for 30m/100ft diving and serves as preparation for technical training.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/deep-primer.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "GUE Recreational Diver 1 or GUE Fundamentals at recreational level. Minimum 25 non-training dives (15 since prerequisite course). Drysuit experience if using drysuit.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required",
+      "requiredItems": [
+        "GUE-configured equipment",
+        "Dive computer compatible with nitrox/triox"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "DPV Diver 1",
+      "code": "DPV1",
+      "levelCode": "specialty",
+      "description": "Introduction to skills and knowledge for safe use of Underwater Propulsion Vehicles (DPV) in open water environments. Course covers basic DPV diving principles, dive planning, teamwork, environmental awareness, stress management, navigation, standard and emergency procedures, and DPV maintenance.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/dpv-1.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 5,
+      "prerequisites": "GUE Recreational Diver 1 or GUE Fundamentals. Minimum 75 non-training dives (25 beyond GUE certification).",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required",
+      "requiredItems": [
+        "GUE-sanctioned DPV (can be provided)",
+        "Full GUE-configured equipment",
+        "Primary and backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Gas Blender",
+      "code": "BLEND",
+      "levelCode": "specialty",
+      "description": "Course introducing essential skills for preparing diving breathing mixtures with emphasis on GUE standard gases. Covers gas properties, physics, oxygen risk, blending systems, formulas, software, cascading, gas boosters, and gas analysis. Ideal for dive project support.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/gas-blender.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "Must hold diving emergency insurance (e.g., DAN Master-level)",
+      "minAge": 18,
+      "medicalRequirements": "Must be physically and mentally fit, non-smoker",
+      "requiredItems": [
+        "Calculator",
+        "Personal protective equipment (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Documentation Diver",
+      "code": "DOC",
+      "levelCode": "specialty",
+      "description": "Introduction to documentation techniques, project organization, and logistics for project-based diving. Covers basic photography/videography, team skills for documentation, communication, establishing objectives and work plans, team task management, report creation, mapping, survey, and press releases.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/documentation-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "GUE Basic Fundamentals or equivalent. Minimum 50 non-training dives.",
+      "minAge": 16,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Underwater camera system (can be provided)",
+        "GUE-configured equipment",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Photogrammetry Diver",
+      "code": "PHOTO",
+      "levelCode": "specialty",
+      "description": "Introduction to underwater photogrammetry for creating digital 3D models of dive sites and submerged artifacts. Covers camera setup, image capture techniques, processing software, and 3D model generation for scientific and documentation purposes.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/photogrammetry.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 20,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "Minimum 75 logged dives. Drysuit experience if using drysuit (15 dives or Drysuit Primer + 10 dives).",
+      "minAge": 18,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Underwater camera system",
+        "Laptop with photogrammetry software",
+        "GUE-configured equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Scientific Diver",
+      "code": "SCI",
+      "levelCode": "specialty",
+      "description": "Prepares divers to act as members of scientific diving teams. Covers search and survey methods, airbag and airlift use for lifts/excavations/sampling, rigging and line work, recording techniques, surface tending, and sampling techniques. Understanding of legal aspects and responsibilities.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/scientific-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "GUE Basic Fundamentals or equivalent. Scientific diving interest or background.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required",
+      "requiredItems": [
+        "Full GUE-configured equipment",
+        "Underwater slate and writing equipment",
+        "Mesh collection bags"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Diver Level 1",
+      "code": "TECH1",
+      "levelCode": "advanced",
+      "description": "First level of GUE's technical curriculum, certifying divers for extended-range diving using helium-based trimix to depths of 51m/170ft. Covers decompression theory, gas management, emergency procedures, and extended decompression diving skills. Requires minimum 7 dives including 3 trimix experience dives.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-1.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 7,
+      "prerequisites": "GUE Technical Fundamentals certification. Minimum 100 logged dives. If using drysuit, 25 non-training drysuit dives or 15 after Drysuit Primer. Cave environment requires Cave 2 + 25 Cave 2 dives.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance (DAN Master-level or equivalent).",
+      "requiredItems": [
+        "GUE double tank configuration with isolator manifold",
+        "Two stage/deco cylinders",
+        "Primary and backup dive computers",
+        "Primary light (minimum 10W LED)",
+        "Two backup lights",
+        "SMB and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tech 60",
+      "code": "TECH60",
+      "levelCode": "advanced",
+      "description": "Intermediate technical course extending Tech 1 divers to 60m/200ft. Emphasizes advanced decompression techniques, depth and time management, and proficiency with multiple decompression gases. Requires minimum 7 dives over 4 days.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-60.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 2,
+      "openWaterDives": 7,
+      "prerequisites": "GUE Tech 1 certification. Minimum 25 logged technical dives beyond Tech 1.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE double tank configuration",
+        "Multiple stage/deco cylinders",
+        "Primary and backup dive computers",
+        "Primary and backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Diver Level 2",
+      "code": "TECH2",
+      "levelCode": "advanced",
+      "description": "Second level of GUE's technical curriculum for depths to 75m/246ft and beyond using helium breathing gases and multiple decompression gases. A rigorous class preparing divers for aggressive diving profiles with extended decompression. Requires minimum 7 dives including 3 trimix experience dives.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-2.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 7,
+      "prerequisites": "GUE Tech 1 certification. Minimum 25 logged Tech 1 or CCR-T1 level dives beyond certification. If using drysuit, 25 non-training drysuit dives or 15 after Drysuit Primer.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE double tank configuration with isolator manifold",
+        "Three or more stage/deco cylinders",
+        "Primary and backup dive computers",
+        "Primary light (minimum 18W LED)",
+        "Two backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Diver Level 3",
+      "code": "TECH3",
+      "levelCode": "professional",
+      "description": "Culmination of GUE's technical trilogy focusing exclusively on rebreathers (JJ-CCR and RB80) for depths to 120m/393ft with decompression times up to 3 hours. Includes advanced gas management, DPV use at depth, and extreme exposure protocols. Requires rebreather and DPV certifications.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-3.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 16,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "GUE CCR-T2 or PSCR certification. GUE DPV 1 or DPV Cave certification. 50 non-training Tech 2/CCR-T2 dives. 500 total dives. 100 rebreather dives (25 at 75m+ depth).",
+      "minAge": 21,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance to appropriate depth.",
+      "requiredItems": [
+        "GUE-approved rebreather (JJ-CCR or RB80)",
+        "GUE-sanctioned DPV",
+        "Multiple bailout cylinders",
+        "Full redundant systems"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Fundamentals",
+      "code": "CCRF",
+      "levelCode": "advanced",
+      "description": "Entry-level closed-circuit rebreather course introducing basic CCR technologies and cultivating diver proficiency with GUE-approved CCR configurations. Serves as prerequisite for advanced GUE CCR training. Maximum depth of 30m/100ft.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-fundamentals.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "GUE Technical Fundamentals certification. Minimum 150 non-training dives. If using drysuit, 25 drysuit dives or 15 after Drysuit Primer.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE-approved CCR unit",
+        "Bailout cylinder",
+        "Primary and backup dive computers",
+        "Primary and backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Level 1",
+      "code": "CCR1",
+      "levelCode": "advanced",
+      "description": "Designed to enhance diver proficiency in the use of GUE-approved closed-circuit rebreathers for extended range diving. Builds on Tech 1 skills with CCR-specific protocols.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-1.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "GUE Tech 1 certification. Minimum 25 logged Tech 1 dives. 50 non-training dives in doubles configuration.",
+      "minAge": 21,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE-approved CCR unit (owned)",
+        "Multiple bailout cylinders",
+        "Primary and backup dive computers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Level 2",
+      "code": "CCR2",
+      "levelCode": "advanced",
+      "description": "Advanced CCR course for extended range diving with closed-circuit rebreathers. Builds on CCR 1 for deeper profiles and longer decompression obligations.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-2.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 2,
+      "openWaterDives": 6,
+      "prerequisites": "GUE CCR Level 1 certification. 50 CCR dives beyond CCR 1 (25 deeper than 30m). Must own GUE-approved CCR.",
+      "minAge": 21,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE-approved CCR unit (owned)",
+        "Multiple bailout cylinders",
+        "Full redundant systems"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Technical Diver 1",
+      "code": "CCRT1",
+      "levelCode": "advanced",
+      "description": "Technical CCR course for extended range diving using closed-circuit rebreathers. Integrates CCR technology with technical diving protocols for depths requiring decompression.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-tech-1.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 7,
+      "prerequisites": "GUE CCR Fundamentals certification. 50 non-training dives in GUE CCR configuration. Drysuit experience if using drysuit.",
+      "minAge": 21,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE-approved CCR unit",
+        "Multiple bailout cylinders",
+        "Primary and backup dive computers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Technical Diver 2",
+      "code": "CCRT2",
+      "levelCode": "advanced",
+      "description": "Advanced technical CCR course for extended range diving to greater depths using closed-circuit rebreathers with multiple diluent and bailout gases.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-tech-2.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 24,
+      "poolHours": 2,
+      "openWaterDives": 7,
+      "prerequisites": "GUE CCR Technical Diver 1 certification. 50 non-training CCR-T1 dives (25 at 40m+ depth).",
+      "minAge": 21,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE-approved CCR unit",
+        "Multiple bailout cylinders",
+        "Full redundant systems"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "PSCR (RB80) Rebreather",
+      "code": "RB80",
+      "levelCode": "advanced",
+      "description": "Course educating divers in passive semi-closed circuit rebreather (PSCR) technologies, specifically the RB80. Cultivates proficiency in GUE-approved PSCR configurations for exploration diving. Considered one of the best rebreathers for deep exploration.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/rb80.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "GUE Technical Fundamentals and Tech 1/Tech 2 certifications.",
+      "minAge": 21,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "RB80 rebreather unit",
+        "Bailout cylinders",
+        "Primary and backup dive computers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diver Level 1",
+      "code": "CAVE1",
+      "levelCode": "advanced",
+      "description": "Introduction to cave diving within GUE's systematic approach. Certifies divers for basic cave diving within minimum decompression limits, no complex navigation (jumps/traverses/circuits), and no prolonged restrictions. Requires 12 dives in at least 3 different caves.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-1.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 2,
+      "openWaterDives": 12,
+      "prerequisites": "GUE Technical Fundamentals certification (Technical rating). Minimum 100 dives beyond open water. Swim test: 400yds/375m in 14 minutes.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE double tank configuration (minimum 100cuft/2800L)",
+        "Primary reel (minimum 400ft/120m)",
+        "Safety reel",
+        "Three lights (primary 10W+ LED, two backups)",
+        "Line arrows and cookies"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diver Level 2",
+      "code": "CAVE2",
+      "levelCode": "advanced",
+      "description": "Advanced cave diving course for extended penetration, complex navigation including jumps and traverses, decompression diving, and use of stage cylinders. Requires 10 Cave 2 dives in at least 3 different caves over 6 days.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-2.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 24,
+      "poolHours": 2,
+      "openWaterDives": 10,
+      "prerequisites": "GUE Cave 1 certification. Minimum 25 logged Cave 1 level dives. Drysuit experience if using drysuit (25 dives or 15 after Drysuit Primer).",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE double tank configuration",
+        "Stage cylinder(s)",
+        "Decompression cylinder",
+        "Primary reel (minimum 800ft/240m)",
+        "Jump/gap reels",
+        "Line arrows, cookies, and REM"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diver Level 3",
+      "code": "CAVE3",
+      "levelCode": "professional",
+      "description": "Elite cave diving course for extended exposure dives at depth using rebreathers, DPVs, and multiple gas mixtures including hypoxic trimix. Covers team diving with mixed PSCR/CCR configurations, extended decompression strategies, and expedition-level planning.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-3.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 20,
+      "poolHours": 0,
+      "openWaterDives": 5,
+      "prerequisites": "GUE Cave 2 and Tech 2 certifications. Rebreather certification (CCR or PSCR). DPV certification. Extensive cave diving experience.",
+      "minAge": 21,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance to appropriate depth.",
+      "requiredItems": [
+        "GUE-approved rebreather",
+        "GUE-sanctioned DPV",
+        "Multiple stage/bailout cylinders",
+        "Full expedition equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "DPV Cave",
+      "code": "DPVC",
+      "levelCode": "advanced",
+      "description": "Cultivates mastery-level skill in underwater propulsion vehicle use within cave environments. Covers line laying/retrieval with DPV, DPV switching, and stage/deco bottle management while managing DPVs. Requires prior DPV and cave experience.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/dpv-cave.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 2,
+      "openWaterDives": 5,
+      "prerequisites": "GUE Cave 2 certification. Prior DPV experience. Must own GUE-sanctioned DPV with sufficient burn time for cave environment.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE-sanctioned DPV (owned) with sufficient burn time",
+        "GUE double tank configuration",
+        "Stage cylinders",
+        "Full cave equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Cave Diver",
+      "code": "CCRC",
+      "levelCode": "advanced",
+      "description": "Provides experienced GUE cave and CCR divers with additional knowledge for safe CCR use in cave environments. Integrates rebreather technology with cave diving protocols.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-cave.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 2,
+      "openWaterDives": 8,
+      "prerequisites": "GUE Cave 2 certification. CCR certification. Must own GUE-approved CCR. Drysuit experience if using drysuit.",
+      "minAge": 21,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "GUE-approved CCR (owned)",
+        "Multiple bailout cylinders",
+        "Full cave equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Sidemount Cave Diver",
+      "code": "SMC",
+      "levelCode": "advanced",
+      "description": "Provides experienced GUE Cave 2 divers opportunity to master sidemount equipment configuration for exploring restrictive cave passages too small for backmount configuration. Requires 10 dives including 4 in restrictive passages.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/sidemount-cave.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 10,
+      "prerequisites": "GUE Cave 2 certification. Minimum 50 dives beyond Cave 2 certification.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "Sidemount harness and wing",
+        "Two sidemount cylinders",
+        "Full cave equipment in sidemount configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Cave Survey",
+      "code": "SURV",
+      "levelCode": "advanced",
+      "description": "Introduction to underwater cave surveying skills including data collection, team approach to survey, and cartography methods. Prepares divers to assist in coordinated cave exploration projects. Requires 10 diving hours.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-survey.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 10,
+      "prerequisites": "GUE Cave 2 certification. Active cave diving experience.",
+      "minAge": 18,
+      "medicalRequirements": "Physician authorization required. Must hold diving emergency insurance.",
+      "requiredItems": [
+        "Survey compass",
+        "Prepared underwater survey notes",
+        "Spare pencils",
+        "3ft/1m measuring string",
+        "Fiberglass tape (100-150ft per team)",
+        "Handheld underwater sonar (per team)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Fundamentals Instructor",
+      "code": "FUNDI",
+      "levelCode": "instructor",
+      "description": "Instructor Training Course (ITC) for teaching GUE Fundamentals courses. Develops qualified instructors within the GUE recreational/foundational curriculum through 40+ hours of instruction over 5+ days.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "GUE Fundamentals. Proof of 300+ logged dives (50 in doubles). GUE Tech 2 and Cave 1 certifications. Active GUE membership.",
+      "minAge": 21,
+      "medicalRequirements": "Annual fitness test required. Must demonstrate teaching and diving currency.",
+      "requiredItems": [
+        "Full GUE equipment configuration",
+        "Teaching materials",
+        "Demonstration equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tech 1 Instructor",
+      "code": "T1I",
+      "levelCode": "instructor",
+      "description": "Instructor Training Course for teaching GUE Technical Diver Level 1. Requires extensive technical diving experience and active teaching at Fundamentals level.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "GUE Fundamentals. GUE Tech 2 and Cave 1 certifications. Proof of 300+ logged dives (50 in doubles). Active Fundamentals instructor status.",
+      "minAge": 21,
+      "medicalRequirements": "Annual fitness test required",
+      "requiredItems": [
+        "Full technical diving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tech 2 Instructor",
+      "code": "T2I",
+      "levelCode": "instructor",
+      "description": "Instructor Training Course for teaching GUE Technical Diver Level 2. Requires extensive technical diving experience and active Tech 1 instructor status.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "GUE Fundamentals. GUE Tech 2 and Cave 1 certifications. Proof of 400+ logged dives (100 in doubles). Active Tech 1 instructor status.",
+      "minAge": 21,
+      "medicalRequirements": "Annual fitness test required",
+      "requiredItems": [
+        "Full technical diving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tech 3 Instructor",
+      "code": "T3I",
+      "levelCode": "instructor",
+      "description": "Instructor Training Course for teaching GUE Technical Diver Level 3. Requires elite-level technical diving experience including extensive rebreather dives.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/tech-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "GUE Fundamentals, Cave 1, and Tech 3 certifications. Proof of 700+ logged dives (150 in doubles). Active Tech 2 instructor status.",
+      "minAge": 21,
+      "medicalRequirements": "Annual fitness test required",
+      "requiredItems": [
+        "GUE-approved rebreather",
+        "Full technical equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave 1 Instructor",
+      "code": "C1I",
+      "levelCode": "instructor",
+      "description": "Instructor Training Course for teaching GUE Cave Diver Level 1. Requires extensive cave diving experience beyond Cave 2 certification.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "GUE Fundamentals, Cave 2, and Tech 1 certifications. Proof of 300+ logged dives (100 cave dives beyond Cave 2).",
+      "minAge": 21,
+      "medicalRequirements": "Annual fitness test required",
+      "requiredItems": [
+        "Full cave diving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave 2 Instructor",
+      "code": "C2I",
+      "levelCode": "instructor",
+      "description": "Instructor Training Course for teaching GUE Cave Diver Level 2. Requires extensive cave experience including high-flow systems and decompression caves.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 2,
+      "openWaterDives": 8,
+      "prerequisites": "GUE Fundamentals, Cave 2, and Tech 1 certifications. Proof of 400+ logged dives (150 cave dives beyond Cave 2). Experience in high-flow and decompression caves.",
+      "minAge": 21,
+      "medicalRequirements": "Annual fitness test required",
+      "requiredItems": [
+        "Full cave diving equipment",
+        "Stage cylinders",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave 3 Instructor",
+      "code": "C3I",
+      "levelCode": "instructor",
+      "description": "Instructor Training Course for teaching GUE Cave Diver Level 3. Requires elite-level cave diving experience with rebreathers.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/cave-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "GUE Fundamentals, Cave 3, and Tech 2 certifications. Proof of 700+ logged dives (300 cave dives beyond Cave 2).",
+      "minAge": 21,
+      "medicalRequirements": "Annual fitness test required",
+      "requiredItems": [
+        "GUE-approved rebreather",
+        "Full expedition cave equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Rebreather Instructor",
+      "code": "CCRI",
+      "levelCode": "instructor",
+      "description": "Instructor Training Course for teaching GUE rebreather courses. Requires extensive rebreather diving experience and active technical instructor status.",
+      "images": [
+        "https://www.gue.com/sites/default/files/styles/course_card/public/2023-01/ccr-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "GUE Fundamentals, Tech 2, and GUE Rebreather certifications. Proof of 500+ logged dives (200 rebreather dives).",
+      "minAge": 21,
+      "medicalRequirements": "Annual fitness test required",
+      "requiredItems": [
+        "GUE-approved CCR unit",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    }
+  ]
+}

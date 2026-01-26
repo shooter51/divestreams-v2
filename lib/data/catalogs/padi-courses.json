@@ -1,22 +1,64 @@
 {
   "$schema": "../../schemas/agency-catalog.schema.json",
-  "_comment": "PADI Course Catalog - Source Data",
-  "_note": "This is SOURCE DATA for import, not a direct database dump. The sync script (lib/jobs/sync-agency-catalogs.server.ts) transforms this into agency_course_templates records by: (1) Looking up agencyId from certification_agencies where code='padi', (2) Mapping levelCode to levelId via certification_levels lookup, (3) Generating contentHash from course fields, (4) Adding sourceType='static_json', timestamps, etc. Tenant-specific fields (price, isActive, etc.) are NOT in this file - they're set when tenants import courses.",
+  "_comment": "PADI Course Catalog - Complete Source Data with ALL PADI courses including recreational, specialty, technical, professional, freediving, and mermaid programs",
+  "_note": "This is SOURCE DATA for import, not a direct database dump. The sync script (lib/jobs/sync-agency-catalogs.server.ts) transforms this into agency_course_templates records by: (1) Looking up agencyId from certification_agencies where code='padi', (2) Mapping levelCode to levelId via certification_levels lookup, (3) Generating contentHash from course fields, (4) Adding sourceType='static_json', timestamps, etc. Tenant-specific fields (price, isActive, etc.) are NOT in this file - they're set when tenants import courses. Data sourced from padi.com January 2026.",
   "agency": "padi",
   "agencyName": "Professional Association of Diving Instructors",
   "version": "2026.1",
-  "lastUpdated": "2026-01-21",
+  "lastUpdated": "2026-01-25",
   "courses": [
+    {
+      "name": "Discover Scuba Diving",
+      "code": "DSD",
+      "levelCode": "beginner",
+      "description": "The PADI Discover Scuba Diving experience is a chance to try diving without committing to a full certification course. Learn basic scuba skills in a pool or confined water, with an optional open water dive to 12 meters/40 feet. Perfect for those wanting to experience scuba diving for the first time.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/discover-scuba-diving.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 2,
+      "openWaterDives": 1,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Swimsuit",
+        "Towel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Scuba Diver",
+      "code": "SD",
+      "levelCode": "beginner",
+      "description": "The PADI Scuba Diver course is roughly the first half of the PADI Open Water Diver course. Learn diving theory, practice basic diving skills in a pool, and make two open water dives. Certified Scuba Divers can dive to 12 meters/40 feet under the direct supervision of a PADI Professional.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/scuba-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection"
+      ],
+      "materialsIncluded": true
+    },
     {
       "name": "Open Water Diver",
       "code": "OWD",
       "levelCode": "beginner",
-      "description": "The PADI Open Water Diver course is the world's most popular scuba course. Learn to dive in a relaxed, supportive environment with comprehensive training.",
+      "description": "The PADI Open Water Diver course is the world's most popular scuba certification course. Through knowledge development, confined water dives, and open water dives, you'll learn the skills needed to become a certified diver. Once certified, you can dive to 18 meters/60 feet with a buddy without professional supervision.",
       "images": [
         "https://www.padi.com/sites/default/files/courses/images/open-water-diver.jpg"
       ],
-      "durationDays": 3,
-      "classroomHours": 8,
+      "durationDays": 4,
+      "classroomHours": 12,
       "poolHours": 8,
       "openWaterDives": 4,
       "prerequisites": null,
@@ -33,10 +75,30 @@
       "materialsIncluded": true
     },
     {
+      "name": "ReActivate",
+      "code": "REACT",
+      "levelCode": "beginner",
+      "description": "The PADI ReActivate program is an interactive online scuba refresher combined with an in-water skills session. Perfect for certified divers who haven't been diving in a while and want to refresh their knowledge and skills before their next dive trip.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/reactivate.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": "PADI Scuba Diver or equivalent entry-level certification",
+      "minAge": 10,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
       "name": "Advanced Open Water Diver",
       "code": "AOWD",
       "levelCode": "advanced",
-      "description": "Take your diving to the next level with adventure dives including deep diving and underwater navigation, plus three specialty dives of your choice.",
+      "description": "Take your diving to the next level with the PADI Advanced Open Water Diver course. Complete five adventure dives including required Deep and Navigation dives, plus three elective adventure dives of your choice. Expand your capabilities and experience different types of diving. Maximum depth increased to 30 meters/100 feet.",
       "images": [
         "https://www.padi.com/sites/default/files/courses/images/advanced-open-water.jpg"
       ],
@@ -46,10 +108,11 @@
       "openWaterDives": 5,
       "prerequisites": "PADI Open Water Diver or equivalent",
       "minAge": 12,
-      "medicalRequirements": "Current medical clearance if over 45 or with medical conditions",
+      "medicalRequirements": "PADI Medical Statement required",
       "requiredItems": [
         "Personal dive equipment",
         "Dive computer",
+        "Compass",
         "Underwater slate"
       ],
       "materialsIncluded": true
@@ -58,7 +121,7 @@
       "name": "Rescue Diver",
       "code": "RD",
       "levelCode": "advanced",
-      "description": "Learn to prevent and manage dive emergencies. Develop skills to help other divers and respond to diving accidents.",
+      "description": "The PADI Rescue Diver course teaches you to prevent and manage dive emergencies. Widely considered the most transformational course after Open Water Diver, you'll learn to recognize stress in other divers, respond to dive emergencies, manage accidents, and provide emergency care. A stepping stone to Divemaster.",
       "images": [
         "https://www.padi.com/sites/default/files/courses/images/rescue-diver.jpg"
       ],
@@ -66,38 +129,168 @@
       "classroomHours": 8,
       "poolHours": 8,
       "openWaterDives": 4,
-      "prerequisites": "PADI Advanced Open Water Diver and Emergency First Response (EFR) certification within 24 months",
+      "prerequisites": "PADI Adventure Diver with Underwater Navigation dive (or PADI Advanced Open Water Diver), and Emergency First Response (EFR) Primary and Secondary Care certification within 24 months",
       "minAge": 12,
       "medicalRequirements": "PADI Medical Statement required",
       "requiredItems": [
         "Personal dive equipment",
         "Dive computer",
         "Pocket mask",
-        "Rescue mannequin (provided by center)"
+        "Emergency oxygen unit (provided by center)"
       ],
       "materialsIncluded": true
     },
     {
-      "name": "Divemaster",
-      "code": "DM",
-      "levelCode": "professional",
-      "description": "The first professional level in the PADI system. Learn to supervise dive activities and assist instructors with student divers.",
+      "name": "Emergency First Response (EFR)",
+      "code": "EFR",
+      "levelCode": "specialty",
+      "description": "Emergency First Response teaches CPR and first aid skills for adults, children, and infants. Learn to recognize life-threatening emergencies, provide appropriate care, and manage an emergency scene. This certification is required for the PADI Rescue Diver course. No diving required.",
       "images": [
-        "https://www.padi.com/sites/default/files/courses/images/divemaster.jpg"
+        "https://www.padi.com/sites/default/files/courses/images/efr.jpg"
       ],
-      "durationDays": 7,
-      "classroomHours": 24,
-      "poolHours": 16,
-      "openWaterDives": 10,
-      "prerequisites": "PADI Rescue Diver, 40+ logged dives, EFR certification within 24 months, 18 years old",
-      "minAge": 18,
-      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": null,
+      "medicalRequirements": null,
       "requiredItems": [
-        "Full personal dive equipment",
+        "Pocket mask (usually provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Peak Performance Buoyancy",
+      "code": "PPB",
+      "levelCode": "specialty",
+      "description": "Master the art of buoyancy control with the PADI Peak Performance Buoyancy specialty. Learn precise weighting, proper trim, streamlined positioning, and advanced buoyancy techniques that will help you move effortlessly through the water, conserve air, and protect the underwater environment.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/peak-performance-buoyancy.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Weight system"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deep Diver",
+      "code": "DEEP",
+      "levelCode": "specialty",
+      "description": "Explore the mysteries of deeper dive sites with the PADI Deep Diver specialty. Learn to plan deep dives, manage gas supply, identify and manage narcosis, and use proper buddy contact procedures at depth. Upon completion, you'll be certified to dive to 40 meters/130 feet.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/deep-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Adventure Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
         "Dive computer",
+        "Primary and backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Wreck Diver",
+      "code": "WRECK",
+      "levelCode": "specialty",
+      "description": "Discover the thrill of exploring sunken ships and other structures with the PADI Wreck Diver specialty. Learn wreck diving techniques, safety procedures, survey and mapping skills, and limited penetration techniques. Explore history beneath the waves safely and responsibly.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/wreck-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Adventure Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Primary and backup lights",
+        "Reel and line",
+        "Cutting tool"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Night Diver",
+      "code": "NIGHT",
+      "levelCode": "specialty",
+      "description": "Experience the underwater world after dark with the PADI Night Diver specialty. Learn light handling and communication techniques, navigation at night, and discover how marine life differs during nighttime hours. Many underwater creatures are nocturnal, making night diving a unique experience.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/night-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 3,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Primary dive light",
+        "Backup light",
+        "Tank light or cyalume stick"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Drift Diver",
+      "code": "DRIFT",
+      "levelCode": "specialty",
+      "description": "Learn to go with the flow in the PADI Drift Diver specialty. Master the techniques for diving in currents, including proper buoyancy control, navigation, buddy dynamics, and the use of floats, lines, reels, and surface marker buoys. Experience the thrill of effortless underwater flight.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/drift-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Surface marker buoy (SMB)",
+        "Reel or spool",
+        "Whistle or audible signaling device"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Navigator",
+      "code": "NAV",
+      "levelCode": "specialty",
+      "description": "Sharpen your navigation skills with the PADI Underwater Navigator specialty. Learn compass navigation, natural navigation using landmarks, distance estimation, and underwater map making. Never get lost underwater again and always find your way back to the exit point.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/underwater-navigator.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 1,
+      "openWaterDives": 3,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
         "Compass",
-        "Dive tables and slate",
-        "Pocket mask and oxygen unit (for training)"
+        "Underwater slate"
       ],
       "materialsIncluded": true
     },
@@ -105,7 +298,7 @@
       "name": "Enriched Air (Nitrox) Diver",
       "code": "EAN",
       "levelCode": "specialty",
-      "description": "Learn to dive with enriched air nitrox, extending your no-decompression limits and shortening surface intervals.",
+      "description": "The PADI Enriched Air Diver course is the most popular specialty worldwide. Learn to dive with enriched air nitrox (22-40% oxygen), extending your no-decompression limits and shortening surface intervals. Covers oxygen exposure management, analyzing gas, and setting your dive computer for nitrox.",
       "images": [
         "https://www.padi.com/sites/default/files/courses/images/enriched-air.jpg"
       ],
@@ -117,9 +310,1188 @@
       "minAge": 12,
       "medicalRequirements": "Standard medical requirements",
       "requiredItems": [
+        "Nitrox-compatible dive computer",
+        "Oxygen analyzer (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Dry Suit Diver",
+      "code": "DRYSUIT",
+      "levelCode": "specialty",
+      "description": "Stay warm and comfortable in cold water with the PADI Dry Suit Diver specialty. Learn dry suit theory, proper donning and doffing procedures, buoyancy control with a dry suit, and emergency procedures including dealing with excess gas migration. Essential for diving in cold water environments.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/dry-suit-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Dry suit (rental available)",
+        "Proper undergarments",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Boat Diver",
+      "code": "BOAT",
+      "levelCode": "specialty",
+      "description": "Learn the skills and procedures for diving from different types of boats with the PADI Boat Diver specialty. Covers boat terminology, diving procedures and etiquette, entry and exit techniques, equipment handling, and boating safety. Essential for divers who plan to dive from boats.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/boat-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
         "Personal dive equipment",
-        "Oxygen analyzer (provided by center)",
-        "Nitrox-compatible dive computer"
+        "Surface signaling device"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Search and Recovery Diver",
+      "code": "SAR",
+      "levelCode": "specialty",
+      "description": "Learn to locate and recover objects underwater with the PADI Search and Recovery Diver specialty. Master various search patterns, compass and natural navigation for searches, lift bag use for recovering large objects, and limited visibility search techniques.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/search-and-recovery.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 1,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Advanced Open Water Diver or PADI Open Water Diver with Underwater Navigator certification",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Compass",
+        "Reel and line",
+        "Lift bag (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Naturalist",
+      "code": "UNATUR",
+      "levelCode": "specialty",
+      "description": "Discover the underwater world's fascinating ecosystems with the PADI Underwater Naturalist specialty. Learn about aquatic ecology, symbiotic relationships, predator-prey interactions, and responsible interaction with marine life. Enhance your understanding of what you observe underwater.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/underwater-naturalist.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater slate",
+        "Fish identification guide"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "AWARE Fish Identification",
+      "code": "FISH",
+      "levelCode": "specialty",
+      "description": "Learn to identify fish families and species with the PADI AWARE Fish Identification specialty. Develop skills in fish surveying, data collection, and understanding fish behavior. Learn about the AWARE philosophy of protecting worldwide aquatic ecosystems.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/fish-identification.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater slate",
+        "Fish identification guide"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Digital Underwater Photographer",
+      "code": "DUP",
+      "levelCode": "specialty",
+      "description": "Capture stunning underwater images with the PADI Digital Underwater Photographer specialty. Learn camera settings, lighting techniques, composition, and how to get the best shots in various underwater conditions. Suitable for any digital camera with an underwater housing.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/digital-underwater-photographer.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 1,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent (Level One open to snorkelers)",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Camera with underwater housing"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Diver Propulsion Vehicle (DPV)",
+      "code": "DPV",
+      "levelCode": "specialty",
+      "description": "Cover more ground and have more fun with the PADI Diver Propulsion Vehicle specialty. Learn proper DPV operation, safety procedures, battery care, maintenance, and techniques for turnaround points, vehicle failure, and avoiding entanglements.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/dpv.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 1,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "DPV (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Altitude Diver",
+      "code": "ALT",
+      "levelCode": "specialty",
+      "description": "Learn the special considerations for diving at elevations above 300 meters/1000 feet with the PADI Altitude Diver specialty. Understand how reduced atmospheric pressure affects dive planning, decompression, and equipment. Essential for mountain lake diving.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/altitude-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer with altitude settings"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ice Diver",
+      "code": "ICE",
+      "levelCode": "specialty",
+      "description": "Experience the unique environment of diving under ice with the PADI Ice Diver specialty. Learn about ice diving equipment, safety procedures, the roles of surface support and tenders, site selection, and emergency procedures. Discover a completely different underwater world.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/ice-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 3,
+      "prerequisites": "PADI Advanced Open Water Diver, recommended PADI Dry Suit Diver",
+      "minAge": 18,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Dry suit with proper undergarments",
+        "Full face mask or hood",
+        "Ice diving harness and safety line",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cavern Diver",
+      "code": "CAVERN",
+      "levelCode": "specialty",
+      "description": "Explore underwater caverns safely with the PADI Cavern Diver specialty. Learn cavern navigation, line protocols, the rule of thirds for air management, and emergency procedures while staying within the light zone. A prerequisite for full cave diving training.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/cavern-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Advanced Open Water Diver, recommended PADI Enriched Air Diver",
+      "minAge": 18,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Primary dive light with burn time of 2+ hours",
+        "Two backup lights",
+        "Primary reel with 100+ feet of line",
+        "Jump or gap reel",
+        "Redundant breathing system"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Sidemount Diver",
+      "code": "SM",
+      "levelCode": "specialty",
+      "description": "Learn the streamlined configuration of sidemount diving with the PADI Sidemount Diver specialty. Carry your cylinders at your sides for improved trim, reduced drag, and easier gear management. Popular for both recreational and technical diving applications.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/sidemount-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Sidemount harness and wing",
+        "Two cylinders with regulators",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Full Face Mask Diver",
+      "code": "FFM",
+      "levelCode": "specialty",
+      "description": "Learn to dive with a full face mask with the PADI Full Face Mask Diver specialty. Covers the types of full face masks, proper fitting and preparation, underwater communication, and emergency procedures including switching to backup equipment.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/full-face-mask.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Full face mask (properly fitted)",
+        "Backup mask",
+        "Alternate air source",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Self-Reliant Diver",
+      "code": "SELF",
+      "levelCode": "specialty",
+      "description": "Develop the skills and mindset for independent diving with the PADI Self-Reliant Diver specialty. Learn about potential risks, equipment redundancy, self-rescue techniques, and emergency procedures. For experienced divers who may need to make dives without a partner.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/self-reliant-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "PADI Advanced Open Water Diver with 100 logged dives minimum",
+      "minAge": 18,
+      "medicalRequirements": "PADI Medical Statement required",
+      "requiredItems": [
+        "Redundant gas source (pony bottle or sidemount)",
+        "Redundant dive computer or depth gauge/timer",
+        "DSMB with reel",
+        "Backup mask",
+        "Cutting tool"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Equipment Specialist",
+      "code": "EQUIP",
+      "levelCode": "specialty",
+      "description": "Learn the fundamentals of dive equipment with the PADI Equipment Specialist specialty. Understand how your equipment works, routine care and maintenance, basic repairs and adjustments, and equipment storage. No dives required - a classroom-only course.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/equipment-specialist.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "PADI Scuba Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Emergency Oxygen Provider",
+      "code": "EOP",
+      "levelCode": "specialty",
+      "description": "Learn to recognize diving-related illnesses treatable by emergency oxygen and how to administer it with the PADI Emergency Oxygen Provider specialty. Covers oxygen equipment setup, safety considerations, and proper administration techniques. No diving or prerequisites required.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/emergency-oxygen-provider.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": null,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "PADI AWARE Specialist",
+      "code": "AWARE",
+      "levelCode": "specialty",
+      "description": "Learn about the threats facing our ocean and how you can help with the PADI AWARE Specialist course. Covers ocean conservation issues, marine debris, sustainable practices, and how to take action. Open to anyone - no diving or prerequisites required.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/project-aware.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": null,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Coral Reef Conservation",
+      "code": "CORAL",
+      "levelCode": "specialty",
+      "description": "Learn about the vital role coral reefs play in marine ecosystems and how they are threatened with the PADI Coral Reef Conservation specialty. Understand coral biology, reef ecology, and conservation efforts. Non-diving certification available for divers and non-divers alike.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/coral-reef-conservation.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": null,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Dive Against Debris",
+      "code": "DAD",
+      "levelCode": "specialty",
+      "description": "Make a difference with the PADI Dive Against Debris specialty. Learn to safely remove marine debris while diving, categorize and report collected materials to the global database, and understand the impact of debris on marine ecosystems.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/dive-against-debris.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 0,
+      "openWaterDives": 1,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Mesh collection bag",
+        "Gloves"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "AWARE Shark Conservation Diver",
+      "code": "SHARK",
+      "levelCode": "specialty",
+      "description": "Discover the value of sharks to marine ecosystems and economies with the PADI AWARE Shark Conservation Diver specialty. Learn about shark biology, identification, threats, and conservation efforts. Includes observation dives to practice responsible shark encounters.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/shark-conservation.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec 40",
+      "code": "TEC40",
+      "levelCode": "advanced",
+      "description": "Your entry into technical diving with the PADI Tec 40 course. Bridge the gap between recreational and technical diving by learning limited decompression procedures, deeper depth limits to 40 meters/130 feet, and using up to 50% oxygen for decompression.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/tec-40.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Advanced Open Water Diver and Enriched Air Diver with 30+ logged dives, 10 deeper than 18m",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Backup mask",
+        "Two cutting devices",
+        "Primary and backup lights",
+        "DSMB with reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec 45",
+      "code": "TEC45",
+      "levelCode": "advanced",
+      "description": "Continue your technical diving education with the PADI Tec 45 course. Extend your depth limit to 45 meters/145 feet, learn to use a single decompression cylinder, and make accelerated decompression dives using EANx or pure oxygen.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/tec-45.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Tec 40 Diver",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Full technical diving rig",
+        "Stage/decompression cylinder",
+        "Backup mask and cutting devices",
+        "Primary and backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec 50",
+      "code": "TEC50",
+      "levelCode": "advanced",
+      "description": "Reach the pinnacle of open circuit technical diving with the PADI Tec 50 course. Dive to 50 meters/165 feet using two decompression gases. Develop full competency as a technical diver ready for deeper diving expeditions.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/tec-50.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Tec 45 Diver",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Full technical diving rig",
+        "Two stage/decompression cylinders",
+        "Backup mask and cutting devices",
+        "Primary and backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec Trimix 65",
+      "code": "TMX65",
+      "levelCode": "advanced",
+      "description": "Enter the world of trimix diving with the PADI Tec Trimix 65 course. Learn to use non-hypoxic trimix for dives to 65 meters/210 feet. Understand the advantages of breathing three gases and how to do it safely.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/tec-trimix.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Tec 50 Diver with 100+ logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Full technical diving rig with trimix compatibility",
+        "Multiple decompression cylinders",
+        "Oxygen-clean equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec Trimix Diver",
+      "code": "TMX",
+      "levelCode": "advanced",
+      "description": "The ultimate technical diving certification with the PADI Tec Trimix Diver course. Make dives as deep as 90 meters/295 feet using hypoxic trimix. Visit pristine sites where few divers have ever been.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/tec-trimix-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Tec Trimix 65 Diver",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Full technical diving rig",
+        "Multiple decompression cylinders",
+        "Hypoxic trimix certified equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec Sidemount Diver",
+      "code": "TSM",
+      "levelCode": "advanced",
+      "description": "Master sidemount configuration for technical diving with the PADI Tec Sidemount Diver course. Learn technical sidemount equipment setup, gas management, and emergency procedures for decompression diving in sidemount configuration.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/tec-sidemount.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Advanced Open Water Diver, Enriched Air Diver, 30+ logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Sidemount harness and wing",
+        "Multiple cylinders with regulators",
+        "Technical diving accessories"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec Gas Blender",
+      "code": "TGB",
+      "levelCode": "specialty",
+      "description": "Learn to blend enriched air nitrox and helium-blend gases with the PADI Tec Gas Blender course. Covers oxygen properties and hazards, equipment cleaning, and five methods for obtaining desired gas mixtures. Classroom-only course - no dives required.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/gas-blender.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "PADI Enriched Air Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Rebreather Diver (Type R)",
+      "code": "RBR",
+      "levelCode": "specialty",
+      "description": "Experience the benefits of rebreather diving with the PADI Rebreather Diver course for Type R (recreational) rebreathers. Enjoy longer no-stop limits, reduced gas consumption, and closer marine life encounters. Maximum depth 18 meters/60 feet.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/rebreather.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Open Water Diver",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Type R rebreather unit",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec 40 CCR",
+      "code": "TEC40CCR",
+      "levelCode": "advanced",
+      "description": "Enter technical CCR diving with the PADI Tec 40 CCR course. Learn to use Type T closed circuit rebreathers for limited decompression dives to 40 meters/130 feet. Develop the discipline and skills for technical rebreather diving.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/tec-ccr.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 7,
+      "prerequisites": "PADI Advanced Open Water, Enriched Air, Deep Diver (or 10 dives to 30m), Rescue Diver (prior to certification), 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Type T CCR unit",
+        "Bailout equipment",
+        "Technical diving accessories"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec 60 CCR",
+      "code": "TEC60CCR",
+      "levelCode": "advanced",
+      "description": "Extend your CCR diving to 60 meters/200 feet with the PADI Tec 60 CCR course. Learn multiple decompression stop management, trimix/heliox diluent use, and advanced life-support problem management.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/tec-60-ccr.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 2,
+      "openWaterDives": 6,
+      "prerequisites": "PADI Tec 40 CCR Diver, 150 logged dives, 25 CCR dives with 50 hours on specific unit",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Type T CCR unit",
+        "Offboard bailout system",
+        "Technical diving accessories"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Tec 100 CCR",
+      "code": "TEC100CCR",
+      "levelCode": "advanced",
+      "description": "The ultimate CCR certification with the PADI Tec 100 CCR course. Train for extreme depths using hypoxic diluents and bailout gases. No depth limits after certification.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/tec-100-ccr.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 14,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "PADI Tec 60 CCR Diver, 175 logged dives, 50 CCR dives with 100 hours on specific unit",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement required",
+      "requiredItems": [
+        "Type T CCR unit",
+        "Multiple offboard bailout cylinders",
+        "Technical diving accessories"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Divemaster",
+      "code": "DM",
+      "levelCode": "professional",
+      "description": "Begin your professional diving career with the PADI Divemaster course. Learn to supervise dive activities and assist instructors with student divers. Develop your leadership skills while gaining a deep understanding of dive theory and training standards.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/divemaster.jpg"
+      ],
+      "durationDays": 14,
+      "classroomHours": 32,
+      "poolHours": 16,
+      "openWaterDives": 10,
+      "prerequisites": "PADI Rescue Diver, 40 logged dives (60 for certification), EFR within 24 months, physician-signed medical statement",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement within 12 months",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer",
+        "Compass",
+        "Dive tables and slate",
+        "Pocket mask",
+        "Emergency oxygen (for training)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Assistant Instructor",
+      "code": "AI",
+      "levelCode": "instructor",
+      "description": "Take the first step toward becoming a PADI Instructor with the Assistant Instructor course. Learn to conduct certain PADI programs independently and assist instructors with student training. The first part of the PADI Instructor Development Course.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/assistant-instructor.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Divemaster, 60 logged dives, EFR within 24 months, certified diver for 6 months",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement within 12 months",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "PADI Instructor Manual",
+        "Course materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Scuba Instructor (IDC)",
+      "code": "OWSI",
+      "levelCode": "instructor",
+      "description": "Complete your instructor training with the PADI Open Water Scuba Instructor program. The IDC includes both the Assistant Instructor and OWSI courses. Upon passing the Instructor Examination, you can teach all PADI recreational courses.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/owsi.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 48,
+      "poolHours": 16,
+      "openWaterDives": 8,
+      "prerequisites": "PADI Divemaster, 60 logged dives (100 for IE), EFR Instructor, certified diver for 6 months",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement within 12 months",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "PADI Instructor Manual",
+        "Course materials",
+        "IDC eLearning completion"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Master Scuba Diver Trainer",
+      "code": "MSDT",
+      "levelCode": "instructor",
+      "description": "Advance your instructor career with the PADI Master Scuba Diver Trainer rating. Requires 25 PADI certifications issued and 5 Specialty Instructor certifications beyond OWSI. Shows commitment to continuing education and teaching diverse courses.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/msdt.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 8,
+      "prerequisites": "PADI Instructor with 25 certifications issued and 5 Specialty Instructor ratings",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement within 12 months",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Specialty course materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "IDC Staff Instructor",
+      "code": "SIDCI",
+      "levelCode": "instructor",
+      "description": "Get involved in instructor development as a PADI IDC Staff Instructor. Independently teach Assistant Instructor courses and assist Course Directors with IDCs. A prerequisite for Master Instructor and TecRec Instructor ratings.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/idc-staff-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 32,
+      "poolHours": 8,
+      "openWaterDives": 0,
+      "prerequisites": "PADI Master Scuba Diver Trainer, EFR Instructor, physician-signed medical",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement within 12 months",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "PADI Instructor Manual"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Master Instructor",
+      "code": "MI",
+      "levelCode": "instructor",
+      "description": "Achieve the elite PADI Master Instructor rating through experience and dedication. Requires minimum 2 years as instructor, 150 certifications issued with specific distribution, participation in PADI Seminars, and IDC staffing experience.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/master-instructor.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "PADI IDC Staff Instructor for 2 years, 150 certifications issued, 50 Continuing Ed certs, 3 PADI Seminars",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement within 12 months",
+      "requiredItems": [],
+      "materialsIncluded": false
+    },
+    {
+      "name": "Course Director",
+      "code": "CD",
+      "levelCode": "instructor",
+      "description": "Reach the highest level in PADI as a Course Director. Train the next generation of PADI Instructors by conducting Instructor Development Courses and Instructor Examinations. Competitive application through Course Director Training Course.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/course-director.jpg"
+      ],
+      "durationDays": 14,
+      "classroomHours": 80,
+      "poolHours": 16,
+      "openWaterDives": 8,
+      "prerequisites": "PADI Master Instructor for 6 months, no quality assurance complaints for 12 months, EFR Instructor Trainer",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement within 12 months",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Complete PADI Instructor Manual suite"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Specialty Instructor",
+      "code": "SPECINST",
+      "levelCode": "instructor",
+      "description": "Expand your teaching abilities with PADI Specialty Instructor certifications. Qualify to teach specific PADI specialty courses by completing specialty instructor training. Required to achieve MSDT rating and teach specialty courses.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/specialty-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Scuba Instructor",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed PADI Medical Statement within 12 months",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Specialty course materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Emergency First Response Instructor",
+      "code": "EFRI",
+      "levelCode": "instructor",
+      "description": "Teach life-saving skills as an Emergency First Response Instructor. Required for PADI Open Water Scuba Instructor certification. Qualify to teach EFR Primary Care (CPR), Secondary Care (First Aid), and Care for Children courses.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/efr-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "Current EFR Provider certification",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "EFR Instructor Manual",
+        "Training equipment (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Basic Freediver",
+      "code": "BFD",
+      "levelCode": "beginner",
+      "description": "Your introduction to freediving with the PADI Basic Freediver course. Learn basic freediving principles, breath-hold techniques, and safety in confined water. Develop skills for 90 second static apnea and 25 meter dynamic apnea.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/basic-freediver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": "PADI Freediver Medical Statement required",
+      "requiredItems": [
+        "Mask and snorkel",
+        "Freediving fins (optional)",
+        "Wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver",
+      "code": "FD",
+      "levelCode": "beginner",
+      "description": "Discover why freediving is becoming popular with the PADI Freediver course. Learn about body reactions to breath-holding, water pressure effects, and proper techniques. Achieve 90 second static apnea, 25m dynamic apnea, and dive to 10-16 meters.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/freediver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": "PADI Freediver Medical Statement required",
+      "requiredItems": [
+        "Freediving mask and snorkel",
+        "Freediving fins",
+        "Wetsuit",
+        "Weight belt"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Freediver",
+      "code": "AFD",
+      "levelCode": "advanced",
+      "description": "Refine your freediving skills with the PADI Advanced Freediver course. Develop static apnea to 2:30, dynamic apnea to 50m, and constant weight dives to 20-24 meters. Learn advanced equalization and rescue techniques.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/advanced-freediver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "PADI Freediver, EFR Primary and Secondary Care within 24 months",
+      "minAge": 15,
+      "medicalRequirements": "PADI Freediver Medical Statement required",
+      "requiredItems": [
+        "Freediving mask and snorkel",
+        "Freediving fins",
+        "Low-volume mask",
+        "Nose clip (optional)",
+        "Freediving wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Master Freediver",
+      "code": "MFD",
+      "levelCode": "advanced",
+      "description": "Approach elite freediving levels with the PADI Master Freediver course. Fine-tune your lifestyle and training to maximize performance. Achieve advanced static, dynamic, free immersion, and constant weight skills beyond 24 meters.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/master-freediver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "PADI Advanced Freediver, EFR within 24 months",
+      "minAge": 18,
+      "medicalRequirements": "PADI Freediver Medical Statement required",
+      "requiredItems": [
+        "Complete freediving equipment",
+        "Low-volume mask",
+        "Bi-fins or monofin",
+        "Freediving computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver Instructor",
+      "code": "FDI",
+      "levelCode": "instructor",
+      "description": "Share your passion for freediving as a PADI Freediver Instructor. Teach all levels of PADI freediving courses from Basic Freediver through Master Freediver. Develop skills in rescue, teaching methodology, and performance assessment.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/freediver-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "PADI Master Freediver, EFR Instructor, 100 freedives logged",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical within 12 months",
+      "requiredItems": [
+        "Complete freediving equipment",
+        "Instructor materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Basic Mermaid",
+      "code": "BMM",
+      "levelCode": "beginner",
+      "description": "Begin your mermaid journey with the PADI Basic Mermaid course. Learn fundamental mermaid diving skills, safety considerations, and basic water skills in confined water. Experience the magic of swimming with a monofin in a supportive environment.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/basic-mermaid.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 6,
+      "medicalRequirements": "PADI Mermaid Medical Statement required",
+      "requiredItems": [
+        "Swimsuit",
+        "Mermaid tail/monofin (rental available)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mermaid",
+      "code": "MM",
+      "levelCode": "beginner",
+      "description": "Develop dynamic mermaid skills with the PADI Mermaid course. Learn techniques that make mermaiding an underwater self-expressive art. Master breath-holding, graceful movements, and surface skills in two water skill sessions.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/mermaid.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": "Able to swim 50m without aids, float for 5 minutes",
+      "minAge": 10,
+      "medicalRequirements": "PADI Mermaid Medical Statement required",
+      "requiredItems": [
+        "Swimsuit",
+        "Mermaid tail with monofin",
+        "Mask and snorkel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Mermaid",
+      "code": "AMM",
+      "levelCode": "advanced",
+      "description": "Take your mermaiding to the ocean with the PADI Advanced Mermaid course. Includes all Mermaid course skills plus two open water sessions in natural conditions. Gain experience and confidence swimming in a tail in the sea.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/advanced-mermaid.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 2,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "Able to swim 100m, float for 10 minutes",
+      "minAge": 10,
+      "medicalRequirements": "PADI Mermaid Medical Statement required",
+      "requiredItems": [
+        "Mermaid tail with monofin",
+        "Mask and snorkel",
+        "Exposure protection (optional)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mermaid Instructor",
+      "code": "MMI",
+      "levelCode": "instructor",
+      "description": "Share the joy of mermaiding as a PADI Mermaid Instructor. Teach all PADI Mermaid courses from Basic through Advanced Mermaid. Learn rescue techniques, teaching methodology, and how to create magical mermaid experiences.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/mermaid-instructor.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 8,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Advanced Mermaid, EFR within 24 months",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical within 12 months",
+      "requiredItems": [
+        "Mermaid equipment",
+        "Instructor materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Master Scuba Diver",
+      "code": "MSD",
+      "levelCode": "advanced",
+      "description": "Achieve the highest non-professional rating in recreational diving with the PADI Master Scuba Diver certification. Fewer than 2% of divers reach this elite level. Requires Rescue Diver certification, 5 specialty certifications, and 50 logged dives.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/master-scuba-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 0,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "PADI Rescue Diver, 5 PADI Specialty certifications, 50 logged dives",
+      "minAge": 12,
+      "medicalRequirements": "Current as PADI diver",
+      "requiredItems": [],
+      "materialsIncluded": false
+    },
+    {
+      "name": "Bubblemaker",
+      "code": "BM",
+      "levelCode": "beginner",
+      "description": "Introduce kids to scuba with the PADI Bubblemaker program. Children experience breathing underwater in a pool or confined water setting with a maximum depth of 2 meters/6 feet. A fun, safe first step toward becoming a certified diver.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/bubblemaker.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 0,
+      "poolHours": 1,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 8,
+      "medicalRequirements": "PADI Medical Statement required (parent signature)",
+      "requiredItems": [
+        "Swimsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Seal Team",
+      "code": "SEAL",
+      "levelCode": "beginner",
+      "description": "The PADI Seal Team program gives kids an exciting introduction to scuba diving through themed AquaMissions. Complete various underwater challenges in a pool setting. Fun activities that build skills and confidence for future diving.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/seal-team.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 2,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 8,
+      "medicalRequirements": "PADI Medical Statement required (parent signature)",
+      "requiredItems": [
+        "Swimsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Surface Marker Buoy Diver",
+      "code": "SMB",
+      "levelCode": "specialty",
+      "description": "Master the proper use of surface marker buoys with the PADI SMB Distinctive Specialty. Learn techniques for deploying SMBs and DSMBs safely, managing lines and reels, and when and why to use surface markers for safety and communication.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/smb-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 1,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "SMB or DSMB",
+        "Reel or spool"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Adaptive Support Diver",
+      "code": "ASD",
+      "levelCode": "specialty",
+      "description": "Learn to assist divers with physical or mental challenges with the PADI Adaptive Support Diver specialty. Gain awareness of various disabilities, communication techniques, and how to provide appropriate support and modifications for inclusive diving.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/adaptive-support-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Rescue Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Delayed Surface Marker Buoy Diver",
+      "code": "DSMB",
+      "levelCode": "specialty",
+      "description": "Learn proper DSMB deployment techniques with this specialty course. Master deployment from depth, line management, and safety protocols for signaling your position to surface support while maintaining neutral buoyancy.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/dsmb.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 1,
+      "openWaterDives": 2,
+      "prerequisites": "PADI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "DSMB",
+        "Finger spool or reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Public Safety Diver",
+      "code": "PSD",
+      "levelCode": "professional",
+      "description": "Train for public safety dive team operations with the PADI Public Safety Diver course. Learn search and recovery techniques, evidence handling, body recovery, and dive team management for emergency response professionals.",
+      "images": [
+        "https://www.padi.com/sites/default/files/courses/images/public-safety-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "PADI Rescue Diver, 100 logged dives, employed by public safety agency",
+      "minAge": 18,
+      "medicalRequirements": "Agency medical clearance required",
+      "requiredItems": [
+        "Full surface supplied diving equipment",
+        "Communications system"
       ],
       "materialsIncluded": true
     }
