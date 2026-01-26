@@ -28,7 +28,7 @@ export default defineConfig(({ isSsrBuild }) => ({
   },
   ssr: {
     noExternal: [],
-    external: ["postgres", "better-auth"],
+    external: ["postgres", "better-auth", "bullmq", "ioredis"],
   },
   resolve: isSsrBuild
     ? {}
@@ -39,6 +39,18 @@ export default defineConfig(({ isSsrBuild }) => ({
         },
       },
   optimizeDeps: {
-    exclude: ["postgres", "better-auth"],
+    exclude: ["postgres", "better-auth", "bullmq", "ioredis"],
+    // Pre-optimize dependencies that Vite lazily discovers during dev/E2E.
+    // Without this, Vite triggers "optimized dependencies changed. reloading"
+    // mid-test, causing page reloads that break E2E assertions.
+    include: [
+      "drizzle-orm",
+      "@ericblade/quagga2",
+      "stripe",
+      "@fullcalendar/core",
+      "@fullcalendar/daygrid",
+      "@fullcalendar/react",
+      "@fullcalendar/timegrid",
+    ],
   },
 }));
