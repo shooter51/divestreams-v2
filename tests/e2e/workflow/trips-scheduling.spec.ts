@@ -172,17 +172,18 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
   test("[KAN-387] A.5 Trips page has Add/Schedule button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
-    const addButton = await page
-      .getByRole("link", { name: /add|create|schedule.*trip|new/i })
-      .isVisible()
-      .catch(() => false);
-    const addButtonAlt = await page
-      .getByRole("button", { name: /add|create|schedule/i })
-      .isVisible()
-      .catch(() => false);
-    expect(addButton || addButtonAlt).toBeTruthy();
+    const addLink = page.getByRole("link", { name: /add|create|schedule.*trip|new/i });
+    const addButton = page.getByRole("button", { name: /add|create|schedule/i });
+    const addLinkVisible = await addLink.isVisible().catch(() => false);
+    const addBtnVisible = await addButton.isVisible().catch(() => false);
+    if (!addLinkVisible && !addBtnVisible) {
+      // Retry with longer wait
+      await page.waitForTimeout(3000);
+      await expect(addLink.or(addButton).first()).toBeVisible({ timeout: 5000 });
+    }
   });
 
   test("[KAN-388] A.6 Calendar shows current month", async ({ page }) => {

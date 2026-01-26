@@ -174,11 +174,21 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     // Submit
     await page.getByRole("button", { name: /create|save|add/i }).click();
     await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle");
 
-    // Extract customer ID
+    // Extract customer ID - navigate to list and wait for full load
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
-    const customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2500);
+    let customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
+
+    // Retry once if not found (race condition mitigation)
+    if (!customerId) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+      customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
+    }
     if (customerId) testData.createdIds.customer = customerId;
 
     expect(testData.createdIds.customer).toBeTruthy();

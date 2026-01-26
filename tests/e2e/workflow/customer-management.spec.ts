@@ -147,16 +147,13 @@ test.describe.serial("Block A: Navigation & List View", () => {
   });
 
   test("[KAN-279] A.3 Customers list has Add button", async ({ page }) => {
-    // SKIPPED: Flaky test - intermittent auth/session failures in CI
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
-    const addButton = await page
-      .getByRole("link", { name: /add|create|new.*customer/i })
-      .isVisible()
-      .catch(() => false);
-    expect(addButton).toBeTruthy();
+    const addLink = page.getByRole("link", { name: /add|create|new.*customer/i });
+    await expect(addLink).toBeVisible({ timeout: 5000 });
   });
 
   test("[KAN-280] A.4 Customers list displays customer names", async ({ page }) => {
