@@ -17,6 +17,7 @@ import {
   bookingReminderEmail,
   passwordResetEmail,
   welcomeEmail,
+  customerWelcomeEmail,
 } from "../email";
 import { cleanupStaleTenants } from "./stale-tenant-cleanup";
 import { startQuickBooksSyncWorker } from "./quickbooks-sync.server";
@@ -83,6 +84,13 @@ interface WelcomeJobData {
   loginUrl: string;
 }
 
+interface CustomerWelcomeJobData {
+  to: string;
+  customerName: string;
+  shopName: string;
+  loginUrl: string;
+}
+
 // Job handlers
 async function processEmailJob(job: { name: string; data: unknown }) {
   console.log(`Processing email job: ${job.name}`, job.data);
@@ -129,6 +137,16 @@ async function processEmailJob(job: { name: string; data: unknown }) {
       const data = job.data as WelcomeJobData;
       const email = welcomeEmail({
         userName: data.userName,
+        shopName: data.shopName,
+        loginUrl: data.loginUrl,
+      });
+      await sendEmail({ to: data.to, ...email });
+      break;
+    }
+    case "customer-welcome": {
+      const data = job.data as CustomerWelcomeJobData;
+      const email = customerWelcomeEmail({
+        customerName: data.customerName,
         shopName: data.shopName,
         loginUrl: data.loginUrl,
       });
