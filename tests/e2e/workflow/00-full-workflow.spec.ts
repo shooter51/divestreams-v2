@@ -519,15 +519,38 @@ test.describe.serial("Plan Setup: Upgrade to Pro", () => {
   test("Upgrade e2etest tenant to pro plan", async () => {
     const sql = postgres(process.env.DATABASE_URL!);
     try {
+      // Ensure subscription_plans table has the pro plan (CI uses db:push which doesn't seed)
+      const existingPlan = await sql`
+        SELECT id FROM subscription_plans WHERE name = 'pro'
+      `;
+      if (existingPlan.length === 0) {
+        await sql`
+          INSERT INTO subscription_plans (id, name, display_name, monthly_price, yearly_price, features, limits, is_active, created_at, updated_at)
+          VALUES (
+            gen_random_uuid(), 'pro', 'Pro', 4900, 47000,
+            '{"has_tours_bookings": true, "has_equipment_boats": true, "has_training": true, "has_pos": true, "has_public_site": true, "has_advanced_notifications": true, "has_integrations": false, "has_api_access": false}'::jsonb,
+            '{"users": 10, "customers": 5000, "toursPerMonth": 100, "storageGb": 25}'::jsonb,
+            true, NOW(), NOW()
+          )
+        `;
+      }
+
+      // Get org and set subscription to pro
       const orgResult = await sql`
         SELECT id FROM organization WHERE slug = 'e2etest'
       `;
       if (orgResult.length > 0) {
         const orgId = orgResult[0].id;
+        // Get the pro plan ID for FK reference
+        const planResult = await sql`
+          SELECT id FROM subscription_plans WHERE name = 'pro' LIMIT 1
+        `;
+        const planId = planResult.length > 0 ? planResult[0].id : null;
+
         await sql`DELETE FROM subscription WHERE organization_id = ${orgId}`;
         await sql`
-          INSERT INTO subscription (organization_id, plan, status, created_at, updated_at)
-          VALUES (${orgId}, 'pro', 'active', NOW(), NOW())
+          INSERT INTO subscription (organization_id, plan, plan_id, status, created_at, updated_at)
+          VALUES (${orgId}, 'pro', ${planId}, 'active', NOW(), NOW())
         `;
       }
     } finally {

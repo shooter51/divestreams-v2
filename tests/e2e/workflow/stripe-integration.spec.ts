@@ -30,11 +30,27 @@ async function loginToTenant(page: any) {
 }
 
 test.describe("Stripe Integration", () => {
-  // Ensure tenant has a starter subscription (required for Stripe access)
+  // Ensure tenant has an enterprise subscription (required for integrations access)
   test.beforeAll(async () => {
     const sql = postgres(process.env.DATABASE_URL!);
 
     try {
+      // Ensure subscription_plans table has the enterprise plan (CI uses db:push which doesn't seed)
+      const existingPlan = await sql`
+        SELECT id FROM subscription_plans WHERE name = 'enterprise'
+      `;
+      if (existingPlan.length === 0) {
+        await sql`
+          INSERT INTO subscription_plans (id, name, display_name, monthly_price, yearly_price, features, limits, is_active, created_at, updated_at)
+          VALUES (
+            gen_random_uuid(), 'enterprise', 'Enterprise', 9900, 95000,
+            '{"has_tours_bookings": true, "has_equipment_boats": true, "has_training": true, "has_pos": true, "has_public_site": true, "has_advanced_notifications": true, "has_integrations": true, "has_api_access": true, "has_stripe": true}'::jsonb,
+            '{"users": -1, "customers": -1, "toursPerMonth": -1, "storageGb": 100}'::jsonb,
+            true, NOW(), NOW()
+          )
+        `;
+      }
+
       // Get organization ID for e2etest tenant
       const orgResult = await sql`
         SELECT id FROM organization WHERE slug = ${testData.tenant.subdomain}
@@ -42,12 +58,17 @@ test.describe("Stripe Integration", () => {
 
       if (orgResult.length > 0) {
         const orgId = orgResult[0].id;
+        // Get the enterprise plan ID for FK reference
+        const planResult = await sql`
+          SELECT id FROM subscription_plans WHERE name = 'enterprise' LIMIT 1
+        `;
+        const planId = planResult.length > 0 ? planResult[0].id : null;
 
-        // Delete any existing subscriptions for this org, then create a starter subscription
+        // Delete any existing subscriptions for this org, then create an enterprise subscription
         await sql`DELETE FROM subscription WHERE organization_id = ${orgId}`;
         await sql`
-          INSERT INTO subscription (organization_id, plan, status, created_at, updated_at)
-          VALUES (${orgId}, 'starter', 'active', NOW(), NOW())
+          INSERT INTO subscription (organization_id, plan, plan_id, status, created_at, updated_at)
+          VALUES (${orgId}, 'enterprise', ${planId}, 'active', NOW(), NOW())
         `;
       }
     } finally {
@@ -66,7 +87,7 @@ test.describe("Stripe Integration", () => {
     await page.waitForLoadState("networkidle");
 
     // Find the Stripe integration card by its unique structure
-    const stripeCard = page.locator('div.bg-white.rounded-xl:has(h3:text-is("Stripe"))').first();
+    const stripeCard = page.locator('div.bg-surface-raised.rounded-xl:has(h3:text-is("Stripe"))').first();
     await expect(stripeCard).toBeVisible();
 
     // Find and click the Connect button within the Stripe card
