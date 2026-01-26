@@ -257,18 +257,20 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-449] B.2 Courses page has Add/Create Course button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
-    const addButton = await page
-      .getByRole("link", { name: /add|create|new/i })
-      .isVisible()
-      .catch(() => false);
-    const addButtonAlt = await page
-      .getByRole("button", { name: /add|create|new/i })
-      .isVisible()
-      .catch(() => false);
-    const plusLink = await page.locator('a[href*="/new"]').isVisible().catch(() => false);
-    expect(addButton || addButtonAlt || plusLink).toBeTruthy();
+    const addLink = page.getByRole("link", { name: /add.*course|create.*course|new.*course/i });
+    const newLink = page.locator('a[href*="/new"]');
+    // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
+    const addVisible = await addLink.isVisible().catch(() => false);
+    const newVisible = await newLink.isVisible().catch(() => false);
+    if (!addVisible && !newVisible) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
+    await expect(addLink.or(newLink).first()).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-450] B.3 Navigate to new course form", async ({ page }) => {

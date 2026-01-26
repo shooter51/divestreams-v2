@@ -94,7 +94,15 @@ test.beforeAll(async ({ browser }) => {
     // Enable public site if not already enabled
     // Note: The checkbox has sr-only class (visually hidden toggle), so use count() not isVisible()
     const enabledCheckbox = page.locator('input[name="enabled"]');
-    const checkboxCount = await enabledCheckbox.count();
+    let checkboxCount = await enabledCheckbox.count();
+
+    // Retry with reload if checkbox not found (Vite dep optimization can cause page reloads in CI)
+    if (checkboxCount === 0) {
+      await page.reload();
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(3000);
+      checkboxCount = await enabledCheckbox.count();
+    }
 
     if (checkboxCount === 0) {
       throw new Error("Public site enabled checkbox not found on settings page");
