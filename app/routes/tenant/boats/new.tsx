@@ -195,7 +195,13 @@ export default function NewBoatPage() {
                   onClick={(e) => {
                     const input = document.getElementById("amenities") as HTMLInputElement;
                     const current = input.value;
-                    if (!current.includes(amenity)) {
+                    const amenitiesArray = current.split(",").map((s) => s.trim()).filter(Boolean);
+
+                    if (amenitiesArray.includes(amenity)) {
+                      // Remove amenity
+                      input.value = amenitiesArray.filter((a) => a !== amenity).join(", ");
+                    } else {
+                      // Add amenity
                       input.value = current ? `${current}, ${amenity}` : amenity;
                     }
                   }}

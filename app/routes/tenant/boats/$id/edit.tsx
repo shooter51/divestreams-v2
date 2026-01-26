@@ -238,7 +238,7 @@ export default function EditBoatPage() {
 
         {/* Amenities */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Amenities</h2>
+          <h2 className="font-semibold mb-4">Amenities & Features</h2>
           <div>
             <label htmlFor="amenities" className="block text-sm font-medium mb-1">
               Amenities
@@ -247,10 +247,52 @@ export default function EditBoatPage() {
               type="text"
               id="amenities"
               name="amenities"
-              placeholder="e.g., Dive platform, Sun deck, Toilet (comma-separated)"
+              placeholder="e.g., Dive platform, Sun deck, Toilet, Shower (comma-separated)"
               defaultValue={actionData?.values?.amenities || boat.amenities?.join(", ")}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
+            <p className="text-xs text-foreground-muted mt-1">
+              Separate multiple amenities with commas
+            </p>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-sm font-medium mb-2">Common amenities:</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Dive platform",
+                "Sun deck",
+                "Toilet",
+                "Freshwater shower",
+                "Camera station",
+                "Storage lockers",
+                "Shade cover",
+                "First aid kit",
+                "Sound system",
+                "BBQ grill",
+              ].map((amenity) => (
+                <button
+                  key={amenity}
+                  type="button"
+                  onClick={(e) => {
+                    const input = document.getElementById("amenities") as HTMLInputElement;
+                    const current = input.value;
+                    const amenitiesArray = current.split(",").map((s) => s.trim()).filter(Boolean);
+
+                    if (amenitiesArray.includes(amenity)) {
+                      // Remove amenity
+                      input.value = amenitiesArray.filter((a) => a !== amenity).join(", ");
+                    } else {
+                      // Add amenity
+                      input.value = current ? `${current}, ${amenity}` : amenity;
+                    }
+                  }}
+                  className="text-xs bg-surface-inset hover:bg-surface-overlay px-2 py-1 rounded"
+                >
+                  + {amenity}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
