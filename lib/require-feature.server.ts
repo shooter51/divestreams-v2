@@ -8,7 +8,7 @@ export function requireFeature(
   feature: PlanFeatureKey
 ): void {
   if (!features[feature]) {
-    throw redirect(`/tenant/dashboard?upgrade=${encodeURIComponent(feature)}`);
+    throw redirect(`/tenant?upgrade=${encodeURIComponent(feature)}`);
   }
 }
 
@@ -22,7 +22,7 @@ export async function requireLimit(
   const limit = limits[limitType];
 
   if (limit !== -1 && current >= limit) {
-    throw redirect(`/tenant/dashboard?limit_exceeded=${encodeURIComponent(limitType)}`);
+    throw redirect(`/tenant?limit_exceeded=${encodeURIComponent(limitType)}`);
   }
 
   return {
