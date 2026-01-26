@@ -348,11 +348,33 @@ describe("tenant/settings/team route", () => {
   describe("action", () => {
     describe("invite intent", () => {
       it("creates invitation for premium users", async () => {
+        // Mock select queries for member/invitation validation checks
+        const mockMemberCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          innerJoin: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]), // No existing member
+        };
+
+        const mockInviteCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]), // No pending invitation
+        };
+
         const mockInsertQuery = {
           insert: vi.fn().mockReturnThis(),
           values: vi.fn().mockResolvedValue([]),
         };
 
+        let selectCallCount = 0;
+        (db.select as Mock).mockImplementation(() => {
+          selectCallCount++;
+          if (selectCallCount === 1) return mockMemberCheckQuery;
+          return mockInviteCheckQuery;
+        });
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
