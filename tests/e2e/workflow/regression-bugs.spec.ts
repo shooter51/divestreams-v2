@@ -98,7 +98,7 @@ async function loginToTenant(page: Page) {
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
-    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     await page.waitForTimeout(2000);
   }
@@ -159,10 +159,20 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
+
+    // Retry with reload if form not loaded (Vite dep optimization can cause page reloads in CI)
+    const firstNameField = page.getByLabel(/first.*name/i);
+    if (!(await firstNameField.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
 
     // Fill customer form
-    await page.getByLabel(/first.*name/i).fill(testData.customer.firstName);
+    await expect(firstNameField).toBeVisible({ timeout: 8000 });
+    await firstNameField.fill(testData.customer.firstName);
     await page.getByLabel(/last.*name/i).fill(testData.customer.lastName);
     await page.getByLabel(/email/i).fill(testData.customer.email);
 
@@ -174,11 +184,21 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     // Submit
     await page.getByRole("button", { name: /create|save|add/i }).click();
     await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle");
 
-    // Extract customer ID
+    // Extract customer ID - navigate to list and wait for full load
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
-    const customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2500);
+    let customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
+
+    // Retry once if not found (race condition mitigation)
+    if (!customerId) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+      customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
+    }
     if (customerId) testData.createdIds.customer = customerId;
 
     expect(testData.createdIds.customer).toBeTruthy();

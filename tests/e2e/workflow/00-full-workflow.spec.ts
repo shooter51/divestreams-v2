@@ -1,4 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import postgres from "postgres";
 
 /**
  * Full E2E Workflow Tests - DiveStreams
@@ -125,7 +126,7 @@ async function loginToTenant(page: Page) {
   // Wait for login completion: either redirect to /tenant or stay on login with error
   // Using URL change detection instead of fixed timeout for reliability
   try {
-    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     // Login may have failed or been slow - continue anyway, isAuthenticated will catch it
     await page.waitForTimeout(2000);
@@ -213,6 +214,8 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await expect(page.getByLabel("Dive Shop Name")).toBeVisible();
     await expect(page.getByLabel("Choose Your URL")).toBeVisible();
     await expect(page.getByLabel("Email Address")).toBeVisible();
+    await expect(page.locator("#password")).toBeVisible();
+    await expect(page.locator("#confirmPassword")).toBeVisible();
   });
 
   test("[KAN-2] 2.3 Create tenant via signup @critical", async ({ page, context }) => {
@@ -220,6 +223,8 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.getByLabel("Dive Shop Name").fill(testData.tenant.shopName);
     await page.getByLabel("Choose Your URL").fill(testData.tenant.subdomain);
     await page.getByLabel("Email Address").fill(testData.tenant.email);
+    await page.locator("#password").fill(testData.user.password);
+    await page.locator("#confirmPassword").fill(testData.user.password);
     await page.getByRole("button", { name: "Start Free Trial" }).click();
     await page.waitForTimeout(3000);
     const alreadyTaken = await page.locator("text=already taken").isVisible().catch(() => false);
@@ -239,6 +244,8 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.getByLabel("Dive Shop Name").fill("Test");
     await page.getByLabel("Choose Your URL").fill("invalid subdomain!");
     await page.getByLabel("Email Address").fill("test@test.com");
+    await page.locator("#password").fill("TestPass123!");
+    await page.locator("#confirmPassword").fill("TestPass123!");
     await page.getByRole("button", { name: "Start Free Trial" }).click();
     await page.waitForTimeout(1000);
     expect(page.url().includes("/signup")).toBeTruthy();
@@ -249,6 +256,8 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.getByLabel("Dive Shop Name").fill("Test Shop");
     await page.getByLabel("Choose Your URL").fill("validtest");
     await page.getByLabel("Email Address").fill("invalid-email");
+    await page.locator("#password").fill("TestPass123!");
+    await page.locator("#confirmPassword").fill("TestPass123!");
     await page.getByRole("button", { name: "Start Free Trial" }).click();
     await page.waitForTimeout(1000);
     expect(page.url().includes("/signup")).toBeTruthy();
@@ -503,6 +512,54 @@ test.describe.serial("Block C: Tenant Routes Existence", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// PLAN UPGRADE: Set tenant to Pro plan so all features are available
+// ═══════════════════════════════════════════════════════════════════════════════
+
+test.describe.serial("Plan Setup: Upgrade to Pro", () => {
+  test("Upgrade e2etest tenant to pro plan", async () => {
+    const sql = postgres(process.env.DATABASE_URL!);
+    try {
+      // Ensure subscription_plans table has the pro plan (CI uses db:push which doesn't seed)
+      const existingPlan = await sql`
+        SELECT id FROM subscription_plans WHERE name = 'pro'
+      `;
+      if (existingPlan.length === 0) {
+        await sql`
+          INSERT INTO subscription_plans (id, name, display_name, monthly_price, yearly_price, features, limits, is_active, created_at, updated_at)
+          VALUES (
+            gen_random_uuid(), 'pro', 'Pro', 4900, 47000,
+            '{"has_tours_bookings": true, "has_equipment_boats": true, "has_training": true, "has_pos": true, "has_public_site": true, "has_advanced_notifications": true, "has_integrations": false, "has_api_access": false}'::jsonb,
+            '{"users": 10, "customers": 5000, "toursPerMonth": 100, "storageGb": 25}'::jsonb,
+            true, NOW(), NOW()
+          )
+        `;
+      }
+
+      // Get org and set subscription to pro
+      const orgResult = await sql`
+        SELECT id FROM organization WHERE slug = 'e2etest'
+      `;
+      if (orgResult.length > 0) {
+        const orgId = orgResult[0].id;
+        // Get the pro plan ID for FK reference
+        const planResult = await sql`
+          SELECT id FROM subscription_plans WHERE name = 'pro' LIMIT 1
+        `;
+        const planId = planResult.length > 0 ? planResult[0].id : null;
+
+        await sql`DELETE FROM subscription WHERE organization_id = ${orgId}`;
+        await sql`
+          INSERT INTO subscription (organization_id, plan, plan_id, status, created_at, updated_at)
+          VALUES (${orgId}, 'pro', ${planId}, 'active', NOW(), NOW())
+        `;
+      }
+    } finally {
+      await sql.end();
+    }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // BLOCK D: Independent CRUD (Phases 6-10, 13) - ~80 tests
 // Requires auth, creates entities needed by Block E
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -521,10 +578,17 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-85] 6.2 Boats page has Add Boat button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
     if (!await isAuthenticated(page)) return;
-    const addButton = await page.getByRole("link", { name: /add boat/i }).isVisible().catch(() => false);
-    expect(addButton).toBeTruthy();
+    const addLink = page.getByRole("link", { name: /add boat/i });
+    // Retry with reload if not found (Vite dep optimization can cause page reloads)
+    if (!(await addLink.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
+    await expect(addLink).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-86] 6.3 Navigate to new boat form", async ({ page }) => {
@@ -1443,10 +1507,17 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-164] 11.2 Trips page has Schedule Trip button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
     if (!await isAuthenticated(page)) return;
-    const scheduleButton = await page.getByRole("link", { name: /schedule trip/i }).isVisible().catch(() => false);
-    expect(scheduleButton).toBeTruthy();
+    const scheduleLink = page.getByRole("link", { name: /schedule trip/i });
+    // Retry with reload if not found (Vite dep optimization can cause page reloads)
+    if (!(await scheduleLink.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
+    await expect(scheduleLink).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-165] 11.3 Navigate to new trip form", async ({ page }) => {

@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { db } from "../../../lib/db";
 import { agencyCourseTemplates, certificationAgencies } from "../../../lib/db/schema/training";
 import { organization } from "../../../lib/db/schema/auth";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 const execAsync = promisify(exec);
 
@@ -60,9 +60,9 @@ describe("seed-agency-templates script", () => {
   });
 
   afterEach(async () => {
-    // Cleanup
+    // Cleanup seeded templates (seed script uses agencyCode, not agencyId FK)
+    await db.delete(agencyCourseTemplates).where(eq(agencyCourseTemplates.agencyCode, "padi"));
     if (testAgencyId) {
-      await db.delete(agencyCourseTemplates).where(eq(agencyCourseTemplates.agencyId, testAgencyId));
       await db.delete(certificationAgencies).where(eq(certificationAgencies.id, testAgencyId));
     }
   });
@@ -71,11 +71,11 @@ describe("seed-agency-templates script", () => {
     // Run the seed script
     await execAsync("npx tsx scripts/seed-agency-templates.ts");
 
-    // Verify templates were created
+    // Verify templates were created (seed script uses agencyCode, not agencyId FK)
     const templates = await db
       .select()
       .from(agencyCourseTemplates)
-      .where(eq(agencyCourseTemplates.agencyId, testAgencyId));
+      .where(eq(agencyCourseTemplates.agencyCode, "padi"));
 
     expect(templates.length).toBeGreaterThan(0);
 

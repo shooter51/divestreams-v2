@@ -3,6 +3,10 @@ import { redirect, useActionData, useNavigation } from "react-router";
 import { createTenant, isSubdomainAvailable } from "../../../lib/db/tenant.server";
 import { triggerWelcomeEmail } from "../../../lib/email/triggers";
 import { getTenantUrl } from "../../../lib/utils/url";
+import { hashPassword } from "../../../lib/auth/password.server";
+import { db } from "../../../lib/db";
+import { user, account, member, organization } from "../../../lib/db/schema/auth";
+import { eq } from "drizzle-orm";
 
 export const meta: MetaFunction = () => {
   return [
@@ -18,6 +22,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const subdomain = formData.get("subdomain") as string;
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
+  const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
 
   const errors: Record<string, string> = {};
 
@@ -47,6 +53,22 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!email || !email.includes("@")) {
     errors.email = "Valid email is required";
+  } else {
+    // Check for existing user with this email
+    const [existingUser] = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.email, email))
+      .limit(1);
+    if (existingUser) {
+      errors.email = "An account with this email already exists";
+    }
+  }
+
+  if (!password || password.length < 8) {
+    errors.password = "Password must be at least 8 characters";
+  } else if (password !== confirmPassword) {
+    errors.confirmPassword = "Passwords do not match";
   }
 
   if (Object.keys(errors).length > 0) {
@@ -59,6 +81,51 @@ export async function action({ request }: ActionFunctionArgs) {
       name: shopName,
       email,
       phone: phone || undefined,
+    });
+
+    // Look up the organization created by createTenant
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.slug, subdomain.toLowerCase()))
+      .limit(1);
+
+    if (!org) {
+      throw new Error("Organization not found after tenant creation");
+    }
+
+    // Create user, credential account, and org membership atomically
+    const userId = crypto.randomUUID();
+    const hashedPassword = await hashPassword(password);
+
+    await db.transaction(async (tx) => {
+      await tx.insert(user).values({
+        id: userId,
+        email,
+        emailVerified: false,
+        name: shopName,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await tx.insert(account).values({
+        id: crypto.randomUUID(),
+        userId,
+        accountId: userId,
+        providerId: "credential",
+        password: hashedPassword,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await tx.insert(member).values({
+        id: crypto.randomUUID(),
+        userId,
+        organizationId: org.id,
+        role: "owner",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
     });
 
     // Queue welcome email
@@ -74,9 +141,10 @@ export async function action({ request }: ActionFunctionArgs) {
       console.error("Failed to queue welcome email:", emailError);
     }
 
-    // Redirect to the new tenant's onboarding
-    return redirect(getTenantUrl(tenant.subdomain, "/tenant"));
+    // Redirect to the new tenant's login page so user can sign in
+    return redirect(getTenantUrl(tenant.subdomain, "/auth/login"));
   } catch (error) {
+    console.error("Failed to create account:", error);
     return {
       errors: { form: "Failed to create account. Please try again." },
       values: { shopName, subdomain, email, phone },
@@ -194,6 +262,44 @@ export default function SignupPage() {
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="+1 (555) 123-4567"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  autoComplete="new-password"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
+                  placeholder="Min 8 characters"
+                  minLength={8}
+                  required
+                />
+                {actionData?.errors?.password && (
+                  <p className="text-danger text-sm mt-1">{actionData.errors.password}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  autoComplete="new-password"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
+                  placeholder="Re-enter your password"
+                  minLength={8}
+                  required
+                />
+                {actionData?.errors?.confirmPassword && (
+                  <p className="text-danger text-sm mt-1">{actionData.errors.confirmPassword}</p>
+                )}
               </div>
             </div>
 

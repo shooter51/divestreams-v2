@@ -71,7 +71,7 @@ test.beforeAll(async ({ browser }) => {
 
     // Wait for login to complete with proper error handling
     try {
-      await page.waitForURL(/\/(app|dashboard)/, { timeout: 15000 });
+      await page.waitForURL(/\/tenant/, { timeout: 15000 });
     } catch (error) {
       // Check if we got an error message
       const errorMessage = await page.locator("[class*='bg-red'], [class*='text-red'], [class*='error']").textContent().catch(() => "");
@@ -92,10 +92,19 @@ test.beforeAll(async ({ browser }) => {
     }
 
     // Enable public site if not already enabled
+    // Note: The checkbox has sr-only class (visually hidden toggle), so use count() not isVisible()
     const enabledCheckbox = page.locator('input[name="enabled"]');
-    const isCheckboxVisible = await enabledCheckbox.isVisible({ timeout: 5000 }).catch(() => false);
+    let checkboxCount = await enabledCheckbox.count();
 
-    if (!isCheckboxVisible) {
+    // Retry with reload if checkbox not found (Vite dep optimization can cause page reloads in CI)
+    if (checkboxCount === 0) {
+      await page.reload();
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(3000);
+      checkboxCount = await enabledCheckbox.count();
+    }
+
+    if (checkboxCount === 0) {
       throw new Error("Public site enabled checkbox not found on settings page");
     }
 
@@ -210,7 +219,7 @@ async function loginToTenant(page: Page) {
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
-    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     await page.waitForTimeout(2000);
   }

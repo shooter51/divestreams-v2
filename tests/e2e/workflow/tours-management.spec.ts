@@ -69,7 +69,7 @@ async function loginToTenant(page: Page) {
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
-    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     await page.waitForTimeout(2000);
   }
@@ -152,17 +152,17 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-325] A.3 Tours list has Add/Create button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
-    const addButton = await page
-      .getByRole("link", { name: /add|create|new.*tour/i })
-      .isVisible()
-      .catch(() => false);
-    const addButtonAlt = await page
-      .getByRole("button", { name: /add|create|new/i })
-      .isVisible()
-      .catch(() => false);
-    expect(addButton || addButtonAlt).toBeTruthy();
+    const addLink = page.getByRole("link", { name: /add.*tour|create.*tour|new.*tour/i });
+    // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
+    if (!(await addLink.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
+    await expect(addLink).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-326] A.4 Tours list displays tour names", async ({ page }) => {

@@ -67,7 +67,7 @@ async function loginToTenant(page: Page) {
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
-    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     await page.waitForTimeout(2000);
   }
@@ -147,16 +147,19 @@ test.describe.serial("Block A: Navigation & List View", () => {
   });
 
   test("[KAN-279] A.3 Customers list has Add button", async ({ page }) => {
-    // SKIPPED: Flaky test - intermittent auth/session failures in CI
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
-    const addButton = await page
-      .getByRole("link", { name: /add|create|new.*customer/i })
-      .isVisible()
-      .catch(() => false);
-    expect(addButton).toBeTruthy();
+    const addLink = page.getByRole("link", { name: /add.*customer|create.*customer|new.*customer/i });
+    // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
+    if (!(await addLink.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
+    await expect(addLink).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-280] A.4 Customers list displays customer names", async ({ page }) => {

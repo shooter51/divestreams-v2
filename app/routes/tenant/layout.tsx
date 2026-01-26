@@ -35,12 +35,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const limits: PlanLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
   const planName = ctx.subscription?.planDetails?.displayName ?? "Free";
 
+  // Compute baseDomain on the server – getBaseDomain() accesses process.env
+  // which is unavailable in the browser and would crash client-side hydration.
+  const baseDomain = getBaseDomain();
+
   return {
     tenant: {
       name: ctx.org.name,
       subdomain: ctx.org.slug,
       subscriptionStatus,
       trialDaysLeft,
+      baseDomain,
     },
     features,
     limits,
@@ -98,7 +103,7 @@ export default function TenantLayout() {
           <aside className="w-64 bg-surface h-screen border-r border-border fixed flex flex-col">
             <div className="p-4 border-b border-border flex-shrink-0">
               <h1 className="text-xl font-bold text-brand">{tenant.name}</h1>
-              <p className="text-sm text-foreground-muted">{tenant.subdomain}.{getBaseDomain()}</p>
+              <p className="text-sm text-foreground-muted">{tenant.subdomain}.{tenant.baseDomain}</p>
             </div>
 
             <nav className="p-4 flex-1 overflow-y-auto">
@@ -153,14 +158,23 @@ export default function TenantLayout() {
             <div className="p-4 border-t border-border bg-surface flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-surface-overlay rounded-full flex items-center justify-center">
-                  👤
+                  <svg className="w-4 h-4 text-foreground-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">Staff User</p>
                   <p className="text-xs text-foreground-muted">Manager</p>
                 </div>
-                <Link to="/auth/logout" className="text-foreground-subtle hover:text-foreground-muted">
-                  ↪️
+                <Link
+                  to="/auth/logout"
+                  className="flex items-center gap-1.5 text-sm text-foreground-subtle hover:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded transition-colors"
+                  title="Sign out"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span>Sign Out</span>
                 </Link>
               </div>
             </div>
