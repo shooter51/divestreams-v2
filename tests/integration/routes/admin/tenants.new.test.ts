@@ -433,6 +433,14 @@ describe("admin/tenants.new route", () => {
           limit: vi.fn().mockResolvedValue([]),
         };
 
+        // Mock for name check - no existing org with same name
+        const mockNameCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
         // Mock for user check - no existing user
         const mockUserCheckQuery = {
           select: vi.fn().mockReturnThis(),
@@ -450,6 +458,7 @@ describe("admin/tenants.new route", () => {
         (db.select as Mock).mockImplementation(() => {
           selectCallCount++;
           if (selectCallCount === 1) return mockSlugCheckQuery;
+          if (selectCallCount === 2) return mockNameCheckQuery;
           return mockUserCheckQuery;
         });
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
@@ -484,6 +493,14 @@ describe("admin/tenants.new route", () => {
         };
 
         // Mock for user check - existing user found
+        // Mock for name check - no existing org with same name
+        const mockNameCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        };
+
         const mockUserCheckQuery = {
           select: vi.fn().mockReturnThis(),
           from: vi.fn().mockReturnThis(),
@@ -500,6 +517,7 @@ describe("admin/tenants.new route", () => {
         (db.select as Mock).mockImplementation(() => {
           selectCallCount++;
           if (selectCallCount === 1) return mockSlugCheckQuery;
+          if (selectCallCount === 2) return mockNameCheckQuery;
           return mockUserCheckQuery;
         });
         (db.insert as Mock).mockReturnValue(mockInsertQuery);

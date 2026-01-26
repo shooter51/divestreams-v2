@@ -1,7 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, Link, redirect, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
-import { getSessionById, createEnrollment, getCustomers } from "../../../../../lib/db/training.server";
+import { getSessionById, createEnrollment } from "../../../../../lib/db/training.server";
+import { getCustomers } from "../../../../../lib/db/queries.server";
 
 export const meta: MetaFunction = () => [{ title: "New Enrollment - DiveStreams" }];
 

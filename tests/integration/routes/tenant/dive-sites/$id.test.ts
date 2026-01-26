@@ -294,7 +294,9 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
       const result = await action({ request, params: { id: mockSiteId }, context: {} });
 
       expect(queries.deleteDiveSite).toHaveBeenCalledWith(mockOrganizationId, mockSiteId);
-      expect(result).toEqual({ deleted: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect((result as Response).headers.get("Location")).toBe("/tenant/dive-sites");
     });
 
     it("should return null for unknown intent", async () => {
