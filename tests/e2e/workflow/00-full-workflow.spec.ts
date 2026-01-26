@@ -1,4 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import postgres from "postgres";
 
 /**
  * Full E2E Workflow Tests - DiveStreams
@@ -125,7 +126,7 @@ async function loginToTenant(page: Page) {
   // Wait for login completion: either redirect to /tenant or stay on login with error
   // Using URL change detection instead of fixed timeout for reliability
   try {
-    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     // Login may have failed or been slow - continue anyway, isAuthenticated will catch it
     await page.waitForTimeout(2000);
@@ -507,6 +508,31 @@ test.describe.serial("Block C: Tenant Routes Existence", () => {
     await page.goto(getTenantUrl("/tenant/reports"));
     await page.waitForTimeout(1000);
     expect(page.url().includes("/reports") || page.url().includes("/login")).toBeTruthy();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PLAN UPGRADE: Set tenant to Pro plan so all features are available
+// ═══════════════════════════════════════════════════════════════════════════════
+
+test.describe.serial("Plan Setup: Upgrade to Pro", () => {
+  test("Upgrade e2etest tenant to pro plan", async () => {
+    const sql = postgres(process.env.DATABASE_URL!);
+    try {
+      const orgResult = await sql`
+        SELECT id FROM organization WHERE slug = 'e2etest'
+      `;
+      if (orgResult.length > 0) {
+        const orgId = orgResult[0].id;
+        await sql`DELETE FROM subscription WHERE organization_id = ${orgId}`;
+        await sql`
+          INSERT INTO subscription (organization_id, plan, status, created_at, updated_at)
+          VALUES (${orgId}, 'pro', 'active', NOW(), NOW())
+        `;
+      }
+    } finally {
+      await sql.end();
+    }
   });
 });
 

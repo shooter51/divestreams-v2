@@ -71,7 +71,7 @@ test.beforeAll(async ({ browser }) => {
 
     // Wait for login to complete with proper error handling
     try {
-      await page.waitForURL(/\/(app|dashboard)/, { timeout: 15000 });
+      await page.waitForURL(/\/tenant/, { timeout: 15000 });
     } catch (error) {
       // Check if we got an error message
       const errorMessage = await page.locator("[class*='bg-red'], [class*='text-red'], [class*='error']").textContent().catch(() => "");
@@ -210,7 +210,7 @@ async function loginToTenant(page: Page) {
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
-    await page.waitForURL(/\/(app|dashboard)/, { timeout: 10000 });
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     await page.waitForTimeout(2000);
   }
