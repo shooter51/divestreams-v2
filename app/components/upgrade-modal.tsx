@@ -53,11 +53,11 @@ export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps)
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+      <div className="relative bg-surface-raised rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+          className="absolute top-4 right-4 text-foreground-subtle hover:text-foreground-muted"
           aria-label="Close"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,9 +67,9 @@ export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps)
 
         <div className="text-center">
           {/* Lock icon */}
-          <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-surface-inset flex items-center justify-center mb-4">
             <svg
-              className="w-6 h-6 text-gray-400"
+              className="w-6 h-6 text-foreground-subtle"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -84,22 +84,22 @@ export function UpgradeModal({ feature, limitType, onClose }: UpgradeModalProps)
             </svg>
           </div>
 
-          <h2 id="upgrade-modal-title" className="text-xl font-semibold text-gray-900">{title}</h2>
-          <p className="mt-2 text-gray-600">{description}</p>
-          <p className="mt-4 text-sm font-medium text-gray-900">
+          <h2 id="upgrade-modal-title" className="text-xl font-semibold text-foreground">{title}</h2>
+          <p className="mt-2 text-foreground-muted">{description}</p>
+          <p className="mt-4 text-sm font-medium text-foreground">
             Upgrade to {requiredPlan} to unlock this feature
           </p>
 
           <div className="mt-6 flex gap-3 justify-center">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              className="px-4 py-2 text-sm font-medium text-foreground bg-surface-inset rounded-lg hover:bg-surface-overlay"
             >
               Maybe Later
             </button>
             <Link
               to="/tenant/settings/billing"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 text-sm font-medium text-white bg-brand rounded-lg hover:bg-brand-hover"
             >
               View Plans
             </Link>

@@ -115,11 +115,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  open: "bg-blue-100 text-blue-700",
-  confirmed: "bg-green-100 text-green-700",
-  full: "bg-purple-100 text-purple-700",
-  completed: "bg-gray-100 text-gray-600",
-  cancelled: "bg-red-100 text-red-700",
+  open: "bg-brand-muted text-brand",
+  confirmed: "bg-success-muted text-success",
+  full: "bg-info-muted text-info",
+  completed: "bg-surface-inset text-foreground-muted",
+  cancelled: "bg-danger-muted text-danger",
 };
 
 export default function TripsPage() {
@@ -137,11 +137,11 @@ export default function TripsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Scheduled Trips</h1>
-          <p className="text-gray-500">{total} trips</p>
+          <p className="text-foreground-muted">{total} trips</p>
         </div>
         <Link
           to="/tenant/trips/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
           Schedule Trip
         </Link>
@@ -152,7 +152,7 @@ export default function TripsPage() {
         <button
           onClick={() => setView("upcoming")}
           className={`px-4 py-2 rounded-lg ${
-            view === "upcoming" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
+            view === "upcoming" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
           }`}
         >
           Upcoming
@@ -160,7 +160,7 @@ export default function TripsPage() {
         <button
           onClick={() => setView("past")}
           className={`px-4 py-2 rounded-lg ${
-            view === "past" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
+            view === "past" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
           }`}
         >
           Past
@@ -168,7 +168,7 @@ export default function TripsPage() {
         <button
           onClick={() => setView("all")}
           className={`px-4 py-2 rounded-lg ${
-            view === "all" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
+            view === "all" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
           }`}
         >
           All
@@ -177,8 +177,8 @@ export default function TripsPage() {
 
       {/* Trips List */}
       {trips.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm text-center">
-          <p className="text-gray-500">
+        <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
+          <p className="text-foreground-muted">
             {view === "upcoming"
               ? "No upcoming trips scheduled."
               : view === "past"
@@ -187,7 +187,7 @@ export default function TripsPage() {
           </p>
           <Link
             to="/tenant/trips/new"
-            className="inline-block mt-4 text-blue-600 hover:underline"
+            className="inline-block mt-4 text-brand hover:underline"
           >
             Schedule your first trip
           </Link>
@@ -198,7 +198,7 @@ export default function TripsPage() {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([date, dateTrips]) => (
               <div key={date}>
-                <h3 className="font-semibold text-gray-700 mb-3">
+                <h3 className="font-semibold text-foreground mb-3">
                   {new Date(date + "T00:00:00").toLocaleDateString("en-US", {
                     weekday: "long",
                     year: "numeric",
@@ -211,19 +211,19 @@ export default function TripsPage() {
                     <Link
                       key={trip.id}
                       to={`/tenant/trips/${trip.id}`}
-                      className="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                      className="flex items-center justify-between bg-surface-raised rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-4">
                         <div className="text-center">
                           <p className="text-lg font-bold">{trip.startTime}</p>
-                          <p className="text-xs text-gray-500">{trip.endTime}</p>
+                          <p className="text-xs text-foreground-muted">{trip.endTime}</p>
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-semibold">{trip.tour.name}</p>
                             {trip.isRecurring && (
                               <span
-                                className="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700"
+                                className="text-xs px-2 py-0.5 rounded bg-info-muted text-info"
                                 title={`Recurring ${trip.recurrencePattern || ""} trip${trip.isTemplate ? " (template)" : ""}`}
                               >
                                 <svg className="w-3 h-3 inline mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,7 +233,7 @@ export default function TripsPage() {
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-foreground-muted">
                             {trip.boat.name}
                             {trip.staff.length > 0 && (
                               <> • {trip.staff.map((s: { name: string }) => s.name).join(", ")}</>
@@ -246,11 +246,11 @@ export default function TripsPage() {
                           <p className="font-medium">
                             {trip.bookedParticipants}/{trip.maxParticipants} booked
                           </p>
-                          <p className="text-sm text-gray-500">${trip.revenue}</p>
+                          <p className="text-sm text-foreground-muted">${trip.revenue}</p>
                         </div>
                         <span
                           className={`text-xs px-3 py-1 rounded-full ${
-                            statusColors[trip.status] || "bg-gray-100 text-gray-700"
+                            statusColors[trip.status] || "bg-surface-inset text-foreground"
                           }`}
                         >
                           {trip.status}

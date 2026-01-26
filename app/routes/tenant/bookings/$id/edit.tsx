@@ -79,39 +79,39 @@ export default function EditBookingPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/tenant/bookings/${booking.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/bookings/${booking.id}`} className="text-brand hover:underline text-sm">
           ← Back to Booking
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Booking</h1>
-        <p className="text-gray-500">{booking.bookingNumber}</p>
+        <p className="text-foreground-muted">{booking.bookingNumber}</p>
       </div>
 
       <form method="post" className="space-y-6">
         {/* Booking Info (Read-only) */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Booking Details</h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Customer</span>
-              <Link to={`/tenant/customers/${booking.customerId}`} className="text-blue-600 hover:underline">
+              <span className="text-foreground-muted">Customer</span>
+              <Link to={`/tenant/customers/${booking.customerId}`} className="text-brand hover:underline">
                 {booking.customerName}
               </Link>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Trip</span>
-              <Link to={`/tenant/trips/${booking.tripId}`} className="text-blue-600 hover:underline">
+              <span className="text-foreground-muted">Trip</span>
+              <Link to={`/tenant/trips/${booking.tripId}`} className="text-brand hover:underline">
                 {booking.tripName}
               </Link>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Total Amount</span>
+              <span className="text-foreground-muted">Total Amount</span>
               <span className="font-medium">${booking.totalAmount}</span>
             </div>
           </div>
         </div>
 
         {/* Editable Fields */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Update Booking</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -127,7 +127,7 @@ export default function EditBookingPage() {
                   min="1"
                   max="20"
                   defaultValue={booking.participants}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -140,7 +140,7 @@ export default function EditBookingPage() {
                   name="status"
                   required
                   defaultValue={booking.status}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="pending">Pending</option>
                   <option value="confirmed">Confirmed</option>
@@ -161,7 +161,7 @@ export default function EditBookingPage() {
                 rows={3}
                 placeholder="Any special requirements or requests from the customer..."
                 defaultValue={booking.specialRequests}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -175,7 +175,7 @@ export default function EditBookingPage() {
                 rows={3}
                 placeholder="Notes visible only to staff..."
                 defaultValue={booking.internalNotes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -186,13 +186,13 @@ export default function EditBookingPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
             to={`/tenant/bookings/${booking.id}`}
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

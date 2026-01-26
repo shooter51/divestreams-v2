@@ -1226,8 +1226,8 @@ export default function IntegrationsPage() {
         <div
           className={`mb-4 p-4 rounded-lg flex items-center justify-between ${
             notification.type === "success"
-              ? "bg-green-50 text-green-800 border border-green-200"
-              : "bg-red-50 text-red-800 border border-red-200"
+              ? "bg-success-muted text-success border border-success"
+              : "bg-danger-muted text-danger border border-danger"
           }`}
         >
           <span>{notification.message}</span>
@@ -1241,11 +1241,11 @@ export default function IntegrationsPage() {
       )}
 
       <div className="mb-6">
-        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Integrations</h1>
-        <p className="text-gray-500">Connect third-party services to enhance DiveStreams</p>
+        <p className="text-foreground-muted">Connect third-party services to enhance DiveStreams</p>
       </div>
 
       {/* Connected Integrations */}
@@ -1261,22 +1261,22 @@ export default function IntegrationsPage() {
               return (
                 <div
                   key={connection.id}
-                  className="bg-white rounded-xl p-6 shadow-sm border-l-4 border-green-500"
+                  className="bg-surface-raised rounded-xl p-6 shadow-sm border-l-4 border-success"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 text-gray-600">
+                      <div className="w-8 h-8 text-foreground-muted">
                         {IconComponent && <IconComponent className="w-8 h-8" />}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">{integration.name}</h3>
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                          <span className="text-xs bg-success-muted text-success px-2 py-0.5 rounded-full">
                             Connected
                           </span>
                         </div>
-                        <p className="text-sm text-gray-500">{integration.description}</p>
-                        <div className="mt-2 text-xs text-gray-400">
+                        <p className="text-sm text-foreground-muted">{integration.description}</p>
+                        <div className="mt-2 text-xs text-foreground-subtle">
                           <span>Account: {connection.accountName}</span>
                           <span className="mx-2">-</span>
                           <span>Last sync: {connection.lastSync}</span>
@@ -1292,7 +1292,7 @@ export default function IntegrationsPage() {
                           <button
                             type="submit"
                             disabled={fetcher.state !== "idle"}
-                            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset disabled:opacity-50"
                           >
                             {fetcher.state !== "idle" ? "Syncing..." : "Sync Now"}
                           </button>
@@ -1303,7 +1303,7 @@ export default function IntegrationsPage() {
                         <button
                           type="button"
                           onClick={() => setShowTestSmsModal(true)}
-                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50"
+                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset"
                         >
                           Send Test SMS
                         </button>
@@ -1313,7 +1313,7 @@ export default function IntegrationsPage() {
                         <button
                           type="button"
                           onClick={() => setShowTestWhatsAppModal(true)}
-                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50"
+                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset"
                         >
                           Send Test Message
                         </button>
@@ -1324,7 +1324,7 @@ export default function IntegrationsPage() {
                           <input type="hidden" name="intent" value="configureXero" />
                           <button
                             type="submit"
-                            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50"
+                            className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset"
                           >
                             Configure
                           </button>
@@ -1334,7 +1334,7 @@ export default function IntegrationsPage() {
                       {connection.id === "quickbooks" && (
                         <Link
                           to="/tenant/settings/integrations/quickbooks"
-                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 inline-block"
+                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset inline-block"
                         >
                           Manage Settings
                         </Link>
@@ -1344,7 +1344,7 @@ export default function IntegrationsPage() {
                         <button
                           type="button"
                           onClick={() => setShowStripeSettingsModal(true)}
-                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50"
+                          className="px-3 py-1.5 text-sm border rounded-lg hover:bg-surface-inset"
                         >
                           View Settings
                         </button>
@@ -1365,7 +1365,7 @@ export default function IntegrationsPage() {
                         <input type="hidden" name="integrationId" value={connection.id} />
                         <button
                           type="submit"
-                          className="px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                          className="px-3 py-1.5 text-sm text-danger border border-danger rounded-lg hover:bg-danger-muted"
                         >
                           Disconnect
                         </button>
@@ -1400,26 +1400,26 @@ export default function IntegrationsPage() {
                 return (
                   <div
                     key={integration.id}
-                    className={`bg-white rounded-xl p-6 shadow-sm ${
+                    className={`bg-surface-raised rounded-xl p-6 shadow-sm ${
                       !available ? "opacity-60" : ""
                     }`}
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 text-gray-600">
+                        <div className="w-6 h-6 text-foreground-muted">
                           {IconComponent && <IconComponent className="w-6 h-6" />}
                         </div>
                         <div>
                           <h3 className="font-semibold">{integration.name}</h3>
-                          <p className="text-sm text-gray-500">{integration.description}</p>
+                          <p className="text-sm text-foreground-muted">{integration.description}</p>
                         </div>
                       </div>
                     </div>
 
                     <ul className="space-y-1 mb-4">
                       {integration.features.map((feature) => (
-                        <li key={feature} className="text-xs text-gray-500 flex items-center gap-1">
-                          <Icons.Check className="w-3 h-3 text-green-500" />
+                        <li key={feature} className="text-xs text-foreground-muted flex items-center gap-1">
+                          <Icons.Check className="w-3 h-3 text-success" />
                           {feature}
                         </li>
                       ))}
@@ -1431,14 +1431,14 @@ export default function IntegrationsPage() {
                         <input type="hidden" name="integrationId" value={integration.id} />
                         <button
                           type="submit"
-                          className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                          className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
                         >
                           Connect
                         </button>
                       </fetcher.Form>
                     ) : (
                       <div className="text-center">
-                        <p className="text-xs text-gray-500 mb-2">
+                        <p className="text-xs text-foreground-muted mb-2">
                           {requiredPlanName
                             ? `Requires ${requiredPlanName} plan`
                             : "Not available on your plan"
@@ -1446,7 +1446,7 @@ export default function IntegrationsPage() {
                         </p>
                         <Link
                           to="/tenant/settings/billing"
-                          className="text-sm text-blue-600 hover:underline"
+                          className="text-sm text-brand hover:underline"
                         >
                           Upgrade to unlock
                         </Link>
@@ -1465,17 +1465,17 @@ export default function IntegrationsPage() {
       {/* Twilio Configuration Modal */}
       {showTwilioModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Connect Twilio SMS</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Enter your Twilio credentials to enable SMS notifications
                 </p>
               </div>
               <button
                 onClick={() => setShowTwilioModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -1486,7 +1486,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Account SID <span className="text-red-500">*</span>
+                  Account SID <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -1497,14 +1497,14 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   Find this in your Twilio Console Dashboard
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Auth Token <span className="text-red-500">*</span>
+                  Auth Token <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
@@ -1515,14 +1515,14 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   This will be encrypted and stored securely
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Phone Number <span className="text-red-500">*</span>
+                  Phone Number <span className="text-danger">*</span>
                 </label>
                 <input
                   type="tel"
@@ -1533,7 +1533,7 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   Your Twilio phone number in E.164 format
                 </p>
               </div>
@@ -1550,13 +1550,13 @@ export default function IntegrationsPage() {
                   placeholder="MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                   className="w-full border rounded-lg p-2 text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   If using a Messaging Service instead of a phone number
                 </p>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800">
+              <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                <p className="text-sm text-brand">
                   <strong>Note:</strong> Get your credentials from the{" "}
                   <a
                     href="https://console.twilio.com/"
@@ -1573,14 +1573,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowTwilioModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Connecting..." : "Connect Twilio"}
                 </button>
@@ -1593,17 +1593,17 @@ export default function IntegrationsPage() {
       {/* Test SMS Modal */}
       {showTestSmsModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Send Test SMS</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Send a test message to verify your Twilio integration
                 </p>
               </div>
               <button
                 onClick={() => setShowTestSmsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -1614,7 +1614,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Phone Number <span className="text-red-500">*</span>
+                  Phone Number <span className="text-danger">*</span>
                 </label>
                 <input
                   type="tel"
@@ -1625,7 +1625,7 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   Phone number to send test message to
                 </p>
               </div>
@@ -1634,14 +1634,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowTestSmsModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Sending..." : "Send Test"}
                 </button>
@@ -1654,17 +1654,17 @@ export default function IntegrationsPage() {
       {/* Stripe Configuration Modal */}
       {showStripeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Connect Stripe</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Enter your Stripe API keys to enable payment processing
                 </p>
               </div>
               <button
                 onClick={() => setShowStripeModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -1675,7 +1675,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Secret Key <span className="text-red-500">*</span>
+                  Secret Key <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
@@ -1686,14 +1686,14 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm font-mono"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   Your Stripe Secret Key (starts with sk_test_ or sk_live_)
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Publishable Key <span className="text-red-500">*</span>
+                  Publishable Key <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -1704,13 +1704,13 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm font-mono"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   Your Stripe Publishable Key (starts with pk_test_ or pk_live_)
                 </p>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800">
+              <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                <p className="text-xs text-brand">
                   <strong>Where to find your API keys:</strong>
                   <br />
                   Visit your{" "}
@@ -1718,7 +1718,7 @@ export default function IntegrationsPage() {
                     href="https://dashboard.stripe.com/apikeys"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="underline hover:text-blue-900"
+                    className="underline hover:text-brand"
                   >
                     Stripe Dashboard → API Keys
                   </a>
@@ -1731,14 +1731,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowStripeModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Connecting..." : "Connect Stripe"}
                 </button>
@@ -1751,84 +1751,84 @@ export default function IntegrationsPage() {
       {/* Stripe Settings Modal */}
       {showStripeSettingsModal && stripeSettings && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Stripe Settings</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   View your Stripe integration configuration
                 </p>
               </div>
               <button
                 onClick={() => setShowStripeSettingsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-surface-inset rounded-lg p-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Account ID</p>
+                    <p className="text-xs text-foreground-muted mb-1">Account ID</p>
                     <p className="text-sm font-mono">{stripeSettings.accountId || "N/A"}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Account Name</p>
+                    <p className="text-xs text-foreground-muted mb-1">Account Name</p>
                     <p className="text-sm">{stripeSettings.accountName || "N/A"}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Mode</p>
+                    <p className="text-xs text-foreground-muted mb-1">Mode</p>
                     <span
                       className={`inline-block px-2 py-1 text-xs rounded-full ${
                         stripeSettings.liveMode
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
+                          ? "bg-success-muted text-success"
+                          : "bg-warning-muted text-warning"
                       }`}
                     >
                       {stripeSettings.liveMode ? "Live Mode" : "Test Mode"}
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Publishable Key</p>
+                    <p className="text-xs text-foreground-muted mb-1">Publishable Key</p>
                     <p className="text-sm font-mono">{stripeSettings.publishableKeyPrefix || "N/A"}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-surface-inset rounded-lg p-4">
                 <p className="text-sm font-medium mb-2">Capabilities</p>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Charges Enabled</span>
+                    <span className="text-sm text-foreground-muted">Charges Enabled</span>
                     {stripeSettings.chargesEnabled ? (
-                      <Icons.Check className="w-5 h-5 text-green-500" />
+                      <Icons.Check className="w-5 h-5 text-success" />
                     ) : (
-                      <Icons.X className="w-5 h-5 text-red-500" />
+                      <Icons.X className="w-5 h-5 text-danger" />
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Payouts Enabled</span>
+                    <span className="text-sm text-foreground-muted">Payouts Enabled</span>
                     {stripeSettings.payoutsEnabled ? (
-                      <Icons.Check className="w-5 h-5 text-green-500" />
+                      <Icons.Check className="w-5 h-5 text-success" />
                     ) : (
-                      <Icons.X className="w-5 h-5 text-red-500" />
+                      <Icons.X className="w-5 h-5 text-danger" />
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Webhook Configured</span>
+                    <span className="text-sm text-foreground-muted">Webhook Configured</span>
                     {stripeSettings.webhookConfigured ? (
-                      <Icons.Check className="w-5 h-5 text-green-500" />
+                      <Icons.Check className="w-5 h-5 text-success" />
                     ) : (
-                      <Icons.X className="w-5 h-5 text-red-500" />
+                      <Icons.X className="w-5 h-5 text-danger" />
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800">
+              <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                <p className="text-xs text-brand">
                   <strong>Dashboard Access:</strong>
                   <br />
                   Manage your Stripe account at{" "}
@@ -1836,7 +1836,7 @@ export default function IntegrationsPage() {
                     href="https://dashboard.stripe.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="underline hover:text-blue-900"
+                    className="underline hover:text-brand"
                   >
                     dashboard.stripe.com
                   </a>
@@ -1847,7 +1847,7 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowStripeSettingsModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Close
                 </button>
@@ -1860,17 +1860,17 @@ export default function IntegrationsPage() {
       {/* Zapier Connect Modal */}
       {showZapierModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Connect Zapier</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Automate workflows by connecting DiveStreams to 6,000+ apps
                 </p>
               </div>
               <button
                 onClick={() => setShowZapierModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -1880,9 +1880,9 @@ export default function IntegrationsPage() {
               <input type="hidden" name="intent" value="connectZapier" />
 
               {/* Webhook URL from DiveStreams */}
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-surface-inset rounded-lg p-4">
                 <h3 className="text-sm font-medium mb-2">Your DiveStreams Webhook URL</h3>
-                <p className="text-xs text-gray-500 mb-3">
+                <p className="text-xs text-foreground-muted mb-3">
                   Use this URL in your Zapier "Webhooks by Zapier" trigger to receive events from DiveStreams.
                 </p>
                 <div className="flex items-center gap-2">
@@ -1890,12 +1890,12 @@ export default function IntegrationsPage() {
                     type="text"
                     readOnly
                     value={zapierWebhookUrl}
-                    className="flex-1 bg-white border rounded-lg p-2 text-sm font-mono text-gray-600"
+                    className="flex-1 bg-surface-raised border rounded-lg p-2 text-sm font-mono text-foreground-muted"
                   />
                   <button
                     type="button"
                     onClick={() => copyToClipboard(zapierWebhookUrl)}
-                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="p-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
                     title="Copy URL"
                   >
                     <Icons.Copy className="w-4 h-4" />
@@ -1916,7 +1916,7 @@ export default function IntegrationsPage() {
                   placeholder="https://hooks.zapier.com/hooks/catch/..."
                   className="w-full border rounded-lg p-2 text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   If you want DiveStreams to push events to Zapier, enter your Zapier Catch Hook URL here.
                 </p>
               </div>
@@ -1924,14 +1924,14 @@ export default function IntegrationsPage() {
               {/* Available Triggers */}
               <div>
                 <label className="block text-sm font-medium mb-2">Available Triggers</label>
-                <p className="text-xs text-gray-500 mb-3">
+                <p className="text-xs text-foreground-muted mb-3">
                   Select which events should be sent to Zapier
                 </p>
                 <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto border rounded-lg p-3">
                   {zapierTriggers.map((trigger) => (
                     <label
                       key={trigger}
-                      className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      className="flex items-start gap-3 p-2 hover:bg-surface-inset rounded cursor-pointer"
                     >
                       <input
                         type="checkbox"
@@ -1949,7 +1949,7 @@ export default function IntegrationsPage() {
                       />
                       <div>
                         <span className="text-sm font-medium">{trigger}</span>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-foreground-muted">
                           {zapierTriggerDescriptions[trigger]}
                         </p>
                       </div>
@@ -1958,9 +1958,9 @@ export default function IntegrationsPage() {
                 </div>
               </div>
 
-              <div className="bg-blue-50 rounded-lg p-4 text-sm">
-                <h4 className="font-medium text-blue-800 mb-1">How to use with Zapier:</h4>
-                <ol className="list-decimal list-inside text-blue-700 space-y-1 text-xs">
+              <div className="bg-brand-muted rounded-lg p-4 text-sm">
+                <h4 className="font-medium text-brand mb-1">How to use with Zapier:</h4>
+                <ol className="list-decimal list-inside text-brand space-y-1 text-xs">
                   <li>Create a new Zap in Zapier</li>
                   <li>Choose "Webhooks by Zapier" as your trigger</li>
                   <li>Select "Catch Hook" and copy the provided URL</li>
@@ -1973,14 +1973,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowZapierModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Connecting..." : "Connect Zapier"}
                 </button>
@@ -1993,17 +1993,17 @@ export default function IntegrationsPage() {
       {/* Zapier Config Modal (for connected integrations) */}
       {showZapierConfigModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Zapier Settings</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Manage your Zapier integration settings
                 </p>
               </div>
               <button
                 onClick={() => setShowZapierConfigModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -2013,19 +2013,19 @@ export default function IntegrationsPage() {
               <input type="hidden" name="intent" value="updateZapierSettings" />
 
               {/* Webhook URL from DiveStreams */}
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-surface-inset rounded-lg p-4">
                 <h3 className="text-sm font-medium mb-2">Your DiveStreams Webhook URL</h3>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
                     readOnly
                     value={zapierWebhookUrl}
-                    className="flex-1 bg-white border rounded-lg p-2 text-sm font-mono text-gray-600"
+                    className="flex-1 bg-surface-raised border rounded-lg p-2 text-sm font-mono text-foreground-muted"
                   />
                   <button
                     type="button"
                     onClick={() => copyToClipboard(zapierWebhookUrl)}
-                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="p-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
                     title="Copy URL"
                   >
                     <Icons.Copy className="w-4 h-4" />
@@ -2055,7 +2055,7 @@ export default function IntegrationsPage() {
                   {zapierTriggers.map((trigger) => (
                     <label
                       key={trigger}
-                      className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      className="flex items-start gap-3 p-2 hover:bg-surface-inset rounded cursor-pointer"
                     >
                       <input
                         type="checkbox"
@@ -2073,7 +2073,7 @@ export default function IntegrationsPage() {
                       />
                       <div>
                         <span className="text-sm font-medium">{trigger}</span>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-foreground-muted">
                           {zapierTriggerDescriptions[trigger]}
                         </p>
                       </div>
@@ -2086,14 +2086,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowZapierConfigModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Saving..." : "Save Settings"}
                 </button>
@@ -2107,7 +2107,7 @@ export default function IntegrationsPage() {
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle" || !zapierUserWebhookUrl}
-                  className="w-full py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm"
+                  className="w-full py-2 border rounded-lg hover:bg-surface-inset disabled:opacity-50 text-sm"
                 >
                   {fetcher.state !== "idle" ? "Testing..." : "Test Webhook Connection"}
                 </button>
@@ -2118,7 +2118,7 @@ export default function IntegrationsPage() {
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="w-full py-2 border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-50 disabled:opacity-50 text-sm"
+                  className="w-full py-2 border border-accent text-accent rounded-lg hover:bg-accent-muted disabled:opacity-50 text-sm"
                 >
                   Regenerate Webhook Secret
                 </button>
@@ -2131,20 +2131,20 @@ export default function IntegrationsPage() {
       {/* Zapier Secret Modal */}
       {showZapierSecretModal && zapierSecret && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-bold text-green-700">Zapier Connected!</h2>
-                <p className="text-sm text-gray-500">
+                <h2 className="text-lg font-bold text-success">Zapier Connected!</h2>
+                <p className="text-sm text-foreground-muted">
                   Save your webhook secret - you won't be able to see it again
                 </p>
               </div>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-4">
               <div className="flex items-start gap-2">
-                <Icons.AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-yellow-800">
+                <Icons.AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-warning">
                   <strong>Important:</strong> Copy this secret now. For security reasons,
                   it will not be displayed again. You'll need it to verify webhook signatures.
                 </div>
@@ -2158,12 +2158,12 @@ export default function IntegrationsPage() {
                   type="text"
                   readOnly
                   value={zapierSecret}
-                  className="flex-1 bg-gray-50 border rounded-lg p-3 text-sm font-mono"
+                  className="flex-1 bg-surface-inset border rounded-lg p-3 text-sm font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => copyToClipboard(zapierSecret)}
-                  className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="p-3 bg-brand text-white rounded-lg hover:bg-brand-hover"
                   title="Copy Secret"
                 >
                   <Icons.Copy className="w-4 h-4" />
@@ -2177,7 +2177,7 @@ export default function IntegrationsPage() {
                 setShowZapierSecretModal(false);
                 setZapierSecret(null);
               }}
-              className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
             >
               I've Saved My Secret
             </button>
@@ -2188,22 +2188,22 @@ export default function IntegrationsPage() {
       {/* Xero Configuration Modal */}
       {showXeroConfigModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Xero Settings</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Configure sync options and account mapping
                 </p>
                 {xeroSettings?.tenantName && (
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-foreground-subtle mt-1">
                     Connected to: {xeroSettings.tenantName}
                   </p>
                 )}
               </div>
               <button
                 onClick={() => setShowXeroConfigModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -2216,52 +2216,52 @@ export default function IntegrationsPage() {
               <div>
                 <h3 className="text-sm font-medium mb-3">Sync Options</h3>
                 <div className="space-y-3">
-                  <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-surface-inset cursor-pointer">
                     <input
                       type="checkbox"
                       name="syncInvoices"
                       value="true"
                       checked={xeroSyncInvoices}
                       onChange={(e) => setXeroSyncInvoices(e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-border-strong text-brand focus:ring-brand"
                     />
                     <div>
                       <span className="text-sm font-medium">Sync Invoices</span>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-foreground-muted">
                         Automatically create invoices in Xero when bookings are confirmed
                       </p>
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-surface-inset cursor-pointer">
                     <input
                       type="checkbox"
                       name="syncPayments"
                       value="true"
                       checked={xeroSyncPayments}
                       onChange={(e) => setXeroSyncPayments(e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-border-strong text-brand focus:ring-brand"
                     />
                     <div>
                       <span className="text-sm font-medium">Sync Payments</span>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-foreground-muted">
                         Record payments in Xero when received via Stripe
                       </p>
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg hover:bg-surface-inset cursor-pointer">
                     <input
                       type="checkbox"
                       name="syncContacts"
                       value="true"
                       checked={xeroSyncContacts}
                       onChange={(e) => setXeroSyncContacts(e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-border-strong text-brand focus:ring-brand"
                     />
                     <div>
                       <span className="text-sm font-medium">Sync Contacts</span>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-foreground-muted">
                         Create and update contacts in Xero from customer data
                       </p>
                     </div>
@@ -2285,7 +2285,7 @@ export default function IntegrationsPage() {
                       placeholder="e.g., 200 or 4000"
                       className="w-full border rounded-lg p-2 text-sm"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       The account code for booking revenue in your Xero chart of accounts
                     </p>
                   </div>
@@ -2307,7 +2307,7 @@ export default function IntegrationsPage() {
                       <option value="ZERORATEDOUTPUT">Zero Rated</option>
                       <option value="EXEMPTOUTPUT">Exempt</option>
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       Tax type to apply to invoices
                     </p>
                   </div>
@@ -2324,36 +2324,36 @@ export default function IntegrationsPage() {
                       placeholder="e.g., DS-"
                       className="w-full border rounded-lg p-2 text-sm"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       Prefix added to invoice references (e.g., DS-12345)
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800">
+              <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                <p className="text-sm text-brand">
                   <strong>Note:</strong> Changes to sync settings will apply to new bookings and transactions.
                   Existing records will not be automatically synced.
                 </p>
               </div>
 
               {fetcher.data && "error" in fetcher.data && (
-                <p className="text-red-600 text-sm">{fetcher.data.error as string}</p>
+                <p className="text-danger text-sm">{fetcher.data.error as string}</p>
               )}
 
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowXeroConfigModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Saving..." : "Save Settings"}
                 </button>
@@ -2365,17 +2365,17 @@ export default function IntegrationsPage() {
       {/* WhatsApp Business Configuration Modal */}
       {showWhatsAppModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Connect WhatsApp Business</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Choose your WhatsApp Business API provider
                 </p>
               </div>
               <button
                 onClick={() => setShowWhatsAppModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -2387,14 +2387,14 @@ export default function IntegrationsPage() {
               {/* API Type Selection */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  API Provider <span className="text-red-500">*</span>
+                  API Provider <span className="text-danger">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <label
                     className={`flex flex-col items-center p-4 border-2 rounded-lg cursor-pointer transition-colors \${
                       whatsAppApiType === "meta"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-brand bg-brand-muted"
+                        : "border-border hover:border-border-strong"
                     }`}
                   >
                     <input
@@ -2405,17 +2405,17 @@ export default function IntegrationsPage() {
                       onChange={() => setWhatsAppApiType("meta")}
                       className="sr-only"
                     />
-                    <Icons.MessageCircle className="w-8 h-8 text-green-600 mb-1" />
+                    <Icons.MessageCircle className="w-8 h-8 text-success mb-1" />
                     <span className="text-sm font-medium">Meta Business API</span>
-                    <span className="text-xs text-gray-500 text-center mt-1">
+                    <span className="text-xs text-foreground-muted text-center mt-1">
                       Direct from Meta
                     </span>
                   </label>
                   <label
                     className={`flex flex-col items-center p-4 border-2 rounded-lg cursor-pointer transition-colors \${
                       whatsAppApiType === "twilio"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-brand bg-brand-muted"
+                        : "border-border hover:border-border-strong"
                     }`}
                   >
                     <input
@@ -2426,9 +2426,9 @@ export default function IntegrationsPage() {
                       onChange={() => setWhatsAppApiType("twilio")}
                       className="sr-only"
                     />
-                    <Icons.MessageSquare className="w-8 h-8 text-red-500 mb-1" />
+                    <Icons.MessageSquare className="w-8 h-8 text-danger mb-1" />
                     <span className="text-sm font-medium">Twilio WhatsApp</span>
-                    <span className="text-xs text-gray-500 text-center mt-1">
+                    <span className="text-xs text-foreground-muted text-center mt-1">
                       Via Twilio
                     </span>
                   </label>
@@ -2440,7 +2440,7 @@ export default function IntegrationsPage() {
                 <>
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Phone Number ID <span className="text-red-500">*</span>
+                      Phone Number ID <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -2451,14 +2451,14 @@ export default function IntegrationsPage() {
                       className="w-full border rounded-lg p-2 text-sm"
                       required={whatsAppApiType === "meta"}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       From Meta Business Suite &gt; WhatsApp &gt; Settings
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Business Account ID <span className="text-red-500">*</span>
+                      Business Account ID <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -2469,14 +2469,14 @@ export default function IntegrationsPage() {
                       className="w-full border rounded-lg p-2 text-sm"
                       required={whatsAppApiType === "meta"}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       Your WhatsApp Business Account ID
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Access Token <span className="text-red-500">*</span>
+                      Access Token <span className="text-danger">*</span>
                     </label>
                     <input
                       type="password"
@@ -2487,13 +2487,13 @@ export default function IntegrationsPage() {
                       className="w-full border rounded-lg p-2 text-sm"
                       required={whatsAppApiType === "meta"}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       System user access token with whatsapp_business_messaging permission
                     </p>
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm text-blue-800">
+                  <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                    <p className="text-sm text-brand">
                       <strong>Setup Guide:</strong> Create a system user in Meta Business Settings,
                       generate a permanent token, and add the whatsapp_business_messaging permission.{" "}
                       <a
@@ -2514,7 +2514,7 @@ export default function IntegrationsPage() {
                 <>
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Account SID <span className="text-red-500">*</span>
+                      Account SID <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -2525,14 +2525,14 @@ export default function IntegrationsPage() {
                       className="w-full border rounded-lg p-2 text-sm"
                       required={whatsAppApiType === "twilio"}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       From your Twilio Console Dashboard
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Auth Token <span className="text-red-500">*</span>
+                      Auth Token <span className="text-danger">*</span>
                     </label>
                     <input
                       type="password"
@@ -2543,14 +2543,14 @@ export default function IntegrationsPage() {
                       className="w-full border rounded-lg p-2 text-sm"
                       required={whatsAppApiType === "twilio"}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       This will be encrypted and stored securely
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      WhatsApp Number <span className="text-red-500">*</span>
+                      WhatsApp Number <span className="text-danger">*</span>
                     </label>
                     <input
                       type="tel"
@@ -2561,13 +2561,13 @@ export default function IntegrationsPage() {
                       className="w-full border rounded-lg p-2 text-sm"
                       required={whatsAppApiType === "twilio"}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       Your Twilio WhatsApp-enabled phone number
                     </p>
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm text-blue-800">
+                  <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                    <p className="text-sm text-brand">
                       <strong>Note:</strong> You can use Twilio's sandbox number for testing.
                       For production, you'll need a Twilio-approved WhatsApp sender.{" "}
                       <a
@@ -2583,8 +2583,8 @@ export default function IntegrationsPage() {
                 </>
               )}
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p className="text-sm text-yellow-800">
+              <div className="bg-warning-muted border border-warning rounded-lg p-3">
+                <p className="text-sm text-warning">
                   <strong>Important:</strong> WhatsApp Business has a 24-hour messaging window.
                   You can only send freeform messages to customers who have messaged you in the last 24 hours.
                   For proactive messages, use pre-approved message templates.
@@ -2595,14 +2595,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowWhatsAppModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle" || !whatsAppApiType}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Connecting..." : "Connect WhatsApp"}
                 </button>
@@ -2615,17 +2615,17 @@ export default function IntegrationsPage() {
       {/* Test WhatsApp Modal */}
       {showTestWhatsAppModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Send Test WhatsApp Message</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Send a test message to verify your WhatsApp integration
                 </p>
               </div>
               <button
                 onClick={() => setShowTestWhatsAppModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -2636,7 +2636,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Phone Number <span className="text-red-500">*</span>
+                  Phone Number <span className="text-danger">*</span>
                 </label>
                 <input
                   type="tel"
@@ -2647,13 +2647,13 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   WhatsApp number to send test message to (must have opted-in)
                 </p>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p className="text-sm text-yellow-800">
+              <div className="bg-warning-muted border border-warning rounded-lg p-3">
+                <p className="text-sm text-warning">
                   <strong>Note:</strong> The recipient must have sent a message to your WhatsApp
                   Business number in the last 24 hours to receive freeform messages.
                 </p>
@@ -2663,14 +2663,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowTestWhatsAppModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Sending..." : "Send Test"}
                 </button>
@@ -2683,17 +2683,17 @@ export default function IntegrationsPage() {
       {/* Google Calendar OAuth Configuration Modal */}
       {showGoogleOAuthModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Connect Google Calendar</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Enter your Google OAuth credentials to enable calendar sync
                 </p>
               </div>
               <button
                 onClick={() => setShowGoogleOAuthModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -2704,7 +2704,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client ID <span className="text-red-500">*</span>
+                  Client ID <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -2719,7 +2719,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client Secret <span className="text-red-500">*</span>
+                  Client Secret <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
@@ -2730,13 +2730,13 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   This will be encrypted and stored securely
                 </p>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800">
+              <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                <p className="text-sm text-brand">
                   <strong>Get your credentials:</strong>
                   <br />
                   1. Go to{" "}
@@ -2751,7 +2751,7 @@ export default function IntegrationsPage() {
                   <br />
                   2. Create OAuth 2.0 Client ID
                   <br />
-                  3. Add redirect URI: <code className="bg-white px-1 break-all text-xs">{window.location.origin}/api/integrations/google/callback</code>
+                  3. Add redirect URI: <code className="bg-surface-raised px-1 break-all text-xs">{window.location.origin}/api/integrations/google/callback</code>
                 </p>
               </div>
 
@@ -2759,14 +2759,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowGoogleOAuthModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Connecting..." : "Continue to Google"}
                 </button>
@@ -2779,17 +2779,17 @@ export default function IntegrationsPage() {
       {/* Mailchimp OAuth Configuration Modal */}
       {showMailchimpOAuthModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Connect Mailchimp</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Enter your Mailchimp OAuth credentials to enable email marketing
                 </p>
               </div>
               <button
                 onClick={() => setShowMailchimpOAuthModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -2800,7 +2800,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client ID <span className="text-red-500">*</span>
+                  Client ID <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -2815,7 +2815,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client Secret <span className="text-red-500">*</span>
+                  Client Secret <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
@@ -2826,13 +2826,13 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   This will be encrypted and stored securely
                 </p>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800">
+              <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                <p className="text-sm text-brand">
                   <strong>Get your credentials:</strong>
                   <br />
                   1. Go to{" "}
@@ -2847,7 +2847,7 @@ export default function IntegrationsPage() {
                   <br />
                   2. Register your OAuth app
                   <br />
-                  3. Add redirect URI: <code className="bg-white px-1 break-all text-xs">{window.location.origin}/api/integrations/mailchimp/callback</code>
+                  3. Add redirect URI: <code className="bg-surface-raised px-1 break-all text-xs">{window.location.origin}/api/integrations/mailchimp/callback</code>
                 </p>
               </div>
 
@@ -2855,14 +2855,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowMailchimpOAuthModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Connecting..." : "Continue to Mailchimp"}
                 </button>
@@ -2875,17 +2875,17 @@ export default function IntegrationsPage() {
       {/* QuickBooks OAuth Configuration Modal */}
       {showQuickBooksOAuthModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Connect QuickBooks</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Enter your QuickBooks OAuth credentials to enable accounting sync
                 </p>
               </div>
               <button
                 onClick={() => setShowQuickBooksOAuthModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -2896,7 +2896,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client ID <span className="text-red-500">*</span>
+                  Client ID <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -2911,7 +2911,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client Secret <span className="text-red-500">*</span>
+                  Client Secret <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
@@ -2922,13 +2922,13 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   This will be encrypted and stored securely
                 </p>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800">
+              <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                <p className="text-sm text-brand">
                   <strong>Get your credentials:</strong>
                   <br />
                   1. Go to{" "}
@@ -2943,7 +2943,7 @@ export default function IntegrationsPage() {
                   <br />
                   2. Create an app with QuickBooks Online API
                   <br />
-                  3. Add redirect URI: <code className="bg-white px-1 break-all text-xs">{window.location.origin}/api/integrations/quickbooks/callback</code>
+                  3. Add redirect URI: <code className="bg-surface-raised px-1 break-all text-xs">{window.location.origin}/api/integrations/quickbooks/callback</code>
                 </p>
               </div>
 
@@ -2951,14 +2951,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowQuickBooksOAuthModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Connecting..." : "Continue to QuickBooks"}
                 </button>
@@ -2971,17 +2971,17 @@ export default function IntegrationsPage() {
       {/* Xero OAuth Configuration Modal */}
       {showXeroOAuthModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Connect Xero</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Enter your Xero OAuth credentials to enable accounting sync
                 </p>
               </div>
               <button
                 onClick={() => setShowXeroOAuthModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 <Icons.X className="w-5 h-5" />
               </button>
@@ -2992,7 +2992,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client ID <span className="text-red-500">*</span>
+                  Client ID <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -3007,7 +3007,7 @@ export default function IntegrationsPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Client Secret <span className="text-red-500">*</span>
+                  Client Secret <span className="text-danger">*</span>
                 </label>
                 <input
                   type="password"
@@ -3018,13 +3018,13 @@ export default function IntegrationsPage() {
                   className="w-full border rounded-lg p-2 text-sm"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   This will be encrypted and stored securely
                 </p>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800">
+              <div className="bg-brand-muted border border-brand rounded-lg p-3">
+                <p className="text-sm text-brand">
                   <strong>Get your credentials:</strong>
                   <br />
                   1. Go to{" "}
@@ -3039,7 +3039,7 @@ export default function IntegrationsPage() {
                   <br />
                   2. Create an OAuth 2.0 app
                   <br />
-                  3. Add redirect URI: <code className="bg-white px-1 break-all text-xs">{window.location.origin}/api/integrations/xero/callback</code>
+                  3. Add redirect URI: <code className="bg-surface-raised px-1 break-all text-xs">{window.location.origin}/api/integrations/xero/callback</code>
                 </p>
               </div>
 
@@ -3047,14 +3047,14 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowXeroOAuthModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state !== "idle"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50"
                 >
                   {fetcher.state !== "idle" ? "Connecting..." : "Continue to Xero"}
                 </button>

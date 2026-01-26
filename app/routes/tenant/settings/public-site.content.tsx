@@ -51,7 +51,7 @@ export default function PublicSiteContentSettings() {
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg">
           {fetcher.data.message}
         </div>
       )}
@@ -60,7 +60,7 @@ export default function PublicSiteContentSettings() {
         <input type="hidden" name="intent" value="update-content" />
 
         {/* Branding */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
           <h2 className="font-semibold mb-4">Branding</h2>
 
           <div className="grid grid-cols-2 gap-6">
@@ -74,9 +74,9 @@ export default function PublicSiteContentSettings() {
                 name="logoUrl"
                 defaultValue={settings.logoUrl || ""}
                 placeholder="https://example.com/logo.png"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Recommended size: 200x60px, PNG or SVG
               </p>
             </div>
@@ -91,9 +91,9 @@ export default function PublicSiteContentSettings() {
                 name="heroImageUrl"
                 defaultValue={settings.heroImageUrl || ""}
                 placeholder="https://example.com/hero.jpg"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Recommended size: 1920x600px, JPG
               </p>
             </div>
@@ -109,9 +109,9 @@ export default function PublicSiteContentSettings() {
               name="heroVideoUrl"
               defaultValue={settings.heroVideoUrl || ""}
               placeholder="https://example.com/video.mp4"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Video displayed below hero section. Formats: MP4 (H.264) or WebM. Max 50MB. 16:9 aspect ratio recommended. Will autoplay muted and loop.
             </p>
           </div>
@@ -123,8 +123,8 @@ export default function PublicSiteContentSettings() {
                 <div className="grid grid-cols-2 gap-6">
                   {settings.logoUrl && (
                     <div>
-                      <p className="text-sm font-medium text-gray-600 mb-2">Logo Preview</p>
-                      <div className="border rounded-lg p-4 bg-gray-50">
+                      <p className="text-sm font-medium text-foreground-muted mb-2">Logo Preview</p>
+                      <div className="border rounded-lg p-4 bg-surface-inset">
                         <img
                           src={settings.logoUrl}
                           alt="Logo preview"
@@ -135,7 +135,7 @@ export default function PublicSiteContentSettings() {
                   )}
                   {settings.heroImageUrl && (
                     <div>
-                      <p className="text-sm font-medium text-gray-600 mb-2">Hero Preview</p>
+                      <p className="text-sm font-medium text-foreground-muted mb-2">Hero Preview</p>
                       <div className="border rounded-lg overflow-hidden">
                         <img
                           src={settings.heroImageUrl}
@@ -149,7 +149,7 @@ export default function PublicSiteContentSettings() {
               )}
               {settings.heroVideoUrl && (
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-2">Hero Video Preview</p>
+                  <p className="text-sm font-medium text-foreground-muted mb-2">Hero Video Preview</p>
                   <div className="border rounded-lg overflow-hidden">
                     <video
                       src={settings.heroVideoUrl}
@@ -166,9 +166,9 @@ export default function PublicSiteContentSettings() {
         </div>
 
         {/* About Content */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
           <h2 className="font-semibold mb-2">About Page Content</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-foreground-muted mb-4">
             Write about your dive shop, history, and team
           </p>
 
@@ -182,18 +182,18 @@ export default function PublicSiteContentSettings() {
               rows={8}
               defaultValue={settings.aboutContent || ""}
               placeholder="Tell visitors about your dive shop, your history, your team, and what makes you unique..."
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 resize-y"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand resize-y"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Plain text for now. Rich text editor coming soon.
             </p>
           </div>
         </div>
 
         {/* Contact Information */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
           <h2 className="font-semibold mb-2">Contact Information</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-foreground-muted mb-4">
             Information displayed on your contact page
           </p>
 
@@ -208,7 +208,7 @@ export default function PublicSiteContentSettings() {
                 rows={2}
                 defaultValue={settings.contactInfo?.address || ""}
                 placeholder="123 Ocean Drive, Key Largo, FL 33037"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -223,7 +223,7 @@ export default function PublicSiteContentSettings() {
                   name="contactPhone"
                   defaultValue={settings.contactInfo?.phone || ""}
                   placeholder="+1 (305) 555-0123"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -237,7 +237,7 @@ export default function PublicSiteContentSettings() {
                   name="contactEmail"
                   defaultValue={settings.contactInfo?.email || ""}
                   placeholder="info@yourdiveshop.com"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function PublicSiteContentSettings() {
                 rows={3}
                 defaultValue={settings.contactInfo?.hours || ""}
                 placeholder="Mon-Fri: 8am-6pm, Sat-Sun: 7am-7pm"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -266,15 +266,15 @@ export default function PublicSiteContentSettings() {
                 rows={4}
                 defaultValue={settings.contactInfo?.mapEmbed || ""}
                 placeholder='<iframe src="https://www.google.com/maps/embed?..." width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>'
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Get embed code from{" "}
                 <a
                   href="https://www.google.com/maps"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-brand hover:underline"
                 >
                   Google Maps
                 </a>{" "}
@@ -285,7 +285,7 @@ export default function PublicSiteContentSettings() {
             {/* Map Preview */}
             {settings.contactInfo?.mapEmbed && (
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-2">Map Preview</p>
+                <p className="text-sm font-medium text-foreground-muted mb-2">Map Preview</p>
                 <div
                   className="border rounded-lg overflow-hidden"
                   suppressHydrationWarning
@@ -308,7 +308,7 @@ export default function PublicSiteContentSettings() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
           >
             {isSubmitting ? "Saving..." : "Save Content Settings"}
           </button>

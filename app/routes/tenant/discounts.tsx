@@ -207,22 +207,22 @@ function getDiscountStatus(discount: DiscountCode): { label: string; color: stri
   const now = new Date();
 
   if (!discount.isActive) {
-    return { label: "Inactive", color: "bg-gray-100 text-gray-600" };
+    return { label: "Inactive", color: "bg-surface-inset text-foreground-muted" };
   }
 
   if (discount.maxUses && discount.usedCount >= discount.maxUses) {
-    return { label: "Used Up", color: "bg-amber-100 text-amber-700" };
+    return { label: "Used Up", color: "bg-warning-muted text-warning" };
   }
 
   if (discount.validTo && new Date(discount.validTo) < now) {
-    return { label: "Expired", color: "bg-red-100 text-red-700" };
+    return { label: "Expired", color: "bg-danger-muted text-danger" };
   }
 
   if (discount.validFrom && new Date(discount.validFrom) > now) {
-    return { label: "Scheduled", color: "bg-blue-100 text-blue-700" };
+    return { label: "Scheduled", color: "bg-brand-muted text-brand" };
   }
 
-  return { label: "Active", color: "bg-green-100 text-green-700" };
+  return { label: "Active", color: "bg-success-muted text-success" };
 }
 
 function formatDiscountValue(type: string, value: string): string {
@@ -270,14 +270,14 @@ export default function DiscountsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Discount Codes</h1>
-          <p className="text-gray-600">Create and manage discount codes for bookings</p>
+          <p className="text-foreground-muted">Create and manage discount codes for bookings</p>
         </div>
         <button
           onClick={() => {
             setEditingDiscount(null);
             setShowForm(true);
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
         >
           + Create Discount Code
         </button>
@@ -285,34 +285,34 @@ export default function DiscountsPage() {
 
       {/* Success/Error Messages */}
       {fetcherData?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg mb-4">
+        <div className="bg-success-muted border border-success text-success p-3 rounded-lg mb-4">
           {fetcherData.message}
         </div>
       )}
 
       {fetcherData?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4">
+        <div className="bg-danger-muted border border-danger text-danger p-3 rounded-lg mb-4">
           {fetcherData.error}
         </div>
       )}
 
       {/* Active Discounts */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-3 text-gray-700">
+        <h2 className="text-lg font-semibold mb-3 text-foreground">
           Active Discount Codes ({activeDiscounts.length})
         </h2>
         {activeDiscounts.length > 0 ? (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-surface-raised rounded-lg shadow overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-surface-inset">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Code</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Discount</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Applies To</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Valid Period</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">Usage</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Code</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Discount</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Applies To</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Valid Period</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">Usage</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">Status</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-foreground-muted">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -323,19 +323,19 @@ export default function DiscountsPage() {
                       <td className="px-4 py-3">
                         <div className="font-mono font-bold text-lg">{discount.code}</div>
                         {discount.description && (
-                          <div className="text-sm text-gray-500">{discount.description}</div>
+                          <div className="text-sm text-foreground-muted">{discount.description}</div>
                         )}
                       </td>
-                      <td className="px-4 py-3 font-medium text-green-600">
+                      <td className="px-4 py-3 font-medium text-success">
                         {formatDiscountValue(discount.discountType, discount.discountValue)}
                         {discount.minBookingAmount && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-foreground-muted">
                             Min: ${Number(discount.minBookingAmount).toFixed(2)}
                           </div>
                         )}
                       </td>
                       <td className="px-4 py-3 capitalize text-sm">{discount.applicableTo}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-4 py-3 text-sm text-foreground-muted">
                         {discount.validFrom ? (
                           <>
                             {new Date(discount.validFrom).toLocaleDateString()}
@@ -363,7 +363,7 @@ export default function DiscountsPage() {
                               setEditingDiscount(discount as DiscountCode);
                               setShowForm(true);
                             }}
-                            className="px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
+                            className="px-2 py-1 text-sm text-brand hover:bg-brand-muted rounded"
                           >
                             Edit
                           </button>
@@ -373,7 +373,7 @@ export default function DiscountsPage() {
                             <input type="hidden" name="isActive" value="false" />
                             <button
                               type="submit"
-                              className="px-2 py-1 text-sm text-amber-600 hover:bg-amber-50 rounded"
+                              className="px-2 py-1 text-sm text-warning hover:bg-warning-muted rounded"
                             >
                               Deactivate
                             </button>
@@ -387,11 +387,11 @@ export default function DiscountsPage() {
             </table>
           </div>
         ) : (
-          <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <p className="text-gray-600 mb-4">No active discount codes.</p>
+          <div className="bg-surface-inset rounded-lg p-8 text-center">
+            <p className="text-foreground-muted mb-4">No active discount codes.</p>
             <button
               onClick={() => setShowForm(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
             >
               Create Your First Discount Code
             </button>
@@ -402,18 +402,18 @@ export default function DiscountsPage() {
       {/* Inactive Discounts */}
       {inactiveDiscounts.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-500">
+          <h2 className="text-lg font-semibold mb-3 text-foreground-muted">
             Inactive / Expired ({inactiveDiscounts.length})
           </h2>
-          <div className="bg-white rounded-lg shadow overflow-hidden opacity-75">
+          <div className="bg-surface-raised rounded-lg shadow overflow-hidden opacity-75">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-surface-inset">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Code</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Discount</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">Usage</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Code</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Discount</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">Usage</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">Status</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-foreground-muted">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -424,7 +424,7 @@ export default function DiscountsPage() {
                       <td className="px-4 py-3">
                         <div className="font-mono font-bold">{discount.code}</div>
                         {discount.description && (
-                          <div className="text-sm text-gray-500">{discount.description}</div>
+                          <div className="text-sm text-foreground-muted">{discount.description}</div>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -448,7 +448,7 @@ export default function DiscountsPage() {
                               <input type="hidden" name="isActive" value="true" />
                               <button
                                 type="submit"
-                                className="px-2 py-1 text-sm text-green-600 hover:bg-green-50 rounded"
+                                className="px-2 py-1 text-sm text-success hover:bg-success-muted rounded"
                               >
                                 Activate
                               </button>
@@ -459,7 +459,7 @@ export default function DiscountsPage() {
                               setEditingDiscount(discount as DiscountCode);
                               setShowForm(true);
                             }}
-                            className="px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
+                            className="px-2 py-1 text-sm text-brand hover:bg-brand-muted rounded"
                           >
                             Edit
                           </button>
@@ -477,7 +477,7 @@ export default function DiscountsPage() {
       {/* Discount Code Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4">
                 {editingDiscount ? "Edit Discount Code" : "Create Discount Code"}
@@ -496,9 +496,9 @@ export default function DiscountsPage() {
                       defaultValue={editingDiscount?.code || ""}
                       required
                       placeholder="e.g., SUMMER20"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 uppercase font-mono"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand uppercase font-mono"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       Customers will enter this code when booking
                     </p>
                   </div>
@@ -510,7 +510,7 @@ export default function DiscountsPage() {
                       name="description"
                       defaultValue={editingDiscount?.description || ""}
                       placeholder="e.g., Summer 2024 promotion"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -520,7 +520,7 @@ export default function DiscountsPage() {
                       name="discountType"
                       defaultValue={editingDiscount?.discountType || "percentage"}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     >
                       <option value="percentage">Percentage (%)</option>
                       <option value="fixed">Fixed Amount ($)</option>
@@ -537,7 +537,7 @@ export default function DiscountsPage() {
                       defaultValue={editingDiscount?.discountValue || ""}
                       required
                       placeholder="e.g., 10"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -550,7 +550,7 @@ export default function DiscountsPage() {
                       min="0"
                       defaultValue={editingDiscount?.minBookingAmount || ""}
                       placeholder="No minimum"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -562,7 +562,7 @@ export default function DiscountsPage() {
                       min="1"
                       defaultValue={editingDiscount?.maxUses || ""}
                       placeholder="Unlimited"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -572,7 +572,7 @@ export default function DiscountsPage() {
                       type="datetime-local"
                       name="validFrom"
                       defaultValue={formatDateForInput(editingDiscount?.validFrom || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -582,7 +582,7 @@ export default function DiscountsPage() {
                       type="datetime-local"
                       name="validTo"
                       defaultValue={formatDateForInput(editingDiscount?.validTo || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -592,7 +592,7 @@ export default function DiscountsPage() {
                       name="applicableTo"
                       defaultValue={editingDiscount?.applicableTo || "all"}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     >
                       <option value="all">All Bookings</option>
                       <option value="tours">Tours Only</option>
@@ -623,14 +623,14 @@ export default function DiscountsPage() {
                       setShowForm(false);
                       setEditingDiscount(null);
                     }}
-                    className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                    className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                    className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                   >
                     {isSubmitting ? "Saving..." : editingDiscount ? "Update" : "Create"}
                   </button>
@@ -649,7 +649,7 @@ export default function DiscountsPage() {
                           }
                           // Don't close modal here - let useEffect handle it after success
                         }}
-                        className="w-full py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                        className="w-full py-2 text-danger hover:bg-danger-muted rounded-lg text-sm"
                       >
                         Delete Discount Code
                       </button>

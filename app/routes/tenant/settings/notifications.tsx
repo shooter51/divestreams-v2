@@ -122,22 +122,22 @@ export default function NotificationsPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Notification Settings</h1>
-        <p className="text-gray-500">Configure how you receive notifications</p>
+        <p className="text-foreground-muted">Configure how you receive notifications</p>
       </div>
 
       {fetcher.data?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg mb-6">
           Settings saved successfully!
         </div>
       )}
 
       <fetcher.Form method="post" className="space-y-6">
         {/* Customer Notifications */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Customer Notifications</h2>
           <div className="space-y-4">
             <label className="flex items-start gap-3">
@@ -150,7 +150,7 @@ export default function NotificationsPage() {
               />
               <div>
                 <p className="font-medium">Booking Confirmations</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Send confirmation emails when bookings are made
                 </p>
               </div>
@@ -166,7 +166,7 @@ export default function NotificationsPage() {
               />
               <div>
                 <p className="font-medium">Booking Reminders</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Send reminder emails before trips
                 </p>
               </div>
@@ -174,7 +174,7 @@ export default function NotificationsPage() {
 
             <div className="ml-6">
               <label className="block text-sm">
-                <span className="text-gray-600">Days before trip:</span>
+                <span className="text-foreground-muted">Days before trip:</span>
                 <select
                   name="reminderDaysBefore"
                   defaultValue={settings.reminderDaysBefore}
@@ -191,7 +191,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Staff Notifications */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Staff Notifications</h2>
           <div className="space-y-4">
             <label className="flex items-start gap-3">
@@ -204,7 +204,7 @@ export default function NotificationsPage() {
               />
               <div>
                 <p className="font-medium">New Booking Alerts</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Get notified when new bookings are made
                 </p>
               </div>
@@ -220,7 +220,7 @@ export default function NotificationsPage() {
               />
               <div>
                 <p className="font-medium">Cancellation Alerts</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Get notified when bookings are canceled
                 </p>
               </div>
@@ -236,7 +236,7 @@ export default function NotificationsPage() {
               />
               <div>
                 <p className="font-medium">Low Capacity Alerts</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Get notified when trips are below minimum capacity
                 </p>
               </div>
@@ -244,7 +244,7 @@ export default function NotificationsPage() {
 
             <div className="ml-6">
               <label className="block text-sm">
-                <span className="text-gray-600">Alert when spots remaining:</span>
+                <span className="text-foreground-muted">Alert when spots remaining:</span>
                 <select
                   name="lowCapacityThreshold"
                   defaultValue={settings.lowCapacityThreshold}
@@ -261,7 +261,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Reports */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Reports</h2>
           <div className="space-y-4">
             <label className="flex items-start gap-3">
@@ -277,12 +277,12 @@ export default function NotificationsPage() {
                 <p className="font-medium">
                   Daily Digest
                   {!isPremium && (
-                    <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                    <span className="ml-2 text-xs bg-surface-overlay text-foreground-muted px-2 py-0.5 rounded-full">
                       Premium
                     </span>
                   )}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Receive a daily summary of bookings and activity
                 </p>
               </div>
@@ -301,12 +301,12 @@ export default function NotificationsPage() {
                 <p className="font-medium">
                   Weekly Report
                   {!isPremium && (
-                    <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                    <span className="ml-2 text-xs bg-surface-overlay text-foreground-muted px-2 py-0.5 rounded-full">
                       Premium
                     </span>
                   )}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Receive weekly analytics and performance reports
                 </p>
               </div>
@@ -318,13 +318,13 @@ export default function NotificationsPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50"
           >
             {isSubmitting ? "Saving..." : "Save Settings"}
           </button>
           <Link
             to="/tenant/settings"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

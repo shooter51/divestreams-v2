@@ -90,13 +90,13 @@ export default function ZapierIntegrationSettings() {
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Zapier Integration</h1>
-        <p className="text-gray-600">
+        <p className="text-foreground-muted">
           Connect DiveStreams to 5000+ apps using Zapier workflow automation.
         </p>
       </div>
 
       {/* Setup Instructions */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+      <div className="bg-brand-muted border border-brand rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold mb-3">Setup Instructions</h2>
         <ol className="list-decimal list-inside space-y-2 text-sm">
           <li>Generate an API key below (if you haven't already)</li>
@@ -106,7 +106,7 @@ export default function ZapierIntegrationSettings() {
               href="https://zapier.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-brand hover:underline"
             >
               Zapier.com
             </a>{" "}
@@ -119,7 +119,7 @@ export default function ZapierIntegrationSettings() {
       </div>
 
       {/* API Keys Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="bg-surface-raised rounded-lg shadow-sm border border-border p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">API Keys</h2>
           <Form method="post">
@@ -127,7 +127,7 @@ export default function ZapierIntegrationSettings() {
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50"
               onClick={() => setShowKeyModal(true)}
             >
               {isLoading ? "Generating..." : "Generate New Key"}
@@ -136,7 +136,7 @@ export default function ZapierIntegrationSettings() {
         </div>
 
         {data.apiKeys.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-foreground-muted text-center py-8">
             No API keys generated yet. Create one to get started with Zapier.
           </p>
         ) : (
@@ -144,14 +144,14 @@ export default function ZapierIntegrationSettings() {
             {data.apiKeys.map((key: any) => (
               <div
                 key={key.id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                className="flex items-center justify-between p-4 border border-border rounded-lg"
               >
                 <div className="flex-1">
                   <div className="font-mono text-sm">{key.keyPrefix}...</div>
                   {key.label && (
-                    <div className="text-xs text-gray-500 mt-1">{key.label}</div>
+                    <div className="text-xs text-foreground-muted mt-1">{key.label}</div>
                   )}
-                  <div className="text-xs text-gray-400 mt-1">
+                  <div className="text-xs text-foreground-subtle mt-1">
                     Created: {new Date(key.createdAt).toLocaleDateString()}
                     {key.lastUsedAt && (
                       <span className="ml-3">
@@ -166,7 +166,7 @@ export default function ZapierIntegrationSettings() {
                   <button
                     type="submit"
                     disabled={!key.isActive || isLoading}
-                    className="text-red-600 hover:text-red-700 text-sm disabled:opacity-50"
+                    className="text-danger hover:text-danger text-sm disabled:opacity-50"
                   >
                     {key.isActive ? "Revoke" : "Revoked"}
                   </button>
@@ -180,12 +180,12 @@ export default function ZapierIntegrationSettings() {
       {/* New API Key Modal */}
       {showKeyModal && newApiKey && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="bg-surface-raised rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold mb-3">New API Key Generated</h3>
-            <div className="bg-gray-100 p-3 rounded mb-4 break-all font-mono text-sm">
+            <div className="bg-surface-inset p-3 rounded mb-4 break-all font-mono text-sm">
               {newApiKey}
             </div>
-            <p className="text-sm text-red-600 mb-4">
+            <p className="text-sm text-danger mb-4">
               ⚠️ Save this key now. You won't be able to see it again!
             </p>
             <button
@@ -194,7 +194,7 @@ export default function ZapierIntegrationSettings() {
                 setShowKeyModal(false);
                 setNewApiKey(null);
               }}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="w-full bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
             >
               Copy and Close
             </button>
@@ -203,17 +203,17 @@ export default function ZapierIntegrationSettings() {
       )}
 
       {/* Available Triggers */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="bg-surface-raised rounded-lg shadow-sm border border-border p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">Available Triggers</h2>
         <div className="space-y-2">
           {data.triggers.map((trigger: { key: string; description: string }) => (
             <div
               key={trigger.key}
-              className="flex items-start p-3 border border-gray-100 rounded"
+              className="flex items-start p-3 border border-border rounded"
             >
               <div className="flex-1">
                 <div className="font-medium text-sm">{trigger.key}</div>
-                <div className="text-xs text-gray-600">{trigger.description}</div>
+                <div className="text-xs text-foreground-muted">{trigger.description}</div>
               </div>
             </div>
           ))}
@@ -221,32 +221,32 @@ export default function ZapierIntegrationSettings() {
       </div>
 
       {/* Webhook Statistics */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-surface-raised rounded-lg shadow-sm border border-border p-6">
         <h2 className="text-xl font-semibold mb-4">Webhook Statistics</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-brand">
               {data.webhookStats.activeSubscriptions}
             </div>
-            <div className="text-xs text-gray-600">Active Subscriptions</div>
+            <div className="text-xs text-foreground-muted">Active Subscriptions</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               {data.webhookStats.successfulDeliveries}
             </div>
-            <div className="text-xs text-gray-600">Successful Deliveries</div>
+            <div className="text-xs text-foreground-muted">Successful Deliveries</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-danger">
               {data.webhookStats.failedDeliveries}
             </div>
-            <div className="text-xs text-gray-600">Failed Deliveries</div>
+            <div className="text-xs text-foreground-muted">Failed Deliveries</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-600">
+            <div className="text-2xl font-bold text-foreground-muted">
               {data.webhookStats.totalDeliveries}
             </div>
-            <div className="text-xs text-gray-600">Total Deliveries</div>
+            <div className="text-xs text-foreground-muted">Total Deliveries</div>
           </div>
         </div>
 
@@ -258,7 +258,7 @@ export default function ZapierIntegrationSettings() {
               {data.webhookStats.recentDeliveries.map((delivery: any) => (
                 <div
                   key={delivery.id}
-                  className="flex items-center justify-between p-2 border border-gray-100 rounded text-sm"
+                  className="flex items-center justify-between p-2 border border-border rounded text-sm"
                 >
                   <div className="flex-1">
                     <span className="font-medium">{delivery.eventType}</span>
@@ -267,15 +267,15 @@ export default function ZapierIntegrationSettings() {
                     <span
                       className={`px-2 py-1 rounded text-xs ${
                         delivery.status === "success"
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-success-muted text-success"
                           : delivery.status === "failed"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
+                            ? "bg-danger-muted text-danger"
+                            : "bg-warning-muted text-warning"
                       }`}
                     >
                       {delivery.status}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-foreground-muted">
                       {new Date(delivery.createdAt).toLocaleString()}
                     </span>
                   </div>
@@ -287,13 +287,13 @@ export default function ZapierIntegrationSettings() {
       </div>
 
       {/* Documentation Link */}
-      <div className="mt-6 text-center text-sm text-gray-500">
+      <div className="mt-6 text-center text-sm text-foreground-muted">
         Need help?{" "}
         <a
           href="https://docs.divestreams.com/integrations/zapier"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:underline"
+          className="text-brand hover:underline"
         >
           View Zapier Integration Documentation
         </a>

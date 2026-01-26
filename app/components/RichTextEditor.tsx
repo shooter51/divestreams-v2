@@ -92,9 +92,9 @@ export function RichTextEditor({
   ];
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-white">
+    <div className="border rounded-lg overflow-hidden bg-surface-raised">
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-2 bg-gray-50 border-b">
+      <div className="flex items-center gap-1 p-2 bg-surface-inset border-b">
         {/* Format Dropdown */}
         <select
           className="px-2 py-1 border rounded text-sm"
@@ -108,7 +108,7 @@ export function RichTextEditor({
           <option value="p">Paragraph</option>
         </select>
 
-        <div className="w-px h-6 bg-gray-300 mx-1" />
+        <div className="w-px h-6 bg-border-strong mx-1" />
 
         {/* Formatting Buttons */}
         {buttons.map((button) => (
@@ -117,21 +117,21 @@ export function RichTextEditor({
             type="button"
             title={button.title}
             onClick={button.onClick || (() => execCommand(button.command))}
-            className={`px-3 py-1 rounded hover:bg-gray-200 transition-colors ${button.className}`}
+            className={`px-3 py-1 rounded hover:bg-surface-overlay transition-colors ${button.className}`}
             onMouseDown={(e) => e.preventDefault()} // Prevent losing focus
           >
             {button.label}
           </button>
         ))}
 
-        <div className="w-px h-6 bg-gray-300 mx-1" />
+        <div className="w-px h-6 bg-border-strong mx-1" />
 
         {/* Alignment */}
         <button
           type="button"
           title="Align Left"
           onClick={() => execCommand("justifyLeft")}
-          className="px-3 py-1 rounded hover:bg-gray-200"
+          className="px-3 py-1 rounded hover:bg-surface-overlay"
           onMouseDown={(e) => e.preventDefault()}
         >
           ⬅
@@ -140,7 +140,7 @@ export function RichTextEditor({
           type="button"
           title="Align Center"
           onClick={() => execCommand("justifyCenter")}
-          className="px-3 py-1 rounded hover:bg-gray-200"
+          className="px-3 py-1 rounded hover:bg-surface-overlay"
           onMouseDown={(e) => e.preventDefault()}
         >
           ⬌
@@ -149,7 +149,7 @@ export function RichTextEditor({
           type="button"
           title="Align Right"
           onClick={() => execCommand("justifyRight")}
-          className="px-3 py-1 rounded hover:bg-gray-200"
+          className="px-3 py-1 rounded hover:bg-surface-overlay"
           onMouseDown={(e) => e.preventDefault()}
         >
           ➡
@@ -164,7 +164,7 @@ export function RichTextEditor({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         className={`px-4 py-3 outline-none prose max-w-none ${
-          isFocused ? "ring-2 ring-blue-500 ring-inset" : ""
+          isFocused ? "ring-2 ring-brand ring-inset" : ""
         }`}
         style={{ minHeight: `${minHeight}px` }}
         data-placeholder={placeholder}

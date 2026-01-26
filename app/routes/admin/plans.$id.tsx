@@ -138,7 +138,7 @@ export default function EditPlanPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/plans" className="text-blue-600 hover:underline text-sm">
+        <Link to="/plans" className="text-brand hover:underline text-sm">
           &larr; Back to Plans
         </Link>
         <h1 className="text-2xl font-bold mt-2">
@@ -146,9 +146,9 @@ export default function EditPlanPage() {
         </h1>
       </div>
 
-      <form method="post" className="bg-white rounded-xl p-6 shadow-sm space-y-6">
+      <form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
         {actionData?.errors?.form && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+          <div className="bg-danger-muted text-danger p-3 rounded-lg text-sm">
             {actionData.errors.form}
           </div>
         )}
@@ -165,11 +165,11 @@ export default function EditPlanPage() {
               defaultValue={plan?.name || ""}
               placeholder="e.g., starter, pro, enterprise"
               pattern="[a-z0-9_-]+"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono"
               required
             />
             {actionData?.errors?.name && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+              <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
             )}
           </div>
 
@@ -183,11 +183,11 @@ export default function EditPlanPage() {
               name="displayName"
               defaultValue={plan?.displayName || ""}
               placeholder="e.g., Starter, Professional"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               required
             />
             {actionData?.errors?.displayName && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.displayName}</p>
+              <p className="text-danger text-sm mt-1">{actionData.errors.displayName}</p>
             )}
           </div>
 
@@ -203,11 +203,11 @@ export default function EditPlanPage() {
               min="0"
               defaultValue={plan ? (plan.monthlyPrice / 100).toFixed(2) : ""}
               placeholder="49.00"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               required
             />
             {actionData?.errors?.monthlyPrice && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.monthlyPrice}</p>
+              <p className="text-danger text-sm mt-1">{actionData.errors.monthlyPrice}</p>
             )}
           </div>
 
@@ -223,11 +223,11 @@ export default function EditPlanPage() {
               min="0"
               defaultValue={plan ? (plan.yearlyPrice / 100).toFixed(2) : ""}
               placeholder="470.00"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               required
             />
             {actionData?.errors?.yearlyPrice && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.yearlyPrice}</p>
+              <p className="text-danger text-sm mt-1">{actionData.errors.yearlyPrice}</p>
             )}
           </div>
 
@@ -241,7 +241,7 @@ export default function EditPlanPage() {
               name="monthlyPriceId"
               defaultValue={plan?.monthlyPriceId || ""}
               placeholder="price_..."
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
             />
           </div>
 
@@ -255,20 +255,20 @@ export default function EditPlanPage() {
               name="yearlyPriceId"
               defaultValue={plan?.yearlyPriceId || ""}
               placeholder="price_..."
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
             />
           </div>
 
           <div className="col-span-2">
             <h3 className="text-sm font-medium mb-3">Plan Features</h3>
-            <div className="grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-2 gap-3 p-4 bg-surface-inset rounded-lg">
               {(Object.entries(FEATURE_LABELS) as [PlanFeatureKey, string][]).map(([key, label]) => (
                 <label key={key} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     name={`feature_${key}`}
                     defaultChecked={planFeatures?.[key] === true}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-strong text-brand focus:ring-brand"
                   />
                   <span className="text-sm">{label}</span>
                 </label>
@@ -286,9 +286,9 @@ export default function EditPlanPage() {
               rows={5}
               defaultValue={planFeatures?.descriptions?.join("\n") || ""}
               placeholder="Up to 3 users, 1,000 customers, Basic reporting..."
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Marketing text displayed on the pricing page (separate from technical feature flags above)
             </p>
           </div>
@@ -297,7 +297,7 @@ export default function EditPlanPage() {
             <h3 className="text-sm font-medium mb-3">Limits (-1 for unlimited)</h3>
             <div className="grid grid-cols-4 gap-4">
               <div>
-                <label htmlFor="limitUsers" className="block text-xs text-gray-500 mb-1">
+                <label htmlFor="limitUsers" className="block text-xs text-foreground-muted mb-1">
                   Team Members
                 </label>
                 <input
@@ -306,11 +306,11 @@ export default function EditPlanPage() {
                   name="limitUsers"
                   min={-1}
                   defaultValue={limits?.users ?? -1}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <div>
-                <label htmlFor="limitCustomers" className="block text-xs text-gray-500 mb-1">
+                <label htmlFor="limitCustomers" className="block text-xs text-foreground-muted mb-1">
                   Customers
                 </label>
                 <input
@@ -319,11 +319,11 @@ export default function EditPlanPage() {
                   name="limitCustomers"
                   min={-1}
                   defaultValue={limits?.customers ?? -1}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <div>
-                <label htmlFor="limitTours" className="block text-xs text-gray-500 mb-1">
+                <label htmlFor="limitTours" className="block text-xs text-foreground-muted mb-1">
                   Tours per Month
                 </label>
                 <input
@@ -332,11 +332,11 @@ export default function EditPlanPage() {
                   name="limitTours"
                   min={-1}
                   defaultValue={limits?.toursPerMonth ?? -1}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <div>
-                <label htmlFor="limitStorage" className="block text-xs text-gray-500 mb-1">
+                <label htmlFor="limitStorage" className="block text-xs text-foreground-muted mb-1">
                   Storage GB
                 </label>
                 <input
@@ -346,7 +346,7 @@ export default function EditPlanPage() {
                   min={0}
                   step="0.1"
                   defaultValue={limits?.storageGb ?? -1}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function EditPlanPage() {
               />
               <span className="text-sm font-medium">Active</span>
             </label>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Inactive plans won't be shown on the pricing page
             </p>
           </div>
@@ -372,11 +372,11 @@ export default function EditPlanPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : isNew ? "Create Plan" : "Save Changes"}
           </button>
-          <Link to="/plans" className="px-6 py-2 border rounded-lg hover:bg-gray-50">
+          <Link to="/plans" className="px-6 py-2 border rounded-lg hover:bg-surface-inset">
             Cancel
           </Link>
         </div>

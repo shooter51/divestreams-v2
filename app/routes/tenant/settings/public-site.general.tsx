@@ -64,7 +64,7 @@ export default function PublicSiteGeneralSettings() {
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg">
           {fetcher.data.message}
         </div>
       )}
@@ -73,11 +73,11 @@ export default function PublicSiteGeneralSettings() {
         <input type="hidden" name="intent" value="update-general" />
 
         {/* Enable/Disable Toggle */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-semibold">Public Site Status</h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-foreground-muted">
                 Enable or disable your public-facing website
               </p>
             </div>
@@ -89,15 +89,15 @@ export default function PublicSiteGeneralSettings() {
                 defaultChecked={settings.enabled}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-surface-overlay peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-surface-raised after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
             </label>
           </div>
         </div>
 
         {/* Custom Domain */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
           <h2 className="font-semibold mb-2">Custom Domain</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-foreground-muted mb-4">
             Use your own domain for your public site (optional)
           </p>
 
@@ -111,11 +111,11 @@ export default function PublicSiteGeneralSettings() {
               name="customDomain"
               defaultValue={customDomain || ""}
               placeholder="www.yourdiveshop.com"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               disabled={!isPremium}
             />
             {!isPremium && (
-              <p className="text-xs text-yellow-600 mt-1">
+              <p className="text-xs text-warning mt-1">
                 Custom domains are available on paid plans.{" "}
                 <a href="/tenant/settings/billing" className="underline">
                   Upgrade now
@@ -124,34 +124,34 @@ export default function PublicSiteGeneralSettings() {
             )}
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-800 mb-2">DNS Setup Instructions</h3>
-            <p className="text-sm text-blue-700 mb-3">
+          <div className="bg-brand-muted border border-brand-muted rounded-lg p-4">
+            <h3 className="font-medium text-brand mb-2">DNS Setup Instructions</h3>
+            <p className="text-sm text-brand mb-3">
               To use a custom domain, add a CNAME record pointing to your subdomain:
             </p>
-            <div className="bg-white rounded p-3 font-mono text-sm">
-              <div className="grid grid-cols-3 gap-4 text-gray-600">
+            <div className="bg-surface-raised rounded p-3 font-mono text-sm">
+              <div className="grid grid-cols-3 gap-4 text-foreground-muted">
                 <div>
-                  <span className="text-gray-400">Type:</span> CNAME
+                  <span className="text-foreground-subtle">Type:</span> CNAME
                 </div>
                 <div>
-                  <span className="text-gray-400">Name:</span> www
+                  <span className="text-foreground-subtle">Name:</span> www
                 </div>
                 <div>
-                  <span className="text-gray-400">Value:</span> {orgSlug}.{baseDomain}
+                  <span className="text-foreground-subtle">Value:</span> {orgSlug}.{baseDomain}
                 </div>
               </div>
             </div>
-            <p className="text-xs text-blue-600 mt-2">
+            <p className="text-xs text-brand mt-2">
               DNS changes may take up to 48 hours to propagate.
             </p>
           </div>
         </div>
 
         {/* Page Toggles */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
           <h2 className="font-semibold mb-2">Enabled Pages</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-foreground-muted mb-4">
             Choose which pages are visible on your public site
           </p>
 
@@ -177,7 +177,7 @@ export default function PublicSiteGeneralSettings() {
             ].map((page) => (
               <label
                 key={page.id}
-                className={`flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer ${
+                className={`flex items-center justify-between p-3 border rounded-lg hover:bg-surface-inset cursor-pointer ${
                   page.premium && !isPremium ? "opacity-50" : ""
                 }`}
               >
@@ -188,16 +188,16 @@ export default function PublicSiteGeneralSettings() {
                     value="true"
                     defaultChecked={settings?.pages?.[page.id as keyof typeof settings.pages] ?? false}
                     disabled={page.premium && !isPremium}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-brand rounded focus:ring-brand"
                   />
                   <div>
                     <span className="font-medium">{page.label}</span>
                     {page.premium && (
-                      <span className="ml-2 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+                      <span className="ml-2 text-xs bg-warning-muted text-warning px-2 py-0.5 rounded-full">
                         Premium
                       </span>
                     )}
-                    <p className="text-sm text-gray-500">{page.description}</p>
+                    <p className="text-sm text-foreground-muted">{page.description}</p>
                   </div>
                 </div>
               </label>
@@ -206,20 +206,20 @@ export default function PublicSiteGeneralSettings() {
         </div>
 
         {/* Default Site URL */}
-        <div className="bg-gray-50 rounded-xl p-6 mb-6">
+        <div className="bg-surface-inset rounded-xl p-6 mb-6">
           <h2 className="font-semibold mb-2">Default Site URL</h2>
-          <p className="text-sm text-gray-600 mb-3">
+          <p className="text-sm text-foreground-muted mb-3">
             Your public site is always available at this URL:
           </p>
           <div className="flex items-center gap-3">
-            <code className="bg-white px-4 py-2 rounded border text-sm flex-1">
+            <code className="bg-surface-raised px-4 py-2 rounded border text-sm flex-1">
               {publicSiteUrl}
             </code>
             <a
               href={publicSiteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+              className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
             >
               Visit Site
             </a>
@@ -230,7 +230,7 @@ export default function PublicSiteGeneralSettings() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
           >
             {isSubmitting ? "Saving..." : "Save General Settings"}
           </button>

@@ -159,19 +159,19 @@ export function BarcodeScanner({
 
   if (permissionDenied) {
     return (
-      <div className={`bg-gray-100 rounded-lg p-6 text-center ${className}`}>
-        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-          <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className={`bg-surface-inset rounded-lg p-6 text-center ${className}`}>
+        <div className="w-12 h-12 bg-danger-muted rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg className="w-6 h-6 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 className="font-semibold text-gray-900 mb-2">Camera Access Denied</h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <h3 className="font-semibold text-foreground mb-2">Camera Access Denied</h3>
+        <p className="text-sm text-foreground-muted mb-4">
           Please allow camera access in your browser settings to use the barcode scanner.
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+          className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
         >
           Try Again
         </button>
@@ -181,20 +181,20 @@ export function BarcodeScanner({
 
   if (error && !permissionDenied) {
     return (
-      <div className={`bg-gray-100 rounded-lg p-6 text-center ${className}`}>
-        <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
-          <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className={`bg-surface-inset rounded-lg p-6 text-center ${className}`}>
+        <div className="w-12 h-12 bg-warning-muted rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg className="w-6 h-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 className="font-semibold text-gray-900 mb-2">Scanner Error</h3>
-        <p className="text-sm text-gray-600 mb-4">{error}</p>
+        <h3 className="font-semibold text-foreground mb-2">Scanner Error</h3>
+        <p className="text-sm text-foreground-muted mb-4">{error}</p>
         <button
           onClick={() => {
             setError(null);
             setIsInitialized(false);
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+          className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
         >
           Retry
         </button>

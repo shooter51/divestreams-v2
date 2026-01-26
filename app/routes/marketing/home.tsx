@@ -31,15 +31,15 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <div className="text-2xl font-bold text-blue-600">DiveStreams</div>
+        <div className="text-2xl font-bold text-brand">DiveStreams</div>
         <div className="flex gap-6 items-center">
-          <a href="/features" className="text-gray-600 hover:text-blue-600">
+          <a href="/features" className="text-foreground-muted hover:text-brand">
             Features
           </a>
-          <a href="/pricing" className="text-gray-600 hover:text-blue-600">
+          <a href="/pricing" className="text-foreground-muted hover:text-brand">
             Pricing
           </a>
-          <a href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <a href="/signup" className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover">
             Start Free Trial
           </a>
         </div>
@@ -47,29 +47,29 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-6">
+        <h1 className="text-5xl font-bold text-foreground mb-6">
           Run Your Dive Shop
-          <span className="text-blue-600"> Effortlessly</span>
+          <span className="text-brand"> Effortlessly</span>
         </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+        <p className="text-xl text-foreground-muted mb-8 max-w-2xl mx-auto">
           The all-in-one platform for dive shops to manage bookings, customers,
           equipment, and operations. Built by divers, for divers.
         </p>
         <div className="flex gap-4 justify-center">
           <a
             href="/signup"
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700"
+            className="bg-brand text-white px-8 py-3 rounded-lg text-lg hover:bg-brand-hover"
           >
             Start 14-Day Free Trial
           </a>
           <a
             href="/features"
-            className="border border-gray-300 px-8 py-3 rounded-lg text-lg hover:bg-gray-50"
+            className="border border-strong px-8 py-3 rounded-lg text-lg hover:bg-surface-inset"
           >
             See Features
           </a>
         </div>
-        <p className="text-sm text-gray-500 mt-4">No credit card required</p>
+        <p className="text-sm text-foreground-muted mt-4">No credit card required</p>
       </section>
 
       {/* Features Grid */}
@@ -112,7 +112,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-blue-600 text-white py-20">
+      <section className="bg-brand text-white py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Streamline Your Operations?</h2>
           <p className="text-xl mb-8 text-blue-100">
@@ -120,7 +120,7 @@ export default function HomePage() {
           </p>
           <a
             href="/signup"
-            className="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg hover:bg-blue-50 inline-block"
+            className="bg-surface-raised text-brand px-8 py-3 rounded-lg text-lg hover:bg-brand-muted inline-block"
           >
             Start Your Free Trial
           </a>
@@ -129,15 +129,15 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-12">
-        <div className="flex justify-between items-center text-gray-600">
-          <div className="text-xl font-bold text-blue-600">DiveStreams</div>
+        <div className="flex justify-between items-center text-foreground-muted">
+          <div className="text-xl font-bold text-brand">DiveStreams</div>
           <div className="flex gap-6">
             <a href="/pricing">Pricing</a>
             <a href="/features">Features</a>
             <a href="mailto:support@divestreams.com">Support</a>
           </div>
         </div>
-        <div className="text-center text-gray-500 mt-8">
+        <div className="text-center text-foreground-muted mt-8">
           © {new Date().getFullYear()} DiveStreams. All rights reserved.
         </div>
       </footer>
@@ -147,10 +147,10 @@ export default function HomePage() {
 
 function FeatureCard({ title, description, icon }: { title: string; description: string; icon: string }) {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div className="bg-surface-raised p-6 rounded-xl shadow-sm border border-default">
       <div className="text-4xl mb-4">{icon}</div>
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
+      <p className="text-foreground-muted">{description}</p>
     </div>
   );
 }

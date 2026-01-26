@@ -52,7 +52,7 @@ export default function NewBoatPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/boats" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/boats" className="text-brand hover:underline text-sm">
           ← Back to Boats
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Boat</h1>
@@ -60,7 +60,7 @@ export default function NewBoatPage() {
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
@@ -73,10 +73,10 @@ export default function NewBoatPage() {
                 name="name"
                 required
                 defaultValue={actionData?.values?.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.name && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
               )}
             </div>
 
@@ -89,7 +89,7 @@ export default function NewBoatPage() {
                   id="type"
                   name="type"
                   defaultValue={actionData?.values?.type || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">Select type...</option>
                   <option value="Dive Boat">Dive Boat</option>
@@ -113,10 +113,10 @@ export default function NewBoatPage() {
                   min="1"
                   max="100"
                   defaultValue={actionData?.values?.capacity}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
                 {actionData?.errors?.capacity && (
-                  <p className="text-red-500 text-sm mt-1">{actionData.errors.capacity}</p>
+                  <p className="text-danger text-sm mt-1">{actionData.errors.capacity}</p>
                 )}
               </div>
             </div>
@@ -130,14 +130,14 @@ export default function NewBoatPage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Registration */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Registration</h2>
           <div>
             <label htmlFor="registrationNumber" className="block text-sm font-medium mb-1">
@@ -149,13 +149,13 @@ export default function NewBoatPage() {
               name="registrationNumber"
               placeholder="e.g., PW-1234-DV"
               defaultValue={actionData?.values?.registrationNumber}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
 
         {/* Amenities */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Amenities & Features</h2>
           <div>
             <label htmlFor="amenities" className="block text-sm font-medium mb-1">
@@ -167,9 +167,9 @@ export default function NewBoatPage() {
               name="amenities"
               placeholder="e.g., Dive platform, Sun deck, Toilet, Shower (comma-separated)"
               defaultValue={actionData?.values?.amenities}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Separate multiple amenities with commas
             </p>
           </div>
@@ -199,7 +199,7 @@ export default function NewBoatPage() {
                       input.value = current ? `${current}, ${amenity}` : amenity;
                     }
                   }}
-                  className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+                  className="text-xs bg-surface-inset hover:bg-surface-overlay px-2 py-1 rounded"
                 >
                   + {amenity}
                 </button>
@@ -209,7 +209,7 @@ export default function NewBoatPage() {
         </div>
 
         {/* Status */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -220,7 +220,7 @@ export default function NewBoatPage() {
             />
             <span className="font-medium">Active</span>
           </label>
-          <p className="text-sm text-gray-500 mt-1 ml-6">
+          <p className="text-sm text-foreground-muted mt-1 ml-6">
             Active boats can be assigned to trips
           </p>
         </div>
@@ -230,13 +230,13 @@ export default function NewBoatPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Add Boat"}
           </button>
           <Link
             to="/tenant/boats"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

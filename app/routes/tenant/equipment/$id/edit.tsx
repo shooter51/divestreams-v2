@@ -150,7 +150,7 @@ export default function EditEquipmentPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/tenant/equipment/${equipment.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/equipment/${equipment.id}`} className="text-brand hover:underline text-sm">
           ← Back to Equipment
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Equipment</h1>
@@ -158,7 +158,7 @@ export default function EditEquipmentPage() {
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
@@ -171,7 +171,7 @@ export default function EditEquipmentPage() {
                 name="name"
                 required
                 defaultValue={actionData?.values?.name || equipment.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -185,7 +185,7 @@ export default function EditEquipmentPage() {
                   name="category"
                   required
                   defaultValue={actionData?.values?.category || equipment.category}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="bcd">BCD</option>
                   <option value="regulator">Regulator</option>
@@ -208,7 +208,7 @@ export default function EditEquipmentPage() {
                   name="size"
                   placeholder="e.g., M, L, XL"
                   defaultValue={actionData?.values?.size || equipment.size}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -223,7 +223,7 @@ export default function EditEquipmentPage() {
                   id="brand"
                   name="brand"
                   defaultValue={actionData?.values?.brand || equipment.brand}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -236,7 +236,7 @@ export default function EditEquipmentPage() {
                   id="model"
                   name="model"
                   defaultValue={actionData?.values?.model || equipment.model}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -250,7 +250,7 @@ export default function EditEquipmentPage() {
                 id="serialNumber"
                 name="serialNumber"
                 defaultValue={actionData?.values?.serialNumber || equipment.serialNumber}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -265,7 +265,7 @@ export default function EditEquipmentPage() {
                   name="barcode"
                   value={barcodeValue}
                   onChange={(e) => setBarcodeValue(e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="EAN-13, UPC, etc."
                 />
                 <button
@@ -284,7 +284,7 @@ export default function EditEquipmentPage() {
         </div>
 
         {/* Images */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Equipment Images</h2>
           <ImageManager
             entityType="equipment"
@@ -295,7 +295,7 @@ export default function EditEquipmentPage() {
         </div>
 
         {/* Status & Condition */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Status & Condition</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -307,7 +307,7 @@ export default function EditEquipmentPage() {
                 name="status"
                 required
                 defaultValue={actionData?.values?.status || equipment.status}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="available">Available</option>
                 <option value="rented">Rented</option>
@@ -325,7 +325,7 @@ export default function EditEquipmentPage() {
                 name="condition"
                 required
                 defaultValue={actionData?.values?.condition || equipment.condition}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="excellent">Excellent</option>
                 <option value="good">Good</option>
@@ -337,7 +337,7 @@ export default function EditEquipmentPage() {
         </div>
 
         {/* Rental */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Rental Settings</h2>
           <div className="space-y-4">
             <label className="flex items-center gap-3">
@@ -362,14 +362,14 @@ export default function EditEquipmentPage() {
                 step="0.01"
                 min="0"
                 defaultValue={actionData?.values?.rentalPrice || equipment.rentalPrice}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Service */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Service Information</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -381,7 +381,7 @@ export default function EditEquipmentPage() {
                 id="lastServiceDate"
                 name="lastServiceDate"
                 defaultValue={actionData?.values?.lastServiceDate || equipment.lastServiceDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -394,7 +394,7 @@ export default function EditEquipmentPage() {
                 id="nextServiceDate"
                 name="nextServiceDate"
                 defaultValue={actionData?.values?.nextServiceDate || equipment.nextServiceDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -408,20 +408,20 @@ export default function EditEquipmentPage() {
               name="serviceNotes"
               rows={2}
               defaultValue={actionData?.values?.serviceNotes || equipment.serviceNotes}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Notes</h2>
           <textarea
             id="notes"
             name="notes"
             rows={3}
             defaultValue={actionData?.values?.notes || equipment.notes}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
           <div className="mt-4">
             <label className="flex items-center gap-2">
@@ -434,7 +434,7 @@ export default function EditEquipmentPage() {
               />
               <span className="text-sm font-medium">Show on public website</span>
             </label>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Make this equipment visible on your public rental catalog
             </p>
           </div>
@@ -445,13 +445,13 @@ export default function EditEquipmentPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
             to={`/tenant/equipment/${equipment.id}`}
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

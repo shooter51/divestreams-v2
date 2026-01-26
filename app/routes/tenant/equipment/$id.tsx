@@ -183,17 +183,17 @@ const categoryLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  available: "bg-green-100 text-green-700",
-  rented: "bg-blue-100 text-blue-700",
-  maintenance: "bg-yellow-100 text-yellow-700",
-  retired: "bg-gray-100 text-gray-600",
+  available: "bg-success-muted text-success",
+  rented: "bg-brand-muted text-brand",
+  maintenance: "bg-warning-muted text-warning",
+  retired: "bg-surface-inset text-foreground-muted",
 };
 
 const conditionColors: Record<string, string> = {
-  excellent: "bg-green-100 text-green-700",
-  good: "bg-blue-100 text-blue-700",
-  fair: "bg-yellow-100 text-yellow-700",
-  poor: "bg-red-100 text-red-700",
+  excellent: "bg-success-muted text-success",
+  good: "bg-brand-muted text-brand",
+  fair: "bg-warning-muted text-warning",
+  poor: "bg-danger-muted text-danger",
 };
 
 export default function EquipmentDetailPage() {
@@ -213,7 +213,7 @@ export default function EquipmentDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/equipment" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/equipment" className="text-brand hover:underline text-sm">
           ← Back to Equipment
         </Link>
       </div>
@@ -233,14 +233,14 @@ export default function EquipmentDetailPage() {
               {equipment.condition}
             </span>
           </div>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {categoryLabels[equipment.category]} • {equipment.brand} {equipment.model}
           </p>
         </div>
         <div className="flex gap-2">
           <Link
             to={`/tenant/equipment/${equipment.id}/edit`}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Edit
           </Link>
@@ -249,7 +249,7 @@ export default function EquipmentDetailPage() {
               <input type="hidden" name="intent" value="retire" />
               <button
                 type="submit"
-                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
               >
                 Retire
               </button>
@@ -257,7 +257,7 @@ export default function EquipmentDetailPage() {
           )}
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+            className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
             Delete
           </button>
@@ -269,26 +269,26 @@ export default function EquipmentDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.totalRentals}</p>
-              <p className="text-gray-500 text-sm">Total Rentals</p>
+              <p className="text-foreground-muted text-sm">Total Rentals</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-green-600">${stats.rentalRevenue}</p>
-              <p className="text-gray-500 text-sm">Revenue</p>
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+              <p className="text-2xl font-bold text-success">${stats.rentalRevenue}</p>
+              <p className="text-foreground-muted text-sm">Revenue</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.daysRented}</p>
-              <p className="text-gray-500 text-sm">Days Rented</p>
+              <p className="text-foreground-muted text-sm">Days Rented</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.avgRentalsPerMonth}</p>
-              <p className="text-gray-500 text-sm">Avg/Month</p>
+              <p className="text-foreground-muted text-sm">Avg/Month</p>
             </div>
           </div>
 
           {/* Images */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Equipment Images</h2>
             <ImageManager
               entityType="equipment"
@@ -299,14 +299,14 @@ export default function EquipmentDetailPage() {
           </div>
 
           {/* Change Status */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Quick Status Change</h2>
             <fetcher.Form method="post" className="flex gap-2">
               <input type="hidden" name="intent" value="update-status" />
               <select
                 name="status"
                 defaultValue={equipment.status}
-                className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="available">Available</option>
                 <option value="rented">Rented</option>
@@ -315,7 +315,7 @@ export default function EquipmentDetailPage() {
               </select>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
               >
                 Update
               </button>
@@ -323,29 +323,29 @@ export default function EquipmentDetailPage() {
           </div>
 
           {/* Rental History */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Recent Rentals</h2>
             {rentalHistory.length === 0 ? (
-              <p className="text-gray-500 text-sm">No rental history.</p>
+              <p className="text-foreground-muted text-sm">No rental history.</p>
             ) : (
               <div className="space-y-3">
                 {rentalHistory.map((rental) => (
                   <Link
                     key={rental.id}
                     to={`/tenant/bookings/${rental.id}`}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                   >
                     <div>
                       <p className="font-medium">{rental.customerName}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-foreground-muted">
                         {rental.bookingNumber} • {rental.date}
                       </p>
                     </div>
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         rental.returned
-                          ? "bg-green-100 text-green-700"
-                          : "bg-blue-100 text-blue-700"
+                          ? "bg-success-muted text-success"
+                          : "bg-brand-muted text-brand"
                       }`}
                     >
                       {rental.returned ? "Returned" : "Active"}
@@ -357,7 +357,7 @@ export default function EquipmentDetailPage() {
           </div>
 
           {/* Service History */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Service History</h2>
             {serviceHistory.length > 0 ? (
               <div className="space-y-3 text-sm mb-4">
@@ -365,29 +365,29 @@ export default function EquipmentDetailPage() {
                   <div key={service.id} className="border-b pb-2 last:border-0">
                     <div className="flex justify-between items-start">
                       <span className="font-medium capitalize">{service.type}</span>
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-foreground-muted text-xs">
                         {service.date}
                       </span>
                     </div>
-                    <p className="text-gray-600 text-xs mt-1">{service.description}</p>
+                    <p className="text-foreground-muted text-xs mt-1">{service.description}</p>
                     {service.cost && (
-                      <p className="text-gray-500 text-xs">${service.cost}</p>
+                      <p className="text-foreground-muted text-xs">${service.cost}</p>
                     )}
                   </div>
                 ))}
                 {serviceHistory.length > 3 && (
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-foreground-muted text-xs">
                     +{serviceHistory.length - 3} more records
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm mb-4">No service records yet.</p>
+              <p className="text-foreground-muted text-sm mb-4">No service records yet.</p>
             )}
             <fetcher.Form method="post" className="space-y-3">
               <input type="hidden" name="intent" value="log-service" />
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Type</label>
+                <label className="block text-xs text-foreground-muted mb-1">Type</label>
                 <select
                   name="type"
                   className="w-full text-sm border rounded-lg px-3 py-2"
@@ -401,7 +401,7 @@ export default function EquipmentDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Description</label>
+                <label className="block text-xs text-foreground-muted mb-1">Description</label>
                 <input
                   type="text"
                   name="description"
@@ -411,7 +411,7 @@ export default function EquipmentDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Performed By</label>
+                <label className="block text-xs text-foreground-muted mb-1">Performed By</label>
                 <input
                   type="text"
                   name="performedBy"
@@ -420,7 +420,7 @@ export default function EquipmentDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Cost</label>
+                <label className="block text-xs text-foreground-muted mb-1">Cost</label>
                 <input
                   type="number"
                   name="cost"
@@ -430,7 +430,7 @@ export default function EquipmentDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Notes</label>
+                <label className="block text-xs text-foreground-muted mb-1">Notes</label>
                 <textarea
                   name="notes"
                   placeholder="Additional details..."
@@ -439,7 +439,7 @@ export default function EquipmentDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Next Service Date</label>
+                <label className="block text-xs text-foreground-muted mb-1">Next Service Date</label>
                 <input
                   type="date"
                   name="nextServiceDate"
@@ -447,17 +447,17 @@ export default function EquipmentDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Certification Expiry</label>
+                <label className="block text-xs text-foreground-muted mb-1">Certification Expiry</label>
                 <input
                   type="date"
                   name="certificationExpiry"
                   className="w-full text-sm border rounded-lg px-3 py-2"
                 />
-                <p className="text-xs text-gray-500 mt-1">For tanks, regulators, etc.</p>
+                <p className="text-xs text-foreground-muted mt-1">For tanks, regulators, etc.</p>
               </div>
               <button
                 type="submit"
-                className="w-full text-center py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                className="w-full text-center py-2 text-sm text-white bg-brand rounded-lg hover:bg-brand-hover"
               >
                 Log Service
               </button>
@@ -466,9 +466,9 @@ export default function EquipmentDetailPage() {
 
           {/* Notes */}
           {equipment.notes && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-3">Notes</h2>
-              <p className="text-gray-700">{equipment.notes}</p>
+              <p className="text-foreground">{equipment.notes}</p>
             </div>
           )}
         </div>
@@ -476,30 +476,30 @@ export default function EquipmentDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Details */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Details</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Category</span>
+                <span className="text-foreground-muted">Category</span>
                 <span>{categoryLabels[equipment.category]}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Brand</span>
+                <span className="text-foreground-muted">Brand</span>
                 <span>{equipment.brand}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Model</span>
+                <span className="text-foreground-muted">Model</span>
                 <span>{equipment.model}</span>
               </div>
               {equipment.serialNumber && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Serial #</span>
+                  <span className="text-foreground-muted">Serial #</span>
                   <span>{equipment.serialNumber}</span>
                 </div>
               )}
               {equipment.size && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Size</span>
+                  <span className="text-foreground-muted">Size</span>
                   <span>{equipment.size}</span>
                 </div>
               )}
@@ -507,16 +507,16 @@ export default function EquipmentDetailPage() {
           </div>
 
           {/* Rental Info */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Rental</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Rentable</span>
+                <span className="text-foreground-muted">Rentable</span>
                 <span>{equipment.isRentable ? "Yes" : "No"}</span>
               </div>
               {equipment.isRentable && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Price/Day</span>
+                  <span className="text-foreground-muted">Price/Day</span>
                   <span className="font-medium">${equipment.rentalPrice}</span>
                 </div>
               )}
@@ -524,26 +524,26 @@ export default function EquipmentDetailPage() {
           </div>
 
           {/* Service */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Service</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Last Service</span>
+                <span className="text-foreground-muted">Last Service</span>
                 <span>{equipment.lastServiceDate || "Never"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Next Due</span>
-                <span className={serviceDue ? "text-yellow-600 font-medium" : ""}>
+                <span className="text-foreground-muted">Next Due</span>
+                <span className={serviceDue ? "text-warning font-medium" : ""}>
                   {equipment.nextServiceDate || "Not set"}
                 </span>
               </div>
               {serviceDue && (
-                <p className="text-yellow-600 text-xs">Service overdue!</p>
+                <p className="text-warning text-xs">Service overdue!</p>
               )}
               {equipment.serviceNotes && (
                 <div className="pt-2 border-t">
-                  <p className="text-gray-500 mb-1">Last notes:</p>
-                  <p className="text-gray-700">{equipment.serviceNotes}</p>
+                  <p className="text-foreground-muted mb-1">Last notes:</p>
+                  <p className="text-foreground">{equipment.serviceNotes}</p>
                 </div>
               )}
             </div>
@@ -551,18 +551,18 @@ export default function EquipmentDetailPage() {
 
           {/* Purchase Info */}
           {(equipment.purchaseDate || equipment.purchasePrice) && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Purchase</h2>
               <div className="space-y-3 text-sm">
                 {equipment.purchaseDate && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Date</span>
+                    <span className="text-foreground-muted">Date</span>
                     <span>{equipment.purchaseDate}</span>
                   </div>
                 )}
                 {equipment.purchasePrice && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Price</span>
+                    <span className="text-foreground-muted">Price</span>
                     <span>${equipment.purchasePrice}</span>
                   </div>
                 )}
@@ -571,7 +571,7 @@ export default function EquipmentDetailPage() {
           )}
 
           {/* Meta */}
-          <div className="text-xs text-gray-400 space-y-1">
+          <div className="text-xs text-foreground-subtle space-y-1">
             <p>Created: {equipment.createdAt}</p>
             <p>Updated: {equipment.updatedAt}</p>
             <p>ID: {equipment.id}</p>

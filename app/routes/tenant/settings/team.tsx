@@ -242,18 +242,18 @@ export default function TeamPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
           ← Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Team Members</h1>
-        <p className="text-gray-500">
+        <p className="text-foreground-muted">
           {activeMembers} of {planLimit} team members used
         </p>
       </div>
 
       {/* Premium required warning for team invites */}
       {!canInviteTeamMembers && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-brand-muted border border-brand-muted text-brand px-4 py-3 rounded-lg mb-6">
           <p className="font-medium">Upgrade to invite team members</p>
           <p className="text-sm">
             Team member invitations are a premium feature.{" "}
@@ -267,7 +267,7 @@ export default function TeamPage() {
 
       {/* Plan limit warning */}
       {canInviteTeamMembers && atLimit && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-warning-muted border border-warning-muted text-warning px-4 py-3 rounded-lg mb-6">
           <p className="font-medium">Team limit reached</p>
           <p className="text-sm">
             Your current plan allows {planLimit} team members.{" "}
@@ -281,8 +281,8 @@ export default function TeamPage() {
 
       {/* Near limit warning */}
       {canInviteTeamMembers && isNearLimit && !atLimit && (
-        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-amber-800 text-sm">
+        <div className="mb-4 p-3 bg-warning-muted border border-warning-muted rounded-lg">
+          <p className="text-warning text-sm">
             {limitRemaining} of {planLimit} team member slots remaining.{" "}
             <Link to="/tenant/settings/billing" className="underline font-medium">
               Upgrade for more
@@ -298,8 +298,8 @@ export default function TeamPage() {
           disabled={atLimit || !canInviteTeamMembers}
           className={`px-4 py-2 rounded-lg ${
             atLimit || !canInviteTeamMembers
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              ? "bg-surface-overlay text-foreground-muted cursor-not-allowed"
+              : "bg-brand text-white hover:bg-brand-hover"
           }`}
         >
           Invite Team Member
@@ -307,12 +307,12 @@ export default function TeamPage() {
       </div>
 
       {/* Team List */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden mb-6">
         <div className="divide-y">
           {team.map((member) => (
             <div key={member.id} className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
+                <div className="w-10 h-10 bg-brand-muted text-brand rounded-full flex items-center justify-center font-medium">
                   {member.name
                     .split(" ")
                     .map((n: string) => n[0])
@@ -320,7 +320,7 @@ export default function TeamPage() {
                 </div>
                 <div>
                   <p className="font-medium">{member.name}</p>
-                  <p className="text-sm text-gray-500">{member.email}</p>
+                  <p className="text-sm text-foreground-muted">{member.email}</p>
                 </div>
               </div>
 
@@ -329,28 +329,28 @@ export default function TeamPage() {
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
                       member.role === "owner"
-                        ? "bg-purple-100 text-purple-700"
+                        ? "bg-info-muted text-info"
                         : member.role === "manager"
-                        ? "bg-blue-100 text-blue-700"
+                        ? "bg-brand-muted text-brand"
                         : member.role === "divemaster"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-700"
+                        ? "bg-success-muted text-success"
+                        : "bg-surface-inset text-foreground"
                     }`}
                   >
                     {roles.find((r) => r.id === member.role)?.name || member.role}
                   </span>
-                  <p className="text-xs text-gray-400 mt-1">{member.lastActive}</p>
+                  <p className="text-xs text-foreground-subtle mt-1">{member.lastActive}</p>
                 </div>
 
                 {member.role !== "owner" && (
                   <div className="relative group">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">⋮</button>
-                    <div className="absolute right-0 mt-1 w-48 bg-white border rounded-lg shadow-lg hidden group-hover:block z-10">
+                    <button className="p-2 hover:bg-surface-overlay rounded-lg">⋮</button>
+                    <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg hidden group-hover:block z-10">
                       <div className="py-1">
                         <fetcher.Form method="post">
                           <input type="hidden" name="intent" value="update-role" />
                           <input type="hidden" name="userId" value={member.id} />
-                          <div className="px-3 py-2 text-xs text-gray-500 font-medium">
+                          <div className="px-3 py-2 text-xs text-foreground-muted font-medium">
                             Change Role
                           </div>
                           {roles
@@ -361,8 +361,8 @@ export default function TeamPage() {
                                 type="submit"
                                 name="role"
                                 value={role.id}
-                                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${
-                                  member.role === role.id ? "bg-blue-50 text-blue-600" : ""
+                                className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-inset ${
+                                  member.role === role.id ? "bg-brand-muted text-brand" : ""
                                 }`}
                               >
                                 {role.name}
@@ -386,7 +386,7 @@ export default function TeamPage() {
                           <input type="hidden" name="userId" value={member.id} />
                           <button
                             type="submit"
-                            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                            className="w-full text-left px-3 py-2 text-sm text-danger hover:bg-danger-muted"
                           >
                             Remove from team
                           </button>
@@ -403,8 +403,8 @@ export default function TeamPage() {
 
       {/* Pending Invites */}
       {pendingInvites.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
-          <div className="px-4 py-3 border-b bg-gray-50">
+        <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden mb-6">
+          <div className="px-4 py-3 border-b bg-surface-inset">
             <h3 className="font-medium">Pending Invitations</h3>
           </div>
           <div className="divide-y">
@@ -412,7 +412,7 @@ export default function TeamPage() {
               <div key={invite.id} className="p-4 flex items-center justify-between">
                 <div>
                   <p className="font-medium">{invite.email}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-foreground-muted">
                     {roles.find((r) => r.id === invite.role)?.name} • Invited{" "}
                     {invite.invitedAt}
                   </p>
@@ -423,7 +423,7 @@ export default function TeamPage() {
                     <input type="hidden" name="inviteId" value={invite.id} />
                     <button
                       type="submit"
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-brand hover:underline"
                     >
                       Resend
                     </button>
@@ -433,7 +433,7 @@ export default function TeamPage() {
                     <input type="hidden" name="inviteId" value={invite.id} />
                     <button
                       type="submit"
-                      className="text-sm text-red-600 hover:underline"
+                      className="text-sm text-danger hover:underline"
                     >
                       Cancel
                     </button>
@@ -446,7 +446,7 @@ export default function TeamPage() {
       )}
 
       {/* Role Descriptions */}
-      <div className="bg-white rounded-xl p-6 shadow-sm">
+      <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
         <h3 className="font-semibold mb-4">Role Permissions</h3>
         <div className="space-y-4">
           {roles.map((role) => (
@@ -455,18 +455,18 @@ export default function TeamPage() {
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full ${
                     role.id === "owner"
-                      ? "bg-purple-100 text-purple-700"
+                      ? "bg-info-muted text-info"
                       : role.id === "manager"
-                      ? "bg-blue-100 text-blue-700"
+                      ? "bg-brand-muted text-brand"
                       : role.id === "divemaster"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-700"
+                      ? "bg-success-muted text-success"
+                      : "bg-surface-inset text-foreground"
                   }`}
                 >
                   {role.name}
                 </span>
               </div>
-              <p className="text-sm text-gray-600">{role.description}</p>
+              <p className="text-sm text-foreground-muted">{role.description}</p>
             </div>
           ))}
         </div>
@@ -474,8 +474,8 @@ export default function TeamPage() {
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4">Invite Team Member</h2>
             <fetcher.Form
               method="post"
@@ -494,7 +494,7 @@ export default function TeamPage() {
                     name="email"
                     required
                     placeholder="colleague@example.com"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
 
@@ -507,7 +507,7 @@ export default function TeamPage() {
                     name="role"
                     required
                     defaultValue="staff"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   >
                     {roles
                       .filter((r) => r.id !== "owner")
@@ -517,7 +517,7 @@ export default function TeamPage() {
                         </option>
                       ))}
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-foreground-muted mt-1">
                     {roles.find((r) => r.id === "staff")?.description}
                   </p>
                 </div>
@@ -526,14 +526,14 @@ export default function TeamPage() {
               <div className="flex gap-3 mt-6">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                  className="flex-1 bg-brand text-white py-2 rounded-lg hover:bg-brand-hover"
                 >
                   Send Invitation
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
-                  className="flex-1 border py-2 rounded-lg hover:bg-gray-50"
+                  className="flex-1 border py-2 rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>

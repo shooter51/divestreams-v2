@@ -117,26 +117,26 @@ export default function AlbumDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/gallery" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/gallery" className="text-brand hover:underline text-sm">
           ← Back to Gallery
         </Link>
       </div>
 
       {/* Album Header */}
-      <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+      <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
             <h1 className="text-2xl font-bold">{album.name}</h1>
             {album.description && (
-              <p className="text-gray-500 mt-1">{album.description}</p>
+              <p className="text-foreground-muted mt-1">{album.description}</p>
             )}
           </div>
           <div className="flex gap-2">
             <span
               className={`text-sm px-3 py-1 rounded-full ${
                 album.isPublic
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
+                  ? "bg-success-muted text-success"
+                  : "bg-surface-inset text-foreground-muted"
               }`}
             >
               {album.isPublic ? "Public" : "Private"}
@@ -159,7 +159,7 @@ export default function AlbumDetailPage() {
                 name="name"
                 defaultValue={album.name}
                 required
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -173,7 +173,7 @@ export default function AlbumDetailPage() {
                 name="sortOrder"
                 min="0"
                 defaultValue={album.sortOrder}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function AlbumDetailPage() {
               name="description"
               rows={2}
               defaultValue={album.description || ""}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
 
@@ -207,14 +207,14 @@ export default function AlbumDetailPage() {
           <div className="flex gap-2">
             <button
               type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
             >
               Save Changes
             </button>
             <button
               type="button"
               onClick={handleDeleteAlbum}
-              className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+              className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
             >
               Delete Album
             </button>
@@ -223,7 +223,7 @@ export default function AlbumDetailPage() {
       </div>
 
       {/* Images Section */}
-      <div className="bg-white rounded-xl p-6 shadow-sm">
+      <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">
             Images ({images.length})
@@ -231,7 +231,7 @@ export default function AlbumDetailPage() {
           <Link
             to="/tenant/images/upload"
             state={{ albumId: album.id }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
             + Upload Images
           </Link>
@@ -241,13 +241,13 @@ export default function AlbumDetailPage() {
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📷</div>
             <h3 className="text-lg font-semibold mb-2">No images yet</h3>
-            <p className="text-gray-500 mb-4">
+            <p className="text-foreground-muted mb-4">
               Upload your first images to this album
             </p>
             <Link
               to="/tenant/images/upload"
               state={{ albumId: album.id }}
-              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              className="inline-block bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover"
             >
               Upload Images
             </Link>
@@ -256,7 +256,7 @@ export default function AlbumDetailPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {images.map((image) => (
               <div key={image.id} className="relative group">
-                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                <div className="aspect-square bg-surface-inset rounded-lg overflow-hidden">
                   <img
                     src={image.thumbnailUrl || image.imageUrl}
                     alt={image.title || "Gallery image"}
@@ -276,7 +276,7 @@ export default function AlbumDetailPage() {
                         const form = e.currentTarget.form;
                         if (form) fetcher.submit(form);
                       }}
-                      className="px-2 py-1 text-xs rounded bg-white"
+                      className="px-2 py-1 text-xs rounded bg-surface-raised"
                     >
                       <option value="published">Published</option>
                       <option value="draft">Draft</option>
@@ -286,7 +286,7 @@ export default function AlbumDetailPage() {
 
                   <button
                     onClick={() => handleDeleteImage(image.id)}
-                    className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                    className="px-2 py-1 text-xs bg-danger text-white rounded hover:bg-danger-hover"
                   >
                     Delete
                   </button>
@@ -295,7 +295,7 @@ export default function AlbumDetailPage() {
                 {/* Featured Badge */}
                 {image.isFeatured && (
                   <div className="absolute top-2 left-2">
-                    <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">
+                    <span className="text-xs px-2 py-1 bg-warning-muted text-warning rounded-full">
                       ⭐ Featured
                     </span>
                   </div>
@@ -306,10 +306,10 @@ export default function AlbumDetailPage() {
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
                       image.status === "published"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-success-muted text-success"
                         : image.status === "draft"
-                        ? "bg-gray-100 text-gray-600"
-                        : "bg-red-100 text-red-700"
+                        ? "bg-surface-inset text-foreground-muted"
+                        : "bg-danger-muted text-danger"
                     }`}
                   >
                     {image.status}
@@ -318,7 +318,7 @@ export default function AlbumDetailPage() {
 
                 {/* Image Title */}
                 {image.title && (
-                  <p className="text-sm mt-2 text-gray-700 truncate">{image.title}</p>
+                  <p className="text-sm mt-2 text-foreground truncate">{image.title}</p>
                 )}
               </div>
             ))}

@@ -177,15 +177,15 @@ export default function ProfileSettingsPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
           ← Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Shop Profile</h1>
-        <p className="text-gray-500">Manage your dive shop information</p>
+        <p className="text-foreground-muted">Manage your dive shop information</p>
       </div>
 
       {actionData?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg mb-6">
           {actionData.message}
         </div>
       )}
@@ -194,7 +194,7 @@ export default function ProfileSettingsPage() {
       <form method="post" className="space-y-6">
         <input type="hidden" name="intent" value="update-profile" />
 
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -208,7 +208,7 @@ export default function ProfileSettingsPage() {
                   name="name"
                   required
                   defaultValue={profile.name}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <div>
@@ -218,13 +218,13 @@ export default function ProfileSettingsPage() {
                     type="text"
                     value={profile.slug}
                     disabled
-                    className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500"
+                    className="w-full px-3 py-2 border rounded-lg bg-surface-inset text-foreground-muted"
                   />
-                  <span className="ml-2 text-gray-500 text-sm whitespace-nowrap">
+                  <span className="ml-2 text-foreground-muted text-sm whitespace-nowrap">
                     .divestreams.com
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Contact support to change URL slug</p>
+                <p className="text-xs text-foreground-muted mt-1">Contact support to change URL slug</p>
               </div>
             </div>
 
@@ -239,7 +239,7 @@ export default function ProfileSettingsPage() {
                   name="email"
                   required
                   defaultValue={profile.email}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <div>
@@ -251,7 +251,7 @@ export default function ProfileSettingsPage() {
                   id="phone"
                   name="phone"
                   defaultValue={profile.phone}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -265,14 +265,14 @@ export default function ProfileSettingsPage() {
                 id="website"
                 name="website"
                 defaultValue={profile.website}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Location */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Location</h2>
           <div className="space-y-4">
             <div>
@@ -284,7 +284,7 @@ export default function ProfileSettingsPage() {
                 id="street"
                 name="street"
                 defaultValue={profile.address.street}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -298,7 +298,7 @@ export default function ProfileSettingsPage() {
                   id="city"
                   name="city"
                   defaultValue={profile.address.city}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <div>
@@ -310,7 +310,7 @@ export default function ProfileSettingsPage() {
                   id="state"
                   name="state"
                   defaultValue={profile.address.state}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -325,7 +325,7 @@ export default function ProfileSettingsPage() {
                   id="country"
                   name="country"
                   defaultValue={profile.address.country}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <div>
@@ -337,7 +337,7 @@ export default function ProfileSettingsPage() {
                   id="postalCode"
                   name="postalCode"
                   defaultValue={profile.address.postalCode}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -345,7 +345,7 @@ export default function ProfileSettingsPage() {
         </div>
 
         {/* Regional Settings */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Regional Settings</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -356,7 +356,7 @@ export default function ProfileSettingsPage() {
                 id="timezone"
                 name="timezone"
                 defaultValue={profile.timezone}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 {timezones.map((tz) => (
                   <option key={tz.value} value={tz.value}>
@@ -373,7 +373,7 @@ export default function ProfileSettingsPage() {
                 id="currency"
                 name="currency"
                 defaultValue={profile.currency}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 {currencies.map((c) => (
                   <option key={c.value} value={c.value}>
@@ -389,7 +389,7 @@ export default function ProfileSettingsPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
@@ -400,7 +400,7 @@ export default function ProfileSettingsPage() {
       <form method="post" className="mt-8">
         <input type="hidden" name="intent" value="update-booking-settings" />
 
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Booking Settings</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -414,9 +414,9 @@ export default function ProfileSettingsPage() {
                   name="minAdvanceBooking"
                   min="0"
                   defaultValue={profile.bookingSettings.minAdvanceBooking}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   How far in advance customers must book
                 </p>
               </div>
@@ -430,9 +430,9 @@ export default function ProfileSettingsPage() {
                   name="maxAdvanceBooking"
                   min="1"
                   defaultValue={profile.bookingSettings.maxAdvanceBooking}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   How far in future customers can book
                 </p>
               </div>
@@ -446,7 +446,7 @@ export default function ProfileSettingsPage() {
                 id="cancellation"
                 name="cancellationPolicy"
                 defaultValue={profile.bookingSettings.cancellationPolicy}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="24h">Free cancellation up to 24 hours before</option>
                 <option value="48h">Free cancellation up to 48 hours before</option>
@@ -467,7 +467,7 @@ export default function ProfileSettingsPage() {
                 />
                 <div>
                   <span className="font-medium">Require deposit for bookings</span>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-foreground-muted">
                     Collect a percentage upfront when booking
                   </p>
                 </div>
@@ -485,9 +485,9 @@ export default function ProfileSettingsPage() {
                     min="0"
                     max="100"
                     defaultValue={profile.bookingSettings.depositPercent}
-                    className="w-24 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-24 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
-                  <span className="text-gray-500">%</span>
+                  <span className="text-foreground-muted">%</span>
                 </div>
               </div>
             </div>
@@ -497,7 +497,7 @@ export default function ProfileSettingsPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+              className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-muted"
             >
               {isSubmitting ? "Saving..." : "Save Booking Settings"}
             </button>

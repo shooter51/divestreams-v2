@@ -126,16 +126,16 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  free: "bg-gray-100 text-gray-700",
-  trialing: "bg-blue-100 text-blue-700",
-  active: "bg-green-100 text-green-700",
-  past_due: "bg-yellow-100 text-yellow-700",
-  canceled: "bg-red-100 text-red-700",
+  free: "bg-surface-inset text-foreground-muted",
+  trialing: "bg-brand-muted text-brand",
+  active: "bg-success-muted text-success",
+  past_due: "bg-warning-muted text-warning",
+  canceled: "bg-danger-muted text-danger",
 };
 
 const planColors: Record<string, string> = {
-  free: "bg-gray-100 text-gray-600",
-  premium: "bg-purple-100 text-purple-700",
+  free: "bg-surface-inset text-foreground-muted",
+  premium: "bg-info-muted text-info",
 };
 
 export default function AdminOrganizationsPage() {
@@ -162,7 +162,7 @@ export default function AdminOrganizationsPage() {
   return (
     <div>
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="mb-6 p-4 bg-danger-muted border border-danger rounded-lg text-danger">
           {error}
         </div>
       )}
@@ -170,11 +170,11 @@ export default function AdminOrganizationsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Organizations</h1>
-          <p className="text-gray-600">{organizations.length} total</p>
+          <p className="text-foreground-muted">{organizations.length} total</p>
         </div>
         <Link
           to="/tenants/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
           Create Organization
         </Link>
@@ -187,29 +187,29 @@ export default function AdminOrganizationsPage() {
           name="q"
           placeholder="Search by slug or name..."
           defaultValue={search}
-          className="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         />
       </form>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-surface-inset border-b">
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Slug</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Name</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Owner</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Members</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Plan</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Status</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Created</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-gray-700">Actions</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Slug</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Name</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Owner</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Members</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Plan</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Status</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Created</th>
+              <th className="text-right px-4 py-3 text-sm font-medium text-foreground-muted">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {organizations.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={8} className="px-4 py-8 text-center text-foreground-muted">
                   No organizations found
                 </td>
               </tr>
@@ -221,7 +221,7 @@ export default function AdminOrganizationsPage() {
                       href={org.tenantUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline font-medium"
+                      className="text-brand hover:underline font-medium"
                     >
                       {org.slug}
                     </a>
@@ -238,12 +238,12 @@ export default function AdminOrganizationsPage() {
                       {org.name}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-700 text-sm">{org.ownerEmail}</td>
-                  <td className="px-4 py-3 text-gray-700">{org.memberCount}</td>
+                  <td className="px-4 py-3 text-foreground-muted text-sm">{org.ownerEmail}</td>
+                  <td className="px-4 py-3 text-foreground-muted">{org.memberCount}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
-                        planColors[org.subscriptionPlan] || "bg-gray-100"
+                        planColors[org.subscriptionPlan] || "bg-surface-inset"
                       }`}
                     >
                       {org.subscriptionPlan}
@@ -252,24 +252,24 @@ export default function AdminOrganizationsPage() {
                   <td className="px-4 py-3">
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
-                        statusColors[org.subscriptionStatus] || "bg-gray-100"
+                        statusColors[org.subscriptionStatus] || "bg-surface-inset"
                       }`}
                     >
                       {org.subscriptionStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-700 text-sm">{org.createdAt}</td>
+                  <td className="px-4 py-3 text-foreground-muted text-sm">{org.createdAt}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
                       <Link
                         to={`/tenants/${org.slug}`}
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-brand hover:underline"
                       >
                         View
                       </Link>
                       <button
                         onClick={() => handleDelete(org.id, org.name)}
-                        className="text-sm text-red-600 hover:underline"
+                        className="text-sm text-danger hover:underline"
                       >
                         Delete
                       </button>

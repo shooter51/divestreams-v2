@@ -119,7 +119,7 @@ export default function AccountLayout() {
               <form method="post" action="/site/account/logout">
                 <button
                   type="submit"
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left transition-colors hover:bg-red-50 text-red-600"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left transition-colors hover:bg-danger-muted text-danger"
                 >
                   <LogoutIcon className="w-5 h-5" />
                   Log Out

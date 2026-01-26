@@ -120,16 +120,16 @@ export default function LoginPage() {
   const formData = navigation.formData;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-surface-inset flex items-center justify-center">
       <div className="max-w-md w-full px-4">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-blue-600">{tenantName}</h1>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-brand">{tenantName}</h1>
+          <p className="text-foreground-muted mt-2">Sign in to your account</p>
         </div>
 
-        <form method="post" className="bg-white rounded-xl p-8 shadow-sm border">
+        <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
           {actionData?.errors?.form && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
+            <div className="bg-danger-muted text-danger p-3 rounded-lg mb-4">
               {actionData.errors.form}
             </div>
           )}
@@ -145,11 +145,11 @@ export default function LoginPage() {
                 name="email"
                 autoComplete="email"
                 defaultValue={formData?.get("email")?.toString() || ""}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors && 'email' in actionData.errors && (
-                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).email}</p>
+                <p className="text-danger text-sm mt-1">{(actionData.errors as Record<string, string>).email}</p>
               )}
             </div>
 
@@ -162,11 +162,11 @@ export default function LoginPage() {
                 id="password"
                 name="password"
                 autoComplete="current-password"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors && 'password' in actionData.errors && (
-                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).password}</p>
+                <p className="text-danger text-sm mt-1">{(actionData.errors as Record<string, string>).password}</p>
               )}
             </div>
           </div>
@@ -174,14 +174,14 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="w-full mt-6 bg-brand text-white py-3 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
 
           <a
             href="/auth/forgot-password"
-            className="block text-center text-sm text-blue-600 mt-4"
+            className="block text-center text-sm text-brand mt-4"
           >
             Forgot your password?
           </a>

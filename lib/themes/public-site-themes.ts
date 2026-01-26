@@ -21,6 +21,22 @@ export interface ThemeColors {
   textColor: string;
   headerBg: string;
   footerBg: string;
+  /** Dark mode overrides — applied via @media (prefers-color-scheme: dark) */
+  dark: ThemeDarkColors;
+}
+
+export interface ThemeDarkColors {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  textColor: string;
+  headerBg: string;
+  footerBg: string;
+  /** Card/raised surface background */
+  cardBg: string;
+  /** Border color for dark mode */
+  borderColor: string;
 }
 
 export interface ThemeOverrides {
@@ -50,6 +66,17 @@ export const oceanTheme: ThemeColors = {
   textColor: "#1E3A5F",         // Dark navy text
   headerBg: "#023E8A",          // Deep navy header
   footerBg: "#03045E",          // Darker navy footer
+  dark: {
+    primaryColor: "#60A5FA",    // Blue-400 (brighter for dark bg)
+    secondaryColor: "#22D3EE",  // Cyan-400
+    accentColor: "#172554",     // Blue-950 (muted accent)
+    backgroundColor: "#030712", // Gray-950
+    textColor: "#E0F2FE",       // Sky-100
+    headerBg: "#030712",        // Gray-950
+    footerBg: "#020617",        // Slate-950
+    cardBg: "#111827",          // Gray-900
+    borderColor: "#374151",     // Gray-700
+  },
 };
 
 /**
@@ -65,6 +92,17 @@ export const tropicalTheme: ThemeColors = {
   textColor: "#1A4D2E",         // Dark forest text
   headerBg: "#006D5B",          // Teal header
   footerBg: "#004D40",          // Dark teal footer
+  dark: {
+    primaryColor: "#34D399",    // Emerald-400
+    secondaryColor: "#4ADE80",  // Green-400
+    accentColor: "#FBBF24",     // Amber-400
+    backgroundColor: "#030712", // Gray-950
+    textColor: "#D1FAE5",       // Emerald-100
+    headerBg: "#030712",        // Gray-950
+    footerBg: "#020617",        // Slate-950
+    cardBg: "#111827",          // Gray-900
+    borderColor: "#374151",     // Gray-700
+  },
 };
 
 /**
@@ -80,6 +118,17 @@ export const minimalTheme: ThemeColors = {
   textColor: "#1F2937",         // Gray-800 text
   headerBg: "#F9FAFB",          // Gray-50 header
   footerBg: "#111827",          // Gray-900 footer
+  dark: {
+    primaryColor: "#D1D5DB",    // Gray-300 (inverted)
+    secondaryColor: "#9CA3AF",  // Gray-400
+    accentColor: "#60A5FA",     // Blue-400
+    backgroundColor: "#030712", // Gray-950
+    textColor: "#F3F4F6",       // Gray-100
+    headerBg: "#111827",        // Gray-900
+    footerBg: "#030712",        // Gray-950
+    cardBg: "#1F2937",          // Gray-800
+    borderColor: "#374151",     // Gray-700
+  },
 };
 
 /**
@@ -95,6 +144,17 @@ export const darkTheme: ThemeColors = {
   textColor: "#F1F5F9",         // Slate-100 text
   headerBg: "#1E293B",          // Slate-800 header
   footerBg: "#020617",          // Slate-950 footer
+  dark: {
+    primaryColor: "#60A5FA",    // Same (already light-on-dark)
+    secondaryColor: "#818CF8",  // Same
+    accentColor: "#34D399",     // Same
+    backgroundColor: "#030712", // Deepened to gray-950
+    textColor: "#E2E8F0",       // Slate-200
+    headerBg: "#030712",        // Gray-950
+    footerBg: "#020617",        // Slate-950
+    cardBg: "#0F172A",          // Slate-900
+    borderColor: "#1E293B",     // Slate-800
+  },
 };
 
 /**
@@ -110,6 +170,17 @@ export const classicTheme: ThemeColors = {
   textColor: "#1A202C",         // Near black text
   headerBg: "#1A365D",          // Deep navy header
   footerBg: "#0D1B2A",          // Darker navy footer
+  dark: {
+    primaryColor: "#818CF8",    // Indigo-400
+    secondaryColor: "#A5B4FC",  // Indigo-300
+    accentColor: "#FBBF24",     // Amber-400 (gold)
+    backgroundColor: "#030712", // Gray-950
+    textColor: "#E0E7FF",       // Indigo-100
+    headerBg: "#030712",        // Gray-950
+    footerBg: "#020617",        // Slate-950
+    cardBg: "#111827",          // Gray-900
+    borderColor: "#374151",     // Gray-700
+  },
 };
 
 // ============================================================================
@@ -171,6 +242,8 @@ export function getThemeCSS(
     --color-text: ${finalColors.textColor};
     --color-header-bg: ${finalColors.headerBg};
     --color-footer-bg: ${finalColors.footerBg};
+    --color-card-bg: ${isDarkTheme(finalColors.name as ThemeName) ? "#1E293B" : "#FFFFFF"};
+    --color-border: ${isDarkTheme(finalColors.name as ThemeName) ? "#334155" : "#E5E7EB"};
 
     /* Derived colors for common use cases */
     --color-primary-hover: ${adjustBrightness(finalColors.primaryColor, -10)};
@@ -195,6 +268,49 @@ export function getThemeStyleTag(
   overrides?: ThemeOverrides
 ): string {
   return `:root {\n  ${getThemeCSS(theme, overrides)}\n}`;
+}
+
+/**
+ * Generate complete CSS style block for a theme including dark mode overrides.
+ * Uses `.site-theme` scoping class to avoid inline style specificity issues.
+ * Returns both light and dark mode CSS for use in a <style> tag.
+ */
+export function getThemeStyleBlock(
+  theme: ThemeName | ThemeColors,
+  overrides?: ThemeOverrides
+): string {
+  const baseTheme = typeof theme === "string" ? getTheme(theme) : theme;
+  const dark = baseTheme.dark;
+
+  const finalPrimary = overrides?.primaryColor ?? baseTheme.primaryColor;
+  const finalSecondary = overrides?.secondaryColor ?? baseTheme.secondaryColor;
+  const finalAccent = overrides?.accentColor ?? baseTheme.accentColor;
+  const darkFinal = baseTheme.name === "dark";
+
+  return `.site-theme {
+  --primary-color: ${finalPrimary};
+  --secondary-color: ${finalSecondary};
+  --background-color: ${baseTheme.backgroundColor};
+  --text-color: ${baseTheme.textColor};
+  --accent-color: ${finalAccent};
+  --color-card-bg: ${darkFinal ? "#1E293B" : "#FFFFFF"};
+  --color-border: ${darkFinal ? "#334155" : "#E5E7EB"};
+  --color-primary-hover: ${adjustBrightness(finalPrimary, -10)};
+  --color-primary-text: ${getContrastColor(finalPrimary)};
+}
+@media (prefers-color-scheme: dark) {
+  .site-theme {
+    --primary-color: ${overrides?.primaryColor ?? dark.primaryColor};
+    --secondary-color: ${overrides?.secondaryColor ?? dark.secondaryColor};
+    --accent-color: ${overrides?.accentColor ?? dark.accentColor};
+    --background-color: ${dark.backgroundColor};
+    --text-color: ${dark.textColor};
+    --color-card-bg: ${dark.cardBg};
+    --color-border: ${dark.borderColor};
+    --color-primary-hover: ${adjustBrightness(overrides?.primaryColor ?? dark.primaryColor, 15)};
+    --color-primary-text: ${getContrastColor(overrides?.primaryColor ?? dark.primaryColor)};
+  }
+}`;
 }
 
 /**

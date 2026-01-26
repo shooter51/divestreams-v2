@@ -119,20 +119,20 @@ export async function loader() {
 export default function PricingPage() {
   const { plans } = useLoaderData<typeof loader>();
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-inset">
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold text-blue-600">
+        <a href="/" className="text-2xl font-bold text-brand">
           DiveStreams
         </a>
         <div className="flex gap-6 items-center">
-          <a href="/features" className="text-gray-600 hover:text-blue-600">
+          <a href="/features" className="text-foreground-muted hover:text-brand">
             Features
           </a>
-          <a href="/pricing" className="text-blue-600 font-medium">
+          <a href="/pricing" className="text-brand font-medium">
             Pricing
           </a>
-          <a href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <a href="/signup" className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover">
             Start Free Trial
           </a>
         </div>
@@ -140,17 +140,17 @@ export default function PricingPage() {
 
       {/* Header */}
       <section className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <h1 className="text-4xl font-bold text-foreground mb-4">
           Simple, Transparent Pricing
         </h1>
-        <p className="text-xl text-gray-600 mb-8">
+        <p className="text-xl text-foreground-muted mb-8">
           Start with a 14-day free trial. No credit card required.
         </p>
-        <div className="inline-flex items-center gap-2 bg-white rounded-full p-1 border">
-          <button className="px-4 py-2 rounded-full bg-blue-600 text-white">
+        <div className="inline-flex items-center gap-2 bg-surface-raised rounded-full p-1 border">
+          <button className="px-4 py-2 rounded-full bg-brand text-white">
             Monthly
           </button>
-          <button className="px-4 py-2 rounded-full text-gray-600">
+          <button className="px-4 py-2 rounded-full text-foreground-muted">
             Yearly (Save 20%)
           </button>
         </div>
@@ -168,28 +168,28 @@ export default function PricingPage() {
             return (
               <div
                 key={plan.id}
-                className={`bg-white rounded-2xl p-8 ${
+                className={`bg-surface-raised rounded-2xl p-8 ${
                   popular
-                    ? "ring-2 ring-blue-600 shadow-lg relative"
-                    : "border border-gray-200"
+                    ? "ring-2 ring-brand shadow-lg relative"
+                    : "border border-default"
                 }`}
               >
                 {popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand text-white px-4 py-1 rounded-full text-sm">
                     Most Popular
                   </div>
                 )}
                 <h3 className="text-xl font-bold mb-2">{plan.displayName}</h3>
-                <p className="text-gray-600 mb-4">{description}</p>
+                <p className="text-foreground-muted mb-4">{description}</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold">{formatPrice(plan.monthlyPrice)}</span>
-                  <span className="text-gray-600">/month</span>
+                  <span className="text-foreground-muted">/month</span>
                 </div>
                 <ul className="space-y-3 mb-8">
                   {features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2">
                       <svg
-                        className="w-5 h-5 text-green-500"
+                        className="w-5 h-5 text-success"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -209,8 +209,8 @@ export default function PricingPage() {
                   href="/signup"
                   className={`block text-center py-3 rounded-lg ${
                     popular
-                      ? "bg-blue-600 text-white hover:bg-blue-700"
-                      : "border border-gray-300 hover:bg-gray-50"
+                      ? "bg-brand text-white hover:bg-brand-hover"
+                      : "border border-strong hover:bg-surface-inset"
                   }`}
                 >
                   {cta}
@@ -251,9 +251,9 @@ export default function PricingPage() {
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200">
+    <div className="bg-surface-raised p-6 rounded-lg border border-default">
       <h3 className="font-semibold mb-2">{question}</h3>
-      <p className="text-gray-600">{answer}</p>
+      <p className="text-foreground-muted">{answer}</p>
     </div>
   );
 }

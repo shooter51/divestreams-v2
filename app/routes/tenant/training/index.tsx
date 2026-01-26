@@ -59,7 +59,7 @@ export default function TrainingDashboardPage() {
       <div className="flex justify-between items-start mb-6">
         <div>
           <h1 className="text-2xl font-bold">Training Dashboard</h1>
-          <p className="text-gray-500">{orgName}</p>
+          <p className="text-foreground-muted">{orgName}</p>
         </div>
 
         <div className="flex gap-2">
@@ -71,13 +71,13 @@ export default function TrainingDashboardPage() {
           </Link>
           <Link
             to="/tenant/training/courses"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors"
           >
             Manage Courses
           </Link>
           <Link
             to="/tenant/training/sessions"
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 bg-surface-inset text-foreground rounded-lg hover:bg-surface-overlay transition-colors"
           >
             View Sessions
           </Link>
@@ -114,11 +114,11 @@ export default function TrainingDashboardPage() {
 
       <div className="grid grid-cols-2 gap-6">
         {/* Upcoming Sessions */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Upcoming Training Sessions</h2>
           <div className="space-y-3">
             {upcomingSessions.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">
+              <p className="text-foreground-muted text-center py-4">
                 No upcoming sessions scheduled
               </p>
             ) : (
@@ -126,25 +126,25 @@ export default function TrainingDashboardPage() {
                 <Link
                   key={session.id}
                   to={`/tenant/training/sessions/${session.id}`}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
+                  className="flex items-center justify-between p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors cursor-pointer no-underline text-inherit"
                 >
                   <div>
                     <p className="font-medium">{session.courseName}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-foreground-muted">
                       {session.startDate}
                       {session.startTime ? ` at ${session.startTime}` : ""}
                     </p>
                     {session.location && (
-                      <p className="text-xs text-gray-400">{session.location}</p>
+                      <p className="text-xs text-foreground-subtle">{session.location}</p>
                     )}
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
                       {session.enrolledCount}/{session.maxStudents || "~"}
                     </p>
-                    <p className="text-sm text-gray-500">enrolled</p>
+                    <p className="text-sm text-foreground-muted">enrolled</p>
                     {session.agencyName && (
-                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                      <span className="text-xs px-2 py-1 bg-brand-muted text-brand rounded-full">
                         {session.agencyName}
                       </span>
                     )}
@@ -155,18 +155,18 @@ export default function TrainingDashboardPage() {
           </div>
           <Link
             to="/tenant/training/sessions"
-            className="block text-center text-blue-600 mt-4 text-sm hover:underline"
+            className="block text-center text-brand mt-4 text-sm hover:underline"
           >
             View all sessions
           </Link>
         </div>
 
         {/* Recent Enrollments */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Recent Enrollments</h2>
           <div className="space-y-3">
             {recentEnrollments.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">
+              <p className="text-foreground-muted text-center py-4">
                 No recent enrollments
               </p>
             ) : (
@@ -174,13 +174,13 @@ export default function TrainingDashboardPage() {
                 <Link
                   key={enrollment.id}
                   to={`/tenant/training/enrollments/${enrollment.id}`}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
+                  className="flex items-center justify-between p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors cursor-pointer no-underline text-inherit"
                 >
                   <div>
                     <p className="font-medium">
                       {enrollment.customerFirstName} {enrollment.customerLastName}
                     </p>
-                    <p className="text-sm text-gray-500">{enrollment.courseName}</p>
+                    <p className="text-sm text-foreground-muted">{enrollment.courseName}</p>
                   </div>
                   <div className="text-right">
                     <span
@@ -191,7 +191,7 @@ export default function TrainingDashboardPage() {
                       {enrollment.status}
                     </span>
                     {enrollment.enrolledAt && (
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-foreground-subtle mt-1">
                         {enrollment.enrolledAt}
                       </p>
                     )}
@@ -202,7 +202,7 @@ export default function TrainingDashboardPage() {
           </div>
           <Link
             to="/tenant/training/enrollments"
-            className="block text-center text-blue-600 mt-4 text-sm hover:underline"
+            className="block text-center text-brand mt-4 text-sm hover:underline"
           >
             View all enrollments
           </Link>
@@ -210,26 +210,26 @@ export default function TrainingDashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-8 bg-white rounded-xl p-6 shadow-sm">
+      <div className="mt-8 bg-surface-raised rounded-xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
         <div className="flex gap-4">
           <Link
             to="/tenant/training/courses/new"
-            className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-2 px-4 py-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
           >
             <span className="text-xl">+</span>
             <span>Create Course</span>
           </Link>
           <Link
             to="/tenant/training/sessions/new"
-            className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-2 px-4 py-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
           >
             <span className="text-xl">+</span>
             <span>Schedule Session</span>
           </Link>
           <Link
             to="/tenant/training/enrollments/new"
-            className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-2 px-4 py-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
           >
             <span className="text-xl">+</span>
             <span>New Enrollment</span>
@@ -252,12 +252,12 @@ function StatCard({
   linkTo?: string;
 }) {
   const content = (
-    <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-surface-raised rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between mb-2">
         <span className="text-2xl">{icon}</span>
       </div>
       <p className="text-2xl font-bold">{value}</p>
-      <p className="text-gray-500 text-sm">{title}</p>
+      <p className="text-foreground-muted text-sm">{title}</p>
     </div>
   );
 
@@ -275,16 +275,16 @@ function StatCard({
 function getStatusStyle(status: string | null): string {
   switch (status) {
     case "enrolled":
-      return "bg-blue-100 text-blue-700";
+      return "bg-brand-muted text-brand";
     case "in_progress":
-      return "bg-yellow-100 text-yellow-700";
+      return "bg-warning-muted text-warning";
     case "completed":
-      return "bg-green-100 text-green-700";
+      return "bg-success-muted text-success";
     case "cancelled":
-      return "bg-red-100 text-red-700";
+      return "bg-danger-muted text-danger";
     case "withdrawn":
-      return "bg-gray-100 text-gray-700";
+      return "bg-surface-inset text-foreground";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "bg-surface-inset text-foreground";
   }
 }

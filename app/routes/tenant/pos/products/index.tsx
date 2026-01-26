@@ -52,10 +52,10 @@ function formatCurrency(amount: number): string {
 }
 
 const categoryColors: Record<string, string> = {
-  equipment: "bg-blue-100 text-blue-700",
-  apparel: "bg-purple-100 text-purple-700",
-  accessories: "bg-green-100 text-green-700",
-  courses: "bg-orange-100 text-orange-700",
+  equipment: "bg-brand-muted text-brand",
+  apparel: "bg-info-muted text-info",
+  accessories: "bg-success-muted text-success",
+  courses: "bg-accent-muted text-accent",
   rental: "bg-cyan-100 text-cyan-700",
 };
 
@@ -71,18 +71,18 @@ export default function ProductsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Products</h1>
-          <p className="text-sm text-gray-500">{products.length} products</p>
+          <p className="text-sm text-foreground-muted">{products.length} products</p>
         </div>
         <div className="flex gap-3">
           <Link
             to="/tenant/pos"
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Back to POS
           </Link>
           <Link
             to="/tenant/pos/products/new"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
           >
             Add Product
           </Link>
@@ -90,7 +90,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
+      <div className="bg-surface-raised rounded-xl p-4 shadow-sm mb-6">
         <Form method="get" className="flex gap-4">
           <div className="flex-1">
             <input
@@ -98,13 +98,13 @@ export default function ProductsPage() {
               name="search"
               defaultValue={currentSearch}
               placeholder="Search products..."
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
           <select
             name="category"
             defaultValue={currentCategory}
-            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
           >
             <option value="">All Categories</option>
             {categories.map((cat: string) => (
@@ -115,14 +115,14 @@ export default function ProductsPage() {
           </select>
           <button
             type="submit"
-            className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+            className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
           >
             Filter
           </button>
           {(currentCategory || currentSearch) && (
             <Link
               to="/tenant/pos/products"
-              className="px-4 py-2 text-gray-600 hover:text-gray-900"
+              className="px-4 py-2 text-foreground-muted hover:text-foreground"
             >
               Clear
             </Link>
@@ -131,32 +131,32 @@ export default function ProductsPage() {
       </div>
 
       {/* Products Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         {products.length > 0 ? (
           <table className="w-full">
             <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Product</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Category</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">SKU</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Price</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Stock</th>
-                <th className="text-center px-6 py-3 text-sm font-medium text-gray-500">Status</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
+              <tr className="border-b bg-surface-inset">
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Product</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Category</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">SKU</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">Price</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">Stock</th>
+                <th className="text-center px-6 py-3 text-sm font-medium text-foreground-muted">Status</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">Actions</th>
               </tr>
             </thead>
             <tbody>
               {products.map((product: Product) => (
-                <tr key={product.id} className="border-b last:border-0 hover:bg-gray-50">
+                <tr key={product.id} className="border-b last:border-0 hover:bg-surface-inset">
                   <td className="px-6 py-4">
                     <Link
                       to={`/tenant/pos/products/${product.id}`}
-                      className="font-medium text-blue-600 hover:underline"
+                      className="font-medium text-brand hover:underline"
                     >
                       {product.name}
                     </Link>
                     {product.description && (
-                      <p className="text-sm text-gray-500 truncate max-w-xs">
+                      <p className="text-sm text-foreground-muted truncate max-w-xs">
                         {product.description}
                       </p>
                     )}
@@ -164,13 +164,13 @@ export default function ProductsPage() {
                   <td className="px-6 py-4">
                     <span
                       className={`text-xs px-2 py-1 rounded capitalize ${
-                        categoryColors[product.category] || "bg-gray-100 text-gray-700"
+                        categoryColors[product.category] || "bg-surface-inset text-foreground"
                       }`}
                     >
                       {product.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-foreground-muted">
                     {product.sku || "-"}
                   </td>
                   <td className="px-6 py-4 text-right font-medium">
@@ -181,22 +181,22 @@ export default function ProductsPage() {
                       <span
                         className={
                           product.stockQuantity <= product.lowStockThreshold
-                            ? "text-orange-600 font-medium"
+                            ? "text-accent font-medium"
                             : ""
                         }
                       >
                         {product.stockQuantity}
                       </span>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-foreground-subtle">-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span
                       className={`text-xs px-2 py-1 rounded ${
                         product.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-500"
+                          ? "bg-success-muted text-success"
+                          : "bg-surface-inset text-foreground-muted"
                       }`}
                     >
                       {product.isActive ? "Active" : "Inactive"}
@@ -206,7 +206,7 @@ export default function ProductsPage() {
                     <div className="flex justify-end gap-2">
                       <Link
                         to={`/tenant/pos/products/${product.id}/edit`}
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-brand hover:underline"
                       >
                         Edit
                       </Link>
@@ -220,7 +220,7 @@ export default function ProductsPage() {
                               e.preventDefault();
                             }
                           }}
-                          className="text-sm text-red-600 hover:underline"
+                          className="text-sm text-danger hover:underline"
                         >
                           Delete
                         </button>
@@ -233,10 +233,10 @@ export default function ProductsPage() {
           </table>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">No products found</p>
+            <p className="text-foreground-muted mb-4">No products found</p>
             <Link
               to="/tenant/pos/products/new"
-              className="text-blue-600 hover:underline"
+              className="text-brand hover:underline"
             >
               Add your first product
             </Link>

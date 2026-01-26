@@ -34,7 +34,7 @@ export function Cart({
   const canCheckout = items.length > 0 && (!requiresCustomer || customer);
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-sm">
+    <div className="flex flex-col h-full bg-surface-raised rounded-lg shadow-sm">
       {/* Header */}
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold">Cart</h2>
@@ -43,15 +43,15 @@ export function Cart({
       {/* Items */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {items.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">Cart is empty</p>
+          <p className="text-foreground-muted text-center py-8">Cart is empty</p>
         ) : (
           items.map((item, index) => (
-            <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+            <div key={index} className="flex items-start gap-3 p-3 bg-surface-inset rounded-lg">
               <div className="flex-1">
                 <p className="font-medium">
                   {item.type === "booking" ? item.tourName : item.name}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-foreground-muted">
                   {item.type === "product" && `${item.quantity} × $${item.unitPrice.toFixed(2)}`}
                   {item.type === "rental" && `${item.days} day${item.days > 1 ? "s" : ""} × $${item.dailyRate.toFixed(2)}/day`}
                   {item.type === "booking" && `${item.participants} participant${item.participants > 1 ? "s" : ""} × $${item.unitPrice.toFixed(2)}`}
@@ -63,7 +63,7 @@ export function Cart({
                   <div className="flex items-center gap-1 mt-1">
                     <button
                       onClick={() => onUpdateQuantity(index, item.quantity - 1)}
-                      className="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 text-sm"
+                      className="w-6 h-6 rounded bg-surface-overlay hover:bg-border text-sm"
                       disabled={item.quantity <= 1}
                     >
                       -
@@ -71,7 +71,7 @@ export function Cart({
                     <span className="w-6 text-center text-sm">{item.quantity}</span>
                     <button
                       onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-                      className="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 text-sm"
+                      className="w-6 h-6 rounded bg-surface-overlay hover:bg-border text-sm"
                     >
                       +
                     </button>
@@ -80,7 +80,7 @@ export function Cart({
               </div>
               <button
                 onClick={() => onRemoveItem(index)}
-                className="text-red-500 hover:text-red-700"
+                className="text-danger hover:text-danger"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -94,12 +94,12 @@ export function Cart({
       {/* Customer */}
       <div className="p-4 border-t">
         {customer ? (
-          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-brand-muted rounded-lg">
             <div>
               <p className="font-medium">{customer.firstName} {customer.lastName}</p>
-              <p className="text-sm text-gray-600">{customer.email}</p>
+              <p className="text-sm text-foreground-muted">{customer.email}</p>
             </div>
-            <button onClick={onClearCustomer} className="text-gray-500 hover:text-gray-700">
+            <button onClick={onClearCustomer} className="text-foreground-muted hover:text-foreground">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -109,8 +109,8 @@ export function Cart({
           <button
             onClick={onSelectCustomer}
             className={`w-full p-3 border-2 border-dashed rounded-lg text-center ${
-              requiresCustomer ? "border-red-300 text-red-600" : "border-gray-300 text-gray-600"
-            } hover:border-blue-400 hover:text-blue-600`}
+              requiresCustomer ? "border-danger text-danger" : "border-border-strong text-foreground-muted"
+            } hover:border-brand hover:text-brand`}
           >
             {requiresCustomer ? "Customer Required" : "Add Customer (Optional)"}
           </button>
@@ -139,21 +139,21 @@ export function Cart({
           <button
             onClick={() => onCheckout("card")}
             disabled={!canCheckout}
-            className="py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+            className="py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Card
           </button>
           <button
             onClick={() => onCheckout("cash")}
             disabled={!canCheckout}
-            className="py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+            className="py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Cash
           </button>
           <button
             onClick={() => onCheckout("split")}
             disabled={!canCheckout}
-            className="py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+            className="py-3 bg-info text-white rounded-lg hover:bg-info-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Split
           </button>

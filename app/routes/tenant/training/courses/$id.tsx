@@ -75,7 +75,7 @@ export default function CourseDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/training/courses" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/training/courses" className="text-brand hover:underline text-sm">
           &larr; Back to Courses
         </Link>
       </div>
@@ -85,36 +85,36 @@ export default function CourseDetailPage() {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{course.name}</h1>
             {course.code && (
-              <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">
+              <span className="text-sm bg-surface-inset text-foreground-muted px-2 py-1 rounded">
                 {course.code}
               </span>
             )}
             {!course.isActive && (
-              <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">
+              <span className="text-sm bg-surface-inset text-foreground-muted px-2 py-1 rounded">
                 Inactive
               </span>
             )}
           </div>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {course.agencyName || "No Agency"} - {course.levelName || "No Level"}
           </p>
         </div>
         <div className="flex gap-2">
           <Link
             to={`/tenant/training/sessions/new?courseId=${course.id}`}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
             Schedule Session
           </Link>
           <Link
             to={`/tenant/training/courses/${course.id}/edit`}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Edit
           </Link>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+            className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
             Delete
           </button>
@@ -126,111 +126,111 @@ export default function CourseDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
                 ${Number(course.price).toFixed(2)}
               </p>
-              <p className="text-gray-500 text-sm">Price ({course.currency})</p>
+              <p className="text-foreground-muted text-sm">Price ({course.currency})</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{course.durationDays || 0}</p>
-              <p className="text-gray-500 text-sm">Days</p>
+              <p className="text-foreground-muted text-sm">Days</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{upcomingSessions.length}</p>
-              <p className="text-gray-500 text-sm">Upcoming Sessions</p>
+              <p className="text-foreground-muted text-sm">Upcoming Sessions</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{totalEnrolled}</p>
-              <p className="text-gray-500 text-sm">Total Enrolled</p>
+              <p className="text-foreground-muted text-sm">Total Enrolled</p>
             </div>
           </div>
 
           {/* Description */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-3">Description</h2>
-            <p className="text-gray-700">
+            <p className="text-foreground">
               {course.description || "No description provided."}
             </p>
           </div>
 
           {/* Course Structure */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Course Structure</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-gray-500">Classroom Hours</p>
+                <p className="text-foreground-muted">Classroom Hours</p>
                 <p>{course.classroomHours ?? "Not specified"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Pool/Confined Water Hours</p>
+                <p className="text-foreground-muted">Pool/Confined Water Hours</p>
                 <p>{course.poolHours ?? "Not specified"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Open Water Dives</p>
+                <p className="text-foreground-muted">Open Water Dives</p>
                 <p>{course.openWaterDives ?? "Not specified"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Max Students</p>
+                <p className="text-foreground-muted">Max Students</p>
                 <p>{course.maxStudents || "Not specified"}</p>
               </div>
             </div>
           </div>
 
           {/* Requirements */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Requirements</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-gray-500">Minimum Age</p>
+                <p className="text-foreground-muted">Minimum Age</p>
                 <p>{course.minAge ? `${course.minAge} years` : "No minimum"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Required Certification</p>
+                <p className="text-foreground-muted">Required Certification</p>
                 <p>{course.requiredCertLevel || "None required"}</p>
               </div>
             </div>
             {course.prerequisites && (
               <div className="mt-4">
-                <p className="text-gray-500 text-sm">Prerequisites</p>
+                <p className="text-foreground-muted text-sm">Prerequisites</p>
                 <p className="text-sm">{course.prerequisites}</p>
               </div>
             )}
             {course.medicalRequirements && (
               <div className="mt-4">
-                <p className="text-gray-500 text-sm">Medical Requirements</p>
+                <p className="text-foreground-muted text-sm">Medical Requirements</p>
                 <p className="text-sm">{course.medicalRequirements}</p>
               </div>
             )}
           </div>
 
           {/* Sessions List */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Sessions</h2>
               <Link
                 to={`/tenant/training/sessions?courseId=${course.id}`}
-                className="text-blue-600 text-sm hover:underline"
+                className="text-brand text-sm hover:underline"
               >
                 View all
               </Link>
             </div>
             {sessions.length === 0 ? (
-              <p className="text-gray-500 text-sm">No sessions scheduled yet.</p>
+              <p className="text-foreground-muted text-sm">No sessions scheduled yet.</p>
             ) : (
               <div className="space-y-3">
                 {sessions.slice(0, 5).map((session) => (
                   <Link
                     key={session.id}
                     to={`/tenant/training/sessions/${session.id}`}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                   >
                     <div>
                       <p className="font-medium">
                         {new Date(session.startDate).toLocaleDateString()}
                         {session.startTime && ` at ${session.startTime}`}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-foreground-muted">
                         {session.location || "Location TBD"}
                         {session.instructorName && ` - ${session.instructorName}`}
                       </p>
@@ -243,12 +243,12 @@ export default function CourseDetailPage() {
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
                           session.status === "completed"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-success-muted text-success"
                             : session.status === "cancelled"
-                            ? "bg-red-100 text-red-700"
+                            ? "bg-danger-muted text-danger"
                             : session.status === "in_progress"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-blue-100 text-blue-700"
+                            ? "bg-warning-muted text-warning"
+                            : "bg-brand-muted text-brand"
                         }`}
                       >
                         {session.status}
@@ -265,7 +265,7 @@ export default function CourseDetailPage() {
         <div className="space-y-6">
           {/* Course Images */}
           {course.images && course.images.length > 0 && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Course Images</h2>
               <div className="space-y-2">
                 {course.images.map((img: string, idx: number) => (
@@ -276,7 +276,7 @@ export default function CourseDetailPage() {
                       className="w-full h-32 object-cover rounded-lg"
                     />
                     {idx === 0 && (
-                      <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                      <span className="absolute top-2 left-2 bg-brand text-white text-xs px-2 py-1 rounded">
                         Main Image
                       </span>
                     )}
@@ -287,12 +287,12 @@ export default function CourseDetailPage() {
           )}
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/training/sessions/new?courseId=${course.id}`}
-                className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="block w-full text-center bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
               >
                 Schedule Session
               </Link>
@@ -300,7 +300,7 @@ export default function CourseDetailPage() {
                 <input type="hidden" name="intent" value="toggle-active" />
                 <button
                   type="submit"
-                  className="w-full text-center border px-4 py-2 rounded-lg hover:bg-gray-50"
+                  className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
                 >
                   {course.isActive ? "Deactivate Course" : "Activate Course"}
                 </button>
@@ -312,24 +312,24 @@ export default function CourseDetailPage() {
           {(course.materialsIncluded ||
             course.equipmentIncluded ||
             (course.includedItems && course.includedItems.length > 0)) && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">What's Included</h2>
               <ul className="space-y-2 text-sm">
                 {course.materialsIncluded && (
                   <li className="flex items-center gap-2">
-                    <span className="text-green-500">&#10003;</span>
+                    <span className="text-success">&#10003;</span>
                     Course Materials
                   </li>
                 )}
                 {course.equipmentIncluded && (
                   <li className="flex items-center gap-2">
-                    <span className="text-green-500">&#10003;</span>
+                    <span className="text-success">&#10003;</span>
                     Equipment
                   </li>
                 )}
                 {course.includedItems?.map((item: string, i: number) => (
                   <li key={i} className="flex items-center gap-2">
-                    <span className="text-green-500">&#10003;</span>
+                    <span className="text-success">&#10003;</span>
                     {item}
                   </li>
                 ))}
@@ -339,12 +339,12 @@ export default function CourseDetailPage() {
 
           {/* Required Items */}
           {course.requiredItems && course.requiredItems.length > 0 && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Students Must Bring</h2>
               <ul className="space-y-2 text-sm">
                 {course.requiredItems.map((item: string, i: number) => (
                   <li key={i} className="flex items-center gap-2">
-                    <span className="text-gray-400">&#8226;</span>
+                    <span className="text-foreground-subtle">&#8226;</span>
                     {item}
                   </li>
                 ))}
@@ -353,7 +353,7 @@ export default function CourseDetailPage() {
           )}
 
           {/* Meta */}
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-foreground-subtle">
             <p>
               Created{" "}
               {course.createdAt

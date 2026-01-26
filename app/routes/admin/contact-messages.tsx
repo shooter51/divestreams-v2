@@ -91,17 +91,17 @@ export default function AdminContactMessagesPage() {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case "new":
-        return "bg-blue-100 text-blue-800";
+        return "bg-brand-muted text-brand";
       case "read":
-        return "bg-gray-100 text-gray-800";
+        return "bg-surface-inset text-foreground";
       case "replied":
-        return "bg-green-100 text-green-800";
+        return "bg-success-muted text-success";
       case "archived":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-warning-muted text-warning";
       case "spam":
-        return "bg-red-100 text-red-800";
+        return "bg-danger-muted text-danger";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-surface-inset text-foreground";
     }
   };
 
@@ -119,46 +119,46 @@ export default function AdminContactMessagesPage() {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Contact Messages</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground">Contact Messages</h1>
+        <p className="mt-2 text-foreground-muted">
           Messages submitted through your public website contact form
         </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-5">
-          <div className="text-sm font-medium text-gray-500">Total</div>
-          <div className="mt-1 text-3xl font-semibold text-gray-900">
+        <div className="bg-surface-raised rounded-lg shadow p-5">
+          <div className="text-sm font-medium text-foreground-muted">Total</div>
+          <div className="mt-1 text-3xl font-semibold text-foreground">
             {stats.total}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-5">
-          <div className="text-sm font-medium text-gray-500">New</div>
-          <div className="mt-1 text-3xl font-semibold text-blue-600">
+        <div className="bg-surface-raised rounded-lg shadow p-5">
+          <div className="text-sm font-medium text-foreground-muted">New</div>
+          <div className="mt-1 text-3xl font-semibold text-brand">
             {stats.new}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-5">
-          <div className="text-sm font-medium text-gray-500">Read</div>
-          <div className="mt-1 text-3xl font-semibold text-gray-600">
+        <div className="bg-surface-raised rounded-lg shadow p-5">
+          <div className="text-sm font-medium text-foreground-muted">Read</div>
+          <div className="mt-1 text-3xl font-semibold text-foreground-muted">
             {stats.read}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-5">
-          <div className="text-sm font-medium text-gray-500">Replied</div>
-          <div className="mt-1 text-3xl font-semibold text-green-600">
+        <div className="bg-surface-raised rounded-lg shadow p-5">
+          <div className="text-sm font-medium text-foreground-muted">Replied</div>
+          <div className="mt-1 text-3xl font-semibold text-success">
             {stats.replied}
           </div>
         </div>
       </div>
 
       {/* Messages List */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="bg-surface-raised shadow rounded-lg overflow-hidden">
         {messages.length === 0 ? (
           <div className="text-center py-12">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-foreground-subtle"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -170,89 +170,89 @@ export default function AdminContactMessagesPage() {
                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
               />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">
+            <h3 className="mt-2 text-sm font-medium text-foreground">
               No messages yet
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-foreground-muted">
               Contact form submissions will appear here.
             </p>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-surface-inset">
               <tr>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider"
                 >
                   From
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider"
                 >
                   Message
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider"
                 >
                   Status
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-foreground-muted uppercase tracking-wider"
                 >
                   Date
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-right text-xs font-medium text-foreground-muted uppercase tracking-wider"
                 >
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-surface-raised divide-y divide-border">
               {messages.map((msg: any) => (
                 <tr
                   key={msg.id}
-                  className={msg.status === "new" ? "bg-blue-50" : ""}
+                  className={msg.status === "new" ? "bg-brand-muted" : ""}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex flex-col">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-foreground">
                         {msg.name}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-foreground-muted">
                         <a
                           href={`mailto:${msg.email}`}
-                          className="hover:text-blue-600"
+                          className="hover:text-brand"
                         >
                           {msg.email}
                         </a>
                       </div>
                       {msg.phone && (
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-foreground-muted">
                           <a
                             href={`tel:${msg.phone}`}
-                            className="hover:text-blue-600"
+                            className="hover:text-brand"
                           >
                             {msg.phone}
                           </a>
                         </div>
                       )}
-                      <div className="text-xs text-gray-400 mt-1">
+                      <div className="text-xs text-foreground-subtle mt-1">
                         {msg.organizationName}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-foreground">
                       {msg.subject && (
                         <div className="font-medium mb-1">{msg.subject}</div>
                       )}
-                      <div className="line-clamp-2 text-gray-600">
+                      <div className="line-clamp-2 text-foreground-muted">
                         {msg.message}
                       </div>
                     </div>
@@ -266,13 +266,13 @@ export default function AdminContactMessagesPage() {
                       {msg.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground-muted">
                     {formatDate(msg.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <a
                       href={`mailto:${msg.email}?subject=Re: ${msg.subject || "Your message"}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-brand hover:text-brand"
                     >
                       Reply
                     </a>
@@ -285,11 +285,11 @@ export default function AdminContactMessagesPage() {
       </div>
 
       {/* Help Text */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="mt-6 bg-brand-muted border border-brand rounded-lg p-4">
         <div className="flex">
           <div className="flex-shrink-0">
             <svg
-              className="h-5 w-5 text-blue-400"
+              className="h-5 w-5 text-brand"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -301,10 +301,10 @@ export default function AdminContactMessagesPage() {
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">
+            <h3 className="text-sm font-medium text-brand">
               About Contact Messages
             </h3>
-            <div className="mt-2 text-sm text-blue-700">
+            <div className="mt-2 text-sm text-brand">
               <p>
                 Messages are automatically saved when customers submit the contact
                 form on your public website. Email notifications are sent to your

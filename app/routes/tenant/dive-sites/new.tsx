@@ -50,7 +50,7 @@ export default function NewDiveSitePage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/dive-sites" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/dive-sites" className="text-brand hover:underline text-sm">
           ← Back to Dive Sites
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Dive Site</h1>
@@ -58,7 +58,7 @@ export default function NewDiveSitePage() {
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
@@ -71,10 +71,10 @@ export default function NewDiveSitePage() {
                 name="name"
                 required
                 defaultValue={actionData?.values?.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.name && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
               )}
             </div>
 
@@ -89,10 +89,10 @@ export default function NewDiveSitePage() {
                 required
                 placeholder="e.g., South Bay, Outer Reef"
                 defaultValue={actionData?.values?.location}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.location && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.location}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.location}</p>
               )}
             </div>
 
@@ -105,14 +105,14 @@ export default function NewDiveSitePage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Dive Details */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Dive Details</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -127,10 +127,10 @@ export default function NewDiveSitePage() {
                 min="1"
                 max="100"
                 defaultValue={actionData?.values?.maxDepth}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.maxDepth && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.maxDepth}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.maxDepth}</p>
               )}
             </div>
 
@@ -143,7 +143,7 @@ export default function NewDiveSitePage() {
                 name="difficulty"
                 required
                 defaultValue={actionData?.values?.difficulty || "intermediate"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
@@ -162,14 +162,14 @@ export default function NewDiveSitePage() {
                 name="conditions"
                 placeholder="e.g., Strong currents, calm waters, tidal dependent"
                 defaultValue={actionData?.values?.conditions}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Coordinates */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">GPS Coordinates</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -185,7 +185,7 @@ export default function NewDiveSitePage() {
                 max="90"
                 placeholder="e.g., 7.165"
                 defaultValue={actionData?.values?.latitude}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -201,17 +201,17 @@ export default function NewDiveSitePage() {
                 max="180"
                 placeholder="e.g., 134.271"
                 defaultValue={actionData?.values?.longitude}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs text-foreground-muted mt-2">
             Used for navigation and map display
           </p>
         </div>
 
         {/* Highlights */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Highlights & Features</h2>
           <div>
             <label htmlFor="highlights" className="block text-sm font-medium mb-1">
@@ -223,16 +223,16 @@ export default function NewDiveSitePage() {
               name="highlights"
               placeholder="e.g., Sharks, Corals, Wall dive, Wreck (comma-separated)"
               defaultValue={actionData?.values?.highlights}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Separate multiple highlights with commas
             </p>
           </div>
         </div>
 
         {/* Status */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -243,7 +243,7 @@ export default function NewDiveSitePage() {
             />
             <span className="font-medium">Active</span>
           </label>
-          <p className="text-sm text-gray-500 mt-1 ml-6">
+          <p className="text-sm text-foreground-muted mt-1 ml-6">
             Active sites can be selected when scheduling trips
           </p>
         </div>
@@ -253,13 +253,13 @@ export default function NewDiveSitePage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Add Dive Site"}
           </button>
           <Link
             to="/tenant/dive-sites"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

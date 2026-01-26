@@ -12,11 +12,11 @@ export function FormField({ label, error, required, children, helpText }: FormFi
   return (
     <div>
       <label className="block text-sm font-medium mb-1">
-        {label} {required && <span className="text-red-500">*</span>}
+        {label} {required && <span className="text-danger">*</span>}
       </label>
       {children}
-      {helpText && !error && <p className="text-xs text-gray-500 mt-1">{helpText}</p>}
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {helpText && !error && <p className="text-xs text-foreground-muted mt-1">{helpText}</p>}
+      {error && <p className="text-danger text-sm mt-1">{error}</p>}
     </div>
   );
 }
@@ -33,8 +33,8 @@ export function Input({ label, error, helpText, required, className = "", ...pro
       <input
         {...props}
         required={required}
-        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-          error ? "border-red-300" : "border-gray-300"
+        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${
+          error ? "border-danger" : "border-border-strong"
         } ${className}`}
       />
     </FormField>
@@ -55,8 +55,8 @@ export function Select({ label, error, helpText, required, options, placeholder,
       <select
         {...props}
         required={required}
-        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-          error ? "border-red-300" : "border-gray-300"
+        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${
+          error ? "border-danger" : "border-border-strong"
         } ${className}`}
       >
         {placeholder && <option value="">{placeholder}</option>}
@@ -82,8 +82,8 @@ export function Textarea({ label, error, helpText, required, className = "", ...
       <textarea
         {...props}
         required={required}
-        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-          error ? "border-red-300" : "border-gray-300"
+        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${
+          error ? "border-danger" : "border-border-strong"
         } ${className}`}
       />
     </FormField>
@@ -101,11 +101,11 @@ export function Checkbox({ label, description, className = "", ...props }: Check
       <input
         type="checkbox"
         {...props}
-        className={`mt-1 rounded border-gray-300 focus:ring-blue-500 ${className}`}
+        className={`mt-1 rounded border-border-strong focus:ring-brand ${className}`}
       />
       <div>
         <span className="font-medium">{label}</span>
-        {description && <p className="text-sm text-gray-500">{description}</p>}
+        {description && <p className="text-sm text-foreground-muted">{description}</p>}
       </div>
     </label>
   );
@@ -121,15 +121,15 @@ export function MoneyInput({ label, error, currency = "$", required, className =
   return (
     <FormField label={label} error={error} required={required}>
       <div className="relative">
-        <span className="absolute left-3 top-2 text-gray-500">{currency}</span>
+        <span className="absolute left-3 top-2 text-foreground-muted">{currency}</span>
         <input
           type="number"
           step="0.01"
           min="0"
           {...props}
           required={required}
-          className={`w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            error ? "border-red-300" : "border-gray-300"
+          className={`w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${
+            error ? "border-danger" : "border-border-strong"
           } ${className}`}
         />
       </div>

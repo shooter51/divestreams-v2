@@ -11,6 +11,7 @@ import { redirect } from "react-router";
 import { eq, or } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization, type PublicSiteSettings } from "../../../lib/db/schema/auth";
+import { getTheme, getThemeStyleBlock, type ThemeName } from "../../../lib/themes/public-site-themes";
 
 // ============================================================================
 // THEME CSS VARIABLES
@@ -120,7 +121,10 @@ export interface SiteLoaderData {
     textColor: string;
     accentColor: string;
     fontFamily: string;
+    cardBg: string;
+    borderColor: string;
   };
+  darkCSS: string;
   enabledPages: {
     home: boolean;
     about: boolean;
@@ -200,6 +204,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
 
   // Get theme preset and apply custom colors if specified
   const themePreset = themePresets[settings.theme];
+  const isDark = settings.theme === "dark";
   const themeVars = {
     primaryColor: settings.primaryColor || themePreset.primary,
     secondaryColor: settings.secondaryColor || themePreset.secondary,
@@ -207,7 +212,16 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     textColor: themePreset.text,
     accentColor: themePreset.accent,
     fontFamily: fontFamilies[settings.fontFamily],
+    cardBg: isDark ? "#1E293B" : "#FFFFFF",
+    borderColor: isDark ? "#334155" : "#E5E7EB",
   };
+
+  // Generate light + dark mode CSS from the full theme system
+  const fullTheme = getTheme(settings.theme as ThemeName);
+  const darkCSS = getThemeStyleBlock(fullTheme, {
+    primaryColor: settings.primaryColor || undefined,
+    secondaryColor: settings.secondaryColor || undefined,
+  });
 
   return {
     organization: {
@@ -218,6 +232,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     },
     settings,
     themeVars,
+    darkCSS,
     enabledPages: settings.pages,
     contactInfo: settings.contactInfo,
   };
@@ -228,7 +243,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
 // ============================================================================
 
 export default function SiteLayout() {
-  const { organization, themeVars, enabledPages, contactInfo } =
+  const { organization, themeVars, enabledPages, contactInfo, darkCSS } =
     useLoaderData<typeof loader>();
   const location = useLocation();
 
@@ -265,32 +280,23 @@ export default function SiteLayout() {
     return location.pathname.startsWith(href);
   };
 
-  // CSS custom properties for theming
-  const themeStyles: React.CSSProperties = {
-    "--primary-color": themeVars.primaryColor,
-    "--secondary-color": themeVars.secondaryColor,
-    "--background-color": themeVars.backgroundColor,
-    "--text-color": themeVars.textColor,
-    "--accent-color": themeVars.accentColor,
-    "--font-family": themeVars.fontFamily,
-  } as React.CSSProperties;
-
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className="site-theme min-h-screen flex flex-col"
       style={{
-        ...themeStyles,
         backgroundColor: "var(--background-color)",
         color: "var(--text-color)",
-        fontFamily: "var(--font-family)",
+        fontFamily: themeVars.fontFamily,
       }}
     >
+      {/* Theme CSS variables (light + dark mode via prefers-color-scheme) */}
+      <style dangerouslySetInnerHTML={{ __html: darkCSS }} />
       {/* Header */}
       <header
         className="sticky top-0 z-50 border-b shadow-sm"
         style={{
-          backgroundColor: "white",
-          borderColor: "var(--accent-color)",
+          backgroundColor: "var(--color-card-bg)",
+          borderColor: "var(--color-border)",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -395,8 +401,8 @@ export default function SiteLayout() {
       <footer
         className="border-t mt-auto"
         style={{
-          backgroundColor: "white",
-          borderColor: "var(--accent-color)",
+          backgroundColor: "var(--color-card-bg)",
+          borderColor: "var(--color-border)",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -470,7 +476,7 @@ export default function SiteLayout() {
 
           {/* Bottom Bar */}
           <div className="mt-8 pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-sm opacity-75"
-            style={{ borderColor: "var(--accent-color)" }}
+            style={{ borderColor: "var(--color-border)" }}
           >
             <p suppressHydrationWarning>
               &copy; {new Date().getFullYear()} {organization.name}. All rights reserved.

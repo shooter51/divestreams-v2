@@ -113,11 +113,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-green-100 text-green-700",
-  completed: "bg-gray-100 text-gray-600",
-  cancelled: "bg-red-100 text-red-700",
-  no_show: "bg-orange-100 text-orange-700",
+  pending: "bg-warning-muted text-warning",
+  confirmed: "bg-success-muted text-success",
+  completed: "bg-surface-inset text-foreground-muted",
+  cancelled: "bg-danger-muted text-danger",
+  no_show: "bg-accent-muted text-accent",
 };
 
 export default function BookingDetailPage() {
@@ -218,7 +218,7 @@ export default function BookingDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/bookings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/bookings" className="text-brand hover:underline text-sm">
           ← Back to Bookings
         </Link>
       </div>
@@ -229,13 +229,13 @@ export default function BookingDetailPage() {
             <h1 className="text-2xl font-bold">{booking.bookingNumber}</h1>
             <span
               className={`text-sm px-3 py-1 rounded-full ${
-                statusColors[booking.status] || "bg-gray-100 text-gray-700"
+                statusColors[booking.status] || "bg-surface-inset text-foreground"
               }`}
             >
               {booking.status}
             </span>
           </div>
-          <p className="text-gray-500">Created {booking.createdAt}</p>
+          <p className="text-foreground-muted">Created {booking.createdAt}</p>
         </div>
         <div className="flex gap-2">
           {booking.status === "pending" && (
@@ -243,7 +243,7 @@ export default function BookingDetailPage() {
               <input type="hidden" name="intent" value="confirm" />
               <button
                 type="submit"
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                className="bg-success text-white px-4 py-2 rounded-lg hover:bg-success-hover"
               >
                 Confirm
               </button>
@@ -254,7 +254,7 @@ export default function BookingDetailPage() {
               <input type="hidden" name="intent" value="complete" />
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
               >
                 Mark Complete
               </button>
@@ -262,14 +262,14 @@ export default function BookingDetailPage() {
           )}
           <Link
             to={`/tenant/bookings/${booking.id}/edit`}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Edit
           </Link>
           {booking.status !== "cancelled" && booking.status !== "completed" && (
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+              className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
             >
               Cancel
             </button>
@@ -279,12 +279,12 @@ export default function BookingDetailPage() {
 
       {/* Success/Error Messages */}
       {fetcher.data?.message && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
           {fetcher.data.message}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {fetcher.data.error}
         </div>
       )}
@@ -293,31 +293,31 @@ export default function BookingDetailPage() {
         {/* Main Content */}
         <div className="col-span-2 space-y-6">
           {/* Trip Info */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Trip Details</h2>
             <div className="flex justify-between items-start">
               <div>
                 <Link
                   to={`/tenant/tours/${booking.trip.tourId}`}
-                  className="text-lg font-medium text-blue-600 hover:underline"
+                  className="text-lg font-medium text-brand hover:underline"
                 >
                   {booking.trip.tourName}
                 </Link>
                 <div className="mt-2 space-y-1 text-sm">
                   <p>
-                    <span className="text-gray-500">Date:</span> {booking.trip.date}
+                    <span className="text-foreground-muted">Date:</span> {booking.trip.date}
                   </p>
                   <p>
-                    <span className="text-gray-500">Time:</span> {booking.trip.startTime} - {booking.trip.endTime}
+                    <span className="text-foreground-muted">Time:</span> {booking.trip.startTime} - {booking.trip.endTime}
                   </p>
                   <p>
-                    <span className="text-gray-500">Boat:</span> {booking.trip.boatName}
+                    <span className="text-foreground-muted">Boat:</span> {booking.trip.boatName}
                   </p>
                 </div>
               </div>
               <Link
                 to={`/tenant/trips/${booking.trip.id}`}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-brand hover:underline"
               >
                 View Trip →
               </Link>
@@ -325,7 +325,7 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Participants */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">
               Participants ({booking.participants})
             </h2>
@@ -333,15 +333,15 @@ export default function BookingDetailPage() {
               {(Array.isArray(booking.participantDetails) ? booking.participantDetails : []).map((p: { name: string; certLevel?: string }, i: number) => (
                 <div
                   key={i}
-                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                  className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
                 >
                   <div>
                     <p className="font-medium">{p.name}</p>
                     {p.certLevel && (
-                      <p className="text-sm text-gray-500">{p.certLevel}</p>
+                      <p className="text-sm text-foreground-muted">{p.certLevel}</p>
                     )}
                   </div>
-                  <span className="text-sm text-gray-400">#{i + 1}</span>
+                  <span className="text-sm text-foreground-subtle">#{i + 1}</span>
                 </div>
               ))}
             </div>
@@ -349,7 +349,7 @@ export default function BookingDetailPage() {
 
           {/* Equipment */}
           {Array.isArray(booking.equipmentRental) && booking.equipmentRental.length > 0 && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Equipment Rental</h2>
               <div className="space-y-2">
                 {(Array.isArray(booking.equipmentRental) ? booking.equipmentRental : []).map((item: { item: string; quantity: number; price: number }, i: number) => (
@@ -369,37 +369,37 @@ export default function BookingDetailPage() {
           )}
 
           {/* Payment History */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Payment History</h2>
               {parseFloat(booking.balanceDue) > 0 && (
                 <button
                   onClick={() => setShowPaymentModal(true)}
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-sm text-brand hover:underline"
                 >
                   + Record Payment
                 </button>
               )}
             </div>
             {booking.payments.length === 0 ? (
-              <p className="text-gray-500 text-sm">No payments recorded.</p>
+              <p className="text-foreground-muted text-sm">No payments recorded.</p>
             ) : (
               <div className="space-y-3">
                 {booking.payments.map((payment) => (
                   <div
                     key={payment.id}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
                   >
                     <div>
                       <p className="font-medium">${payment.amount}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-foreground-muted">
                         {payment.method} • {payment.date}
                       </p>
                       {payment.note && (
-                        <p className="text-xs text-gray-400">{payment.note}</p>
+                        <p className="text-xs text-foreground-subtle">{payment.note}</p>
                       )}
                     </div>
-                    <span className="text-green-600 text-sm">Paid</span>
+                    <span className="text-success text-sm">Paid</span>
                   </div>
                 ))}
               </div>
@@ -408,18 +408,18 @@ export default function BookingDetailPage() {
 
           {/* Notes */}
           {(booking.specialRequests || booking.internalNotes) && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Notes</h2>
               <div className="space-y-4 text-sm">
                 {booking.specialRequests && (
                   <div>
-                    <p className="text-gray-500 mb-1">Special Requests:</p>
+                    <p className="text-foreground-muted mb-1">Special Requests:</p>
                     <p>{booking.specialRequests}</p>
                   </div>
                 )}
                 {booking.internalNotes && (
                   <div>
-                    <p className="text-gray-500 mb-1">Internal Notes:</p>
+                    <p className="text-foreground-muted mb-1">Internal Notes:</p>
                     <p>{booking.internalNotes}</p>
                   </div>
                 )}
@@ -431,12 +431,12 @@ export default function BookingDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Customer */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Customer</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/customers/${booking.customer.id}`}
-                className="font-medium text-blue-600 hover:underline"
+                className="font-medium text-brand hover:underline"
               >
                 {booking.customer.firstName} {booking.customer.lastName}
               </Link>
@@ -446,7 +446,7 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Pricing Summary */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Pricing</h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
@@ -462,7 +462,7 @@ export default function BookingDetailPage() {
                 </div>
               )}
               {parseFloat(booking.pricing.discount) > 0 && (
-                <div className="flex justify-between text-green-600">
+                <div className="flex justify-between text-success">
                   <span>Discount</span>
                   <span>-${booking.pricing.discount}</span>
                 </div>
@@ -471,12 +471,12 @@ export default function BookingDetailPage() {
                 <span>Total</span>
                 <span>${booking.pricing.total}</span>
               </div>
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-success">
                 <span>Paid</span>
                 <span>${booking.paidAmount}</span>
               </div>
               {parseFloat(booking.balanceDue) > 0 && (
-                <div className="flex justify-between text-red-600 font-medium">
+                <div className="flex justify-between text-danger font-medium">
                   <span>Balance Due</span>
                   <span>${booking.balanceDue}</span>
                 </div>
@@ -485,27 +485,27 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <fetcher.Form method="post">
                 <input type="hidden" name="intent" value="send-confirmation" />
                 <button
                   type="submit"
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
                 >
                   📧 Send Confirmation Email
                 </button>
               </fetcher.Form>
               <button
                 onClick={handlePrintBooking}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 🖨️ Print Booking
               </button>
               <Link
                 to={`/tenant/trips/${booking.trip?.id}`}
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 📋 View Trip Manifest
               </Link>
@@ -514,7 +514,7 @@ export default function BookingDetailPage() {
                   <input type="hidden" name="intent" value="no-show" />
                   <button
                     type="submit"
-                    className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg"
+                    className="w-full text-left px-3 py-2 text-sm text-accent hover:bg-accent-muted rounded-lg"
                   >
                     Mark as No-Show
                   </button>
@@ -524,7 +524,7 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Meta */}
-          <div className="text-xs text-gray-400 space-y-1">
+          <div className="text-xs text-foreground-subtle space-y-1">
             <p>Source: {booking.source}</p>
             <p>Updated: {booking.updatedAt}</p>
             <p>ID: {booking.id}</p>
@@ -535,17 +535,17 @@ export default function BookingDetailPage() {
       {/* Payment Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Record Payment</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Balance due: ${booking.balanceDue}
                 </p>
               </div>
               <button
                 onClick={() => setShowPaymentModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 ✕
               </button>
@@ -555,7 +555,7 @@ export default function BookingDetailPage() {
               <div>
                 <label className="block text-sm font-medium mb-1">Amount *</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-500">$</span>
+                  <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                   <input
                     type="number"
                     name="amount"
@@ -564,7 +564,7 @@ export default function BookingDetailPage() {
                     max={booking.balanceDue}
                     defaultValue={booking.balanceDue}
                     required
-                    className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
               </div>
@@ -574,7 +574,7 @@ export default function BookingDetailPage() {
                 <select
                   name="paymentMethod"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">Select method...</option>
                   <option value="cash">Cash</option>
@@ -590,7 +590,7 @@ export default function BookingDetailPage() {
                 <input
                   type="text"
                   name="notes"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="Optional payment notes..."
                 />
               </div>
@@ -599,14 +599,14 @@ export default function BookingDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowPaymentModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
                   {fetcher.state === "submitting" ? "Recording..." : "Record Payment"}
                 </button>

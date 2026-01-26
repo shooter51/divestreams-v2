@@ -58,13 +58,13 @@ export function BarcodeScannerModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-lg overflow-hidden">
+      <div className="bg-surface-raised rounded-xl w-full max-w-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-bold">{title}</h2>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-overlay rounded-lg transition-colors"
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -78,16 +78,16 @@ export function BarcodeScannerModal({
           {scannedCode ? (
             <div className="space-y-4">
               {/* Scanned code display */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="bg-success-muted border border-success rounded-lg p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="w-10 h-10 bg-success-muted rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-green-700 font-medium">Barcode Detected</p>
-                    <p className="text-xl font-mono font-bold text-green-900 truncate">{scannedCode}</p>
+                    <p className="text-sm text-success font-medium">Barcode Detected</p>
+                    <p className="text-xl font-mono font-bold text-success truncate">{scannedCode}</p>
                   </div>
                 </div>
               </div>
@@ -96,13 +96,13 @@ export function BarcodeScannerModal({
               <div className="flex gap-3">
                 <button
                   onClick={handleRescan}
-                  className="flex-1 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+                  className="flex-1 py-3 border border-border-strong rounded-lg hover:bg-surface-inset font-medium"
                 >
                   Scan Again
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                  className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover font-medium"
                 >
                   Use This Code
                 </button>
@@ -120,7 +120,7 @@ export function BarcodeScannerModal({
 
         {/* Footer with manual entry */}
         {!scannedCode && (
-          <div className="p-4 border-t bg-gray-50">
+          <div className="p-4 border-t bg-surface-inset">
             <ManualBarcodeEntry onSubmit={handleScan} />
           </div>
         )}
@@ -147,12 +147,12 @@ function ManualBarcodeEntry({ onSubmit }: { onSubmit: (barcode: string) => void 
         value={manualCode}
         onChange={(e) => setManualCode(e.target.value)}
         placeholder="Or enter barcode manually..."
-        className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+        className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-sm"
       />
       <button
         type="submit"
         disabled={!manualCode.trim()}
-        className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
+        className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed text-sm font-medium"
       >
         Submit
       </button>

@@ -136,8 +136,8 @@ export default function PageEditPage() {
         <div
           className={`p-4 rounded-lg ${
             actionData.success
-              ? "bg-green-50 border border-green-200 text-green-800"
-              : "bg-red-50 border border-red-200 text-red-800"
+              ? "bg-success-muted border border-success text-success"
+              : "bg-danger-muted border border-danger text-danger"
           }`}
         >
           {actionData.message || actionData.error}
@@ -147,14 +147,14 @@ export default function PageEditPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">{page.pageName}</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-foreground-muted mt-1">
             /{page.pageId} • Version {page.version} •{" "}
             <span className="capitalize">{page.status}</span>
           </p>
         </div>
         <a
           href={`/tenant/${orgSlug}/settings/public-site/pages`}
-          className="text-gray-600 hover:text-gray-900"
+          className="text-foreground-muted hover:text-foreground"
         >
           ← Back to Pages
         </a>
@@ -166,7 +166,7 @@ export default function PageEditPage() {
         <input type="hidden" name="contentBlocks" value={contentBlocks} />
 
         {/* SEO Metadata */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">SEO Metadata</h2>
           <div className="space-y-4">
             <div>
@@ -179,9 +179,9 @@ export default function PageEditPage() {
                 name="metaTitle"
                 defaultValue={page.metaTitle || ""}
                 placeholder="Page title for search engines"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Recommended: 50-60 characters
               </p>
             </div>
@@ -199,9 +199,9 @@ export default function PageEditPage() {
                 rows={3}
                 defaultValue={page.metaDescription || ""}
                 placeholder="Brief description for search engines"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 resize-y"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand resize-y"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Recommended: 150-160 characters
               </p>
             </div>
@@ -209,9 +209,9 @@ export default function PageEditPage() {
         </div>
 
         {/* Content Editor */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Page Content</h2>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-foreground-muted mb-4">
             Edit the page content as JSON. A visual block editor will be added in a
             future update.
           </p>
@@ -225,12 +225,12 @@ export default function PageEditPage() {
               value={contentBlocks}
               onChange={(e) => setContentBlocks(e.target.value)}
               rows={20}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm resize-y"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm resize-y"
               spellCheck={false}
             />
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-foreground-muted mt-2">
               Format:{" "}
-              <code className="bg-gray-100 px-1 py-0.5 rounded">
+              <code className="bg-surface-inset px-1 py-0.5 rounded">
                 {`{ "blocks": [...] }`}
               </code>
             </p>
@@ -238,7 +238,7 @@ export default function PageEditPage() {
         </div>
 
         {/* Change Description */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label htmlFor="changeDescription" className="block text-sm font-medium mb-2">
             Change Description (Optional)
           </label>
@@ -247,17 +247,17 @@ export default function PageEditPage() {
             id="changeDescription"
             name="changeDescription"
             placeholder="Describe what you changed..."
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between items-center bg-white rounded-xl p-6 shadow-sm">
+        <div className="flex justify-between items-center bg-surface-raised rounded-xl p-6 shadow-sm">
           <div className="flex gap-3">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+              className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
             >
               {isSubmitting ? "Saving..." : "Save Draft"}
             </button>
@@ -268,7 +268,7 @@ export default function PageEditPage() {
                 name="intent"
                 value="publish"
                 disabled={isSubmitting}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:bg-green-400"
+                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:bg-success-muted"
               >
                 Publish
               </button>
@@ -280,7 +280,7 @@ export default function PageEditPage() {
                 name="intent"
                 value="unpublish"
                 disabled={isSubmitting}
-                className="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 disabled:bg-yellow-400"
+                className="bg-warning text-white px-6 py-2 rounded-lg hover:bg-warning disabled:bg-warning-muted"
               >
                 Unpublish
               </button>
@@ -292,7 +292,7 @@ export default function PageEditPage() {
               href={`/site/${page.pageId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 font-medium"
+              className="text-brand hover:text-brand font-medium"
             >
               Preview Live Page →
             </a>
@@ -302,20 +302,20 @@ export default function PageEditPage() {
 
       {/* Version History */}
       {history.length > 0 && (
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Version History</h2>
           <div className="space-y-3">
             {history.slice(0, 5).map((entry: any) => (
               <div
                 key={entry.id}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
               >
                 <div>
                   <div className="font-medium">Version {entry.version}</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-foreground-muted">
                     {entry.changeDescription || "No description"}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-foreground-muted mt-1">
                     {new Date(entry.createdAt).toLocaleString()}
                   </div>
                 </div>
@@ -324,7 +324,7 @@ export default function PageEditPage() {
                   <input type="hidden" name="version" value={entry.version} />
                   <button
                     type="submit"
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:text-gray-400"
+                    className="text-brand hover:text-brand text-sm font-medium disabled:text-foreground-subtle"
                     disabled={isSubmitting}
                     onClick={(e) => {
                       if (!confirm(
@@ -344,32 +344,32 @@ export default function PageEditPage() {
       )}
 
       {/* Help */}
-      <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+      <div className="bg-brand-muted rounded-xl p-6 border border-brand">
         <h3 className="font-semibold mb-3">Content Block Types</h3>
-        <div className="space-y-2 text-sm text-gray-700">
+        <div className="space-y-2 text-sm text-foreground">
           <p>
-            <code className="bg-white px-2 py-0.5 rounded">heading</code> - Text
+            <code className="bg-surface-raised px-2 py-0.5 rounded">heading</code> - Text
             heading with level (1-6)
           </p>
           <p>
-            <code className="bg-white px-2 py-0.5 rounded">paragraph</code> - Rich
+            <code className="bg-surface-raised px-2 py-0.5 rounded">paragraph</code> - Rich
             text paragraph
           </p>
           <p>
-            <code className="bg-white px-2 py-0.5 rounded">image</code> - Single image
+            <code className="bg-surface-raised px-2 py-0.5 rounded">image</code> - Single image
             with caption
           </p>
           <p>
-            <code className="bg-white px-2 py-0.5 rounded">values-grid</code> - Grid
+            <code className="bg-surface-raised px-2 py-0.5 rounded">values-grid</code> - Grid
             of values/features
           </p>
           <p>
-            <code className="bg-white px-2 py-0.5 rounded">team-section</code> - Team
+            <code className="bg-surface-raised px-2 py-0.5 rounded">team-section</code> - Team
             members display
           </p>
           <p className="mt-3 text-xs">
             See schema definition in{" "}
-            <code className="bg-white px-2 py-0.5 rounded">
+            <code className="bg-surface-raised px-2 py-0.5 rounded">
               lib/db/schema/page-content.ts
             </code>{" "}
             for full documentation

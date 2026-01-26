@@ -148,31 +148,31 @@ export default function AgenciesPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Certification Agencies</h1>
-        <p className="text-gray-500">
+        <p className="text-foreground-muted">
           Manage diving certification agencies (PADI, SSI, NAUI, etc.)
         </p>
       </div>
 
       {/* Success/Error Messages */}
       {actionData?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
           {actionData.message}
         </div>
       )}
       {actionData?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {actionData.error}
         </div>
       )}
 
       {/* Quick Add Common Agencies */}
       {availableCommonAgencies.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-          <h3 className="font-medium text-blue-800 mb-2">Quick Add Common Agencies</h3>
+        <div className="bg-brand-muted border border-brand rounded-xl p-4 mb-6">
+          <h3 className="font-medium text-brand mb-2">Quick Add Common Agencies</h3>
           <div className="flex flex-wrap gap-2">
             {availableCommonAgencies.map((agency) => (
               <fetcher.Form key={agency.code} method="post" className="inline">
@@ -180,7 +180,7 @@ export default function AgenciesPage() {
                 <input type="hidden" name="agencyCode" value={agency.code} />
                 <button
                   type="submit"
-                  className="px-3 py-1.5 bg-white border border-blue-300 text-blue-700 rounded-lg text-sm hover:bg-blue-100 transition-colors"
+                  className="px-3 py-1.5 bg-surface-raised border border-brand text-brand rounded-lg text-sm hover:bg-brand-muted transition-colors"
                 >
                   + {agency.name}
                 </button>
@@ -192,7 +192,7 @@ export default function AgenciesPage() {
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="bg-surface-raised rounded-xl shadow-sm p-6 mb-6">
           <h2 className="font-semibold mb-4">
             {editingAgency ? "Edit Agency" : "Add New Agency"}
           </h2>
@@ -215,7 +215,7 @@ export default function AgenciesPage() {
                     required
                     defaultValue={editingAgency?.name || ""}
                     placeholder="e.g., PADI"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -229,9 +229,9 @@ export default function AgenciesPage() {
                     required
                     defaultValue={editingAgency?.code || ""}
                     placeholder="e.g., PADI"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Short identifier for the agency</p>
+                  <p className="text-xs text-foreground-muted mt-1">Short identifier for the agency</p>
                 </div>
               </div>
 
@@ -245,7 +245,7 @@ export default function AgenciesPage() {
                   rows={2}
                   defaultValue={editingAgency?.description || ""}
                   placeholder="Full name or description of the agency"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -259,7 +259,7 @@ export default function AgenciesPage() {
                   name="website"
                   defaultValue={editingAgency?.website || ""}
                   placeholder="https://www.example.com"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -274,7 +274,7 @@ export default function AgenciesPage() {
                   />
                   <span className="text-sm font-medium">Active</span>
                 </label>
-                <p className="text-xs text-gray-500 ml-6">
+                <p className="text-xs text-foreground-muted ml-6">
                   Inactive agencies won&apos;t appear in dropdowns
                 </p>
               </div>
@@ -284,14 +284,14 @@ export default function AgenciesPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
               >
                 {isSubmitting ? "Saving..." : editingAgency ? "Update Agency" : "Add Agency"}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
-                className="border px-4 py-2 rounded-lg hover:bg-gray-50"
+                className="border px-4 py-2 rounded-lg hover:bg-surface-inset"
               >
                 Cancel
               </button>
@@ -305,7 +305,7 @@ export default function AgenciesPage() {
         <div className="flex justify-end mb-4">
           <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
             Add Agency
           </button>
@@ -313,9 +313,9 @@ export default function AgenciesPage() {
       )}
 
       {/* Agencies List */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         {agencies.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-foreground-muted">
             <p className="mb-2">No certification agencies configured yet.</p>
             <p className="text-sm">
               Add agencies like PADI, SSI, or NAUI to organize your courses.
@@ -329,8 +329,8 @@ export default function AgenciesPage() {
                   <div
                     className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-sm ${
                       agency.isActive
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-500"
+                        ? "bg-brand-muted text-brand"
+                        : "bg-surface-inset text-foreground-muted"
                     }`}
                   >
                     {agency.code.substring(0, 4)}
@@ -339,20 +339,20 @@ export default function AgenciesPage() {
                     <div className="flex items-center gap-2">
                       <p className="font-medium">{agency.name}</p>
                       {!agency.isActive && (
-                        <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded">
+                        <span className="text-xs px-2 py-0.5 bg-surface-inset text-foreground-muted rounded">
                           Inactive
                         </span>
                       )}
                     </div>
                     {agency.description && (
-                      <p className="text-sm text-gray-500">{agency.description}</p>
+                      <p className="text-sm text-foreground-muted">{agency.description}</p>
                     )}
                     {agency.website && (
                       <a
                         href={agency.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-brand hover:underline"
                       >
                         {agency.website}
                       </a>
@@ -363,7 +363,7 @@ export default function AgenciesPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(agency)}
-                    className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                    className="px-3 py-1.5 text-sm text-foreground-muted hover:bg-surface-overlay rounded-lg"
                   >
                     Edit
                   </button>
@@ -383,7 +383,7 @@ export default function AgenciesPage() {
                     <input type="hidden" name="agencyId" value={agency.id} />
                     <button
                       type="submit"
-                      className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                      className="px-3 py-1.5 text-sm text-danger hover:bg-danger-muted rounded-lg"
                     >
                       Delete
                     </button>

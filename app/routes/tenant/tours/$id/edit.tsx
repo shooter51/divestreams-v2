@@ -153,16 +153,16 @@ export default function EditTourPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/tenant/tours/${tour.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/tours/${tour.id}`} className="text-brand hover:underline text-sm">
           ← Back to Tour
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Tour</h1>
-        <p className="text-gray-500">Update tour details and images.</p>
+        <p className="text-foreground-muted">Update tour details and images.</p>
       </div>
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
@@ -174,11 +174,11 @@ export default function EditTourPage() {
                 id="name"
                 name="name"
                 defaultValue={actionData?.values?.name || tour.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.name && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
               )}
             </div>
 
@@ -191,7 +191,7 @@ export default function EditTourPage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description || tour.description}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -204,7 +204,7 @@ export default function EditTourPage() {
                   id="type"
                   name="type"
                   defaultValue={actionData?.values?.type || tour.type}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 >
                   <option value="single_dive">Single Dive</option>
@@ -226,7 +226,7 @@ export default function EditTourPage() {
                   name="duration"
                   min="1"
                   defaultValue={actionData?.values?.duration || tour.duration}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -234,7 +234,7 @@ export default function EditTourPage() {
         </div>
 
         {/* Pricing & Capacity */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Pricing & Capacity</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -242,7 +242,7 @@ export default function EditTourPage() {
                 Price *
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                 <input
                   type="number"
                   id="price"
@@ -250,12 +250,12 @@ export default function EditTourPage() {
                   step="0.01"
                   min="0"
                   defaultValue={actionData?.values?.price || tour.price}
-                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 />
               </div>
               {actionData?.errors?.price && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.price}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.price}</p>
               )}
             </div>
 
@@ -267,7 +267,7 @@ export default function EditTourPage() {
                 id="currency"
                 name="currency"
                 defaultValue={actionData?.values?.currency || tour.currency}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
@@ -289,11 +289,11 @@ export default function EditTourPage() {
                 name="maxParticipants"
                 min="1"
                 defaultValue={actionData?.values?.maxParticipants || tour.maxParticipants}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.maxParticipants && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.maxParticipants}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.maxParticipants}</p>
               )}
             </div>
 
@@ -307,14 +307,14 @@ export default function EditTourPage() {
                 name="minParticipants"
                 min="1"
                 defaultValue={actionData?.values?.minParticipants || tour.minParticipants}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Images */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Tour Images</h2>
           <ImageManager
             entityType="tour"
@@ -325,7 +325,7 @@ export default function EditTourPage() {
         </div>
 
         {/* Inclusions */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">What's Included</h2>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-4">
@@ -371,7 +371,7 @@ export default function EditTourPage() {
                 name="inclusionsStr"
                 placeholder="Bottled water, Towels, Photos (comma-separated)"
                 defaultValue={actionData?.values?.inclusionsStr || tour.inclusions?.join(", ")}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -385,14 +385,14 @@ export default function EditTourPage() {
                 name="exclusionsStr"
                 placeholder="Certification fees, Marine park fees (comma-separated)"
                 defaultValue={actionData?.values?.exclusionsStr || tour.exclusions?.join(", ")}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Requirements */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Requirements</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -403,7 +403,7 @@ export default function EditTourPage() {
                 id="minCertLevel"
                 name="minCertLevel"
                 defaultValue={actionData?.values?.minCertLevel || tour.minCertLevel}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="">None Required</option>
                 <option value="Open Water">Open Water</option>
@@ -424,7 +424,7 @@ export default function EditTourPage() {
                 min="1"
                 placeholder="e.g., 10"
                 defaultValue={actionData?.values?.minAge || tour.minAge || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -439,13 +439,13 @@ export default function EditTourPage() {
               name="requirementsStr"
               placeholder="Must swim, Medical clearance required (comma-separated)"
               defaultValue={actionData?.values?.requirementsStr || tour.requirements?.join(", ")}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
 
         {/* Status */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -455,7 +455,7 @@ export default function EditTourPage() {
               className="rounded"
             />
             <span className="font-medium">Active</span>
-            <span className="text-gray-500 text-sm">
+            <span className="text-foreground-muted text-sm">
               (Inactive tours cannot be scheduled)
             </span>
           </label>
@@ -466,13 +466,13 @@ export default function EditTourPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
             to={`/tenant/tours/${tour.id}`}
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

@@ -285,18 +285,18 @@ export default function SettingsPage() {
           link.disabled ? (
             <div
               key={link.href}
-              className="bg-white rounded-xl p-6 shadow-sm opacity-60"
+              className="bg-surface-raised rounded-xl p-6 shadow-sm opacity-60"
             >
               <div className="flex items-start gap-4">
                 <div className="text-2xl">{link.icon}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h2 className="font-semibold">{link.title}</h2>
-                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-surface-overlay text-foreground-muted px-2 py-0.5 rounded-full">
                       Coming soon
                     </span>
                   </div>
-                  <p className="text-gray-500 text-sm mt-1">{link.description}</p>
+                  <p className="text-foreground-muted text-sm mt-1">{link.description}</p>
                 </div>
               </div>
             </div>
@@ -304,20 +304,20 @@ export default function SettingsPage() {
             <Link
               key={link.href}
               to={link.href}
-              className="block bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow group"
+              className="block bg-surface-raised rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow group"
             >
               <div className="flex items-start gap-4">
                 <div className="text-2xl">{link.icon}</div>
                 <div className="flex-1">
-                  <h2 className="font-semibold group-hover:text-blue-600 transition-colors">
+                  <h2 className="font-semibold group-hover:text-brand transition-colors">
                     {link.title}
                   </h2>
-                  <p className="text-gray-500 text-sm mt-1">{link.description}</p>
+                  <p className="text-foreground-muted text-sm mt-1">{link.description}</p>
                 </div>
                 {link.preview && (
-                  <div className="text-sm text-gray-400">{link.preview}</div>
+                  <div className="text-sm text-foreground-subtle">{link.preview}</div>
                 )}
-                <div className="text-gray-400 group-hover:text-blue-600 transition-colors">
+                <div className="text-foreground-subtle group-hover:text-brand transition-colors">
                   →
                 </div>
               </div>
@@ -328,15 +328,15 @@ export default function SettingsPage() {
 
       {/* Demo Data Section - only show if no data exists */}
       {!hasData && (
-        <div className="mt-8 bg-blue-50 rounded-xl p-6 border border-blue-100">
-          <h2 className="font-semibold text-blue-800 mb-2">Get Started</h2>
-          <p className="text-sm text-blue-600 mb-4">
+        <div className="mt-8 bg-brand-muted rounded-xl p-6 border border-brand-muted">
+          <h2 className="font-semibold text-brand mb-2">Get Started</h2>
+          <p className="text-sm text-brand mb-4">
             Your account is empty. Populate with sample data to explore all features.
           </p>
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-blue-800">Seed Demo Data</p>
-              <p className="text-xs text-blue-600">
+              <p className="font-medium text-brand">Seed Demo Data</p>
+              <p className="text-xs text-brand">
                 Add sample customers, tours, bookings, equipment, and products
               </p>
             </div>
@@ -345,14 +345,14 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={isSeeding}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSeeding ? "Seeding..." : "Load Demo Data"}
               </button>
             </fetcher.Form>
           </div>
           {fetcher.data?.message && (
-            <p className={`mt-3 text-sm ${fetcher.data.success ? "text-green-600" : "text-red-600"}`}>
+            <p className={`mt-3 text-sm ${fetcher.data.success ? "text-success" : "text-danger"}`}>
               {fetcher.data.message}
             </p>
           )}
@@ -360,31 +360,31 @@ export default function SettingsPage() {
       )}
 
       {/* Danger Zone */}
-      <div className="mt-8 bg-red-50 rounded-xl p-6 border border-red-100">
-        <h2 className="font-semibold text-red-800 mb-2">Danger Zone</h2>
-        <p className="text-sm text-red-600 mb-4">
+      <div className="mt-8 bg-danger-muted rounded-xl p-6 border border-danger-muted">
+        <h2 className="font-semibold text-danger mb-2">Danger Zone</h2>
+        <p className="text-sm text-danger mb-4">
           Permanent actions that cannot be undone
         </p>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-red-800">Export all data</p>
-              <p className="text-xs text-red-600">
+              <p className="font-medium text-danger">Export all data</p>
+              <p className="text-xs text-danger">
                 Download a copy of all your data in JSON format
               </p>
             </div>
             <button
               onClick={() => alert("Data export feature coming soon. Contact support@divestreams.com for immediate data export needs.")}
-              className="px-4 py-2 text-sm border border-red-200 rounded-lg hover:bg-red-100 text-red-700"
+              className="px-4 py-2 text-sm border border-danger-muted rounded-lg hover:bg-danger-muted text-danger"
             >
               Export Data
             </button>
           </div>
-          <hr className="border-red-100" />
+          <hr className="border-danger-muted" />
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-red-800">Delete account</p>
-              <p className="text-xs text-red-600">
+              <p className="font-medium text-danger">Delete account</p>
+              <p className="text-xs text-danger">
                 Permanently delete your account and all data
               </p>
             </div>
@@ -401,7 +401,7 @@ export default function SettingsPage() {
                   }
                 }
               }}
-              className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger-hover"
             >
               Delete Account
             </button>

@@ -148,7 +148,7 @@ export default function CustomerDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/customers" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/customers" className="text-brand hover:underline text-sm">
           ← Back to Customers
         </Link>
       </div>
@@ -158,24 +158,24 @@ export default function CustomerDetailPage() {
           <h1 className="text-2xl font-bold">
             {customer.firstName} {customer.lastName}
           </h1>
-          <p className="text-gray-500">{customer.email}</p>
+          <p className="text-foreground-muted">{customer.email}</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setShowEmailModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
           >
             Send Email
           </button>
           <Link
             to={`/tenant/customers/${customer.id}/edit`}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Edit
           </Link>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+            className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
             Delete
           </button>
@@ -184,12 +184,12 @@ export default function CustomerDetailPage() {
 
       {/* Success/Error Messages */}
       {fetcher.data?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
           {fetcher.data.message}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {fetcher.data.error}
         </div>
       )}
@@ -199,45 +199,45 @@ export default function CustomerDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{customer.totalDives}</p>
-              <p className="text-gray-500 text-sm">Total Dives</p>
+              <p className="text-foreground-muted text-sm">Total Dives</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${customer.totalSpent}</p>
-              <p className="text-gray-500 text-sm">Total Spent</p>
+              <p className="text-foreground-muted text-sm">Total Spent</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{customer.lastDiveAt || "Never"}</p>
-              <p className="text-gray-500 text-sm">Last Dive</p>
+              <p className="text-foreground-muted text-sm">Last Dive</p>
             </div>
           </div>
 
           {/* Contact Info */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Contact Information</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-gray-500">Email</p>
+                <p className="text-foreground-muted">Email</p>
                 <p>{customer.email}</p>
               </div>
               <div>
-                <p className="text-gray-500">Phone</p>
+                <p className="text-foreground-muted">Phone</p>
                 <p>{customer.phone || "—"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Date of Birth</p>
+                <p className="text-foreground-muted">Date of Birth</p>
                 <p>{customer.dateOfBirth || "—"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Language</p>
+                <p className="text-foreground-muted">Language</p>
                 <p>{customer.preferredLanguage === "en" ? "English" : customer.preferredLanguage}</p>
               </div>
             </div>
           </div>
 
           {/* Address */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Address</h2>
             <p className="text-sm">
               {customer.address && <>{customer.address}<br /></>}
@@ -249,12 +249,12 @@ export default function CustomerDetailPage() {
           </div>
 
           {/* Booking History */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Booking History</h2>
               <Link
                 to={`/tenant/bookings/new?customerId=${customer.id}`}
-                className="text-blue-600 text-sm hover:underline"
+                className="text-brand text-sm hover:underline"
               >
                 + New Booking
               </Link>
@@ -263,16 +263,16 @@ export default function CustomerDetailPage() {
               {bookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                  className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
                 >
                   <div>
                     <Link
                       to={`/tenant/bookings/${booking.id}`}
-                      className="font-medium hover:text-blue-600"
+                      className="font-medium hover:text-brand"
                     >
                       {booking.tripName}
                     </Link>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-foreground-muted">
                       {booking.bookingNumber} • {booking.date}
                     </p>
                   </div>
@@ -281,10 +281,10 @@ export default function CustomerDetailPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         booking.status === "completed"
-                          ? "bg-gray-100 text-gray-600"
+                          ? "bg-surface-inset text-foreground-muted"
                           : booking.status === "confirmed"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
+                          ? "bg-success-muted text-success"
+                          : "bg-warning-muted text-warning"
                       }`}
                     >
                       {booking.status}
@@ -299,58 +299,58 @@ export default function CustomerDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Certification */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Certification</h2>
             {Array.isArray(customer.certifications) && customer.certifications.length > 0 ? (
               customer.certifications.map((cert: { agency: string; level: string; number?: string; date?: string | null }, i: number) => (
                 <div key={i} className="text-sm">
                   <p className="font-medium">{cert.agency} {cert.level}</p>
-                  {cert.number && <p className="text-gray-500">#{cert.number}</p>}
-                  {cert.date && <p className="text-gray-500">{cert.date}</p>}
+                  {cert.number && <p className="text-foreground-muted">#{cert.number}</p>}
+                  {cert.date && <p className="text-foreground-muted">{cert.date}</p>}
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-500">No certification on file</p>
+              <p className="text-sm text-foreground-muted">No certification on file</p>
             )}
           </div>
 
           {/* Emergency Contact */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Emergency Contact</h2>
             {customer.emergencyContactName ? (
               <div className="text-sm">
                 <p className="font-medium">{customer.emergencyContactName}</p>
-                <p className="text-gray-500">{customer.emergencyContactRelation}</p>
+                <p className="text-foreground-muted">{customer.emergencyContactRelation}</p>
                 <p>{customer.emergencyContactPhone}</p>
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No emergency contact on file</p>
+              <p className="text-sm text-foreground-muted">No emergency contact on file</p>
             )}
           </div>
 
           {/* Medical */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Medical Information</h2>
             <div className="text-sm space-y-2">
               <div>
-                <p className="text-gray-500">Conditions</p>
+                <p className="text-foreground-muted">Conditions</p>
                 <p>{customer.medicalConditions || "None reported"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Medications</p>
+                <p className="text-foreground-muted">Medications</p>
                 <p>{customer.medications || "None reported"}</p>
               </div>
             </div>
           </div>
 
           {/* Notes */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Notes</h2>
             <p className="text-sm">{customer.notes || "No notes"}</p>
             {Array.isArray(customer.tags) && customer.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-3">
                 {(Array.isArray(customer.tags) ? customer.tags : []).map((tag: string) => (
-                  <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                  <span key={tag} className="text-xs bg-surface-inset px-2 py-1 rounded">
                     {tag}
                   </span>
                 ))}
@@ -359,14 +359,14 @@ export default function CustomerDetailPage() {
           </div>
 
           {/* Communication History */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Communication History</h2>
             {communications && communications.length > 0 ? (
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {communications.map((comm) => (
-                  <div key={comm.id} className="text-sm border-l-2 border-blue-200 pl-3">
+                  <div key={comm.id} className="text-sm border-l-2 border-brand pl-3">
                     <p className="font-medium">{comm.subject || "(No subject)"}</p>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-foreground-muted text-xs">
                       {new Date(comm.createdAt).toLocaleDateString()} at{" "}
                       {new Date(comm.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
@@ -374,18 +374,18 @@ export default function CustomerDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No communications yet</p>
+              <p className="text-sm text-foreground-muted">No communications yet</p>
             )}
             <button
               onClick={() => setShowEmailModal(true)}
-              className="mt-4 text-sm text-blue-600 hover:underline"
+              className="mt-4 text-sm text-brand hover:underline"
             >
               + Send new email
             </button>
           </div>
 
           {/* Meta */}
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-foreground-subtle">
             <p>Customer since {customer.createdAt}</p>
             <p>Marketing: {customer.marketingOptIn ? "Opted in" : "Opted out"}</p>
           </div>
@@ -395,11 +395,11 @@ export default function CustomerDetailPage() {
       {/* Email Modal */}
       {showEmailModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg p-6">
             <h2 className="text-lg font-bold mb-4">
               Send Email to {customer.firstName} {customer.lastName}
             </h2>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-foreground-muted mb-4">
               To: {customer.email}
             </p>
 
@@ -410,7 +410,7 @@ export default function CustomerDetailPage() {
                   type="text"
                   name="subject"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="e.g., Your upcoming dive trip"
                 />
               </div>
@@ -421,13 +421,13 @@ export default function CustomerDetailPage() {
                   name="body"
                   required
                   rows={6}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="Write your message here..."
                 />
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <p className="text-sm text-amber-700">
+              <div className="bg-warning-muted border border-warning rounded-lg p-3">
+                <p className="text-sm text-warning">
                   Note: Email delivery requires SMTP configuration in settings.
                   This message will be logged to communication history.
                 </p>
@@ -437,14 +437,14 @@ export default function CustomerDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowEmailModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
                   {fetcher.state === "submitting" ? "Sending..." : "Send Email"}
                 </button>

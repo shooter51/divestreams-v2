@@ -561,27 +561,27 @@ export default function ProductsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Products & Inventory</h1>
-          <p className="text-gray-600">Manage your retail products and stock levels</p>
+          <p className="text-foreground-muted">Manage your retail products and stock levels</p>
         </div>
         <div className="flex gap-2">
           {selectedProducts.size > 0 && (
             <button
               onClick={() => setShowBulkUpdate(true)}
-              className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+              className="px-4 py-2 bg-warning-muted text-white rounded-lg hover:bg-warning"
             >
               Bulk Update ({selectedProducts.size})
             </button>
           )}
           <button
             onClick={handleExportCSV}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-border-strong text-foreground rounded-lg hover:bg-surface-inset"
             disabled={products.length === 0}
           >
             Export CSV
           </button>
           <button
             onClick={() => setShowImportModal(true)}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-border-strong text-foreground rounded-lg hover:bg-surface-inset"
           >
             Import CSV
           </button>
@@ -591,7 +591,7 @@ export default function ProductsPage() {
               setBarcodeValue("");
               setShowForm(true);
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
           >
             + Add Product
           </button>
@@ -600,13 +600,13 @@ export default function ProductsPage() {
 
       {/* Low Stock Alert */}
       {lowStockProducts.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-amber-800 mb-2">Low Stock Alert</h3>
+        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-warning mb-2">Low Stock Alert</h3>
           <div className="flex flex-wrap gap-2">
             {lowStockProducts.map((p) => (
               <span
                 key={p.id}
-                className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm"
+                className="px-3 py-1 bg-warning-muted text-warning rounded-full text-sm"
               >
                 {p.name}: {p.stockQuantity} left
               </span>
@@ -617,31 +617,31 @@ export default function ProductsPage() {
 
       {/* Success Message */}
       {fetcherData?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg mb-4">
+        <div className="bg-success-muted border border-success text-success p-3 rounded-lg mb-4">
           {fetcherData.message}
         </div>
       )}
 
       {/* Error Message */}
       {fetcherData?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4">
+        <div className="bg-danger-muted border border-danger text-danger p-3 rounded-lg mb-4">
           {fetcherData.error}
         </div>
       )}
 
       {/* Import Results */}
       {importResult && importResult.errors.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold text-amber-800">Import Errors</h3>
+            <h3 className="font-semibold text-warning">Import Errors</h3>
             <button
               onClick={() => setImportResult(null)}
-              className="text-amber-600 hover:text-amber-800 text-sm"
+              className="text-warning hover:text-warning text-sm"
             >
               Dismiss
             </button>
           </div>
-          <ul className="text-sm text-amber-700 space-y-1">
+          <ul className="text-sm text-warning space-y-1">
             {importResult.errors.map((error, idx) => (
               <li key={idx}>{error}</li>
             ))}
@@ -655,12 +655,12 @@ export default function ProductsPage() {
       {/* Products List */}
       {Object.entries(productsByCategory).map(([category, categoryProducts]: [string, typeof products]) => (
         <div key={category} className="mb-8">
-          <h2 className="text-lg font-semibold capitalize mb-3 text-gray-700">
+          <h2 className="text-lg font-semibold capitalize mb-3 text-foreground">
             {category} ({categoryProducts.length})
           </h2>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-surface-raised rounded-lg shadow overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-surface-inset">
                 <tr>
                   <th className="px-4 py-3 text-left w-8">
                     <input
@@ -670,12 +670,12 @@ export default function ProductsPage() {
                       className="w-4 h-4 rounded"
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Product</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">SKU</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Price</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Stock</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">Product</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground-muted">SKU</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-foreground-muted">Price</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-foreground-muted">Stock</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-foreground-muted">Status</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-foreground-muted">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -684,7 +684,7 @@ export default function ProductsPage() {
                   const productWithSale = product as typeof product & { salePrice?: string | null; saleStartDate?: Date | string | null; saleEndDate?: Date | string | null };
                   const onSale = isOnSale(productWithSale);
                   return (
-                  <tr key={product.id} className={!product.isActive ? "bg-gray-50 opacity-60" : ""}>
+                  <tr key={product.id} className={!product.isActive ? "bg-surface-inset opacity-60" : ""}>
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
@@ -697,25 +697,25 @@ export default function ProductsPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{product.name}</span>
                         {onSale && (
-                          <span className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded font-semibold">
+                          <span className="px-1.5 py-0.5 text-xs bg-danger text-white rounded font-semibold">
                             SALE
                           </span>
                         )}
                       </div>
                       {product.description && (
-                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                        <div className="text-sm text-foreground-muted truncate max-w-xs">
                           {product.description}
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{product.sku || "-"}</td>
+                    <td className="px-4 py-3 text-sm text-foreground-muted">{product.sku || "-"}</td>
                     <td className="px-4 py-3 text-right">
                       {onSale ? (
                         <div>
-                          <span className="font-bold text-red-600">
+                          <span className="font-bold text-danger">
                             ${Number(productWithSale.salePrice).toFixed(2)}
                           </span>
-                          <span className="text-sm text-gray-400 line-through ml-2">
+                          <span className="text-sm text-foreground-subtle line-through ml-2">
                             ${Number(product.price).toFixed(2)}
                           </span>
                         </div>
@@ -729,8 +729,8 @@ export default function ProductsPage() {
                       <span
                         className={`font-medium ${
                           product.stockQuantity <= (product.lowStockThreshold || 5)
-                            ? "text-red-600"
-                            : "text-gray-900"
+                            ? "text-danger"
+                            : "text-foreground"
                         }`}
                       >
                         {product.stockQuantity}
@@ -740,8 +740,8 @@ export default function ProductsPage() {
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
                           product.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-600"
+                            ? "bg-success-muted text-success"
+                            : "bg-surface-inset text-foreground-muted"
                         }`}
                       >
                         {product.isActive ? "Active" : "Inactive"}
@@ -751,7 +751,7 @@ export default function ProductsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setStockAdjustment({ id: product.id, name: product.name })}
-                          className="px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
+                          className="px-2 py-1 text-sm bg-surface-inset rounded hover:bg-surface-overlay"
                           title="Adjust Stock"
                         >
                           +/-
@@ -762,7 +762,7 @@ export default function ProductsPage() {
                             setBarcodeValue((product as ProductWithSaleFields).barcode || "");
                             setShowForm(true);
                           }}
-                          className="px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
+                          className="px-2 py-1 text-sm text-brand hover:bg-brand-muted rounded"
                         >
                           Edit
                         </button>
@@ -778,11 +778,11 @@ export default function ProductsPage() {
       ))}
 
       {products.length === 0 && (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 mb-4">No products yet. Add your first product to get started.</p>
+        <div className="text-center py-12 bg-surface-inset rounded-lg">
+          <p className="text-foreground-muted mb-4">No products yet. Add your first product to get started.</p>
           <button
             onClick={() => setShowForm(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
           >
             + Add Product
           </button>
@@ -792,7 +792,7 @@ export default function ProductsPage() {
       {/* Product Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4">
                 {editingProduct ? "Edit Product" : "Add Product"}
@@ -810,7 +810,7 @@ export default function ProductsPage() {
                       name="name"
                       defaultValue={editingProduct?.name || ""}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -820,7 +820,7 @@ export default function ProductsPage() {
                       name="category"
                       defaultValue={editingProduct?.category || "equipment"}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     >
                       {CATEGORIES.map((cat) => (
                         <option key={cat} value={cat}>
@@ -836,7 +836,7 @@ export default function ProductsPage() {
                       type="text"
                       name="sku"
                       defaultValue={editingProduct?.sku || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                       placeholder="Optional"
                     />
                   </div>
@@ -849,7 +849,7 @@ export default function ProductsPage() {
                         name="barcode"
                         value={barcodeValue || editingProduct?.barcode || ""}
                         onChange={(e) => setBarcodeValue(e.target.value)}
-                        className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                         placeholder="EAN-13, UPC-A, etc."
                       />
                       <button
@@ -874,7 +874,7 @@ export default function ProductsPage() {
                       min="0"
                       defaultValue={editingProduct?.price || ""}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -886,7 +886,7 @@ export default function ProductsPage() {
                       step="0.01"
                       min="0"
                       defaultValue={editingProduct?.costPrice || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                       placeholder="For margin calc"
                     />
                   </div>
@@ -898,7 +898,7 @@ export default function ProductsPage() {
                       name="stockQuantity"
                       min="0"
                       defaultValue={editingProduct?.stockQuantity ?? 0}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -909,13 +909,13 @@ export default function ProductsPage() {
                       name="lowStockThreshold"
                       min="0"
                       defaultValue={editingProduct?.lowStockThreshold ?? 5}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
                   {/* Sale Pricing Section */}
                   <div className="col-span-2 border-t pt-4 mt-2">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Sale Pricing (Optional)</h3>
+                    <h3 className="text-sm font-semibold text-foreground mb-3">Sale Pricing (Optional)</h3>
                   </div>
 
                   <div>
@@ -926,7 +926,7 @@ export default function ProductsPage() {
                       step="0.01"
                       min="0"
                       defaultValue={editingProduct?.salePrice || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                       placeholder="Leave empty for no sale"
                     />
                   </div>
@@ -941,7 +941,7 @@ export default function ProductsPage() {
                       type="datetime-local"
                       name="saleStartDate"
                       defaultValue={formatDateForInput(editingProduct?.saleStartDate || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -951,7 +951,7 @@ export default function ProductsPage() {
                       type="datetime-local"
                       name="saleEndDate"
                       defaultValue={formatDateForInput(editingProduct?.saleEndDate || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -961,7 +961,7 @@ export default function ProductsPage() {
                       name="description"
                       rows={2}
                       defaultValue={editingProduct?.description || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -989,14 +989,14 @@ export default function ProductsPage() {
                       setEditingProduct(null);
                       setBarcodeValue("");
                     }}
-                    className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                    className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                    className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                   >
                     {isSubmitting ? "Saving..." : editingProduct ? "Update" : "Create"}
                   </button>
@@ -1015,7 +1015,7 @@ export default function ProductsPage() {
                           }
                           // Don't close modal here - let useEffect handle it after success
                         }}
-                        className="w-full py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                        className="w-full py-2 text-danger hover:bg-danger-muted rounded-lg text-sm"
                       >
                         Delete Product
                       </button>
@@ -1031,7 +1031,7 @@ export default function ProductsPage() {
       {/* Stock Adjustment Modal */}
       {stockAdjustment && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-sm p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-sm p-6">
             <h2 className="text-lg font-bold mb-4">Adjust Stock: {stockAdjustment.name}</h2>
 
             <fetcher.Form
@@ -1050,7 +1050,7 @@ export default function ProductsPage() {
                   type="number"
                   name="adjustment"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-center text-xl"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-center text-xl"
                   placeholder="e.g., 10 or -5"
                 />
               </div>
@@ -1059,14 +1059,14 @@ export default function ProductsPage() {
                 <button
                   type="button"
                   onClick={() => setStockAdjustment(null)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
                   {isSubmitting ? "Saving..." : "Adjust"}
                 </button>
@@ -1079,16 +1079,16 @@ export default function ProductsPage() {
       {/* Import CSV Modal */}
       {showImportModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <h2 className="text-lg font-bold mb-4">Import Products from CSV</h2>
 
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-surface-inset rounded-lg p-4">
                 <h3 className="font-medium text-sm mb-2">CSV Format Requirements:</h3>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-sm text-foreground-muted mb-2">
                   Your CSV file must include a header row with these columns:
                 </p>
-                <ul className="text-xs text-gray-600 space-y-1 ml-4 list-disc">
+                <ul className="text-xs text-foreground-muted space-y-1 ml-4 list-disc">
                   <li><strong>name</strong> (required)</li>
                   <li><strong>sku</strong> (required)</li>
                   <li><strong>category</strong> (equipment, apparel, accessories, courses, rental, consumables, other)</li>
@@ -1108,12 +1108,12 @@ export default function ProductsPage() {
                   type="file"
                   accept=".csv,text/csv"
                   onChange={handleFileSelect}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-sm"
                 />
               </div>
 
               {products.length > 0 && (
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-foreground-muted">
                   <strong>Tip:</strong> Export your existing products first to get a properly formatted CSV template.
                 </div>
               )}
@@ -1122,7 +1122,7 @@ export default function ProductsPage() {
                 <button
                   type="button"
                   onClick={() => setShowImportModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
@@ -1135,7 +1135,7 @@ export default function ProductsPage() {
       {/* Bulk Update Modal */}
       {showBulkUpdate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <h2 className="text-lg font-bold mb-4">
               Bulk Update Stock ({selectedProducts.size} products)
             </h2>
@@ -1175,10 +1175,10 @@ export default function ProductsPage() {
                   type="number"
                   name="value"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-center text-xl"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-center text-xl"
                   placeholder={bulkUpdateType === "adjust" ? "e.g., 10 or -5" : "e.g., 50"}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-foreground-muted mt-1">
                   {bulkUpdateType === "adjust"
                     ? "Use positive numbers to add stock, negative to remove"
                     : "All selected products will be set to this quantity"
@@ -1186,15 +1186,15 @@ export default function ProductsPage() {
                 </p>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-3">
+              <div className="bg-surface-inset rounded-lg p-3">
                 <h4 className="text-sm font-medium mb-2">Selected Products:</h4>
-                <div className="max-h-32 overflow-y-auto text-sm text-gray-600">
+                <div className="max-h-32 overflow-y-auto text-sm text-foreground-muted">
                   {products
                     .filter(p => selectedProducts.has(p.id))
                     .map(p => (
                       <div key={p.id} className="flex justify-between py-1">
                         <span>{p.name}</span>
-                        <span className="text-gray-400">Current: {p.stockQuantity}</span>
+                        <span className="text-foreground-subtle">Current: {p.stockQuantity}</span>
                       </div>
                     ))
                   }
@@ -1205,14 +1205,14 @@ export default function ProductsPage() {
                 <button
                   type="button"
                   onClick={() => setShowBulkUpdate(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:bg-amber-300"
+                  className="flex-1 py-2 bg-warning-muted text-white rounded-lg hover:bg-warning disabled:bg-warning-muted"
                 >
                   {isSubmitting ? "Updating..." : "Update Stock"}
                 </button>

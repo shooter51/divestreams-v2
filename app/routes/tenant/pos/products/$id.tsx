@@ -49,10 +49,10 @@ function formatCurrency(amount: number): string {
 }
 
 const categoryColors: Record<string, string> = {
-  equipment: "bg-blue-100 text-blue-700",
-  apparel: "bg-purple-100 text-purple-700",
-  accessories: "bg-green-100 text-green-700",
-  courses: "bg-orange-100 text-orange-700",
+  equipment: "bg-brand-muted text-brand",
+  apparel: "bg-info-muted text-info",
+  accessories: "bg-success-muted text-success",
+  courses: "bg-accent-muted text-accent",
   rental: "bg-cyan-100 text-cyan-700",
 };
 
@@ -68,7 +68,7 @@ export default function ProductDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link to="/tenant/pos/products" className="text-gray-400 hover:text-gray-600">
+          <Link to="/tenant/pos/products" className="text-foreground-subtle hover:text-foreground-muted">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -78,17 +78,17 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-2 mt-1">
               <span
                 className={`text-xs px-2 py-1 rounded capitalize ${
-                  categoryColors[product.category] || "bg-gray-100 text-gray-700"
+                  categoryColors[product.category] || "bg-surface-inset text-foreground"
                 }`}
               >
                 {product.category}
               </span>
               {product.sku && (
-                <span className="text-sm text-gray-500">SKU: {product.sku}</span>
+                <span className="text-sm text-foreground-muted">SKU: {product.sku}</span>
               )}
               <span
                 className={`text-xs px-2 py-1 rounded ${
-                  product.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                  product.isActive ? "bg-success-muted text-success" : "bg-surface-inset text-foreground-muted"
                 }`}
               >
                 {product.isActive ? "Active" : "Inactive"}
@@ -99,7 +99,7 @@ export default function ProductDetailPage() {
         <div className="flex gap-3">
           <Link
             to={`/tenant/pos/products/${product.id}/edit`}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
           >
             Edit Product
           </Link>
@@ -108,66 +108,66 @@ export default function ProductDetailPage() {
 
       <div className="grid grid-cols-2 gap-6">
         {/* Pricing */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Pricing</h2>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-500">Sell Price</span>
-              <span className="text-2xl font-bold text-blue-600">{formatCurrency(product.price)}</span>
+              <span className="text-foreground-muted">Sell Price</span>
+              <span className="text-2xl font-bold text-brand">{formatCurrency(product.price)}</span>
             </div>
             {product.costPrice && (
               <div className="flex justify-between">
-                <span className="text-gray-500">Cost Price</span>
+                <span className="text-foreground-muted">Cost Price</span>
                 <span className="font-medium">{formatCurrency(product.costPrice)}</span>
               </div>
             )}
             {margin !== null && (
               <div className="flex justify-between">
-                <span className="text-gray-500">Margin</span>
-                <span className={`font-medium ${margin >= 30 ? "text-green-600" : margin >= 15 ? "text-yellow-600" : "text-red-600"}`}>
+                <span className="text-foreground-muted">Margin</span>
+                <span className={`font-medium ${margin >= 30 ? "text-success" : margin >= 15 ? "text-warning" : "text-danger"}`}>
                   {margin}%
                 </span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-gray-500">Tax Rate</span>
+              <span className="text-foreground-muted">Tax Rate</span>
               <span className="font-medium">{product.taxRate}%</span>
             </div>
           </div>
         </div>
 
         {/* Inventory */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Inventory</h2>
           {product.trackInventory ? (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-500">In Stock</span>
+                <span className="text-foreground-muted">In Stock</span>
                 <span
                   className={`text-2xl font-bold ${
                     product.stockQuantity <= product.lowStockThreshold
-                      ? "text-orange-600"
-                      : "text-green-600"
+                      ? "text-accent"
+                      : "text-success"
                   }`}
                 >
                   {product.stockQuantity}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Low Stock Alert</span>
+                <span className="text-foreground-muted">Low Stock Alert</span>
                 <span className="font-medium">{product.lowStockThreshold} units</span>
               </div>
 
               {/* Quick Stock Adjustment */}
               <div className="border-t pt-4 mt-4">
-                <p className="text-sm text-gray-500 mb-2">Quick Adjustment</p>
+                <p className="text-sm text-foreground-muted mb-2">Quick Adjustment</p>
                 <div className="flex gap-2">
                   <Form method="post" className="flex gap-2">
                     <input type="hidden" name="intent" value="adjustStock" />
                     <input type="hidden" name="adjustment" value="-1" />
                     <button
                       type="submit"
-                      className="px-3 py-1 border rounded hover:bg-gray-50"
+                      className="px-3 py-1 border rounded hover:bg-surface-inset"
                     >
                       -1
                     </button>
@@ -177,7 +177,7 @@ export default function ProductDetailPage() {
                     <input type="hidden" name="adjustment" value="1" />
                     <button
                       type="submit"
-                      className="px-3 py-1 border rounded hover:bg-gray-50"
+                      className="px-3 py-1 border rounded hover:bg-surface-inset"
                     >
                       +1
                     </button>
@@ -187,7 +187,7 @@ export default function ProductDetailPage() {
                     <input type="hidden" name="adjustment" value="10" />
                     <button
                       type="submit"
-                      className="px-3 py-1 border rounded hover:bg-gray-50"
+                      className="px-3 py-1 border rounded hover:bg-surface-inset"
                     >
                       +10
                     </button>
@@ -196,22 +196,22 @@ export default function ProductDetailPage() {
               </div>
             </div>
           ) : (
-            <p className="text-gray-500">Inventory tracking disabled</p>
+            <p className="text-foreground-muted">Inventory tracking disabled</p>
           )}
         </div>
       </div>
 
       {/* Description */}
       {product.description && (
-        <div className="bg-white rounded-xl p-6 shadow-sm mt-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mt-6">
           <h2 className="font-semibold mb-2">Description</h2>
-          <p className="text-gray-600">{product.description}</p>
+          <p className="text-foreground-muted">{product.description}</p>
         </div>
       )}
 
       {/* Danger Zone */}
-      <div className="bg-white rounded-xl p-6 shadow-sm mt-6 border border-red-200">
-        <h2 className="font-semibold text-red-600 mb-4">Danger Zone</h2>
+      <div className="bg-surface-raised rounded-xl p-6 shadow-sm mt-6 border border-danger">
+        <h2 className="font-semibold text-danger mb-4">Danger Zone</h2>
         <Form method="post">
           <input type="hidden" name="intent" value="delete" />
           <button
@@ -221,7 +221,7 @@ export default function ProductDetailPage() {
                 e.preventDefault();
               }
             }}
-            className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+            className="px-4 py-2 border border-danger text-danger rounded-lg hover:bg-danger-muted"
           >
             Delete Product
           </button>

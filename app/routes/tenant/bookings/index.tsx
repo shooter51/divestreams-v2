@@ -128,11 +128,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-green-100 text-green-700",
-  completed: "bg-gray-100 text-gray-600",
-  cancelled: "bg-red-100 text-red-700",
-  no_show: "bg-orange-100 text-orange-700",
+  pending: "bg-warning-muted text-warning",
+  confirmed: "bg-success-muted text-success",
+  completed: "bg-surface-inset text-foreground-muted",
+  cancelled: "bg-danger-muted text-danger",
+  no_show: "bg-accent-muted text-accent",
 };
 
 export default function BookingsPage() {
@@ -182,10 +182,10 @@ export default function BookingsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Bookings</h1>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {total} total bookings
             {!isPremium && (
-              <span className="ml-2 text-sm text-gray-400">
+              <span className="ml-2 text-sm text-foreground-subtle">
                 ({usage}/{limit} this month)
               </span>
             )}
@@ -195,8 +195,8 @@ export default function BookingsPage() {
           to="/tenant/bookings/new"
           className={`px-4 py-2 rounded-lg ${
             canAddBooking
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "bg-brand text-white hover:bg-brand-hover"
+              : "bg-border-strong text-foreground-muted cursor-not-allowed"
           }`}
           onClick={(e) => {
             if (!canAddBooking) {
@@ -211,17 +211,17 @@ export default function BookingsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{stats.today}</p>
-          <p className="text-gray-500 text-sm">Today's Bookings</p>
+          <p className="text-foreground-muted text-sm">Today's Bookings</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{stats.upcoming}</p>
-          <p className="text-gray-500 text-sm">Upcoming Confirmed</p>
+          <p className="text-foreground-muted text-sm">Upcoming Confirmed</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-2xl font-bold text-yellow-600">{stats.pendingPayment}</p>
-          <p className="text-gray-500 text-sm">Pending Payment</p>
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+          <p className="text-2xl font-bold text-warning">{stats.pendingPayment}</p>
+          <p className="text-foreground-muted text-sm">Pending Payment</p>
         </div>
       </div>
 
@@ -232,12 +232,12 @@ export default function BookingsPage() {
           name="search"
           defaultValue={search}
           placeholder="Search by booking #, customer name, or email..."
-          className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         />
         <select
           name="status"
           defaultValue={status}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
@@ -248,30 +248,30 @@ export default function BookingsPage() {
         </select>
         <button
           type="submit"
-          className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+          className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
         >
           Filter
         </button>
       </form>
 
       {/* Bookings Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-surface-inset border-b">
             <tr>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Booking</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Customer</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Trip</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Pax</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Total</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Booking</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Customer</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Trip</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Pax</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Total</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Status</th>
               <th className="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {bookings.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-foreground-muted">
                   {search || status
                     ? "No bookings found matching your filters."
                     : "No bookings yet. Create your first booking to get started."}
@@ -279,28 +279,28 @@ export default function BookingsPage() {
               </tr>
             ) : (
               bookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-50">
+                <tr key={booking.id} className="hover:bg-surface-inset">
                   <td className="px-6 py-4">
                     <Link
                       to={`/tenant/bookings/${booking.id}`}
-                      className="font-medium text-blue-600 hover:underline"
+                      className="font-medium text-brand hover:underline"
                     >
                       {booking.bookingNumber}
                     </Link>
-                    <p className="text-xs text-gray-400">{booking.createdAt}</p>
+                    <p className="text-xs text-foreground-subtle">{booking.createdAt}</p>
                   </td>
                   <td className="px-6 py-4">
                     <Link
                       to={`/tenant/customers/${booking.customer.id}`}
-                      className="hover:text-blue-600"
+                      className="hover:text-brand"
                     >
                       {booking.customer.firstName} {booking.customer.lastName}
                     </Link>
-                    <p className="text-sm text-gray-500">{booking.customer.email}</p>
+                    <p className="text-sm text-foreground-muted">{booking.customer.email}</p>
                   </td>
                   <td className="px-6 py-4">
                     <p className="font-medium">{booking.trip.tourName}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-foreground-muted">
                       {booking.trip.date} at {booking.trip.startTime}
                     </p>
                   </td>
@@ -308,7 +308,7 @@ export default function BookingsPage() {
                   <td className="px-6 py-4">
                     <p className="font-medium">${booking.total}</p>
                     {parseFloat(booking.paidAmount) < parseFloat(booking.total) && (
-                      <p className="text-xs text-yellow-600">
+                      <p className="text-xs text-warning">
                         ${booking.paidAmount} paid
                       </p>
                     )}
@@ -316,7 +316,7 @@ export default function BookingsPage() {
                   <td className="px-6 py-4">
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
-                        statusColors[booking.status] || "bg-gray-100 text-gray-700"
+                        statusColors[booking.status] || "bg-surface-inset text-foreground"
                       }`}
                     >
                       {booking.status}
@@ -325,7 +325,7 @@ export default function BookingsPage() {
                   <td className="px-6 py-4 text-right">
                     <Link
                       to={`/tenant/bookings/${booking.id}`}
-                      className="text-blue-600 hover:underline text-sm"
+                      className="text-brand hover:underline text-sm"
                     >
                       View
                     </Link>
@@ -339,7 +339,7 @@ export default function BookingsPage() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="px-6 py-3 border-t flex justify-between items-center">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-foreground-muted">
               Page {page} of {totalPages}
             </span>
             <div className="flex gap-2">

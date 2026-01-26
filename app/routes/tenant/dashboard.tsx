@@ -218,7 +218,7 @@ export default function DashboardPage() {
       <div className="flex justify-between items-start mb-6">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-gray-500">{orgName}</p>
+          <p className="text-foreground-muted">{orgName}</p>
         </div>
 
         {/* Subscription Status */}
@@ -226,16 +226,16 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
               subscription?.status === "active"
-                ? "bg-green-100 text-green-700"
+                ? "bg-success-muted text-success"
                 : subscription?.status === "trialing"
-                ? "bg-blue-100 text-blue-700"
-                : "bg-yellow-100 text-yellow-700"
+                ? "bg-brand-muted text-brand"
+                : "bg-warning-muted text-warning"
             }`}>
               {subscription?.plan || "free"} - {subscription?.status || "active"}
             </span>
           </div>
           {!isPremium && (
-            <Link to="/tenant/settings/billing" className="text-sm text-blue-600 hover:underline mt-1 inline-block">
+            <Link to="/tenant/settings/billing" className="text-sm text-brand hover:underline mt-1 inline-block">
               Upgrade for more features
             </Link>
           )}
@@ -273,18 +273,18 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-6">
         {/* Upcoming Trips */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Upcoming Trips</h2>
           <div className="space-y-3">
             {upcomingTrips.map((trip) => (
               <Link
                 key={trip.id}
                 to={`/tenant/trips/${trip.id}`}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
+                className="flex items-center justify-between p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors cursor-pointer no-underline text-inherit"
               >
                 <div>
                   <p className="font-medium">{trip.name}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-foreground-muted">
                     {trip.date} at {trip.time}
                   </p>
                 </div>
@@ -292,40 +292,40 @@ export default function DashboardPage() {
                   <p className="font-medium">
                     {trip.participants}/{trip.maxParticipants}
                   </p>
-                  <p className="text-sm text-gray-500">participants</p>
+                  <p className="text-sm text-foreground-muted">participants</p>
                 </div>
               </Link>
             ))}
           </div>
           <Link
             to="/tenant/trips"
-            className="block text-center text-blue-600 mt-4 text-sm hover:underline"
+            className="block text-center text-brand mt-4 text-sm hover:underline"
           >
             View all trips →
           </Link>
         </div>
 
         {/* Recent Bookings */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Recent Bookings</h2>
           <div className="space-y-3">
             {recentBookings.map((booking) => (
               <Link
                 key={booking.id}
                 to={`/tenant/bookings/${booking.id}`}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer no-underline text-inherit"
+                className="flex items-center justify-between p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors cursor-pointer no-underline text-inherit"
               >
                 <div>
                   <p className="font-medium">{booking.customer}</p>
-                  <p className="text-sm text-gray-500">{booking.trip}</p>
+                  <p className="text-sm text-foreground-muted">{booking.trip}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-medium">${booking.amount}</p>
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
                       booking.status === "confirmed"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
+                        ? "bg-success-muted text-success"
+                        : "bg-warning-muted text-warning"
                     }`}
                   >
                     {booking.status}
@@ -336,7 +336,7 @@ export default function DashboardPage() {
           </div>
           <Link
             to="/tenant/bookings"
-            className="block text-center text-blue-600 mt-4 text-sm hover:underline"
+            className="block text-center text-brand mt-4 text-sm hover:underline"
           >
             View all bookings →
           </Link>
@@ -366,12 +366,12 @@ function StatCard({
 }) {
   const iconMap: Record<string, React.ReactNode> = {
     calendar: (
-      <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
     ),
     dollar: (
-      <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
@@ -381,19 +381,19 @@ function StatCard({
       </svg>
     ),
     users: (
-      <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-6 h-6 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
       </svg>
     ),
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm">
+    <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-2">
         {iconMap[icon] || <span className="text-2xl">{icon}</span>}
       </div>
       <p className="text-2xl font-bold">{value}</p>
-      <p className="text-gray-500 text-sm">{title}</p>
+      <p className="text-foreground-muted text-sm">{title}</p>
     </div>
   );
 }
@@ -423,16 +423,16 @@ function UsageCard({ planName, limitChecks, usage, planLimits, isPremium, hasWar
   ];
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+    <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold">Usage Overview</h2>
-          <p className="text-sm text-gray-500">Current plan: <span className="font-medium text-gray-700">{planName}</span></p>
+          <p className="text-sm text-foreground-muted">Current plan: <span className="font-medium text-foreground">{planName}</span></p>
         </div>
         {hasWarning && !isPremium && (
           <Link
             to="/tenant/settings/billing"
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand-hover transition-colors"
           >
             Upgrade Plan
           </Link>
@@ -469,19 +469,19 @@ function UsageItem({ label, current, limit, check, unit }: UsageItemProps) {
   const isWarning = check.warning;
 
   // Determine progress bar color
-  let progressColor = "bg-blue-500";
+  let progressColor = "bg-brand";
   if (isOverLimit) {
-    progressColor = "bg-red-500";
+    progressColor = "bg-danger";
   } else if (isWarning) {
-    progressColor = "bg-yellow-500";
+    progressColor = "bg-warning";
   }
 
   // Determine text color for the count
-  let textColor = "text-gray-900";
+  let textColor = "text-foreground";
   if (isOverLimit) {
-    textColor = "text-red-600";
+    textColor = "text-danger";
   } else if (isWarning) {
-    textColor = "text-yellow-600";
+    textColor = "text-warning";
   }
 
   const formatValue = (val: number) => {
@@ -492,18 +492,18 @@ function UsageItem({ label, current, limit, check, unit }: UsageItemProps) {
   };
 
   return (
-    <div className="p-3 bg-gray-50 rounded-lg">
-      <p className="text-sm text-gray-600 mb-1">{label}</p>
+    <div className="p-3 bg-surface-inset rounded-lg">
+      <p className="text-sm text-foreground-muted mb-1">{label}</p>
       <p className={`text-lg font-semibold ${textColor}`}>
         {formatValue(current)} / {isUnlimited ? <span className="text-xl">&#8734;</span> : formatValue(limit)}
-        {unit && <span className="text-sm font-normal text-gray-500 ml-1">{unit}</span>}
+        {unit && <span className="text-sm font-normal text-foreground-muted ml-1">{unit}</span>}
       </p>
 
       {/* Progress bar */}
       {!isUnlimited && (
         <div className="mt-2">
           <div
-            className="w-full h-2 bg-gray-200 rounded-full overflow-hidden"
+            className="w-full h-2 bg-surface-overlay rounded-full overflow-hidden"
             role="progressbar"
             aria-valuenow={check.percent}
             aria-valuemin={0}
@@ -515,7 +515,7 @@ function UsageItem({ label, current, limit, check, unit }: UsageItemProps) {
               style={{ width: `${Math.min(check.percent, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-foreground-muted mt-1">
             {check.percent}% used
             {check.remaining > 0 && ` - ${check.remaining} remaining`}
           </p>
@@ -523,7 +523,7 @@ function UsageItem({ label, current, limit, check, unit }: UsageItemProps) {
       )}
 
       {isUnlimited && (
-        <p className="text-xs text-green-600 mt-2">Unlimited</p>
+        <p className="text-xs text-success mt-2">Unlimited</p>
       )}
     </div>
   );
@@ -577,10 +577,10 @@ function UpgradeModal({ onClose, limitExceeded, feature }: UpgradeModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+      <div className="relative bg-surface-raised rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          className="absolute top-4 right-4 text-foreground-subtle hover:text-foreground-muted"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -588,25 +588,25 @@ function UpgradeModal({ onClose, limitExceeded, feature }: UpgradeModalProps) {
         </button>
 
         <div className="text-center">
-          <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mx-auto w-12 h-12 bg-brand-muted rounded-full flex items-center justify-center mb-4">
+            <svg className="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
 
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600 mb-6">{description}</p>
+          <h3 className="text-xl font-semibold text-foreground mb-2">{title}</h3>
+          <p className="text-foreground-muted mb-6">{description}</p>
 
           <div className="space-y-3">
             <Link
               to="/tenant/settings/billing"
-              className="block w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="block w-full px-4 py-3 bg-brand text-white font-medium rounded-lg hover:bg-brand-hover transition-colors"
             >
               View Upgrade Options
             </Link>
             <button
               onClick={onClose}
-              className="block w-full px-4 py-3 text-gray-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+              className="block w-full px-4 py-3 text-foreground-muted font-medium rounded-lg hover:bg-surface-overlay transition-colors"
             >
               Maybe Later
             </button>

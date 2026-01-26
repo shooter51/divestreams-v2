@@ -252,7 +252,7 @@ export default function NewTripPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/trips" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/trips" className="text-brand hover:underline text-sm">
           ← Back to Trips
         </Link>
         <h1 className="text-2xl font-bold mt-2">Schedule Trip</h1>
@@ -260,17 +260,17 @@ export default function NewTripPage() {
 
       <form method="post" className="space-y-6">
         {/* Tour Selection */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Tour</h2>
           {selectedTour ? (
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-brand-muted rounded-lg">
               <div>
                 <p className="font-medium">{selectedTour.name}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   ${selectedTour.price} • {selectedTour.duration} min • Max {selectedTour.maxParticipants} pax
                 </p>
               </div>
-              <Link to="/tenant/trips/new" className="text-sm text-blue-600 hover:underline">
+              <Link to="/tenant/trips/new" className="text-sm text-brand hover:underline">
                 Change
               </Link>
               <input type="hidden" name="tourId" value={selectedTour.id} />
@@ -284,7 +284,7 @@ export default function NewTripPage() {
                 id="tourId"
                 name="tourId"
                 defaultValue={actionData?.values?.tourId || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               >
                 <option value="">Choose a tour...</option>
@@ -295,14 +295,14 @@ export default function NewTripPage() {
                 ))}
               </select>
               {actionData?.errors?.tourId && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.tourId}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.tourId}</p>
               )}
             </div>
           )}
         </div>
 
         {/* Date & Time */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">{isRecurring ? "Start Date & Time" : "Date & Time"}</h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -316,11 +316,11 @@ export default function NewTripPage() {
                 value={startDate || actionData?.values?.date || defaultDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.date && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.date}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.date}</p>
               )}
             </div>
             <div>
@@ -332,11 +332,11 @@ export default function NewTripPage() {
                 id="startTime"
                 name="startTime"
                 defaultValue={actionData?.values?.startTime || "08:00"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.startTime && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.startTime}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.startTime}</p>
               )}
             </div>
             <div>
@@ -348,18 +348,18 @@ export default function NewTripPage() {
                 id="endTime"
                 name="endTime"
                 defaultValue={actionData?.values?.endTime || "12:00"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Recurring Trip Options */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-semibold">Recurring Trip</h2>
-              <p className="text-sm text-gray-500">Schedule this trip to repeat automatically</p>
+              <p className="text-sm text-foreground-muted">Schedule this trip to repeat automatically</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -370,7 +370,7 @@ export default function NewTripPage() {
                 onChange={(e) => setIsRecurring(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-surface-overlay peer-focus:ring-4 peer-focus:ring-brand rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-raised after:border-border-strong after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
             </label>
           </div>
 
@@ -386,7 +386,7 @@ export default function NewTripPage() {
                   name="recurrencePattern"
                   value={recurrencePattern}
                   onChange={(e) => setRecurrencePattern(e.target.value as RecurrencePattern)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
@@ -409,8 +409,8 @@ export default function NewTripPage() {
                         onClick={() => toggleDay(day.value)}
                         className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
                           selectedDays.includes(day.value)
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            ? "bg-brand text-white"
+                            : "bg-surface-inset text-foreground hover:bg-surface-overlay"
                         }`}
                       >
                         {day.label}
@@ -421,7 +421,7 @@ export default function NewTripPage() {
                       <input key={day} type="hidden" name="recurrenceDays" value={day} />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-foreground-muted mt-1">
                     {selectedDays.length === 0 ? "Will use the start date's day of week" : `Selected: ${selectedDays.map(d => DAYS_OF_WEEK[d].label).join(", ")}`}
                   </p>
                 </div>
@@ -501,7 +501,7 @@ export default function NewTripPage() {
                       <span
                         key={date}
                         className={`text-xs px-2 py-1 rounded ${
-                          idx === 0 ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"
+                          idx === 0 ? "bg-brand-muted text-brand" : "bg-surface-inset text-foreground"
                         }`}
                       >
                         {new Date(date + "T00:00:00").toLocaleDateString("en-US", {
@@ -512,7 +512,7 @@ export default function NewTripPage() {
                       </span>
                     ))}
                     {previewDates.length === 10 && (
-                      <span className="text-xs text-gray-500 self-center">...and more</span>
+                      <span className="text-xs text-foreground-muted self-center">...and more</span>
                     )}
                   </div>
                 </div>
@@ -522,7 +522,7 @@ export default function NewTripPage() {
         </div>
 
         {/* Boat */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Boat</h2>
           <div>
             <label htmlFor="boatId" className="block text-sm font-medium mb-1">
@@ -532,7 +532,7 @@ export default function NewTripPage() {
               id="boatId"
               name="boatId"
               defaultValue={actionData?.values?.boatId || ""}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
               <option value="">No boat assigned</option>
               {boats.map((boat) => (
@@ -545,7 +545,7 @@ export default function NewTripPage() {
         </div>
 
         {/* Capacity Override */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Capacity</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -559,9 +559,9 @@ export default function NewTripPage() {
                 min="1"
                 placeholder={selectedTour ? String(selectedTour.maxParticipants) : "From tour"}
                 defaultValue={actionData?.values?.maxParticipants}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Leave blank to use tour default
               </p>
             </div>
@@ -570,7 +570,7 @@ export default function NewTripPage() {
                 Price Override
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                 <input
                   type="number"
                   id="price"
@@ -579,10 +579,10 @@ export default function NewTripPage() {
                   min="0"
                   placeholder={selectedTour ? selectedTour.price : "From tour"}
                   defaultValue={actionData?.values?.price}
-                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Leave blank to use tour price
               </p>
             </div>
@@ -590,11 +590,11 @@ export default function NewTripPage() {
         </div>
 
         {/* Staff Assignment */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Staff Assignment</h2>
           <div className="space-y-2">
             {staff.map((member) => (
-              <label key={member.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+              <label key={member.id} className="flex items-center gap-3 p-2 hover:bg-surface-inset rounded">
                 <input
                   type="checkbox"
                   name="staffIds"
@@ -602,14 +602,14 @@ export default function NewTripPage() {
                   className="rounded"
                 />
                 <span>{member.name}</span>
-                <span className="text-sm text-gray-500">({member.role})</span>
+                <span className="text-sm text-foreground-muted">({member.role})</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Notes</h2>
           <div className="space-y-4">
             <div>
@@ -622,7 +622,7 @@ export default function NewTripPage() {
                 name="weatherNotes"
                 placeholder="e.g., Light wind expected, good visibility"
                 defaultValue={actionData?.values?.weatherNotes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -634,7 +634,7 @@ export default function NewTripPage() {
                 name="notes"
                 rows={2}
                 defaultValue={actionData?.values?.notes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -648,7 +648,7 @@ export default function NewTripPage() {
                 />
                 <span className="text-sm font-medium">Show on public website</span>
               </label>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Make this trip visible on your public booking site
               </p>
             </div>
@@ -660,13 +660,13 @@ export default function NewTripPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Scheduling..." : "Schedule Trip"}
           </button>
           <Link
             to="/tenant/trips"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

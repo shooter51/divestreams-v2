@@ -208,7 +208,7 @@ export default function BoatDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/boats" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/boats" className="text-brand hover:underline text-sm">
           ← Back to Boats
         </Link>
       </div>
@@ -220,26 +220,26 @@ export default function BoatDetailPage() {
             <span
               className={`text-sm px-3 py-1 rounded-full ${
                 boat.isActive
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
+                  ? "bg-success-muted text-success"
+                  : "bg-surface-inset text-foreground-muted"
               }`}
             >
               {boat.isActive ? "Active" : "Inactive"}
             </span>
             {maintenanceDue && (
-              <span className="text-sm px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">
+              <span className="text-sm px-3 py-1 rounded-full bg-warning-muted text-warning">
                 Maintenance Due
               </span>
             )}
           </div>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {boat.type} • {boat.capacity} passengers
           </p>
         </div>
         <div className="flex gap-2">
           <Link
             to={`/tenant/boats/${boat.id}/edit`}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Edit
           </Link>
@@ -247,14 +247,14 @@ export default function BoatDetailPage() {
             <input type="hidden" name="intent" value="toggle-active" />
             <button
               type="submit"
-              className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
             >
               {boat.isActive ? "Deactivate" : "Activate"}
             </button>
           </fetcher.Form>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+            className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
             Delete
           </button>
@@ -266,32 +266,32 @@ export default function BoatDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.totalTrips}</p>
-              <p className="text-gray-500 text-sm">Total Trips</p>
+              <p className="text-foreground-muted text-sm">Total Trips</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.totalPassengers}</p>
-              <p className="text-gray-500 text-sm">Passengers</p>
+              <p className="text-foreground-muted text-sm">Passengers</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-green-600">{stats.totalRevenue}</p>
-              <p className="text-gray-500 text-sm">Revenue</p>
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+              <p className="text-2xl font-bold text-success">{stats.totalRevenue}</p>
+              <p className="text-foreground-muted text-sm">Revenue</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.avgOccupancy}%</p>
-              <p className="text-gray-500 text-sm">Avg Occupancy</p>
+              <p className="text-foreground-muted text-sm">Avg Occupancy</p>
             </div>
           </div>
 
           {/* Description */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-3">Description</h2>
-            <p className="text-gray-700">{boat.description}</p>
+            <p className="text-foreground">{boat.description}</p>
           </div>
 
           {/* Images */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Boat Images</h2>
             <ImageManager
               entityType="boat"
@@ -303,13 +303,13 @@ export default function BoatDetailPage() {
 
           {/* Amenities */}
           {Array.isArray(amenities) && amenities.length > 0 && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-3">Amenities</h2>
               <div className="flex flex-wrap gap-2">
                 {(Array.isArray(amenities) ? amenities : []).map((a: string) => (
                   <span
                     key={a}
-                    className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
+                    className="bg-brand-muted text-brand px-3 py-1 rounded-full text-sm"
                   >
                     {a}
                   </span>
@@ -319,29 +319,29 @@ export default function BoatDetailPage() {
           )}
 
           {/* Upcoming Trips */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Upcoming Trips</h2>
               <Link
                 to={`/tenant/trips/new?boatId=${boat.id}`}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-brand hover:underline"
               >
                 + Schedule Trip
               </Link>
             </div>
             {upcomingTrips.length === 0 ? (
-              <p className="text-gray-500 text-sm">No upcoming trips.</p>
+              <p className="text-foreground-muted text-sm">No upcoming trips.</p>
             ) : (
               <div className="space-y-3">
                 {upcomingTrips.map((trip) => (
                   <Link
                     key={trip.id}
                     to={`/tenant/trips/${trip.id}`}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                   >
                     <div>
                       <p className="font-medium">{trip.tourName}</p>
-                      <p className="text-sm text-gray-500">{trip.date}</p>
+                      <p className="text-sm text-foreground-muted">{trip.date}</p>
                     </div>
                     <span className="text-sm">
                       {trip.bookedParticipants}/{trip.maxParticipants} booked
@@ -353,33 +353,33 @@ export default function BoatDetailPage() {
           </div>
 
           {/* Recent Trips */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Recent Trips</h2>
               <Link
                 to={`/tenant/trips?boatId=${boat.id}`}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-brand hover:underline"
               >
                 View All
               </Link>
             </div>
             {recentTrips.length === 0 ? (
-              <p className="text-gray-500 text-sm">No trips yet.</p>
+              <p className="text-foreground-muted text-sm">No trips yet.</p>
             ) : (
               <div className="space-y-3">
                 {recentTrips.map((trip) => (
                   <Link
                     key={trip.id}
                     to={`/tenant/trips/${trip.id}`}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                   >
                     <div>
                       <p className="font-medium">{trip.tourName}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-foreground-muted">
                         {trip.date} • {trip.participants} passengers
                       </p>
                     </div>
-                    <span className="text-sm text-green-600">{trip.revenue}</span>
+                    <span className="text-sm text-success">{trip.revenue}</span>
                   </Link>
                 ))}
               </div>
@@ -390,20 +390,20 @@ export default function BoatDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Details */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Details</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Type</span>
+                <span className="text-foreground-muted">Type</span>
                 <span>{boat.type}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Capacity</span>
+                <span className="text-foreground-muted">Capacity</span>
                 <span>{boat.capacity} passengers</span>
               </div>
               {boat.registrationNumber && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Registration</span>
+                  <span className="text-foreground-muted">Registration</span>
                   <span>{boat.registrationNumber}</span>
                 </div>
               )}
@@ -411,7 +411,7 @@ export default function BoatDetailPage() {
           </div>
 
           {/* Maintenance */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Maintenance</h2>
             {maintenanceHistory.length > 0 ? (
               <div className="space-y-3 text-sm mb-4">
@@ -419,29 +419,29 @@ export default function BoatDetailPage() {
                   <div key={log.id} className="border-b pb-2 last:border-0">
                     <div className="flex justify-between items-start">
                       <span className="font-medium capitalize">{log.type}</span>
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-foreground-muted text-xs">
                         {new Date(log.performedAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-gray-600 text-xs mt-1">{log.description}</p>
+                    <p className="text-foreground-muted text-xs mt-1">{log.description}</p>
                     {log.cost && (
-                      <p className="text-gray-500 text-xs">${log.cost}</p>
+                      <p className="text-foreground-muted text-xs">${log.cost}</p>
                     )}
                   </div>
                 ))}
                 {maintenanceHistory.length > 3 && (
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-foreground-muted text-xs">
                     +{maintenanceHistory.length - 3} more records
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm mb-4">No maintenance records yet.</p>
+              <p className="text-foreground-muted text-sm mb-4">No maintenance records yet.</p>
             )}
             <fetcher.Form method="post" className="space-y-3">
               <input type="hidden" name="intent" value="log-maintenance" />
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Type</label>
+                <label className="block text-xs text-foreground-muted mb-1">Type</label>
                 <select
                   name="type"
                   className="w-full text-sm border rounded-lg px-3 py-2"
@@ -454,7 +454,7 @@ export default function BoatDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Description</label>
+                <label className="block text-xs text-foreground-muted mb-1">Description</label>
                 <input
                   type="text"
                   name="description"
@@ -464,7 +464,7 @@ export default function BoatDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Performed By</label>
+                <label className="block text-xs text-foreground-muted mb-1">Performed By</label>
                 <input
                   type="text"
                   name="performedBy"
@@ -473,7 +473,7 @@ export default function BoatDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Cost</label>
+                <label className="block text-xs text-foreground-muted mb-1">Cost</label>
                 <input
                   type="number"
                   name="cost"
@@ -483,7 +483,7 @@ export default function BoatDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Next Maintenance Date</label>
+                <label className="block text-xs text-foreground-muted mb-1">Next Maintenance Date</label>
                 <input
                   type="date"
                   name="nextMaintenanceDate"
@@ -492,7 +492,7 @@ export default function BoatDetailPage() {
               </div>
               <button
                 type="submit"
-                className="w-full text-center py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                className="w-full text-center py-2 text-sm text-white bg-brand rounded-lg hover:bg-brand-hover"
               >
                 Log Maintenance
               </button>
@@ -500,24 +500,24 @@ export default function BoatDetailPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/trips/new?boatId=${boat.id}`}
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 Schedule Trip
               </Link>
               <Link
                 to={`/tenant/calendar?boatId=${boat.id}`}
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 View Calendar
               </Link>
               <Link
                 to={`/tenant/reports?boat=${boat.id}`}
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 Export Report
               </Link>
@@ -525,7 +525,7 @@ export default function BoatDetailPage() {
           </div>
 
           {/* Meta */}
-          <div className="text-xs text-gray-400 space-y-1">
+          <div className="text-xs text-foreground-subtle space-y-1">
             <p>Created: {boat.createdAt}</p>
             <p>Updated: {boat.updatedAt}</p>
             <p>ID: {boat.id}</p>

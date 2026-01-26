@@ -100,7 +100,7 @@ export default function NewCustomerPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/customers" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/customers" className="text-brand hover:underline text-sm">
           ← Back to Customers
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Customer</h1>
@@ -108,7 +108,7 @@ export default function NewCustomerPage() {
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -120,11 +120,11 @@ export default function NewCustomerPage() {
                 id="firstName"
                 name="firstName"
                 defaultValue={actionData?.values?.firstName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.firstName && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.firstName}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.firstName}</p>
               )}
             </div>
             <div>
@@ -136,11 +136,11 @@ export default function NewCustomerPage() {
                 id="lastName"
                 name="lastName"
                 defaultValue={actionData?.values?.lastName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.lastName && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.lastName}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.lastName}</p>
               )}
             </div>
             <div>
@@ -152,11 +152,11 @@ export default function NewCustomerPage() {
                 id="email"
                 name="email"
                 defaultValue={actionData?.values?.email}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.email && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.email}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.email}</p>
               )}
             </div>
             <div>
@@ -168,7 +168,7 @@ export default function NewCustomerPage() {
                 id="phone"
                 name="phone"
                 defaultValue={actionData?.values?.phone}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -180,14 +180,14 @@ export default function NewCustomerPage() {
                 id="dateOfBirth"
                 name="dateOfBirth"
                 defaultValue={actionData?.values?.dateOfBirth}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Certification */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Certification</h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -198,7 +198,7 @@ export default function NewCustomerPage() {
                 id="certAgency"
                 name="certAgency"
                 defaultValue={actionData?.values?.certAgency}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="">Select...</option>
                 <option value="PADI">PADI</option>
@@ -217,7 +217,7 @@ export default function NewCustomerPage() {
                 id="certLevel"
                 name="certLevel"
                 defaultValue={actionData?.values?.certLevel}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="">Select...</option>
                 <option value="Open Water">Open Water</option>
@@ -236,14 +236,14 @@ export default function NewCustomerPage() {
                 id="certNumber"
                 name="certNumber"
                 defaultValue={actionData?.values?.certNumber}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Emergency Contact */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Emergency Contact</h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -255,7 +255,7 @@ export default function NewCustomerPage() {
                 id="emergencyContactName"
                 name="emergencyContactName"
                 defaultValue={actionData?.values?.emergencyContactName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -267,7 +267,7 @@ export default function NewCustomerPage() {
                 id="emergencyContactPhone"
                 name="emergencyContactPhone"
                 defaultValue={actionData?.values?.emergencyContactPhone}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -280,14 +280,14 @@ export default function NewCustomerPage() {
                 name="emergencyContactRelation"
                 placeholder="e.g., Spouse, Parent"
                 defaultValue={actionData?.values?.emergencyContactRelation}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Medical */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Medical Information</h2>
           <div className="space-y-4">
             <div>
@@ -300,7 +300,7 @@ export default function NewCustomerPage() {
                 rows={2}
                 placeholder="Any conditions we should know about..."
                 defaultValue={actionData?.values?.medicalConditions}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -312,14 +312,14 @@ export default function NewCustomerPage() {
                 name="medications"
                 rows={2}
                 defaultValue={actionData?.values?.medications}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Address */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Address</h2>
           <div className="space-y-4">
             <div>
@@ -331,7 +331,7 @@ export default function NewCustomerPage() {
                 id="address"
                 name="address"
                 defaultValue={actionData?.values?.address}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div className="grid grid-cols-4 gap-4">
@@ -344,7 +344,7 @@ export default function NewCustomerPage() {
                   id="city"
                   name="city"
                   defaultValue={actionData?.values?.city}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <div>
@@ -356,7 +356,7 @@ export default function NewCustomerPage() {
                   id="state"
                   name="state"
                   defaultValue={actionData?.values?.state}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
               <div>
@@ -368,7 +368,7 @@ export default function NewCustomerPage() {
                   id="postalCode"
                   name="postalCode"
                   defaultValue={actionData?.values?.postalCode}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -381,14 +381,14 @@ export default function NewCustomerPage() {
                 id="country"
                 name="country"
                 defaultValue={actionData?.values?.country}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Notes & Preferences */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Notes & Preferences</h2>
           <div className="space-y-4">
             <div>
@@ -400,7 +400,7 @@ export default function NewCustomerPage() {
                 name="notes"
                 rows={3}
                 defaultValue={actionData?.values?.notes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -421,8 +421,8 @@ export default function NewCustomerPage() {
 
         {/* Limit Warning */}
         {isNearLimit && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-amber-800 text-sm">
+          <div className="mb-4 p-3 bg-warning-muted border border-warning rounded-lg">
+            <p className="text-warning text-sm">
               {limitRemaining} of {limitMax} customers remaining.{" "}
               <Link to="/tenant/settings/billing" className="underline font-medium">
                 Upgrade for more
@@ -436,13 +436,13 @@ export default function NewCustomerPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Save Customer"}
           </button>
           <Link
             to="/tenant/customers"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

@@ -135,25 +135,25 @@ export default function AdminLoginPage() {
   // Show "Not a platform member" error
   if (actionData?.notPlatformMember) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+      <div className="min-h-screen bg-surface-inset flex items-center justify-center">
+        <div className="bg-surface-raised p-8 rounded-xl shadow-lg w-full max-w-md">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-16 h-16 bg-danger-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-            <p className="text-gray-600 mt-2">
+            <h1 className="text-2xl font-bold text-foreground">Access Denied</h1>
+            <p className="text-foreground-muted mt-2">
               The account <span className="font-medium">{actionData.notPlatformMember.email}</span> does not have platform admin access.
             </p>
           </div>
-          <p className="text-sm text-gray-500 text-center mb-6">
+          <p className="text-sm text-foreground-muted text-center mb-6">
             Only authorized platform administrators can access this area. If you believe this is an error, please contact the platform owner.
           </p>
           <a
             href="/login"
-            className="block w-full text-center bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            className="block w-full text-center bg-surface-inset text-foreground-muted py-3 rounded-lg font-medium hover:bg-surface-inset transition-colors"
           >
             Try a different account
           </a>
@@ -163,21 +163,21 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+    <div className="min-h-screen bg-surface-inset flex items-center justify-center">
+      <div className="bg-surface-raised p-8 rounded-xl shadow-lg w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white text-xl font-bold">DS</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">DiveStreams Admin</h1>
-          <p className="text-gray-600 mt-2">Sign in with your platform admin account</p>
+          <h1 className="text-2xl font-bold text-foreground">DiveStreams Admin</h1>
+          <p className="text-foreground-muted mt-2">Sign in with your platform admin account</p>
         </div>
 
         <form method="post" className="space-y-6">
           <input type="hidden" name="redirectTo" value={redirectTo} />
 
           {actionData?.error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+            <div className="bg-danger-muted text-danger p-3 rounded-lg text-sm">
               {actionData.error}
             </div>
           )}
@@ -193,7 +193,7 @@ export default function AdminLoginPage() {
               autoComplete="email"
               autoFocus
               required
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               placeholder="admin@example.com"
             />
           </div>
@@ -209,13 +209,13 @@ export default function AdminLoginPage() {
                 name="password"
                 autoComplete="current-password"
                 required
-                className="w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                className="w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                 placeholder="Enter your password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-foreground-subtle hover:text-foreground-muted"
               >
                 {showPassword ? (
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -234,7 +234,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 disabled:bg-gray-400 transition-colors"
+            className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 disabled:bg-brand-disabled transition-colors"
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
@@ -250,7 +250,7 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-gray-500">
+        <p className="mt-6 text-center text-xs text-foreground-muted">
           Platform admin access only. Regular users should sign in at their organization's subdomain.
         </p>
       </div>

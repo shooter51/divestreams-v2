@@ -141,10 +141,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 const difficultyColors: Record<string, string> = {
-  beginner: "bg-green-100 text-green-700",
-  intermediate: "bg-blue-100 text-blue-700",
-  advanced: "bg-orange-100 text-orange-700",
-  expert: "bg-red-100 text-red-700",
+  beginner: "bg-success-muted text-success",
+  intermediate: "bg-brand-muted text-brand",
+  advanced: "bg-accent-muted text-accent",
+  expert: "bg-danger-muted text-danger",
 };
 
 export default function DiveSiteDetailPage() {
@@ -160,7 +160,7 @@ export default function DiveSiteDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/dive-sites" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/dive-sites" className="text-brand hover:underline text-sm">
           ← Back to Dive Sites
         </Link>
       </div>
@@ -177,17 +177,17 @@ export default function DiveSiteDetailPage() {
               {diveSite.difficulty}
             </span>
             {!diveSite.isActive && (
-              <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-600">
+              <span className="text-sm px-3 py-1 rounded-full bg-surface-inset text-foreground-muted">
                 Inactive
               </span>
             )}
           </div>
-          <p className="text-gray-500">{diveSite.location}</p>
+          <p className="text-foreground-muted">{diveSite.location}</p>
         </div>
         <div className="flex gap-2">
           <Link
             to={`/tenant/dive-sites/${diveSite.id}/edit`}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Edit
           </Link>
@@ -195,14 +195,14 @@ export default function DiveSiteDetailPage() {
             <input type="hidden" name="intent" value="toggle-active" />
             <button
               type="submit"
-              className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
             >
               {diveSite.isActive ? "Deactivate" : "Activate"}
             </button>
           </fetcher.Form>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+            className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
             Delete
           </button>
@@ -214,34 +214,34 @@ export default function DiveSiteDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.totalTrips}</p>
-              <p className="text-gray-500 text-sm">Total Trips</p>
+              <p className="text-foreground-muted text-sm">Total Trips</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{stats.totalDivers}</p>
-              <p className="text-gray-500 text-sm">Total Divers</p>
+              <p className="text-foreground-muted text-sm">Total Divers</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{diveSite.maxDepth}m</p>
-              <p className="text-gray-500 text-sm">Max Depth</p>
+              <p className="text-foreground-muted text-sm">Max Depth</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-yellow-500">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+              <p className="text-2xl font-bold text-warning">
                 {stats.avgRating !== null ? stats.avgRating : "-"}
               </p>
-              <p className="text-gray-500 text-sm">Avg Rating</p>
+              <p className="text-foreground-muted text-sm">Avg Rating</p>
             </div>
           </div>
 
           {/* Description */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-3">Description</h2>
-            <p className="text-gray-700">{diveSite.description}</p>
+            <p className="text-foreground">{diveSite.description}</p>
           </div>
 
           {/* Images */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Site Images</h2>
             <ImageManager
               entityType="diveSite"
@@ -253,21 +253,21 @@ export default function DiveSiteDetailPage() {
 
           {/* Conditions */}
           {diveSite.conditions && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-3">Typical Conditions</h2>
-              <p className="text-gray-700">{diveSite.conditions}</p>
+              <p className="text-foreground">{diveSite.conditions}</p>
             </div>
           )}
 
           {/* Highlights */}
           {Array.isArray(diveSite.highlights) && diveSite.highlights.length > 0 && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-3">Highlights</h2>
               <div className="flex flex-wrap gap-2">
                 {(Array.isArray(diveSite.highlights) ? diveSite.highlights : []).map((h: string) => (
                   <span
                     key={h}
-                    className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm"
+                    className="bg-brand-muted text-brand px-3 py-1 rounded-full text-sm"
                   >
                     {h}
                   </span>
@@ -277,34 +277,34 @@ export default function DiveSiteDetailPage() {
           )}
 
           {/* Recent Trips */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Recent Trips</h2>
               <Link
                 to={`/tenant/trips?siteId=${diveSite.id}`}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-brand hover:underline"
               >
                 View All
               </Link>
             </div>
             {recentTrips.length === 0 ? (
-              <p className="text-gray-500 text-sm">No trips to this site yet.</p>
+              <p className="text-foreground-muted text-sm">No trips to this site yet.</p>
             ) : (
               <div className="space-y-3">
                 {recentTrips.map((trip) => (
                   <Link
                     key={trip.id}
                     to={`/tenant/trips/${trip.id}`}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                   >
                     <div>
                       <p className="font-medium">{trip.tourName}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-foreground-muted">
                         {trip.date} • {trip.participants} divers
                       </p>
                     </div>
                     {trip.conditions && (
-                      <span className="text-xs text-gray-400">{trip.conditions}</span>
+                      <span className="text-xs text-foreground-subtle">{trip.conditions}</span>
                     )}
                   </Link>
                 ))}
@@ -316,21 +316,21 @@ export default function DiveSiteDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Location */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Location</h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Area</span>
+                <span className="text-foreground-muted">Area</span>
                 <span>{diveSite.location}</span>
               </div>
               {diveSite.coordinates && (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Latitude</span>
+                    <span className="text-foreground-muted">Latitude</span>
                     <span>{diveSite.coordinates.lat}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Longitude</span>
+                    <span className="text-foreground-muted">Longitude</span>
                     <span>{diveSite.coordinates.lng}</span>
                   </div>
                 </>
@@ -341,7 +341,7 @@ export default function DiveSiteDetailPage() {
                 href={`https://www.google.com/maps?q=${diveSite.coordinates.lat},${diveSite.coordinates.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block text-center mt-4 text-blue-600 text-sm hover:underline"
+                className="block text-center mt-4 text-brand text-sm hover:underline"
               >
                 Open in Google Maps
               </a>
@@ -349,12 +349,12 @@ export default function DiveSiteDetailPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/trips/new?siteId=${diveSite.id}`}
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 Schedule Trip Here
               </Link>
@@ -363,14 +363,14 @@ export default function DiveSiteDetailPage() {
                   href={`https://www.google.com/maps?q=${diveSite.coordinates.lat},${diveSite.coordinates.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                  className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
                 >
                   View on Map
                 </a>
               ) : (
                 <button
                   disabled
-                  className="w-full text-left px-3 py-2 text-sm text-gray-400 cursor-not-allowed rounded-lg"
+                  className="w-full text-left px-3 py-2 text-sm text-foreground-subtle cursor-not-allowed rounded-lg"
                 >
                   View on Map (no coordinates)
                 </button>
@@ -426,7 +426,7 @@ export default function DiveSiteDetailPage() {
                   `);
                   printWindow.document.close();
                 }}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 Export Site Info
               </button>
@@ -434,17 +434,17 @@ export default function DiveSiteDetailPage() {
           </div>
 
           {/* Tours Using This Site */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Used In Tours</h2>
             {toursUsingSite.length === 0 ? (
-              <p className="text-gray-500 text-sm">No tours have visited this site yet.</p>
+              <p className="text-foreground-muted text-sm">No tours have visited this site yet.</p>
             ) : (
               <div className="space-y-2">
                 {toursUsingSite.map((tour) => (
                   <Link
                     key={tour.id}
                     to={`/tenant/tours/${tour.id}`}
-                    className="block text-sm text-blue-600 hover:underline"
+                    className="block text-sm text-brand hover:underline"
                   >
                     {tour.name}
                   </Link>
@@ -454,7 +454,7 @@ export default function DiveSiteDetailPage() {
             {toursUsingSite.length > 0 && (
               <Link
                 to={`/tenant/tours?siteId=${diveSite.id}`}
-                className="block text-center mt-4 text-gray-500 text-xs hover:underline"
+                className="block text-center mt-4 text-foreground-muted text-xs hover:underline"
               >
                 View all tours
               </Link>
@@ -462,7 +462,7 @@ export default function DiveSiteDetailPage() {
           </div>
 
           {/* Meta */}
-          <div className="text-xs text-gray-400 space-y-1">
+          <div className="text-xs text-foreground-subtle space-y-1">
             <p>Created: {diveSite.createdAt}</p>
             <p>Updated: {diveSite.updatedAt}</p>
             <p>ID: {diveSite.id}</p>

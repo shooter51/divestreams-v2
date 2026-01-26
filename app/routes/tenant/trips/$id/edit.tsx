@@ -108,16 +108,16 @@ export default function EditTripPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/tenant/trips/${trip.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/trips/${trip.id}`} className="text-brand hover:underline text-sm">
           ← Back to Trip
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Trip</h1>
-        <p className="text-gray-500">{trip.tourName} - {trip.date}</p>
+        <p className="text-foreground-muted">{trip.tourName} - {trip.date}</p>
       </div>
 
       <form method="post" className="space-y-6">
         {/* Trip Details */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Trip Details</h2>
           <div className="space-y-4">
             <div>
@@ -129,7 +129,7 @@ export default function EditTripPage() {
                 name="tourId"
                 required
                 defaultValue={trip.tourId}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 {tours.map((tour) => (
                   <option key={tour.id} value={tour.id}>
@@ -148,7 +148,7 @@ export default function EditTripPage() {
                 name="boatId"
                 required
                 defaultValue={trip.boatId}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 {boats.map((boat) => (
                   <option key={boat.id} value={boat.id}>
@@ -168,7 +168,7 @@ export default function EditTripPage() {
                 name="date"
                 required
                 defaultValue={trip.date ?? ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -183,7 +183,7 @@ export default function EditTripPage() {
                   name="startTime"
                   required
                   defaultValue={trip.startTime}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -197,7 +197,7 @@ export default function EditTripPage() {
                   name="endTime"
                   required
                   defaultValue={trip.endTime}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -205,7 +205,7 @@ export default function EditTripPage() {
         </div>
 
         {/* Capacity & Pricing */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Capacity & Pricing</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -220,7 +220,7 @@ export default function EditTripPage() {
                 min="1"
                 max="100"
                 defaultValue={trip.maxParticipants}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -236,14 +236,14 @@ export default function EditTripPage() {
                 step="0.01"
                 min="0"
                 defaultValue={trip.price ?? ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Status */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Status</h2>
           <div>
             <label htmlFor="status" className="block text-sm font-medium mb-1">
@@ -254,7 +254,7 @@ export default function EditTripPage() {
               name="status"
               required
               defaultValue={trip.status}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
               <option value="open">Open</option>
               <option value="confirmed">Confirmed</option>
@@ -266,7 +266,7 @@ export default function EditTripPage() {
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Notes</h2>
           <div className="space-y-4">
             <div>
@@ -279,7 +279,7 @@ export default function EditTripPage() {
                 rows={2}
                 placeholder="Weather conditions, forecast..."
                 defaultValue={trip.weatherNotes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -293,7 +293,7 @@ export default function EditTripPage() {
                 rows={3}
                 placeholder="Notes visible only to staff..."
                 defaultValue={trip.notes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -307,7 +307,7 @@ export default function EditTripPage() {
                 />
                 <span className="text-sm font-medium">Show on public website</span>
               </label>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Make this trip visible on your public booking site
               </p>
             </div>
@@ -319,13 +319,13 @@ export default function EditTripPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
             to={`/tenant/trips/${trip.id}`}
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

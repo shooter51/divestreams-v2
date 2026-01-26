@@ -131,17 +131,17 @@ const categoryLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  available: "bg-green-100 text-green-700",
-  rented: "bg-blue-100 text-blue-700",
-  maintenance: "bg-yellow-100 text-yellow-700",
-  retired: "bg-gray-100 text-gray-600",
+  available: "bg-success-muted text-success",
+  rented: "bg-brand-muted text-brand",
+  maintenance: "bg-warning-muted text-warning",
+  retired: "bg-surface-inset text-foreground-muted",
 };
 
 const conditionColors: Record<string, string> = {
-  excellent: "text-green-600",
-  good: "text-blue-600",
-  fair: "text-yellow-600",
-  poor: "text-red-600",
+  excellent: "text-success",
+  good: "text-brand",
+  fair: "text-warning",
+  poor: "text-danger",
 };
 
 export default function EquipmentPage() {
@@ -214,13 +214,13 @@ export default function EquipmentPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Equipment Inventory</h1>
-          <p className="text-gray-500">{stats.total} items total</p>
+          <p className="text-foreground-muted">{stats.total} items total</p>
         </div>
         <div className="flex gap-3">
           {/* Scan Barcode button */}
           <button
             onClick={() => setShowBarcodeScanner(true)}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset text-sm flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -231,13 +231,13 @@ export default function EquipmentPage() {
           {hasEquipmentRentals ? (
             <Link
               to="/tenant/equipment/rentals"
-              className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
+              className="px-4 py-2 border rounded-lg hover:bg-surface-inset text-sm"
             >
               Manage Rentals
             </Link>
           ) : (
             <button
-              className="px-4 py-2 border rounded-lg text-gray-400 cursor-not-allowed text-sm relative group"
+              className="px-4 py-2 border rounded-lg text-foreground-subtle cursor-not-allowed text-sm relative group"
               disabled
             >
               Manage Rentals
@@ -248,7 +248,7 @@ export default function EquipmentPage() {
           )}
           <Link
             to="/tenant/equipment/new"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
             Add Equipment
           </Link>
@@ -258,54 +258,54 @@ export default function EquipmentPage() {
       {/* Stats */}
       <div className="grid grid-cols-5 gap-4 mb-6">
         <div
-          className={`bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-blue-500 ${
-            !status ? "ring-2 ring-blue-500" : ""
+          className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-brand ${
+            !status ? "ring-2 ring-brand" : ""
           }`}
           onClick={() => setFilter("status", "")}
         >
           <p className="text-2xl font-bold">{stats.total}</p>
-          <p className="text-gray-500 text-sm">Total</p>
+          <p className="text-foreground-muted text-sm">Total</p>
         </div>
         <div
-          className={`bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-green-500 ${
-            status === "available" ? "ring-2 ring-green-500" : ""
+          className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-success ${
+            status === "available" ? "ring-2 ring-success" : ""
           }`}
           onClick={() => setFilter("status", "available")}
         >
-          <p className="text-2xl font-bold text-green-600">{stats.available}</p>
-          <p className="text-gray-500 text-sm">Available</p>
+          <p className="text-2xl font-bold text-success">{stats.available}</p>
+          <p className="text-foreground-muted text-sm">Available</p>
         </div>
         <div
-          className={`bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-blue-500 ${
-            status === "rented" ? "ring-2 ring-blue-500" : ""
+          className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-brand ${
+            status === "rented" ? "ring-2 ring-brand" : ""
           }`}
           onClick={() => setFilter("status", "rented")}
         >
-          <p className="text-2xl font-bold text-blue-600">{stats.rented}</p>
-          <p className="text-gray-500 text-sm">
+          <p className="text-2xl font-bold text-brand">{stats.rented}</p>
+          <p className="text-foreground-muted text-sm">
             Rented
             {!hasEquipmentRentals && stats.rented > 0 && (
-              <span className="ml-1 text-xs text-amber-500">(Premium)</span>
+              <span className="ml-1 text-xs text-warning">(Premium)</span>
             )}
           </p>
         </div>
         <div
-          className={`bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-yellow-500 ${
-            status === "maintenance" ? "ring-2 ring-yellow-500" : ""
+          className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-warning ${
+            status === "maintenance" ? "ring-2 ring-warning" : ""
           }`}
           onClick={() => setFilter("status", "maintenance")}
         >
-          <p className="text-2xl font-bold text-yellow-600">{stats.maintenance}</p>
-          <p className="text-gray-500 text-sm">Maintenance</p>
+          <p className="text-2xl font-bold text-warning">{stats.maintenance}</p>
+          <p className="text-foreground-muted text-sm">Maintenance</p>
         </div>
         <div
-          className={`bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-gray-500 ${
-            status === "retired" ? "ring-2 ring-gray-500" : ""
+          className={`bg-surface-raised rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-foreground-subtle ${
+            status === "retired" ? "ring-2 ring-foreground-subtle" : ""
           }`}
           onClick={() => setFilter("status", "retired")}
         >
-          <p className="text-2xl font-bold text-gray-600">{stats.retired}</p>
-          <p className="text-gray-500 text-sm">Retired</p>
+          <p className="text-2xl font-bold text-foreground-muted">{stats.retired}</p>
+          <p className="text-foreground-muted text-sm">Retired</p>
         </div>
       </div>
 
@@ -317,13 +317,13 @@ export default function EquipmentPage() {
             name="q"
             placeholder="Search equipment..."
             defaultValue={search}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
         </form>
         <select
           value={category}
           onChange={(e) => setFilter("category", e.target.value)}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
           <option value="">All Categories</option>
           <option value="bcd">BCD</option>
@@ -339,19 +339,19 @@ export default function EquipmentPage() {
 
       {/* Equipment List */}
       {equipment.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm text-center">
-          <p className="text-gray-500">No equipment found.</p>
+        <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
+          <p className="text-foreground-muted">No equipment found.</p>
           <Link
             to="/tenant/equipment/new"
-            className="inline-block mt-4 text-blue-600 hover:underline"
+            className="inline-block mt-4 text-brand hover:underline"
           >
             Add your first equipment item
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-surface-inset border-b">
               <tr>
                 <th className="text-left py-3 px-4 font-medium text-sm">Item</th>
                 <th className="text-left py-3 px-4 font-medium text-sm">Category</th>
@@ -363,15 +363,15 @@ export default function EquipmentPage() {
             </thead>
             <tbody className="divide-y">
               {equipment.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
+                <tr key={item.id} className="hover:bg-surface-inset">
                   <td className="py-3 px-4">
                     <Link
                       to={`/tenant/equipment/${item.id}`}
-                      className="font-medium text-blue-600 hover:underline"
+                      className="font-medium text-brand hover:underline"
                     >
                       {item.name}
                     </Link>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-foreground-muted">
                       {item.brand} {item.model}
                     </p>
                   </td>
@@ -400,13 +400,13 @@ export default function EquipmentPage() {
                       <div>
                         <span className="text-sm">${Number(item.rentalPrice || 0).toFixed(2)}/day</span>
                         {!hasEquipmentRentals && (
-                          <span className="ml-1 text-xs text-amber-500" title="Premium feature required for rentals">
+                          <span className="ml-1 text-xs text-warning" title="Premium feature required for rentals">
                             *
                           </span>
                         )}
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-400">N/A</span>
+                      <span className="text-sm text-foreground-subtle">N/A</span>
                     )}
                   </td>
                 </tr>
@@ -418,9 +418,9 @@ export default function EquipmentPage() {
 
       {/* Premium rental notice */}
       {!isPremium && rentableCount > 0 && (
-        <div className="mt-4 text-center text-sm text-gray-500">
-          <span className="text-amber-500">*</span> Equipment rentals require a premium subscription.{" "}
-          <Link to="/tenant/settings/billing" className="text-blue-600 hover:underline">
+        <div className="mt-4 text-center text-sm text-foreground-muted">
+          <span className="text-warning">*</span> Equipment rentals require a premium subscription.{" "}
+          <Link to="/tenant/settings/billing" className="text-brand hover:underline">
             Upgrade now
           </Link>
         </div>

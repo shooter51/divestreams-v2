@@ -85,18 +85,18 @@ export default function NewTourPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/tours" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/tours" className="text-brand hover:underline text-sm">
           ← Back to Tours
         </Link>
         <h1 className="text-2xl font-bold mt-2">Create Tour</h1>
-        <p className="text-gray-500">
+        <p className="text-foreground-muted">
           Create a tour template that can be scheduled as trips.
         </p>
       </div>
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
@@ -109,11 +109,11 @@ export default function NewTourPage() {
                 name="name"
                 defaultValue={actionData?.values?.name}
                 placeholder="e.g., Morning 2-Tank Dive"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.name && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
               )}
             </div>
 
@@ -127,7 +127,7 @@ export default function NewTourPage() {
                 rows={3}
                 defaultValue={actionData?.values?.description}
                 placeholder="Describe the tour experience..."
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -140,7 +140,7 @@ export default function NewTourPage() {
                   id="type"
                   name="type"
                   defaultValue={actionData?.values?.type || "single_dive"}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 >
                   <option value="single_dive">Single Dive</option>
@@ -162,7 +162,7 @@ export default function NewTourPage() {
                   name="duration"
                   min="1"
                   defaultValue={actionData?.values?.duration || "120"}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function NewTourPage() {
         </div>
 
         {/* Pricing & Capacity */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Pricing & Capacity</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -178,7 +178,7 @@ export default function NewTourPage() {
                 Price *
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                 <input
                   type="number"
                   id="price"
@@ -186,12 +186,12 @@ export default function NewTourPage() {
                   step="0.01"
                   min="0"
                   defaultValue={actionData?.values?.price}
-                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 />
               </div>
               {actionData?.errors?.price && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.price}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.price}</p>
               )}
             </div>
 
@@ -203,7 +203,7 @@ export default function NewTourPage() {
                 id="currency"
                 name="currency"
                 defaultValue={actionData?.values?.currency || "USD"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
@@ -225,11 +225,11 @@ export default function NewTourPage() {
                 name="maxParticipants"
                 min="1"
                 defaultValue={actionData?.values?.maxParticipants || "8"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.maxParticipants && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.maxParticipants}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.maxParticipants}</p>
               )}
             </div>
 
@@ -243,14 +243,14 @@ export default function NewTourPage() {
                 name="minParticipants"
                 min="1"
                 defaultValue={actionData?.values?.minParticipants || "1"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Inclusions */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">What's Included</h2>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
@@ -296,7 +296,7 @@ export default function NewTourPage() {
                 name="inclusionsStr"
                 placeholder="Bottled water, Towels, Photos (comma-separated)"
                 defaultValue={actionData?.values?.inclusionsStr}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -310,14 +310,14 @@ export default function NewTourPage() {
                 name="exclusionsStr"
                 placeholder="Certification fees, Marine park fees (comma-separated)"
                 defaultValue={actionData?.values?.exclusionsStr}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Requirements */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Requirements</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -328,7 +328,7 @@ export default function NewTourPage() {
                 id="minCertLevel"
                 name="minCertLevel"
                 defaultValue={actionData?.values?.minCertLevel || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="">None Required</option>
                 <option value="Open Water">Open Water</option>
@@ -349,7 +349,7 @@ export default function NewTourPage() {
                 min="1"
                 placeholder="e.g., 10"
                 defaultValue={actionData?.values?.minAge}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -364,13 +364,13 @@ export default function NewTourPage() {
               name="requirementsStr"
               placeholder="Must swim, Medical clearance required (comma-separated)"
               defaultValue={actionData?.values?.requirementsStr}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
 
         {/* Status */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -380,7 +380,7 @@ export default function NewTourPage() {
               className="rounded"
             />
             <span className="font-medium">Active</span>
-            <span className="text-gray-500 text-sm">
+            <span className="text-foreground-muted text-sm">
               (Inactive tours cannot be scheduled)
             </span>
           </label>
@@ -388,8 +388,8 @@ export default function NewTourPage() {
 
         {/* Limit Warning */}
         {isNearLimit && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-amber-800 text-sm">
+          <div className="mb-4 p-3 bg-warning-muted border border-warning rounded-lg">
+            <p className="text-warning text-sm">
               {limitRemaining} of {limitMax} tours per month remaining.{" "}
               <Link to="/tenant/settings/billing" className="underline font-medium">
                 Upgrade for more
@@ -403,13 +403,13 @@ export default function NewTourPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Creating..." : "Create Tour"}
           </button>
           <Link
             to="/tenant/tours"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

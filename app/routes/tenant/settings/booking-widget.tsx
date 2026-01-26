@@ -127,15 +127,15 @@ export default function BookingWidgetPage() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Booking Widget</h1>
-        <p className="text-gray-500">Customize and embed your booking widget on any website</p>
+        <p className="text-foreground-muted">Customize and embed your booking widget on any website</p>
       </div>
 
       {fetcher.data?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg mb-6">
           Settings saved successfully!
         </div>
       )}
@@ -145,7 +145,7 @@ export default function BookingWidgetPage() {
         <div>
           <fetcher.Form method="post" className="space-y-6">
             {/* Appearance */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Appearance</h2>
               <div className="space-y-4">
                 <div>
@@ -213,7 +213,7 @@ export default function BookingWidgetPage() {
             </div>
 
             {/* Display Options */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Display Options</h2>
               <div className="space-y-3">
                 <label className="flex items-center gap-3">
@@ -255,7 +255,7 @@ export default function BookingWidgetPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50"
               >
                 {isSubmitting ? "Saving..." : "Save Settings"}
               </button>
@@ -266,9 +266,9 @@ export default function BookingWidgetPage() {
         {/* Embed Code & Preview */}
         <div className="space-y-6">
           {/* Embed URL */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Direct Link</h2>
-            <p className="text-sm text-gray-500 mb-3">
+            <p className="text-sm text-foreground-muted mb-3">
               Share this link directly with customers:
             </p>
             <div className="flex gap-2">
@@ -276,11 +276,11 @@ export default function BookingWidgetPage() {
                 type="text"
                 value={embedUrl}
                 readOnly
-                className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono bg-gray-50"
+                className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono bg-surface-inset"
               />
               <button
                 onClick={() => copyToClipboard(embedUrl)}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
+                className="px-4 py-2 border rounded-lg hover:bg-surface-inset text-sm"
               >
                 {copied ? "Copied!" : "Copy"}
               </button>
@@ -289,16 +289,16 @@ export default function BookingWidgetPage() {
               href={embedUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-3 text-sm text-blue-600 hover:underline"
+              className="inline-block mt-3 text-sm text-brand hover:underline"
             >
               Preview in new tab &rarr;
             </a>
           </div>
 
           {/* Embed Code */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Embed Code</h2>
-            <p className="text-sm text-gray-500 mb-3">
+            <p className="text-sm text-foreground-muted mb-3">
               Copy this code to embed the booking widget on your website:
             </p>
             <div className="relative">
@@ -315,7 +315,7 @@ export default function BookingWidgetPage() {
           </div>
 
           {/* Preview */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Preview</h2>
             <div className="border rounded-lg overflow-hidden" style={{ height: "400px" }}>
               <iframe

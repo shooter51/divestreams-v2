@@ -60,17 +60,17 @@ export default function PublicSiteSettingsLayout() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Public Site Settings</h1>
-        <p className="text-gray-500">
+        <p className="text-foreground-muted">
           Configure your public-facing website at{" "}
           <a
             href={publicSiteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-brand hover:underline"
           >
             {publicSiteUrl}
           </a>
@@ -82,26 +82,26 @@ export default function PublicSiteSettingsLayout() {
         <span
           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
             settings.enabled
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-100 text-gray-600"
+              ? "bg-success-muted text-success"
+              : "bg-surface-overlay text-foreground-muted"
           }`}
         >
           <span
             className={`w-2 h-2 rounded-full mr-2 ${
-              settings.enabled ? "bg-green-500" : "bg-gray-400"
+              settings.enabled ? "bg-success" : "bg-surface-overlay"
             }`}
           />
           {settings.enabled ? "Site Enabled" : "Site Disabled"}
         </span>
         {!isPremium && (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-700">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-warning-muted text-warning">
             Free Plan - Limited Features
           </span>
         )}
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-border mb-6">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => (
             <Link
@@ -109,8 +109,8 @@ export default function PublicSiteSettingsLayout() {
               to={tab.href}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-brand text-brand"
+                  : "border-transparent text-foreground-muted hover:text-foreground-muted hover:border-border"
               }`}
             >
               {tab.label}

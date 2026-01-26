@@ -177,11 +177,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  open: "bg-blue-100 text-blue-700",
-  confirmed: "bg-green-100 text-green-700",
-  full: "bg-purple-100 text-purple-700",
-  completed: "bg-gray-100 text-gray-600",
-  cancelled: "bg-red-100 text-red-700",
+  open: "bg-brand-muted text-brand",
+  confirmed: "bg-success-muted text-success",
+  full: "bg-info-muted text-info",
+  completed: "bg-surface-inset text-foreground-muted",
+  cancelled: "bg-danger-muted text-danger",
 };
 
 // Quick message templates for common scenarios
@@ -367,7 +367,7 @@ export default function TripDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/trips" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/trips" className="text-brand hover:underline text-sm">
           ← Back to Trips
         </Link>
       </div>
@@ -378,14 +378,14 @@ export default function TripDetailPage() {
             <h1 className="text-2xl font-bold">{trip.tour.name}</h1>
             <span
               className={`text-sm px-3 py-1 rounded-full ${
-                statusColors[trip.status] || "bg-gray-100 text-gray-700"
+                statusColors[trip.status] || "bg-surface-inset text-foreground"
               }`}
             >
               {trip.status}
             </span>
             {recurringInfo?.isRecurring && (
               <span
-                className="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 flex items-center gap-1 cursor-pointer"
+                className="text-sm px-3 py-1 rounded-full bg-info-muted text-info flex items-center gap-1 cursor-pointer"
                 onClick={() => setShowSeriesModal(true)}
                 title="Click to view series"
               >
@@ -397,7 +397,7 @@ export default function TripDetailPage() {
               </span>
             )}
           </div>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {new Date(trip.date + "T00:00:00").toLocaleDateString("en-US", {
               weekday: "long",
               year: "numeric",
@@ -411,7 +411,7 @@ export default function TripDetailPage() {
           {trip.status !== "cancelled" && trip.status !== "completed" && spotsAvailable > 0 && (
             <Link
               to={`/tenant/bookings/new?tripId=${trip.id}`}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
             >
               Add Booking
             </Link>
@@ -421,7 +421,7 @@ export default function TripDetailPage() {
               <input type="hidden" name="intent" value="complete" />
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success-hover"
               >
                 Mark Complete
               </button>
@@ -429,7 +429,7 @@ export default function TripDetailPage() {
           )}
           <Link
             to={`/tenant/trips/${trip.id}/edit`}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Edit
           </Link>
@@ -437,7 +437,7 @@ export default function TripDetailPage() {
             <>
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
               >
                 Cancel Trip
               </button>
@@ -451,7 +451,7 @@ export default function TripDetailPage() {
                   <input type="hidden" name="templateId" value={recurringInfo.templateId || ""} />
                   <button
                     type="submit"
-                    className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                    className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
                   >
                     Cancel Series
                   </button>
@@ -464,12 +464,12 @@ export default function TripDetailPage() {
 
       {/* Success/Error Messages */}
       {fetcher.data?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
           {fetcher.data.message}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {fetcher.data.error}
         </div>
       )}
@@ -479,62 +479,62 @@ export default function TripDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
                 {trip.bookedParticipants}/{trip.maxParticipants}
               </p>
-              <p className="text-gray-500 text-sm">Booked</p>
+              <p className="text-foreground-muted text-sm">Booked</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-green-600">{spotsAvailable}</p>
-              <p className="text-gray-500 text-sm">Spots Left</p>
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+              <p className="text-2xl font-bold text-success">{spotsAvailable}</p>
+              <p className="text-foreground-muted text-sm">Spots Left</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${revenue.bookingsTotal}</p>
-              <p className="text-gray-500 text-sm">Total Revenue</p>
+              <p className="text-foreground-muted text-sm">Total Revenue</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-yellow-600">${revenue.pendingTotal}</p>
-              <p className="text-gray-500 text-sm">Pending Payment</p>
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+              <p className="text-2xl font-bold text-warning">${revenue.pendingTotal}</p>
+              <p className="text-foreground-muted text-sm">Pending Payment</p>
             </div>
           </div>
 
           {/* Trip Details */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Trip Details</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-gray-500">Time</p>
+                <p className="text-foreground-muted">Time</p>
                 <p>
                   {trip.startTime} - {trip.endTime}
                 </p>
               </div>
               <div>
-                <p className="text-gray-500">Boat</p>
-                <Link to={`/tenant/boats/${trip.boat.id}`} className="text-blue-600 hover:underline">
+                <p className="text-foreground-muted">Boat</p>
+                <Link to={`/tenant/boats/${trip.boat.id}`} className="text-brand hover:underline">
                   {trip.boat.name}
                 </Link>
               </div>
               <div>
-                <p className="text-gray-500">Price</p>
+                <p className="text-foreground-muted">Price</p>
                 <p>${trip.price} per person</p>
               </div>
               <div>
-                <p className="text-gray-500">Tour</p>
-                <Link to={`/tenant/tours/${trip.tour.id}`} className="text-blue-600 hover:underline">
+                <p className="text-foreground-muted">Tour</p>
+                <Link to={`/tenant/tours/${trip.tour.id}`} className="text-brand hover:underline">
                   {trip.tour.name}
                 </Link>
               </div>
             </div>
             {trip.diveSites && trip.diveSites.length > 0 && (
               <div className="mt-4 pt-4 border-t">
-                <p className="text-gray-500 text-sm mb-2">Dive Sites</p>
+                <p className="text-foreground-muted text-sm mb-2">Dive Sites</p>
                 <div className="space-y-1">
                   {trip.diveSites.map((site) => (
                     <Link
                       key={site.id}
                       to={`/tenant/dive-sites/${site.id}`}
-                      className="block text-sm text-blue-600 hover:underline"
+                      className="block text-sm text-brand hover:underline"
                     >
                       {site.name}
                       {site.maxDepth && ` (${site.maxDepth}m)`}
@@ -547,18 +547,18 @@ export default function TripDetailPage() {
 
           {/* Weather & Notes */}
           {(trip.weatherNotes || trip.notes) && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Notes</h2>
               <div className="space-y-4 text-sm">
                 {trip.weatherNotes && (
                   <div>
-                    <p className="text-gray-500 mb-1">Weather:</p>
+                    <p className="text-foreground-muted mb-1">Weather:</p>
                     <p>{trip.weatherNotes}</p>
                   </div>
                 )}
                 {trip.notes && (
                   <div>
-                    <p className="text-gray-500 mb-1">Internal Notes:</p>
+                    <p className="text-foreground-muted mb-1">Internal Notes:</p>
                     <p>{trip.notes}</p>
                   </div>
                 )}
@@ -567,43 +567,43 @@ export default function TripDetailPage() {
           )}
 
           {/* Bookings */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Bookings ({bookings.length})</h2>
               {spotsAvailable > 0 && (
                 <Link
                   to={`/tenant/bookings/new?tripId=${trip.id}`}
-                  className="text-blue-600 text-sm hover:underline"
+                  className="text-brand text-sm hover:underline"
                 >
                   + Add Booking
                 </Link>
               )}
             </div>
             {bookings.length === 0 ? (
-              <p className="text-gray-500 text-sm">No bookings yet.</p>
+              <p className="text-foreground-muted text-sm">No bookings yet.</p>
             ) : (
               <div className="space-y-3">
                 {bookings.map((booking) => (
                   <Link
                     key={booking.id}
                     to={`/tenant/bookings/${booking.id}`}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                   >
                     <div>
                       <p className="font-medium">
                         {booking.customer.firstName} {booking.customer.lastName}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-foreground-muted">
                         {booking.bookingNumber} • {booking.participants} pax
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">${booking.total}</p>
                       {!booking.paidInFull && (
-                        <span className="text-xs text-yellow-600">Payment pending</span>
+                        <span className="text-xs text-warning">Payment pending</span>
                       )}
                       {booking.paidInFull && (
-                        <span className="text-xs text-green-600">Paid</span>
+                        <span className="text-xs text-success">Paid</span>
                       )}
                     </div>
                   </Link>
@@ -616,20 +616,20 @@ export default function TripDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Staff */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Staff</h2>
             {trip.staff.length === 0 ? (
-              <p className="text-gray-500 text-sm">No staff assigned.</p>
+              <p className="text-foreground-muted text-sm">No staff assigned.</p>
             ) : (
               <div className="space-y-2">
                 {trip.staff.map((member) => (
                   <div key={member.id} className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm">
+                    <div className="w-8 h-8 bg-surface-overlay rounded-full flex items-center justify-center text-sm">
                       {member.name[0]}
                     </div>
                     <div>
                       <p className="font-medium text-sm">{member.name}</p>
-                      <p className="text-xs text-gray-500">{member.role}</p>
+                      <p className="text-xs text-foreground-muted">{member.role}</p>
                     </div>
                   </div>
                 ))}
@@ -637,38 +637,38 @@ export default function TripDetailPage() {
             )}
             <Link
               to={`/tenant/trips/${trip.id}/edit`}
-              className="block text-center mt-4 text-blue-600 text-sm hover:underline"
+              className="block text-center mt-4 text-brand text-sm hover:underline"
             >
               Manage Staff
             </Link>
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <button
                 onClick={handlePrintManifest}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 📋 Print Manifest
               </button>
               <button
                 onClick={() => setShowEmailModal(true)}
                 disabled={bookings.length === 0}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 📧 Email Passengers {bookings.length > 0 && `(${bookings.length})`}
               </button>
               <button
                 onClick={handleExportPDF}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 📤 Export to PDF
               </button>
               <Link
                 to={`/tenant/trips/new?tourId=${trip.tour.id}`}
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 📅 Schedule Similar Trip
               </Link>
@@ -676,7 +676,7 @@ export default function TripDetailPage() {
           </div>
 
           {/* Participant Summary */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Capacity</h2>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -689,13 +689,13 @@ export default function TripDetailPage() {
               </div>
               <div className="flex justify-between text-sm font-medium">
                 <span>Available</span>
-                <span className={spotsAvailable === 0 ? "text-red-600" : "text-green-600"}>
+                <span className={spotsAvailable === 0 ? "text-danger" : "text-success"}>
                   {spotsAvailable}
                 </span>
               </div>
-              <div className="mt-2 bg-gray-200 rounded-full h-2">
+              <div className="mt-2 bg-surface-overlay rounded-full h-2">
                 <div
-                  className="bg-blue-600 rounded-full h-2"
+                  className="bg-brand rounded-full h-2"
                   style={{
                     width: `${(trip.bookedParticipants / trip.maxParticipants) * 100}%`,
                   }}
@@ -705,7 +705,7 @@ export default function TripDetailPage() {
           </div>
 
           {/* Meta */}
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-foreground-subtle">
             <p>Created {trip.createdAt}</p>
             <p>Trip ID: {trip.id}</p>
           </div>
@@ -715,38 +715,38 @@ export default function TripDetailPage() {
       {/* Series Instances Modal */}
       {showSeriesModal && recurringInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h2 className="text-lg font-bold">Recurring Trip Series</h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-foreground-muted">
                     {recurringInfo.recurrencePattern} recurrence
                     {recurringInfo.isTemplate && " - This is the template trip"}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowSeriesModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-foreground-subtle hover:text-foreground-muted"
                 >
                   X
                 </button>
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700 mb-3">
+                <p className="text-sm font-medium text-foreground mb-3">
                   Upcoming trips in this series:
                 </p>
                 {recurringInfo.seriesInstances.length === 0 ? (
-                  <p className="text-sm text-gray-500">No upcoming trips in this series.</p>
+                  <p className="text-sm text-foreground-muted">No upcoming trips in this series.</p>
                 ) : (
                   recurringInfo.seriesInstances.map((instance) => (
                     <Link
                       key={instance.id}
                       to={`/tenant/trips/${instance.id}`}
                       onClick={() => setShowSeriesModal(false)}
-                      className={`flex justify-between items-center p-3 rounded-lg hover:bg-gray-100 ${
-                        instance.id === trip.id ? "bg-blue-50 border border-blue-200" : "bg-gray-50"
+                      className={`flex justify-between items-center p-3 rounded-lg hover:bg-surface-overlay ${
+                        instance.id === trip.id ? "bg-brand-muted border border-brand" : "bg-surface-inset"
                       }`}
                     >
                       <div>
@@ -757,11 +757,11 @@ export default function TripDetailPage() {
                             day: "numeric",
                           })}
                         </p>
-                        <p className="text-sm text-gray-500">{instance.startTime}</p>
+                        <p className="text-sm text-foreground-muted">{instance.startTime}</p>
                       </div>
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
-                          statusColors[instance.status] || "bg-gray-100"
+                          statusColors[instance.status] || "bg-surface-inset"
                         }`}
                       >
                         {instance.status}
@@ -771,7 +771,7 @@ export default function TripDetailPage() {
                   ))
                 )}
                 {recurringInfo.seriesInstances.length === 10 && (
-                  <p className="text-xs text-gray-500 text-center pt-2">
+                  <p className="text-xs text-foreground-muted text-center pt-2">
                     Showing next 10 trips. More trips may exist.
                   </p>
                 )}
@@ -780,7 +780,7 @@ export default function TripDetailPage() {
               <div className="mt-6 pt-4 border-t flex justify-end">
                 <button
                   onClick={() => setShowSeriesModal(false)}
-                  className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                 >
                   Close
                 </button>
@@ -793,18 +793,18 @@ export default function TripDetailPage() {
       {/* Email Passengers Modal */}
       {showEmailModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h2 className="text-lg font-bold">Email All Passengers</h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-foreground-muted">
                     Send a message to {bookings.length} passenger{bookings.length !== 1 ? "s" : ""} on this trip
                   </p>
                 </div>
                 <button
                   onClick={() => setShowEmailModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-foreground-subtle hover:text-foreground-muted"
                 >
                   X
                 </button>
@@ -819,7 +819,7 @@ export default function TripDetailPage() {
                       key={template.name}
                       type="button"
                       onClick={() => applyTemplate(template)}
-                      className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full"
+                      className="px-3 py-1 text-sm bg-surface-inset hover:bg-surface-overlay rounded-full"
                     >
                       {template.name}
                     </button>
@@ -828,13 +828,13 @@ export default function TripDetailPage() {
               </div>
 
               {/* Recipients List */}
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <div className="mb-4 p-3 bg-surface-inset rounded-lg">
                 <p className="text-sm font-medium mb-2">Recipients:</p>
                 <div className="flex flex-wrap gap-2">
                   {customers.map((customer) => (
                     <span
                       key={customer.id}
-                      className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded"
+                      className="text-xs bg-brand-muted text-brand px-2 py-1 rounded"
                     >
                       {customer.firstName} {customer.lastName}
                     </span>
@@ -850,7 +850,7 @@ export default function TripDetailPage() {
                     value={emailSubject}
                     onChange={(e) => setEmailSubject(e.target.value)}
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     placeholder="e.g., Important: Trip Update"
                   />
                 </div>
@@ -862,16 +862,16 @@ export default function TripDetailPage() {
                     onChange={(e) => setEmailBody(e.target.value)}
                     required
                     rows={8}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
                     placeholder="Write your message here..."
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-foreground-muted mt-1">
                     Use {"{firstName}"} to personalize with each passenger's name
                   </p>
                 </div>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <p className="text-sm text-amber-700">
+                <div className="bg-warning-muted border border-warning rounded-lg p-3">
+                  <p className="text-sm text-warning">
                     Note: Email delivery requires SMTP configuration in settings.
                     Messages will be logged to each customer's communication history.
                   </p>
@@ -885,14 +885,14 @@ export default function TripDetailPage() {
                       setEmailSubject("");
                       setEmailBody("");
                     }}
-                    className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                    className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={fetcher.state === "submitting" || !emailSubject || !emailBody}
-                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                    className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                   >
                     {fetcher.state === "submitting" ? "Sending..." : `Send to ${bookings.length} Passenger${bookings.length !== 1 ? "s" : ""}`}
                   </button>
