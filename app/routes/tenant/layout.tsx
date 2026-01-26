@@ -35,12 +35,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const limits: PlanLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
   const planName = ctx.subscription?.planDetails?.displayName ?? "Free";
 
+  // Compute baseDomain on the server – getBaseDomain() accesses process.env
+  // which is unavailable in the browser and would crash client-side hydration.
+  const baseDomain = getBaseDomain();
+
   return {
     tenant: {
       name: ctx.org.name,
       subdomain: ctx.org.slug,
       subscriptionStatus,
       trialDaysLeft,
+      baseDomain,
     },
     features,
     limits,
@@ -98,7 +103,7 @@ export default function TenantLayout() {
           <aside className="w-64 bg-surface h-screen border-r border-border fixed flex flex-col">
             <div className="p-4 border-b border-border flex-shrink-0">
               <h1 className="text-xl font-bold text-brand">{tenant.name}</h1>
-              <p className="text-sm text-foreground-muted">{tenant.subdomain}.{getBaseDomain()}</p>
+              <p className="text-sm text-foreground-muted">{tenant.subdomain}.{tenant.baseDomain}</p>
             </div>
 
             <nav className="p-4 flex-1 overflow-y-auto">

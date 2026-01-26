@@ -4,12 +4,11 @@ import { useState, useEffect } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
-import { getTenantUrl } from "../../../../lib/utils/url";
-
 type OutletContextType = {
   settings: PublicSiteSettings;
   orgSlug: string;
   isPremium: boolean;
+  publicSiteUrl: string;
 };
 
 const themes = [
@@ -96,7 +95,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function PublicSiteAppearanceSettings() {
-  const { settings, orgSlug } = useOutletContext<OutletContextType>();
+  const { settings, orgSlug, publicSiteUrl } = useOutletContext<OutletContextType>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const isSubmitting = fetcher.state === "submitting";
 
@@ -350,7 +349,7 @@ export default function PublicSiteAppearanceSettings() {
               </p>
             </div>
             <a
-              href={getTenantUrl(orgSlug)}
+              href={publicSiteUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
