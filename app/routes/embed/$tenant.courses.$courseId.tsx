@@ -140,11 +140,11 @@ export default function CourseDetailPage() {
               <div className="text-sm text-gray-500">Max Students</div>
             </div>
             {totalHours > 0 && (
-              <div className="bg-purple-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-purple-700">
+              <div className="bg-info-muted rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-info">
                   {totalHours}
                 </div>
-                <div className="text-sm text-purple-600">Training Hours</div>
+                <div className="text-sm text-info">Training Hours</div>
               </div>
             )}
             {totalDives > 0 && (

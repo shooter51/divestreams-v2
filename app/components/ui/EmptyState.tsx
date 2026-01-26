@@ -14,14 +14,14 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, action, children }: EmptyStateProps) {
   return (
-    <div className="bg-white rounded-xl p-12 shadow-sm text-center">
+    <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
       {icon && <div className="text-4xl mb-4">{icon}</div>}
-      <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-      {description && <p className="text-gray-500 mb-4">{description}</p>}
+      <h3 className="text-lg font-medium text-foreground mb-2">{title}</h3>
+      {description && <p className="text-foreground-muted mb-4">{description}</p>}
       {action && (
         <Link
           to={action.href}
-          className="inline-block text-blue-600 hover:underline font-medium"
+          className="inline-block text-brand hover:underline font-medium"
         >
           {action.label}
         </Link>

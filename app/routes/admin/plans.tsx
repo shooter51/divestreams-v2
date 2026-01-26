@@ -72,33 +72,33 @@ export default function AdminPlansPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Subscription Plans</h1>
-          <p className="text-gray-600">{plans.length} plans</p>
+          <p className="text-foreground-muted">{plans.length} plans</p>
         </div>
         <Link
           to="/plans/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
           Add Plan
         </Link>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-surface-inset border-b">
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Name</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-700">Display Name</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-gray-700">Monthly</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-gray-700">Yearly</th>
-              <th className="text-center px-4 py-3 text-sm font-medium text-gray-700">Status</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-gray-700">Actions</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Name</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Display Name</th>
+              <th className="text-right px-4 py-3 text-sm font-medium text-foreground-muted">Monthly</th>
+              <th className="text-right px-4 py-3 text-sm font-medium text-foreground-muted">Yearly</th>
+              <th className="text-center px-4 py-3 text-sm font-medium text-foreground-muted">Status</th>
+              <th className="text-right px-4 py-3 text-sm font-medium text-foreground-muted">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {plans.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-600">
+                <td colSpan={6} className="px-4 py-8 text-center text-foreground-muted">
                   No plans found
                 </td>
               </tr>
@@ -113,8 +113,8 @@ export default function AdminPlansPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         plan.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-success-muted text-success"
+                          : "bg-surface-inset text-foreground-muted"
                       }`}
                     >
                       {plan.isActive ? "Active" : "Inactive"}
@@ -124,19 +124,19 @@ export default function AdminPlansPage() {
                     <div className="flex justify-end gap-3">
                       <Link
                         to={`/plans/${plan.id}`}
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-brand hover:underline"
                       >
                         Edit
                       </Link>
                       <button
                         onClick={() => handleToggleActive(plan.id, plan.isActive)}
-                        className="text-sm text-gray-600 hover:underline"
+                        className="text-sm text-foreground-muted hover:underline"
                       >
                         {plan.isActive ? "Deactivate" : "Activate"}
                       </button>
                       <button
                         onClick={() => handleDelete(plan.id, plan.displayName)}
-                        className="text-sm text-red-600 hover:underline"
+                        className="text-sm text-danger hover:underline"
                       >
                         Delete
                       </button>

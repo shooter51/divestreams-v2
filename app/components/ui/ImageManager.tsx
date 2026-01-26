@@ -201,7 +201,7 @@ export function ImageManager({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           Images ({images.length}/{maxImages})
         </label>
         {images.length < maxImages && (
@@ -226,15 +226,15 @@ export function ImageManager({
       />
 
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+        <div className="text-sm text-danger bg-danger-muted px-3 py-2 rounded-lg">
           {error}
         </div>
       )}
 
       {images.length === 0 ? (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-          <div className="text-gray-400 text-4xl mb-2">📷</div>
-          <p className="text-gray-500 text-sm">No images yet</p>
+        <div className="border-2 border-dashed border-border-strong rounded-lg p-8 text-center">
+          <div className="text-foreground-subtle text-4xl mb-2">📷</div>
+          <p className="text-foreground-muted text-sm">No images yet</p>
           <Button
             type="button"
             variant="ghost"
@@ -257,8 +257,8 @@ export function ImageManager({
               onDragEnd={handleDragEnd}
               className={`relative group cursor-move rounded-lg overflow-hidden border-2 ${
                 image.isPrimary
-                  ? "border-blue-500"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-brand"
+                  : "border-border hover:border-border-strong"
               } ${draggedIndex === index ? "opacity-50" : ""}`}
             >
               <img
@@ -269,7 +269,7 @@ export function ImageManager({
 
               {/* Primary badge */}
               {image.isPrimary && (
-                <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded">
+                <div className="absolute top-1 left-1 bg-brand text-white text-xs px-1.5 py-0.5 rounded">
                   Primary
                 </div>
               )}
@@ -280,7 +280,7 @@ export function ImageManager({
                   <button
                     type="button"
                     onClick={() => handleSetPrimary(image.id)}
-                    className="p-1.5 bg-white rounded-full text-blue-600 hover:bg-blue-50"
+                    className="p-1.5 bg-white rounded-full text-brand hover:bg-brand-muted"
                     title="Set as primary"
                   >
                     ⭐
@@ -289,7 +289,7 @@ export function ImageManager({
                 <button
                   type="button"
                   onClick={() => handleDelete(image.id)}
-                  className="p-1.5 bg-white rounded-full text-red-600 hover:bg-red-50"
+                  className="p-1.5 bg-white rounded-full text-danger hover:bg-danger-muted"
                   title="Delete image"
                 >
                   🗑️
@@ -297,7 +297,7 @@ export function ImageManager({
               </div>
 
               {/* Drag handle indicator */}
-              <div className="absolute bottom-1 right-1 text-gray-400 text-xs opacity-0 group-hover:opacity-100">
+              <div className="absolute bottom-1 right-1 text-foreground-subtle text-xs opacity-0 group-hover:opacity-100">
                 ⋮⋮
               </div>
             </div>
@@ -305,7 +305,7 @@ export function ImageManager({
         </div>
       )}
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-foreground-muted">
         Drag images to reorder. The primary image will be shown first in listings.
         Supported formats: JPEG, PNG, WebP, GIF. Max 10MB per image.
       </p>

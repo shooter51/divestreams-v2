@@ -175,18 +175,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  enrolled: "bg-blue-100 text-blue-700",
-  in_progress: "bg-yellow-100 text-yellow-700",
-  completed: "bg-green-100 text-green-700",
-  dropped: "bg-gray-100 text-gray-600",
-  failed: "bg-red-100 text-red-700",
+  enrolled: "bg-brand-muted text-brand",
+  in_progress: "bg-warning-muted text-warning",
+  completed: "bg-success-muted text-success",
+  dropped: "bg-surface-inset text-foreground-muted",
+  failed: "bg-danger-muted text-danger",
 };
 
 const paymentStatusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  partial: "bg-orange-100 text-orange-700",
-  paid: "bg-green-100 text-green-700",
-  refunded: "bg-gray-100 text-gray-600",
+  pending: "bg-warning-muted text-warning",
+  partial: "bg-warning-muted text-warning",
+  paid: "bg-success-muted text-success",
+  refunded: "bg-surface-inset text-foreground-muted",
 };
 
 export default function EnrollmentDetailPage() {
@@ -241,7 +241,7 @@ export default function EnrollmentDetailPage() {
       <div className="mb-6">
         <Link
           to="/tenant/training/enrollments"
-          className="text-blue-600 hover:underline text-sm"
+          className="text-brand hover:underline text-sm"
         >
           &larr; Back to Enrollments
         </Link>
@@ -255,13 +255,13 @@ export default function EnrollmentDetailPage() {
             </h1>
             <span
               className={`text-sm px-3 py-1 rounded-full ${
-                statusColors[enrollment.status] || "bg-gray-100 text-gray-700"
+                statusColors[enrollment.status] || "bg-surface-inset text-foreground"
               }`}
             >
               {enrollment.status.replace("_", " ")}
             </span>
           </div>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {enrollment.courseName} - Enrolled {enrollment.enrolledAt}
           </p>
         </div>
@@ -276,7 +276,7 @@ export default function EnrollmentDetailPage() {
           )}
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+            className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
             Delete
           </button>
@@ -285,12 +285,12 @@ export default function EnrollmentDetailPage() {
 
       {/* Success/Error Messages */}
       {fetcher.data?.message && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
           {fetcher.data.message}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {fetcher.data.error}
         </div>
       )}
@@ -299,51 +299,51 @@ export default function EnrollmentDetailPage() {
         {/* Main Content */}
         <div className="col-span-2 space-y-6">
           {/* Student Info */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Student Information</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Name</p>
+                <p className="text-sm text-foreground-muted">Name</p>
                 <Link
                   to={`/tenant/customers/${enrollment.customerId}`}
-                  className="font-medium text-blue-600 hover:underline"
+                  className="font-medium text-brand hover:underline"
                 >
                   {enrollment.customerFirstName} {enrollment.customerLastName}
                 </Link>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Email</p>
+                <p className="text-sm text-foreground-muted">Email</p>
                 <p>{enrollment.customerEmail}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Phone</p>
+                <p className="text-sm text-foreground-muted">Phone</p>
                 <p>{enrollment.customerPhone || "Not provided"}</p>
               </div>
             </div>
           </div>
 
           {/* Course & Session Info */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Course & Session</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Course</p>
+                <p className="text-sm text-foreground-muted">Course</p>
                 <Link
                   to={`/tenant/training/courses/${enrollment.courseId}`}
-                  className="font-medium text-blue-600 hover:underline"
+                  className="font-medium text-brand hover:underline"
                 >
                   {enrollment.courseName}
                 </Link>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Agency / Level</p>
+                <p className="text-sm text-foreground-muted">Agency / Level</p>
                 <p>
                   {enrollment.agencyName}{" "}
                   {enrollment.levelName && `- ${enrollment.levelName}`}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Session Dates</p>
+                <p className="text-sm text-foreground-muted">Session Dates</p>
                 <p>
                   {enrollment.sessionStartDate}
                   {enrollment.sessionEndDate &&
@@ -351,18 +351,18 @@ export default function EnrollmentDetailPage() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Location</p>
+                <p className="text-sm text-foreground-muted">Location</p>
                 <p>{enrollment.sessionLocation || "TBD"}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Instructor</p>
+                <p className="text-sm text-foreground-muted">Instructor</p>
                 <p>{enrollment.sessionInstructor || "TBD"}</p>
               </div>
             </div>
           </div>
 
           {/* Progress Tracking */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Progress Tracking</h2>
             </div>
@@ -375,7 +375,7 @@ export default function EnrollmentDetailPage() {
                     name="classroomComplete"
                     value="true"
                     defaultChecked={progress.classroomComplete}
-                    className="rounded border-gray-300"
+                    className="rounded border-border-strong"
                   />
                   <span>Classroom Training Complete</span>
                 </label>
@@ -385,7 +385,7 @@ export default function EnrollmentDetailPage() {
                     name="poolComplete"
                     value="true"
                     defaultChecked={progress.poolComplete}
-                    className="rounded border-gray-300"
+                    className="rounded border-border-strong"
                   />
                   <span>Pool/Confined Water Complete</span>
                 </label>
@@ -400,7 +400,7 @@ export default function EnrollmentDetailPage() {
                     name="openWaterDivesCompleted"
                     min="0"
                     defaultValue={progress.openWaterDivesCompleted || 0}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -413,7 +413,7 @@ export default function EnrollmentDetailPage() {
                     min="0"
                     max="100"
                     defaultValue={progress.quizScore || ""}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -426,14 +426,14 @@ export default function EnrollmentDetailPage() {
                     min="0"
                     max="100"
                     defaultValue={progress.finalExamScore || ""}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={fetcher.state === "submitting"}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
               >
                 {fetcher.state === "submitting"
                   ? "Saving..."
@@ -443,32 +443,32 @@ export default function EnrollmentDetailPage() {
           </div>
 
           {/* Skill Checkoffs */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Skill Checkoffs</h2>
               <button
                 onClick={() => setShowSkillModal(true)}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-brand hover:underline"
               >
                 + Add Skill Checkoff
               </button>
             </div>
             {skillCheckoffs.length === 0 ? (
-              <p className="text-gray-500 text-sm">No skill checkoffs recorded yet.</p>
+              <p className="text-foreground-muted text-sm">No skill checkoffs recorded yet.</p>
             ) : (
               <div className="space-y-2">
                 {skillCheckoffs.map((checkoff, index) => (
                   <div
                     key={index}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg"
                   >
                     <div>
                       <p className="font-medium">{checkoff.skill}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-foreground-muted">
                         Signed off by: {checkoff.signedOffBy}
                       </p>
                     </div>
-                    <span className="text-sm text-gray-400">
+                    <span className="text-sm text-foreground-subtle">
                       {new Date(checkoff.completedAt).toLocaleDateString()}
                     </span>
                   </div>
@@ -478,7 +478,7 @@ export default function EnrollmentDetailPage() {
           </div>
 
           {/* Notes */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Notes</h2>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="update-notes" />
@@ -486,13 +486,13 @@ export default function EnrollmentDetailPage() {
                 name="notes"
                 rows={4}
                 defaultValue={enrollment.notes || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 mb-3"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand mb-3"
                 placeholder="Add notes about this enrollment..."
               />
               <button
                 type="submit"
                 disabled={fetcher.state === "submitting"}
-                className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
               >
                 Save Notes
               </button>
@@ -503,14 +503,14 @@ export default function EnrollmentDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Status Update */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Update Status</h2>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="update-status" />
               <select
                 name="status"
                 defaultValue={enrollment.status}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 mb-3"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand mb-3"
               >
                 <option value="enrolled">Enrolled</option>
                 <option value="in_progress">In Progress</option>
@@ -521,7 +521,7 @@ export default function EnrollmentDetailPage() {
               <button
                 type="submit"
                 disabled={fetcher.state === "submitting"}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="w-full px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
               >
                 Update Status
               </button>
@@ -529,7 +529,7 @@ export default function EnrollmentDetailPage() {
           </div>
 
           {/* Payment */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Payment</h2>
             <fetcher.Form method="post" className="space-y-3">
               <input type="hidden" name="intent" value="update-payment" />
@@ -538,7 +538,7 @@ export default function EnrollmentDetailPage() {
                 <select
                   name="paymentStatus"
                   defaultValue={enrollment.paymentStatus || "pending"}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="pending">Pending</option>
                   <option value="partial">Partial</option>
@@ -551,24 +551,24 @@ export default function EnrollmentDetailPage() {
                   Amount Paid
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-500">$</span>
+                  <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                   <input
                     type="number"
                     name="amountPaid"
                     step="0.01"
                     min="0"
                     defaultValue={enrollment.amountPaid || "0.00"}
-                    className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-foreground-muted">
                 Course Price: ${enrollment.coursePrice || "0.00"}
               </div>
               <button
                 type="submit"
                 disabled={fetcher.state === "submitting"}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="w-full px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
               >
                 Update Payment
               </button>
@@ -576,24 +576,24 @@ export default function EnrollmentDetailPage() {
           </div>
 
           {/* Certification */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Certification</h2>
             {enrollment.certificationNumber ? (
               <div className="space-y-2">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-500">Certification Number</p>
-                  <p className="font-bold text-green-700">
+                <div className="p-4 bg-success-muted rounded-lg border border-success">
+                  <p className="text-sm text-foreground-muted">Certification Number</p>
+                  <p className="font-bold text-success">
                     {enrollment.certificationNumber}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Issue Date</p>
+                  <p className="text-sm text-foreground-muted">Issue Date</p>
                   <p>{enrollment.certificationDate}</p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-4">
-                <p className="text-gray-500 text-sm mb-3">
+                <p className="text-foreground-muted text-sm mb-3">
                   No certification issued yet
                 </p>
                 <button
@@ -607,7 +607,7 @@ export default function EnrollmentDetailPage() {
           </div>
 
           {/* Meta */}
-          <div className="text-xs text-gray-400 space-y-1">
+          <div className="text-xs text-foreground-subtle space-y-1">
             <p>Created: {enrollment.createdAt}</p>
             <p>Updated: {enrollment.updatedAt}</p>
             <p>ID: {enrollment.id}</p>
@@ -618,12 +618,12 @@ export default function EnrollmentDetailPage() {
       {/* Add Skill Checkoff Modal */}
       {showSkillModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-lg font-bold">Add Skill Checkoff</h2>
               <button
                 onClick={() => setShowSkillModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 &times;
               </button>
@@ -638,7 +638,7 @@ export default function EnrollmentDetailPage() {
                   type="text"
                   name="skill"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="e.g., Mask Clearing, Buoyancy Control"
                 />
               </div>
@@ -650,7 +650,7 @@ export default function EnrollmentDetailPage() {
                   type="text"
                   name="signedOffBy"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="Instructor name"
                 />
               </div>
@@ -659,14 +659,14 @@ export default function EnrollmentDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowSkillModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                  className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
                   Add Checkoff
                 </button>
@@ -679,18 +679,18 @@ export default function EnrollmentDetailPage() {
       {/* Issue Certification Modal */}
       {showCertModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Issue Certification</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   {enrollment.customerFirstName} {enrollment.customerLastName} -{" "}
                   {enrollment.courseName}
                 </p>
               </div>
               <button
                 onClick={() => setShowCertModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-foreground-subtle hover:text-foreground-muted"
               >
                 &times;
               </button>
@@ -705,11 +705,11 @@ export default function EnrollmentDetailPage() {
                   type="text"
                   name="certificationNumber"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   placeholder="e.g., PADI-123456"
                 />
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-foreground-muted">
                 The certification date will be set to today. This will also mark
                 the enrollment as completed.
               </p>
@@ -718,14 +718,14 @@ export default function EnrollmentDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowCertModal(false)}
-                  className="flex-1 py-2 border rounded-lg hover:bg-gray-50"
+                  className="flex-1 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
-                  className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-400"
+                  className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-success-muted"
                 >
                   Issue Certification
                 </button>

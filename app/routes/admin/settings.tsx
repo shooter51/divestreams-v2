@@ -17,7 +17,7 @@ export default function AdminSettings() {
           <NavLink
             to="/admin/settings/team"
             className={({ isActive }) =>
-              `block px-4 py-2 rounded ${isActive ? "bg-blue-50 text-blue-700" : "hover:bg-gray-50"}`
+              `block px-4 py-2 rounded ${isActive ? "bg-brand-muted text-brand" : "hover:bg-surface-inset"}`
             }
           >
             Team Members

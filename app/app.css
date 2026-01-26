@@ -3,13 +3,146 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* Semantic color tokens registered as Tailwind utilities */
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-inset: var(--surface-inset);
+  --color-surface-overlay: var(--surface-overlay);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-disabled: var(--brand-disabled);
+
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-muted: var(--danger-muted);
+  --color-success: var(--success);
+  --color-success-muted: var(--success-muted);
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-muted);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
+
+  --color-info: var(--info);
+  --color-info-hover: var(--info-hover);
+  --color-info-muted: var(--info-muted);
 }
+
+/* ============================================================================
+   SEMANTIC DESIGN TOKENS — Light Mode (default)
+   ============================================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-inset: #f9fafb;
+  --surface-overlay: #f3f4f6;
+
+  /* Foreground (text) */
+  --foreground: #111827;
+  --foreground-muted: #6b7280;
+  --foreground-subtle: #9ca3af;
+
+  /* Borders */
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  /* Brand */
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-muted: #eff6ff;
+  --brand-disabled: #60a5fa;
+
+  /* Semantic */
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-muted: #fef2f2;
+  --success: #16a34a;
+  --success-muted: #f0fdf4;
+  --warning: #d97706;
+  --warning-muted: #fffbeb;
+
+  /* Accent (orange) */
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+  --accent-muted: #ffedd5;
+
+  /* Info (purple) */
+  --info: #7c3aed;
+  --info-hover: #6d28d9;
+  --info-muted: #f3e8ff;
+}
+
+/* ============================================================================
+   SEMANTIC DESIGN TOKENS — Dark Mode
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* Surfaces */
+    --surface: #030712;
+    --surface-raised: #111827;
+    --surface-inset: #1f2937;
+    --surface-overlay: #374151;
+
+    /* Foreground (text) */
+    --foreground: #f3f4f6;
+    --foreground-muted: #9ca3af;
+    --foreground-subtle: #6b7280;
+
+    /* Borders */
+    --border: #374151;
+    --border-strong: #4b5563;
+
+    /* Brand */
+    --brand: #3b82f6;
+    --brand-hover: #2563eb;
+    --brand-muted: #172554;
+    --brand-disabled: #1e40af;
+
+    /* Semantic */
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --danger-muted: #450a0a;
+    --success: #22c55e;
+    --success-muted: #052e16;
+    --warning: #f59e0b;
+    --warning-muted: #451a03;
+
+    /* Accent (orange) */
+    --accent: #f97316;
+    --accent-hover: #ea580c;
+    --accent-muted: #431407;
+
+    /* Info (purple) */
+    --info: #a78bfa;
+    --info-hover: #8b5cf6;
+    --info-muted: #2e1065;
+  }
+}
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
-
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
+  background-color: var(--surface);
+  color: var(--foreground);
 }

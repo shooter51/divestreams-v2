@@ -85,12 +85,12 @@ export default function NewSessionPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/training/sessions" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/training/sessions" className="text-brand hover:underline text-sm">
           &larr; Back to Sessions
         </Link>
         <h1 className="text-2xl font-bold mt-2">Schedule Training Session</h1>
         {selectedCourse && (
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             Creating session for: <strong>{selectedCourse.name}</strong>
           </p>
         )}
@@ -98,7 +98,7 @@ export default function NewSessionPage() {
 
       <form method="post" className="space-y-6">
         {/* Course Selection */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Course</h2>
 
           <div>
@@ -110,7 +110,7 @@ export default function NewSessionPage() {
               name="courseId"
               required
               defaultValue={courseId || ""}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
               <option value="">Choose a course...</option>
               {courses.map((course) => (
@@ -120,12 +120,12 @@ export default function NewSessionPage() {
               ))}
             </select>
             {actionData?.errors?.courseId && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.courseId}</p>
+              <p className="text-danger text-sm mt-1">{actionData.errors.courseId}</p>
             )}
           </div>
 
           {selectedCourse && (
-            <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
+            <div className="mt-4 p-3 bg-surface-inset rounded-lg text-sm">
               <p><strong>Duration:</strong> {selectedCourse.durationDays || 1} day(s)</p>
               <p><strong>Price:</strong> ${Number(selectedCourse.price).toFixed(2)}</p>
               {selectedCourse.maxStudents && (
@@ -136,7 +136,7 @@ export default function NewSessionPage() {
         </div>
 
         {/* Date & Time */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Date & Time</h2>
 
           <div className="grid grid-cols-2 gap-4">
@@ -150,10 +150,10 @@ export default function NewSessionPage() {
                 name="startDate"
                 required
                 defaultValue={defaultDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.startDate && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.startDate}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.startDate}</p>
               )}
             </div>
 
@@ -165,9 +165,9 @@ export default function NewSessionPage() {
                 type="date"
                 id="endDate"
                 name="endDate"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
-              <p className="text-xs text-gray-500 mt-1">Leave blank for single-day sessions</p>
+              <p className="text-xs text-foreground-muted mt-1">Leave blank for single-day sessions</p>
             </div>
 
             <div>
@@ -178,14 +178,14 @@ export default function NewSessionPage() {
                 type="time"
                 id="startTime"
                 name="startTime"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Location */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Location</h2>
 
           <div className="space-y-4">
@@ -198,7 +198,7 @@ export default function NewSessionPage() {
                 id="location"
                 name="location"
                 placeholder="e.g., Main Dive Center, Beach Site A"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -211,14 +211,14 @@ export default function NewSessionPage() {
                 id="meetingPoint"
                 name="meetingPoint"
                 placeholder="e.g., Front desk at 8:00 AM"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Instructor & Capacity */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Instructor & Capacity</h2>
 
           <div className="grid grid-cols-2 gap-4">
@@ -231,7 +231,7 @@ export default function NewSessionPage() {
                 id="instructorName"
                 name="instructorName"
                 placeholder="Instructor name"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -245,15 +245,15 @@ export default function NewSessionPage() {
                 name="maxStudents"
                 min="1"
                 placeholder={selectedCourse?.maxStudents?.toString() || "8"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
-              <p className="text-xs text-gray-500 mt-1">Leave blank to use course default</p>
+              <p className="text-xs text-foreground-muted mt-1">Leave blank to use course default</p>
             </div>
           </div>
         </div>
 
         {/* Pricing */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Pricing</h2>
 
           <div>
@@ -261,7 +261,7 @@ export default function NewSessionPage() {
               Price Override
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-2 text-gray-500">$</span>
+              <span className="absolute left-3 top-2 text-foreground-muted">$</span>
               <input
                 type="number"
                 id="priceOverride"
@@ -269,10 +269,10 @@ export default function NewSessionPage() {
                 min="0"
                 step="0.01"
                 placeholder={selectedCourse ? Number(selectedCourse.price).toFixed(2) : "0.00"}
-                className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Leave blank to use course price
               {selectedCourse && ` ($${Number(selectedCourse.price).toFixed(2)})`}
             </p>
@@ -280,7 +280,7 @@ export default function NewSessionPage() {
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Additional Notes</h2>
 
           <div>
@@ -292,7 +292,7 @@ export default function NewSessionPage() {
               name="notes"
               rows={3}
               placeholder="Any additional notes for this session..."
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
@@ -302,13 +302,13 @@ export default function NewSessionPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Creating..." : "Create Session"}
           </button>
           <Link
             to="/tenant/training/sessions"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

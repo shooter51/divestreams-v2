@@ -173,7 +173,7 @@ export default function TrainingImportPage() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Import Training Courses</h1>
-        <p className="text-gray-600">
+        <p className="text-foreground-muted">
           Import course templates from certification agencies to quickly populate your course catalog
         </p>
       </div>
@@ -182,12 +182,12 @@ export default function TrainingImportPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
           <Step number={1} title="Select Agency" active={currentStep === "select-agency"} completed={currentStep !== "select-agency"} />
-          <div className="flex-1 h-1 bg-gray-200 mx-2">
-            <div className={`h-full transition-all ${currentStep !== "select-agency" ? "bg-blue-600" : "bg-gray-200"}`} />
+          <div className="flex-1 h-1 bg-surface-overlay mx-2">
+            <div className={`h-full transition-all ${currentStep !== "select-agency" ? "bg-brand" : "bg-surface-overlay"}`} />
           </div>
           <Step number={2} title="Choose Courses" active={currentStep === "select-courses"} completed={currentStep === "preview" || currentStep === "complete"} />
-          <div className="flex-1 h-1 bg-gray-200 mx-2">
-            <div className={`h-full transition-all ${currentStep === "preview" || currentStep === "complete" ? "bg-blue-600" : "bg-gray-200"}`} />
+          <div className="flex-1 h-1 bg-surface-overlay mx-2">
+            <div className={`h-full transition-all ${currentStep === "preview" || currentStep === "complete" ? "bg-brand" : "bg-surface-overlay"}`} />
           </div>
           <Step number={3} title="Import" active={currentStep === "preview" || currentStep === "complete"} completed={currentStep === "complete"} />
         </div>
@@ -195,13 +195,13 @@ export default function TrainingImportPage() {
 
       {/* Error Display */}
       {actionData?.error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+        <div className="mb-6 bg-danger-muted border border-danger rounded-lg p-4 text-danger">
           {actionData.error}
         </div>
       )}
 
       {/* Step Content */}
-      <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="bg-surface-raised rounded-lg shadow-lg p-8">
         {currentStep === "select-agency" && (
           <SelectAgencyStep agencies={agencies} isSubmitting={isSubmitting} />
         )}
@@ -239,12 +239,12 @@ function Step({ number, title, active, completed }: { number: number; title: str
     <div className="flex flex-col items-center">
       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
         completed ? "bg-green-600 text-white" :
-        active ? "bg-blue-600 text-white" :
-        "bg-gray-200 text-gray-600"
+        active ? "bg-brand text-white" :
+        "bg-surface-overlay text-foreground-muted"
       }`}>
         {completed ? "✓" : number}
       </div>
-      <span className={`text-sm mt-2 ${active ? "text-blue-600 font-medium" : "text-gray-600"}`}>
+      <span className={`text-sm mt-2 ${active ? "text-brand font-medium" : "text-foreground-muted"}`}>
         {title}
       </span>
     </div>
@@ -255,7 +255,7 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ id: st
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Step 1: Select Certification Agency</h2>
-      <p className="text-gray-600 mb-6">
+      <p className="text-foreground-muted mb-6">
         Choose the certification agency whose courses you want to import. We support PADI, SSI, and NAUI course templates.
       </p>
 
@@ -270,7 +270,7 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ id: st
             <select
               id="agencyId"
               name="agencyId"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               required
               disabled={isSubmitting}
             >
@@ -281,7 +281,7 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ id: st
                 </option>
               ))}
             </select>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-foreground-muted mt-1">
               Don't see your agency? Add it in Settings → Training → Agencies first.
             </p>
           </div>
@@ -290,7 +290,7 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ id: st
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-blue-400"
+              className="w-full bg-brand text-white px-6 py-3 rounded-lg hover:bg-brand-hover transition-colors font-medium disabled:bg-brand-disabled"
             >
               {isSubmitting ? "Loading courses..." : "Next: Select Courses →"}
             </button>
@@ -335,7 +335,7 @@ function SelectCoursesStep({
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-2">Step 2: Choose Courses to Import</h2>
-      <p className="text-gray-600 mb-6">
+      <p className="text-foreground-muted mb-6">
         Select which courses from <span className="font-medium">{agency.name}</span> you'd like to import into your catalog
       </p>
 
@@ -343,18 +343,18 @@ function SelectCoursesStep({
         <button
           type="button"
           onClick={selectAll}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
+          className="px-3 py-1 text-sm bg-surface-inset hover:bg-surface-overlay rounded"
         >
           Select All
         </button>
         <button
           type="button"
           onClick={selectNone}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
+          className="px-3 py-1 text-sm bg-surface-inset hover:bg-surface-overlay rounded"
         >
           Select None
         </button>
-        <span className="ml-auto text-sm text-gray-600">
+        <span className="ml-auto text-sm text-foreground-muted">
           {selectedCourses.size} of {courses.length} selected
         </span>
       </div>
@@ -371,8 +371,8 @@ function SelectCoursesStep({
               key={course.id}
               className={`block p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                 selectedCourses.has(course.id)
-                  ? "border-blue-600 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-brand bg-brand-muted"
+                  : "border-border hover:border-border-strong"
               }`}
             >
               <div className="flex items-start gap-3">
@@ -382,15 +382,15 @@ function SelectCoursesStep({
                   value={course.id}
                   checked={selectedCourses.has(course.id)}
                   onChange={() => toggleCourse(course.id)}
-                  className="mt-1 w-5 h-5 text-blue-600"
+                  className="mt-1 w-5 h-5 text-brand"
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold">{course.name}</h3>
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">{course.code}</span>
+                    <span className="text-xs bg-surface-inset px-2 py-1 rounded">{course.code}</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">{course.description}</p>
-                  <div className="flex gap-4 mt-2 text-xs text-gray-500">
+                  <p className="text-sm text-foreground-muted mt-1">{course.description}</p>
+                  <div className="flex gap-4 mt-2 text-xs text-foreground-muted">
                     <span>{course.durationDays} days</span>
                     <span>{course.openWaterDives} open water dives</span>
                     <span>Min age: {course.minAge}</span>
@@ -404,14 +404,14 @@ function SelectCoursesStep({
         <div className="flex gap-3">
           <a
             href="/tenant/training/import"
-            className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-center"
+            className="px-6 py-3 border border-border-strong rounded-lg hover:bg-surface-inset transition-colors text-center"
           >
             ← Back
           </a>
           <button
             type="submit"
             disabled={selectedCourses.size === 0 || isSubmitting}
-            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="flex-1 bg-brand text-white px-6 py-3 rounded-lg hover:bg-brand-hover transition-colors font-medium disabled:bg-surface-overlay disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Loading preview..." : `Preview Import (${selectedCourses.size} courses) →`}
           </button>
@@ -433,23 +433,23 @@ function PreviewStep({
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-2">Step 3: Preview & Import</h2>
-      <p className="text-gray-600 mb-6">
+      <p className="text-foreground-muted mb-6">
         Ready to import {selectedCourses.length} courses from {agency.name} into your catalog
       </p>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h3 className="font-medium text-blue-900 mb-2">What will happen:</h3>
-        <ul className="space-y-2 text-sm text-blue-800">
+      <div className="bg-brand-muted border border-brand rounded-lg p-4 mb-6">
+        <h3 className="font-medium text-brand mb-2">What will happen:</h3>
+        <ul className="space-y-2 text-sm text-brand">
           <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-0.5">✓</span>
+            <span className="text-brand mt-0.5">✓</span>
             <span>{selectedCourses.length} course templates will be added to your catalog</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-0.5">✓</span>
+            <span className="text-brand mt-0.5">✓</span>
             <span>Courses will be created as drafts (not public) with $0 price</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-0.5">✓</span>
+            <span className="text-brand mt-0.5">✓</span>
             <span>You can customize pricing, schedule, and settings for each course after import</span>
           </li>
         </ul>
@@ -459,8 +459,8 @@ function PreviewStep({
         <h3 className="font-medium mb-3">Courses to import:</h3>
         <ul className="space-y-2 text-sm">
           {selectedCourses.map((course) => (
-            <li key={course.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-              <span className="font-mono text-xs bg-gray-200 px-2 py-0.5 rounded">{course.code}</span>
+            <li key={course.id} className="flex items-center gap-2 p-2 bg-surface-inset rounded">
+              <span className="font-mono text-xs bg-surface-overlay px-2 py-0.5 rounded">{course.code}</span>
               <span>{course.name}</span>
             </li>
           ))}
@@ -476,14 +476,14 @@ function PreviewStep({
         <div className="flex gap-3">
           <a
             href="/tenant/training/import"
-            className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-center"
+            className="px-6 py-3 border border-border-strong rounded-lg hover:bg-surface-inset transition-colors text-center"
           >
             ← Start Over
           </a>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-green-400"
+            className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-success-muted"
           >
             {isSubmitting ? "Importing courses..." : `Import ${selectedCourses.length} Courses`}
           </button>
@@ -504,19 +504,19 @@ function CompleteStep({
 }) {
   return (
     <div className="text-center">
-      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <span className="text-4xl text-green-600">✓</span>
+      <div className="w-20 h-20 bg-success-muted rounded-full flex items-center justify-center mx-auto mb-6">
+        <span className="text-4xl text-success">✓</span>
       </div>
 
       <h2 className="text-2xl font-semibold mb-2">Import Complete!</h2>
-      <p className="text-gray-600 mb-6">
+      <p className="text-foreground-muted mb-6">
         Successfully imported {importedCount} courses into your catalog
       </p>
 
       {errors && errors.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-left">
-          <h3 className="font-medium text-yellow-900 mb-2">Some courses had issues:</h3>
-          <ul className="text-sm text-yellow-800 list-disc list-inside">
+        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-6 text-left">
+          <h3 className="font-medium text-warning mb-2">Some courses had issues:</h3>
+          <ul className="text-sm text-warning list-disc list-inside">
             {errors.map((error, i) => (
               <li key={i}>{error}</li>
             ))}
@@ -524,21 +524,21 @@ function CompleteStep({
         </div>
       )}
 
-      <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+      <div className="bg-surface-inset rounded-lg p-4 mb-6 text-left">
         <h3 className="font-medium mb-2">Imported courses:</h3>
         <ul className="text-sm space-y-1">
           {importedCourses.map((name, i) => (
             <li key={i} className="flex items-center gap-2">
-              <span className="text-green-600">✓</span>
+              <span className="text-success">✓</span>
               {name}
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h3 className="font-medium text-blue-900 mb-2">Next steps:</h3>
-        <ul className="text-sm text-blue-800 text-left space-y-1">
+      <div className="bg-brand-muted border border-brand rounded-lg p-4 mb-6">
+        <h3 className="font-medium text-brand mb-2">Next steps:</h3>
+        <ul className="text-sm text-brand text-left space-y-1">
           <li>1. Set pricing for each imported course</li>
           <li>2. Configure course details and requirements</li>
           <li>3. Publish courses to make them visible on your public site</li>
@@ -549,13 +549,13 @@ function CompleteStep({
       <div className="flex gap-3 justify-center">
         <a
           href="/tenant/training/courses"
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="bg-brand text-white px-6 py-3 rounded-lg hover:bg-brand-hover transition-colors font-medium"
         >
           View Courses →
         </a>
         <a
           href="/tenant/training/import"
-          className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="px-6 py-3 border border-border-strong rounded-lg hover:bg-surface-inset transition-colors"
         >
           Import More
         </a>

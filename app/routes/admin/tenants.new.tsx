@@ -179,25 +179,25 @@ export default function CreateOrganizationPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/dashboard" className="text-blue-600 hover:underline text-sm">
+        <Link to="/dashboard" className="text-brand hover:underline text-sm">
           &larr; Back to Organizations
         </Link>
         <h1 className="text-2xl font-bold mt-2">Create Organization</h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-foreground-muted mt-1">
           Create a new organization (dive shop) on the platform.
         </p>
       </div>
 
-      <form method="post" className="bg-white rounded-xl p-6 shadow-sm space-y-6">
+      <form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
         {actionData?.errors?.form && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+          <div className="bg-danger-muted text-danger p-3 rounded-lg text-sm">
             {actionData.errors.form}
           </div>
         )}
 
         {/* Organization Details */}
         <div className="space-y-4">
-          <h2 className="font-semibold text-gray-900">Organization Details</h2>
+          <h2 className="font-semibold text-foreground">Organization Details</h2>
 
           <div>
             <label htmlFor="slug" className="block text-sm font-medium mb-1">
@@ -210,17 +210,17 @@ export default function CreateOrganizationPage() {
                 name="slug"
                 placeholder="my-dive-shop"
                 pattern="[a-z0-9][a-z0-9-]*[a-z0-9]|[a-z0-9]"
-                className="flex-1 px-3 py-2 border rounded-l-lg focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-2 border rounded-l-lg focus:ring-2 focus:ring-brand"
                 required
               />
-              <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-lg text-gray-500">
+              <span className="bg-surface-inset px-3 py-2 border border-l-0 rounded-r-lg text-foreground-muted">
                 .{baseDomain}
               </span>
             </div>
             {actionData?.errors?.slug && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.slug}</p>
+              <p className="text-danger text-sm mt-1">{actionData.errors.slug}</p>
             )}
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Lowercase letters, numbers, and hyphens only
             </p>
           </div>
@@ -234,11 +234,11 @@ export default function CreateOrganizationPage() {
               id="name"
               name="name"
               placeholder="My Dive Shop"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               required
             />
             {actionData?.errors?.name && (
-              <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+              <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
             )}
           </div>
 
@@ -250,7 +250,7 @@ export default function CreateOrganizationPage() {
               id="plan"
               name="plan"
               defaultValue={plans[0]?.name || "free"}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
               {plans.map((plan) => (
                 <option key={plan.id} value={plan.name}>
@@ -265,13 +265,13 @@ export default function CreateOrganizationPage() {
               type="checkbox"
               id="seedDemoData"
               name="seedDemoData"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-4 h-4 rounded border-border-strong text-brand focus:ring-brand"
             />
             <div>
-              <label htmlFor="seedDemoData" className="font-medium text-gray-900">
+              <label htmlFor="seedDemoData" className="font-medium text-foreground">
                 Seed Demo Data
               </label>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-foreground-muted">
                 Populate with sample customers, tours, trips, equipment, bookings, products, training courses, gallery images, and more
               </p>
             </div>
@@ -286,9 +286,9 @@ export default function CreateOrganizationPage() {
               id="createOwnerAccount"
               name="createOwnerAccount"
               defaultChecked
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-4 h-4 rounded border-border-strong text-brand focus:ring-brand"
             />
-            <label htmlFor="createOwnerAccount" className="font-semibold text-gray-900">
+            <label htmlFor="createOwnerAccount" className="font-semibold text-foreground">
               Create Owner Account
             </label>
           </div>
@@ -303,10 +303,10 @@ export default function CreateOrganizationPage() {
                 id="ownerEmail"
                 name="ownerEmail"
                 placeholder="owner@example.com"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.ownerEmail && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.ownerEmail}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.ownerEmail}</p>
               )}
             </div>
 
@@ -319,7 +319,7 @@ export default function CreateOrganizationPage() {
                 id="ownerName"
                 name="ownerName"
                 placeholder="John Smith"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -333,12 +333,12 @@ export default function CreateOrganizationPage() {
                 name="ownerPassword"
                 placeholder="Minimum 8 characters"
                 minLength={8}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.ownerPassword && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.ownerPassword}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.ownerPassword}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 The owner can change this after logging in
               </p>
             </div>
@@ -349,11 +349,11 @@ export default function CreateOrganizationPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Creating..." : "Create Organization"}
           </button>
-          <Link to="/dashboard" className="px-6 py-2 border rounded-lg hover:bg-gray-50">
+          <Link to="/dashboard" className="px-6 py-2 border rounded-lg hover:bg-surface-inset">
             Cancel
           </Link>
         </div>

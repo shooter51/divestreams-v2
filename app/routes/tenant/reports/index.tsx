@@ -290,13 +290,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 // Status color mapping
-const statusColors: Record<string, { bg: string; text: string }> = {
-  confirmed: { bg: "bg-green-100", text: "text-green-700" },
-  pending: { bg: "bg-yellow-100", text: "text-yellow-700" },
-  checked_in: { bg: "bg-blue-100", text: "text-blue-700" },
-  completed: { bg: "bg-gray-100", text: "text-gray-700" },
-  canceled: { bg: "bg-red-100", text: "text-red-700" },
-  no_show: { bg: "bg-orange-100", text: "text-orange-700" },
+const statusColors: Record<string, { bg: string; text: string; bar: string }> = {
+  confirmed: { bg: "bg-success-muted", text: "text-success", bar: "bg-success" },
+  pending: { bg: "bg-warning-muted", text: "text-warning", bar: "bg-warning" },
+  checked_in: { bg: "bg-brand-muted", text: "text-brand", bar: "bg-brand" },
+  completed: { bg: "bg-surface-inset", text: "text-foreground", bar: "bg-surface-overlay" },
+  canceled: { bg: "bg-danger-muted", text: "text-danger", bar: "bg-danger" },
+  no_show: { bg: "bg-warning-muted", text: "text-warning", bar: "bg-warning" },
 };
 
 function formatCurrency(amount: number): string {
@@ -382,11 +382,11 @@ function DateRangeSelector({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex items-center gap-2 px-4 py-2 bg-surface-raised border border-border-strong rounded-lg hover:bg-surface-inset focus:outline-none focus:ring-2 focus:ring-brand"
         aria-label="Select date range"
       >
         <svg
-          className="w-5 h-5 text-gray-500"
+          className="w-5 h-5 text-foreground-muted"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -398,9 +398,9 @@ function DateRangeSelector({
             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
           />
         </svg>
-        <span className="text-sm font-medium text-gray-700">{getCurrentLabel()}</span>
+        <span className="text-sm font-medium text-foreground">{getCurrentLabel()}</span>
         <svg
-          className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-foreground-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -410,9 +410,9 @@ function DateRangeSelector({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div className="absolute right-0 mt-2 w-72 bg-surface-raised rounded-lg shadow-lg border border-border z-50">
           <div className="p-2">
-            <p className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <p className="px-3 py-2 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
               Presets
             </p>
             {presets.map((preset) => (
@@ -420,8 +420,8 @@ function DateRangeSelector({
                 key={preset.value}
                 type="button"
                 onClick={() => handlePresetSelect(preset.value)}
-                className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 ${
-                  currentPreset === preset.value ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700"
+                className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-surface-overlay ${
+                  currentPreset === preset.value ? "bg-brand-muted text-brand font-medium" : "text-foreground"
                 }`}
               >
                 {preset.label}
@@ -433,8 +433,8 @@ function DateRangeSelector({
             <button
               type="button"
               onClick={() => setShowCustom(!showCustom)}
-              className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 ${
-                currentPreset === "custom" ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700"
+              className={`w-full text-left px-3 py-2 text-sm rounded-md hover:bg-surface-overlay ${
+                currentPreset === "custom" ? "bg-brand-muted text-brand font-medium" : "text-foreground"
               }`}
             >
               Custom Range
@@ -443,7 +443,7 @@ function DateRangeSelector({
             {showCustom && (
               <div className="p-3 space-y-3">
                 <div>
-                  <label htmlFor="start-date" className="block text-xs font-medium text-gray-600 mb-1">
+                  <label htmlFor="start-date" className="block text-xs font-medium text-foreground-muted mb-1">
                     Start Date
                   </label>
                   <input
@@ -451,12 +451,12 @@ function DateRangeSelector({
                     id="start-date"
                     value={customStartDate}
                     onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-brand"
                     aria-label="Start date"
                   />
                 </div>
                 <div>
-                  <label htmlFor="end-date" className="block text-xs font-medium text-gray-600 mb-1">
+                  <label htmlFor="end-date" className="block text-xs font-medium text-foreground-muted mb-1">
                     End Date
                   </label>
                   <input
@@ -464,7 +464,7 @@ function DateRangeSelector({
                     id="end-date"
                     value={customEndDate}
                     onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-brand"
                     aria-label="End date"
                   />
                 </div>
@@ -472,7 +472,7 @@ function DateRangeSelector({
                   type="button"
                   onClick={handleCustomApply}
                   disabled={!customStartDate || !customEndDate}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-brand rounded-md hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed"
                 >
                   Apply
                 </button>
@@ -535,7 +535,7 @@ export default function ReportsPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-surface-raised border border-border-strong rounded-lg hover:bg-surface-inset focus:outline-none focus:ring-2 focus:ring-brand"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -544,7 +544,7 @@ export default function ReportsPage() {
           </button>
           <button
             onClick={handleExportPDF}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand border border-transparent rounded-lg hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-brand"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -561,27 +561,27 @@ export default function ReportsPage() {
 
       {/* Revenue Overview Cards */}
       <div className="grid grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm mb-1">{periodLabel}</p>
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <p className="text-foreground-muted text-sm mb-1">{periodLabel}</p>
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.currentPeriod)}</p>
           <p
             className={`text-sm mt-1 ${
-              revenueOverview.changePercent >= 0 ? "text-green-600" : "text-red-600"
+              revenueOverview.changePercent >= 0 ? "text-success" : "text-danger"
             }`}
           >
             {formatPercent(revenueOverview.changePercent)} {comparisonLabel}
           </p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm mb-1">Previous Period</p>
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <p className="text-foreground-muted text-sm mb-1">Previous Period</p>
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.previousPeriod)}</p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm mb-1">Year to Date</p>
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <p className="text-foreground-muted text-sm mb-1">Year to Date</p>
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.yearToDate)}</p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm mb-1">Avg Booking Value</p>
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <p className="text-foreground-muted text-sm mb-1">Avg Booking Value</p>
           <p className="text-2xl font-bold">{formatCurrency(revenueOverview.avgBookingValue)}</p>
         </div>
       </div>
@@ -589,7 +589,7 @@ export default function ReportsPage() {
       <div className="grid grid-cols-2 gap-6 mb-8">
         {/* Revenue Chart - Premium Feature */}
         <PremiumGate feature="Advanced Revenue Charts" isPremium={isPremium}>
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Revenue Trend (Last 30 Days)</h2>
             {revenueData.length > 0 ? (
               <div className="h-48">
@@ -600,7 +600,7 @@ export default function ReportsPage() {
                       className="flex-1 flex flex-col items-center group relative"
                     >
                       <div
-                        className="w-full bg-blue-500 rounded-t transition-all hover:bg-blue-600"
+                        className="w-full bg-brand rounded-t transition-all hover:bg-brand"
                         style={{
                           height: `${Math.max((data.revenue / maxRevenue) * 100, 2)}%`,
                         }}
@@ -616,7 +616,7 @@ export default function ReportsPage() {
                 </div>
               </div>
             ) : (
-              <div className="h-48 flex items-center justify-center text-gray-400">
+              <div className="h-48 flex items-center justify-center text-foreground-subtle">
                 No revenue data available
               </div>
             )}
@@ -625,14 +625,15 @@ export default function ReportsPage() {
 
         {/* Booking Status Breakdown - Premium Feature */}
         <PremiumGate feature="Detailed Booking Analytics" isPremium={isPremium}>
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Bookings by Status</h2>
             {totalBookings > 0 ? (
               <div className="space-y-3">
                 {bookingsByStatus.map((status) => {
                   const colors = statusColors[status.status] || {
-                    bg: "bg-gray-100",
-                    text: "text-gray-700",
+                    bg: "bg-surface-inset",
+                    text: "text-foreground",
+                    bar: "bg-surface-overlay",
                   };
                   const percentage = Math.round((status.count / totalBookings) * 100);
 
@@ -642,13 +643,13 @@ export default function ReportsPage() {
                         <span className={`text-sm font-medium capitalize ${colors.text}`}>
                           {status.status.replace("_", " ")}
                         </span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-foreground-muted">
                           {status.count} ({percentage}%)
                         </span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div className="w-full bg-surface-inset rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${colors.bg.replace("100", "500")}`}
+                          className={`h-2 rounded-full ${colors.bar}`}
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
@@ -657,7 +658,7 @@ export default function ReportsPage() {
                 })}
               </div>
             ) : (
-              <div className="h-48 flex items-center justify-center text-gray-400">
+              <div className="h-48 flex items-center justify-center text-foreground-subtle">
                 No booking data available
               </div>
             )}
@@ -668,46 +669,46 @@ export default function ReportsPage() {
       <div className="grid grid-cols-2 gap-6 mb-8">
         {/* Top Tours - Premium Feature */}
         <PremiumGate feature="Detailed Revenue Breakdowns" isPremium={isPremium}>
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Top Tours by Revenue</h2>
             {topTours.length > 0 ? (
               <div className="space-y-3">
                 {topTours.map((tour, index) => (
                   <div
                     key={tour.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-surface-inset rounded-lg"
                   >
                     <div className="flex items-center gap-3">
                       <span
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
                           index === 0
-                            ? "bg-yellow-100 text-yellow-700"
+                            ? "bg-warning-muted text-warning"
                             : index === 1
-                            ? "bg-gray-200 text-gray-700"
+                            ? "bg-surface-overlay text-foreground"
                             : index === 2
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-gray-100 text-gray-600"
+                            ? "bg-accent-muted text-accent"
+                            : "bg-surface-inset text-foreground-muted"
                         }`}
                       >
                         {index + 1}
                       </span>
                       <div>
                         <p className="font-medium">{tour.name}</p>
-                        <p className="text-sm text-gray-500">{tour.bookings} bookings</p>
+                        <p className="text-sm text-foreground-muted">{tour.bookings} bookings</p>
                       </div>
                     </div>
-                    <p className="font-semibold text-green-600">{formatCurrency(tour.revenue)}</p>
+                    <p className="font-semibold text-success">{formatCurrency(tour.revenue)}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="h-48 flex items-center justify-center text-gray-400">
+              <div className="h-48 flex items-center justify-center text-foreground-subtle">
                 No tour data available
               </div>
             )}
             <Link
               to="/tenant/tours"
-              className="block text-center text-blue-600 mt-4 text-sm hover:underline"
+              className="block text-center text-brand mt-4 text-sm hover:underline"
             >
               View all tours
             </Link>
@@ -715,31 +716,31 @@ export default function ReportsPage() {
         </PremiumGate>
 
         {/* Customer Stats - Available to all users (basic analytics) */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Customer Insights</h2>
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <p className="text-2xl font-bold text-blue-700">{customerStats.totalCustomers}</p>
-              <p className="text-sm text-blue-600">Total Customers</p>
+            <div className="p-4 bg-brand-muted rounded-lg">
+              <p className="text-2xl font-bold text-brand">{customerStats.totalCustomers}</p>
+              <p className="text-sm text-brand">Total Customers</p>
             </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-2xl font-bold text-green-700">{customerStats.newInPeriod}</p>
-              <p className="text-sm text-green-600">New {periodLabel}</p>
+            <div className="p-4 bg-success-muted rounded-lg">
+              <p className="text-2xl font-bold text-success">{customerStats.newInPeriod}</p>
+              <p className="text-sm text-success">New {periodLabel}</p>
             </div>
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <p className="text-2xl font-bold text-purple-700">{customerStats.repeatCustomers}</p>
-              <p className="text-sm text-purple-600">Repeat Customers</p>
+            <div className="p-4 bg-info-muted rounded-lg">
+              <p className="text-2xl font-bold text-info">{customerStats.repeatCustomers}</p>
+              <p className="text-sm text-info">Repeat Customers</p>
             </div>
-            <div className="p-4 bg-orange-50 rounded-lg">
-              <p className="text-2xl font-bold text-orange-700">
+            <div className="p-4 bg-accent-muted rounded-lg">
+              <p className="text-2xl font-bold text-accent">
                 {customerStats.avgBookingsPerCustomer}
               </p>
-              <p className="text-sm text-orange-600">Avg Bookings/Customer</p>
+              <p className="text-sm text-accent">Avg Bookings/Customer</p>
             </div>
           </div>
           <Link
             to="/tenant/customers"
-            className="block text-center text-blue-600 mt-4 text-sm hover:underline"
+            className="block text-center text-brand mt-4 text-sm hover:underline"
           >
             View all customers
           </Link>
@@ -748,13 +749,13 @@ export default function ReportsPage() {
 
       {/* Equipment Utilization - Premium Feature */}
       <PremiumGate feature="Equipment Utilization Reports" isPremium={isPremium}>
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Equipment Utilization</h2>
           {equipmentUtilization.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b text-left text-sm text-gray-500">
+                  <tr className="border-b text-left text-sm text-foreground-muted">
                     <th className="pb-3 font-medium">Category</th>
                     <th className="pb-3 font-medium text-center">Total</th>
                     <th className="pb-3 font-medium text-center">Available</th>
@@ -774,18 +775,18 @@ export default function ReportsPage() {
                       <tr key={category.category} className="border-b last:border-0">
                         <td className="py-3 font-medium capitalize">{category.category}</td>
                         <td className="py-3 text-center">{category.total}</td>
-                        <td className="py-3 text-center text-green-600">{category.available}</td>
-                        <td className="py-3 text-center text-blue-600">{category.rented}</td>
-                        <td className="py-3 text-center text-orange-600">{category.maintenance}</td>
+                        <td className="py-3 text-center text-success">{category.available}</td>
+                        <td className="py-3 text-center text-brand">{category.rented}</td>
+                        <td className="py-3 text-center text-accent">{category.maintenance}</td>
                         <td className="py-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-24 bg-gray-100 rounded-full h-2">
+                            <div className="w-24 bg-surface-inset rounded-full h-2">
                               <div
-                                className="h-2 rounded-full bg-blue-500"
+                                className="h-2 rounded-full bg-brand"
                                 style={{ width: `${utilization}%` }}
                               />
                             </div>
-                            <span className="text-sm text-gray-600">{utilization}%</span>
+                            <span className="text-sm text-foreground-muted">{utilization}%</span>
                           </div>
                         </td>
                       </tr>
@@ -795,13 +796,13 @@ export default function ReportsPage() {
               </table>
             </div>
           ) : (
-            <div className="h-32 flex items-center justify-center text-gray-400">
+            <div className="h-32 flex items-center justify-center text-foreground-subtle">
               No equipment data available
             </div>
           )}
           <Link
             to="/tenant/equipment"
-            className="block text-center text-blue-600 mt-4 text-sm hover:underline"
+            className="block text-center text-brand mt-4 text-sm hover:underline"
           >
             View all equipment
           </Link>

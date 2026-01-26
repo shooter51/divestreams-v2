@@ -212,25 +212,25 @@ export function CardModal({
   if (!stripeConnected) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
           <h2 className="text-xl font-bold mb-4">Card Payment</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Total Due</label>
-              <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
             </div>
-            <div className="p-6 bg-amber-50 border border-amber-200 rounded-lg text-center">
-              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-6 bg-warning-muted border border-warning rounded-lg text-center">
+              <div className="w-12 h-12 bg-warning-muted rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <p className="text-amber-800 font-medium mb-2">Stripe Not Connected</p>
-              <p className="text-sm text-amber-700">Connect Stripe in Settings → Integrations to accept card payments</p>
+              <p className="text-warning font-medium mb-2">Stripe Not Connected</p>
+              <p className="text-sm text-warning">Connect Stripe in Settings → Integrations to accept card payments</p>
             </div>
           </div>
           <div className="flex gap-3 mt-6">
-            <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-gray-50">
+            <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-surface-inset">
               Cancel
             </button>
           </div>
@@ -243,27 +243,27 @@ export function CardModal({
   if (step === "method-select") {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
           <h2 className="text-xl font-bold mb-4">Card Payment</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Total Due</label>
-              <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
             </div>
             <div className="space-y-3">
               <button
                 onClick={handleManualEntry}
-                className="w-full p-4 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-left"
+                className="w-full p-4 border-2 border-brand rounded-lg hover:border-brand hover:bg-brand-muted transition-colors text-left"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="w-10 h-10 bg-brand-muted rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     </svg>
                   </div>
                   <div>
                     <p className="font-medium">Enter Card Manually</p>
-                    <p className="text-sm text-gray-500">Type card number, expiry, and CVC</p>
+                    <p className="text-sm text-foreground-muted">Type card number, expiry, and CVC</p>
                   </div>
                 </div>
               </button>
@@ -272,21 +272,21 @@ export function CardModal({
                 disabled={!hasTerminalReaders}
                 className={`w-full p-4 border-2 rounded-lg text-left transition-colors ${
                   hasTerminalReaders
-                    ? "border-green-200 hover:border-green-400 hover:bg-green-50"
-                    : "border-gray-200 bg-gray-50 cursor-not-allowed"
+                    ? "border-success hover:border-success hover:bg-success-muted"
+                    : "border-border bg-surface-inset cursor-not-allowed"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    hasTerminalReaders ? "bg-green-100" : "bg-gray-200"
+                    hasTerminalReaders ? "bg-success-muted" : "bg-surface-overlay"
                   }`}>
-                    <svg className={`w-5 h-5 ${hasTerminalReaders ? "text-green-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className={`w-5 h-5 ${hasTerminalReaders ? "text-success" : "text-foreground-subtle"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                     </svg>
                   </div>
                   <div>
-                    <p className={`font-medium ${!hasTerminalReaders && "text-gray-400"}`}>Use Card Reader</p>
-                    <p className={`text-sm ${hasTerminalReaders ? "text-gray-500" : "text-gray-400"}`}>
+                    <p className={`font-medium ${!hasTerminalReaders && "text-foreground-subtle"}`}>Use Card Reader</p>
+                    <p className={`text-sm ${hasTerminalReaders ? "text-foreground-muted" : "text-foreground-subtle"}`}>
                       {hasTerminalReaders ? "Tap, insert, or swipe card" : "No reader connected"}
                     </p>
                   </div>
@@ -295,7 +295,7 @@ export function CardModal({
             </div>
           </div>
           <div className="flex gap-3 mt-6">
-            <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-gray-50">
+            <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-surface-inset">
               Cancel
             </button>
           </div>
@@ -308,33 +308,33 @@ export function CardModal({
   if (step === "manual-entry") {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
           <h2 className="text-xl font-bold mb-4">Enter Card Details</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Total Due</label>
-              <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Card Information</label>
               <div
                 id="stripe-card-element"
-                className="p-3 border rounded-lg bg-white min-h-[44px]"
+                className="p-3 border rounded-lg bg-surface-raised min-h-[44px]"
               />
-              {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+              {error && <p className="text-sm text-danger mt-2">{error}</p>}
             </div>
           </div>
           <div className="flex gap-3 mt-6">
             <button
               onClick={() => setStep("method-select")}
-              className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+              className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
             >
               Back
             </button>
             <button
               onClick={handlePaymentSubmit}
               disabled={!cardComplete || fetcher.state !== "idle"}
-              className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+              className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
             >
               Pay ${total.toFixed(2)}
             </button>
@@ -348,27 +348,27 @@ export function CardModal({
   if (step === "terminal") {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
           <h2 className="text-xl font-bold mb-4">Card Reader</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Total Due</label>
-              <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
             </div>
-            <div className="p-8 bg-gray-50 rounded-lg text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-8 bg-surface-inset rounded-lg text-center">
+              <div className="w-16 h-16 bg-success-muted rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <svg className="w-8 h-8 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                 </svg>
               </div>
-              <p className="text-lg font-medium text-gray-700">Present Card on Reader</p>
-              <p className="text-sm text-gray-500 mt-1">Tap, insert, or swipe the customer's card</p>
+              <p className="text-lg font-medium text-foreground">Present Card on Reader</p>
+              <p className="text-sm text-foreground-muted mt-1">Tap, insert, or swipe the customer's card</p>
             </div>
           </div>
           <div className="flex gap-3 mt-6">
             <button
               onClick={() => setStep("method-select")}
-              className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+              className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
             >
               Cancel
             </button>
@@ -382,11 +382,11 @@ export function CardModal({
   if (step === "processing") {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
           <div className="text-center py-8">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p className="text-lg font-medium">Processing Payment...</p>
-            <p className="text-sm text-gray-500 mt-1">Please wait</p>
+            <p className="text-sm text-foreground-muted mt-1">Please wait</p>
           </div>
         </div>
       </div>
@@ -397,14 +397,14 @@ export function CardModal({
   if (step === "success") {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-16 h-16 bg-success-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p className="text-lg font-medium text-green-600">Payment Approved</p>
+            <p className="text-lg font-medium text-success">Payment Approved</p>
             <p className="text-3xl font-bold mt-2">${total.toFixed(2)}</p>
           </div>
         </div>
@@ -416,23 +416,23 @@ export function CardModal({
   if (step === "error") {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
           <div className="text-center py-6">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-16 h-16 bg-danger-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <p className="text-lg font-medium text-red-600">Payment Failed</p>
-            <p className="text-sm text-gray-600 mt-2">{error || "An error occurred"}</p>
+            <p className="text-lg font-medium text-danger">Payment Failed</p>
+            <p className="text-sm text-foreground-muted mt-2">{error || "An error occurred"}</p>
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-gray-50">
+            <button onClick={handleClose} className="flex-1 py-3 border rounded-lg hover:bg-surface-inset">
               Cancel
             </button>
             <button
               onClick={handleRetry}
-              className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover font-medium"
             >
               Try Again
             </button>
@@ -455,13 +455,13 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Cash Payment</h2>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Total Due</label>
-            <p className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-brand">${total.toFixed(2)}</p>
           </div>
 
           <div>
@@ -471,16 +471,16 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
               step="0.01"
               value={tendered}
               onChange={(e) => setTendered(e.target.value)}
-              className="w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 text-2xl border rounded-lg focus:ring-2 focus:ring-brand"
               placeholder="0.00"
               autoFocus
             />
           </div>
 
           {tenderedAmount >= total && (
-            <div className="p-4 bg-green-50 rounded-lg">
+            <div className="p-4 bg-success-muted rounded-lg">
               <label className="block text-sm font-medium mb-1">Change Due</label>
-              <p className="text-3xl font-bold text-green-600">${change.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-success">${change.toFixed(2)}</p>
             </div>
           )}
 
@@ -490,7 +490,7 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
               <button
                 key={amount}
                 onClick={() => setTendered(amount.toString())}
-                className="py-2 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium"
+                className="py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay font-medium"
               >
                 ${amount}
               </button>
@@ -504,14 +504,14 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
               setTendered("");
               onClose();
             }}
-            className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+            className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </button>
           <button
             onClick={() => onComplete([{ method: "cash", amount: total }])}
             disabled={tenderedAmount < total}
-            className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+            className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Complete Sale
           </button>
@@ -546,7 +546,7 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Split Payment</h2>
 
         <div className="space-y-4">
@@ -554,26 +554,26 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
             <span>Total</span>
             <span className="font-bold">${total.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-green-600">
+          <div className="flex justify-between text-success">
             <span>Paid</span>
             <span className="font-bold">${paidAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-lg">
             <span>Remaining</span>
-            <span className="font-bold text-blue-600">${remaining.toFixed(2)}</span>
+            <span className="font-bold text-brand">${remaining.toFixed(2)}</span>
           </div>
 
           {/* Existing payments */}
           {payments.length > 0 && (
             <div className="space-y-2">
               {payments.map((payment, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div key={index} className="flex items-center justify-between p-2 bg-surface-inset rounded">
                   <span className="capitalize">{payment.method}</span>
                   <div className="flex items-center gap-2">
                     <span>${payment.amount.toFixed(2)}</span>
                     <button
                       onClick={() => removePayment(index)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-danger hover:text-danger"
                     >
                       ×
                     </button>
@@ -591,8 +591,8 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
                   onClick={() => setCurrentMethod("card")}
                   className={`flex-1 py-2 rounded-lg ${
                     currentMethod === "card"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
+                      ? "bg-brand text-white"
+                      : "bg-surface-inset hover:bg-surface-overlay"
                   }`}
                 >
                   Card
@@ -602,7 +602,7 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
                   className={`flex-1 py-2 rounded-lg ${
                     currentMethod === "cash"
                       ? "bg-green-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
+                      : "bg-surface-inset hover:bg-surface-overlay"
                   }`}
                 >
                   Cash
@@ -619,14 +619,14 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
                 />
                 <button
                   onClick={() => setCurrentAmount(remaining.toFixed(2))}
-                  className="px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm"
+                  className="px-3 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay text-sm"
                 >
                   Rest
                 </button>
                 <button
                   onClick={addPayment}
                   disabled={!currentAmount || parseFloat(currentAmount) <= 0}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300"
+                  className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay"
                 >
                   Add
                 </button>
@@ -641,14 +641,14 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
               setPayments([]);
               onClose();
             }}
-            className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+            className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </button>
           <button
             onClick={() => onComplete(payments)}
             disabled={remaining > 0.01}
-            className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+            className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Complete Sale
           </button>
@@ -699,7 +699,7 @@ export function RentalAgreementModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">Rental Agreement Required</h2>
 
         {/* Printable Agreement Preview */}
@@ -707,8 +707,8 @@ export function RentalAgreementModal({
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold">{shopName}</h1>
             <h2 className="text-lg">Equipment Rental Agreement</h2>
-            <p className="text-sm text-gray-600">Agreement #: {agreementNumber}</p>
-            <p className="text-sm text-gray-600">{new Date().toLocaleDateString()}</p>
+            <p className="text-sm text-foreground-muted">Agreement #: {agreementNumber}</p>
+            <p className="text-sm text-foreground-muted">{new Date().toLocaleDateString()}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-6 mb-6">
@@ -753,7 +753,7 @@ export function RentalAgreementModal({
 
           <div className="mb-6 text-sm">
             <h3 className="font-bold mb-2">Terms and Conditions</h3>
-            <ol className="list-decimal list-inside space-y-1 text-gray-700">
+            <ol className="list-decimal list-inside space-y-1 text-foreground">
               <li>Equipment must be returned by the due date in the same condition.</li>
               <li>Customer is responsible for any damage or loss of equipment.</li>
               <li>Late returns will incur additional daily charges.</li>
@@ -778,12 +778,12 @@ export function RentalAgreementModal({
         <div className="space-y-4">
           <button
             onClick={handlePrint}
-            className="w-full py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium"
+            className="w-full py-3 border-2 border-brand text-brand rounded-lg hover:bg-brand-muted font-medium"
           >
             Print Agreement
           </button>
 
-          <div className="p-4 bg-gray-50 rounded-lg space-y-3">
+          <div className="p-4 bg-surface-inset rounded-lg space-y-3">
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -810,14 +810,14 @@ export function RentalAgreementModal({
         <div className="flex gap-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+            className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </button>
           <button
             onClick={() => onConfirm(staffName)}
             disabled={!agreementSigned || !staffName.trim()}
-            className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+            className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Continue to Payment
           </button>
@@ -860,7 +860,7 @@ export function CustomerSearchModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Select Customer</h2>
 
         <input
@@ -868,42 +868,42 @@ export function CustomerSearchModal({
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search by name, email, or phone..."
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 mb-4"
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand mb-4"
           autoFocus
         />
 
         <div className="max-h-64 overflow-y-auto space-y-2 mb-4">
           {isSearching ? (
-            <p className="text-center text-gray-500 py-4">Searching...</p>
+            <p className="text-center text-foreground-muted py-4">Searching...</p>
           ) : searchResults.length > 0 ? (
             searchResults.map(customer => (
               <button
                 key={customer.id}
                 onClick={() => onSelect(customer)}
-                className="w-full p-3 text-left border rounded-lg hover:border-blue-400 hover:bg-blue-50"
+                className="w-full p-3 text-left border rounded-lg hover:border-brand hover:bg-brand-muted"
               >
                 <p className="font-medium">{customer.firstName} {customer.lastName}</p>
-                <p className="text-sm text-gray-600">{customer.email}</p>
-                {customer.phone && <p className="text-sm text-gray-500">{customer.phone}</p>}
+                <p className="text-sm text-foreground-muted">{customer.email}</p>
+                {customer.phone && <p className="text-sm text-foreground-muted">{customer.phone}</p>}
               </button>
             ))
           ) : query.length >= 2 ? (
-            <p className="text-center text-gray-500 py-4">No customers found</p>
+            <p className="text-center text-foreground-muted py-4">No customers found</p>
           ) : (
-            <p className="text-center text-gray-500 py-4">Type to search...</p>
+            <p className="text-center text-foreground-muted py-4">Type to search...</p>
           )}
         </div>
 
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+            className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </button>
           <button
             onClick={onCreateNew}
-            className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover font-medium"
           >
             New Customer
           </button>

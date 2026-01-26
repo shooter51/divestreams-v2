@@ -51,7 +51,7 @@ export default function NewEquipmentPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/equipment" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/equipment" className="text-brand hover:underline text-sm">
           ← Back to Equipment
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Equipment</h1>
@@ -59,7 +59,7 @@ export default function NewEquipmentPage() {
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -72,7 +72,7 @@ export default function NewEquipmentPage() {
                   name="category"
                   required
                   defaultValue={actionData?.values?.category || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">Select category...</option>
                   <option value="bcd">BCD</option>
@@ -85,7 +85,7 @@ export default function NewEquipmentPage() {
                   <option value="other">Other</option>
                 </select>
                 {actionData?.errors?.category && (
-                  <p className="text-red-500 text-sm mt-1">{actionData.errors.category}</p>
+                  <p className="text-danger text-sm mt-1">{actionData.errors.category}</p>
                 )}
               </div>
 
@@ -100,10 +100,10 @@ export default function NewEquipmentPage() {
                   required
                   placeholder="e.g., Aqualung Pro HD"
                   defaultValue={actionData?.values?.name}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
                 {actionData?.errors?.name && (
-                  <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                  <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
                 )}
               </div>
             </div>
@@ -119,7 +119,7 @@ export default function NewEquipmentPage() {
                   name="brand"
                   placeholder="e.g., Aqualung"
                   defaultValue={actionData?.values?.brand}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -133,7 +133,7 @@ export default function NewEquipmentPage() {
                   name="model"
                   placeholder="e.g., Pro HD"
                   defaultValue={actionData?.values?.model}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function NewEquipmentPage() {
                   id="serialNumber"
                   name="serialNumber"
                   defaultValue={actionData?.values?.serialNumber}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -163,7 +163,7 @@ export default function NewEquipmentPage() {
                     name="barcode"
                     value={barcodeValue}
                     onChange={(e) => setBarcodeValue(e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     placeholder="EAN-13, UPC, etc."
                   />
                   <button
@@ -189,7 +189,7 @@ export default function NewEquipmentPage() {
                   id="size"
                   name="size"
                   defaultValue={actionData?.values?.size || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">N/A</option>
                   <option value="XS">XS</option>
@@ -205,7 +205,7 @@ export default function NewEquipmentPage() {
         </div>
 
         {/* Status & Condition */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Status & Condition</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -216,7 +216,7 @@ export default function NewEquipmentPage() {
                 id="status"
                 name="status"
                 defaultValue={actionData?.values?.status || "available"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="available">Available</option>
                 <option value="rented">Rented</option>
@@ -233,7 +233,7 @@ export default function NewEquipmentPage() {
                 id="condition"
                 name="condition"
                 defaultValue={actionData?.values?.condition || "good"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="excellent">Excellent</option>
                 <option value="good">Good</option>
@@ -245,7 +245,7 @@ export default function NewEquipmentPage() {
         </div>
 
         {/* Rental */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Rental Information</h2>
           <div className="space-y-4">
             <label className="flex items-center gap-3">
@@ -264,7 +264,7 @@ export default function NewEquipmentPage() {
                 Rental Price (per day)
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                 <input
                   type="number"
                   id="rentalPrice"
@@ -272,7 +272,7 @@ export default function NewEquipmentPage() {
                   step="0.01"
                   min="0"
                   defaultValue={actionData?.values?.rentalPrice}
-                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -280,7 +280,7 @@ export default function NewEquipmentPage() {
         </div>
 
         {/* Service */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Service Information</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -292,7 +292,7 @@ export default function NewEquipmentPage() {
                 id="lastServiceDate"
                 name="lastServiceDate"
                 defaultValue={actionData?.values?.lastServiceDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -305,7 +305,7 @@ export default function NewEquipmentPage() {
                 id="nextServiceDate"
                 name="nextServiceDate"
                 defaultValue={actionData?.values?.nextServiceDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -319,13 +319,13 @@ export default function NewEquipmentPage() {
               name="serviceNotes"
               rows={2}
               defaultValue={actionData?.values?.serviceNotes}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
 
         {/* Purchase Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Purchase Information</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -337,7 +337,7 @@ export default function NewEquipmentPage() {
                 id="purchaseDate"
                 name="purchaseDate"
                 defaultValue={actionData?.values?.purchaseDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -346,7 +346,7 @@ export default function NewEquipmentPage() {
                 Purchase Price
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                 <input
                   type="number"
                   id="purchasePrice"
@@ -354,7 +354,7 @@ export default function NewEquipmentPage() {
                   step="0.01"
                   min="0"
                   defaultValue={actionData?.values?.purchasePrice}
-                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function NewEquipmentPage() {
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label htmlFor="notes" className="block text-sm font-medium mb-1">
             Additional Notes
           </label>
@@ -371,7 +371,7 @@ export default function NewEquipmentPage() {
             name="notes"
             rows={3}
             defaultValue={actionData?.values?.notes}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
           <div className="mt-4">
             <label className="flex items-center gap-2">
@@ -384,7 +384,7 @@ export default function NewEquipmentPage() {
               />
               <span className="text-sm font-medium">Show on public website</span>
             </label>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-foreground-muted mt-1">
               Make this equipment visible on your public rental catalog
             </p>
           </div>
@@ -395,13 +395,13 @@ export default function NewEquipmentPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Add Equipment"}
           </button>
           <Link
             to="/tenant/equipment"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

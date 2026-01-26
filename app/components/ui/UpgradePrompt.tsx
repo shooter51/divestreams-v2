@@ -51,20 +51,20 @@ function BannerPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
   const message = getMessage(feature, currentCount, limit);
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg px-4 py-3 text-white shadow-sm">
+    <div className="bg-gradient-to-r from-brand to-brand-hover rounded-lg px-4 py-3 text-white shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <CrownIcon />
           <div>
             <p className="font-medium">{message}</p>
-            <p className="text-sm text-blue-100">
+            <p className="text-sm text-white/80">
               Upgrade to Premium to unlock unlimited access
             </p>
           </div>
         </div>
         <Link
           to="/tenant/settings/billing"
-          className="flex items-center gap-2 bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors whitespace-nowrap"
+          className="flex items-center gap-2 bg-surface-raised text-brand px-4 py-2 rounded-lg font-medium hover:bg-brand-muted transition-colors whitespace-nowrap"
         >
           <UpgradeIcon />
           Upgrade Now
@@ -78,7 +78,7 @@ function InlinePrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
   const message = getMessage(feature, currentCount, limit);
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-amber-800 text-sm">
+    <div className="bg-warning-muted border border-border rounded-lg px-3 py-2 text-warning text-sm">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <CrownIcon />
@@ -86,7 +86,7 @@ function InlinePrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
         </div>
         <Link
           to="/tenant/settings/billing"
-          className="text-amber-700 font-medium hover:text-amber-900 hover:underline whitespace-nowrap"
+          className="text-warning font-medium hover:underline whitespace-nowrap"
         >
           Upgrade
         </Link>
@@ -100,18 +100,18 @@ function OverlayPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps
 
   return (
     <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
-      <div className="bg-white rounded-xl p-6 shadow-xl max-w-sm mx-4 text-center">
-        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+      <div className="bg-surface-raised rounded-xl p-6 shadow-xl max-w-sm mx-4 text-center">
+        <div className="w-12 h-12 bg-brand-muted rounded-full flex items-center justify-center mx-auto mb-4 text-brand">
           <CrownIcon />
         </div>
         <h3 className="font-semibold text-lg mb-2">Premium Feature</h3>
-        <p className="text-gray-600 mb-4">{message}</p>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-foreground-muted mb-4">{message}</p>
+        <p className="text-sm text-foreground-muted mb-4">
           Upgrade your plan to unlock this feature and more
         </p>
         <Link
           to="/tenant/settings/billing"
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 bg-brand text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-hover transition-colors"
         >
           <UpgradeIcon />
           Upgrade to Premium

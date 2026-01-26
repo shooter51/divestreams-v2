@@ -31,10 +31,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  scheduled: "bg-blue-100 text-blue-700",
-  in_progress: "bg-yellow-100 text-yellow-700",
-  completed: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
+  scheduled: "bg-brand-muted text-brand",
+  in_progress: "bg-warning-muted text-warning",
+  completed: "bg-success-muted text-success",
+  cancelled: "bg-danger-muted text-danger",
 };
 
 const statusLabels: Record<string, string> = {
@@ -77,28 +77,28 @@ export default function SessionsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Training Sessions</h1>
-          <p className="text-gray-500">{total} session{total !== 1 ? "s" : ""}</p>
+          <p className="text-foreground-muted">{total} session{total !== 1 ? "s" : ""}</p>
         </div>
         <Link
           to="/tenant/training/courses"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
           New Session
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
+      <div className="bg-surface-raised rounded-xl p-4 shadow-sm mb-6">
         <div className="flex flex-wrap gap-4 items-end">
           {/* Course Filter */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Course
             </label>
             <select
               value={courseId}
               onChange={(e) => updateFilter("courseId", e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
               <option value="">All Courses</option>
               {courses.map((course) => (
@@ -111,13 +111,13 @@ export default function SessionsPage() {
 
           {/* Status Filter */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Status
             </label>
             <select
               value={status}
               onChange={(e) => updateFilter("status", e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             >
               <option value="">All Statuses</option>
               <option value="scheduled">Scheduled</option>
@@ -131,7 +131,7 @@ export default function SessionsPage() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+              className="px-4 py-2 text-sm text-foreground-muted hover:text-foreground hover:bg-surface-overlay rounded-lg"
             >
               Clear Filters
             </button>
@@ -141,15 +141,15 @@ export default function SessionsPage() {
 
       {/* Sessions List */}
       {sessions.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm text-center">
-          <p className="text-gray-500">
+        <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
+          <p className="text-foreground-muted">
             {hasFilters
               ? "No sessions match your filters."
               : "No training sessions scheduled yet."}
           </p>
           <Link
             to="/tenant/training/courses"
-            className="inline-block mt-4 text-blue-600 hover:underline"
+            className="inline-block mt-4 text-brand hover:underline"
           >
             Schedule a session from a course
           </Link>
@@ -160,7 +160,7 @@ export default function SessionsPage() {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([date, dateSessions]) => (
               <div key={date}>
-                <h3 className="font-semibold text-gray-700 mb-3">
+                <h3 className="font-semibold text-foreground mb-3">
                   {new Date(date + "T00:00:00").toLocaleDateString("en-US", {
                     weekday: "long",
                     year: "numeric",
@@ -173,13 +173,13 @@ export default function SessionsPage() {
                     <Link
                       key={session.id}
                       to={`/tenant/training/sessions/${session.id}`}
-                      className="flex items-center justify-between bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                      className="flex items-center justify-between bg-surface-raised rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-4">
                         <div className="text-center min-w-[60px]">
                           <p className="text-lg font-bold">{session.startTime || "TBD"}</p>
                           {session.endDate && session.endDate !== session.startDate && (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-foreground-muted">
                               to {new Date(session.endDate + "T00:00:00").toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -189,9 +189,9 @@ export default function SessionsPage() {
                         </div>
                         <div>
                           <p className="font-semibold">{session.courseName}</p>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <div className="flex items-center gap-2 text-sm text-foreground-muted">
                             {session.agencyName && (
-                              <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">
+                              <span className="text-xs bg-surface-inset px-2 py-0.5 rounded">
                                 {session.agencyName}
                               </span>
                             )}
@@ -209,7 +209,7 @@ export default function SessionsPage() {
                           <p className="font-medium">
                             {session.enrolledCount || 0}/{session.maxStudents || "?"} enrolled
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-foreground-muted">
                             {session.priceOverride
                               ? `$${session.priceOverride}`
                               : session.coursePrice
@@ -219,7 +219,7 @@ export default function SessionsPage() {
                         </div>
                         <span
                           className={`text-xs px-3 py-1 rounded-full ${
-                            statusColors[session.status] || "bg-gray-100 text-gray-700"
+                            statusColors[session.status] || "bg-surface-inset text-foreground"
                           }`}
                         >
                           {statusLabels[session.status] || session.status}
@@ -234,8 +234,8 @@ export default function SessionsPage() {
       )}
 
       {/* Quick Info */}
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-700">
+      <div className="mt-8 p-4 bg-brand-muted rounded-lg">
+        <p className="text-sm text-brand">
           <strong>Tip:</strong> Sessions are created from the course detail page.
           Select a course and click "Schedule Session" to create a new training session.
         </p>

@@ -100,10 +100,10 @@ function formatDateTime(date: Date | string): string {
 }
 
 const typeColors: Record<string, string> = {
-  sale: "bg-green-100 text-green-700",
-  refund: "bg-red-100 text-red-700",
-  deposit: "bg-blue-100 text-blue-700",
-  payment: "bg-purple-100 text-purple-700",
+  sale: "bg-success-muted text-success",
+  refund: "bg-danger-muted text-danger",
+  deposit: "bg-brand-muted text-brand",
+  payment: "bg-info-muted text-info",
 };
 
 const paymentMethodIcons: Record<string, string> = {
@@ -123,11 +123,11 @@ export default function TransactionsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Transactions</h1>
-          <p className="text-sm text-gray-500">{transactions.length} transactions</p>
+          <p className="text-sm text-foreground-muted">{transactions.length} transactions</p>
         </div>
         <Link
           to="/tenant/pos"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
         >
           Back to POS
         </Link>
@@ -135,27 +135,27 @@ export default function TransactionsPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Today's Sales</p>
-          <p className="text-2xl font-bold text-green-600">{formatCurrency(summary.totalSales)}</p>
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+          <p className="text-sm text-foreground-muted">Today's Sales</p>
+          <p className="text-2xl font-bold text-success">{formatCurrency(summary.totalSales)}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Transactions</p>
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+          <p className="text-sm text-foreground-muted">Transactions</p>
           <p className="text-2xl font-bold">{summary.transactionCount}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Avg Transaction</p>
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+          <p className="text-sm text-foreground-muted">Avg Transaction</p>
           <p className="text-2xl font-bold">{formatCurrency(summary.averageTransaction)}</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
+      <div className="bg-surface-raised rounded-xl p-4 shadow-sm mb-6">
         <div className="flex gap-2">
           <Link
             to="/tenant/pos/transactions"
             className={`px-4 py-2 rounded-lg text-sm ${
-              !currentType ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
+              !currentType ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
             }`}
           >
             All
@@ -163,7 +163,7 @@ export default function TransactionsPage() {
           <Link
             to="/tenant/pos/transactions?type=sale"
             className={`px-4 py-2 rounded-lg text-sm ${
-              currentType === "sale" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
+              currentType === "sale" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
             }`}
           >
             Sales
@@ -171,7 +171,7 @@ export default function TransactionsPage() {
           <Link
             to="/tenant/pos/transactions?type=refund"
             className={`px-4 py-2 rounded-lg text-sm ${
-              currentType === "refund" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
+              currentType === "refund" ? "bg-brand text-white" : "bg-surface-inset hover:bg-surface-overlay"
             }`}
           >
             Refunds
@@ -180,29 +180,29 @@ export default function TransactionsPage() {
       </div>
 
       {/* Transactions List */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         {transactions.length > 0 ? (
           <table className="w-full">
             <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date/Time</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Items</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Customer</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Payment</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Amount</th>
+              <tr className="border-b bg-surface-inset">
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Date/Time</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Type</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Items</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Customer</th>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Payment</th>
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">Amount</th>
               </tr>
             </thead>
             <tbody>
               {transactions.map((tx: POSTransaction) => (
-                <tr key={tx.id} className="border-b last:border-0 hover:bg-gray-50">
+                <tr key={tx.id} className="border-b last:border-0 hover:bg-surface-inset">
                   <td className="px-6 py-4 text-sm">
                     {formatDateTime(tx.createdAt)}
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={`text-xs px-2 py-1 rounded capitalize ${
-                        typeColors[tx.type] || "bg-gray-100 text-gray-700"
+                        typeColors[tx.type] || "bg-surface-inset text-foreground"
                       }`}
                     >
                       {tx.type}
@@ -212,20 +212,20 @@ export default function TransactionsPage() {
                     {tx.items && tx.items.length > 0 ? (
                       <div className="text-sm">
                         {tx.items.slice(0, 2).map((item, i) => (
-                          <div key={i} className="text-gray-600">
+                          <div key={i} className="text-foreground-muted">
                             {item.quantity}x {item.description}
                           </div>
                         ))}
                         {tx.items.length > 2 && (
-                          <div className="text-gray-400">+{tx.items.length - 2} more</div>
+                          <div className="text-foreground-subtle">+{tx.items.length - 2} more</div>
                         )}
                       </div>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-foreground-subtle">-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    {tx.customerName || <span className="text-gray-400">Walk-in</span>}
+                    {tx.customerName || <span className="text-foreground-subtle">Walk-in</span>}
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm capitalize">{tx.paymentMethod}</span>
@@ -233,7 +233,7 @@ export default function TransactionsPage() {
                   <td className="px-6 py-4 text-right">
                     <span
                       className={`font-medium ${
-                        tx.type === "refund" ? "text-red-600" : "text-green-600"
+                        tx.type === "refund" ? "text-danger" : "text-success"
                       }`}
                     >
                       {tx.type === "refund" ? "-" : ""}
@@ -246,7 +246,7 @@ export default function TransactionsPage() {
           </table>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-500">No transactions found</p>
+            <p className="text-foreground-muted">No transactions found</p>
           </div>
         )}
       </div>

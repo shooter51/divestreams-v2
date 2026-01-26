@@ -37,7 +37,7 @@ export default function CheckoutPage() {
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-4">Processing checkout...</h1>
-        <p className="text-gray-600">Please wait while we redirect you.</p>
+        <p className="text-foreground-muted">Please wait while we redirect you.</p>
       </div>
     </div>
   );

@@ -133,7 +133,7 @@ export default function EditDiveSitePage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/tenant/dive-sites/${site.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/dive-sites/${site.id}`} className="text-brand hover:underline text-sm">
           ← Back to Dive Site
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Dive Site</h1>
@@ -141,7 +141,7 @@ export default function EditDiveSitePage() {
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
@@ -154,10 +154,10 @@ export default function EditDiveSitePage() {
                 name="name"
                 required
                 defaultValue={actionData?.values?.name || site.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.name && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
               )}
             </div>
 
@@ -170,14 +170,14 @@ export default function EditDiveSitePage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description || site.description}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Dive Details */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Dive Details</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -192,7 +192,7 @@ export default function EditDiveSitePage() {
                 min="1"
                 max="100"
                 defaultValue={actionData?.values?.maxDepth || site.maxDepth}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -205,7 +205,7 @@ export default function EditDiveSitePage() {
                 name="difficulty"
                 required
                 defaultValue={actionData?.values?.difficulty || site.difficulty}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
@@ -224,7 +224,7 @@ export default function EditDiveSitePage() {
                 name="visibility"
                 placeholder="e.g., 15-25m"
                 defaultValue={actionData?.values?.visibility || site.visibility}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -236,7 +236,7 @@ export default function EditDiveSitePage() {
                 id="currentStrength"
                 name="currentStrength"
                 defaultValue={actionData?.values?.currentStrength || site.currentStrength}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="">Select...</option>
                 <option value="none">None</option>
@@ -249,7 +249,7 @@ export default function EditDiveSitePage() {
         </div>
 
         {/* Coordinates */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">GPS Coordinates</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -264,7 +264,7 @@ export default function EditDiveSitePage() {
                 min="-90"
                 max="90"
                 defaultValue={actionData?.values?.latitude || site.latitude || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -279,14 +279,14 @@ export default function EditDiveSitePage() {
                 min="-180"
                 max="180"
                 defaultValue={actionData?.values?.longitude || site.longitude || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Images */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Site Images</h2>
           <ImageManager
             entityType="diveSite"
@@ -297,7 +297,7 @@ export default function EditDiveSitePage() {
         </div>
 
         {/* Highlights */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Highlights & Features</h2>
           <div>
             <label htmlFor="highlights" className="block text-sm font-medium mb-1">
@@ -309,13 +309,13 @@ export default function EditDiveSitePage() {
               name="highlights"
               placeholder="e.g., Sharks, Corals, Wall dive (comma-separated)"
               defaultValue={actionData?.values?.highlights || site.highlights?.join(", ")}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
 
         {/* Status */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -333,13 +333,13 @@ export default function EditDiveSitePage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
             to={`/tenant/dive-sites/${site.id}`}
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

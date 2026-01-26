@@ -324,17 +324,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 const roleColors: Record<string, string> = {
-  owner: "bg-purple-100 text-purple-700",
-  admin: "bg-blue-100 text-blue-700",
-  staff: "bg-green-100 text-green-700",
-  customer: "bg-gray-100 text-gray-700",
+  owner: "bg-info-muted text-info",
+  admin: "bg-brand-muted text-brand",
+  staff: "bg-success-muted text-success",
+  customer: "bg-surface-inset text-foreground",
 };
 
 const statusColors: Record<string, string> = {
-  active: "bg-green-100 text-green-700",
-  trialing: "bg-blue-100 text-blue-700",
-  past_due: "bg-yellow-100 text-yellow-700",
-  canceled: "bg-red-100 text-red-700",
+  active: "bg-success-muted text-success",
+  trialing: "bg-brand-muted text-brand",
+  past_due: "bg-warning-muted text-warning",
+  canceled: "bg-danger-muted text-danger",
 };
 
 type ModalState = {
@@ -391,15 +391,15 @@ export default function OrganizationDetailsPage() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <Link to="/dashboard" className="text-blue-600 hover:underline text-sm">
+        <Link to="/dashboard" className="text-brand hover:underline text-sm">
           &larr; Back to Organizations
         </Link>
         <h1 className="text-2xl font-bold mt-2">{org.name}</h1>
-        <p className="text-gray-600">{org.slug}.{baseDomain}</p>
+        <p className="text-foreground-muted">{org.slug}.{baseDomain}</p>
       </div>
 
       {actionData?.success && (
-        <div className="mb-6 bg-green-50 text-green-600 p-3 rounded-lg text-sm">
+        <div className="mb-6 bg-success-muted text-success p-3 rounded-lg text-sm">
           Changes saved successfully
         </div>
       )}
@@ -408,12 +408,12 @@ export default function OrganizationDetailsPage() {
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Organization Details */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Organization Details</h2>
             <form method="post" className="space-y-4">
               <input type="hidden" name="intent" value="updateName" />
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-600">
+                <label className="block text-sm font-medium mb-1 text-foreground-muted">
                   Slug (cannot be changed)
                 </label>
                 <div className="flex items-center">
@@ -421,9 +421,9 @@ export default function OrganizationDetailsPage() {
                     type="text"
                     value={org.slug}
                     disabled
-                    className="flex-1 px-3 py-2 border rounded-l-lg bg-gray-50 text-gray-600"
+                    className="flex-1 px-3 py-2 border rounded-l-lg bg-surface-inset text-foreground-muted"
                   />
-                  <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-lg text-gray-600">
+                  <span className="bg-surface-inset px-3 py-2 border border-l-0 rounded-r-lg text-foreground-muted">
                     .{baseDomain}
                   </span>
                 </div>
@@ -438,7 +438,7 @@ export default function OrganizationDetailsPage() {
                   id="name"
                   name="name"
                   defaultValue={org.name}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 />
               </div>
@@ -446,19 +446,19 @@ export default function OrganizationDetailsPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 text-sm"
+                className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled text-sm"
               >
                 {isSubmitting ? "Saving..." : "Update Name"}
               </button>
             </form>
 
             <div className="mt-6 pt-6 border-t">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-foreground-muted">
                 Created: {org.createdAt}
               </p>
               {org.logo && (
                 <div className="mt-2">
-                  <p className="text-sm text-gray-600 mb-1">Logo:</p>
+                  <p className="text-sm text-foreground-muted mb-1">Logo:</p>
                   <img src={org.logo} alt="Logo" className="w-16 h-16 rounded object-cover" />
                 </div>
               )}
@@ -466,7 +466,7 @@ export default function OrganizationDetailsPage() {
           </div>
 
           {/* Subscription Management */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Subscription</h2>
             <form method="post" className="space-y-4">
               <input type="hidden" name="intent" value="updateSubscription" />
@@ -480,7 +480,7 @@ export default function OrganizationDetailsPage() {
                     id="planId"
                     name="planId"
                     defaultValue={sub?.planId || ""}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   >
                     <option value="">Select a plan...</option>
                     {plans.map((plan) => (
@@ -499,7 +499,7 @@ export default function OrganizationDetailsPage() {
                     id="status"
                     name="status"
                     defaultValue={sub?.status || "active"}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   >
                     <option value="active">Active</option>
                     <option value="trialing">Trialing</option>
@@ -512,7 +512,7 @@ export default function OrganizationDetailsPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 text-sm"
+                className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled text-sm"
               >
                 Update Subscription
               </button>
@@ -521,22 +521,22 @@ export default function OrganizationDetailsPage() {
             {sub?.stripeCustomerId && (
               <div className="mt-4 pt-4 border-t text-sm space-y-1">
                 <p>
-                  <span className="text-gray-600">Stripe Customer:</span>{" "}
-                  <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">
+                  <span className="text-foreground-muted">Stripe Customer:</span>{" "}
+                  <code className="bg-surface-inset px-2 py-0.5 rounded text-xs">
                     {sub.stripeCustomerId}
                   </code>
                 </p>
                 {sub.stripeSubscriptionId && (
                   <p>
-                    <span className="text-gray-600">Stripe Subscription:</span>{" "}
-                    <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">
+                    <span className="text-foreground-muted">Stripe Subscription:</span>{" "}
+                    <code className="bg-surface-inset px-2 py-0.5 rounded text-xs">
                       {sub.stripeSubscriptionId}
                     </code>
                   </p>
                 )}
                 {sub.currentPeriodEnd && (
                   <p>
-                    <span className="text-gray-600">Period Ends:</span> {sub.currentPeriodEnd}
+                    <span className="text-foreground-muted">Period Ends:</span> {sub.currentPeriodEnd}
                   </p>
                 )}
               </div>
@@ -544,11 +544,11 @@ export default function OrganizationDetailsPage() {
           </div>
 
           {/* Members */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Members ({members.length})</h2>
             <div className="space-y-3">
               {members.length === 0 ? (
-                <p className="text-gray-500 text-sm">No members</p>
+                <p className="text-foreground-muted text-sm">No members</p>
               ) : (
                 members.map((m) => (
                   <div
@@ -557,32 +557,32 @@ export default function OrganizationDetailsPage() {
                   >
                     <div>
                       <p className="font-medium text-sm">{m.userName || m.userEmail}</p>
-                      <p className="text-xs text-gray-500">{m.userEmail}</p>
+                      <p className="text-xs text-foreground-muted">{m.userEmail}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
-                          roleColors[m.role] || "bg-gray-100"
+                          roleColors[m.role] || "bg-surface-inset"
                         }`}
                       >
                         {m.role}
                       </span>
                       <div className="relative group">
-                        <button className="text-xs text-blue-600 hover:underline">
+                        <button className="text-xs text-brand hover:underline">
                           Manage
                         </button>
-                        <div className="absolute right-0 mt-1 w-40 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                        <div className="absolute right-0 mt-1 w-40 bg-surface-raised border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                           <button
                             type="button"
                             onClick={() => setModal({ type: "password", user: { id: m.userId, email: m.userEmail, name: m.userName } })}
-                            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                            className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset"
                           >
                             Reset Password
                           </button>
                           <button
                             type="button"
                             onClick={() => setModal({ type: "email", user: { id: m.userId, email: m.userEmail, name: m.userName } })}
-                            className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                            className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset"
                           >
                             Change Email
                           </button>
@@ -594,7 +594,7 @@ export default function OrganizationDetailsPage() {
                           <input type="hidden" name="memberId" value={m.id} />
                           <button
                             type="submit"
-                            className="text-xs text-red-600 hover:underline"
+                            className="text-xs text-danger hover:underline"
                             onClick={(e) => {
                               if (!confirm("Remove this member?")) {
                                 e.preventDefault();
@@ -616,43 +616,43 @@ export default function OrganizationDetailsPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Stats */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Usage Stats</h2>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Members</span>
+                <span className="text-foreground-muted">Members</span>
                 <span className="font-medium">{usage.members}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Customers</span>
+                <span className="text-foreground-muted">Customers</span>
                 <span className="font-medium">{usage.customers}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Tours</span>
+                <span className="text-foreground-muted">Tours</span>
                 <span className="font-medium">{usage.tours}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Bookings</span>
+                <span className="text-foreground-muted">Bookings</span>
                 <span className="font-medium">{usage.bookings}</span>
               </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <a
                 href={tenantUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full text-center py-2 px-4 border rounded-lg hover:bg-gray-50 text-sm"
+                className="block w-full text-center py-2 px-4 border rounded-lg hover:bg-surface-inset text-sm"
               >
                 Open Dashboard
               </a>
               <button
                 onClick={handleDelete}
-                className="w-full py-2 px-4 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 text-sm"
+                className="w-full py-2 px-4 border border-danger text-danger rounded-lg hover:bg-danger-muted text-sm"
               >
                 Delete Organization
               </button>
@@ -660,26 +660,26 @@ export default function OrganizationDetailsPage() {
           </div>
 
           {/* Status */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Current Status</h2>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Plan:</span>
+                <span className="text-sm text-foreground-muted">Plan:</span>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
                     sub?.planDetails?.monthlyPrice && sub.planDetails.monthlyPrice > 0
-                      ? "bg-purple-100 text-purple-700"
-                      : "bg-gray-100 text-gray-700"
+                      ? "bg-info-muted text-info"
+                      : "bg-surface-inset text-foreground"
                   }`}
                 >
                   {sub?.planDetails?.displayName || sub?.plan || "Free"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Status:</span>
+                <span className="text-sm text-foreground-muted">Status:</span>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
-                    statusColors[sub?.status || "active"] || "bg-gray-100"
+                    statusColors[sub?.status || "active"] || "bg-surface-inset"
                   }`}
                 >
                   {sub?.status || "active"}
@@ -693,19 +693,19 @@ export default function OrganizationDetailsPage() {
       {/* Reset Password Modal */}
       {modal.type === "password" && modal.user && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md mx-4">
             <h3 className="font-semibold text-lg mb-4">
               Reset Password for {modal.user.name || modal.user.email}
             </h3>
 
             {fetcher.data?.error && (
-              <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm">
                 {fetcher.data.error}
               </div>
             )}
 
             {fetcher.data?.success && !generatedPassword && (
-              <div className="mb-4 bg-green-50 text-green-600 p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm">
                 {fetcher.data.message}
               </div>
             )}
@@ -729,7 +729,7 @@ export default function OrganizationDetailsPage() {
                   <button
                     type="submit"
                     disabled={fetcher.state === "submitting"}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:bg-blue-400"
+                    className="px-4 py-2 bg-brand text-white rounded-lg text-sm hover:bg-brand-hover disabled:bg-brand-disabled"
                   >
                     Set
                   </button>
@@ -749,12 +749,12 @@ export default function OrganizationDetailsPage() {
                         type="text"
                         value={generatedPassword}
                         readOnly
-                        className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono bg-gray-50"
+                        className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono bg-surface-inset"
                       />
                       <button
                         type="button"
                         onClick={() => copyToClipboard(generatedPassword)}
-                        className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
+                        className="px-4 py-2 border rounded-lg text-sm hover:bg-surface-inset"
                       >
                         {copied ? "Copied!" : "Copy"}
                       </button>
@@ -763,7 +763,7 @@ export default function OrganizationDetailsPage() {
                     <button
                       type="submit"
                       disabled={fetcher.state === "submitting"}
-                      className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+                      className="px-4 py-2 border rounded-lg text-sm hover:bg-surface-inset disabled:opacity-50"
                     >
                       Generate & Show
                     </button>
@@ -778,13 +778,13 @@ export default function OrganizationDetailsPage() {
                   <input type="hidden" name="userId" value={modal.user.id} />
                   <input type="hidden" name="method" value="sendLink" />
                   <label className="block text-sm font-medium">Send reset link via email</label>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-foreground-muted">
                     Sends password reset email to {modal.user.email}
                   </p>
                   <button
                     type="submit"
                     disabled={fetcher.state === "submitting"}
-                    className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+                    className="px-4 py-2 border rounded-lg text-sm hover:bg-surface-inset disabled:opacity-50"
                   >
                     Send Reset Email
                   </button>
@@ -796,7 +796,7 @@ export default function OrganizationDetailsPage() {
               <button
                 type="button"
                 onClick={closeModal}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm"
+                className="px-4 py-2 text-foreground-muted hover:text-foreground text-sm"
               >
                 Close
               </button>
@@ -808,19 +808,19 @@ export default function OrganizationDetailsPage() {
       {/* Change Email Modal */}
       {modal.type === "email" && modal.user && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md mx-4">
             <h3 className="font-semibold text-lg mb-4">
               Change Email for {modal.user.name || modal.user.email}
             </h3>
 
             {fetcher.data?.error && (
-              <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm">
                 {fetcher.data.error}
               </div>
             )}
 
             {fetcher.data?.success && (
-              <div className="mb-4 bg-green-50 text-green-600 p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm">
                 {fetcher.data.message}
               </div>
             )}
@@ -835,7 +835,7 @@ export default function OrganizationDetailsPage() {
                   type="text"
                   value={modal.user.email}
                   disabled
-                  className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-600 text-sm"
+                  className="w-full px-3 py-2 border rounded-lg bg-surface-inset text-foreground-muted text-sm"
                 />
               </div>
 
@@ -857,14 +857,14 @@ export default function OrganizationDetailsPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm"
+                  className="px-4 py-2 text-foreground-muted hover:text-foreground text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:bg-blue-400"
+                  className="px-4 py-2 bg-brand text-white rounded-lg text-sm hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
                   {fetcher.state === "submitting" ? "Updating..." : "Update Email"}
                 </button>

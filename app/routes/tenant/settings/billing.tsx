@@ -381,7 +381,7 @@ export default function BillingPage() {
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Billing & Subscription</h1>
@@ -392,10 +392,10 @@ export default function BillingPage() {
         <div
           className={`px-4 py-3 rounded-lg mb-6 flex justify-between items-center ${
             notification.type === "success"
-              ? "bg-green-50 border border-green-200 text-green-700"
+              ? "bg-success-muted border border-success-muted text-success"
               : notification.type === "error"
-              ? "bg-red-50 border border-red-200 text-red-700"
-              : "bg-blue-50 border border-blue-200 text-blue-700"
+              ? "bg-danger-muted border border-danger-muted text-danger"
+              : "bg-brand-muted border border-brand-muted text-brand"
           }`}
         >
           <p>{notification.message}</p>
@@ -410,7 +410,7 @@ export default function BillingPage() {
 
       {/* Trial Banner */}
       {isTrialing && trialDaysLeft > 0 && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-brand-muted border border-brand-muted text-brand px-4 py-3 rounded-lg mb-6">
           <p className="font-medium">Free Trial Active</p>
           <p className="text-sm">
             You have {trialDaysLeft} days left in your trial. Add a payment method to
@@ -420,7 +420,7 @@ export default function BillingPage() {
       )}
 
       {/* Current Plan */}
-      <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+      <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
         <div className="flex justify-between items-start">
           <div>
             <h2 className="font-semibold mb-1">Current Plan</h2>
@@ -429,16 +429,16 @@ export default function BillingPage() {
               <span
                 className={`text-xs px-2 py-1 rounded-full ${
                   billing.subscriptionStatus === "active"
-                    ? "bg-green-100 text-green-700"
+                    ? "bg-success-muted text-success"
                     : billing.subscriptionStatus === "trialing"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-yellow-100 text-yellow-700"
+                    ? "bg-brand-muted text-brand"
+                    : "bg-warning-muted text-warning"
                 }`}
               >
                 {billing.subscriptionStatus}
               </span>
             </div>
-            <p className="text-gray-500 mt-1">
+            <p className="text-foreground-muted mt-1">
               ${billing.amount}/{billing.billingCycle === "monthly" ? "month" : "year"}
               {!isTrialing && ` • Next billing: ${billing.nextBillingDate}`}
             </p>
@@ -449,7 +449,7 @@ export default function BillingPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 border rounded-lg hover:bg-surface-inset disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Loading..." : "Manage Payment"}
               </button>
@@ -463,39 +463,39 @@ export default function BillingPage() {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-500">Bookings</span>
+                <span className="text-foreground-muted">Bookings</span>
                 <span>
                   {billing.usage.bookingsThisMonth} / {billing.usage.bookingsLimit}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-surface-overlay rounded-full h-2">
                 <div
                   className={`h-2 rounded-full ${
                     usagePercent > 90
-                      ? "bg-red-500"
+                      ? "bg-danger"
                       : usagePercent > 70
-                      ? "bg-yellow-500"
-                      : "bg-green-500"
+                      ? "bg-warning"
+                      : "bg-success"
                   }`}
                   style={{ width: `${Math.min(usagePercent, 100)}%` }}
                 />
               </div>
               {usagePercent > 80 && (
-                <p className="text-xs text-yellow-600 mt-1">
+                <p className="text-xs text-warning mt-1">
                   Approaching limit - consider upgrading
                 </p>
               )}
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-500">Team Members</span>
+                <span className="text-foreground-muted">Team Members</span>
                 <span>
                   {billing.usage.teamMembers} / {billing.usage.teamLimit}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-surface-overlay rounded-full h-2">
                 <div
-                  className="h-2 rounded-full bg-blue-500"
+                  className="h-2 rounded-full bg-brand"
                   style={{
                     width: `${
                       (billing.usage.teamMembers / billing.usage.teamLimit) * 100
@@ -517,21 +517,21 @@ export default function BillingPage() {
             return (
               <div
                 key={plan.id}
-                className={`bg-white rounded-xl p-6 shadow-sm relative ${
-                  plan.popular ? "ring-2 ring-blue-500" : ""
+                className={`bg-surface-raised rounded-xl p-6 shadow-sm relative ${
+                  plan.popular ? "ring-2 ring-brand" : ""
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white text-xs px-3 py-1 rounded-full">
                     Most Popular
                   </span>
                 )}
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
                 <div className="mt-2">
                   <span className="text-3xl font-bold">${plan.price}</span>
-                  <span className="text-gray-500">/month</span>
+                  <span className="text-foreground-muted">/month</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-foreground-muted mt-1">
                   or ${plan.yearlyPrice}/year (save{" "}
                   {Math.round(((plan.price * 12 - plan.yearlyPrice) / (plan.price * 12)) * 100)}
                   %)
@@ -539,7 +539,7 @@ export default function BillingPage() {
                 <ul className="mt-4 space-y-2 text-sm">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2">
-                      <span className="text-green-500">✓</span>
+                      <span className="text-success">✓</span>
                       {feature}
                     </li>
                   ))}
@@ -548,7 +548,7 @@ export default function BillingPage() {
                   {isCurrent ? (
                     <button
                       disabled
-                      className="w-full py-2 border border-gray-300 rounded-lg text-gray-500 cursor-not-allowed"
+                      className="w-full py-2 border border-border rounded-lg text-foreground-muted cursor-not-allowed"
                     >
                       Current Plan
                     </button>
@@ -561,8 +561,8 @@ export default function BillingPage() {
                         disabled={isSubmitting}
                         className={`w-full py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed ${
                           plan.popular
-                            ? "bg-blue-600 text-white hover:bg-blue-700"
-                            : "border border-gray-300 hover:bg-gray-50"
+                            ? "bg-brand text-white hover:bg-brand-hover"
+                            : "border border-border hover:bg-surface-inset"
                         }`}
                       >
                         {isSubmitting
@@ -582,19 +582,19 @@ export default function BillingPage() {
       </div>
 
       {/* Payment Method */}
-      <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+      <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
         <h2 className="font-semibold mb-4">Payment Method</h2>
         {billing.paymentMethod ? (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center text-sm font-medium">
+              <div className="w-12 h-8 bg-surface-overlay rounded flex items-center justify-center text-sm font-medium">
                 {billing.paymentMethod.brand}
               </div>
               <div>
                 <p className="font-medium">
                   •••• •••• •••• {billing.paymentMethod.last4}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   Expires {billing.paymentMethod.expiryMonth}/
                   {billing.paymentMethod.expiryYear}
                 </p>
@@ -605,7 +605,7 @@ export default function BillingPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="text-blue-600 hover:underline text-sm disabled:opacity-50"
+                className="text-brand hover:underline text-sm disabled:opacity-50"
               >
                 {isSubmitting ? "Loading..." : "Update"}
               </button>
@@ -613,13 +613,13 @@ export default function BillingPage() {
           </div>
         ) : (
           <div className="text-center py-4">
-            <p className="text-gray-500 mb-3">No payment method on file</p>
+            <p className="text-foreground-muted mb-3">No payment method on file</p>
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Loading..." : "Add Payment Method"}
               </button>
@@ -629,21 +629,21 @@ export default function BillingPage() {
       </div>
 
       {/* Billing History */}
-      <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+      <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
         <h2 className="font-semibold mb-4">Billing History</h2>
         {billing.billingHistory.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">No billing history yet</p>
+          <p className="text-foreground-muted text-center py-4">No billing history yet</p>
         ) : (
           <table className="w-full">
             <thead className="border-b">
               <tr>
-                <th className="text-left py-2 text-sm font-medium text-gray-500">Date</th>
-                <th className="text-left py-2 text-sm font-medium text-gray-500">
+                <th className="text-left py-2 text-sm font-medium text-foreground-muted">Date</th>
+                <th className="text-left py-2 text-sm font-medium text-foreground-muted">
                   Description
                 </th>
-                <th className="text-left py-2 text-sm font-medium text-gray-500">Status</th>
-                <th className="text-right py-2 text-sm font-medium text-gray-500">Amount</th>
-                <th className="text-right py-2 text-sm font-medium text-gray-500"></th>
+                <th className="text-left py-2 text-sm font-medium text-foreground-muted">Status</th>
+                <th className="text-right py-2 text-sm font-medium text-foreground-muted">Amount</th>
+                <th className="text-right py-2 text-sm font-medium text-foreground-muted"></th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -655,8 +655,8 @@ export default function BillingPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         invoice.status === "paid"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
+                          ? "bg-success-muted text-success"
+                          : "bg-warning-muted text-warning"
                       }`}
                     >
                       {invoice.status}
@@ -666,7 +666,7 @@ export default function BillingPage() {
                   <td className="py-3 text-right">
                     <a
                       href={invoice.invoiceUrl}
-                      className="text-blue-600 hover:underline text-sm"
+                      className="text-brand hover:underline text-sm"
                     >
                       Download
                     </a>
@@ -680,9 +680,9 @@ export default function BillingPage() {
 
       {/* Cancel Subscription */}
       {billing.subscriptionStatus !== "canceled" && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-red-100">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm border border-danger-muted">
           <h2 className="font-semibold mb-2">Cancel Subscription</h2>
-          <p className="text-gray-500 text-sm mb-4">
+          <p className="text-foreground-muted text-sm mb-4">
             If you cancel, you will retain access until the end of your billing period.
             Your data will be retained for 30 days after that.
           </p>
@@ -698,7 +698,7 @@ export default function BillingPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="text-red-600 border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-danger border border-danger-muted px-4 py-2 rounded-lg hover:bg-danger-muted disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Processing..." : "Cancel Subscription"}
             </button>
@@ -708,13 +708,13 @@ export default function BillingPage() {
 
       {/* Canceled Notice */}
       {billing.subscriptionStatus === "canceled" && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-          <h2 className="font-semibold mb-2 text-yellow-800">Subscription Canceled</h2>
-          <p className="text-yellow-700 text-sm mb-4">
+        <div className="bg-warning-muted border border-warning-muted rounded-xl p-6">
+          <h2 className="font-semibold mb-2 text-warning">Subscription Canceled</h2>
+          <p className="text-warning text-sm mb-4">
             Your subscription has been canceled. You will retain access until{" "}
             {billing.nextBillingDate}. After that, your account will be deactivated.
           </p>
-          <p className="text-yellow-700 text-sm">
+          <p className="text-warning text-sm">
             To reactivate your subscription, please select a plan above.
           </p>
         </div>

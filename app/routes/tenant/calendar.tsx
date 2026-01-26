@@ -156,7 +156,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl"
+        className="bg-surface-raised rounded-xl max-w-md w-full p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -172,7 +172,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-1"
+            className="text-foreground-subtle hover:text-foreground-muted p-1"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -183,14 +183,14 @@ function TripModal({ trip, onClose }: TripModalProps) {
         {/* Details */}
         <div className="space-y-3 text-sm">
           <div className="flex items-center gap-3">
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <span>{formatDate(trip.date)}</span>
           </div>
 
           <div className="flex items-center gap-3">
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>
@@ -201,7 +201,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
 
           {trip.boatName && (
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span>{trip.boatName}</span>
@@ -210,7 +210,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
 
           {/* Capacity */}
           <div className="flex items-center gap-3">
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <div className="flex items-center gap-2">
@@ -220,7 +220,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
                 style={{ backgroundColor: capacityColor }}
               />
               {isFull && (
-                <span className="text-xs font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+                <span className="text-xs font-medium text-danger bg-danger-muted px-1.5 py-0.5 rounded">
                   FULL
                 </span>
               )}
@@ -229,7 +229,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
 
           {/* Status */}
           <div className="flex items-center gap-3">
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span className="capitalize">{trip.status}</span>
@@ -240,7 +240,7 @@ function TripModal({ trip, onClose }: TripModalProps) {
         <div className="flex gap-3 mt-6">
           <Link
             to={`/tenant/trips/${trip.id}`}
-            className="flex-1 text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex-1 text-center bg-brand text-white py-2 rounded-lg hover:bg-brand-hover transition-colors"
           >
             View Trip
           </Link>
@@ -248,8 +248,8 @@ function TripModal({ trip, onClose }: TripModalProps) {
             to={`/tenant/bookings/new?tripId=${trip.id}`}
             className={`flex-1 text-center py-2 rounded-lg transition-colors ${
               isFull
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-surface-inset text-foreground-subtle cursor-not-allowed"
+                : "bg-surface-inset text-foreground hover:bg-surface-overlay"
             }`}
             onClick={isFull ? (e) => e.preventDefault() : undefined}
           >
@@ -327,13 +327,13 @@ export default function CalendarPage() {
         <h1 className="text-2xl font-bold">Calendar</h1>
         <div className="flex items-center gap-4">
           {/* View Toggle */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex bg-surface-inset rounded-lg p-1">
             <button
               onClick={() => setCurrentView("dayGridMonth")}
               className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                 currentView === "dayGridMonth"
-                  ? "bg-white shadow text-gray-900"
-                  : "text-gray-600 hover:text-gray-900"
+                  ? "bg-surface-raised shadow text-foreground"
+                  : "text-foreground-muted hover:text-foreground"
               }`}
             >
               Month
@@ -342,8 +342,8 @@ export default function CalendarPage() {
               onClick={() => setCurrentView("timeGridWeek")}
               className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                 currentView === "timeGridWeek"
-                  ? "bg-white shadow text-gray-900"
-                  : "text-gray-600 hover:text-gray-900"
+                  ? "bg-surface-raised shadow text-foreground"
+                  : "text-foreground-muted hover:text-foreground"
               }`}
             >
               Week
@@ -351,7 +351,7 @@ export default function CalendarPage() {
           </div>
           <Link
             to="/tenant/trips/new"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover text-sm"
           >
             Schedule Trip
           </Link>
@@ -361,28 +361,28 @@ export default function CalendarPage() {
       {/* Legend */}
       <div className="mb-4 flex flex-wrap gap-4 text-sm">
         <div className="flex items-center gap-2">
-          <span className="text-gray-500">Capacity:</span>
+          <span className="text-foreground-muted">Capacity:</span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-full bg-green-500"></span>
+            <span className="w-3 h-3 rounded-full bg-success"></span>
             Available
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
+            <span className="w-3 h-3 rounded-full bg-warning-muted"></span>
             Half
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-full bg-orange-500"></span>
+            <span className="w-3 h-3 rounded-full bg-accent"></span>
             Almost Full
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-full bg-red-500"></span>
+            <span className="w-3 h-3 rounded-full bg-danger"></span>
             Full
           </span>
         </div>
       </div>
 
       {/* Calendar */}
-      <div className="bg-white rounded-xl p-4 shadow-sm">
+      <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin]}
           initialView={currentView}

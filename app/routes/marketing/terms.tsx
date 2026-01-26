@@ -9,20 +9,20 @@ export const meta: MetaFunction = () => {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-surface-raised">
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold text-blue-600">
+        <a href="/" className="text-2xl font-bold text-brand">
           DiveStreams
         </a>
         <div className="flex gap-6 items-center">
-          <a href="/features" className="text-gray-600 hover:text-blue-600">
+          <a href="/features" className="text-foreground-muted hover:text-brand">
             Features
           </a>
-          <a href="/pricing" className="text-gray-600 hover:text-blue-600">
+          <a href="/pricing" className="text-foreground-muted hover:text-brand">
             Pricing
           </a>
-          <a href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <a href="/signup" className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover">
             Start Free Trial
           </a>
         </div>
@@ -30,10 +30,10 @@ export default function TermsPage() {
 
       {/* Header */}
       <section className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <h1 className="text-4xl font-bold text-foreground mb-4">
           Terms of Service
         </h1>
-        <p className="text-gray-600">
+        <p className="text-foreground-muted">
           Last updated: January 12, 2026
         </p>
       </section>
@@ -222,8 +222,8 @@ export default function TermsPage() {
             </p>
             <p className="mt-4">
               <strong>DiveStreams</strong><br />
-              Email: <a href="mailto:legal@divestreams.com" className="text-blue-600 hover:underline">legal@divestreams.com</a><br />
-              Support: <a href="mailto:support@divestreams.com" className="text-blue-600 hover:underline">support@divestreams.com</a>
+              Email: <a href="mailto:legal@divestreams.com" className="text-brand hover:underline">legal@divestreams.com</a><br />
+              Support: <a href="mailto:support@divestreams.com" className="text-brand hover:underline">support@divestreams.com</a>
             </p>
           </Section>
         </div>
@@ -231,8 +231,8 @@ export default function TermsPage() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-12 border-t">
-        <div className="flex justify-between items-center text-gray-600">
-          <div className="text-xl font-bold text-blue-600">DiveStreams</div>
+        <div className="flex justify-between items-center text-foreground-muted">
+          <div className="text-xl font-bold text-brand">DiveStreams</div>
           <div className="flex gap-6">
             <a href="/pricing">Pricing</a>
             <a href="/features">Features</a>
@@ -240,7 +240,7 @@ export default function TermsPage() {
             <a href="/privacy">Privacy</a>
           </div>
         </div>
-        <div className="text-center text-gray-500 mt-8">
+        <div className="text-center text-foreground-muted mt-8">
           © {new Date().getFullYear()} DiveStreams. All rights reserved.
         </div>
       </footer>
@@ -251,8 +251,8 @@ export default function TermsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>
-      <div className="text-gray-600 space-y-4">{children}</div>
+      <h2 className="text-2xl font-bold text-foreground mb-4">{title}</h2>
+      <div className="text-foreground-muted space-y-4">{children}</div>
     </div>
   );
 }

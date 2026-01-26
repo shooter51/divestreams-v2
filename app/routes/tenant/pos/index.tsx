@@ -168,10 +168,10 @@ function formatCurrency(amount: number): string {
 
 // Product category colors
 const categoryColors: Record<string, string> = {
-  equipment: "bg-blue-100 text-blue-700",
-  apparel: "bg-purple-100 text-purple-700",
-  accessories: "bg-green-100 text-green-700",
-  courses: "bg-orange-100 text-orange-700",
+  equipment: "bg-brand-muted text-brand",
+  apparel: "bg-info-muted text-info",
+  accessories: "bg-success-muted text-success",
+  courses: "bg-accent-muted text-accent",
   rental: "bg-cyan-100 text-cyan-700",
 };
 
@@ -268,15 +268,15 @@ export default function POSPage() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold">Point of Sale</h1>
-            <p className="text-sm text-gray-500">Premium Feature</p>
+            <p className="text-sm text-foreground-muted">Premium Feature</p>
           </div>
         </div>
 
         <PremiumGate feature="Point of Sale" isPremium={isPremium}>
-          <div className="bg-white rounded-xl p-8 shadow-sm min-h-[400px] flex items-center justify-center">
-            <div className="text-center text-gray-400">
+          <div className="bg-surface-raised rounded-xl p-8 shadow-sm min-h-[400px] flex items-center justify-center">
+            <div className="text-center text-foreground-subtle">
               <svg
-                className="w-16 h-16 mx-auto mb-4 text-gray-300"
+                className="w-16 h-16 mx-auto mb-4 text-foreground-subtle"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -288,7 +288,7 @@ export default function POSPage() {
                   d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                 />
               </svg>
-              <p className="text-lg font-medium text-gray-500">POS Terminal</p>
+              <p className="text-lg font-medium text-foreground-muted">POS Terminal</p>
               <p className="text-sm">Process sales, manage inventory, and track transactions</p>
             </div>
           </div>
@@ -301,10 +301,10 @@ export default function POSPage() {
   if (showReceipt && fetcher.data?.success) {
     return (
       <div className="max-w-md mx-auto mt-8">
-        <div className="bg-white rounded-xl p-8 shadow-lg text-center">
+        <div className="bg-surface-raised rounded-xl p-8 shadow-lg text-center">
           <div className="text-6xl mb-4">+</div>
-          <h2 className="text-2xl font-bold text-green-600 mb-2">Payment Complete</h2>
-          <p className="text-gray-600 mb-6">Transaction ID: {fetcher.data.transactionId?.slice(0, 8)}...</p>
+          <h2 className="text-2xl font-bold text-success mb-2">Payment Complete</h2>
+          <p className="text-foreground-muted mb-6">Transaction ID: {fetcher.data.transactionId?.slice(0, 8)}...</p>
 
           <div className="border-t border-dashed pt-4 mb-6">
             <div className="space-y-2 text-left">
@@ -335,7 +335,7 @@ export default function POSPage() {
 
           <button
             onClick={clearCart}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            className="w-full bg-brand text-white py-3 rounded-lg hover:bg-brand-hover transition-colors"
           >
             New Sale
           </button>
@@ -350,18 +350,18 @@ export default function POSPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Point of Sale</h1>
-          <p className="text-sm text-gray-500">Today's Sales: {formatCurrency(summary.totalSales)}</p>
+          <p className="text-sm text-foreground-muted">Today's Sales: {formatCurrency(summary.totalSales)}</p>
         </div>
         <div className="flex gap-3">
           <Link
             to="/tenant/pos/products"
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset text-sm"
           >
             Manage Products
           </Link>
           <Link
             to="/tenant/pos/transactions"
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset text-sm"
           >
             Transactions
           </Link>
@@ -370,7 +370,7 @@ export default function POSPage() {
 
       <div className="grid grid-cols-3 gap-6">
         {/* Product Grid - Left 2 columns */}
-        <div className="col-span-2 bg-white rounded-xl p-6 shadow-sm">
+        <div className="col-span-2 bg-surface-raised rounded-xl p-6 shadow-sm">
           {/* Search and Filter */}
           <div className="flex gap-4 mb-4">
             <div className="flex-1 relative">
@@ -379,10 +379,10 @@ export default function POSPage() {
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 pl-10 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <svg
-                className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
+                className="absolute left-3 top-2.5 w-5 h-5 text-foreground-subtle"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -403,8 +403,8 @@ export default function POSPage() {
               onClick={() => setSelectedCategory(null)}
               className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
                 selectedCategory === null
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
+                  ? "bg-brand text-white"
+                  : "bg-surface-inset hover:bg-surface-overlay"
               }`}
             >
               All
@@ -415,8 +415,8 @@ export default function POSPage() {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap capitalize transition-colors ${
                   selectedCategory === category
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 hover:bg-gray-200"
+                    ? "bg-brand text-white"
+                    : "bg-surface-inset hover:bg-surface-overlay"
                 }`}
               >
                 {category}
@@ -431,41 +431,41 @@ export default function POSPage() {
                 <button
                   key={product.id}
                   onClick={() => addToCart(product)}
-                  className="p-4 border rounded-lg text-left hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  className="p-4 border rounded-lg text-left hover:border-brand hover:bg-brand-muted transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <span
                       className={`text-xs px-2 py-0.5 rounded capitalize ${
-                        categoryColors[product.category] || "bg-gray-100 text-gray-700"
+                        categoryColors[product.category] || "bg-surface-inset text-foreground"
                       }`}
                     >
                       {product.category}
                     </span>
                     {product.trackInventory && product.stockQuantity <= product.lowStockThreshold && (
-                      <span className="text-xs text-orange-600">Low</span>
+                      <span className="text-xs text-accent">Low</span>
                     )}
                   </div>
                   <p className="font-medium truncate">{product.name}</p>
                   {product.sku && (
-                    <p className="text-xs text-gray-500">{product.sku}</p>
+                    <p className="text-xs text-foreground-muted">{product.sku}</p>
                   )}
-                  <p className="text-lg font-bold text-blue-600 mt-1">
+                  <p className="text-lg font-bold text-brand mt-1">
                     {formatCurrency(product.price)}
                   </p>
                   {product.trackInventory && (
-                    <p className="text-xs text-gray-400">{product.stockQuantity} in stock</p>
+                    <p className="text-xs text-foreground-subtle">{product.stockQuantity} in stock</p>
                   )}
                 </button>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-foreground-muted">
               {products.length === 0 ? (
                 <div>
                   <p className="mb-4">No products yet</p>
                   <Link
                     to="/tenant/pos/products/new"
-                    className="text-blue-600 hover:underline"
+                    className="text-brand hover:underline"
                   >
                     Add your first product
                   </Link>
@@ -478,37 +478,37 @@ export default function POSPage() {
         </div>
 
         {/* Cart - Right column */}
-        <div className="bg-white rounded-xl p-6 shadow-sm flex flex-col">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm flex flex-col">
           <h2 className="font-semibold mb-4">Current Sale</h2>
 
           {/* Cart Items */}
           <div className="flex-1 overflow-auto">
             {cart.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-foreground-subtle">
                 <p>No items in cart</p>
                 <p className="text-sm mt-1">Click products to add</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                  <div key={item.id} className="flex items-center gap-3 p-2 bg-surface-inset rounded-lg">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{item.name}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-foreground-muted">
                         {formatCurrency(item.price)} each
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
+                        className="w-8 h-8 rounded-full bg-surface-overlay hover:bg-border flex items-center justify-center"
                       >
                         -
                       </button>
                       <span className="w-8 text-center font-medium">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
+                        className="w-8 h-8 rounded-full bg-surface-overlay hover:bg-border flex items-center justify-center"
                       >
                         +
                       </button>
@@ -544,14 +544,14 @@ export default function POSPage() {
               <button
                 onClick={() => processPayment("cash")}
                 disabled={cart.length === 0 || fetcher.state !== "idle"}
-                className="py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                className="py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-surface-overlay disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 <span>Cash</span>
               </button>
               <button
                 onClick={() => processPayment("card")}
                 disabled={cart.length === 0 || fetcher.state !== "idle"}
-                className="py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                className="py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 <span>Card</span>
               </button>
@@ -559,7 +559,7 @@ export default function POSPage() {
             {cart.length > 0 && (
               <button
                 onClick={clearCart}
-                className="w-full py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm"
+                className="w-full py-2 text-danger hover:bg-danger-muted rounded-lg transition-colors text-sm"
               >
                 Clear Cart
               </button>

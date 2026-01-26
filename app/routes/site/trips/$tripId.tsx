@@ -760,7 +760,7 @@ export default function SiteTripDetailPage() {
                       <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Meals</span>
                     )}
                     {trip.includesTransport && (
-                      <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Transport</span>
+                      <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">Transport</span>
                     )}
                   </div>
                 </div>

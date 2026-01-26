@@ -135,24 +135,24 @@ export default function QuickBooksSettings() {
       <div className="mb-6">
         <Link
           to="/tenant/settings/integrations"
-          className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block"
+          className="text-sm text-brand hover:text-brand mb-2 inline-block"
         >
           ← Back to Integrations
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">QuickBooks Integration</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">QuickBooks Integration</h1>
+        <p className="text-foreground-muted mt-1">
           Sync invoices, customers, and payments with QuickBooks Online
         </p>
       </div>
 
       {/* Connection Status */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="bg-surface-raised rounded-lg shadow p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Connection Status</h2>
+            <h2 className="text-lg font-semibold text-foreground">Connection Status</h2>
             {isConnected ? (
               <div className="mt-2">
-                <div className="flex items-center text-green-600 mb-1">
+                <div className="flex items-center text-success mb-1">
                   <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
@@ -163,15 +163,15 @@ export default function QuickBooksSettings() {
                   Connected
                 </div>
                 {status?.companyName && (
-                  <p className="text-sm text-gray-600">Company: {status.companyName}</p>
+                  <p className="text-sm text-foreground-muted">Company: {status.companyName}</p>
                 )}
                 {status?.useSandbox && (
-                  <p className="text-sm text-orange-600 font-medium">Sandbox Mode</p>
+                  <p className="text-sm text-accent font-medium">Sandbox Mode</p>
                 )}
               </div>
             ) : (
               <div className="mt-2">
-                <div className="flex items-center text-gray-500">
+                <div className="flex items-center text-foreground-muted">
                   <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
@@ -191,7 +191,7 @@ export default function QuickBooksSettings() {
                 <input type="hidden" name="intent" value="disconnect" />
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50"
+                  className="px-4 py-2 border border-danger text-danger rounded-lg hover:bg-danger-muted"
                 >
                   Disconnect
                 </button>
@@ -211,8 +211,8 @@ export default function QuickBooksSettings() {
       {isConnected && (
         <>
           {/* Sync Settings */}
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Sync Settings</h2>
+          <div className="bg-surface-raised rounded-lg shadow p-6 mb-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4">Sync Settings</h2>
 
             <fetcher.Form method="post">
               <input type="hidden" name="intent" value="updateSettings" />
@@ -223,9 +223,9 @@ export default function QuickBooksSettings() {
                     type="checkbox"
                     name="syncInvoices"
                     defaultChecked={settings?.syncInvoices ?? true}
-                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    className="rounded border-border-strong text-success focus:ring-success"
                   />
-                  <span className="ml-2 text-gray-700">
+                  <span className="ml-2 text-foreground">
                     Sync invoices (create invoices in QuickBooks for bookings)
                   </span>
                 </label>
@@ -235,9 +235,9 @@ export default function QuickBooksSettings() {
                     type="checkbox"
                     name="syncPayments"
                     defaultChecked={settings?.syncPayments ?? true}
-                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    className="rounded border-border-strong text-success focus:ring-success"
                   />
-                  <span className="ml-2 text-gray-700">
+                  <span className="ml-2 text-foreground">
                     Sync payments (record payments in QuickBooks)
                   </span>
                 </label>
@@ -247,9 +247,9 @@ export default function QuickBooksSettings() {
                     type="checkbox"
                     name="syncCustomers"
                     defaultChecked={settings?.syncCustomers ?? true}
-                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    className="rounded border-border-strong text-success focus:ring-success"
                   />
-                  <span className="ml-2 text-gray-700">
+                  <span className="ml-2 text-foreground">
                     Sync customers (create customers in QuickBooks)
                   </span>
                 </label>
@@ -259,9 +259,9 @@ export default function QuickBooksSettings() {
                     type="checkbox"
                     name="autoSyncEnabled"
                     defaultChecked={settings?.autoSyncEnabled ?? false}
-                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    className="rounded border-border-strong text-success focus:ring-success"
                   />
-                  <span className="ml-2 text-gray-700">
+                  <span className="ml-2 text-foreground">
                     Auto-sync (automatically sync new bookings and payments)
                   </span>
                 </label>
@@ -270,14 +270,14 @@ export default function QuickBooksSettings() {
               <div className="mt-6">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
                 >
                   Save Settings
                 </button>
               </div>
 
               {fetcher.data?.success && (
-                <div className="mt-4 p-3 bg-green-50 text-green-800 rounded-lg">
+                <div className="mt-4 p-3 bg-success-muted text-success rounded-lg">
                   {fetcher.data.message}
                 </div>
               )}
@@ -286,35 +286,35 @@ export default function QuickBooksSettings() {
 
           {/* Available Items */}
           {items.length > 0 && (
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-surface-raised rounded-lg shadow p-6 mb-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4">
                 QuickBooks Items
               </h2>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-foreground-muted mb-4">
                 These items are available in your QuickBooks account for mapping to DiveStreams
                 products.
               </p>
               <div className="overflow-auto max-h-64">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-surface-inset">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
                         Name
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
                         Type
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
                         Unit Price
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-surface-raised divide-y divide-border">
                     {items.map((item) => (
                       <tr key={item.id}>
-                        <td className="px-4 py-2 text-sm text-gray-900">{item.name}</td>
-                        <td className="px-4 py-2 text-sm text-gray-500">{item.type}</td>
-                        <td className="px-4 py-2 text-sm text-gray-500">
+                        <td className="px-4 py-2 text-sm text-foreground">{item.name}</td>
+                        <td className="px-4 py-2 text-sm text-foreground-muted">{item.type}</td>
+                        <td className="px-4 py-2 text-sm text-foreground-muted">
                           {item.unitPrice ? `$${item.unitPrice.toFixed(2)}` : "-"}
                         </td>
                       </tr>
@@ -326,12 +326,12 @@ export default function QuickBooksSettings() {
           )}
 
           {/* Sync History */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-surface-raised rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Sync History</h2>
+              <h2 className="text-lg font-semibold text-foreground">Sync History</h2>
               <button
                 onClick={() => setShowSyncHistory(!showSyncHistory)}
-                className="text-sm text-blue-600 hover:text-blue-700"
+                className="text-sm text-brand hover:text-brand"
               >
                 {showSyncHistory ? "Hide" : "Show"} Details
               </button>
@@ -339,39 +339,39 @@ export default function QuickBooksSettings() {
 
             {showSyncHistory && syncLogs.length > 0 && (
               <div className="overflow-auto max-h-96">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-surface-inset">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
                         Date
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
                         Action
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
                         Entity
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-foreground-muted uppercase">
                         Status
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-surface-raised divide-y divide-border">
                     {syncLogs.map((log) => (
                       <tr key={log.id}>
-                        <td className="px-4 py-2 text-sm text-gray-500">
+                        <td className="px-4 py-2 text-sm text-foreground-muted">
                           {new Date(log.createdAt).toLocaleString()}
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-900">{log.action}</td>
-                        <td className="px-4 py-2 text-sm text-gray-500">{log.entityType}</td>
+                        <td className="px-4 py-2 text-sm text-foreground">{log.action}</td>
+                        <td className="px-4 py-2 text-sm text-foreground-muted">{log.entityType}</td>
                         <td className="px-4 py-2 text-sm">
                           <span
                             className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               log.status === "success"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-success-muted text-success"
                                 : log.status === "failed"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
+                                ? "bg-danger-muted text-danger"
+                                : "bg-warning-muted text-warning"
                             }`}
                           >
                             {log.status}
@@ -385,7 +385,7 @@ export default function QuickBooksSettings() {
             )}
 
             {showSyncHistory && syncLogs.length === 0 && (
-              <p className="text-sm text-gray-500">No sync history yet.</p>
+              <p className="text-sm text-foreground-muted">No sync history yet.</p>
             )}
           </div>
         </>
@@ -393,9 +393,9 @@ export default function QuickBooksSettings() {
 
       {/* Setup Instructions */}
       {!isConnected && (
-        <div className="bg-blue-50 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">Setup Instructions</h3>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
+        <div className="bg-brand-muted rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-brand mb-3">Setup Instructions</h3>
+          <ol className="list-decimal list-inside space-y-2 text-sm text-brand">
             <li>
               Create an Intuit Developer account at{" "}
               <a

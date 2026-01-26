@@ -9,20 +9,20 @@ export const meta: MetaFunction = () => {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-surface-raised">
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold text-blue-600">
+        <a href="/" className="text-2xl font-bold text-brand">
           DiveStreams
         </a>
         <div className="flex gap-6 items-center">
-          <a href="/features" className="text-gray-600 hover:text-blue-600">
+          <a href="/features" className="text-foreground-muted hover:text-brand">
             Features
           </a>
-          <a href="/pricing" className="text-gray-600 hover:text-blue-600">
+          <a href="/pricing" className="text-foreground-muted hover:text-brand">
             Pricing
           </a>
-          <a href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <a href="/signup" className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover">
             Start Free Trial
           </a>
         </div>
@@ -30,10 +30,10 @@ export default function PrivacyPage() {
 
       {/* Header */}
       <section className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <h1 className="text-4xl font-bold text-foreground mb-4">
           Privacy Policy
         </h1>
-        <p className="text-gray-600">
+        <p className="text-foreground-muted">
           Last updated: January 12, 2026
         </p>
       </section>
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="2. Information We Collect">
-            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">2.1 Information You Provide</h3>
+            <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">2.1 Information You Provide</h3>
             <p>
               We collect information you voluntarily provide when you:
             </p>
@@ -66,7 +66,7 @@ export default function PrivacyPage() {
               <li><strong>Subscribe:</strong> Payment card details (processed securely through Stripe)</li>
             </ul>
 
-            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">2.2 Information Collected Automatically</h3>
+            <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">2.2 Information Collected Automatically</h3>
             <p>
               When you access the Service, we automatically collect:
             </p>
@@ -77,7 +77,7 @@ export default function PrivacyPage() {
               <li><strong>Location data:</strong> General geographic location based on IP address</li>
             </ul>
 
-            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">2.3 Information from Third Parties</h3>
+            <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">2.3 Information from Third Parties</h3>
             <p>
               We may receive information from third-party services you connect to DiveStreams, such as:
             </p>
@@ -110,7 +110,7 @@ export default function PrivacyPage() {
               We use cookies and similar tracking technologies to collect and store information about your
               interactions with the Service.
             </p>
-            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">Types of Cookies We Use:</h3>
+            <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">Types of Cookies We Use:</h3>
             <ul className="list-disc pl-6 space-y-2">
               <li><strong>Essential cookies:</strong> Required for the Service to function properly (authentication, security)</li>
               <li><strong>Functional cookies:</strong> Remember your preferences and settings</li>
@@ -156,7 +156,7 @@ export default function PrivacyPage() {
               Our Service integrates with third-party services that have their own privacy policies:
             </p>
             <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Stripe:</strong> Payment processing (<a href="https://stripe.com/privacy" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Stripe Privacy Policy</a>)</li>
+              <li><strong>Stripe:</strong> Payment processing (<a href="https://stripe.com/privacy" className="text-brand hover:underline" target="_blank" rel="noopener noreferrer">Stripe Privacy Policy</a>)</li>
               <li><strong>SendGrid:</strong> Email delivery</li>
               <li><strong>Google Analytics:</strong> Usage analytics (if enabled)</li>
             </ul>
@@ -214,7 +214,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-4">
               To exercise these rights, please contact us at{" "}
-              <a href="mailto:privacy@divestreams.com" className="text-blue-600 hover:underline">privacy@divestreams.com</a>.
+              <a href="mailto:privacy@divestreams.com" className="text-brand hover:underline">privacy@divestreams.com</a>.
               We will respond to your request within 30 days.
             </p>
           </Section>
@@ -250,7 +250,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-4">
               To exercise your CCPA rights, contact us at{" "}
-              <a href="mailto:privacy@divestreams.com" className="text-blue-600 hover:underline">privacy@divestreams.com</a>.
+              <a href="mailto:privacy@divestreams.com" className="text-brand hover:underline">privacy@divestreams.com</a>.
             </p>
           </Section>
 
@@ -274,12 +274,12 @@ export default function PrivacyPage() {
             </p>
             <p className="mt-4">
               <strong>DiveStreams</strong><br />
-              Email: <a href="mailto:privacy@divestreams.com" className="text-blue-600 hover:underline">privacy@divestreams.com</a><br />
-              Support: <a href="mailto:support@divestreams.com" className="text-blue-600 hover:underline">support@divestreams.com</a>
+              Email: <a href="mailto:privacy@divestreams.com" className="text-brand hover:underline">privacy@divestreams.com</a><br />
+              Support: <a href="mailto:support@divestreams.com" className="text-brand hover:underline">support@divestreams.com</a>
             </p>
             <p className="mt-4">
               For data protection inquiries in the European Union, you may also contact our Data Protection Officer at{" "}
-              <a href="mailto:dpo@divestreams.com" className="text-blue-600 hover:underline">dpo@divestreams.com</a>.
+              <a href="mailto:dpo@divestreams.com" className="text-brand hover:underline">dpo@divestreams.com</a>.
             </p>
           </Section>
         </div>
@@ -287,8 +287,8 @@ export default function PrivacyPage() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-12 border-t">
-        <div className="flex justify-between items-center text-gray-600">
-          <div className="text-xl font-bold text-blue-600">DiveStreams</div>
+        <div className="flex justify-between items-center text-foreground-muted">
+          <div className="text-xl font-bold text-brand">DiveStreams</div>
           <div className="flex gap-6">
             <a href="/pricing">Pricing</a>
             <a href="/features">Features</a>
@@ -296,7 +296,7 @@ export default function PrivacyPage() {
             <a href="/privacy">Privacy</a>
           </div>
         </div>
-        <div className="text-center text-gray-500 mt-8">
+        <div className="text-center text-foreground-muted mt-8">
           © {new Date().getFullYear()} DiveStreams. All rights reserved.
         </div>
       </footer>
@@ -307,8 +307,8 @@ export default function PrivacyPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>
-      <div className="text-gray-600 space-y-4">{children}</div>
+      <h2 className="text-2xl font-bold text-foreground mb-4">{title}</h2>
+      <div className="text-foreground-muted space-y-4">{children}</div>
     </div>
   );
 }

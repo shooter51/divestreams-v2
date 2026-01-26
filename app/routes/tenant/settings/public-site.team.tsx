@@ -159,7 +159,7 @@ export default function PublicSiteTeamPage() {
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">Team Member Profiles</h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-foreground-muted">
           Manage team member profiles that appear on your public About page
         </p>
       </div>
@@ -168,7 +168,7 @@ export default function PublicSiteTeamPage() {
       <div className="flex justify-end mb-4">
         <button
           onClick={handleNew}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
           Add Team Member
         </button>
@@ -176,20 +176,20 @@ export default function PublicSiteTeamPage() {
 
       {/* Team Members List */}
       {teamMembers.length === 0 ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-600 mb-4">No team members yet</p>
+        <div className="bg-surface-inset border border-border rounded-lg p-8 text-center">
+          <p className="text-foreground-muted mb-4">No team members yet</p>
           <button
             onClick={handleNew}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
             Add Your First Team Member
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-surface-raised rounded-lg shadow overflow-hidden">
           <div className="divide-y">
             {teamMembers.map((member) => (
-              <div key={member.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+              <div key={member.id} className="p-4 flex items-center justify-between hover:bg-surface-inset">
                 <div className="flex items-center gap-4">
                   {/* Avatar */}
                   {member.imageUrl ? (
@@ -199,7 +199,7 @@ export default function PublicSiteTeamPage() {
                       className="w-12 h-12 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
+                    <div className="w-12 h-12 bg-brand-muted text-brand rounded-full flex items-center justify-center font-medium">
                       {member.name
                         .split(" ")
                         .map((n: string) => n[0])
@@ -212,14 +212,14 @@ export default function PublicSiteTeamPage() {
                     <div className="flex items-center gap-2">
                       <p className="font-medium">{member.name}</p>
                       {!member.isPublic && (
-                        <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
+                        <span className="text-xs bg-surface-overlay text-foreground px-2 py-0.5 rounded">
                           Hidden
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">{member.role}</p>
+                    <p className="text-sm text-foreground-muted">{member.role}</p>
                     {member.certifications && member.certifications.length > 0 && (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-foreground-muted">
                         {member.certifications.slice(0, 2).join(", ")}
                         {member.certifications.length > 2 && ` +${member.certifications.length - 2} more`}
                       </p>
@@ -231,13 +231,13 @@ export default function PublicSiteTeamPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(member)}
-                    className="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded"
+                    className="text-brand hover:bg-brand-muted px-3 py-1 rounded"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(member)}
-                    className="text-red-600 hover:bg-red-50 px-3 py-1 rounded"
+                    className="text-danger hover:bg-danger-muted px-3 py-1 rounded"
                   >
                     Delete
                   </button>
@@ -251,7 +251,7 @@ export default function PublicSiteTeamPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">
               {editingMember ? "Edit Team Member" : "Add Team Member"}
             </h2>
@@ -275,7 +275,7 @@ export default function PublicSiteTeamPage() {
                     required
                     defaultValue={editingMember?.name}
                     placeholder="John Smith"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
 
@@ -291,7 +291,7 @@ export default function PublicSiteTeamPage() {
                     required
                     defaultValue={editingMember?.role}
                     placeholder="Owner & Lead Instructor"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
 
@@ -306,7 +306,7 @@ export default function PublicSiteTeamPage() {
                     rows={3}
                     defaultValue={editingMember?.bio || ""}
                     placeholder="Brief description about this team member..."
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
 
@@ -321,7 +321,7 @@ export default function PublicSiteTeamPage() {
                     name="imageUrl"
                     defaultValue={editingMember?.imageUrl || ""}
                     placeholder="https://example.com/photo.jpg"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
 
@@ -337,7 +337,7 @@ export default function PublicSiteTeamPage() {
                       name="email"
                       defaultValue={editingMember?.email || ""}
                       placeholder="john@example.com"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
 
@@ -351,7 +351,7 @@ export default function PublicSiteTeamPage() {
                       name="phone"
                       defaultValue={editingMember?.phone || ""}
                       placeholder="+1 555-1234"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                     />
                   </div>
                 </div>
@@ -369,7 +369,7 @@ export default function PublicSiteTeamPage() {
                     max="99"
                     defaultValue={editingMember?.yearsExperience || ""}
                     placeholder="10"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
 
@@ -384,9 +384,9 @@ export default function PublicSiteTeamPage() {
                     name="certifications"
                     defaultValue={editingMember?.certifications?.join(", ") || ""}
                     placeholder="PADI Course Director, TDI Advanced Trimix"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-foreground-muted mt-1">
                     Separate multiple certifications with commas
                   </p>
                 </div>
@@ -402,9 +402,9 @@ export default function PublicSiteTeamPage() {
                     name="specialties"
                     defaultValue={editingMember?.specialties?.join(", ") || ""}
                     placeholder="Technical Diving, Underwater Photography"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-foreground-muted mt-1">
                     Separate multiple specialties with commas
                   </p>
                 </div>
@@ -418,7 +418,7 @@ export default function PublicSiteTeamPage() {
                       name="isPublic"
                       value="true"
                       defaultChecked={editingMember?.isPublic !== false}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      className="w-4 h-4 text-brand rounded focus:ring-2 focus:ring-brand"
                     />
                     <label htmlFor="isPublic" className="text-sm font-medium">
                       Show on public About page
@@ -430,14 +430,14 @@ export default function PublicSiteTeamPage() {
               <div className="flex gap-3 mt-6">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                  className="flex-1 bg-brand text-white py-2 rounded-lg hover:bg-brand-hover"
                 >
                   {editingMember ? "Update" : "Add"} Team Member
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 border py-2 rounded-lg hover:bg-gray-50"
+                  className="flex-1 border py-2 rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>

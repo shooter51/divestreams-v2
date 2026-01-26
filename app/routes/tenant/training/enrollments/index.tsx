@@ -67,18 +67,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  enrolled: "bg-blue-100 text-blue-700",
-  in_progress: "bg-yellow-100 text-yellow-700",
-  completed: "bg-green-100 text-green-700",
-  dropped: "bg-gray-100 text-gray-600",
-  failed: "bg-red-100 text-red-700",
+  enrolled: "bg-brand-muted text-brand",
+  in_progress: "bg-warning-muted text-warning",
+  completed: "bg-success-muted text-success",
+  dropped: "bg-surface-inset text-foreground-muted",
+  failed: "bg-danger-muted text-danger",
 };
 
 const paymentStatusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  partial: "bg-orange-100 text-orange-700",
-  paid: "bg-green-100 text-green-700",
-  refunded: "bg-gray-100 text-gray-600",
+  pending: "bg-warning-muted text-warning",
+  partial: "bg-warning-muted text-warning",
+  paid: "bg-success-muted text-success",
+  refunded: "bg-surface-inset text-foreground-muted",
 };
 
 export default function EnrollmentsPage() {
@@ -106,11 +106,11 @@ export default function EnrollmentsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Training Enrollments</h1>
-          <p className="text-gray-500">{total} total enrollments</p>
+          <p className="text-foreground-muted">{total} total enrollments</p>
         </div>
         <Link
           to="/tenant/training/enrollments/new"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
         >
           New Enrollment
         </Link>
@@ -118,36 +118,36 @@ export default function EnrollmentsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-2xl font-bold text-blue-600">{stats.enrolled}</p>
-          <p className="text-gray-500 text-sm">Enrolled</p>
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+          <p className="text-2xl font-bold text-brand">{stats.enrolled}</p>
+          <p className="text-foreground-muted text-sm">Enrolled</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-2xl font-bold text-yellow-600">
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+          <p className="text-2xl font-bold text-warning">
             {stats.inProgress}
           </p>
-          <p className="text-gray-500 text-sm">In Progress</p>
+          <p className="text-foreground-muted text-sm">In Progress</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-          <p className="text-gray-500 text-sm">Completed</p>
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+          <p className="text-2xl font-bold text-success">{stats.completed}</p>
+          <p className="text-foreground-muted text-sm">Completed</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{stats.certified}</p>
-          <p className="text-gray-500 text-sm">Certified</p>
+          <p className="text-foreground-muted text-sm">Certified</p>
         </div>
       </div>
 
       {/* Filters */}
       <form onSubmit={handleFilter} className="mb-6 flex gap-4 items-end">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             Status
           </label>
           <select
             name="status"
             defaultValue={status}
-            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           >
             <option value="">All Statuses</option>
             <option value="enrolled">Enrolled</option>
@@ -158,13 +158,13 @@ export default function EnrollmentsPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             Session
           </label>
           <select
             name="sessionId"
             defaultValue={sessionId}
-            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           >
             <option value="">All Sessions</option>
             {sessions.map((session) => (
@@ -176,7 +176,7 @@ export default function EnrollmentsPage() {
         </div>
         <button
           type="submit"
-          className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+          className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
         >
           Filter
         </button>
@@ -184,7 +184,7 @@ export default function EnrollmentsPage() {
           <button
             type="button"
             onClick={clearFilters}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            className="px-4 py-2 text-foreground-muted hover:text-foreground"
           >
             Clear
           </button>
@@ -192,26 +192,26 @@ export default function EnrollmentsPage() {
       </form>
 
       {/* Enrollments Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-surface-inset border-b">
             <tr>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                 Student
               </th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                 Course
               </th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                 Session Date
               </th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                 Status
               </th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                 Payment
               </th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                 Certification
               </th>
               <th className="px-6 py-3"></th>
@@ -220,7 +220,7 @@ export default function EnrollmentsPage() {
           <tbody className="divide-y">
             {enrollments.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-foreground-muted">
                   {status || sessionId
                     ? "No enrollments found matching your filters."
                     : "No enrollments yet. Create your first enrollment to get started."}
@@ -228,21 +228,21 @@ export default function EnrollmentsPage() {
               </tr>
             ) : (
               enrollments.map((enrollment) => (
-                <tr key={enrollment.id} className="hover:bg-gray-50">
+                <tr key={enrollment.id} className="hover:bg-surface-inset">
                   <td className="px-6 py-4">
                     <Link
                       to={`/tenant/customers/${enrollment.student.id}`}
-                      className="font-medium text-blue-600 hover:underline"
+                      className="font-medium text-brand hover:underline"
                     >
                       {enrollment.student.firstName} {enrollment.student.lastName}
                     </Link>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-foreground-muted">
                       {enrollment.student.email}
                     </p>
                   </td>
                   <td className="px-6 py-4">
                     <p className="font-medium">{enrollment.course.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-foreground-muted">
                       {enrollment.course.agencyName}{" "}
                       {enrollment.course.levelName &&
                         `- ${enrollment.course.levelName}`}
@@ -250,7 +250,7 @@ export default function EnrollmentsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <p>{enrollment.sessionDate}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-foreground-subtle">
                       Enrolled: {enrollment.enrolledAt}
                     </p>
                   </td>
@@ -258,7 +258,7 @@ export default function EnrollmentsPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         statusColors[enrollment.status] ||
-                        "bg-gray-100 text-gray-700"
+                        "bg-surface-inset text-foreground"
                       }`}
                     >
                       {enrollment.status.replace("_", " ")}
@@ -268,33 +268,33 @@ export default function EnrollmentsPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         paymentStatusColors[enrollment.paymentStatus || "pending"] ||
-                        "bg-gray-100 text-gray-700"
+                        "bg-surface-inset text-foreground"
                       }`}
                     >
                       {enrollment.paymentStatus || "pending"}
                     </span>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-foreground-muted mt-1">
                       ${enrollment.amountPaid} paid
                     </p>
                   </td>
                   <td className="px-6 py-4">
                     {enrollment.certificationNumber ? (
                       <div>
-                        <p className="text-sm font-medium text-green-600">
+                        <p className="text-sm font-medium text-success">
                           {enrollment.certificationNumber}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-foreground-muted">
                           {enrollment.certificationDate}
                         </p>
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-400">Not certified</span>
+                      <span className="text-xs text-foreground-subtle">Not certified</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link
                       to={`/tenant/training/enrollments/${enrollment.id}`}
-                      className="text-blue-600 hover:underline text-sm"
+                      className="text-brand hover:underline text-sm"
                     >
                       View
                     </Link>

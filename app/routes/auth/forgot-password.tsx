@@ -71,14 +71,14 @@ export default function ForgotPasswordPage() {
 
   if (actionData?.success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-inset flex items-center justify-center">
         <div className="max-w-md w-full text-center">
-          <div className="bg-white rounded-xl p-8 shadow-sm border">
+          <div className="bg-surface-raised rounded-xl p-8 shadow-sm border">
             <h1 className="text-xl font-bold mb-4">Check Your Email</h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-foreground-muted mb-4">
               If an account exists with that email, we've sent password reset instructions.
             </p>
-            <a href="/auth/login" className="text-blue-600">
+            <a href="/auth/login" className="text-brand">
               Back to login
             </a>
           </div>
@@ -88,14 +88,14 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-surface-inset flex items-center justify-center">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-blue-600">DiveStreams</h1>
-          <p className="text-gray-600 mt-2">Reset your password</p>
+          <h1 className="text-2xl font-bold text-brand">DiveStreams</h1>
+          <p className="text-foreground-muted mt-2">Reset your password</p>
         </div>
 
-        <form method="post" className="bg-white rounded-xl p-8 shadow-sm border">
+        <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
               Email
@@ -105,23 +105,23 @@ export default function ForgotPasswordPage() {
               id="email"
               name="email"
               autoComplete="email"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               required
             />
             {actionData?.error && (
-              <p className="text-red-500 text-sm mt-1">{actionData.error}</p>
+              <p className="text-danger text-sm mt-1">{actionData.error}</p>
             )}
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="w-full mt-6 bg-brand text-white py-3 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Sending..." : "Send Reset Link"}
           </button>
 
-          <a href="/auth/login" className="block text-center text-sm text-gray-600 mt-4">
+          <a href="/auth/login" className="block text-center text-sm text-foreground-muted mt-4">
             Back to login
           </a>
         </form>

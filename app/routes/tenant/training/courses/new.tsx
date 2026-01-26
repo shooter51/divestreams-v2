@@ -97,18 +97,18 @@ export default function NewCoursePage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/training/courses" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/training/courses" className="text-brand hover:underline text-sm">
           &larr; Back to Courses
         </Link>
         <h1 className="text-2xl font-bold mt-2">Create Course</h1>
-        <p className="text-gray-500">
+        <p className="text-foreground-muted">
           Create a new training course that can be scheduled as sessions.
         </p>
       </div>
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
@@ -121,11 +121,11 @@ export default function NewCoursePage() {
                 name="name"
                 defaultValue={actionData?.values?.name}
                 placeholder="e.g., Open Water Diver"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.name && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
               )}
             </div>
 
@@ -139,7 +139,7 @@ export default function NewCoursePage() {
                 name="code"
                 defaultValue={actionData?.values?.code}
                 placeholder="e.g., OWD, AOWD, EFR"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -153,7 +153,7 @@ export default function NewCoursePage() {
                 rows={3}
                 defaultValue={actionData?.values?.description}
                 placeholder="Describe the course, what students will learn..."
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -166,7 +166,7 @@ export default function NewCoursePage() {
                   id="agencyId"
                   name="agencyId"
                   defaultValue={actionData?.values?.agencyId || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">Select Agency</option>
                   {agencies.map((agency) => (
@@ -185,7 +185,7 @@ export default function NewCoursePage() {
                   id="levelId"
                   name="levelId"
                   defaultValue={actionData?.values?.levelId || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">Select Level</option>
                   {levels.map((level) => (
@@ -200,7 +200,7 @@ export default function NewCoursePage() {
         </div>
 
         {/* Duration & Structure */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Duration & Structure</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -213,7 +213,7 @@ export default function NewCoursePage() {
                 name="durationDays"
                 min="1"
                 defaultValue={actionData?.values?.durationDays || "3"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -228,7 +228,7 @@ export default function NewCoursePage() {
                 min="0"
                 defaultValue={actionData?.values?.classroomHours}
                 placeholder="e.g., 8"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -243,7 +243,7 @@ export default function NewCoursePage() {
                 min="0"
                 defaultValue={actionData?.values?.poolHours}
                 placeholder="e.g., 4"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -258,14 +258,14 @@ export default function NewCoursePage() {
                 min="0"
                 defaultValue={actionData?.values?.openWaterDives}
                 placeholder="e.g., 4"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Pricing & Capacity */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Pricing & Capacity</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -273,7 +273,7 @@ export default function NewCoursePage() {
                 Price *
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                 <input
                   type="number"
                   id="price"
@@ -281,12 +281,12 @@ export default function NewCoursePage() {
                   step="0.01"
                   min="0"
                   defaultValue={actionData?.values?.price}
-                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 />
               </div>
               {actionData?.errors?.price && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.price}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.price}</p>
               )}
             </div>
 
@@ -298,7 +298,7 @@ export default function NewCoursePage() {
                 id="currency"
                 name="currency"
                 defaultValue={actionData?.values?.currency || "USD"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
@@ -320,7 +320,7 @@ export default function NewCoursePage() {
                 name="maxStudents"
                 min="1"
                 defaultValue={actionData?.values?.maxStudents || "4"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -335,14 +335,14 @@ export default function NewCoursePage() {
                 min="1"
                 defaultValue={actionData?.values?.minAge}
                 placeholder="e.g., 10"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Prerequisites */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Prerequisites</h2>
           <div>
             <label htmlFor="prerequisites" className="block text-sm font-medium mb-1">
@@ -354,13 +354,13 @@ export default function NewCoursePage() {
               rows={2}
               defaultValue={actionData?.values?.prerequisites}
               placeholder="e.g., Open Water Diver certification, minimum 10 logged dives"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
           </div>
         </div>
 
         {/* Status */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Status</h2>
           <div className="space-y-3">
             <label className="flex items-center gap-2">
@@ -372,7 +372,7 @@ export default function NewCoursePage() {
                 className="rounded"
               />
               <span className="font-medium">Active</span>
-              <span className="text-gray-500 text-sm">
+              <span className="text-foreground-muted text-sm">
                 (Inactive courses cannot be scheduled)
               </span>
             </label>
@@ -385,7 +385,7 @@ export default function NewCoursePage() {
                 className="rounded"
               />
               <span className="font-medium">Public</span>
-              <span className="text-gray-500 text-sm">
+              <span className="text-foreground-muted text-sm">
                 (Visible on public booking pages)
               </span>
             </label>
@@ -397,13 +397,13 @@ export default function NewCoursePage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Creating..." : "Create Course"}
           </button>
           <Link
             to="/tenant/training/courses"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

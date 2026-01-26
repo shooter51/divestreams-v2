@@ -175,17 +175,17 @@ export default function EditCoursePage() {
       <div className="mb-6">
         <Link
           to={`/tenant/training/courses/${course.id}`}
-          className="text-blue-600 hover:underline text-sm"
+          className="text-brand hover:underline text-sm"
         >
           &larr; Back to Course
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Course</h1>
-        <p className="text-gray-500">Update course details.</p>
+        <p className="text-foreground-muted">Update course details.</p>
       </div>
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div>
@@ -197,11 +197,11 @@ export default function EditCoursePage() {
                 id="name"
                 name="name"
                 defaultValue={actionData?.values?.name || course.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {actionData?.errors?.name && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
               )}
             </div>
 
@@ -215,7 +215,7 @@ export default function EditCoursePage() {
                 name="code"
                 defaultValue={actionData?.values?.code || course.code || ""}
                 placeholder="e.g., OWD, AOWD, EFR"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -228,7 +228,7 @@ export default function EditCoursePage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description || course.description || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -241,7 +241,7 @@ export default function EditCoursePage() {
                   id="agencyId"
                   name="agencyId"
                   defaultValue={actionData?.values?.agencyId || course.agencyId || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">Select Agency</option>
                   {agencies.map((agency) => (
@@ -260,7 +260,7 @@ export default function EditCoursePage() {
                   id="levelId"
                   name="levelId"
                   defaultValue={actionData?.values?.levelId || course.levelId || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">Select Level</option>
                   {levels.map((level) => (
@@ -275,7 +275,7 @@ export default function EditCoursePage() {
         </div>
 
         {/* Course Images */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Course Images</h2>
           <ImageManager
             entityType="course"
@@ -286,7 +286,7 @@ export default function EditCoursePage() {
         </div>
 
         {/* Duration & Structure */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Duration & Structure</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -299,7 +299,7 @@ export default function EditCoursePage() {
                 name="durationDays"
                 min="1"
                 defaultValue={actionData?.values?.durationDays || course.durationDays || 1}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -313,7 +313,7 @@ export default function EditCoursePage() {
                 name="classroomHours"
                 min="0"
                 defaultValue={actionData?.values?.classroomHours || course.classroomHours || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -327,7 +327,7 @@ export default function EditCoursePage() {
                 name="poolHours"
                 min="0"
                 defaultValue={actionData?.values?.poolHours || course.poolHours || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -341,14 +341,14 @@ export default function EditCoursePage() {
                 name="openWaterDives"
                 min="0"
                 defaultValue={actionData?.values?.openWaterDives || course.openWaterDives || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Pricing & Capacity */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Pricing & Capacity</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -356,7 +356,7 @@ export default function EditCoursePage() {
                 Price *
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-foreground-muted">$</span>
                 <input
                   type="number"
                   id="price"
@@ -364,12 +364,12 @@ export default function EditCoursePage() {
                   step="0.01"
                   min="0"
                   defaultValue={actionData?.values?.price || course.price}
-                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   required
                 />
               </div>
               {actionData?.errors?.price && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.price}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.price}</p>
               )}
             </div>
 
@@ -381,7 +381,7 @@ export default function EditCoursePage() {
                 id="currency"
                 name="currency"
                 defaultValue={actionData?.values?.currency || course.currency || "USD"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
@@ -403,7 +403,7 @@ export default function EditCoursePage() {
                 name="maxStudents"
                 min="1"
                 defaultValue={actionData?.values?.maxStudents || course.maxStudents || 4}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -417,14 +417,14 @@ export default function EditCoursePage() {
                 name="minAge"
                 min="1"
                 defaultValue={actionData?.values?.minAge || course.minAge || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* What's Included */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">What's Included</h2>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-4">
@@ -470,7 +470,7 @@ export default function EditCoursePage() {
                   course.includedItems?.join(", ") ||
                   ""
                 }
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -488,14 +488,14 @@ export default function EditCoursePage() {
                   course.requiredItems?.join(", ") ||
                   ""
                 }
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Prerequisites & Requirements */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Prerequisites & Requirements</h2>
           <div className="space-y-4">
             <div>
@@ -510,7 +510,7 @@ export default function EditCoursePage() {
                 defaultValue={
                   actionData?.values?.requiredCertLevel || course.requiredCertLevel || ""
                 }
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -525,7 +525,7 @@ export default function EditCoursePage() {
                 defaultValue={
                   actionData?.values?.prerequisites || course.prerequisites || ""
                 }
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -541,14 +541,14 @@ export default function EditCoursePage() {
                 defaultValue={
                   actionData?.values?.medicalRequirements || course.medicalRequirements || ""
                 }
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Status */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Status</h2>
           <div className="space-y-3">
             <label className="flex items-center gap-2">
@@ -562,7 +562,7 @@ export default function EditCoursePage() {
                 className="rounded"
               />
               <span className="font-medium">Active</span>
-              <span className="text-gray-500 text-sm">
+              <span className="text-foreground-muted text-sm">
                 (Inactive courses cannot be scheduled)
               </span>
             </label>
@@ -577,7 +577,7 @@ export default function EditCoursePage() {
                 className="rounded"
               />
               <span className="font-medium">Public</span>
-              <span className="text-gray-500 text-sm">
+              <span className="text-foreground-muted text-sm">
                 (Visible on public booking pages)
               </span>
             </label>
@@ -589,13 +589,13 @@ export default function EditCoursePage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
             to={`/tenant/training/courses/${course.id}`}
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

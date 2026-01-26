@@ -84,10 +84,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  scheduled: "bg-blue-100 text-blue-700",
-  in_progress: "bg-yellow-100 text-yellow-700",
-  completed: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
+  scheduled: "bg-brand-muted text-brand",
+  in_progress: "bg-warning-muted text-warning",
+  completed: "bg-success-muted text-success",
+  cancelled: "bg-danger-muted text-danger",
 };
 
 const statusLabels: Record<string, string> = {
@@ -98,11 +98,11 @@ const statusLabels: Record<string, string> = {
 };
 
 const enrollmentStatusColors: Record<string, string> = {
-  enrolled: "bg-blue-100 text-blue-700",
-  in_progress: "bg-yellow-100 text-yellow-700",
-  completed: "bg-green-100 text-green-700",
-  withdrawn: "bg-gray-100 text-gray-600",
-  failed: "bg-red-100 text-red-700",
+  enrolled: "bg-brand-muted text-brand",
+  in_progress: "bg-warning-muted text-warning",
+  completed: "bg-success-muted text-success",
+  withdrawn: "bg-surface-inset text-foreground-muted",
+  failed: "bg-danger-muted text-danger",
 };
 
 export default function SessionDetailPage() {
@@ -147,7 +147,7 @@ export default function SessionDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/training/sessions" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/training/sessions" className="text-brand hover:underline text-sm">
           &larr; Back to Sessions
         </Link>
       </div>
@@ -158,18 +158,18 @@ export default function SessionDetailPage() {
             <h1 className="text-2xl font-bold">{session.courseName}</h1>
             <span
               className={`text-sm px-3 py-1 rounded-full ${
-                statusColors[session.status] || "bg-gray-100 text-gray-700"
+                statusColors[session.status] || "bg-surface-inset text-foreground"
               }`}
             >
               {statusLabels[session.status] || session.status}
             </span>
           </div>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {sessionDate}
             {session.startTime && ` at ${session.startTime}`}
           </p>
           {session.agencyName && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-foreground-muted mt-1">
               {session.agencyName}
               {session.levelName && ` - ${session.levelName}`}
             </p>
@@ -179,21 +179,21 @@ export default function SessionDetailPage() {
           {session.status !== "cancelled" && session.status !== "completed" && spotsAvailable > 0 && (
             <Link
               to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
             >
               Enroll Student
             </Link>
           )}
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             {isEditing ? "Cancel Edit" : "Edit"}
           </button>
           {session.status !== "cancelled" && session.status !== "completed" && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+              className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
             >
               Delete
             </button>
@@ -203,12 +203,12 @@ export default function SessionDetailPage() {
 
       {/* Success/Error Messages */}
       {fetcher.data?.success && fetcher.data?.message && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
           {fetcher.data.message}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {fetcher.data.error}
         </div>
       )}
@@ -218,34 +218,34 @@ export default function SessionDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
                 {session.enrolledCount || 0}/{session.maxStudents || "?"}
               </p>
-              <p className="text-gray-500 text-sm">Enrolled</p>
+              <p className="text-foreground-muted text-sm">Enrolled</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-green-600">{spotsAvailable}</p>
-              <p className="text-gray-500 text-sm">Spots Left</p>
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+              <p className="text-2xl font-bold text-success">{spotsAvailable}</p>
+              <p className="text-foreground-muted text-sm">Spots Left</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${sessionPrice}</p>
-              <p className="text-gray-500 text-sm">Price</p>
+              <p className="text-foreground-muted text-sm">Price</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{session.completedCount || 0}</p>
-              <p className="text-gray-500 text-sm">Certified</p>
+              <p className="text-foreground-muted text-sm">Certified</p>
             </div>
           </div>
 
           {/* Session Details / Edit Form */}
           {isEditing ? (
-            <fetcher.Form method="post" className="bg-white rounded-xl p-6 shadow-sm">
+            <fetcher.Form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <input type="hidden" name="intent" value="update-session" />
               <h2 className="font-semibold mb-4">Edit Session</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Start Date *
                   </label>
                   <input
@@ -253,33 +253,33 @@ export default function SessionDetailPage() {
                     name="startDate"
                     defaultValue={session.startDate}
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     End Date
                   </label>
                   <input
                     type="date"
                     name="endDate"
                     defaultValue={session.endDate || ""}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Start Time
                   </label>
                   <input
                     type="time"
                     name="startTime"
                     defaultValue={session.startTime || ""}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Max Students
                   </label>
                   <input
@@ -287,44 +287,44 @@ export default function SessionDetailPage() {
                     name="maxStudents"
                     defaultValue={session.maxStudents || ""}
                     min="1"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Location
                   </label>
                   <input
                     type="text"
                     name="location"
                     defaultValue={session.location || ""}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Meeting Point
                   </label>
                   <input
                     type="text"
                     name="meetingPoint"
                     defaultValue={session.meetingPoint || ""}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Instructor Name
                   </label>
                   <input
                     type="text"
                     name="instructorName"
                     defaultValue={session.instructorName || ""}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Price Override
                   </label>
                   <input
@@ -332,18 +332,18 @@ export default function SessionDetailPage() {
                     name="priceOverride"
                     defaultValue={session.priceOverride || ""}
                     placeholder={session.coursePrice ? `Course price: $${session.coursePrice}` : ""}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Notes
                   </label>
                   <textarea
                     name="notes"
                     defaultValue={session.notes || ""}
                     rows={3}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
               </div>
@@ -351,25 +351,25 @@ export default function SessionDetailPage() {
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                  className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
                 >
                   {fetcher.state === "submitting" ? "Saving..." : "Save Changes"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
                 >
                   Cancel
                 </button>
               </div>
             </fetcher.Form>
           ) : (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Session Details</h2>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">Date</p>
+                  <p className="text-foreground-muted">Date</p>
                   <p>
                     {sessionDate}
                     {session.endDate && session.endDate !== session.startDate && (
@@ -378,30 +378,30 @@ export default function SessionDetailPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Time</p>
+                  <p className="text-foreground-muted">Time</p>
                   <p>{session.startTime || "Not set"}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Course</p>
-                  <Link to={`/tenant/training/courses/${session.courseId}`} className="text-blue-600 hover:underline">
+                  <p className="text-foreground-muted">Course</p>
+                  <Link to={`/tenant/training/courses/${session.courseId}`} className="text-brand hover:underline">
                     {session.courseName}
                   </Link>
                 </div>
                 <div>
-                  <p className="text-gray-500">Duration</p>
+                  <p className="text-foreground-muted">Duration</p>
                   <p>{session.courseDurationDays ? `${session.courseDurationDays} days` : "Not specified"}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Instructor</p>
+                  <p className="text-foreground-muted">Instructor</p>
                   <p>{session.instructorName || "Not assigned"}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Location</p>
+                  <p className="text-foreground-muted">Location</p>
                   <p>{session.location || "Not set"}</p>
                 </div>
                 {session.meetingPoint && (
                   <div className="col-span-2">
-                    <p className="text-gray-500">Meeting Point</p>
+                    <p className="text-foreground-muted">Meeting Point</p>
                     <p>{session.meetingPoint}</p>
                   </div>
                 )}
@@ -411,40 +411,40 @@ export default function SessionDetailPage() {
 
           {/* Notes */}
           {session.notes && !isEditing && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Notes</h2>
               <p className="text-sm whitespace-pre-wrap">{session.notes}</p>
             </div>
           )}
 
           {/* Enrolled Students */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Enrolled Students ({enrollments.length})</h2>
               {spotsAvailable > 0 && session.status !== "cancelled" && session.status !== "completed" && (
                 <Link
                   to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
-                  className="text-blue-600 text-sm hover:underline"
+                  className="text-brand text-sm hover:underline"
                 >
                   + Enroll Student
                 </Link>
               )}
             </div>
             {enrollments.length === 0 ? (
-              <p className="text-gray-500 text-sm">No students enrolled yet.</p>
+              <p className="text-foreground-muted text-sm">No students enrolled yet.</p>
             ) : (
               <div className="space-y-3">
                 {enrollments.map((enrollment) => (
                   <Link
                     key={enrollment.id}
                     to={`/tenant/training/enrollments/${enrollment.id}`}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                   >
                     <div>
                       <p className="font-medium">
                         {enrollment.customerFirstName} {enrollment.customerLastName}
                       </p>
-                      <p className="text-sm text-gray-500">{enrollment.customerEmail}</p>
+                      <p className="text-sm text-foreground-muted">{enrollment.customerEmail}</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
@@ -452,10 +452,10 @@ export default function SessionDetailPage() {
                           <span
                             className={`text-xs px-2 py-1 rounded ${
                               enrollment.paymentStatus === "paid"
-                                ? "bg-green-100 text-green-700"
+                                ? "bg-success-muted text-success"
                                 : enrollment.paymentStatus === "partial"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-600"
+                                ? "bg-warning-muted text-warning"
+                                : "bg-surface-inset text-foreground-muted"
                             }`}
                           >
                             {enrollment.paymentStatus}
@@ -464,7 +464,7 @@ export default function SessionDetailPage() {
                       </div>
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
-                          enrollmentStatusColors[enrollment.status] || "bg-gray-100 text-gray-700"
+                          enrollmentStatusColors[enrollment.status] || "bg-surface-inset text-foreground"
                         }`}
                       >
                         {enrollment.status}
@@ -480,7 +480,7 @@ export default function SessionDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Status Management */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Status</h2>
             <div className="space-y-2">
               {["scheduled", "in_progress", "completed", "cancelled"].map((statusOption) => (
@@ -491,7 +491,7 @@ export default function SessionDetailPage() {
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                     session.status === statusOption
                       ? `${statusColors[statusOption]} font-medium`
-                      : "hover:bg-gray-100"
+                      : "hover:bg-surface-overlay"
                   } disabled:cursor-not-allowed`}
                 >
                   {statusLabels[statusOption]}
@@ -502,24 +502,24 @@ export default function SessionDetailPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 Add Enrollment
               </Link>
               <Link
                 to={`/tenant/training/courses/${session.courseId}`}
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 View Course
               </Link>
               <Link
                 to="/tenant/training/enrollments"
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
                 All Enrollments
               </Link>
@@ -527,7 +527,7 @@ export default function SessionDetailPage() {
           </div>
 
           {/* Capacity */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Capacity</h2>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -540,14 +540,14 @@ export default function SessionDetailPage() {
               </div>
               <div className="flex justify-between text-sm font-medium">
                 <span>Available</span>
-                <span className={spotsAvailable === 0 ? "text-red-600" : "text-green-600"}>
+                <span className={spotsAvailable === 0 ? "text-danger" : "text-success"}>
                   {session.maxStudents ? spotsAvailable : "Unlimited"}
                 </span>
               </div>
               {session.maxStudents && (
-                <div className="mt-2 bg-gray-200 rounded-full h-2">
+                <div className="mt-2 bg-surface-overlay rounded-full h-2">
                   <div
-                    className="bg-blue-600 rounded-full h-2"
+                    className="bg-brand rounded-full h-2"
                     style={{
                       width: `${Math.min(((session.enrolledCount || 0) / session.maxStudents) * 100, 100)}%`,
                     }}
@@ -558,7 +558,7 @@ export default function SessionDetailPage() {
           </div>
 
           {/* Meta */}
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-foreground-subtle">
             <p>Created {session.createdAt ? new Date(session.createdAt).toLocaleDateString() : "Unknown"}</p>
             {session.updatedAt && (
               <p>Updated {new Date(session.updatedAt).toLocaleDateString()}</p>
@@ -571,12 +571,12 @@ export default function SessionDetailPage() {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
+          <div className="bg-surface-raised rounded-xl w-full max-w-md p-6">
             <h2 className="text-lg font-bold mb-4">Delete Session</h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-foreground-muted mb-6">
               Are you sure you want to delete this training session? This action cannot be undone.
               {enrollments.length > 0 && (
-                <span className="block mt-2 text-red-600">
+                <span className="block mt-2 text-danger">
                   Warning: This session has {enrollments.length} enrolled student(s).
                   Please remove all enrollments before deleting.
                 </span>
@@ -585,14 +585,14 @@ export default function SessionDetailPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+                className="flex-1 px-4 py-2 border rounded-lg hover:bg-surface-inset"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={enrollments.length > 0}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger-hover disabled:bg-danger-muted disabled:cursor-not-allowed"
               >
                 Delete Session
               </button>

@@ -111,7 +111,7 @@ export default function EditCustomerPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to={`/tenant/customers/${customer.id}`} className="text-blue-600 hover:underline text-sm">
+        <Link to={`/tenant/customers/${customer.id}`} className="text-brand hover:underline text-sm">
           ← Back to Customer
         </Link>
         <h1 className="text-2xl font-bold mt-2">Edit Customer</h1>
@@ -119,7 +119,7 @@ export default function EditCustomerPage() {
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -133,7 +133,7 @@ export default function EditCustomerPage() {
                   name="firstName"
                   required
                   defaultValue={actionData?.values?.firstName || customer.firstName}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -147,7 +147,7 @@ export default function EditCustomerPage() {
                   name="lastName"
                   required
                   defaultValue={actionData?.values?.lastName || customer.lastName}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function EditCustomerPage() {
                 name="email"
                 required
                 defaultValue={actionData?.values?.email || customer.email}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -176,7 +176,7 @@ export default function EditCustomerPage() {
                   id="phone"
                   name="phone"
                   defaultValue={actionData?.values?.phone || customer.phone}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -189,7 +189,7 @@ export default function EditCustomerPage() {
                   id="dateOfBirth"
                   name="dateOfBirth"
                   defaultValue={actionData?.values?.dateOfBirth || customer.dateOfBirth}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -202,7 +202,7 @@ export default function EditCustomerPage() {
                 id="preferredLanguage"
                 name="preferredLanguage"
                 defaultValue={actionData?.values?.preferredLanguage || customer.preferredLanguage}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="en">English</option>
                 <option value="es">Spanish</option>
@@ -216,7 +216,7 @@ export default function EditCustomerPage() {
         </div>
 
         {/* Address */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Address</h2>
           <div className="space-y-4">
             <div>
@@ -228,7 +228,7 @@ export default function EditCustomerPage() {
                 id="address"
                 name="address"
                 defaultValue={actionData?.values?.address || customer.address}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -242,7 +242,7 @@ export default function EditCustomerPage() {
                   id="city"
                   name="city"
                   defaultValue={actionData?.values?.city || customer.city}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -255,7 +255,7 @@ export default function EditCustomerPage() {
                   id="state"
                   name="state"
                   defaultValue={actionData?.values?.state || customer.state}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -270,7 +270,7 @@ export default function EditCustomerPage() {
                   id="postalCode"
                   name="postalCode"
                   defaultValue={actionData?.values?.postalCode || customer.postalCode}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -283,7 +283,7 @@ export default function EditCustomerPage() {
                   id="country"
                   name="country"
                   defaultValue={actionData?.values?.country || customer.country}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -291,7 +291,7 @@ export default function EditCustomerPage() {
         </div>
 
         {/* Emergency Contact */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Emergency Contact</h2>
           <div className="space-y-4">
             <div>
@@ -303,7 +303,7 @@ export default function EditCustomerPage() {
                 id="emergencyContactName"
                 name="emergencyContactName"
                 defaultValue={actionData?.values?.emergencyContactName || customer.emergencyContactName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -317,7 +317,7 @@ export default function EditCustomerPage() {
                   id="emergencyContactPhone"
                   name="emergencyContactPhone"
                   defaultValue={actionData?.values?.emergencyContactPhone || customer.emergencyContactPhone}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -331,7 +331,7 @@ export default function EditCustomerPage() {
                   name="emergencyContactRelation"
                   placeholder="e.g., Spouse, Parent"
                   defaultValue={actionData?.values?.emergencyContactRelation || customer.emergencyContactRelation}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
             </div>
@@ -339,7 +339,7 @@ export default function EditCustomerPage() {
         </div>
 
         {/* Medical */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Medical Information</h2>
           <div className="space-y-4">
             <div>
@@ -351,7 +351,7 @@ export default function EditCustomerPage() {
                 name="medicalConditions"
                 rows={2}
                 defaultValue={actionData?.values?.medicalConditions || customer.medicalConditions}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -364,14 +364,14 @@ export default function EditCustomerPage() {
                 name="medications"
                 rows={2}
                 defaultValue={actionData?.values?.medications || customer.medications}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Notes & Preferences */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Notes & Preferences</h2>
           <div className="space-y-4">
             <div>
@@ -383,7 +383,7 @@ export default function EditCustomerPage() {
                 name="notes"
                 rows={3}
                 defaultValue={actionData?.values?.notes || customer.notes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -405,13 +405,13 @@ export default function EditCustomerPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
           <Link
             to={`/tenant/customers/${customer.id}`}
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

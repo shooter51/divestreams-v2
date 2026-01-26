@@ -195,14 +195,14 @@ export default function AcceptInvite() {
 
   if (data.error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid Invitation</h1>
-          <p className="text-gray-600 mb-6">{data.error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-surface-inset">
+        <div className="max-w-md w-full bg-surface-raised rounded-lg shadow-lg p-8 text-center">
+          <div className="text-danger text-5xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Invalid Invitation</h1>
+          <p className="text-foreground-muted mb-6">{data.error}</p>
           <a
             href="/login"
-            className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="inline-block px-6 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
           >
             Go to Login
           </a>
@@ -214,19 +214,19 @@ export default function AcceptInvite() {
   const { invitation: invite, existingUser } = data;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-surface-inset">
+      <div className="max-w-md w-full bg-surface-raised rounded-lg shadow-lg p-8">
         <div className="text-center mb-6">
-          <div className="text-blue-600 text-5xl mb-4">📧</div>
-          <h1 className="text-2xl font-bold text-gray-900">Accept Invitation</h1>
-          <p className="text-gray-600 mt-2">
+          <div className="text-brand text-5xl mb-4">📧</div>
+          <h1 className="text-2xl font-bold text-foreground">Accept Invitation</h1>
+          <p className="text-foreground-muted mt-2">
             You've been invited to join <strong>{invite?.organizationName}</strong> as a{" "}
             <strong>{invite?.role}</strong>.
           </p>
         </div>
 
         {actionData?.error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <div className="mb-4 p-3 bg-danger-muted border border-danger rounded-lg text-danger text-sm">
             {actionData.error}
           </div>
         )}
@@ -235,20 +235,20 @@ export default function AcceptInvite() {
           <input type="hidden" name="token" value={invite?.id} />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Email</label>
             <input
               type="email"
               value={invite?.email}
               disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-inset text-foreground-muted"
             />
           </div>
 
           {existingUser ? (
             <>
               <input type="hidden" name="existingUserId" value={existingUser.id} />
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-700">
+              <div className="p-4 bg-brand-muted rounded-lg">
+                <p className="text-sm text-brand">
                   Welcome back, <strong>{existingUser.name}</strong>! Click below to accept
                   the invitation and join the team.
                 </p>
@@ -257,20 +257,20 @@ export default function AcceptInvite() {
           ) : (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Your Name
                 </label>
                 <input
                   type="text"
                   name="name"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="Enter your name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Password
                 </label>
                 <input
@@ -278,13 +278,13 @@ export default function AcceptInvite() {
                   name="password"
                   required
                   minLength={8}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="Create a password (min 8 characters)"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Confirm Password
                 </label>
                 <input
@@ -292,7 +292,7 @@ export default function AcceptInvite() {
                   name="confirmPassword"
                   required
                   minLength={8}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="Confirm your password"
                 />
               </div>
@@ -302,15 +302,15 @@ export default function AcceptInvite() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 bg-brand text-white rounded-lg font-medium hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Accepting..." : "Accept Invitation"}
           </button>
         </Form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p className="mt-6 text-center text-sm text-foreground-muted">
           Already have an account?{" "}
-          <a href="/login" className="text-blue-600 hover:underline">
+          <a href="/login" className="text-brand hover:underline">
             Log in
           </a>
         </p>

@@ -44,7 +44,7 @@ export default function NewGalleryAlbumPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/gallery" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/gallery" className="text-brand hover:underline text-sm">
           ← Back to Gallery
         </Link>
         <h1 className="text-2xl font-bold mt-2">Create New Album</h1>
@@ -52,7 +52,7 @@ export default function NewGalleryAlbumPage() {
 
       <form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Album Information</h2>
           <div className="space-y-4">
             <div>
@@ -65,10 +65,10 @@ export default function NewGalleryAlbumPage() {
                 name="name"
                 required
                 placeholder="e.g., Summer 2024 Dives"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
               {actionData?.errors?.name && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.name}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
               )}
             </div>
 
@@ -81,9 +81,9 @@ export default function NewGalleryAlbumPage() {
                 id="slug"
                 name="slug"
                 placeholder="auto-generated from name"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Leave blank to auto-generate from album name
               </p>
             </div>
@@ -97,7 +97,7 @@ export default function NewGalleryAlbumPage() {
                 name="description"
                 rows={3}
                 placeholder="Brief description of this album..."
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
 
@@ -111,9 +111,9 @@ export default function NewGalleryAlbumPage() {
                 name="sortOrder"
                 min="0"
                 defaultValue="0"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Lower numbers appear first (0 = first, 10 = later)
               </p>
             </div>
@@ -121,7 +121,7 @@ export default function NewGalleryAlbumPage() {
         </div>
 
         {/* Visibility */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Visibility</h2>
           <label className="flex items-center gap-2">
             <input
@@ -133,7 +133,7 @@ export default function NewGalleryAlbumPage() {
             />
             <span className="text-sm font-medium">Show on public website</span>
           </label>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-foreground-muted mt-1">
             Make this album visible on your public gallery page
           </p>
         </div>
@@ -143,13 +143,13 @@ export default function NewGalleryAlbumPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Creating..." : "Create Album"}
           </button>
           <Link
             to="/tenant/gallery"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

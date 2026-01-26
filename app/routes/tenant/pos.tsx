@@ -415,18 +415,18 @@ export default function POSPage() {
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-white">
+      <div className="flex items-center justify-between p-4 border-b bg-surface-raised">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold">Point of Sale</h1>
           <button
             onClick={clearCart}
-            className="px-4 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200"
+            className="px-4 py-2 text-sm bg-surface-inset rounded-lg hover:bg-surface-overlay"
           >
             New Sale
           </button>
           <button
             onClick={() => setShowBarcodeScanner(true)}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            className="px-4 py-2 text-sm bg-brand text-white rounded-lg hover:bg-brand-hover flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -434,7 +434,7 @@ export default function POSPage() {
             Scan Barcode
           </button>
         </div>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-foreground-muted">
           {tenant.name} - {new Date().toLocaleDateString()}
         </div>
       </div>
@@ -442,7 +442,7 @@ export default function POSPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Product Grid */}
-        <div className="flex-1 flex flex-col bg-gray-50">
+        <div className="flex-1 flex flex-col bg-surface-inset">
           {/* Tabs */}
           <div className="flex gap-1 p-4 pb-0">
             {(["retail", "rentals", "trips"] as const).map(t => (
@@ -455,8 +455,8 @@ export default function POSPage() {
                 }}
                 className={`px-6 py-2 rounded-t-lg font-medium capitalize ${
                   tab === t
-                    ? "bg-white text-blue-600 border-t border-x"
-                    : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                    ? "bg-surface-raised text-brand border-t border-x"
+                    : "bg-surface-overlay text-foreground-muted hover:bg-border"
                 }`}
               >
                 {t}
@@ -465,7 +465,7 @@ export default function POSPage() {
           </div>
 
           {/* Grid */}
-          <div className="flex-1 bg-white border-t overflow-hidden">
+          <div className="flex-1 bg-surface-raised border-t overflow-hidden">
             <ProductGrid
               tab={tab}
               products={products}

@@ -14,11 +14,11 @@ export default function SiteDisabled() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+        <div className="bg-surface-raised rounded-2xl shadow-xl p-8 text-center">
           {/* Icon */}
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-brand-muted flex items-center justify-center">
             <svg
-              className="w-10 h-10 text-blue-600"
+              className="w-10 h-10 text-brand"
               fill="none"
               stroke="currentColor"
               strokeWidth={1.5}
@@ -33,10 +33,10 @@ export default function SiteDisabled() {
           </div>
 
           {/* Message */}
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+          <h1 className="text-2xl font-bold text-foreground mb-3">
             Public Site Unavailable
           </h1>
-          <p className="text-gray-600 mb-6 leading-relaxed">
+          <p className="text-foreground-muted mb-6 leading-relaxed">
             The public website for <strong>{orgName}</strong> is currently
             disabled. Please contact the organization directly for more
             information.
@@ -45,7 +45,7 @@ export default function SiteDisabled() {
           {/* Action */}
           <Link
             to="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand text-white font-semibold rounded-lg hover:bg-brand-hover transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -65,13 +65,13 @@ export default function SiteDisabled() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-sm text-gray-600 mt-6">
+        <p className="text-center text-sm text-foreground-muted mt-6">
           Powered by{" "}
           <a
             href="https://divestreams.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-brand hover:text-brand-hover font-medium"
           >
             DiveStreams
           </a>

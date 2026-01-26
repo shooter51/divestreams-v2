@@ -14,7 +14,7 @@ const paddingClasses = {
 
 export function Card({ children, className = "", padding = "md" }: CardProps) {
   return (
-    <div className={`bg-white rounded-xl shadow-sm ${paddingClasses[padding]} ${className}`}>
+    <div className={`bg-surface-raised rounded-xl shadow-sm ${paddingClasses[padding]} ${className}`}>
       {children}
     </div>
   );
@@ -31,7 +31,7 @@ export function CardHeader({ title, description, action }: CardHeaderProps) {
     <div className="flex justify-between items-start mb-4">
       <div>
         <h2 className="font-semibold">{title}</h2>
-        {description && <p className="text-gray-500 text-sm mt-1">{description}</p>}
+        {description && <p className="text-foreground-muted text-sm mt-1">{description}</p>}
       </div>
       {action && <div>{action}</div>}
     </div>
@@ -49,8 +49,8 @@ export function ClickableCard({ children, onClick, className = "", selected = fa
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-xl shadow-sm p-4 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all ${
-        selected ? "ring-2 ring-blue-500" : ""
+      className={`bg-surface-raised rounded-xl shadow-sm p-4 cursor-pointer hover:ring-2 hover:ring-brand transition-all ${
+        selected ? "ring-2 ring-brand" : ""
       } ${className}`}
     >
       {children}

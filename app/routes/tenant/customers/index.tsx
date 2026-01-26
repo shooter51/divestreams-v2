@@ -98,10 +98,10 @@ export default function CustomersPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Customers</h1>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {total} total customers
             {!isPremium && (
-              <span className="ml-2 text-sm text-gray-400">
+              <span className="ml-2 text-sm text-foreground-subtle">
                 ({usage}/{limit} used)
               </span>
             )}
@@ -111,8 +111,8 @@ export default function CustomersPage() {
           to="/tenant/customers/new"
           className={`px-4 py-2 rounded-lg ${
             canAddCustomer
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "bg-brand text-white hover:bg-brand-hover"
+              : "bg-border-strong text-foreground-muted cursor-not-allowed"
           }`}
           onClick={(e) => {
             if (!canAddCustomer) {
@@ -133,11 +133,11 @@ export default function CustomersPage() {
             name="search"
             defaultValue={search}
             placeholder="Search by name or email..."
-            className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+            className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
           >
             Search
           </button>
@@ -145,37 +145,37 @@ export default function CustomersPage() {
       </form>
 
       {/* Customer List */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-surface-inset border-b">
             <tr>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Name</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Contact</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Certification</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Dives</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Total Spent</th>
-              <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Last Dive</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Name</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Contact</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Certification</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Dives</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Total Spent</th>
+              <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">Last Dive</th>
               <th className="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {customers.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-foreground-muted">
                   {search ? "No customers found matching your search." : "No customers yet. Add your first customer to get started."}
                 </td>
               </tr>
             ) : (
               customers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-gray-50">
+                <tr key={customer.id} className="hover:bg-surface-inset">
                   <td className="px-6 py-4">
-                    <Link to={`/tenant/customers/${customer.id}`} className="font-medium text-blue-600 hover:underline">
+                    <Link to={`/tenant/customers/${customer.id}`} className="font-medium text-brand hover:underline">
                       {customer.firstName} {customer.lastName}
                     </Link>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm">{customer.email}</div>
-                    <div className="text-sm text-gray-500">{customer.phone}</div>
+                    <div className="text-sm text-foreground-muted">{customer.phone}</div>
                   </td>
                   <td className="px-6 py-4">
                     {customer.certifications?.[0] ? (
@@ -183,12 +183,12 @@ export default function CustomersPage() {
                         {customer.certifications[0].agency} {customer.certifications[0].level}
                       </span>
                     ) : (
-                      <span className="text-sm text-gray-400">None</span>
+                      <span className="text-sm text-foreground-subtle">None</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">{customer.totalDives}</td>
                   <td className="px-6 py-4 text-sm">${Number(customer.totalSpent || 0).toLocaleString()}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-foreground-muted">
                     {customer.lastDiveAt
                       ? new Date(customer.lastDiveAt).toLocaleDateString()
                       : "Never"}
@@ -196,7 +196,7 @@ export default function CustomersPage() {
                   <td className="px-6 py-4 text-right">
                     <Link
                       to={`/tenant/customers/${customer.id}`}
-                      className="text-blue-600 hover:underline text-sm"
+                      className="text-brand hover:underline text-sm"
                     >
                       View
                     </Link>
@@ -210,7 +210,7 @@ export default function CustomersPage() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="px-6 py-3 border-t flex justify-between items-center">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-foreground-muted">
               Page {page} of {totalPages}
             </span>
             <div className="flex gap-2">

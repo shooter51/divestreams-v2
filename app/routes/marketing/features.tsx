@@ -9,20 +9,20 @@ export const meta: MetaFunction = () => {
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-surface-raised">
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold text-blue-600">
+        <a href="/" className="text-2xl font-bold text-brand">
           DiveStreams
         </a>
         <div className="flex gap-6 items-center">
-          <a href="/features" className="text-blue-600 font-medium">
+          <a href="/features" className="text-brand font-medium">
             Features
           </a>
-          <a href="/pricing" className="text-gray-600 hover:text-blue-600">
+          <a href="/pricing" className="text-foreground-muted hover:text-brand">
             Pricing
           </a>
-          <a href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <a href="/signup" className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover">
             Start Free Trial
           </a>
         </div>
@@ -30,10 +30,10 @@ export default function FeaturesPage() {
 
       {/* Hero */}
       <section className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <h1 className="text-4xl font-bold text-foreground mb-4">
           Powerful Features for Modern Dive Shops
         </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        <p className="text-xl text-foreground-muted max-w-2xl mx-auto">
           Everything you need to manage bookings, customers, equipment, and operations in one platform.
         </p>
       </section>
@@ -107,7 +107,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-blue-600 text-white py-20 mt-16">
+      <section className="bg-brand text-white py-20 mt-16">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-xl mb-8 text-blue-100">
@@ -115,7 +115,7 @@ export default function FeaturesPage() {
           </p>
           <a
             href="/signup"
-            className="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg hover:bg-blue-50 inline-block"
+            className="bg-surface-raised text-brand px-8 py-3 rounded-lg text-lg hover:bg-brand-muted inline-block"
           >
             Start Your Free Trial
           </a>
@@ -140,11 +140,11 @@ function FeatureSection({
     <div className={`flex flex-col md:flex-row gap-12 items-center ${align === "right" ? "md:flex-row-reverse" : ""}`}>
       <div className="flex-1">
         <h2 className="text-3xl font-bold mb-4">{title}</h2>
-        <p className="text-gray-600 mb-6">{description}</p>
+        <p className="text-foreground-muted mb-6">{description}</p>
         <ul className="space-y-3">
           {features.map((feature) => (
             <li key={feature} className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               {feature}
@@ -152,7 +152,7 @@ function FeatureSection({
           ))}
         </ul>
       </div>
-      <div className="flex-1 bg-gray-100 rounded-xl h-64 flex items-center justify-center text-gray-400">
+      <div className="flex-1 bg-surface-inset rounded-xl h-64 flex items-center justify-center text-foreground-subtle">
         Feature Screenshot
       </div>
     </div>

@@ -105,12 +105,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const tourTypes: Record<string, { label: string; color: string }> = {
-  single_dive: { label: "Single Dive", color: "bg-blue-100 text-blue-700" },
-  multi_dive: { label: "Multi-Dive", color: "bg-indigo-100 text-indigo-700" },
-  course: { label: "Course", color: "bg-purple-100 text-purple-700" },
+  single_dive: { label: "Single Dive", color: "bg-brand-muted text-brand" },
+  multi_dive: { label: "Multi-Dive", color: "bg-info-muted text-info" },
+  course: { label: "Course", color: "bg-info-muted text-info" },
   snorkel: { label: "Snorkel", color: "bg-cyan-100 text-cyan-700" },
   night_dive: { label: "Night Dive", color: "bg-slate-100 text-slate-700" },
-  other: { label: "Other", color: "bg-gray-100 text-gray-700" },
+  other: { label: "Other", color: "bg-surface-inset text-foreground" },
 };
 
 export default function ToursPage() {
@@ -165,10 +165,10 @@ export default function ToursPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Tours</h1>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {total} tour templates
             {!isPremium && (
-              <span className="ml-2 text-sm text-gray-400">
+              <span className="ml-2 text-sm text-foreground-subtle">
                 ({usage}/{limit} used)
               </span>
             )}
@@ -178,8 +178,8 @@ export default function ToursPage() {
           to="/tenant/tours/new"
           className={`px-4 py-2 rounded-lg ${
             canAddTour
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "bg-brand text-white hover:bg-brand-hover"
+              : "bg-surface-overlay text-foreground-muted cursor-not-allowed"
           }`}
           onClick={(e) => {
             if (!canAddTour) {
@@ -199,12 +199,12 @@ export default function ToursPage() {
           name="search"
           defaultValue={search}
           placeholder="Search tours..."
-          className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         />
         <select
           name="type"
           defaultValue={typeFilter}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
           <option value="">All Types</option>
           <option value="single_dive">Single Dive</option>
@@ -216,7 +216,7 @@ export default function ToursPage() {
         </select>
         <button
           type="submit"
-          className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+          className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
         >
           Filter
         </button>
@@ -224,8 +224,8 @@ export default function ToursPage() {
 
       {/* Tour Grid */}
       {tours.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm text-center">
-          <p className="text-gray-500">
+        <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
+          <p className="text-foreground-muted">
             {search || typeFilter
               ? "No tours found matching your filters."
               : "No tours yet. Create your first tour template to get started."}
@@ -237,12 +237,12 @@ export default function ToursPage() {
             <Link
               key={tour.id}
               to={`/tenant/tours/${tour.id}`}
-              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-surface-raised rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start mb-3">
                 <h3 className="font-semibold text-lg">{tour.name}</h3>
                 {!tour.isActive && (
-                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded">
+                  <span className="text-xs bg-surface-inset text-foreground-muted px-2 py-1 rounded">
                     Inactive
                   </span>
                 )}
@@ -252,19 +252,19 @@ export default function ToursPage() {
                 <div className="flex items-center gap-2">
                   <span
                     className={`text-xs px-2 py-1 rounded ${
-                      tourTypes[tour.type]?.color || "bg-gray-100 text-gray-700"
+                      tourTypes[tour.type]?.color || "bg-surface-inset text-foreground"
                     }`}
                   >
                     {tourTypes[tour.type]?.label || tour.type}
                   </span>
                   {tour.minCertLevel && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-foreground-muted">
                       {tour.minCertLevel}+
                     </span>
                   )}
                 </div>
 
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-foreground-muted">
                   <span>{formatDuration(tour.duration)}</span>
                   <span>Max {tour.maxParticipants} pax</span>
                 </div>
@@ -273,7 +273,7 @@ export default function ToursPage() {
                   <span className="font-semibold text-lg">
                     ${tour.price}
                   </span>
-                  <span className="text-gray-500">
+                  <span className="text-foreground-muted">
                     {tour.tripCount} trips run
                   </span>
                 </div>

@@ -82,10 +82,10 @@ export default function TenantLayout() {
   ];
 
   return (
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-surface-inset">
         {/* Trial Banner */}
         {isTrialing && trialDaysLeft > 0 && (
-          <div className="bg-blue-600 text-white text-center py-2 text-sm">
+          <div className="bg-brand text-white text-center py-2 text-sm">
             You have {trialDaysLeft} days left in your free trial.{" "}
             <Link to="/tenant/settings/billing" className="underline font-medium">
               Upgrade now
@@ -95,10 +95,10 @@ export default function TenantLayout() {
 
         <div className="flex">
           {/* Sidebar */}
-          <aside className="w-64 bg-white h-screen border-r border-gray-200 fixed flex flex-col">
-            <div className="p-4 border-b flex-shrink-0">
-              <h1 className="text-xl font-bold text-blue-600">{tenant.name}</h1>
-              <p className="text-sm text-gray-500">{tenant.subdomain}.{getBaseDomain()}</p>
+          <aside className="w-64 bg-surface h-screen border-r border-border fixed flex flex-col">
+            <div className="p-4 border-b border-border flex-shrink-0">
+              <h1 className="text-xl font-bold text-brand">{tenant.name}</h1>
+              <p className="text-sm text-foreground-muted">{tenant.subdomain}.{getBaseDomain()}</p>
             </div>
 
             <nav className="p-4 flex-1 overflow-y-auto">
@@ -119,8 +119,8 @@ export default function TenantLayout() {
                           to={item.href}
                           className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                             isActive
-                              ? "bg-blue-50 text-blue-600"
-                              : "text-gray-600 hover:bg-gray-50"
+                              ? "bg-brand-muted text-brand"
+                              : "text-foreground-muted hover:bg-surface-inset"
                           }`}
                         >
                           <span>{item.icon}</span>
@@ -134,7 +134,7 @@ export default function TenantLayout() {
                       <li key={item.href}>
                         <button
                           onClick={() => setUpgradeFeature(item.feature!)}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-50"
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-foreground-subtle hover:bg-surface-inset"
                           aria-label={`${item.label} - locked feature, click to upgrade`}
                         >
                           <span className="opacity-50">{item.icon}</span>
@@ -150,16 +150,16 @@ export default function TenantLayout() {
               </ul>
             </nav>
 
-            <div className="p-4 border-t bg-white flex-shrink-0">
+            <div className="p-4 border-t border-border bg-surface flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-surface-overlay rounded-full flex items-center justify-center">
                   👤
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">Staff User</p>
-                  <p className="text-xs text-gray-500">Manager</p>
+                  <p className="text-sm font-medium text-foreground truncate">Staff User</p>
+                  <p className="text-xs text-foreground-muted">Manager</p>
                 </div>
-                <Link to="/auth/logout" className="text-gray-400 hover:text-gray-600">
+                <Link to="/auth/logout" className="text-foreground-subtle hover:text-foreground-muted">
                   ↪️
                 </Link>
               </div>

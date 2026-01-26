@@ -149,30 +149,30 @@ export default function LevelsPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <Link to="/tenant/settings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/settings" className="text-brand hover:underline text-sm">
           &larr; Back to Settings
         </Link>
         <h1 className="text-2xl font-bold mt-2">Certification Levels</h1>
-        <p className="text-gray-500">
+        <p className="text-foreground-muted">
           Manage certification levels (Open Water, Advanced, Rescue, Divemaster, etc.)
         </p>
       </div>
 
       {/* Success/Error Messages */}
       {actionData?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
           {actionData.message}
         </div>
       )}
       {actionData?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {actionData.error}
         </div>
       )}
 
       {/* No Agencies Warning */}
       {agencies.length === 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-warning-muted border border-warning text-warning px-4 py-3 rounded-lg mb-6">
           <p className="font-medium">No certification agencies configured</p>
           <p className="text-sm">
             <Link to="/tenant/settings/training/agencies" className="underline">
@@ -184,24 +184,24 @@ export default function LevelsPage() {
       )}
 
       {/* Common Levels Reference */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
-        <h3 className="font-medium text-gray-700 mb-2">Common Certification Levels</h3>
+      <div className="bg-surface-inset border border-border rounded-xl p-4 mb-6">
+        <h3 className="font-medium text-foreground mb-2">Common Certification Levels</h3>
         <div className="grid grid-cols-5 gap-2 text-sm">
           {commonLevels.map((level) => (
-            <div key={level.code} className="text-center p-2 bg-white rounded border">
+            <div key={level.code} className="text-center p-2 bg-surface-raised rounded border">
               <div className="font-medium">{level.code}</div>
-              <div className="text-xs text-gray-500">{level.name}</div>
+              <div className="text-xs text-foreground-muted">{level.name}</div>
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-foreground-muted mt-2">
           These are common levels across agencies. Add your own based on the agencies you work with.
         </p>
       </div>
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="bg-surface-raised rounded-xl shadow-sm p-6 mb-6">
           <h2 className="font-semibold mb-4">
             {editingLevel ? "Edit Level" : "Add New Level"}
           </h2>
@@ -224,7 +224,7 @@ export default function LevelsPage() {
                     required
                     defaultValue={editingLevel?.name || ""}
                     placeholder="e.g., Open Water Diver"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -238,7 +238,7 @@ export default function LevelsPage() {
                     required
                     defaultValue={editingLevel?.code || ""}
                     placeholder="e.g., OW"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -252,9 +252,9 @@ export default function LevelsPage() {
                     min="0"
                     defaultValue={editingLevel?.levelNumber || 0}
                     placeholder="1"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
-                  <p className="text-xs text-gray-500 mt-1">For sorting (1=beginner)</p>
+                  <p className="text-xs text-foreground-muted mt-1">For sorting (1=beginner)</p>
                 </div>
               </div>
 
@@ -266,7 +266,7 @@ export default function LevelsPage() {
                   id="agencyId"
                   name="agencyId"
                   defaultValue={editingLevel?.agencyId || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 >
                   <option value="">-- Select Agency (optional) --</option>
                   {agencies.map((agency) => (
@@ -287,7 +287,7 @@ export default function LevelsPage() {
                   rows={2}
                   defaultValue={editingLevel?.description || ""}
                   placeholder="Brief description of this certification level"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -301,7 +301,7 @@ export default function LevelsPage() {
                   rows={2}
                   defaultValue={editingLevel?.prerequisites || ""}
                   placeholder="e.g., Open Water certification required"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
 
@@ -317,7 +317,7 @@ export default function LevelsPage() {
                     min="0"
                     defaultValue={editingLevel?.minAge || ""}
                     placeholder="e.g., 10"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -331,7 +331,7 @@ export default function LevelsPage() {
                     min="0"
                     defaultValue={editingLevel?.minDives || ""}
                     placeholder="e.g., 4"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                   />
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function LevelsPage() {
                   />
                   <span className="text-sm font-medium">Active</span>
                 </label>
-                <p className="text-xs text-gray-500 ml-6">
+                <p className="text-xs text-foreground-muted ml-6">
                   Inactive levels won&apos;t appear in dropdowns
                 </p>
               </div>
@@ -357,14 +357,14 @@ export default function LevelsPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
               >
                 {isSubmitting ? "Saving..." : editingLevel ? "Update Level" : "Add Level"}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
-                className="border px-4 py-2 rounded-lg hover:bg-gray-50"
+                className="border px-4 py-2 rounded-lg hover:bg-surface-inset"
               >
                 Cancel
               </button>
@@ -376,14 +376,14 @@ export default function LevelsPage() {
       {/* Filter and Add Button */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <label htmlFor="filterAgency" className="text-sm text-gray-600">
+          <label htmlFor="filterAgency" className="text-sm text-foreground-muted">
             Filter by Agency:
           </label>
           <select
             id="filterAgency"
             value={filterAgencyId}
             onChange={(e) => setFilterAgencyId(e.target.value)}
-            className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-brand"
           >
             <option value="">All Agencies</option>
             {agencies.map((agency) => (
@@ -396,7 +396,7 @@ export default function LevelsPage() {
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
             Add Level
           </button>
@@ -404,9 +404,9 @@ export default function LevelsPage() {
       </div>
 
       {/* Levels List */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         {filteredLevels.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-foreground-muted">
             <p className="mb-2">
               {filterAgencyId
                 ? "No certification levels found for this agency."
@@ -424,8 +424,8 @@ export default function LevelsPage() {
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
                       level.isActive
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-500"
+                        ? "bg-success-muted text-success"
+                        : "bg-surface-inset text-foreground-muted"
                     }`}
                   >
                     {level.levelNumber || "-"}
@@ -433,27 +433,27 @@ export default function LevelsPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium">{level.name}</p>
-                      <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">
+                      <span className="text-xs px-2 py-0.5 bg-surface-inset text-foreground-muted rounded">
                         {level.code}
                       </span>
                       {!level.isActive && (
-                        <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded">
+                        <span className="text-xs px-2 py-0.5 bg-surface-inset text-foreground-muted rounded">
                           Inactive
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-500">
+                    <div className="flex items-center gap-3 text-sm text-foreground-muted">
                       {level.agencyName && (
-                        <span className="text-blue-600">{level.agencyName}</span>
+                        <span className="text-brand">{level.agencyName}</span>
                       )}
                       {level.minAge && <span>Min Age: {level.minAge}</span>}
                       {level.minDives && <span>Min Dives: {level.minDives}</span>}
                     </div>
                     {level.description && (
-                      <p className="text-sm text-gray-500 mt-1">{level.description}</p>
+                      <p className="text-sm text-foreground-muted mt-1">{level.description}</p>
                     )}
                     {level.prerequisites && (
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-foreground-subtle mt-1">
                         Prerequisites: {level.prerequisites}
                       </p>
                     )}
@@ -463,7 +463,7 @@ export default function LevelsPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(level)}
-                    className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                    className="px-3 py-1.5 text-sm text-foreground-muted hover:bg-surface-overlay rounded-lg"
                   >
                     Edit
                   </button>
@@ -483,7 +483,7 @@ export default function LevelsPage() {
                     <input type="hidden" name="levelId" value={level.id} />
                     <button
                       type="submit"
-                      className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                      className="px-3 py-1.5 text-sm text-danger hover:bg-danger-muted rounded-lg"
                     >
                       Delete
                     </button>
@@ -496,13 +496,13 @@ export default function LevelsPage() {
       </div>
 
       {/* Level Descriptions */}
-      <div className="bg-white rounded-xl p-6 shadow-sm mt-6">
+      <div className="bg-surface-raised rounded-xl p-6 shadow-sm mt-6">
         <h3 className="font-semibold mb-4">Level Order Explanation</h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-foreground-muted mb-4">
           The level order number helps organize certifications from beginner to advanced.
           Lower numbers represent entry-level certifications.
         </p>
-        <div className="text-sm text-gray-500 space-y-1">
+        <div className="text-sm text-foreground-muted space-y-1">
           <p><strong>1</strong> - Entry Level (e.g., Open Water)</p>
           <p><strong>2</strong> - Intermediate (e.g., Advanced Open Water)</p>
           <p><strong>3</strong> - Advanced (e.g., Rescue Diver)</p>

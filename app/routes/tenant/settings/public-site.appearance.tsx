@@ -117,13 +117,13 @@ export default function PublicSiteAppearanceSettings() {
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg">
           {fetcher.data.message}
         </div>
       )}
 
       {fetcher.data?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg">
           {fetcher.data.error}
         </div>
       )}
@@ -132,9 +132,9 @@ export default function PublicSiteAppearanceSettings() {
         <input type="hidden" name="intent" value="update-appearance" />
 
         {/* Theme Selector */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
           <h2 className="font-semibold mb-2">Theme</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-foreground-muted mb-4">
             Choose a pre-designed theme for your public site
           </p>
 
@@ -142,10 +142,10 @@ export default function PublicSiteAppearanceSettings() {
             {themes.map((themeOption) => (
               <label
                 key={themeOption.id}
-                className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-blue-300 ${
+                className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-brand ${
                   theme === themeOption.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200"
+                    ? "border-brand bg-brand-muted"
+                    : "border-border"
                 }`}
               >
                 <input
@@ -166,9 +166,9 @@ export default function PublicSiteAppearanceSettings() {
                   ))}
                 </div>
                 <p className="font-medium">{themeOption.name}</p>
-                <p className="text-xs text-gray-500">{themeOption.description}</p>
+                <p className="text-xs text-foreground-muted">{themeOption.description}</p>
                 {theme === themeOption.id && (
-                  <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center">
                     <svg
                       className="w-3 h-3 text-white"
                       fill="currentColor"
@@ -188,9 +188,9 @@ export default function PublicSiteAppearanceSettings() {
         </div>
 
         {/* Custom Colors */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
           <h2 className="font-semibold mb-2">Custom Colors</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-foreground-muted mb-4">
             Override theme colors with your brand colors
           </p>
 
@@ -214,7 +214,7 @@ export default function PublicSiteAppearanceSettings() {
                   value={primaryColor}
                   placeholder="#0ea5e9"
                   pattern="^#[0-9A-Fa-f]{6}$"
-                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono"
                   onChange={(e) => {
                     if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) {
                       setPrimaryColor(e.target.value);
@@ -222,7 +222,7 @@ export default function PublicSiteAppearanceSettings() {
                   }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Used for buttons, links, accents</p>
+              <p className="text-xs text-foreground-muted mt-1">Used for buttons, links, accents</p>
             </div>
 
             <div>
@@ -244,7 +244,7 @@ export default function PublicSiteAppearanceSettings() {
                   value={secondaryColor}
                   placeholder="#06b6d4"
                   pattern="^#[0-9A-Fa-f]{6}$"
-                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono"
                   onChange={(e) => {
                     if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) {
                       setSecondaryColor(e.target.value);
@@ -252,13 +252,13 @@ export default function PublicSiteAppearanceSettings() {
                   }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Used for highlights, hover states</p>
+              <p className="text-xs text-foreground-muted mt-1">Used for highlights, hover states</p>
             </div>
           </div>
 
           {/* Color Preview */}
-          <div className="mt-4 p-4 border rounded-lg bg-gray-50">
-            <p className="text-sm font-medium text-gray-600 mb-3">Color Preview</p>
+          <div className="mt-4 p-4 border rounded-lg bg-surface-inset">
+            <p className="text-sm font-medium text-foreground-muted mb-3">Color Preview</p>
             <div className="flex items-center gap-4">
               <button
                 type="button"
@@ -282,18 +282,18 @@ export default function PublicSiteAppearanceSettings() {
         </div>
 
         {/* Font Family */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm mb-6">
           <h2 className="font-semibold mb-2">Font Family</h2>
-          <p className="text-sm text-gray-500 mb-4">Choose the typography for your site</p>
+          <p className="text-sm text-foreground-muted mb-4">Choose the typography for your site</p>
 
           <div className="grid grid-cols-2 gap-4">
             {fontFamilies.map((font) => (
               <label
                 key={font.id}
-                className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-blue-300 ${
+                className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-brand ${
                   fontFamily === font.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200"
+                    ? "border-brand bg-brand-muted"
+                    : "border-border"
                 }`}
               >
                 <input
@@ -319,9 +319,9 @@ export default function PublicSiteAppearanceSettings() {
                 >
                   {font.name}
                 </p>
-                <p className="text-sm text-gray-500">{font.sample}</p>
+                <p className="text-sm text-foreground-muted">{font.sample}</p>
                 {fontFamily === font.id && (
-                  <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center">
                     <svg
                       className="w-3 h-3 text-white"
                       fill="currentColor"
@@ -341,11 +341,11 @@ export default function PublicSiteAppearanceSettings() {
         </div>
 
         {/* Preview Button */}
-        <div className="bg-gray-50 rounded-xl p-6 mb-6">
+        <div className="bg-surface-inset rounded-xl p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-semibold">Preview Your Site</h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-foreground-muted">
                 See how your changes look on the public site
               </p>
             </div>
@@ -377,7 +377,7 @@ export default function PublicSiteAppearanceSettings() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Saving..." : "Save Appearance Settings"}
           </button>

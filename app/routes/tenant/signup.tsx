@@ -199,18 +199,18 @@ export default function SignupPage() {
   const hasNumber = /[0-9]/.test(password);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-surface-inset flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo */}
         <div className="flex justify-center">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-brand rounded-xl flex items-center justify-center">
             <span className="text-white text-2xl font-bold">D</span>
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-bold text-foreground">
           Create your account
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-foreground-muted">
           {isCustomerSignup ? (
             <>Join <span className="font-medium">{orgName}</span> as a customer</>
           ) : (
@@ -220,11 +220,11 @@ export default function SignupPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm rounded-xl sm:px-10">
+        <div className="bg-surface-raised py-8 px-4 shadow-sm rounded-xl sm:px-10">
           {/* Form Error Message */}
           {errors.form && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{errors.form}</p>
+            <div className="mb-4 p-3 bg-danger-muted border border-danger rounded-lg">
+              <p className="text-sm text-danger">{errors.form}</p>
             </div>
           )}
 
@@ -233,8 +233,8 @@ export default function SignupPage() {
 
             {/* Name Field */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full name <span className="text-red-500">*</span>
+              <label htmlFor="name" className="block text-sm font-medium text-foreground">
+                Full name <span className="text-danger">*</span>
               </label>
               <div className="mt-1">
                 <input
@@ -244,21 +244,21 @@ export default function SignupPage() {
                   autoComplete="name"
                   required
                   defaultValue={values.name || ""}
-                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.name ? "border-red-300" : "border-gray-300"
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
+                    errors.name ? "border-danger" : "border-border-strong"
                   }`}
                   placeholder="John Doe"
                 />
               </div>
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                <p className="mt-1 text-sm text-danger">{errors.name}</p>
               )}
             </div>
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address <span className="text-red-500">*</span>
+              <label htmlFor="email" className="block text-sm font-medium text-foreground">
+                Email address <span className="text-danger">*</span>
               </label>
               <div className="mt-1">
                 <input
@@ -268,21 +268,21 @@ export default function SignupPage() {
                   autoComplete="email"
                   required
                   defaultValue={values.email || ""}
-                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.email ? "border-red-300" : "border-gray-300"
+                  className={`appearance-none block w-full px-3 py-2 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
+                    errors.email ? "border-danger" : "border-border-strong"
                   }`}
                   placeholder="you@example.com"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                <p className="mt-1 text-sm text-danger">{errors.email}</p>
               )}
             </div>
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password <span className="text-red-500">*</span>
+              <label htmlFor="password" className="block text-sm font-medium text-foreground">
+                Password <span className="text-danger">*</span>
               </label>
               <div className="mt-1 relative">
                 <input
@@ -293,15 +293,15 @@ export default function SignupPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.password ? "border-red-300" : "border-gray-300"
+                  className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
+                    errors.password ? "border-danger" : "border-border-strong"
                   }`}
                   placeholder="Create a password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-foreground-subtle hover:text-foreground-muted"
                 >
                   {showPassword ? (
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -316,13 +316,13 @@ export default function SignupPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                <p className="mt-1 text-sm text-danger">{errors.password}</p>
               )}
 
               {/* Password Requirements */}
               {password.length > 0 && (
                 <div className="mt-2 space-y-1">
-                  <p className="text-xs text-gray-500 font-medium">Password requirements:</p>
+                  <p className="text-xs text-foreground-muted font-medium">Password requirements:</p>
                   <div className="grid grid-cols-2 gap-1">
                     <RequirementCheck met={hasMinLength} text="8+ characters" />
                     <RequirementCheck met={hasUppercase} text="Uppercase letter" />
@@ -335,8 +335,8 @@ export default function SignupPage() {
 
             {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm password <span className="text-red-500">*</span>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
+                Confirm password <span className="text-danger">*</span>
               </label>
               <div className="mt-1 relative">
                 <input
@@ -345,15 +345,15 @@ export default function SignupPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
-                  className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.confirmPassword ? "border-red-300" : "border-gray-300"
+                  className={`appearance-none block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand ${
+                    errors.confirmPassword ? "border-danger" : "border-border-strong"
                   }`}
                   placeholder="Confirm your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-foreground-subtle hover:text-foreground-muted"
                 >
                   {showConfirmPassword ? (
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -368,18 +368,18 @@ export default function SignupPage() {
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                <p className="mt-1 text-sm text-danger">{errors.confirmPassword}</p>
               )}
             </div>
 
             {/* Terms */}
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-foreground-muted">
               By creating an account, you agree to our{" "}
-              <Link to="/terms" className="text-blue-600 hover:text-blue-500">
+              <Link to="/terms" className="text-brand hover:text-brand">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link to="/privacy" className="text-blue-600 hover:text-blue-500">
+              <Link to="/privacy" className="text-brand hover:text-brand">
                 Privacy Policy
               </Link>
               .
@@ -390,7 +390,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand disabled:bg-brand-disabled disabled:cursor-not-allowed transition-colors"
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
@@ -409,11 +409,11 @@ export default function SignupPage() {
 
           {/* Sign In Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-foreground-muted">
               Already have an account?{" "}
               <Link
                 to={`/login${redirectTo !== "/tenant" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="font-medium text-brand hover:text-brand"
               >
                 Sign in
               </Link>
@@ -427,7 +427,7 @@ export default function SignupPage() {
 
 function RequirementCheck({ met, text }: { met: boolean; text: string }) {
   return (
-    <div className={`flex items-center gap-1 text-xs ${met ? "text-green-600" : "text-gray-400"}`}>
+    <div className={`flex items-center gap-1 text-xs ${met ? "text-success" : "text-foreground-subtle"}`}>
       {met ? (
         <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />

@@ -25,7 +25,7 @@ export function OrgSwitcher({ currentOrg, userOrgs }: Props) {
     return (
       <div className="flex items-center gap-2">
         <OrgAvatar org={currentOrg} size="sm" />
-        <span className="font-medium text-gray-900">{currentOrg.name}</span>
+        <span className="font-medium text-foreground">{currentOrg.name}</span>
       </div>
     );
   }
@@ -61,11 +61,11 @@ export function OrgSwitcher({ currentOrg, userOrgs }: Props) {
       {/* Trigger button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-overlay transition-colors"
       >
         <OrgAvatar org={currentOrg} size="sm" />
-        <span className="font-medium text-gray-900">{currentOrg.name}</span>
-        <ChevronDownIcon className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <span className="font-medium text-foreground">{currentOrg.name}</span>
+        <ChevronDownIcon className={`w-4 h-4 text-foreground-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {/* Dropdown */}
@@ -78,9 +78,9 @@ export function OrgSwitcher({ currentOrg, userOrgs }: Props) {
           />
 
           {/* Dropdown menu */}
-          <div className="absolute left-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-            <div className="px-3 py-2 border-b border-gray-100">
-              <p className="text-xs text-gray-500 uppercase font-medium">Switch Organization</p>
+          <div className="absolute left-0 top-full mt-1 w-64 bg-surface-raised rounded-lg shadow-lg border border-border py-1 z-20">
+            <div className="px-3 py-2 border-b border-border">
+              <p className="text-xs text-foreground-muted uppercase font-medium">Switch Organization</p>
             </div>
 
             <div className="max-h-64 overflow-y-auto">
@@ -93,19 +93,19 @@ export function OrgSwitcher({ currentOrg, userOrgs }: Props) {
                     onClick={() => handleOrgSwitch(org)}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
                       isCurrentOrg
-                        ? "bg-blue-50"
-                        : "hover:bg-gray-50"
+                        ? "bg-brand-muted"
+                        : "hover:bg-surface-inset"
                     }`}
                   >
                     <OrgAvatar org={org} size="md" />
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium truncate ${isCurrentOrg ? "text-blue-700" : "text-gray-900"}`}>
+                      <p className={`font-medium truncate ${isCurrentOrg ? "text-brand" : "text-foreground"}`}>
                         {org.name}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">{org.slug}</p>
+                      <p className="text-xs text-foreground-muted truncate">{org.slug}</p>
                     </div>
                     {isCurrentOrg && (
-                      <CheckIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <CheckIcon className="w-5 h-5 text-brand flex-shrink-0" />
                     )}
                   </button>
                 );

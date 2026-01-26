@@ -116,7 +116,7 @@ export function ProductGrid({
           placeholder={`Search ${tab}...`}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
         />
       </div>
 
@@ -127,8 +127,8 @@ export function ProductGrid({
             onClick={() => onSelectCategory(null)}
             className={`px-3 py-1 rounded-full text-sm ${
               !selectedCategory
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-brand text-white"
+                : "bg-surface-inset text-foreground hover:bg-surface-overlay"
             }`}
           >
             All
@@ -139,8 +139,8 @@ export function ProductGrid({
               onClick={() => onSelectCategory(cat)}
               className={`px-3 py-1 rounded-full text-sm capitalize ${
                 selectedCategory === cat
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-brand text-white"
+                  : "bg-surface-inset text-foreground hover:bg-surface-overlay"
               }`}
             >
               {cat}
@@ -160,12 +160,12 @@ export function ProductGrid({
               key={product.id}
               onClick={() => onAddProduct({ ...product, price: effectivePrice.toString() })}
               disabled={product.stockQuantity <= 0}
-              className={`p-4 bg-white rounded-lg shadow-sm border hover:border-blue-400 hover:shadow-md transition-all text-left relative ${
+              className={`p-4 bg-surface-raised rounded-lg shadow-sm border hover:border-brand hover:shadow-md transition-all text-left relative ${
                 product.stockQuantity <= 0 ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               {onSale && (
-                <span className="absolute top-2 right-2 px-2 py-0.5 text-xs bg-red-500 text-white rounded-full font-semibold">
+                <span className="absolute top-2 right-2 px-2 py-0.5 text-xs bg-danger text-white rounded-full font-semibold">
                   SALE
                 </span>
               )}
@@ -179,13 +179,13 @@ export function ProductGrid({
               <p className="font-medium truncate">{product.name}</p>
               {onSale ? (
                 <div>
-                  <span className="text-lg font-bold text-red-600">${effectivePrice.toFixed(2)}</span>
-                  <span className="text-sm text-gray-400 line-through ml-2">${Number(product.price).toFixed(2)}</span>
+                  <span className="text-lg font-bold text-danger">${effectivePrice.toFixed(2)}</span>
+                  <span className="text-sm text-foreground-subtle line-through ml-2">${Number(product.price).toFixed(2)}</span>
                 </div>
               ) : (
-                <p className="text-lg font-bold text-blue-600">${Number(product.price).toFixed(2)}</p>
+                <p className="text-lg font-bold text-brand">${Number(product.price).toFixed(2)}</p>
               )}
-              <p className="text-xs text-gray-500">{product.stockQuantity} in stock</p>
+              <p className="text-xs text-foreground-muted">{product.stockQuantity} in stock</p>
             </button>
             );
           })}
@@ -209,13 +209,13 @@ export function ProductGrid({
 
         {/* Empty states */}
         {tab === "retail" && filteredProducts.length === 0 && (
-          <p className="text-center text-gray-500 py-8">No products found</p>
+          <p className="text-center text-foreground-muted py-8">No products found</p>
         )}
         {tab === "rentals" && filteredEquipment.length === 0 && (
-          <p className="text-center text-gray-500 py-8">No equipment available</p>
+          <p className="text-center text-foreground-muted py-8">No equipment available</p>
         )}
         {tab === "trips" && filteredTrips.length === 0 && (
-          <p className="text-center text-gray-500 py-8">No trips scheduled today</p>
+          <p className="text-center text-foreground-muted py-8">No trips scheduled today</p>
         )}
       </div>
     </div>
@@ -236,10 +236,10 @@ function RentalCard({
   if (!equipment.rentalPrice) return null;
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-sm border">
+    <div className="p-4 bg-surface-raised rounded-lg shadow-sm border">
       <p className="font-medium truncate">{equipment.name}</p>
-      {equipment.size && <p className="text-sm text-gray-600">Size: {equipment.size}</p>}
-      <p className="text-lg font-bold text-green-600">${Number(equipment.rentalPrice).toFixed(2)}/day</p>
+      {equipment.size && <p className="text-sm text-foreground-muted">Size: {equipment.size}</p>}
+      <p className="text-lg font-bold text-success">${Number(equipment.rentalPrice).toFixed(2)}/day</p>
 
       {!showDays ? (
         <button
@@ -253,14 +253,14 @@ function RentalCard({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setDays(Math.max(1, days - 1))}
-              className="w-8 h-8 rounded bg-gray-200 hover:bg-gray-300"
+              className="w-8 h-8 rounded bg-surface-overlay hover:bg-border"
             >
               -
             </button>
             <span className="flex-1 text-center">{days} day{days > 1 ? "s" : ""}</span>
             <button
               onClick={() => setDays(days + 1)}
-              className="w-8 h-8 rounded bg-gray-200 hover:bg-gray-300"
+              className="w-8 h-8 rounded bg-surface-overlay hover:bg-border"
             >
               +
             </button>
@@ -293,18 +293,18 @@ function TripCard({
   const [participants, setParticipants] = useState(1);
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-sm border">
+    <div className="p-4 bg-surface-raised rounded-lg shadow-sm border">
       <p className="font-medium">{trip.tour.name}</p>
-      <p className="text-sm text-gray-600">{trip.startTime}</p>
-      <p className="text-lg font-bold text-purple-600">${Number(trip.tour.price).toFixed(2)}</p>
-      <p className="text-xs text-gray-500">{trip.available} spots left</p>
+      <p className="text-sm text-foreground-muted">{trip.startTime}</p>
+      <p className="text-lg font-bold text-info">${Number(trip.tour.price).toFixed(2)}</p>
+      <p className="text-xs text-foreground-muted">{trip.available} spots left</p>
 
       {trip.available <= 0 ? (
-        <p className="mt-2 text-center text-red-500 text-sm">Fully booked</p>
+        <p className="mt-2 text-center text-danger text-sm">Fully booked</p>
       ) : !showParticipants ? (
         <button
           onClick={() => setShowParticipants(true)}
-          className="mt-2 w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+          className="mt-2 w-full py-2 bg-info text-white rounded-lg hover:bg-info-hover text-sm"
         >
           Book Now
         </button>
@@ -313,14 +313,14 @@ function TripCard({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setParticipants(Math.max(1, participants - 1))}
-              className="w-8 h-8 rounded bg-gray-200 hover:bg-gray-300"
+              className="w-8 h-8 rounded bg-surface-overlay hover:bg-border"
             >
               -
             </button>
             <span className="flex-1 text-center">{participants}</span>
             <button
               onClick={() => setParticipants(Math.min(trip.available, participants + 1))}
-              className="w-8 h-8 rounded bg-gray-200 hover:bg-gray-300"
+              className="w-8 h-8 rounded bg-surface-overlay hover:bg-border"
             >
               +
             </button>
@@ -331,7 +331,7 @@ function TripCard({
               setShowParticipants(false);
               setParticipants(1);
             }}
-            className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+            className="w-full py-2 bg-info text-white rounded-lg hover:bg-info-hover text-sm"
           >
             Add ${(Number(trip.tour.price) * participants).toFixed(2)}
           </button>

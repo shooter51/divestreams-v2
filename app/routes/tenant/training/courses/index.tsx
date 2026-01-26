@@ -90,11 +90,11 @@ export default function CoursesIndexPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Training Courses</h1>
-          <p className="text-gray-500">{total} courses</p>
+          <p className="text-foreground-muted">{total} courses</p>
         </div>
         <Link
           to="/tenant/training/courses/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
           Create Course
         </Link>
@@ -107,12 +107,12 @@ export default function CoursesIndexPage() {
           name="search"
           defaultValue={search}
           placeholder="Search courses..."
-          className="flex-1 min-w-[200px] px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="flex-1 min-w-[200px] px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         />
         <select
           name="agency"
           defaultValue={agencyFilter}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
           <option value="">All Agencies</option>
           {agencies.map((agency) => (
@@ -124,7 +124,7 @@ export default function CoursesIndexPage() {
         <select
           name="status"
           defaultValue={statusFilter}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         >
           <option value="">All Status</option>
           <option value="active">Active</option>
@@ -132,7 +132,7 @@ export default function CoursesIndexPage() {
         </select>
         <button
           type="submit"
-          className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+          className="px-4 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay"
         >
           Filter
         </button>
@@ -140,57 +140,57 @@ export default function CoursesIndexPage() {
 
       {/* Course List */}
       {courses.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm text-center">
-          <p className="text-gray-500">
+        <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
+          <p className="text-foreground-muted">
             {search || agencyFilter || statusFilter
               ? "No courses found matching your filters."
               : "No courses yet. Create your first training course to get started."}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-surface-inset border-b">
               <tr>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                   Course
                 </th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                   Agency / Level
                 </th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                   Duration
                 </th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                   Price
                 </th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                   Status
                 </th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">
+                <th className="text-right px-6 py-3 text-sm font-medium text-foreground-muted">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {courses.map((course) => (
-                <tr key={course.id} className="hover:bg-gray-50">
+                <tr key={course.id} className="hover:bg-surface-inset">
                   <td className="px-6 py-4">
                     <div>
                       <Link
                         to={`/tenant/training/courses/${course.id}`}
-                        className="font-medium text-blue-600 hover:underline"
+                        className="font-medium text-brand hover:underline"
                       >
                         {course.name}
                       </Link>
                       {course.code && (
-                        <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                        <span className="ml-2 text-xs bg-surface-inset text-foreground-muted px-2 py-0.5 rounded">
                           {course.code}
                         </span>
                       )}
                     </div>
                     {course.description && (
-                      <p className="text-sm text-gray-500 truncate max-w-xs">
+                      <p className="text-sm text-foreground-muted truncate max-w-xs">
                         {course.description}
                       </p>
                     )}
@@ -198,7 +198,7 @@ export default function CoursesIndexPage() {
                   <td className="px-6 py-4">
                     <div className="text-sm">
                       <p className="font-medium">{course.agencyName}</p>
-                      <p className="text-gray-500">{course.levelName}</p>
+                      <p className="text-foreground-muted">{course.levelName}</p>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -215,14 +215,14 @@ export default function CoursesIndexPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         course.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-success-muted text-success"
+                          : "bg-surface-inset text-foreground-muted"
                       }`}
                     >
                       {course.isActive ? "Active" : "Inactive"}
                     </span>
                     {course.isPublic && (
-                      <span className="ml-1 text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                      <span className="ml-1 text-xs px-2 py-1 rounded-full bg-brand-muted text-brand">
                         Public
                       </span>
                     )}
@@ -230,7 +230,7 @@ export default function CoursesIndexPage() {
                   <td className="px-6 py-4 text-right">
                     <Link
                       to={`/tenant/training/courses/${course.id}`}
-                      className="text-blue-600 hover:underline text-sm"
+                      className="text-brand hover:underline text-sm"
                     >
                       View
                     </Link>

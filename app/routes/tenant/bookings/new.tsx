@@ -134,7 +134,7 @@ export default function NewBookingPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <Link to="/tenant/bookings" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/bookings" className="text-brand hover:underline text-sm">
           ← Back to Bookings
         </Link>
         <h1 className="text-2xl font-bold mt-2">New Booking</h1>
@@ -142,19 +142,19 @@ export default function NewBookingPage() {
 
       <form method="post" className="space-y-6">
         {/* Customer Selection */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Customer</h2>
           {selectedCustomer ? (
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-brand-muted rounded-lg">
               <div>
                 <p className="font-medium">
                   {selectedCustomer.firstName} {selectedCustomer.lastName}
                 </p>
-                <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+                <p className="text-sm text-foreground-muted">{selectedCustomer.email}</p>
               </div>
               <Link
                 to="/tenant/bookings/new"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-brand hover:underline"
               >
                 Change
               </Link>
@@ -169,7 +169,7 @@ export default function NewBookingPage() {
                 id="customerId"
                 name="customerId"
                 defaultValue={actionData?.values?.customerId || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               >
                 <option value="">Choose a customer...</option>
@@ -180,10 +180,10 @@ export default function NewBookingPage() {
                 ))}
               </select>
               {actionData?.errors?.customerId && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.customerId}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.customerId}</p>
               )}
-              <p className="text-sm text-gray-500 mt-2">
-                <Link to="/tenant/customers/new" className="text-blue-600 hover:underline">
+              <p className="text-sm text-foreground-muted mt-2">
+                <Link to="/tenant/customers/new" className="text-brand hover:underline">
                   + Add new customer
                 </Link>
               </p>
@@ -192,22 +192,22 @@ export default function NewBookingPage() {
         </div>
 
         {/* Trip Selection */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Trip</h2>
           {selectedTrip ? (
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-brand-muted rounded-lg">
               <div>
                 <p className="font-medium">{selectedTrip.tourName}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground-muted">
                   {selectedTrip.date} at {selectedTrip.startTime} • ${selectedTrip.price}/person
                 </p>
-                <p className="text-sm text-green-600">
+                <p className="text-sm text-success">
                   {selectedTrip.spotsAvailable} spots available
                 </p>
               </div>
               <Link
                 to={`/tenant/bookings/new${selectedCustomer ? `?customerId=${selectedCustomer.id}` : ""}`}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-brand hover:underline"
               >
                 Change
               </Link>
@@ -222,7 +222,7 @@ export default function NewBookingPage() {
                 id="tripId"
                 name="tripId"
                 defaultValue={actionData?.values?.tripId || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               >
                 <option value="">Choose a trip...</option>
@@ -233,14 +233,14 @@ export default function NewBookingPage() {
                 ))}
               </select>
               {actionData?.errors?.tripId && (
-                <p className="text-red-500 text-sm mt-1">{actionData.errors.tripId}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.tripId}</p>
               )}
             </div>
           )}
         </div>
 
         {/* Participants */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Participants</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -254,11 +254,11 @@ export default function NewBookingPage() {
                 min="1"
                 max={selectedTrip?.spotsAvailable || 10}
                 defaultValue={actionData?.values?.participants || "1"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {selectedTrip && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-foreground-muted mt-1">
                   Max {selectedTrip.spotsAvailable} available
                 </p>
               )}
@@ -267,16 +267,16 @@ export default function NewBookingPage() {
 
           {/* Participant Details (optional expansion) */}
           <div className="mt-4 pt-4 border-t">
-            <p className="text-sm text-gray-500 mb-2">
+            <p className="text-sm text-foreground-muted mb-2">
               Add participant details (optional - can be added later)
             </p>
             <div className="space-y-3">
-              <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="p-3 bg-surface-inset rounded-lg">
                 <input
                   type="text"
                   name="participant1Name"
                   placeholder="Participant 1 name"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-sm"
                 />
               </div>
             </div>
@@ -284,35 +284,35 @@ export default function NewBookingPage() {
         </div>
 
         {/* Equipment Rental */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Equipment Rental</h2>
-          <p className="text-sm text-gray-500 mb-4">Select equipment to rent for this booking</p>
+          <p className="text-sm text-foreground-muted mb-4">Select equipment to rent for this booking</p>
           <div className="grid grid-cols-2 gap-3">
             {rentalEquipment.map((item) => (
               <label
                 key={item.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-surface-inset cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     name="equipment"
                     value={item.id}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-brand rounded focus:ring-brand"
                   />
                   <span className="text-sm font-medium">{item.name}</span>
                 </div>
-                <span className="text-sm text-gray-600">${item.price}</span>
+                <span className="text-sm text-foreground-muted">${item.price}</span>
               </label>
             ))}
           </div>
-          <p className="text-xs text-gray-400 mt-3">
+          <p className="text-xs text-foreground-subtle mt-3">
             Equipment prices are per person per day. Full Gear Package includes BCD, Regulator, Wetsuit, Mask, Snorkel, and Fins.
           </p>
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Notes</h2>
           <div className="space-y-4">
             <div>
@@ -325,7 +325,7 @@ export default function NewBookingPage() {
                 rows={2}
                 placeholder="Any special requirements from the customer..."
                 defaultValue={actionData?.values?.specialRequests}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -338,14 +338,14 @@ export default function NewBookingPage() {
                 rows={2}
                 placeholder="Notes visible only to staff..."
                 defaultValue={actionData?.values?.internalNotes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
         </div>
 
         {/* Source */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label htmlFor="source" className="block text-sm font-medium mb-1">
             Booking Source
           </label>
@@ -353,7 +353,7 @@ export default function NewBookingPage() {
             id="source"
             name="source"
             defaultValue={actionData?.values?.source || "direct"}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
           >
             <option value="direct">Direct (Walk-in/Phone)</option>
             <option value="website">Website</option>
@@ -366,7 +366,7 @@ export default function NewBookingPage() {
 
         {/* Summary & Actions */}
         {selectedTrip && (
-          <div className="bg-blue-50 rounded-xl p-6">
+          <div className="bg-brand-muted rounded-xl p-6">
             <h3 className="font-semibold mb-2">Booking Summary</h3>
             <div className="text-sm space-y-1">
               <p>{selectedTrip.tourName}</p>
@@ -374,7 +374,7 @@ export default function NewBookingPage() {
               <p className="text-lg font-bold mt-2">
                 Total: ${(parseFloat(selectedTrip.price) * 1).toFixed(2)}
               </p>
-              <p className="text-xs text-gray-500">(Price updates based on participants)</p>
+              <p className="text-xs text-foreground-muted">(Price updates based on participants)</p>
             </div>
           </div>
         )}
@@ -383,13 +383,13 @@ export default function NewBookingPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
           >
             {isSubmitting ? "Creating..." : "Create Booking"}
           </button>
           <Link
             to="/tenant/bookings"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </Link>

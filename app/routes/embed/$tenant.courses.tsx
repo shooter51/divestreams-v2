@@ -121,7 +121,7 @@ function CourseCard({
         {/* Features */}
         <div className="flex flex-wrap gap-1 mb-3">
           {totalHours > 0 && (
-            <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded">
+            <span className="text-xs bg-info-muted text-info px-2 py-0.5 rounded">
               {totalHours} hrs training
             </span>
           )}

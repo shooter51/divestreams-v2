@@ -109,13 +109,13 @@ export default function BoatsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Boats & Vessels</h1>
-          <p className="text-gray-500">
+          <p className="text-foreground-muted">
             {activeCount} active boats • {totalCapacity} total capacity
           </p>
         </div>
         <Link
           to="/tenant/boats/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
           Add Boat
         </Link>
@@ -128,39 +128,39 @@ export default function BoatsPage() {
           name="q"
           placeholder="Search boats..."
           defaultValue={search}
-          className="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
         />
       </form>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{total}</p>
-          <p className="text-gray-500 text-sm">Total Boats</p>
+          <p className="text-foreground-muted text-sm">Total Boats</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <p className="text-2xl font-bold text-green-600">{activeCount}</p>
-          <p className="text-gray-500 text-sm">Active</p>
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
+          <p className="text-2xl font-bold text-success">{activeCount}</p>
+          <p className="text-foreground-muted text-sm">Active</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">{totalCapacity}</p>
-          <p className="text-gray-500 text-sm">Total Capacity</p>
+          <p className="text-foreground-muted text-sm">Total Capacity</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
           <p className="text-2xl font-bold">
             {boats.reduce((sum, b) => sum + b.tripCount, 0)}
           </p>
-          <p className="text-gray-500 text-sm">Total Trips</p>
+          <p className="text-foreground-muted text-sm">Total Trips</p>
         </div>
       </div>
 
       {/* Boats List */}
       {boats.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm text-center">
-          <p className="text-gray-500">No boats found.</p>
+        <div className="bg-surface-raised rounded-xl p-12 shadow-sm text-center">
+          <p className="text-foreground-muted">No boats found.</p>
           <Link
             to="/tenant/boats/new"
-            className="inline-block mt-4 text-blue-600 hover:underline"
+            className="inline-block mt-4 text-brand hover:underline"
           >
             Add your first boat
           </Link>
@@ -171,25 +171,25 @@ export default function BoatsPage() {
             <Link
               key={boat.id}
               to={`/tenant/boats/${boat.id}`}
-              className={`bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow ${
+              className={`bg-surface-raised rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow ${
                 !boat.isActive ? "opacity-60" : ""
               }`}
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="font-semibold text-lg">{boat.name}</h3>
-                  <p className="text-gray-500 text-sm">{boat.type}</p>
+                  <p className="text-foreground-muted text-sm">{boat.type}</p>
                 </div>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
-                    boat.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                    boat.isActive ? "bg-success-muted text-success" : "bg-surface-inset text-foreground-muted"
                   }`}
                 >
                   {boat.isActive ? "Active" : "Inactive"}
                 </span>
               </div>
 
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+              <p className="text-sm text-foreground-muted mb-3 line-clamp-2">
                 {boat.description}
               </p>
 
@@ -197,13 +197,13 @@ export default function BoatsPage() {
                 {boat.amenities.slice(0, 3).map((a: string) => (
                   <span
                     key={a}
-                    className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                    className="text-xs bg-surface-inset text-foreground-muted px-2 py-1 rounded"
                   >
                     {a}
                   </span>
                 ))}
                 {boat.amenities.length > 3 && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-foreground-subtle">
                     +{boat.amenities.length - 3} more
                   </span>
                 )}
@@ -213,11 +213,11 @@ export default function BoatsPage() {
                 <span>
                   <strong>{boat.capacity}</strong> passengers
                 </span>
-                <span className="text-gray-500">{boat.tripCount} trips</span>
+                <span className="text-foreground-muted">{boat.tripCount} trips</span>
               </div>
 
               {boat.registrationNumber && (
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-xs text-foreground-subtle mt-2">
                   Reg: {boat.registrationNumber}
                 </p>
               )}

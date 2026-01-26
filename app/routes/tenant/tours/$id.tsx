@@ -176,7 +176,7 @@ export default function TourDetailPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/tenant/tours" className="text-blue-600 hover:underline text-sm">
+        <Link to="/tenant/tours" className="text-brand hover:underline text-sm">
           ← Back to Tours
         </Link>
       </div>
@@ -186,29 +186,29 @@ export default function TourDetailPage() {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{tour.name}</h1>
             {!tour.isActive && (
-              <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">
+              <span className="text-sm bg-surface-inset text-foreground-muted px-2 py-1 rounded">
                 Inactive
               </span>
             )}
           </div>
-          <p className="text-gray-500">{tourTypes[tour.type] || tour.type}</p>
+          <p className="text-foreground-muted">{tourTypes[tour.type] || tour.type}</p>
         </div>
         <div className="flex gap-2">
           <Link
             to={`/tenant/trips/new?tourId=${tour.id}`}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
             Schedule Trip
           </Link>
           <Link
             to={`/tenant/tours/${tour.id}/edit`}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Edit
           </Link>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+            className="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger-muted"
           >
             Delete
           </button>
@@ -220,34 +220,34 @@ export default function TourDetailPage() {
         <div className="col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${tour.price}</p>
-              <p className="text-gray-500 text-sm">Price</p>
+              <p className="text-foreground-muted text-sm">Price</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{tour.tripCount}</p>
-              <p className="text-gray-500 text-sm">Trips Run</p>
+              <p className="text-foreground-muted text-sm">Trips Run</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${tour.totalRevenue}</p>
-              <p className="text-gray-500 text-sm">Total Revenue</p>
+              <p className="text-foreground-muted text-sm">Total Revenue</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
                 {tour.averageRating !== null ? tour.averageRating : "-"}
               </p>
-              <p className="text-gray-500 text-sm">Avg Rating</p>
+              <p className="text-foreground-muted text-sm">Avg Rating</p>
             </div>
           </div>
 
           {/* Description */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-3">Description</h2>
-            <p className="text-gray-700">{tour.description || "No description provided."}</p>
+            <p className="text-foreground">{tour.description || "No description provided."}</p>
           </div>
 
           {/* Images */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Tour Images</h2>
             <ImageManager
               entityType="tour"
@@ -258,36 +258,36 @@ export default function TourDetailPage() {
           </div>
 
           {/* Details */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Tour Details</h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-gray-500">Duration</p>
+                <p className="text-foreground-muted">Duration</p>
                 <p>{formatDuration(tour.duration)}</p>
               </div>
               <div>
-                <p className="text-gray-500">Capacity</p>
+                <p className="text-foreground-muted">Capacity</p>
                 <p>
                   {tour.minParticipants}-{tour.maxParticipants} participants
                 </p>
               </div>
               <div>
-                <p className="text-gray-500">Min Certification</p>
+                <p className="text-foreground-muted">Min Certification</p>
                 <p>{tour.minCertLevel || "None required"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Min Age</p>
+                <p className="text-foreground-muted">Min Age</p>
                 <p>{tour.minAge ? `${tour.minAge} years` : "No minimum"}</p>
               </div>
             </div>
           </div>
 
           {/* Inclusions/Exclusions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">What's Included</h2>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <h3 className="text-sm font-medium text-green-700 mb-2">Included</h3>
+                <h3 className="text-sm font-medium text-success mb-2">Included</h3>
                 <ul className="space-y-1 text-sm">
                   {tour.includesEquipment && <li>✓ Equipment rental</li>}
                   {tour.includesMeals && <li>✓ Meals/snacks</li>}
@@ -298,13 +298,13 @@ export default function TourDetailPage() {
                 </ul>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Not Included</h3>
-                <ul className="space-y-1 text-sm text-gray-600">
+                <h3 className="text-sm font-medium text-foreground-muted mb-2">Not Included</h3>
+                <ul className="space-y-1 text-sm text-foreground-muted">
                   {(Array.isArray(tour.exclusions) ? tour.exclusions : []).map((item: string, i: number) => (
                     <li key={i}>• {item}</li>
                   ))}
                   {(!Array.isArray(tour.exclusions) || tour.exclusions.length === 0) && (
-                    <li className="text-gray-400">None specified</li>
+                    <li className="text-foreground-subtle">None specified</li>
                   )}
                 </ul>
               </div>
@@ -312,35 +312,35 @@ export default function TourDetailPage() {
           </div>
 
           {/* Dive Sites Visited */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Dive Sites Visited</h2>
               <Link
                 to={`/tenant/dive-sites`}
-                className="text-blue-600 text-sm hover:underline"
+                className="text-brand text-sm hover:underline"
               >
                 View all sites
               </Link>
             </div>
             {diveSites.length === 0 ? (
-              <p className="text-gray-500 text-sm">No dive sites assigned to this tour yet.</p>
+              <p className="text-foreground-muted text-sm">No dive sites assigned to this tour yet.</p>
             ) : (
               <div className="space-y-2">
                 {diveSites.map((site) => (
                   <Link
                     key={site.id}
                     to={`/tenant/dive-sites/${site.id}`}
-                    className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    className="block p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                   >
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="font-medium">{site.name}</p>
                         {site.difficulty && (
-                          <p className="text-sm text-gray-500 capitalize">{site.difficulty} difficulty</p>
+                          <p className="text-sm text-foreground-muted capitalize">{site.difficulty} difficulty</p>
                         )}
                       </div>
                       {site.maxDepth && (
-                        <p className="text-sm text-gray-500">{site.maxDepth}m max depth</p>
+                        <p className="text-sm text-foreground-muted">{site.maxDepth}m max depth</p>
                       )}
                     </div>
                   </Link>
@@ -350,31 +350,31 @@ export default function TourDetailPage() {
           </div>
 
           {/* Upcoming Trips */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Upcoming Trips</h2>
               <Link
                 to={`/tenant/trips?tourId=${tour.id}`}
-                className="text-blue-600 text-sm hover:underline"
+                className="text-brand text-sm hover:underline"
               >
                 View all
               </Link>
             </div>
             {upcomingTrips.length === 0 ? (
-              <p className="text-gray-500 text-sm">No upcoming trips scheduled.</p>
+              <p className="text-foreground-muted text-sm">No upcoming trips scheduled.</p>
             ) : (
               <div className="space-y-3">
                 {upcomingTrips.map((trip) => (
                   <Link
                     key={trip.id}
                     to={`/tenant/trips/${trip.id}`}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    className="flex justify-between items-center p-3 bg-surface-inset rounded-lg hover:bg-surface-overlay"
                   >
                     <div>
                       <p className="font-medium">
                         {trip.date} at {trip.time}
                       </p>
-                      <p className="text-sm text-gray-500">{trip.boatName}</p>
+                      <p className="text-sm text-foreground-muted">{trip.boatName}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">
@@ -383,10 +383,10 @@ export default function TourDetailPage() {
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
                           trip.bookedParticipants >= trip.maxParticipants
-                            ? "bg-red-100 text-red-700"
+                            ? "bg-danger-muted text-danger"
                             : trip.bookedParticipants > 0
-                            ? "bg-green-100 text-green-700"
-                            : "bg-blue-100 text-blue-700"
+                            ? "bg-success-muted text-success"
+                            : "bg-brand-muted text-brand"
                         }`}
                       >
                         {trip.bookedParticipants >= trip.maxParticipants ? "Full" : trip.bookedParticipants > 0 ? "Booked" : "Open"}
@@ -402,12 +402,12 @@ export default function TourDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-2">
               <Link
                 to={`/tenant/trips/new?tourId=${tour.id}`}
-                className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="block w-full text-center bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
               >
                 Schedule Trip
               </Link>
@@ -415,14 +415,14 @@ export default function TourDetailPage() {
                 <input type="hidden" name="intent" value="toggle-active" />
                 <button
                   type="submit"
-                  className="w-full text-center border px-4 py-2 rounded-lg hover:bg-gray-50"
+                  className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
                 >
                   {tour.isActive ? "Deactivate Tour" : "Activate Tour"}
                 </button>
               </fetcher.Form>
               <Link
                 to={`/tenant/tours/${tour.id}/duplicate`}
-                className="block w-full text-center border px-4 py-2 rounded-lg hover:bg-gray-50"
+                className="block w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
               >
                 Duplicate Tour
               </Link>
@@ -431,12 +431,12 @@ export default function TourDetailPage() {
 
           {/* Requirements */}
           {Array.isArray(tour.requirements) && tour.requirements.length > 0 && (
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Requirements</h2>
               <ul className="space-y-2 text-sm">
                 {(Array.isArray(tour.requirements) ? tour.requirements : []).map((req: string, i: number) => (
                   <li key={i} className="flex items-start gap-2">
-                    <span className="text-yellow-500">⚠</span>
+                    <span className="text-warning">⚠</span>
                     {req}
                   </li>
                 ))}
@@ -445,7 +445,7 @@ export default function TourDetailPage() {
           )}
 
           {/* Meta */}
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-foreground-subtle">
             <p>Created {tour.createdAt}</p>
             <p>Tour ID: {tour.id}</p>
           </div>
