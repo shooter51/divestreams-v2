@@ -363,6 +363,75 @@ DiveStreams
   return { subject, html, text };
 }
 
+export function customerWelcomeEmail(data: {
+  customerName: string;
+  shopName: string;
+  loginUrl: string;
+}) {
+  const subject = `Welcome to ${data.shopName}!`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+        .button { display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin: 15px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Welcome! 🎉</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${data.customerName},</p>
+          <p>Thank you for creating an account with <strong>${data.shopName}</strong>!</p>
+          <p>You can now:</p>
+          <ul>
+            <li>Book dive trips and training courses</li>
+            <li>View and manage your reservations</li>
+            <li>Access your diving history</li>
+            <li>Update your profile and certifications</li>
+          </ul>
+          <p style="text-align: center;">
+            <a href="${data.loginUrl}" class="button">Sign In to Your Account</a>
+          </p>
+        </div>
+        <div class="footer">
+          <p>${data.shopName} • Powered by DiveStreams</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Welcome to ${data.shopName}!
+
+Hi ${data.customerName},
+
+Thank you for creating an account with ${data.shopName}!
+
+You can now:
+- Book dive trips and training courses
+- View and manage your reservations
+- Access your diving history
+- Update your profile and certifications
+
+Sign in to your account at:
+${data.loginUrl}
+
+${data.shopName} • Powered by DiveStreams
+  `;
+
+  return { subject, html, text };
+}
+
 export function contactFormNotificationEmail(data: {
   name: string;
   email: string;

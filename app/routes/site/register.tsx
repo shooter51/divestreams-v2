@@ -294,6 +294,21 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       phone: phone?.trim() || undefined,
     });
 
+    // Send welcome email
+    try {
+      const { triggerCustomerWelcomeEmail } = await import("../../../lib/email/triggers");
+      await triggerCustomerWelcomeEmail({
+        customerEmail: email.toLowerCase().trim(),
+        customerName: `${firstName.trim()} ${lastName.trim()}`,
+        shopName: org.name,
+        subdomain: subdomain,
+        tenantId: org.id,
+      });
+    } catch (emailError) {
+      console.error("Failed to send customer welcome email:", emailError);
+      // Continue even if email fails
+    }
+
     // Auto-login the customer
     try {
       const { token, expiresAt } = await loginCustomer(org.id, email, password);
