@@ -1,0 +1,1151 @@
+{
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "RAID Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import, not a direct database dump. The sync script (lib/jobs/sync-agency-catalogs.server.ts) transforms this into agency_course_templates records by: (1) Looking up agencyId from certification_agencies where code='raid', (2) Mapping levelCode to levelId via certification_levels lookup, (3) Generating contentHash from course fields, (4) Adding sourceType='static_json', timestamps, etc. Tenant-specific fields (price, isActive, etc.) are NOT in this file - they're set when tenants import courses.",
+  "agency": "raid",
+  "agencyName": "Rebreather Association of International Divers",
+  "version": "2026.1",
+  "lastUpdated": "2026-01-25",
+  "courses": [
+    {
+      "name": "Try Dive",
+      "code": "TD",
+      "levelCode": "beginner",
+      "description": "Experience the thrill of breathing underwater for the first time in a safe, controlled environment. Perfect introduction to scuba diving under direct instructor supervision.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/try-dive.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 1,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "Basic health questionnaire",
+      "requiredItems": [
+        "Swimsuit",
+        "Towel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cadet Scuba Diver",
+      "code": "CSD",
+      "levelCode": "beginner",
+      "description": "A super fun and exciting way for kids aged 10 and 11 to learn how to scuba dive! Become a young explorer of the underwater world. This course is all about having fun, making new friends, and exploring amazing ocean life.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/cadet-scuba-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 3,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "Parental consent and medical questionnaire",
+      "requiredItems": [
+        "Swimsuit",
+        "Towel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Junior Scuba Diver",
+      "code": "JSD",
+      "levelCode": "beginner",
+      "description": "Designed for those between ages 12-14 who want to experience scuba diving. A bite-sized version of the Junior Open Water 20 course providing basic knowledge and the full experience of scuba diving.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/junior-scuba-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": "Parental consent and medical questionnaire",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Swimsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Scuba Diver",
+      "code": "SD",
+      "levelCode": "beginner",
+      "description": "The perfect entry-level certification for beginners who want to experience the thrill of scuba diving without committing to a full open-water certification. A bite-sized version of the Open Water 20 course.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/scuba-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": "RAID Medical Statement required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Junior Open Water 20",
+      "code": "JOW20",
+      "levelCode": "beginner",
+      "description": "Comprehensive scuba certification for young divers aged 12-14. Teaches confidence and skills to explore the underwater world to a maximum depth of 18 meters under adult supervision.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/junior-open-water-20.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 6,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": "Parental consent and medical questionnaire",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "BCD and regulator"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water 20",
+      "code": "OW20",
+      "levelCode": "beginner",
+      "description": "Become a confident scuba diver qualified to explore the underwater world to a depth of 20 metres (65 feet). RAID's comprehensive entry-level course emphasizing buoyancy control and environmental awareness.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/open-water-20.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": "RAID Medical Statement required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "Weight system",
+        "BCD (Buoyancy Control Device)",
+        "Regulator with alternate air source",
+        "Dive computer or tables"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Explorer 30",
+      "code": "EXP30",
+      "levelCode": "advanced",
+      "description": "The next step to becoming an advanced scuba diver. Five dives total with three mandatory core dives (Buoyancy, Navigation, Deep) plus two electives. Certification to dive to 30m/100ft.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/explorer-30.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 5,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Compass",
+        "Dive torch"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced 35",
+      "code": "ADV35",
+      "levelCode": "advanced",
+      "description": "Elevate your diving skills with advanced dive planning, navigation, deep diving, and buoyancy training. Qualification to safely do no-decompression dives to a maximum depth of 35 metres.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/advanced-35.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 1,
+      "openWaterDives": 6,
+      "prerequisites": "RAID Open Water 20 or Explorer 30, minimum 4 hours logged underwater",
+      "minAge": 15,
+      "medicalRequirements": "RAID Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Compass",
+        "SMB and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Master Rescue Diver",
+      "code": "MRD",
+      "levelCode": "advanced",
+      "description": "For experienced divers who want to take their skills to the next level while ensuring safety. Focuses on risk assessment, advanced buoyancy control, and emergency response up to 20 metres depth.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/master-rescue-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "RAID Explorer 30 or equivalent, 12 hours logged dive time, current First Aid/CPR/Oxygen Provider certification",
+      "minAge": 15,
+      "medicalRequirements": "RAID Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Pocket mask",
+        "Oxygen unit (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "First Aid and Oxygen Provider",
+      "code": "FAOP",
+      "levelCode": "specialty",
+      "description": "Learn essential first aid skills and emergency oxygen administration for diving emergencies. Required prerequisite for Master Rescue and professional-level courses.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/first-aid-o2.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Pocket mask (provided for training)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Nitrox Diver",
+      "code": "NITROX",
+      "levelCode": "specialty",
+      "description": "Extend your knowledge and skills in the use of oxygen enriched gases for sport diving. Learn to plan, analyse and use Enriched Air Nitrox mixes up to 40% for recreational no-decompression diving.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/nitrox.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Nitrox-compatible dive computer",
+        "Oxygen analyzer (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deep 40",
+      "code": "DEEP40",
+      "levelCode": "specialty",
+      "description": "Reach the maximum recreational depth of 40 meters. Develop advanced planning, awareness, and in-water skills needed to explore safely at depth over 2.5 days and four open water dives.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/deep-40.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "RAID Explorer 30 or higher, RAID Nitrox Diver, 8 hours logged underwater",
+      "minAge": 15,
+      "medicalRequirements": "RAID Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "SMB and reel",
+        "Dive torch"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Night and Limited Visibility",
+      "code": "NIGHT",
+      "levelCode": "specialty",
+      "description": "One of RAID's most fun specialties. Learn tricks and special insights for productive night diving, along with equipment and techniques that make diving in limited visibility safer.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/night-diving.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Primary dive torch",
+        "Backup dive torch",
+        "Tank marker light"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Navigation",
+      "code": "NAV",
+      "levelCode": "specialty",
+      "description": "Overcome the obstacles inherent to finding your way underwater. Learn how easy and simple navigation can be using natural aids and tools such as mechanical or digital compasses.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/navigation.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 1,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Compass",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Search and Recovery",
+      "code": "SAR",
+      "levelCode": "specialty",
+      "description": "Learn to locate lost objects beneath the waves. Covers search patterns, lift bag use, recovery methods, and limited visibility search techniques for safe recovery operations.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/search-recovery.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Lift bag",
+        "Search line and reel",
+        "Marker buoy"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Basic Wreck Diver",
+      "code": "WRECK-B",
+      "levelCode": "specialty",
+      "description": "Extend your knowledge and skills to dive safely around shipwrecks. Learn dive planning, preparation, and analysis to reduce stress and enhance your wreck diving experience.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/basic-wreck.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive torch",
+        "Dive reel",
+        "Cutting device"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Wreck Diver",
+      "code": "WRECK-A",
+      "levelCode": "specialty",
+      "description": "Advanced wreck penetration techniques for experienced divers. Learn overhead environment protocols, line laying, and emergency procedures for wreck penetration diving.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/advanced-wreck.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "RAID Basic Wreck Diver, Deep 40, Nitrox Diver, 30 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "RAID Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Primary and backup dive torches",
+        "Primary and backup reels",
+        "Cutting devices"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Sidemount Diver",
+      "code": "SM",
+      "levelCode": "specialty",
+      "description": "Modern program covering current sidemount procedures suitable for cave, technical, and recreational dives. Learn single and twin cylinder configurations for longer dives and increased redundancy.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/sidemount.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 1,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Sidemount harness and wing",
+        "Sidemount cylinders",
+        "Regulators configured for sidemount"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Drysuit Diver",
+      "code": "DRY",
+      "levelCode": "specialty",
+      "description": "Comprehensive drysuit diving course covering buoyancy control and all aspects important for new and experienced divers. Master horizontal hovering and become a comfortable, safe drysuit diver.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/drysuit.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 1,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Drysuit",
+        "Drysuit undergarments",
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "DPV (Diver Propulsion Vehicle)",
+      "code": "DPV",
+      "levelCode": "specialty",
+      "description": "Two-tier certification covering everything about safely operating and maintaining a DPV. Cover greater distances, save energy, and reach dive sites usually out of range.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/dpv.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 1,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "DPV (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Boat Diver",
+      "code": "BOAT",
+      "levelCode": "specialty",
+      "description": "Learn proper procedures and techniques for diving from boats. Covers boat diving etiquette, entry and exit techniques, and safety protocols.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/boat-diver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "SMB"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Digital Photography",
+      "code": "PHOTO",
+      "levelCode": "specialty",
+      "description": "Learn the fundamentals of underwater photography including camera selection, operation, framing, and lighting techniques to capture amazing underwater images.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/photography.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater camera system"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Performance Diver",
+      "code": "PERF",
+      "levelCode": "specialty",
+      "description": "Enhance your diving ability on single tanks, twins, sidemount, or CCR. Core values and skills from various programs aimed at proficient divers who want to improve their skills.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/performance-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "Standard medical requirements",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Configuration-specific equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Independent Diver",
+      "code": "INDEP",
+      "levelCode": "specialty",
+      "description": "Learn to dive competently and confidently without guaranteed buddy support. Covers stage/bailout bottle management, DSMB deployment, and backup equipment management.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/independent-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "RAID Open Water 20 or equivalent, 50 hours or 100 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "RAID Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Stage/pony bottle",
+        "DSMB and reel",
+        "Redundant equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Oxygen Service and Gas Blender",
+      "code": "O2BLEND",
+      "levelCode": "specialty",
+      "description": "Learn to safely clean, service, and prepare oxygen-compatible equipment, and blend nitrox and other breathing gases for diving.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/gas-blender.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "RAID Nitrox Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Oxygen analyzer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Compressor Operator",
+      "code": "COMP",
+      "levelCode": "specialty",
+      "description": "Learn safe operation and maintenance of dive compressors and air fill systems. Essential knowledge for dive centers and serious divers.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/compressor-operator.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "RAID Open Water 20 or equivalent",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deco 40",
+      "code": "DECO40",
+      "levelCode": "advanced",
+      "description": "Bridge between recreational and technical diving. Certifies use of air, nitrox, oxygen, with optional trimix (max 30m END/EAD). Introduction to decompression diving procedures.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/deco-40.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 2,
+      "openWaterDives": 5,
+      "prerequisites": "RAID Explorer 30 or Advanced 35, Nitrox Diver, Deep 40, minimum 20 hours or 40 dives, certified 3+ months",
+      "minAge": 16,
+      "medicalRequirements": "RAID Medical Statement required",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Decompression gas cylinder",
+        "Primary and backup dive computers",
+        "DSMB and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deco 50",
+      "code": "DECO50",
+      "levelCode": "advanced",
+      "description": "Extended Range entry into the Trimix programme. Qualification to 50m/164ft with mandatory decompression stops up to 30 minutes using independent decompression gas.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/deco-50.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 2,
+      "openWaterDives": 6,
+      "prerequisites": "RAID Deco 40 or equivalent, 65 hours or 100 logged dives, 10 decompression dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Decompression gas cylinders",
+        "Primary and backup dive computers",
+        "Redundant cutting devices"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Normoxic Decompression Diver (Deco 60)",
+      "code": "DECO60",
+      "levelCode": "advanced",
+      "description": "Natural progression from Deco 50 allowing use of two optimised decompression gases to maximum 60 metres/200 feet using normoxic trimix.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/deco-60.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 2,
+      "openWaterDives": 6,
+      "prerequisites": "RAID Deco 50, 65 hours or 100 dives (25 deeper than 35m), 10 deco dives, 20 hours between 30-50m",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Trimix bottom gas",
+        "Two decompression gas cylinders",
+        "Primary and backup dive computers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cavern Diver",
+      "code": "CAVERN",
+      "levelCode": "advanced",
+      "description": "Entry level overhead course. Penetration into cavern up to 60 meters/200 feet from surface, all activities within light zone. Minimum 4 dives totaling 4 hours in cavern zone.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/cavern-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 3,
+      "openWaterDives": 4,
+      "prerequisites": "RAID Open Water certified 3+ months, 25 logged dives or 20 hours after OW",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Primary and backup lights",
+        "Primary and backup reels",
+        "Guideline"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diver Level 1",
+      "code": "CAVE1",
+      "levelCode": "advanced",
+      "description": "Entry level cave diving development course. Introduction to basic principles using single continuous guide line. Limited penetrations up to 300m/1000ft with one Tee allowed.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/cave-1.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "RAID Nitrox, Deep 40, Master Rescue, Navigation and Night experience, 50 hours or 75 dives, certified 3+ months",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Primary light (10+ hours burn time)",
+        "Two backup lights",
+        "Primary and backup reels",
+        "Line arrows and cookies"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diver Level 2",
+      "code": "CAVE2",
+      "levelCode": "advanced",
+      "description": "Build on Cave 1 skills with advanced techniques for complex cave systems. Learn intricate navigation, extended penetrations, stage cylinder use, jumps, and gaps.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/cave-2.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 2,
+      "openWaterDives": 10,
+      "prerequisites": "RAID Cave 1, 25+ cave dives post Cave 1 certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Stage bottles",
+        "Primary and backup lights",
+        "Multiple reels"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Rebreather Diver",
+      "code": "CCR-RD",
+      "levelCode": "advanced",
+      "description": "No decompression, entry-level CCR course for general skills and unit-specific protocols. Certification to 40m/130ft using air diluent after 30 logged OC dives and 25 hours underwater.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/rebreather-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 6,
+      "openWaterDives": 6,
+      "prerequisites": "RAID Deco 40 or equivalent, 30 OC dives, 25 hours underwater",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "CCR unit (unit-specific training)",
+        "Bailout cylinder",
+        "Dive computer compatible with CCR"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR 30m Course",
+      "code": "CCR-30",
+      "levelCode": "advanced",
+      "description": "Designed for divers looking to enhance CCR skills and expand diving capabilities to depths of 30 metres. Foundation course for recreational CCR diving.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/ccr-30.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 5,
+      "prerequisites": "RAID Rebreather Diver or equivalent CCR certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "CCR unit",
+        "Bailout cylinder",
+        "CCR-compatible dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR 40/45m Course",
+      "code": "CCR-45",
+      "levelCode": "advanced",
+      "description": "Tailored for divers seeking to enhance CCR skills at depths of 40-45 metres. Options include air diluent no-deco, trimix diluent 10-minute deco, and air diluent 10-minute deco.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/ccr-45.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "RAID CCR 30m or equivalent, minimum CCR hours as specified",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "CCR unit",
+        "Trimix diluent",
+        "Bailout cylinders",
+        "CCR-compatible dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Normoxic Trimix Rebreather (CCR 60m)",
+      "code": "CCR-60",
+      "levelCode": "advanced",
+      "description": "Advanced CCR training to 60m/200ft using normoxic trimix. Extended decompression obligations using optimized decompression gases.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/ccr-60.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 14,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "RAID CCR 45m, 100 hours CCR, 30 dives deeper than 30m, 10 dives deeper than 50m",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "CCR unit",
+        "Normoxic trimix diluent",
+        "Multiple bailout cylinders",
+        "CCR-compatible dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Hypoxic Trimix Rebreather (CCR 80/100m)",
+      "code": "CCR-100",
+      "levelCode": "advanced",
+      "description": "Advanced technical CCR diving to 80-100m/260-330ft using hypoxic trimix. The pinnacle of CCR technical training.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/ccr-100.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 10,
+      "prerequisites": "RAID CCR 60m, extensive CCR experience as specified",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical statement",
+      "requiredItems": [
+        "CCR unit",
+        "Hypoxic trimix diluent",
+        "Multiple bailout cylinders",
+        "CCR-compatible dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Foundation Freediver",
+      "code": "FF",
+      "levelCode": "beginner",
+      "description": "Introduction to freediving for beginners. Learn basic breath-hold techniques, relaxation, and pool/confined water freediving skills.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/foundation-freediver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 3,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 16,
+      "medicalRequirements": "Basic health questionnaire, able to swim 200m",
+      "requiredItems": [
+        "Mask and snorkel",
+        "Long freediving fins",
+        "Wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Freediver",
+      "code": "OWF",
+      "levelCode": "beginner",
+      "description": "Comprehensive freediving training for beginners and experienced divers. Covers Constant Weight, Free Immersion, and Dynamic Apnea disciplines. Emphasis on relaxation over athletic conditioning.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/open-water-freediver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "Able to swim 200m non-stop and 300m with mask, snorkel, fins",
+      "minAge": 18,
+      "medicalRequirements": "Medically fit, freediving medical questionnaire",
+      "requiredItems": [
+        "Low-volume freediving mask",
+        "Freediving snorkel",
+        "Long freediving fins",
+        "Weight system",
+        "Freediving wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Freediver",
+      "code": "AF",
+      "levelCode": "advanced",
+      "description": "Enhance skills from Open Water Freediver. Focus on improving equalization, lung functionality, and safety. Covers Frenzel equalization, free fall, and dives to 30m/100ft maximum.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/advanced-freediver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 3,
+      "openWaterDives": 6,
+      "prerequisites": "RAID Open Water Freediver or equivalent, 6 freediving sessions logged",
+      "minAge": 18,
+      "medicalRequirements": "Freediving medical questionnaire",
+      "requiredItems": [
+        "Low-volume freediving mask",
+        "Long freediving fins",
+        "Freediving wetsuit",
+        "Lanyard",
+        "Dive computer with freediving mode"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Master Freediver",
+      "code": "MF",
+      "levelCode": "advanced",
+      "description": "Advanced freediving techniques for experienced freedivers. Extended depth training, advanced equalization, rescue skills, and competition preparation.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/master-freediver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "RAID Advanced Freediver, extensive freediving experience",
+      "minAge": 18,
+      "medicalRequirements": "Physician clearance for advanced freediving",
+      "requiredItems": [
+        "Competition-grade freediving equipment",
+        "Neck weight",
+        "Fluid goggles",
+        "Freediving computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Divemaster",
+      "code": "DM",
+      "levelCode": "professional",
+      "description": "Gateway to a professional diving career. Train and certify as a Divemaster qualified to function as Dive Guide and Assistant Instructor. Modern, 100% digital approach.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/divemaster.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 24,
+      "poolHours": 16,
+      "openWaterDives": 10,
+      "prerequisites": "RAID Master Rescue, Nitrox, Deep 40, Night and Navigation experience, 15 hours/45 dives (35 post-OW), First Aid/O2 Provider, 18 years old",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical within 12 months",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer",
+        "Compass",
+        "Dive tables and slate",
+        "Pocket mask",
+        "Emergency oxygen kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Try Dive Instructor",
+      "code": "TDI",
+      "levelCode": "instructor",
+      "description": "Train to conduct Try Dive experiences for non-certified divers. First step into RAID instruction for qualified Divemasters.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/try-dive-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Divemaster",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Full instructor equipment kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Instructor",
+      "code": "OWI",
+      "levelCode": "instructor",
+      "description": "17-day Instructor Development Program built around modern training methods, personal mentorship, and real teaching practice. Prepare for RAID Instructor Exam.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/open-water-instructor.jpg"
+      ],
+      "durationDays": 17,
+      "classroomHours": 60,
+      "poolHours": 30,
+      "openWaterDives": 20,
+      "prerequisites": "RAID Divemaster, Deep 40, Nitrox, 200 dives/100 hours, First Aid/O2 Provider, dive insurance",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical within 12 months",
+      "requiredItems": [
+        "Full instructor equipment kit",
+        "Teaching materials",
+        "Presentation equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Crossover",
+      "code": "IXO",
+      "levelCode": "instructor",
+      "description": "For instructors from recognized diving agencies seeking to switch to RAID. Equips instructors with knowledge and skills to excel as a RAID instructor.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/instructor-crossover.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 10,
+      "openWaterDives": 6,
+      "prerequisites": "Active instructor status with recognized agency",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Full instructor equipment kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Specialty Instructor",
+      "code": "SI",
+      "levelCode": "instructor",
+      "description": "Train to teach specific RAID specialty courses. Courses available for each specialty including Night, Wreck, Deep, Nitrox, Sidemount, and more.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/specialty-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "RAID Open Water Instructor, certified in the specific specialty",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Specialty-specific equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Divemaster Instructor",
+      "code": "DMI",
+      "levelCode": "instructor",
+      "description": "Train and certify RAID Instructors to teach the Divemaster Course and certify entry-level RAID dive professionals.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/divemaster-instructor.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "RAID Open Water Instructor, 150 hours or 250 dives, certified 25+ students (5 OW20, 5 Explorer/Advanced, 3 Master Rescue)",
+      "minAge": 18,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [
+        "Full instructor equipment kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Master Instructor",
+      "code": "MI",
+      "levelCode": "instructor",
+      "description": "Professional recognition for instructors with extensive teaching experience who exemplify The RAID Way. Requirement for Instructor Trainer Program enrollment.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/master-instructor.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "RAID Divemaster Instructor, RAID Instructor 12+ months, 300 logged hours, 150+ certified students including 5 Divemasters",
+      "minAge": 21,
+      "medicalRequirements": "Current medical clearance",
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Instructor (Open Circuit)",
+      "code": "TI-OC",
+      "levelCode": "instructor",
+      "description": "Train to teach RAID technical open circuit courses including Deco 40, Deco 50, and Deco 60.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/tech-instructor-oc.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 8,
+      "openWaterDives": 8,
+      "prerequisites": "RAID Open Water Instructor, certified at course level being taught, extensive technical diving experience",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical",
+      "requiredItems": [
+        "Full technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Instructor",
+      "code": "TI-CCR",
+      "levelCode": "instructor",
+      "description": "Train to teach RAID CCR rebreather courses. Unit-specific training for approved rebreather platforms.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/ccr-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 8,
+      "openWaterDives": 8,
+      "prerequisites": "RAID Open Water Instructor, certified at CCR course level, extensive CCR experience",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical",
+      "requiredItems": [
+        "CCR unit",
+        "Full CCR equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Trainer",
+      "code": "IT",
+      "levelCode": "instructor",
+      "description": "Train to conduct Instructor Development Programs and certify new RAID Instructors. The highest teaching level in RAID.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/instructor-trainer.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 40,
+      "poolHours": 16,
+      "openWaterDives": 8,
+      "prerequisites": "RAID Master Instructor, extensive instructor experience, invitation by RAID",
+      "minAge": 21,
+      "medicalRequirements": "Physician-signed medical",
+      "requiredItems": [
+        "Full instructor equipment kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediving Instructor",
+      "code": "FI",
+      "levelCode": "instructor",
+      "description": "Train to teach RAID freediving courses from Foundation Freediver through Advanced Freediver levels.",
+      "images": [
+        "https://diveraid.com/wp-content/uploads/2023/03/freediving-instructor.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 24,
+      "poolHours": 16,
+      "openWaterDives": 12,
+      "prerequisites": "RAID Master Freediver or equivalent, extensive freediving experience",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed medical for freediving",
+      "requiredItems": [
+        "Full freediving equipment",
+        "Safety equipment (buoy, lanyard, etc.)"
+      ],
+      "materialsIncluded": true
+    }
+  ]
+}

@@ -1,0 +1,1467 @@
+{
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "BSAC Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import, not a direct database dump. The sync script (lib/jobs/sync-agency-catalogs.server.ts) transforms this into agency_course_templates records. BSAC uses a progressive grade system with Skill Development Courses (SDCs) for specialization.",
+  "agency": "bsac",
+  "agencyName": "British Sub-Aqua Club",
+  "version": "2026.1",
+  "lastUpdated": "2026-01-25",
+  "courses": [
+    {
+      "name": "Discovery Diver",
+      "code": "DD",
+      "levelCode": "beginner",
+      "description": "BSAC's entry-level certification for those with limited time who want to become certified divers. Ideal for divers who expect to dive primarily with a guide. Learn essential underwater skills and safety principles.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/ac67abf3-bf8e-4ea3-b38f-7e5fc2b76b3f/discovery-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 6,
+      "openWaterDives": 2,
+      "prerequisites": "Must comfortably swim 200m in a pool",
+      "minAge": 10,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Swimsuit and towel",
+        "All dive equipment provided"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ocean Diver",
+      "code": "OD",
+      "levelCode": "beginner",
+      "description": "BSAC's fundamental open water certification equipping divers with skills for underwater exploration to 20 metres. Comprehensive training covering equipment use, buoyancy control, safety principles, and dive planning. Valid for diving in the UK and internationally.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/ee18f4c3-24d9-4b17-a5cf-aaae8f9e5eeb/ocean-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 10,
+      "openWaterDives": 4,
+      "prerequisites": "Must comfortably swim 200m in a pool",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Swimsuit and towel",
+        "Basic equipment provided, personal gear recommended"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Ocean Diver",
+      "code": "AOD",
+      "levelCode": "beginner",
+      "description": "Bridge certification between Ocean Diver and Sports Diver, enabling divers to expand exploration capabilities to 30 metres depth. Includes nitrox training, compass navigation, and surface marker buoy deployment skills.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/0bc1f9d0-c7a7-4c67-9efd-84c9f97f0e2c/advanced-ocean-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Ocean Diver or equivalent certification, completed Nitrox training",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Surface marker buoy",
+        "Compass"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Sports Diver",
+      "code": "SD",
+      "levelCode": "advanced",
+      "description": "Key advancement certification enabling longer, deeper dives to 40 metres with decompression stops. Comprehensive rescue training including self-rescue and recovery of unresponsive divers. In-water decompression procedures and extended nitrox use.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/4af4c8c2-3e9c-4f8b-8d51-9f43c6d8e7b2/sports-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "BSAC Ocean Diver or Advanced Ocean Diver, or equivalent from another recognized agency. Age 14+ required to progress beyond 20m depth post-qualification.",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Surface marker buoy",
+        "Dive computer or tables"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Dive Leader",
+      "code": "DL",
+      "levelCode": "professional",
+      "description": "Leadership certification enabling experienced divers to lead groups and develop rescue management skills. Learn dive planning, management, and coordination of rescue responses. Prerequisite for Open Water Instructor training.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/8d3b2f1a-9e5c-4a6b-b8d7-6c2e4f9a1b3c/dive-leader.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 6,
+      "openWaterDives": 5,
+      "prerequisites": "BSAC Sports Diver or equivalent, valid nitrox qualification, minimum 60 dives in varied conditions",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Surface marker buoy",
+        "Dive planning materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Diver",
+      "code": "AD",
+      "levelCode": "professional",
+      "description": "Advanced leadership certification for experienced divers ready to lead diving expeditions and manage challenging activities. Advanced Divers are role models in BSAC clubs, able to lead groups in new situations, remote locations, and detailed planning scenarios.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/1f8a9c3d-5b7e-4f2a-a6d1-3e8c9b4f7d2a/advanced-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Dive Leader or equivalent, minimum 20 open-water experience dives, 600 minutes underwater time, led at least 10 qualifying dives as Dive Leader, managed at least 5 qualifying dives as Dive Manager",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Navigation and planning equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "First Class Diver",
+      "code": "FCD",
+      "levelCode": "professional",
+      "description": "BSAC's highest diving grade reflecting extensive theoretical knowledge, organizational skills, and dive management expertise. First Class Divers demonstrate capability to lead safe yet challenging expeditions and diving projects.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/7c4a2e9f-1d6b-4e8a-b3c5-2f9d8a6e4b1c/first-class-diver.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 16,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "BSAC Advanced Diver, minimum 100 dives in varying conditions (minimum 20 dives exceeding 30m depth), completed six mandatory SDCs: Chartwork and Position Fixing, Diver Coxswain Award, Oxygen Administration, Practical Rescue Management, Advanced Lifesaver, First Aid for Divers",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Advanced navigation equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Accelerated Decompression Procedures",
+      "code": "ADP",
+      "levelCode": "specialty",
+      "description": "Learn to use oxygen-rich decompression mixes to optimize off-gassing at decompression stops. Covers diving physics, physiology, kit configuration for redundancy, BSAC Ox-stop tables, and stage-cylinder diving techniques.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/adp.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Sports Diver with 35m depth certification and nitrox training, demonstrated Gold standard buoyancy (+0.5m), minimum 20 logged dives as Sports Diver, depth experience to at least 30m",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit (single or twin-cylinder)",
+        "Oxygen-clean deco gas stage cylinder (minimum 3L)",
+        "Dedicated oxygen-clean regulator",
+        "Redundant buoyancy"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Buoyancy and Trim Workshop",
+      "code": "BTW",
+      "levelCode": "specialty",
+      "description": "Develop optimum underwater position and control through relaxation techniques. One theory session and two open-water dives teaching the value of control for safer, more enjoyable diving.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/buoyancy-trim.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Ocean Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Compressor Operation",
+      "code": "CO",
+      "levelCode": "specialty",
+      "description": "Learn safe operation and maintenance of diving compressors. Essential knowledge for club compressor operators covering air quality, safety procedures, and equipment care.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/compressor.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC membership",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deeper Diver",
+      "code": "DPD",
+      "levelCode": "specialty",
+      "description": "Extend diving capabilities on open circuit equipment to 50 metres depth. Theory covers diving physics, physiology, decompression planning, and gas planning. Enables use of weak trimix and progression toward technical diving.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/deeper-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Dive Leader or equivalent with nitrox certification, qualified to plan and complete decompression diving",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Twin cylinders recommended"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Dive Planning and Management",
+      "code": "DPM",
+      "levelCode": "specialty",
+      "description": "Comprehensive course covering dive site selection, risk assessment, buddy pairing, and contingency planning. Essential skills for organizing safe and enjoyable club diving activities.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/dive-planning.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 1,
+      "prerequisites": "BSAC Sports Diver or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Dive planning materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Marine Life Appreciation",
+      "code": "MLA",
+      "levelCode": "specialty",
+      "description": "One-day course educating participants about underwater environments and conservation. Covers marine creature groups, marine science processes, human impact on the marine environment, and diver conservation responsibilities.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/marine-life.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC membership only - no diving qualification required",
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Nitrox Gas Blender",
+      "code": "NGB",
+      "levelCode": "specialty",
+      "description": "Learn the theory and practical skills for safely blending nitrox gas mixtures. Covers oxygen handling, partial pressure blending, continuous blending, and gas analysis procedures.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/gas-blender.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Sports Diver with nitrox qualification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mixed Gas Blender",
+      "code": "MGB",
+      "levelCode": "specialty",
+      "description": "Advanced gas blending course covering trimix and heliox preparation. Learn helium handling, complex gas calculations, and safe blending procedures for technical diving gases.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/mixed-gas-blender.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Nitrox Gas Blender qualification",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Search and Recovery",
+      "code": "SR",
+      "levelCode": "specialty",
+      "description": "Learn underwater recovery techniques using reels, lines, weights, buoys, and lifting bags. Covers simple, controlled, staged, and multiple bag lifting techniques along with search pattern planning.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/search-recovery.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Sports Diver or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Thermal protection for local conditions"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Wreck Appreciation",
+      "code": "WA",
+      "levelCode": "specialty",
+      "description": "Learn to recognize and safely navigate wreck features. Recognized by the Nautical Archaeology Society. Covers wreck identification, legal protections, basic site sketching, and specialized equipment techniques.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/wreck-appreciation.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Ocean Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Torches",
+        "Reels",
+        "Underwater note-recording materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Wreck Diver",
+      "code": "WD",
+      "levelCode": "specialty",
+      "description": "Introduction to safe wreck diving techniques. Learn wreck types, wreck law, equipment use, line-laying techniques, and non-penetration wreck dive planning.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/wreck-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Sports Diver or equivalent, ability to safely conduct direct ascent to surface at any point",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Delayed surface marker buoy",
+        "Underwater note-recording device"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Wreck Diver",
+      "code": "AWD",
+      "levelCode": "specialty",
+      "description": "Advanced wreck diving techniques including limited penetration skills. Covers wreck penetration planning, emergency procedures, line-laying for penetration, and advanced wreck navigation.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/advanced-wreck.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Wreck Diver SDC, Dive Leader or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Primary and backup lights",
+        "Wreck reel with guidelines"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Twin-set Diver",
+      "code": "TSD",
+      "levelCode": "specialty",
+      "description": "Introduction to self-sufficient buddy diving with twin cylinders. Great course for extending gas supplies and introduction to equipment used for safer planned decompression diving.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/twin-set.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Sports Diver or equivalent, minimum 20 logged dives as Sports Diver",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Twin cylinder configuration (back-mounted or side-mounted)",
+        "Redundant buoyancy"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Primary Donate Workshop",
+      "code": "PDW",
+      "levelCode": "specialty",
+      "description": "Learn the primary donate gas sharing technique for improved safety. Covers equipment configuration, emergency response procedures, and practical skills for sharing gas with a distressed diver.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/primary-donate.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 1,
+      "prerequisites": "BSAC Sports Diver or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit with long hose configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Drysuit Training",
+      "code": "DST",
+      "levelCode": "specialty",
+      "description": "Essential training for diving in drysuit conditions. Covers suit selection, buoyancy control, emergency procedures, and care and maintenance of drysuit equipment.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/drysuit.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Ocean Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Drysuit (can be rented)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ocean Diver Nitrox Workshop",
+      "code": "ODNW",
+      "levelCode": "specialty",
+      "description": "Introduction to nitrox diving for Ocean Divers. Learn the benefits and limitations of enriched air diving up to 36% oxygen mixture.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/nitrox.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Ocean Diver",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Nitrox-compatible dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Sports Diver Nitrox Workshop",
+      "code": "SDNW",
+      "levelCode": "specialty",
+      "description": "Extended nitrox training for Sports Divers covering advanced applications and higher oxygen percentages for decompression optimization.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/nitrox-advanced.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Sports Diver with Ocean Diver Nitrox qualification",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Nitrox-compatible dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Oxygen Administration",
+      "code": "O2A",
+      "levelCode": "specialty",
+      "description": "Essential safety training in oxygen delivery procedures for diving emergencies. Learn to administer oxygen to injured divers and manage emergency oxygen equipment.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/oxygen-admin.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC membership",
+      "minAge": 16,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Practical Rescue Management",
+      "code": "PRM",
+      "levelCode": "specialty",
+      "description": "One-day course developing rescue management skills through realistic scenarios. Learn strategic incident assessment, prioritization, delegation, casualty removal, first aid priorities, and emergency services coordination.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/rescue-management.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 1,
+      "prerequisites": "BSAC Sports Diver or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Automated External Defibrillator (AED)",
+      "code": "AED",
+      "levelCode": "specialty",
+      "description": "Training on using AED equipment for cardiac emergency response. Learn when and how to use an AED effectively in diving emergency situations.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/aed.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC membership",
+      "minAge": 16,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Lifesaver Award",
+      "code": "LSA",
+      "levelCode": "specialty",
+      "description": "Foundational rescue qualification covering rescue fundamentals for divers. Learn in-water rescue techniques, towing methods, and basic casualty management.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/lifesaver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Ocean Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Swimwear",
+        "Rescue equipment provided"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Lifesaver Award",
+      "code": "ALSA",
+      "levelCode": "specialty",
+      "description": "Advanced rescue qualification building on the standard Lifesaver Award. Covers complex rescue scenarios, multiple casualty management, and advanced towing techniques.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/advanced-lifesaver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 4,
+      "openWaterDives": 1,
+      "prerequisites": "BSAC Lifesaver Award, Sports Diver or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "First Aid for Divers",
+      "code": "FAD",
+      "levelCode": "specialty",
+      "description": "First aid instruction tailored specifically to diving-related medical emergencies. Covers decompression sickness recognition, near-drowning response, and marine life injuries.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/first-aid.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC membership",
+      "minAge": 16,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "RNLI Diver Sea Survival Workshop",
+      "code": "RNLI",
+      "levelCode": "specialty",
+      "description": "Partnership course with the Royal National Lifeboat Institution covering survival skills for divers at sea. Learn sea survival techniques, signaling, and rescue coordination.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/rnli-survival.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Ocean Diver or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Boat Handling",
+      "code": "BH",
+      "levelCode": "specialty",
+      "description": "Practical boat-based course teaching operation of rigid-hulled inflatable boats (RIBs) for diving operations. Covers high-speed and slow-speed maneuvering, anchoring, launching, recovering boats, and diver deployment.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/boat-handling.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC membership - no diving qualification required",
+      "minAge": 14,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Chartwork and Position Fixing",
+      "code": "CPF",
+      "levelCode": "specialty",
+      "description": "Hands-on navigation course for planning diving expeditions. Learn to read nautical charts, calculate tidal movements, determine positions at sea, and identify potential dive sites.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/chartwork.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "None - open to anyone including non-divers",
+      "minAge": 14,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Navigation instruments provided"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Diver Coxswain Assessment",
+      "code": "DCA",
+      "levelCode": "specialty",
+      "description": "Assessment course for demonstrating competency in commanding and managing a diving vessel. Covers boat handling skills, crew management, and dive operation coordination from the helm.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/diver-coxswain.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Boat Handling SDC, extensive practical boat handling experience",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Photography",
+      "code": "UWP",
+      "levelCode": "specialty",
+      "description": "Introduction to underwater photography using digital cameras. Combines theoretical instruction with practical underwater application and post-processing training. Covers optical issues, camera features, and shooting techniques.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/underwater-photo.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Sports Diver or equivalent, very familiar with diving equipment, able to control buoyancy within one metre of any depth",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Digital camera (optional - can be provided)",
+        "Full open-water dive kit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ice Diving",
+      "code": "ID",
+      "levelCode": "specialty",
+      "description": "Specialized training for diving in ice environments. Covers ice diving hazards, line procedures, emergency responses, and equipment considerations for cold water diving.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/ice-diving.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Dive Leader or equivalent with extensive cold water experience",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Cold water dive equipment",
+        "Drysuit",
+        "Redundant equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Surveyor",
+      "code": "UWS",
+      "levelCode": "specialty",
+      "description": "Created in partnership with Seawilding to enable divers to get involved in protecting the ocean and its habitats. Learn survey techniques, data recording, and species identification for conservation purposes.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/underwater-surveyor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Sports Diver or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full open-water dive kit",
+        "Underwater writing materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Shore Surveyor",
+      "code": "SS",
+      "levelCode": "specialty",
+      "description": "Training for surveying coastal and shore diving locations. Learn to assess dive sites, identify hazards, and document conditions for safe shore diving operations.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/shore-surveyor.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC membership - no diving qualification required",
+      "minAge": 14,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Diving for All Awareness",
+      "code": "DFA",
+      "levelCode": "specialty",
+      "description": "Program focused on inclusive diving practices. Learn about adaptive diving techniques and how to support divers with disabilities in enjoying underwater activities.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/diving-for-all.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC membership",
+      "minAge": 16,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "BSAC Beachcomber",
+      "code": "BC",
+      "levelCode": "beginner",
+      "description": "Children's course exploring the intertidal zone and marine life along the shore. Fun, educational introduction to marine environments without diving.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/sdc-images/beachcomber.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 6,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Appropriate outdoor clothing"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Sport Mixed Gas Diver",
+      "code": "SMG",
+      "levelCode": "advanced",
+      "description": "BSAC's entry-level open circuit technical course introducing experienced ADP divers to trimix as a breathing gas. Qualify to dive trimix mixes to depths up to 50m using twin-set and single stage cylinder.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/sport-mixed-gas.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "BSAC Sports Diver with 35m depth certification and ADP course, minimum 60 logged dives with 10 dives between 30-35m",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration and fitness assessment required",
+      "requiredItems": [
+        "Twin-set configuration",
+        "Stage cylinder",
+        "Technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Explorer Mixed Gas Diver",
+      "code": "XMG",
+      "levelCode": "advanced",
+      "description": "Extend open-circuit mixed gas diving skills to 60m. Learn to use travel gas to optimize breathing mix at all dive stages. Introduces normoxic trimix diving with twin-set and two stage cylinders.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/explorer-mixed-gas.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "BSAC Sport Mixed Gas Diver (50m) or equivalent with suitable experience",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration and fitness assessment required",
+      "requiredItems": [
+        "Twin-set configuration",
+        "Two stage cylinders",
+        "Technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Mixed Gas Diver",
+      "code": "AMG",
+      "levelCode": "advanced",
+      "description": "Ultimate step in BSAC open-circuit mixed-gas training. Introduces extended choice of trimix gases and qualifies divers to 80m depth using twin-set and minimum two stage cylinders.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/advanced-mixed-gas.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "BSAC Sport Mixed Gas Diver (50m) or Explorer Mixed Gas Diver (60m) with extensive experience",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration and fitness assessment required",
+      "requiredItems": [
+        "Twin-set configuration",
+        "Multiple stage cylinders",
+        "Full technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Poseidon Se7en CCR Diver",
+      "code": "CCRP",
+      "levelCode": "advanced",
+      "description": "Entry-level closed circuit rebreather course for the Poseidon Se7en unit. Learn rebreather theory, unit-specific operations, emergency procedures, and qualify for CCR diving to 40m depth.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/poseidon-ccr.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "BSAC Sports Diver with 35m depth certification, minimum 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration and CCR fitness assessment required",
+      "requiredItems": [
+        "Poseidon Se7en rebreather unit",
+        "Full CCR equipment configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "AP Vision CCR Diver",
+      "code": "CCRA",
+      "levelCode": "advanced",
+      "description": "Entry-level closed circuit rebreather course for the AP Vision unit. Comprehensive training in rebreather diving to 45m depth with unit-specific procedures and emergency responses.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/ap-vision-ccr.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "BSAC Sports Diver with 35m depth certification, minimum 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration and CCR fitness assessment required",
+      "requiredItems": [
+        "AP Vision rebreather unit",
+        "Full CCR equipment configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Divesoft Liberty CCR Diver",
+      "code": "CCRD",
+      "levelCode": "advanced",
+      "description": "Entry-level closed circuit rebreather certification for the Divesoft Liberty unit. Learn unit-specific operations and qualify for CCR diving to 45m depth.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/divesoft-ccr.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "BSAC Sports Diver with 35m depth certification, minimum 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration and CCR fitness assessment required",
+      "requiredItems": [
+        "Divesoft Liberty rebreather unit",
+        "Full CCR equipment configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "MOD 1 AP Mixed Gas Top-up",
+      "code": "MOD1T",
+      "levelCode": "advanced",
+      "description": "Top-up qualification for AP Vision CCR divers enabling mixed gas operations. Extends CCR capability with trimix diluent options to 45m depth.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/mod1-topup.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "BSAC AP Vision CCR Diver certification",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration and CCR fitness assessment required",
+      "requiredItems": [
+        "AP Vision rebreather unit",
+        "Mixed gas supplies"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "MOD 2 CCR Diver",
+      "code": "MOD2",
+      "levelCode": "advanced",
+      "description": "Intermediate CCR progression course extending rebreather capability to 60m depth. Covers advanced trimix operations, complex decompression, and emergency management.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/mod2-ccr.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "BSAC CCR Diver (40m/45m) with extensive CCR experience",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration and CCR fitness assessment required",
+      "requiredItems": [
+        "Compatible CCR unit",
+        "Full technical CCR configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Mixed Gas CCR Diver",
+      "code": "AMGR",
+      "levelCode": "advanced",
+      "description": "Ultimate step in BSAC closed-circuit mixed-gas training. Introduces extended trimix options and qualifies for CCR diving to 100m depth. High proficiency required with 80-100 logged CCR dives.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/advanced-ccr.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "BSAC CCR Diver (40m) or Sport Mixed Gas CCR Diver (50m), demonstrated high CCR proficiency with 80-100 logged CCR dives",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration and comprehensive CCR fitness assessment required",
+      "requiredItems": [
+        "Compatible CCR unit",
+        "Full technical CCR configuration",
+        "Multiple bailout cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Foundation Course",
+      "code": "IFC",
+      "levelCode": "instructor",
+      "description": "Entry point into BSAC instructor training. Two-day course covering teaching principles, lesson planning, and practical pool instruction skills. Successful candidates become Assistant Diving Instructors.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/ifc.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Sports Diver or equivalent",
+      "minAge": 16,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Instructor",
+      "code": "OWI",
+      "levelCode": "instructor",
+      "description": "Second level of instructor training extending teaching abilities from pool to open water. One-day course focusing on preparing and delivering practical skills lessons in open water environments.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/owi.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "Completed Instructor Foundation Course, BSAC Dive Leader or equivalent",
+      "minAge": 16,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Single cylinder dive kit with demand valve and alternative air source",
+        "Thermal protection",
+        "Writing materials and slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Theory Instructor Exam",
+      "code": "TIE",
+      "levelCode": "instructor",
+      "description": "Half-day examination assessing competency in teaching diving theory. Required component for full Open Water Instructor qualification.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/theory-exam.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "Completed Open Water Instructor Course, BSAC Dive Leader or equivalent",
+      "minAge": 16,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Practical Instructor Exam",
+      "code": "PIE",
+      "levelCode": "instructor",
+      "description": "Half-day practical examination assessing open water instructing competency. Completes the pathway to full Open Water Instructor qualification.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/practical-exam.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 1,
+      "prerequisites": "Passed Theory Instructor Exam, completed Open Water Instructor Course",
+      "minAge": 16,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Instructor",
+      "code": "AI",
+      "levelCode": "instructor",
+      "description": "Third level of BSAC instructor training. Two-day course enabling experienced instructors to teach advanced diving skills including boat management, wreck finding, chart navigation, and project leadership.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/advanced-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "BSAC Open Water Instructor, BSAC Advanced Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "National Instructor",
+      "code": "NI",
+      "levelCode": "instructor",
+      "description": "BSAC's highest instructor qualification. Rigorous preparation through five national prep events and four-day examination. National Instructors lead training development and bring forward new courses.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/national-instructor.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 20,
+      "poolHours": 8,
+      "openWaterDives": 10,
+      "prerequisites": "BSAC Advanced Instructor, First Class Diver, active Instructor Trainer, Pass or Merit in First Class Diver theory exam within past 3 years",
+      "minAge": 21,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Instructor training materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Development Course",
+      "code": "IDC",
+      "levelCode": "instructor",
+      "description": "Enhancement course for qualified Open Water Instructors or Club Instructors. Develops advanced instructing capabilities and teaching techniques.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/idc.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Open Water Instructor or Club Instructor",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Crossover Course",
+      "code": "ICC",
+      "levelCode": "instructor",
+      "description": "Enables instructors from other diving agencies to transfer qualifications to BSAC. Covers BSAC-specific procedures, training standards, and assessment methods.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/crossover.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "Current instructor certification from another recognized training agency, Dive Leader equivalent qualification",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Proof of current instructor status"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Twin-set Instructor Workshop",
+      "code": "TIW",
+      "levelCode": "instructor",
+      "description": "Qualifies experienced twin-set divers to teach equipment usage. Covers twin-set configuration, teaching methods, and assessment criteria for Twin-set Diver course.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/twin-set-instructor.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 1,
+      "prerequisites": "BSAC Open Water Instructor, Twin-set Diver qualification with extensive experience",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Twin-set configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Instructor",
+      "code": "TI",
+      "levelCode": "instructor",
+      "description": "Qualification to teach BSAC technical diving courses. Covers advanced instruction methods for mixed gas and CCR training programs.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/tech-instructor.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "BSAC Advanced Instructor with technical diving qualifications (Mixed Gas or CCR)",
+      "minAge": 21,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Full technical diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Trainer Development Course",
+      "code": "ITDC",
+      "levelCode": "instructor",
+      "description": "Prepares experienced instructors to train and assess new instructors. Covers instructor training methodology, assessment standards, and mentoring techniques.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/instructor-trainer.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Advanced Instructor with extensive teaching experience",
+      "minAge": 21,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Diving for All Instructor",
+      "code": "DFAI",
+      "levelCode": "instructor",
+      "description": "Qualification to teach and support divers with disabilities. Covers adaptive techniques, equipment modifications, and inclusive teaching methods.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/dfa-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "BSAC Open Water Instructor, Diving for All Awareness SDC",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Dolphin Snorkeller",
+      "code": "DS",
+      "levelCode": "beginner",
+      "description": "Fun snorkelling course for younger children featuring seven lively in-water sessions themed around different dolphin types. Participants earn dolphin stickers to become a BSAC Dolphin Snorkeller.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/snorkel-images/dolphin-snorkeller.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 0,
+      "poolHours": 14,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 6,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Swimwear"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Snorkel Diver",
+      "code": "SNK",
+      "levelCode": "beginner",
+      "description": "Entry-level snorkelling certification for individuals, families, and children aged 8+. Covers core skills for safe, fun snorkelling with a buddy in sheltered water conditions.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/snorkel-images/snorkel-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": "Must be able to swim 50 metres and be comfortable in water",
+      "minAge": 8,
+      "medicalRequirements": "BSAC Snorkel Medical Declaration",
+      "requiredItems": [
+        "Mask, snorkel, and fins (can be provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Snorkeller",
+      "code": "AS",
+      "levelCode": "advanced",
+      "description": "Develops self-reliance, safety-awareness, and readiness for varied conditions. Advanced theory and open-water snorkelling including navigation, marker buoys, and search techniques.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/snorkel-images/advanced-snorkeller.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Snorkel Diver",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Snorkel Medical Declaration",
+      "requiredItems": [
+        "Mask, snorkel, and fins",
+        "Exposure protection for local conditions"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Snorkel Dive Manager",
+      "code": "SDM",
+      "levelCode": "professional",
+      "description": "Leadership qualification teaching how to safely organize, manage, and supervise group snorkelling activities. Covers session planning, condition assessment, group briefing, and incident handling.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/snorkel-images/snorkel-manager.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Advanced Snorkeller with extensive snorkelling experience",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Snorkel Medical Declaration",
+      "requiredItems": [
+        "Full snorkelling equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Snorkel Lifesaver Award",
+      "code": "SLSA",
+      "levelCode": "specialty",
+      "description": "Rescue qualification designed specifically for snorkellers. Learn in-water rescue techniques appropriate for snorkelling environments.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/snorkel-images/snorkel-lifesaver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Snorkel Diver",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Snorkel Medical Declaration",
+      "requiredItems": [
+        "Snorkelling equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Snorkel Lifesaver Award",
+      "code": "ASLSA",
+      "levelCode": "specialty",
+      "description": "Advanced rescue qualification for experienced snorkellers. Covers complex rescue scenarios in open water environments.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/snorkel-images/advanced-snorkel-lifesaver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Snorkel Lifesaver Award, Advanced Snorkeller",
+      "minAge": 14,
+      "medicalRequirements": "BSAC Snorkel Medical Declaration",
+      "requiredItems": [
+        "Full snorkelling equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Snorkel Instructor",
+      "code": "SI",
+      "levelCode": "instructor",
+      "description": "Primary snorkel instructor certification through the Snorkel Instructor Training Course and Assessment (SITCA). Qualifies to teach BSAC snorkel programs.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/snorkel-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Snorkel Diver",
+      "minAge": 16,
+      "medicalRequirements": "BSAC Snorkel Medical Declaration",
+      "requiredItems": [
+        "Full snorkelling equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Snorkel Instructor",
+      "code": "ASI",
+      "levelCode": "instructor",
+      "description": "Advanced snorkel instructor qualification enabling teaching of higher-level snorkel courses and supervising less experienced instructors.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/instructor-images/advanced-snorkel-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Snorkel Instructor, Snorkel Dive Manager, Advanced Snorkel Lifesaver Award",
+      "minAge": 16,
+      "medicalRequirements": "BSAC Snorkel Medical Declaration",
+      "requiredItems": [
+        "Full snorkelling equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Try Dive",
+      "code": "TD",
+      "levelCode": "beginner",
+      "description": "Introductory diving experience for those curious about scuba diving. Safe, supervised pool session to experience breathing underwater with full instruction and equipment provided.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/experiences/try-dive.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Swimwear",
+        "All equipment provided"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Scuba Refresher",
+      "code": "SR",
+      "levelCode": "specialty",
+      "description": "Refresher course for certified divers returning to diving after a break. Reviews essential skills, safety procedures, and rebuilds confidence in the water.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/experiences/scuba-refresher.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 1,
+      "prerequisites": "Existing diving certification from any recognized agency",
+      "minAge": 12,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "Personal dive equipment or rental available"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Try Dive",
+      "code": "CCRTD",
+      "levelCode": "specialty",
+      "description": "Introductory experience with closed circuit rebreather diving. A taster session before committing to full CCR certification courses.",
+      "images": [
+        "https://www.bsac.com/contentfiles/medialibrary/tech-images/ccr-try-dive.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": "BSAC Sports Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "BSAC Medical Declaration required",
+      "requiredItems": [
+        "All CCR equipment provided"
+      ],
+      "materialsIncluded": true
+    }
+  ]
+}

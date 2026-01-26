@@ -1,0 +1,2012 @@
+{
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "SSI Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import, not a direct database dump. The sync script (lib/jobs/sync-agency-catalogs.server.ts) transforms this into agency_course_templates records by: (1) Looking up agencyId from certification_agencies where code='ssi', (2) Mapping levelCode to levelId via certification_levels lookup, (3) Generating contentHash from course fields, (4) Adding sourceType='static_json', timestamps, etc. Tenant-specific fields (price, isActive, etc.) are NOT in this file - they're set when tenants import courses.",
+  "agency": "ssi",
+  "agencyName": "Scuba Schools International",
+  "version": "2026.1",
+  "lastUpdated": "2026-01-25",
+  "courses": [
+    {
+      "name": "Try Scuba",
+      "code": "TRY-SCUBA",
+      "levelCode": "beginner",
+      "description": "Try Scuba Diving is a program designed to give you a taste of scuba diving without committing to a certification or diving in deep water. The program lasts around 3 hours combining basic theory and one shallow water session in a pool or shallow ocean to a maximum depth of 5 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/tryscuba2020_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 8,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Swimsuit",
+        "Towel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Basic Diver",
+      "code": "BD",
+      "levelCode": "beginner",
+      "description": "The Basic Diver course gives you the skills you need to dive safely with a professional alongside you. It is a mixture of one theory session, a confined water session in shallow water, and an open water session to a maximum depth of 12 meters. This course can be credited towards the Scuba Diver or Open Water Diver certifications.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/basicdiver_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 1,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Swimsuit",
+        "Towel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Scuba Diver",
+      "code": "SD",
+      "levelCode": "beginner",
+      "description": "The SSI Scuba Diver certification is the first official SSI scuba diving certification. The course consists of three theory sessions, two shallow water confined dives, and two open water dives. Upon completion, you will be certified to dive to a maximum of 12 meters with a professional always with you.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/scubadiver_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Diver",
+      "code": "OWD",
+      "levelCode": "beginner",
+      "description": "The SSI Open Water Diver program is SSI's globally recognized certification. Complete all academic sections, pool/confined water sessions, and at least four open water training dives. Upon completion, you become part of an exclusive group of underwater explorers certified to dive anywhere in the world.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/openwaterdiver_website.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "Weight system",
+        "BCD (Buoyancy Control Device)",
+        "Regulator with alternate air source",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Adventurer",
+      "code": "AA",
+      "levelCode": "advanced",
+      "description": "The SSI Advanced Adventurer program allows you to try 5 different Specialty dives before committing to a full training program. You will complete one open water training dive per specialty after a comprehensive briefing with your SSI Instructor. Dives completed can be applied toward full Specialty certifications.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/advancedadventurer_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 5,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Diver Stress and Rescue",
+      "code": "DSR",
+      "levelCode": "advanced",
+      "description": "Learn to identify stress, prevent accidents, and discover rescue diver skills with the SSI Diver Stress and Rescue program. With a combination of pool and open water practice sessions, you will become well prepared and confident at handling emergency and rescue situations.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/diverstressrescue_website.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 6,
+      "openWaterDives": 3,
+      "prerequisites": "SSI Open Water Diver or equivalent, React Right certification recommended",
+      "minAge": 12,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Pocket mask"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "React Right",
+      "code": "RR",
+      "levelCode": "specialty",
+      "description": "React Right is SSI's emergency first response course providing training and knowledge to act as a first responder in a medical emergency. This flexible program covers primary assessment, first aid, CPR, primary stabilization techniques, oxygen administration in diving emergencies, and Automated External Defibrillator (AED) basics.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/reactright_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "CPR mask (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deep Diving",
+      "code": "DD",
+      "levelCode": "specialty",
+      "description": "The SSI Deep Diving Specialty teaches you to dive to depths between 18 and 40 meters through academic sessions and open water dives. Learn to plan and safely complete deep diving adventures using computers and gas consumption calculations.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/deepdiving_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 3,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Surface marker buoy"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Wreck Diving",
+      "code": "WD",
+      "levelCode": "specialty",
+      "description": "The SSI Wreck Diving Specialty allows you to discover the world of wreck diving and immerse in living history. Learn the knowledge and techniques needed to safely conduct non-penetration wreck dives, practice using reels and tethers, and develop buoyancy control and navigation skills.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/wreckdiving_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Dive light",
+        "Reel and line"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Night Diving and Limited Visibility",
+      "code": "NDLV",
+      "levelCode": "specialty",
+      "description": "The SSI Night Diving and Limited Visibility specialty provides all the knowledge and skills you need to safely and comfortably dive at night or in limited visibility conditions. Learn how to enter and exit the water, use specialized equipment, and communicate with your buddy at night.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/nightdiving_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Primary dive light",
+        "Backup dive light",
+        "Chemical light stick"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Navigation",
+      "code": "NAV",
+      "levelCode": "specialty",
+      "description": "The SSI Navigation Specialty program helps you become a better, more confident diver who always knows where they are going. Learn how to use a dive compass, natural navigation techniques, and more.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/navigation_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Compass",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Perfect Buoyancy",
+      "code": "PB",
+      "levelCode": "specialty",
+      "description": "The SSI Perfect Buoyancy Specialty improves your body position for relaxed dives, lowers your air consumption, and increases your bottom times. Master buoyancy control techniques for safer, more enjoyable diving.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/perfectbuoyancy_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Search and Recovery",
+      "code": "SR",
+      "levelCode": "specialty",
+      "description": "The SSI Search and Recovery Specialty teaches you the skills and techniques to conduct underwater searches and recover lost objects. Learn various search patterns and proper lift bag techniques.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/specialty/search-recovery.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Compass",
+        "Lift bag",
+        "Reel and line"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Enriched Air Nitrox",
+      "code": "EAN",
+      "levelCode": "specialty",
+      "description": "The SSI Enriched Air Nitrox specialty teaches you to plan and conduct dives using enriched air nitrox mixtures up to 40% oxygen. Extend your no-decompression limits and shorten surface intervals.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/enrichedairnitrox_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Nitrox-compatible dive computer",
+        "Oxygen analyzer (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational Sidemount Diving",
+      "code": "RSD",
+      "levelCode": "specialty",
+      "description": "The SSI Recreational Sidemount course teaches you to go single or two-cylinder recreational sidemount diving up to a maximum depth of 30 meters. Experience greater flexibility and freedom of movement with tanks positioned along the sides of your body.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/sidemount_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Sidemount BCD/harness",
+        "Two cylinders with regulators",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Boat Diving",
+      "code": "BOAT",
+      "levelCode": "specialty",
+      "description": "The SSI Boat Diver Specialty teaches you the skills and techniques needed to safely and comfortably dive from a variety of boats. Learn boat diving etiquette, entry and exit techniques, and emergency procedures.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/specialty/boat-diving.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Surface marker buoy"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Dry Suit Diving",
+      "code": "DSD",
+      "levelCode": "specialty",
+      "description": "The SSI Dry Suit Diving Specialty allows you to dive all year, anywhere in the world while staying warm on every dive adventure. Learn dry suit operation, buoyancy control, and emergency procedures.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/drysuit_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Dry suit",
+        "Dry suit undergarments",
+        "Personal dive equipment",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Equipment Techniques",
+      "code": "ET",
+      "levelCode": "specialty",
+      "description": "The SSI Equipment Techniques Specialty provides in-depth knowledge of scuba equipment operation, maintenance, and basic repairs. Understand how your gear works and learn to perform routine maintenance.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/specialty/equipment-techniques.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Personal dive equipment for inspection"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Photo and Video",
+      "code": "PV",
+      "levelCode": "specialty",
+      "description": "The SSI Photo and Video specialty provides in-depth knowledge to dive with an underwater camera and properly use, maintain, and store your equipment. Develop skills to take underwater images and video safely while perfecting your diving abilities.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/photovideo_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater camera system",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Marine Ecology",
+      "code": "ME",
+      "levelCode": "specialty",
+      "description": "The SSI Marine Ecology specialty helps divers gain a thorough understanding of the oceans and the exciting science of marine ecology. Learn how ocean ecosystems interact and become an underwater naturalist.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/marineecology_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Shark Ecology",
+      "code": "SE",
+      "levelCode": "specialty",
+      "description": "The SSI Shark Ecology program teaches you to interpret shark behaviors, understand why they are often misunderstood, and how to dive with sharks safely. Perfect for shark fans and divers who want to overcome their fear.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/sharkecology_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Sea Turtle Ecology",
+      "code": "STE",
+      "levelCode": "specialty",
+      "description": "The SSI Sea Turtle Ecology program teaches you to identify sea turtles, discover their vital role in marine ecosystems, and learn about their fascinating history and the threats to their survival.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/seaturtleecology_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Manta and Ray Ecology",
+      "code": "MRE",
+      "levelCode": "specialty",
+      "description": "The SSI Manta and Ray Ecology program teaches you to dive with mantas and other rays safely, plus discover the vital role they play in ocean ecosystems. Learn how to recognize different species.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/mantarayecology_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Fish Identification",
+      "code": "FI",
+      "levelCode": "specialty",
+      "description": "The SSI Fish Identification specialty teaches you to identify fish and enhance your dives. Learn to identify common families of Caribbean, Indo-Pacific, and Red Sea reef fish.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/fishidentification_website.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Coral Identification",
+      "code": "CI",
+      "levelCode": "specialty",
+      "description": "The SSI Coral Identification Specialty teaches you to identify common families of coral species and enjoy diving these incredible underwater ecosystems. Discover the wonders of coral reefs.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/ecology/coral-identification.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Marine Mammal Ecology",
+      "code": "MME",
+      "levelCode": "specialty",
+      "description": "The SSI Marine Mammal Ecology program teaches you about marine mammals, their behaviors, and how to safely interact with them in the wild. Learn to help protect ocean wildlife.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/ecology/marine-mammal-ecology.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Science of Diving",
+      "code": "SOD",
+      "levelCode": "specialty",
+      "description": "The SSI Science of Diving Specialty immerses you in physics, physiology, decompression theory, and the aquatic environment. This program provides half the knowledge needed to earn your Divemaster rating.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/2023/12/06/scienceofdiving_website.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 15,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Waves, Tides and Currents",
+      "code": "WTC",
+      "levelCode": "specialty",
+      "description": "The SSI Waves, Tides and Currents specialty enhances your dive skills and understanding, so you can enjoy diving in different environments safely. Learn about environmental conditions that affect dive sites and practice evaluating diving conditions.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/specialty/waves-tides-currents.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Surface marker buoy"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ice Diving",
+      "code": "ICE",
+      "levelCode": "specialty",
+      "description": "The SSI Ice Diving program provides the skills and concepts required to safely and comfortably dive underneath the ice. Experience polar diving and explore frozen underwater landscapes.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/specialty/ice-diving.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver and Dry Suit Diving certifications, or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Dry suit",
+        "Full personal dive equipment",
+        "Safety lines and tethers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Scooter/DPV Diving",
+      "code": "DPV",
+      "levelCode": "specialty",
+      "description": "The SSI Scooter/DPV Diving specialty teaches you the skills and concepts needed to safely plan and conduct dives using scooters or diver propulsion vehicles. Learn special precautions, buddy contact techniques, and equipment control.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/specialty/dpv-diving.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "DPV/Scooter (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Computer Diving",
+      "code": "CD",
+      "levelCode": "specialty",
+      "description": "The SSI Computer Diving program goes beyond teaching basic dive computer functions. Gain in-depth knowledge of decompression theory and how it relates to your dive computer operation, including differences between nitrox, mixed-gas, rebreather, and freediving computers.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/specialty/computer-diving.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 10,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Gas Blender Nitrox",
+      "code": "GBN",
+      "levelCode": "specialty",
+      "description": "The SSI Gas Blender Nitrox program teaches you the skills and concepts required to safely blend nitrox gases. This non-diving program is open to certified and uncertified divers and teaches proper usage of mathematics, gas blending software, physics, and techniques.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/specialty/gas-blender.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Gas Blender Trimix",
+      "code": "GBT",
+      "levelCode": "specialty",
+      "description": "The SSI Gas Blender Trimix program teaches you to safely blend helium-based trimix gases. This non-diving program covers mathematics, gas blending software, physics, and techniques required to blend breathing gases safely.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/specialty/gas-blender-trimix.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Gas Blender Nitrox",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extended Range Nitrox Diving",
+      "code": "XR-NITROX",
+      "levelCode": "advanced",
+      "description": "The SSI Extended Range Nitrox program provides a thorough introduction to decompression diving with nitrox. Using either a sidemount or twinset configuration, this program prepares divers to plan and conduct limited decompression dives to a maximum depth of 40 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/xr-nitrox.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Deep Diving, Enriched Air Nitrox 40, minimum 24 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval recommended",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Stage cylinder",
+        "Dive computer",
+        "Surface marker buoy and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extended Range",
+      "code": "XR",
+      "levelCode": "advanced",
+      "description": "The SSI Extended Range Trimix program is the core program for technical diving. Using either a sidemount or twinset configuration, this program prepares you to plan and conduct trimix decompression dives to a maximum depth of 45 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/xr-trimix.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Extended Range Nitrox Diving or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval recommended",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Stage cylinders",
+        "Dive computer",
+        "Surface marker buoy and reel",
+        "Backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Extended Range",
+      "code": "TXR",
+      "levelCode": "advanced",
+      "description": "The SSI Technical Extended Range Trimix program builds upon Extended Range skills by increasing dive depth and duration. Using either a sidemount or twinset configuration, plan and conduct mixed gas unlimited decompression dives to a maximum depth of 60 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/txr.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Extended Range or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval recommended",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Multiple stage cylinders",
+        "Dive computer",
+        "Redundant dive computer or bottom timer",
+        "Surface marker buoy and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Hypoxic Trimix",
+      "code": "HTX",
+      "levelCode": "advanced",
+      "description": "The SSI Hypoxic Trimix program is the ultimate decompression dive training. Learn to carry and use a minimum of three stage-cylinders for travel and decompression gas, and plan and conduct dives to a maximum depth of 100 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/hypoxic-trimix.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 12,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Technical Extended Range or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval required",
+      "requiredItems": [
+        "Twinset configuration",
+        "Minimum three stage cylinders",
+        "Redundant dive computers",
+        "Surface marker buoy and reel",
+        "Backup lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extended Range Sidemount",
+      "code": "XR-SM",
+      "levelCode": "advanced",
+      "description": "The SSI Extended Range Sidemount program trains you to dive in a sidemount configuration with additional stage cylinders for decompression diving. Improve your trim and streamlining for exploring overhead environments.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/xr-sidemount.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Recreational Sidemount Diving and Extended Range Nitrox Diving",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Sidemount BCD/harness",
+        "Multiple cylinders",
+        "Stage cylinders",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extended Range Wreck Diving",
+      "code": "XR-WD",
+      "levelCode": "advanced",
+      "description": "The SSI Extended Range Wreck Diving program provides all you need to plan and conduct wreck penetration dives using specialized wreck diving equipment, gas management concepts, and buddy team skills within the light zone to depths shallower than 40 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/xr-wreck.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Wreck Diving and Extended Range Nitrox Diving",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Primary and backup lights",
+        "Reel and line",
+        "Cutting device"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Wreck Diving",
+      "code": "TWD",
+      "levelCode": "advanced",
+      "description": "The SSI Technical Wreck Diving program teaches you to dive the deepest wrecks with advanced penetration techniques. Plan and conduct complex wreck penetration dives beyond the light zone.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/technical-wreck.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Extended Range Wreck Diving and Technical Extended Range",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval recommended",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Multiple stage cylinders",
+        "Primary and multiple backup lights",
+        "Multiple reels and lines",
+        "Cutting devices"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extended Range Cavern Diving",
+      "code": "XR-CAVERN",
+      "levelCode": "advanced",
+      "description": "The SSI Extended Range Cavern Diving program gives you a glimpse into the exciting world of cave diving. Learn how to use cavern diving equipment, gas management concepts, and buddy team skills to safely conduct cavern penetration dives within the daylight zone to a maximum depth of 40 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/xr-cavern.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Extended Range Nitrox Diving or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Primary and backup lights",
+        "Primary and backup reels",
+        "Line arrows and cookies"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diving",
+      "code": "CAVE",
+      "levelCode": "advanced",
+      "description": "The SSI Cave Diver certification allows you to plan and conduct cave penetration dives with a single navigational choice, using cave diving equipment. Learn the correct procedures and protocols for such dives using sidemount, twinset, or rebreather configuration.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/cave-diving.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "SSI Extended Range Cavern Diving",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval recommended",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Multiple primary and backup lights",
+        "Multiple reels",
+        "Line arrows, cookies, and directional markers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Full Cave Diving",
+      "code": "FULL-CAVE",
+      "levelCode": "advanced",
+      "description": "SSI Full Cave Diving teaches you complex underwater navigation skills including traverse, jump, tee, and gap within a cave system. This is SSI's highest-level overhead environment certification, providing all the tools you need to explore the world's underwater caves to a maximum depth of 40 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/full-cave.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "SSI Cave Diving",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval required",
+      "requiredItems": [
+        "Twinset or sidemount configuration",
+        "Multiple primary and backup lights",
+        "Multiple reels and spools",
+        "Complete cave diving equipment package"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Try SCR",
+      "code": "TRY-SCR",
+      "levelCode": "advanced",
+      "description": "The SSI Try SCR program introduces you to semi-closed rebreather diving using a Mares Horizon unit. Experience the peace and extended dive times that rebreathers can bring in this introductory course.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/try-scr.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 1,
+      "prerequisites": "SSI Open Water Diver or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Mares Horizon SCR (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SCR Diving",
+      "code": "SCR",
+      "levelCode": "advanced",
+      "description": "The SSI SCR Diving course teaches you to conduct no-decompression dives up to 30 meters using the Mares Horizon semi-closed rebreather. Learn essential skills such as SCR-specific equipment configuration, gas management, and bailout procedures.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/scr-diving.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Open Water Diver, Enriched Air Nitrox, minimum 24 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mares Horizon SCR",
+        "Bailout cylinder",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SCR Extended Range",
+      "code": "SCR-XR",
+      "levelCode": "advanced",
+      "description": "The SSI SCR Extended Range program expands your semi-closed rebreather diving to 40 meters depth, incorporating limited decompression and refining gas management techniques with the Mares Horizon.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/scr-xr.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 2,
+      "openWaterDives": 4,
+      "prerequisites": "SSI SCR Diving",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mares Horizon SCR",
+        "Bailout cylinder",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Diving",
+      "code": "CCR",
+      "levelCode": "advanced",
+      "description": "The SSI CCR Diving program teaches you rebreather dive planning, in-water skills, problem-solving techniques, and emergency scenario management. Become comfortable with pre-dive checks, assembly, and failure handling. Allows no-decompression diving to 30 meters using SF2, JJ, Poseidon, AP Inspiration, Prism 2, or rEvo rebreathers.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/ccr-diving.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 6,
+      "openWaterDives": 6,
+      "prerequisites": "SSI Open Water Diver, Enriched Air Nitrox, minimum 24 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval recommended",
+      "requiredItems": [
+        "Unit-specific CCR",
+        "Bailout cylinder",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Extended Range",
+      "code": "CCR-XR",
+      "levelCode": "advanced",
+      "description": "The SSI CCR Extended Range Trimix program builds upon basic rebreather skills by increasing depth, duration, introducing decompression, and adding more complex skills. Qualifies you to conduct decompression dives to a maximum depth of 45 meters using a trimix diluent.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/ccr-xr.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "SSI CCR Diving, minimum 50 logged CCR dives",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval recommended",
+      "requiredItems": [
+        "Unit-specific CCR",
+        "Bailout cylinders",
+        "Dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Technical Extended Range",
+      "code": "CCR-TXR",
+      "levelCode": "advanced",
+      "description": "The SSI CCR Technical Extended Range program provides training to independently plan and conduct trimix diluent decompression dives to a maximum depth of 60 meters using a closed-circuit rebreather and a minimum of two bailout cylinders.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/ccr-txr.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "SSI CCR Extended Range, minimum 100 logged CCR dives",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval required",
+      "requiredItems": [
+        "Unit-specific CCR",
+        "Minimum two bailout cylinders",
+        "Redundant dive computers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Hypoxic Trimix",
+      "code": "CCR-HTX",
+      "levelCode": "advanced",
+      "description": "The SSI CCR Hypoxic Trimix program is the pinnacle of rebreather diving. Plan and conduct unlimited trimix decompression dives to a maximum depth of 100 meters using a closed-circuit rebreather and a minimum of three bailout cylinders. This elite certification is both physically and mentally challenging.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/extended-range/ccr-hypoxic.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 14,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "SSI CCR Technical Extended Range, minimum 150 logged CCR dives",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval required",
+      "requiredItems": [
+        "Unit-specific CCR",
+        "Minimum three bailout cylinders",
+        "Redundant dive computers",
+        "Complete technical CCR equipment package"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Try Freediving",
+      "code": "TRY-FD",
+      "levelCode": "beginner",
+      "description": "The SSI Try Freediving program provides a taste of freediving in a safe, controlled environment. Learn basic breath-hold techniques and experience the underwater world on a single breath.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/freediving/try-freediving.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 8,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Basic Freediver",
+      "code": "BFD",
+      "levelCode": "beginner",
+      "description": "The SSI Basic Freediver course is your first step into the world of freediving. Learn to freedive safely with a buddy in pool/confined water up to a depth of 5 meters. Cover static apnea, dynamic apnea, and rescue exercises.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/freediving/basic-freediver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 3,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Pool Freediver",
+      "code": "PFD",
+      "levelCode": "beginner",
+      "description": "The SSI Pool Freediver program provides all the skills and knowledge you need to freedive to a depth of 5 meters with a buddy in a pool/confined water environment. Easily upgradeable to Freediving Level 1.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/freediving/pool-freediver.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver Level 1",
+      "code": "FD1",
+      "levelCode": "beginner",
+      "description": "The SSI Freediving Level 1 program gives you all the training and knowledge you need to safely freedive with a buddy in open water environments up to a depth of 20 meters. Combines online training, pool/confined water sessions, and open water dives.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/freediving/freediver-level-1.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Freediving mask",
+        "Long freediving fins",
+        "Wetsuit",
+        "Weight belt"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver Level 2",
+      "code": "FD2",
+      "levelCode": "advanced",
+      "description": "The SSI Freediving Level 2 (Advanced Freediver) course allows you to discover new freediving breathing exercises, go open water freediving to 30 meters, and improve your breath holding with advanced techniques.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/freediving/freediver-level-2.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 3,
+      "prerequisites": "SSI Freediver Level 1 or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Freediving mask",
+        "Long freediving fins",
+        "Wetsuit",
+        "Weight belt",
+        "Freediving computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver Level 3",
+      "code": "FD3",
+      "levelCode": "advanced",
+      "description": "The SSI Freediving Level 3 program teaches you the techniques of a freediving world record holder. This program provides advanced freediving skills and knowledge to dive up to 40 meters deep with a buddy.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/freediving/freediver-level-3.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Freediver Level 2 or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval recommended",
+      "requiredItems": [
+        "Freediving mask",
+        "Long freediving fins or monofin",
+        "Wetsuit",
+        "Weight belt",
+        "Freediving computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Performance Freediver",
+      "code": "PFR",
+      "levelCode": "advanced",
+      "description": "The SSI Performance Freediver certification is the highest level of non-professional freediving course SSI offers. Learn the techniques used in the competitive freediving world and maximize your skills to discover your true freediving potential.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/freediving/performance-freediver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 6,
+      "openWaterDives": 6,
+      "prerequisites": "SSI Freediver Level 3 or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required, physician approval required",
+      "requiredItems": [
+        "Competition-grade freediving equipment",
+        "Freediving computer",
+        "Safety lanyard"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Monofin Freediving",
+      "code": "MFF",
+      "levelCode": "specialty",
+      "description": "The SSI Monofin Freediving specialty teaches monofin swimming, allowing you to enjoy increased speed, power, and confidence while maximizing underwater efficiency for better freediving performance.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/freediving/monofin.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Freediver Level 1 or equivalent",
+      "minAge": 12,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Monofin",
+        "Freediving mask",
+        "Wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Training Techniques",
+      "code": "TT",
+      "levelCode": "specialty",
+      "description": "The SSI Training Techniques specialty teaches exercises to do at home and in the water to progress faster in freediving training. Discover your strengths and weaknesses and create a personalized training plan.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/freediving/training-techniques.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Freediver Level 1 or equivalent",
+      "minAge": 12,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Freediving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Try Mermaid",
+      "code": "TRY-MER",
+      "levelCode": "beginner",
+      "description": "The SSI Try Mermaid program provides a great introductory mermaid experience in confined waters. Learn the first skills involved in becoming a mermaid and swim with a tail.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/mermaid/try-mermaid.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 1,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 6,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Swimsuit",
+        "Mermaid tail (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mermaid",
+      "code": "MER",
+      "levelCode": "beginner",
+      "description": "The SSI Mermaid program provides students with the knowledge and training to autonomously conduct mermaid activities with an equally or more qualified buddy in a pool/confined water environment, and to depths shallower than 5 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/mermaid/mermaid.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mermaid tail",
+        "Monofin",
+        "Mask"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ocean Mermaid",
+      "code": "OMER",
+      "levelCode": "advanced",
+      "description": "The SSI Ocean Mermaid program provides all the skills and techniques you need to maximize your mermaid experience in open water. Take your mermaid adventures to the oceans with 2 additional open water sessions.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/mermaid/ocean-mermaid.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Mermaid",
+      "minAge": 12,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mermaid tail",
+        "Monofin",
+        "Mask",
+        "Wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Model Mermaid",
+      "code": "MMER",
+      "levelCode": "advanced",
+      "description": "The SSI Model Mermaid program teaches you to pose for the perfect underwater photo and perfect your mermaid presentation skills. Learn professional underwater modeling techniques.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/mermaid/model-mermaid.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 4,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Mermaid",
+      "minAge": 12,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mermaid tail",
+        "Performance costume"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Dive Guide",
+      "code": "DG",
+      "levelCode": "professional",
+      "description": "The SSI Dive Guide program is your entry into the professional diving world. Learn to guide certified divers underwater safely while developing leadership and customer service skills.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/dive-guide.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Open Water Diver, Deep Diving, Navigation, Night Diving & Limited Visibility (or 5 logged dives in each area), Diver Stress & Rescue, minimum 40 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer",
+        "Surface marker buoy"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Divemaster",
+      "code": "DM",
+      "levelCode": "professional",
+      "description": "Transform your passion for diving into a career with the SSI Divemaster program. Guide certified divers, teach Ecology specialties, assist instructors, and explore endless opportunities. Requires completion of Dive Guide, Science of Diving, and minimum 60 logged dives.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/divemaster.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 20,
+      "poolHours": 8,
+      "openWaterDives": 8,
+      "prerequisites": "SSI Dive Guide, Science of Diving, minimum 60 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer",
+        "Surface marker buoy",
+        "Underwater slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Assistant Instructor",
+      "code": "AI",
+      "levelCode": "professional",
+      "description": "The SSI Assistant Instructor program is the next step after becoming a Divemaster. Assist instructors with open water diver courses and collect valuable teaching experience while working toward becoming a diving instructor.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/assistant-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Divemaster or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Training Course",
+      "code": "ITC",
+      "levelCode": "instructor",
+      "description": "The SSI Instructor Training Course (ITC) is a comprehensive program that is part of SSI's 2-Step Instructor Training Approach. After completing the ITC, you attend the Instructor Evaluation (IE) to become an SSI Open Water Instructor.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/itc.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 32,
+      "poolHours": 16,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Divemaster or equivalent qualification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Teaching materials",
+        "Presentation equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Instructor",
+      "code": "OWI",
+      "levelCode": "instructor",
+      "description": "As an SSI Open Water Instructor, you can independently teach key SSI programs including Open Water Diver, Advanced Open Water Diver, Enriched Air Nitrox, Diver Stress & Rescue, and Dive Guide. This certification is earned after completing the ITC and Instructor Evaluation.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/owi.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Instructor Training Course completion",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Specialty Instructor",
+      "code": "SI",
+      "levelCode": "instructor",
+      "description": "The SSI Specialty Instructor program allows you to expand your teaching offerings by becoming qualified to teach specific SSI Specialty programs. Increase your value as a dive professional.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/specialty-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Open Water Instructor, current certification in the relevant specialty",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Specialty-specific equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Open Water Instructor",
+      "code": "AOWI",
+      "levelCode": "instructor",
+      "description": "The SSI Advanced Open Water Instructor is a professional recognition earned by completing multiple specialty instructor certifications and gaining teaching experience. Teach a wider range of programs.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/aowi.jpg"
+      ],
+      "durationDays": 0,
+      "classroomHours": 0,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Open Water Instructor, 4 Specialty Instructor certifications, 25 certified students",
+      "minAge": 18,
+      "medicalRequirements": "Current SSI Medical Statement",
+      "requiredItems": [],
+      "materialsIncluded": false
+    },
+    {
+      "name": "Divemaster Instructor",
+      "code": "DMI",
+      "levelCode": "instructor",
+      "description": "The SSI Divemaster Instructor qualification allows you to teach Dive Guide and Divemaster programs. Guide the next generation of dive professionals.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/dmi.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Advanced Open Water Instructor, 50 certified students",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full professional dive equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Master Instructor",
+      "code": "MI",
+      "levelCode": "instructor",
+      "description": "SSI Master Instructor is a professional recognition earned through continued education and teaching experience. Demonstrates exceptional commitment to the diving industry.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/master-instructor.jpg"
+      ],
+      "durationDays": 0,
+      "classroomHours": 0,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Divemaster Instructor, 8 Specialty Instructor certifications, 100 certified students",
+      "minAge": 18,
+      "medicalRequirements": "Current SSI Medical Statement",
+      "requiredItems": [],
+      "materialsIncluded": false
+    },
+    {
+      "name": "Assistant Instructor Trainer",
+      "code": "AIT",
+      "levelCode": "instructor",
+      "description": "The SSI Assistant Instructor Trainer program allows you to assist Instructor Trainers in conducting all SSI Instructor-level programs. Make an essential contribution to the diving industry by teaching future instructors.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/ait.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 6,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Master Instructor or equivalent, assisted in 1 ITC",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full professional dive equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Trainer",
+      "code": "IT",
+      "levelCode": "instructor",
+      "description": "The SSI Instructor Trainer is the final step in SSI's Instructor Training Pathway. Join the most elite dive instructors in the industry and teach the entire range of SSI recreational diving courses, conduct the ITC, and Instructor Crossovers.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/instructor-trainer.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Master Instructor, assisted in 1 ITC and 1 Professional Crossover",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full professional dive equipment",
+        "Complete teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediving Instructor Level 1",
+      "code": "FDI1",
+      "levelCode": "instructor",
+      "description": "As an SSI Freediving Instructor Level 1, utilize innovative training techniques to introduce new freedivers to the world of breath-hold diving. Teach all entry-level programs along with Free Immersion and Training Techniques specialties.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/freediving-instructor-1.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 12,
+      "openWaterDives": 6,
+      "prerequisites": "SSI Freediver Level 2 or equivalent, minimum 50 logged freedives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full freediving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediving Instructor Level 2",
+      "code": "FDI2",
+      "levelCode": "instructor",
+      "description": "The SSI Freediving Instructor Level 2 (Advanced Freediving Instructor) certification allows you to increase your freediving certification offerings and introduce customers to the basics of competitive freediving.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/freediving-instructor-2.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "SSI Freediving Instructor Level 1, minimum 100 logged freedives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Competition-grade freediving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Performance Freediving Instructor",
+      "code": "PFI",
+      "levelCode": "instructor",
+      "description": "The SSI Performance Freediving Instructor is the apex of the SSI freediving system. After certifying 50 students from different levels, join other elite freediving instructors with this upgrade.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/performance-freediving-instructor.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "SSI Freediving Instructor Level 2, 50 certified students",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Competition-grade freediving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediving Instructor Trainer",
+      "code": "FDIT",
+      "levelCode": "instructor",
+      "description": "Join an elite group of exceptional freedivers as an SSI Freediving Instructor Trainer. Train and certify the next generation of freediving instructors worldwide.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/freediving-instructor-trainer.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 10,
+      "openWaterDives": 6,
+      "prerequisites": "SSI Performance Freediving Instructor, minimum 150 certified students",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Competition-grade freediving equipment",
+        "Complete teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mermaid Instructor",
+      "code": "MERI",
+      "levelCode": "instructor",
+      "description": "Become an SSI Mermaid Instructor and share your knowledge teaching students how to enjoy all bodies of water using their mermaid tails. Work at SSI Training Centers in over 150 countries.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/mermaid-instructor.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 10,
+      "poolHours": 8,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Ocean Mermaid, SSI React Right, minimum 18 years old",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mermaid tail",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mermaid Instructor Trainer",
+      "code": "MERIT",
+      "levelCode": "instructor",
+      "description": "Become an SSI Mermaid Instructor Trainer and teach others how to become professional mermaids. Train mermaid instructors worldwide with this globally recognized certification.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/mermaid-instructor-trainer.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 6,
+      "openWaterDives": 2,
+      "prerequisites": "SSI Mermaid Instructor, minimum 25 certified mermaid students",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Mermaid tail",
+        "Complete teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Lifeguard",
+      "code": "LG",
+      "levelCode": "professional",
+      "description": "The SSI Lifeguard certification teaches exciting new skills including communication, problem solving, and teamwork. Become a professional lifeguard with SSI's globally recognized lifeguard training.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/lifeguard.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 10,
+      "poolHours": 10,
+      "openWaterDives": 0,
+      "prerequisites": "Strong swimming ability, SSI React Right or equivalent first aid certification",
+      "minAge": 16,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Rescue tube",
+        "Fins",
+        "Mask and snorkel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Lifeguard Instructor",
+      "code": "LGI",
+      "levelCode": "instructor",
+      "description": "As an SSI Lifeguard Instructor, you can join water safety teams around the world and make training lifeguards your full-time career. A fun and rewarding profession.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/lifeguard-instructor.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 12,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Lifeguard certification, minimum 18 years old",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Lifeguard equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Lifeguard Instructor Trainer",
+      "code": "LGIT",
+      "levelCode": "instructor",
+      "description": "Upgrade your SSI certification with the Lifeguard Instructor Trainer program. Teach and certify all levels of the SSI Lifeguard and SSI Lifeguard Instructor courses.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/lifeguard-instructor-trainer.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 8,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Lifeguard Instructor, minimum 25 certified students",
+      "minAge": 18,
+      "medicalRequirements": "SSI Medical Statement required",
+      "requiredItems": [
+        "Lifeguard equipment",
+        "Complete teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extended Range Nitrox Diving Instructor",
+      "code": "XR-NITROX-I",
+      "levelCode": "instructor",
+      "description": "Start your Extended Range career by becoming an SSI Extended Range Nitrox Diving Instructor. Teach divers to conduct limited decompression dives to 40 meters using nitrox.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/xr-nitrox-instructor.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Extended Range Nitrox Diving, SSI Open Water Instructor, minimum 100 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Extended Range Instructor",
+      "code": "TXR-I",
+      "levelCode": "instructor",
+      "description": "Grow your technical diver career by becoming an SSI Technical Extended Range Trimix Instructor. Teach advanced technical diving to 60 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/txr-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Technical Extended Range, SSI Extended Range Instructor, minimum 200 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Hypoxic Trimix Instructor",
+      "code": "HTX-I",
+      "levelCode": "instructor",
+      "description": "Teach SSI Hypoxic Trimix diving and certify students for multiple-gas switch, multiple-stop, decompression dives up to a maximum depth of 100 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/htx-instructor.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SSI Hypoxic Trimix, SSI Technical Extended Range Instructor, minimum 300 logged dives including 50 trimix dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full technical diving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Instructor",
+      "code": "CCR-I",
+      "levelCode": "instructor",
+      "description": "Train rebreather divers and sharpen your skills by becoming an SSI CCR Diving Instructor. Teach unit-specific CCR programs.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/ccr-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "SSI CCR Diving, SSI Open Water Instructor, minimum 100 logged CCR dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Unit-specific CCR",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Technical Extended Range Instructor",
+      "code": "CCR-TXR-I",
+      "levelCode": "instructor",
+      "description": "Continue your CCR training and become an SSI CCR Technical Extended Range Instructor. Teach advanced CCR diving to 60 meters.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/ccr-txr-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SSI CCR Technical Extended Range, SSI CCR Instructor, minimum 200 logged CCR dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Unit-specific CCR",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Hypoxic Trimix Instructor",
+      "code": "CCR-HTX-I",
+      "levelCode": "instructor",
+      "description": "Teach SSI CCR Hypoxic Trimix diving and certify students for the ultimate rebreather dives to 100 meters depth.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/ccr-htx-instructor.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 24,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "SSI CCR Hypoxic Trimix, SSI CCR Technical Extended Range Instructor, minimum 300 logged CCR dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Unit-specific CCR",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extended Range Cavern Diving Instructor",
+      "code": "XR-CAVERN-I",
+      "levelCode": "instructor",
+      "description": "Become an SSI Extended Range Cavern Diving Instructor and certify SSI Recreational Cavern/Cenote Diving and Extended Range Cavern Diving courses.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/xr-cavern-instructor.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "SSI Extended Range Cavern Diving, SSI Extended Range Instructor, minimum 100 cavern/cave dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Cave diving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diving Instructor",
+      "code": "CAVE-I",
+      "levelCode": "instructor",
+      "description": "Become an SSI Cave Diving Instructor and train the next generation of cave divers. Teach cave penetration techniques and safety protocols.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/cave-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "SSI Full Cave Diving, SSI Extended Range Cavern Diving Instructor, minimum 200 cave dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full cave diving equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extended Range Instructor Trainer",
+      "code": "XR-IT",
+      "levelCode": "instructor",
+      "description": "Become an SSI Extended Range Instructor Trainer for open circuit, rebreather, and overhead environment diving. Train the next generation of technical diving instructors.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/xr-instructor-trainer.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 28,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "Multiple SSI Extended Range Instructor certifications, minimum 500 logged technical dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Full technical diving equipment",
+        "Complete teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "SCR Diving Instructor",
+      "code": "SCR-I",
+      "levelCode": "instructor",
+      "description": "Train rebreather divers and sharpen your skills by becoming an SSI SCR Diving Instructor. Teach Mares Horizon semi-closed rebreather programs.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/scr-instructor.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "SSI SCR Extended Range, SSI Open Water Instructor, minimum 50 logged SCR dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed SSI Medical Statement required",
+      "requiredItems": [
+        "Mares Horizon SCR",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ecology Specialty Instructor",
+      "code": "ECO-I",
+      "levelCode": "instructor",
+      "description": "Become an SSI Ecology Specialty Instructor and teach marine life ecology programs. Share your passion for ocean conservation and marine biology.",
+      "images": [
+        "https://www.divessi.com/documents/filer/images/professional/ecology-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "SSI Open Water Instructor, relevant ecology specialty certification",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    }
+  ]
+}

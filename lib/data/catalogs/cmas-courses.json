@@ -1,0 +1,1105 @@
+{
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "CMAS Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import, not a direct database dump. The sync script (lib/jobs/sync-agency-catalogs.server.ts) transforms this into agency_course_templates records. CMAS uses a star-based certification system: P1-P4 for divers, M1-M3 for instructors. Courses and requirements may vary slightly by national federation.",
+  "agency": "cmas",
+  "agencyName": "World Underwater Federation",
+  "version": "2026.1",
+  "lastUpdated": "2026-01-25",
+  "courses": [
+    {
+      "name": "One Star Diver",
+      "code": "P1",
+      "levelCode": "beginner",
+      "description": "The CMAS One Star Diver (P1) course is the entry-level certification in recreational scuba diving. This internationally recognized program provides comprehensive training enabling divers to undertake accompanied no-decompression dives to a maximum depth of 20 meters in open water with a diver of the same level or higher.",
+      "images": [
+        "https://www.cmas.org/images/diving/one-star-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 12,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 14,
+      "medicalRequirements": "CMAS Medical Statement required. Must demonstrate swimming competence and aquatic ability before instructor.",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "BCD (Buoyancy Control Device)",
+        "Regulator with alternate air source",
+        "Weight system",
+        "Dive computer or tables"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Two Star Diver",
+      "code": "P2",
+      "levelCode": "advanced",
+      "description": "The CMAS Two Star Diver (P2) course builds on One Star skills with advanced diving techniques, rescue skills, and deeper diving capabilities. Certified divers can dive to a maximum depth of 30 meters with at least another Two Star Diver. With additional decompression training, divers may dive to 40 meters.",
+      "images": [
+        "https://www.cmas.org/images/diving/two-star-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 10,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent, 20 logged dives after P1 certification, Current first aid and CPR certification (within 2 years)",
+      "minAge": 15,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Surface marker buoy (SMB)",
+        "Dive slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Three Star Diver",
+      "code": "P3",
+      "levelCode": "advanced",
+      "description": "The CMAS Three Star Diver (P3) course develops group leadership skills, advanced problem prevention and emergency response. This is the first step toward becoming a professional diver. Certified divers can lead groups and dive to 40 meters.",
+      "images": [
+        "https://www.cmas.org/images/diving/three-star-diver.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 12,
+      "poolHours": 8,
+      "openWaterDives": 8,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 65 logged dives (10 must be deeper than 30m), Deep Diving specialty, Rescue Diver specialty, Night Diving specialty",
+      "minAge": 18,
+      "medicalRequirements": "CMAS Medical Statement required. Physician clearance recommended.",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer",
+        "Surface marker buoy (SMB) and reel",
+        "Dive slate and underwater writing tools",
+        "Compass"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Four Star Diver",
+      "code": "P4",
+      "levelCode": "professional",
+      "description": "The CMAS Four Star Diver (P4) represents the highest recreational diver certification level. This advanced program develops expert-level skills in dive planning, leadership, and technical diving proficiency.",
+      "images": [
+        "https://www.cmas.org/images/diving/four-star-diver.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 16,
+      "poolHours": 8,
+      "openWaterDives": 10,
+      "prerequisites": "CMAS Three Star Diver (P3), 100+ logged dives, Multiple specialty certifications, Advanced rescue and leadership experience",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer with air integration",
+        "Surface marker buoy (SMB) and reel",
+        "Compass and navigation tools",
+        "Emergency oxygen kit familiarity"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Rescue Diver",
+      "code": "RD",
+      "levelCode": "specialty",
+      "description": "The CMAS Rescue Diver Training Programme develops skills to prevent and manage dive emergencies. Students learn dive accident prevention, self-rescue, life-saving techniques, and emergency management through knowledge development, practical training, and realistic emergency scenarios.",
+      "images": [
+        "https://www.cmas.org/images/diving/rescue-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent, 20 logged dives, First aid and CPR certification within 2 years",
+      "minAge": 15,
+      "medicalRequirements": "CMAS Medical Statement required. Candidates must be reasonably fit with good swimming ability.",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Pocket mask",
+        "Surface marker buoy (SMB)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Nitrox Diver",
+      "code": "EAN",
+      "levelCode": "specialty",
+      "description": "The CMAS Nitrox Diver Training Programme introduces the theory and techniques of Enriched Air Nitrox diving. This program teaches safe use of Nitrox mixtures with up to 40% oxygen for no-decompression diving, extending bottom times and reducing nitrogen absorption.",
+      "images": [
+        "https://www.cmas.org/images/diving/nitrox-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "Standard CMAS Medical Statement",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Nitrox-compatible dive computer",
+        "Oxygen analyzer (provided by center)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Nitrox Diver",
+      "code": "EAN-ADV",
+      "levelCode": "specialty",
+      "description": "The CMAS Advanced Nitrox Training Programme expands knowledge beyond basic Nitrox, teaching use of Enriched Air Nitrox blends from EAN-22 to 100% oxygen. Divers learn to safely plan and execute dives utilizing various EAN mixtures to a maximum depth of 40 meters.",
+      "images": [
+        "https://www.cmas.org/images/diving/advanced-nitrox.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "CMAS Nitrox Diver certification, CMAS Two Star Diver (P2) or equivalent, 30 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Nitrox-compatible dive computer",
+        "Oxygen analyzer",
+        "Stage cylinder rigging"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Gas Blender",
+      "code": "GB",
+      "levelCode": "specialty",
+      "description": "The CMAS Gas Blender Training Programme provides the knowledge and skills to competently and safely blend Nitrox gas mixtures. Students learn to calculate and create desired gas mixtures using specialized tables and computer software.",
+      "images": [
+        "https://www.cmas.org/images/diving/gas-blender.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "CMAS Nitrox Diver certification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "None required",
+      "requiredItems": [
+        "Calculator",
+        "Gas blending reference materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Trimix Gas Blender",
+      "code": "TMX-GB",
+      "levelCode": "specialty",
+      "description": "The CMAS Trimix Gas Blender Training Programme provides knowledge and skills to competently blend Trimix gas mixtures containing oxygen, nitrogen, and helium. Essential for meeting the requirements of technical divers venturing to significant depths.",
+      "images": [
+        "https://www.cmas.org/images/diving/trimix-blender.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 10,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "CMAS Gas Blender certification",
+      "minAge": 18,
+      "medicalRequirements": "None required",
+      "requiredItems": [
+        "Calculator",
+        "Gas blending software or tables"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deep Diver",
+      "code": "DD",
+      "levelCode": "specialty",
+      "description": "The CMAS Deep Diver Training Programme develops skills for safe deep diving beyond recreational limits. Students learn about deep diving physiology, nitrogen narcosis management, gas consumption planning, and emergency procedures for deep water situations.",
+      "images": [
+        "https://www.cmas.org/images/diving/deep-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 30 logged dives, Advanced Nitrox recommended",
+      "minAge": 18,
+      "medicalRequirements": "CMAS Medical Statement required. Physician clearance recommended.",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer with deep dive capability",
+        "Surface marker buoy (SMB) and reel",
+        "Redundant air source"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Wreck Diver",
+      "code": "WD",
+      "levelCode": "specialty",
+      "description": "The CMAS Wreck Training Programme enhances skills for recreational, non-penetration wreck diving. Topics covered include physical, physiological, and legal aspects of wreck diving, basic ship architecture and terminology, with focus on safe non-penetration wreck diving principles.",
+      "images": [
+        "https://www.cmas.org/images/diving/wreck-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent, 20 logged dives",
+      "minAge": 15,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Dive light (primary)",
+        "Dive knife or cutting tool",
+        "Surface marker buoy (SMB) and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Night Diver",
+      "code": "ND",
+      "levelCode": "specialty",
+      "description": "The CMAS Night Diving Specialty Training Programme provides knowledge and skills for safe night diving. Topics include nocturnal marine life behavior, dive site selection, potential hazards, and proper use of lighting equipment in low-light conditions.",
+      "images": [
+        "https://www.cmas.org/images/diving/night-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 3,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent, 10 logged dives",
+      "minAge": 14,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Primary dive light",
+        "Backup dive light",
+        "Tank light or marker",
+        "Dive slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Navigation",
+      "code": "NAV",
+      "levelCode": "specialty",
+      "description": "The CMAS Underwater Navigation Programme introduces divers to essential navigation techniques for both beginners and experienced divers. Students learn compass navigation, natural navigation, and distance estimation to navigate safely and confidently underwater.",
+      "images": [
+        "https://www.cmas.org/images/diving/navigation.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater compass",
+        "Dive slate",
+        "Surface marker buoy (SMB)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Search and Recovery",
+      "code": "SR",
+      "levelCode": "specialty",
+      "description": "The CMAS Search and Recovery programme trains divers in underwater search patterns, object recovery techniques, and lift bag usage. Skills include locating lost objects, proper search techniques, and safe recovery of items from the underwater environment.",
+      "images": [
+        "https://www.cmas.org/images/diving/search-recovery.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent, 20 logged dives",
+      "minAge": 15,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater compass",
+        "Lift bag",
+        "Search line and reel",
+        "Dive slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Drift Diver",
+      "code": "DRD",
+      "levelCode": "specialty",
+      "description": "The CMAS Drift Diving Training Programme equips qualified divers with skills for safe drift diving in moving currents or tides. Students learn dive planning, site assessment, buoyancy control, navigation, and communication while being carried by currents.",
+      "images": [
+        "https://www.cmas.org/images/diving/drift-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Surface marker buoy (SMB)",
+        "Dive flag",
+        "Audible signaling device"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ice Diver",
+      "code": "ID",
+      "levelCode": "specialty",
+      "description": "The CMAS Ice Diver certification programme provides knowledge and skills for safe diving under ice. Students learn about ice diving challenges, emergency procedures, tether systems, communication techniques, and teamwork essential for overhead environment diving.",
+      "images": [
+        "https://www.cmas.org/images/diving/ice-diver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 3,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 30 logged dives, Dry Suit certification, Rescue Diver certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Dry suit with appropriate undergarments",
+        "Full face mask or dry suit hood",
+        "Primary and backup dive lights",
+        "Ice diving tether system",
+        "Cutting tools"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Dry Suit Diver",
+      "code": "DSD",
+      "levelCode": "specialty",
+      "description": "The CMAS Dry Suit Diving Training Programme expands diving possibilities for colder waters. Students learn about dry suit types, fitting, donning/doffing procedures, buoyancy control, and emergency procedures specific to dry suit diving.",
+      "images": [
+        "https://www.cmas.org/images/diving/drysuit-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Dry suit",
+        "Appropriate undergarments",
+        "Standard dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Altitude Diver",
+      "code": "AD",
+      "levelCode": "specialty",
+      "description": "The CMAS Altitude Diver Training Programme introduces divers to altitude diving. Students learn about effects of altitude on the body, changes in atmospheric pressure, adaptations to dive tables, gas consumption, and buoyancy control at altitude.",
+      "images": [
+        "https://www.cmas.org/images/diving/altitude-diver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 20 logged dives",
+      "minAge": 15,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer with altitude adjustment",
+        "Altitude dive tables"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diver",
+      "code": "CD",
+      "levelCode": "specialty",
+      "description": "The CMAS Cave Diver Training Programme equips divers with essential skills for safe cavern and overhead environment diving within limits of light penetration. This foundational cave course emphasizes safety, proper techniques, and risk management.",
+      "images": [
+        "https://www.cmas.org/images/diving/cave-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 50 logged dives, Nitrox certification recommended",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Primary and backup lights (3 total)",
+        "Primary and backup guideline reels",
+        "Line arrows and cookies",
+        "Backup air source",
+        "Cutting tools"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Photography",
+      "code": "UWP",
+      "levelCode": "specialty",
+      "description": "The CMAS Underwater Photography programme combines technical photography skills with safe diving practices. Students learn camera operation, lighting techniques, composition, marine life photography approaches, and how to maintain buoyancy while photographing.",
+      "images": [
+        "https://www.cmas.org/images/diving/underwater-photo.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater camera with housing",
+        "Strobe or video lights (optional)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Sidemount Diver",
+      "code": "SM",
+      "levelCode": "specialty",
+      "description": "The CMAS Sidemount Diver programme teaches the configuration and techniques for diving with cylinders mounted at the diver's sides. Students learn proper equipment configuration, buoyancy and trim, and gas management with sidemount systems.",
+      "images": [
+        "https://www.cmas.org/images/diving/sidemount.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 30 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Sidemount harness and BCD",
+        "Two cylinders with appropriate rigging",
+        "Long hose configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "DPV (Scooter) Diver",
+      "code": "DPV",
+      "levelCode": "specialty",
+      "description": "The CMAS DPV (Diver Propulsion Vehicle) programme teaches operation and handling of underwater scooters. Students learn equipment configuration, DPV operation, buddy procedures, emergency protocols, and technical maintenance.",
+      "images": [
+        "https://www.cmas.org/images/diving/dpv-scooter.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 30 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "DPV/underwater scooter",
+        "Tow line"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Ocean Explorer",
+      "code": "OE",
+      "levelCode": "specialty",
+      "description": "The CMAS Ocean Explorer programme provides comprehensive understanding of marine life and marine sciences. Students gain awareness of marine ecosystems, sustainable diving practices, and become ambassadors for ocean conservation.",
+      "images": [
+        "https://www.cmas.org/images/diving/ocean-explorer.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater slate",
+        "Species identification materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freshwater Biology",
+      "code": "FWB",
+      "levelCode": "specialty",
+      "description": "The CMAS Freshwater Biology Training Programme introduces divers to freshwater life and sciences. Students develop understanding and appreciation for the diversity and importance of freshwater habitats and ecosystems.",
+      "images": [
+        "https://www.cmas.org/images/diving/freshwater-biology.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent",
+      "minAge": 14,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater slate",
+        "Species identification materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Cultural Heritage",
+      "code": "UCH",
+      "levelCode": "specialty",
+      "description": "The CMAS Underwater Cultural Heritage programme increases awareness of submerged historical sites. Students explore shipwrecks, ancient structures, and artifacts while learning ethical guidelines for interacting with underwater heritage sites.",
+      "images": [
+        "https://www.cmas.org/images/diving/cultural-heritage.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 30 logged dives",
+      "minAge": 16,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater slate",
+        "Dive light"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Scientific Diver",
+      "code": "SD",
+      "levelCode": "specialty",
+      "description": "The CMAS Scientific Diver (SD) professional training provides guidance on safe diving practice under varying experimental and environmental conditions. Based on UNESCO's Code of Practice for Scientific Diving.",
+      "images": [
+        "https://www.cmas.org/images/diving/scientific-diver.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 50 logged dives, First Aid certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Scientific sampling equipment (provided)",
+        "Underwater writing materials",
+        "Camera equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Scientific Diver",
+      "code": "ASD",
+      "levelCode": "professional",
+      "description": "The CMAS Advanced Scientific Diver (ASD) programme builds on Scientific Diver certification with advanced research methodologies, specialized scientific techniques, and leadership in underwater research projects.",
+      "images": [
+        "https://www.cmas.org/images/diving/advanced-scientific.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 30,
+      "poolHours": 4,
+      "openWaterDives": 12,
+      "prerequisites": "CMAS Scientific Diver certification, 100 logged dives, Active research involvement",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Scientific equipment for specialty area",
+        "Research documentation materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "First Aid Diver",
+      "code": "FAD",
+      "levelCode": "specialty",
+      "description": "The CMAS First Aid Diver programme provides essential life-saving skills including CPR, basic life support, and diving-specific emergency response. Covers scene assessment, airway management, bleeding control, and shock management.",
+      "images": [
+        "https://www.cmas.org/images/diving/first-aid.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "None",
+      "minAge": 12,
+      "medicalRequirements": "None required",
+      "requiredItems": [
+        "Pocket mask (provided for training)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Oxygen Provider",
+      "code": "O2P",
+      "levelCode": "specialty",
+      "description": "The CMAS Oxygen Provider programme teaches recognition of diving injuries requiring emergency oxygen and proper administration techniques. Students learn about dive injuries, oxygen equipment types, and safety considerations.",
+      "images": [
+        "https://www.cmas.org/images/diving/oxygen-provider.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "None (First Aid certification recommended)",
+      "minAge": 12,
+      "medicalRequirements": "None required",
+      "requiredItems": [
+        "Oxygen equipment (provided for training)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Normoxic Trimix Diver",
+      "code": "TMX-N",
+      "levelCode": "specialty",
+      "description": "The CMAS Normoxic Trimix Diver Training Programme introduces theory and techniques of Normoxic Trimix diving. Students learn to safely conduct Trimix dives with mandatory decompression stops to a maximum depth of 60 meters, managing nitrogen narcosis effects.",
+      "images": [
+        "https://www.cmas.org/images/diving/normoxic-trimix.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "CMAS Advanced Nitrox Diver, 100 logged dives (50 Nitrox dives), Deep Diver specialty",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Technical diving equipment configuration",
+        "Stage cylinders",
+        "Dive computer capable of Trimix calculations",
+        "Surface marker buoy and reel",
+        "Backup decompression tables"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Trimix Diver",
+      "code": "TMX-ADV",
+      "levelCode": "specialty",
+      "description": "The CMAS Advanced Trimix Diver Training Programme enables exploration to 100 meters using helium content below 18% in bottom mix. Training covers extensive dive planning, risk assessment, equipment selection, accelerated decompression, and support team coordination.",
+      "images": [
+        "https://www.cmas.org/images/diving/advanced-trimix.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 16,
+      "poolHours": 0,
+      "openWaterDives": 8,
+      "prerequisites": "CMAS Normoxic Trimix Diver, 150 logged dives (75 technical dives), 25 Trimix dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement with hyperbaric fitness",
+      "requiredItems": [
+        "Full technical diving equipment",
+        "Multiple stage cylinders",
+        "Primary and backup dive computers",
+        "Decompression planning software",
+        "Surface marker buoy and multiple reels"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extended Range Diver",
+      "code": "ERD",
+      "levelCode": "specialty",
+      "description": "The CMAS Extended Range Diver programme develops skills for decompression diving using Nitrox or oxygen to 55 meters. Students learn technical gear configuration, accelerated decompression techniques, and stage decompression procedures.",
+      "images": [
+        "https://www.cmas.org/images/diving/extended-range.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 2,
+      "openWaterDives": 6,
+      "prerequisites": "CMAS Advanced Nitrox Diver, 50 logged Nitrox dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Technical diving equipment configuration",
+        "Stage cylinder(s)",
+        "Dive computer with decompression capability",
+        "Surface marker buoy and reel",
+        "Backup decompression tables"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Semi-Closed Rebreather Diver",
+      "code": "SCR",
+      "levelCode": "specialty",
+      "description": "The CMAS Semi-Closed Rebreather (SCR) Diver Training Programme provides knowledge and skills for safe SCR diving. Students gain comprehensive understanding of operational principles, physiological considerations, and dive planning for SCR systems.",
+      "images": [
+        "https://www.cmas.org/images/diving/scr-diver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 50 logged dives, Nitrox certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Semi-closed rebreather unit",
+        "Bailout cylinder",
+        "Dive computer",
+        "Spare absorbent and parts"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Closed Circuit Rebreather Diver",
+      "code": "CCR",
+      "levelCode": "specialty",
+      "description": "The CMAS Closed Circuit Rebreather (CCR) Training Programme develops essential skills for safe CCR diving regardless of depth, diluents, or environment. Comprehensive training for both experienced and new CCR divers.",
+      "images": [
+        "https://www.cmas.org/images/diving/ccr-diver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 6,
+      "openWaterDives": 8,
+      "prerequisites": "CMAS Two Star Diver (P2) or equivalent, 75 logged dives, Advanced Nitrox certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required with hyperbaric fitness",
+      "requiredItems": [
+        "Closed circuit rebreather unit",
+        "Bailout cylinder(s)",
+        "CCR-capable dive computer",
+        "Oxygen sensors and spare parts",
+        "CO2 absorbent"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Divemaster",
+      "code": "DM",
+      "levelCode": "professional",
+      "description": "The CMAS Divemaster programme elevates Three Star Divers to professional leadership level. Students develop expertise to lead certified divers on open water dives, provide excellent customer service, and assist with equipment and dive organization.",
+      "images": [
+        "https://www.cmas.org/images/diving/divemaster.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 24,
+      "poolHours": 8,
+      "openWaterDives": 10,
+      "prerequisites": "CMAS Three Star Diver (P3), 100 logged dives, Current First Aid and Oxygen Provider certifications",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer",
+        "Compass and navigation tools",
+        "Surface marker buoy and reel",
+        "First aid and oxygen kit familiarity"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Assistant Instructor",
+      "code": "AI",
+      "levelCode": "professional",
+      "description": "The CMAS Assistant Instructor programme trains candidates to assist and support diving instructors during courses. Students learn teaching methodology, course assistance, and take substantial internship as foundation for instructor development.",
+      "images": [
+        "https://www.cmas.org/images/diving/assistant-instructor.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 20,
+      "poolHours": 10,
+      "openWaterDives": 8,
+      "prerequisites": "CMAS Divemaster or Three Star Diver (P3), 80 logged dives (30 sea dives), 25 dives as dive leader",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Teaching materials",
+        "Presentation equipment access"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "One Star Instructor",
+      "code": "M1",
+      "levelCode": "instructor",
+      "description": "The CMAS One Star Instructor (M1) programme develops qualified instructors who can assist M2 instructors with teaching courses. Training covers teaching methodology, dive theory, practical instruction techniques, and student management.",
+      "images": [
+        "https://www.cmas.org/images/diving/one-star-instructor.jpg"
+      ],
+      "durationDays": 14,
+      "classroomHours": 40,
+      "poolHours": 20,
+      "openWaterDives": 10,
+      "prerequisites": "CMAS Three Star Diver (P3), 100 logged dives, Emergency First Response (EFR) certification, Assistant Instructor certification recommended",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Teaching slate and materials",
+        "Demonstration equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Two Star Instructor",
+      "code": "M2",
+      "levelCode": "instructor",
+      "description": "The CMAS Two Star Instructor (M2) programme qualifies instructors to teach the One Star Diver (P1) course as lead instructor. Advanced teaching methods and comprehensive open water instruction skills are developed.",
+      "images": [
+        "https://www.cmas.org/images/diving/two-star-instructor.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 30,
+      "poolHours": 15,
+      "openWaterDives": 8,
+      "prerequisites": "CMAS One Star Instructor (M1), 150 logged dives, Teaching experience assisting P1 courses",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Complete teaching materials",
+        "Demonstration equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Three Star Instructor",
+      "code": "M3",
+      "levelCode": "instructor",
+      "description": "The CMAS Three Star Instructor (M3) is the highest instructor level, qualifying instructors to train other instructors and conduct advanced diving courses. Advanced instruction techniques and instructor trainer skills are mastered.",
+      "images": [
+        "https://www.cmas.org/images/diving/three-star-instructor.jpg"
+      ],
+      "durationDays": 14,
+      "classroomHours": 40,
+      "poolHours": 20,
+      "openWaterDives": 10,
+      "prerequisites": "CMAS Two Star Instructor (M2), 200 logged dives, Extensive teaching experience",
+      "minAge": 21,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Instructor development materials",
+        "Course Director resources"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver One Star",
+      "code": "F1",
+      "levelCode": "beginner",
+      "description": "The CMAS One Star Freediver course is the entry-level freediving certification. Students learn breath-hold techniques, proper finning, equalization methods, and safety protocols. Training includes static apnea (1:30 min), dynamic apnea (25m), and depth diving (10m).",
+      "images": [
+        "https://www.cmas.org/images/freediving/one-star-freediver.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "Swimming competence",
+      "minAge": 14,
+      "medicalRequirements": "CMAS Medical Statement for freediving required",
+      "requiredItems": [
+        "Low-volume mask",
+        "Long bi-fins or monofin",
+        "Wetsuit",
+        "Weight belt",
+        "Snorkel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver Two Star",
+      "code": "F2",
+      "levelCode": "advanced",
+      "description": "The CMAS Two Star Freediver course builds advanced breathing techniques, relaxation methods, and mental preparation. Training includes static apnea (2:30 min), dynamic apnea (50m), and depth diving (15m). Certified freedivers can dive independently to 25m.",
+      "images": [
+        "https://www.cmas.org/images/freediving/two-star-freediver.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 6,
+      "poolHours": 6,
+      "openWaterDives": 6,
+      "prerequisites": "CMAS One Star Freediver (F1)",
+      "minAge": 16,
+      "medicalRequirements": "CMAS Medical Statement for freediving required",
+      "requiredItems": [
+        "Low-volume mask",
+        "Long bi-fins or monofin",
+        "Appropriate wetsuit",
+        "Weight belt",
+        "Freediving computer or depth gauge"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver Three Star",
+      "code": "F3",
+      "levelCode": "advanced",
+      "description": "The CMAS Three Star Freediver course develops expert-level skills and instructor prerequisites. Training includes static apnea (3:00 min), dynamic apnea (75m), and depth diving (25m). Certified freedivers can dive independently to 40m.",
+      "images": [
+        "https://www.cmas.org/images/freediving/three-star-freediver.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 8,
+      "prerequisites": "CMAS Two Star Freediver (F2)",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Low-volume mask",
+        "Long bi-fins or monofin",
+        "Appropriate wetsuit (3-5mm)",
+        "Weight belt",
+        "Freediving computer",
+        "Safety lanyard"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver Four Star",
+      "code": "F4",
+      "levelCode": "professional",
+      "description": "The CMAS Four Star Freediver course is the pinnacle of freediving certification. Advanced training includes constant weight, free immersion, and variable weight diving to 40m maximum. This level prepares athletes for competition and professional instruction.",
+      "images": [
+        "https://www.cmas.org/images/freediving/four-star-freediver.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 10,
+      "poolHours": 10,
+      "openWaterDives": 10,
+      "prerequisites": "CMAS Three Star Freediver (F3)",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement with cardiac evaluation",
+      "requiredItems": [
+        "Competition-grade freediving equipment",
+        "Freediving computer",
+        "Safety lanyard",
+        "Rescue equipment familiarity"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Pool Freediver",
+      "code": "FP",
+      "levelCode": "beginner",
+      "description": "The CMAS Pool Freediver course focuses on pool-based breath-hold techniques and apnea training. Students develop skills in static and dynamic apnea without open water depth requirements.",
+      "images": [
+        "https://www.cmas.org/images/freediving/pool-freediver.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 6,
+      "openWaterDives": 0,
+      "prerequisites": "Swimming competence",
+      "minAge": 12,
+      "medicalRequirements": "CMAS Medical Statement for freediving required",
+      "requiredItems": [
+        "Low-volume mask",
+        "Bi-fins",
+        "Wetsuit (optional)",
+        "Snorkel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediving Instructor Level 1",
+      "code": "FI1",
+      "levelCode": "instructor",
+      "description": "The CMAS Freediving Instructor Level 1 programme qualifies experienced freedivers to teach beginner freedivers. Training covers teaching methodology, safety protocols, and student supervision for pool and open water instruction.",
+      "images": [
+        "https://www.cmas.org/images/freediving/freediving-instructor-1.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 16,
+      "poolHours": 10,
+      "openWaterDives": 8,
+      "prerequisites": "CMAS Three Star Freediver (F3) or Four Star Freediver (F4), Current First Aid and CPR certification",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Full freediving equipment",
+        "Teaching materials",
+        "Rescue equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediving Instructor Level 2",
+      "code": "FI2",
+      "levelCode": "instructor",
+      "description": "The CMAS Freediving Instructor Level 2 programme develops advanced teaching skills and qualifies instructors to certify students at higher levels. Requires experience certifying at least 40 students.",
+      "images": [
+        "https://www.cmas.org/images/freediving/freediving-instructor-2.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 16,
+      "poolHours": 10,
+      "openWaterDives": 8,
+      "prerequisites": "CMAS Freediving Instructor Level 1, Active status, 40+ student certifications",
+      "minAge": 21,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Full freediving equipment",
+        "Advanced teaching materials",
+        "Rescue and safety equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediving Instructor Level 3",
+      "code": "FI3",
+      "levelCode": "instructor",
+      "description": "The CMAS Freediving Instructor Level 3 is the highest freediving instructor certification. Qualifies instructors to train other instructors and oversee freediving programs. Requires 100+ student certifications.",
+      "images": [
+        "https://www.cmas.org/images/freediving/freediving-instructor-3.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 24,
+      "poolHours": 12,
+      "openWaterDives": 10,
+      "prerequisites": "CMAS Freediving Instructor Level 2, Active status, 100+ student certifications across all levels",
+      "minAge": 24,
+      "medicalRequirements": "Physician-signed CMAS Medical Statement required",
+      "requiredItems": [
+        "Full professional freediving equipment",
+        "Instructor development materials",
+        "Complete safety and rescue equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Team Leader",
+      "code": "TL",
+      "levelCode": "specialty",
+      "description": "The CMAS Team Leader specialty develops dive leadership and group management skills. This is one of three required specialties for progression from One Star to Two Star Diver certification.",
+      "images": [
+        "https://www.cmas.org/images/diving/team-leader.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "CMAS One Star Diver (P1) or equivalent, 15 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "CMAS Medical Statement required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Surface marker buoy",
+        "Dive slate"
+      ],
+      "materialsIncluded": true
+    }
+  ]
+}

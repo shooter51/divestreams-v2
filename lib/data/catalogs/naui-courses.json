@@ -1,0 +1,1617 @@
+{
+  "$schema": "../../schemas/agency-catalog.schema.json",
+  "_comment": "NAUI Course Catalog - Source Data",
+  "_note": "This is SOURCE DATA for import, not a direct database dump. The sync script (lib/jobs/sync-agency-catalogs.server.ts) transforms this into agency_course_templates records by: (1) Looking up agencyId from certification_agencies where code='naui', (2) Mapping levelCode to levelId via certification_levels lookup, (3) Generating contentHash from course fields, (4) Adding sourceType='static_json', timestamps, etc. Tenant-specific fields (price, isActive, etc.) are NOT in this file - they're set when tenants import courses.",
+  "agency": "naui",
+  "agencyName": "National Association of Underwater Instructors",
+  "version": "2026.1",
+  "lastUpdated": "2026-01-25",
+  "courses": [
+    {
+      "name": "Snorkeler",
+      "code": "SNORK",
+      "levelCode": "beginner",
+      "description": "The NAUI Snorkeler program introduces participants to the skills and knowledge needed to safely observe underwater attractions from or near the surface of the water. Learn proper breathing techniques, equipment use, and surface swimming skills.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/snorkeler-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 8,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Skin Diver",
+      "code": "SD",
+      "levelCode": "beginner",
+      "description": "The NAUI Skin Diver course teaches breath-hold diving techniques for exploring the underwater world without scuba equipment. Develop surface diving skills, breath-hold techniques, and underwater swimming abilities.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/skin-diver-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 3,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "Weight belt"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Scuba Diver (Supervised Diver - ISO Level 1)",
+      "code": "SCD",
+      "levelCode": "beginner",
+      "description": "The NAUI Scuba Diver course is an introductory scuba program meeting ISO Level 1 supervised diver requirements (24801-1). This course prepares non-divers to enjoy scuba diving in open water under controlled conditions with professional supervision.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/scuba-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 6,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "BCD (Buoyancy Control Device)",
+        "Regulator with alternate air source"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Scuba Diver (Autonomous - ISO Level 2)",
+      "code": "OWD",
+      "levelCode": "beginner",
+      "description": "The NAUI Open Water Scuba Diver course is designed to train students in the knowledge and skills necessary to dive safely in open water. Upon certification, divers are qualified to dive without supervision within the limits of their training, to maximum recreational depths.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/open-water-diver-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 10,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "Weight system",
+        "BCD (Buoyancy Control Device)",
+        "Regulator with alternate air source",
+        "Dive computer or tables"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Junior Open Water Scuba Diver",
+      "code": "JOWD",
+      "levelCode": "beginner",
+      "description": "The NAUI Junior Open Water Scuba Diver course provides the same comprehensive training as the adult program, designed specifically for divers aged 10-14. Junior divers must dive with a certified adult.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/junior-open-water-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 10,
+      "openWaterDives": 4,
+      "prerequisites": null,
+      "minAge": 10,
+      "medicalRequirements": "NAUI Medical History form and parental consent required",
+      "requiredItems": [
+        "Mask, fins, and snorkel",
+        "Wetsuit or exposure protection",
+        "Weight system",
+        "BCD (Buoyancy Control Device)",
+        "Regulator with alternate air source"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Experienced Scuba Diver",
+      "code": "ESD",
+      "levelCode": "beginner",
+      "description": "The NAUI Experienced Scuba Diver program is designed for divers with military, commercial, or scientific diving training who may not hold formal recreational certification. Upon completion, divers receive NAUI Open Water Scuba Diver certification.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/experienced-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "Prior diving experience (military, commercial, or scientific)",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Proof of prior diving experience"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Enriched Air Nitrox (EANx) Diver",
+      "code": "EANX",
+      "levelCode": "specialty",
+      "description": "The NAUI Nitrox Diver course teaches divers to safely use enriched air nitrox as a breathing medium. Learn about Dalton's law of partial pressures, oxygen physiology, depth limits, oxygen toxicity, gas analyzing procedures, and Equivalent Air Depth calculations.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/nitrox-diver-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Oxygen analyzer (provided)",
+        "Nitrox-compatible dive computer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Open Water Scuba Diver",
+      "code": "AOWD",
+      "levelCode": "advanced",
+      "description": "The NAUI Advanced Open Water Scuba Diver course introduces certified divers to a variety of open-water diving activities. Complete six dives including required dives in night/limited visibility, navigation, and deep diving (beyond 18msw/60fsw). Graduates are competent to dive without supervision.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/advanced-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Compass",
+        "Underwater light",
+        "Dive slate"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Rescue Scuba Diver",
+      "code": "RSD",
+      "levelCode": "advanced",
+      "description": "The NAUI Rescue Scuba Diver course trains divers in knowledge and skills needed to manage risks and effectively handle limited in-water problems and diving emergencies. Includes assists, transports, surface rescues, and rescues from depth. This course meets rescue prerequisites for NAUI leadership certifications.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/rescue-diver-course.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 8,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Pocket mask",
+        "Rescue equipment (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Rescue Diver",
+      "code": "ARD",
+      "levelCode": "advanced",
+      "description": "The NAUI Advanced Rescue Diver course builds on rescue skills with more complex emergency scenarios and team rescue techniques. Develop advanced problem-solving abilities and leadership skills in emergency situations.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/advanced-rescue-course.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 6,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Rescue Scuba Diver certification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Rescue equipment (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Master Scuba Diver",
+      "code": "MSD",
+      "levelCode": "advanced",
+      "description": "The NAUI Master Scuba Diver certification represents the highest non-professional recreational diving achievement. Complete advanced training in deep diving, navigation, search and recovery, light salvage, wreck diving, night diving, and boat diving. Requires 50+ logged dives.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/master-diver-course.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "NAUI Advanced Open Water Scuba Diver and NAUI Rescue Scuba Diver certifications or equivalents, 50+ logged dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Compass",
+        "Underwater light",
+        "Lift bag and line"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Deep Diver",
+      "code": "DD",
+      "levelCode": "specialty",
+      "description": "The NAUI Deep Diver specialty provides knowledge and skills to plan and execute dives between 18m and 40m (60-130 ft) while minimizing risks. Learn about deep diving physiology, gas management, decompression considerations, and emergency procedures.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/deep-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer with depth alarm",
+        "Surface marker buoy",
+        "Underwater light"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Night and Limited Visibility Diver",
+      "code": "NLVD",
+      "levelCode": "specialty",
+      "description": "The NAUI Night and Limited Visibility Diver course develops skills for diving in darkness or reduced visibility conditions. Learn light handling, navigation techniques, communication methods, and how to observe nocturnal marine life.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/night-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Primary dive light",
+        "Backup dive light",
+        "Chemical light sticks"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Navigation Diver",
+      "code": "NAV",
+      "levelCode": "specialty",
+      "description": "The NAUI Navigation course fine-tunes observation skills and teaches accurate underwater compass use. Learn to use natural aids for orientation, establish position, and find particular locations while submerged.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/navigation-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "NAUI Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater compass",
+        "Dive slate",
+        "Surface marker buoy"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Wreck Diver (External Survey)",
+      "code": "WD",
+      "levelCode": "specialty",
+      "description": "The NAUI Wreck Diver course covers safety, hazards, overhead environment risks, entanglement, limited visibility, deep diving, equipment, search methods, underwater navigation, and the legal aspects of artifacts, treasure, salvage, and archaeology.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/wreck-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Advanced Scuba Diver certification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Dive computer",
+        "Primary and backup lights",
+        "Cutting device",
+        "Surface marker buoy and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Search and Recovery Diver",
+      "code": "SR",
+      "levelCode": "specialty",
+      "description": "The NAUI Search and Recovery Diver course teaches systematic underwater search techniques and methods for recovering submerged objects. Learn to use search patterns, lift bags, and proper recovery procedures.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/search-recovery-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater compass",
+        "Lift bag",
+        "Search line and reel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Drysuit Diver",
+      "code": "DRY",
+      "levelCode": "specialty",
+      "description": "The NAUI Drysuit Diver course provides basic understanding of knowledge and skills needed to minimize risks in dry suit diving. Extend your diving opportunities to year-round with proper drysuit techniques and buoyancy control.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/drysuit-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 3,
+      "poolHours": 3,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Advanced Open Water Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Drysuit (rental available)",
+        "Personal dive equipment",
+        "Drysuit undergarments"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Recreational Ice Diver",
+      "code": "ICE",
+      "levelCode": "specialty",
+      "description": "The NAUI Recreational Ice Diver course provides skills and knowledge for safe ice diving within recreational limits. Learn ice diving procedures, safety protocols, tethering systems, and emergency procedures for overhead ice environments.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/ice-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 3,
+      "prerequisites": "NAUI Advanced Open Water Scuba Diver and Drysuit Diver certifications or equivalents",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Drysuit with thermal protection",
+        "Full personal dive equipment",
+        "Redundant cutting devices"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Diver Propulsion Vehicle (DPV) Diver",
+      "code": "DPV",
+      "levelCode": "specialty",
+      "description": "The NAUI DPV Diver course teaches the skills needed for safe recreational diving with a diver propulsion vehicle (underwater scooter). Learn DPV operation, maintenance, navigation, and emergency procedures.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/dpv-diver-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "DPV (rental available)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Boat Diver",
+      "code": "BD",
+      "levelCode": "specialty",
+      "description": "The NAUI Boat Diver specialty teaches proper techniques for diving from various types of boats. Learn boat diving procedures, entries, exits, safety protocols, and etiquette for different vessel types.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/boat-diver-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 0,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Surface marker buoy"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Photographer",
+      "code": "UP",
+      "levelCode": "specialty",
+      "description": "The NAUI Underwater Photographer course teaches skills, techniques, and tricks of underwater photography including lighting, equipment use, fundamentals of photography, underwater camera techniques, and solving common photo problems.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/underwater-photo-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater camera system (rental available)",
+        "External strobes or video lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Videographer",
+      "code": "UV",
+      "levelCode": "specialty",
+      "description": "The NAUI Underwater Videographer course develops skills and knowledge for safely making underwater videos. Learn video techniques, lighting, composition, editing concepts, and equipment maintenance.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/underwater-video-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 10,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Underwater video camera (rental available)",
+        "Video lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Hunting and Collector",
+      "code": "UHC",
+      "levelCode": "specialty",
+      "description": "The NAUI Underwater Hunting and Collector course provides skills and knowledge for spearfishing, taking game, and collecting specimens while minimizing diving risks. Covers skin diving techniques, equipment, conservation, fishing laws, and specific techniques.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/underwater-hunter-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Skin Diver or Scuba Diver certification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Speargun or pole spear",
+        "Game bag or stringer",
+        "Dive knife"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Training Assistant",
+      "code": "TA",
+      "levelCode": "specialty",
+      "description": "The NAUI Training Assistant course qualifies divers in skills and knowledge necessary to assist active-status NAUI Instructors during diver training courses. Learn to supervise students, escort on tours, and assist with various training tasks.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/training-assistant-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Rescue Scuba Diver certification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Rescue equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Sidemount Diver",
+      "code": "SM",
+      "levelCode": "specialty",
+      "description": "The NAUI Sidemount Diver course provides fundamental knowledge and skills for conducting open water dives using a sidemount scuba equipment configuration within no-decompression limits. Learn proper cylinder rigging, buoyancy control, and streamlined propulsion.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/sidemount-diver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Sidemount harness and wing",
+        "Two sidemount cylinders with regulators",
+        "Long hose configuration"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Full Face Mask Diver",
+      "code": "FFM",
+      "levelCode": "specialty",
+      "description": "The NAUI Full Face Mask course trains divers with necessary procedures, knowledge, and skills to safely dive with a full face mask. Learn fitting, operation, unique breathing characteristics, buoyancy management, and emergency procedures.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/full-face-mask-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Full face mask (rental available)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Underwater Communications Diver",
+      "code": "UWC",
+      "levelCode": "specialty",
+      "description": "The NAUI Underwater Communications specialty introduces divers to communication systems that allow clear underwater communication. Enhance safety, coordination, and overall dive experience with underwater communication technology.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/underwater-comm-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 2,
+      "poolHours": 2,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Full Face Mask Diver certification or equivalent",
+      "minAge": 15,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment",
+        "Full face mask with communication system"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Public Safety Diver",
+      "code": "PSD",
+      "levelCode": "specialty",
+      "description": "The NAUI Public Safety Diver program introduces fundamental skills needed by Public Safety Divers during underwater search, rescue, and recovery operations. Emphasizes safety, knowledge, skills, abilities, and risk/incident/resource management.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/public-safety-diver-course.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 10,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Advanced Open Water Scuba Diver and Rescue Scuba Diver certifications or equivalents",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Full face mask",
+        "Drysuit",
+        "Underwater communication system",
+        "Search and recovery equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Basic Life Support: CPR and First Aid",
+      "code": "BLS",
+      "levelCode": "specialty",
+      "description": "The NAUI powered by DAN Basic Life Support course provides training in First Aid, CPR, AED, and Bloodborne Pathogens. Complies with ILCOR standards and is recognized by the US Coast Guard for captain licensing.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/bls-cpr-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 6,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Emergency Oxygen for Scuba Diving Injuries",
+      "code": "O2",
+      "levelCode": "specialty",
+      "description": "The NAUI/DAN Emergency Oxygen course teaches how to administer life-saving oxygen first aid to divers suffering from decompression illness (DCI). Entry-level training for divers and non-divers to recognize diving injuries and provide emergency oxygen.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/oxygen-provider-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "First Aid for Hazardous Marine Life Injuries",
+      "code": "HML",
+      "levelCode": "specialty",
+      "description": "The NAUI/DAN First Aid for Hazardous Marine Life Injuries course teaches recognition and treatment of injuries caused by marine life including jellyfish, stingrays, sea urchins, and venomous fish.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/hazardous-marine-life-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Neurological Assessment",
+      "code": "NA",
+      "levelCode": "specialty",
+      "description": "The NAUI/DAN Neurological Assessment course teaches how to perform neurological examinations on divers suspected of decompression illness. Learn the five-minute neuro exam and proper documentation procedures.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/neuro-assessment-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 3,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 12,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Diving Emergency Management Provider (DEMP)",
+      "code": "DEMP",
+      "levelCode": "specialty",
+      "description": "The NAUI Diving Emergency Management Provider program prepares you to handle multifaceted diving accidents. Combines BLS: CPR and First Aid, Neurological Assessment, Emergency Oxygen, and First Aid for Hazardous Marine Life Injuries into a single comprehensive approach.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/demp-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Diving First Aid for Professional Divers (DFA Pro)",
+      "code": "DFAPRO",
+      "levelCode": "specialty",
+      "description": "The NAUI/DAN DFA Pro course is designed for commercial, professional, aquarium, and scientific divers. Provides first-aid knowledge and skills specific to professional diving environments and meets OSHA guidelines for workplace CPR and first aid.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/dfa-pro-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 16,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "BLS certification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Enriched Air Nitrox Gas Blender",
+      "code": "NGB",
+      "levelCode": "specialty",
+      "description": "The NAUI Enriched Air Nitrox Gas Blender course provides skills and knowledge to safely handle high pressure gases, prepare enriched air (nitrox) gas mixes, and prepare equipment for oxygen service.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/nitrox-blender-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 8,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mixed Gas Blender and Oxygen Service Technician",
+      "code": "MGB",
+      "levelCode": "specialty",
+      "description": "The NAUI Mixed Gas Blender and O2 Service Technician course provides skills to safely handle high pressure gases, prepare oxygen enriched air and helium-based mixes, and prepare equipment for oxygen service.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/mixed-gas-blender-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 12,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediver",
+      "code": "FD",
+      "levelCode": "specialty",
+      "description": "The NAUI/PFI Freediver course educates divers on skills, safety, and problem management to comfortably enjoy the underwater world and improve breath-holding techniques. Learn relaxation, breathing exercises, equalization, and freediving safety.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/freediver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 6,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": null,
+      "minAge": 18,
+      "medicalRequirements": "NAUI Freediving Medical History form required",
+      "requiredItems": [
+        "Low-volume freediving mask",
+        "Long freediving fins",
+        "Snorkel",
+        "Weight belt",
+        "Wetsuit"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Intermediate Freediver",
+      "code": "IFD",
+      "levelCode": "specialty",
+      "description": "The NAUI/PFI Intermediate Freediver course builds on fundamental skills with advanced breathing techniques, deeper dives, and extended breath-hold times. Learn rescue techniques and advanced equalization methods.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/intermediate-freediver-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 4,
+      "poolHours": 4,
+      "openWaterDives": 3,
+      "prerequisites": "NAUI Freediver certification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Freediving Medical History form required",
+      "requiredItems": [
+        "Low-volume freediving mask",
+        "Long freediving fins",
+        "Freediving wetsuit",
+        "Weight belt"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Advanced Freediver",
+      "code": "AFD",
+      "levelCode": "specialty",
+      "description": "The NAUI/PFI Advanced Freediver course represents the highest recreational freediving certification. Master advanced techniques for deeper dives, longer breath-holds, and competitive freediving preparation.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/advanced-freediver-course.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 6,
+      "poolHours": 6,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Intermediate Freediver certification or equivalent",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Freediving Medical History form and physical exam required",
+      "requiredItems": [
+        "Competition-grade freediving equipment",
+        "Freediving computer",
+        "Neck weight"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Safe Buddy",
+      "code": "SB",
+      "levelCode": "specialty",
+      "description": "The NAUI Safe Buddy program trains uncertified freedivers and aquatic enthusiasts in safety and rescue techniques necessary to act as a safe buddy for breath-holding activities. Essential training for freediving partners.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/safe-buddy-course.jpg"
+      ],
+      "durationDays": 1,
+      "classroomHours": 4,
+      "poolHours": 2,
+      "openWaterDives": 0,
+      "prerequisites": null,
+      "minAge": 15,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "Mask, fins, and snorkel"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Introduction to Technical Diving",
+      "code": "ITT",
+      "levelCode": "advanced",
+      "description": "The NAUI Intro to Tech course introduces recreational divers to the rigors and discipline of technical diving. Learn dive planning, physics and physiology, decompression theory, buoyancy control, and sidemount/backmount configurations.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/intro-tech-course.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 10,
+      "poolHours": 6,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Advanced Open Water Scuba Diver and Nitrox Diver certifications or equivalents, minimum 25 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Technical diving equipment configuration",
+        "Doubles or sidemount cylinders",
+        "Stage bottle",
+        "Backup mask, reels, and lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Decompression Diver",
+      "code": "TDD",
+      "levelCode": "advanced",
+      "description": "The NAUI Technical Decompression Diver course provides working knowledge of theory, methods, and procedures of planned staged decompression diving to a maximum depth of 130 feet (40m). Uses EANx mixtures for decompression.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/tech-deco-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Intro to Tech and Nitrox Diver certifications or equivalents, minimum 50 logged dives with 15 EANx dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Doubles with isolation manifold",
+        "Decompression cylinders",
+        "Primary and backup reels",
+        "Multiple lights"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Helitrox Diver",
+      "code": "HTX",
+      "levelCode": "advanced",
+      "description": "The NAUI Helitrox Diver course provides training for utilizing helium enriched EANx mixes (20-30% oxygen, up to 35% helium) for dives to 52m (170ft) requiring staged-decompression. Reduces narcosis while using simplified gas planning.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/helitrox-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Technical Decompression Diver certification or equivalent, minimum 75 logged dives with 20 decompression dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Doubles with isolation manifold",
+        "Decompression cylinders",
+        "Helium analyzer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Trimix Diver Level I",
+      "code": "TMX1",
+      "levelCode": "advanced",
+      "description": "The NAUI Trimix I Diver course provides skills and knowledge for utilizing helium-based trimix breathing gas mixes for dives to a maximum depth of 200 fsw (61 msw) requiring staged decompression. Uses EANx and/or oxygen during decompression.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/trimix-1-course.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Technical Decompression Diver and Helitrox Diver certifications or equivalents, minimum 100 logged dives with 20 decompression dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Doubles with isolation manifold",
+        "Multiple decompression cylinders",
+        "Gas analyzers for O2 and He"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Trimix Diver Level II",
+      "code": "TMX2",
+      "levelCode": "advanced",
+      "description": "The NAUI Trimix II Diver course extends trimix capabilities to dives exceeding 200 fsw (61 msw) up to 300 fsw (91 msw) requiring staged decompression. Advanced gas planning and team coordination for extreme depth exploration.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/trimix-2-course.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 20,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "NAUI Trimix Level I certification, minimum 150 logged dives with 40 decompression dives and 15 trimix dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Advanced technical diving equipment",
+        "Doubles with isolation manifold",
+        "Multiple decompression cylinders",
+        "Bailout cylinders"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Wreck Penetration Diver",
+      "code": "WPD",
+      "levelCode": "advanced",
+      "description": "The NAUI Wreck Penetration Diver course provides skills and knowledge for penetration wreck diving at depths not exceeding 130 fsw (40 msw). Learn gas management, entanglement procedures, line laying, and overhead environment protocols.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/wreck-penetration-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Intro to Tech and Nitrox Diver certifications or equivalents, minimum 50 logged dives with 15 EANx dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Technical diving equipment",
+        "Primary and backup reels",
+        "Multiple lights",
+        "Cutting devices",
+        "Stage bottles"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Wreck Penetration Diver",
+      "code": "TWPD",
+      "levelCode": "advanced",
+      "description": "The NAUI Technical Wreck Penetration Diver course extends wreck penetration skills for decompression diving. Advanced penetration techniques for complex overhead environments requiring staged decompression.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/tech-wreck-penetration-course.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 8,
+      "prerequisites": "NAUI Wreck Penetration Diver and Technical Decompression Diver certifications or equivalents",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Full technical diving equipment",
+        "Multiple reels and line",
+        "Redundant lights and cutting devices"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cavern Diver",
+      "code": "CVD",
+      "levelCode": "advanced",
+      "description": "The NAUI Cavern Diver course provides fundamental skills and knowledge for cavern diving at depths not exceeding 100 fsw (30m) and combined depth/distance penetration not exceeding 200 feet (61m) from the surface, within the light zone.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/cavern-diver-course.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Advanced Open Water Scuba Diver and Nitrox Diver certifications or equivalents, minimum 25 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Backmount or sidemount configuration",
+        "Primary light (minimum 10W LED)",
+        "Two backup lights",
+        "Primary reel and backup spool",
+        "Guideline arrows and cookies"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diver Level I (Introductory)",
+      "code": "CAV1",
+      "levelCode": "advanced",
+      "description": "The NAUI Cave Diver Level I course teaches basic principles of utilizing a primary guideline. Introductory cave diving develops safe techniques including reel work, light handling, team roles, line placement, and zero visibility communications.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/cave-1-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Cavern Diver certification, minimum 50 logged dives with 25 cavern/overhead environment dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Cave diving configuration",
+        "Primary light (minimum 10W LED)",
+        "Three backup lights",
+        "Primary reel (200ft minimum)",
+        "Two backup spools (100ft each)",
+        "Line arrows and cookies"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Diver Level II (Full Cave)",
+      "code": "CAV2",
+      "levelCode": "advanced",
+      "description": "The NAUI Cave Diver Level II course represents full cave certification. Master complex navigation, jumps and gaps, multi-team coordination, and advanced problem solving in cave environments to 130 fsw (40 msw).",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/cave-2-course.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 4,
+      "openWaterDives": 10,
+      "prerequisites": "NAUI Cave Diver Level I certification, minimum 100 logged dives with 25 cave dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Full cave diving equipment",
+        "Multiple reels and spools",
+        "Redundant everything"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Cave Guide",
+      "code": "CG",
+      "levelCode": "professional",
+      "description": "The NAUI Cave Guide course provides skills and knowledge to plan and execute guided tours in caverns and caves. Responsibilities include escorting stressed divers, repairing guide lines, and ensuring all guided divers exit safely.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/cave-guide-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 2,
+      "openWaterDives": 8,
+      "prerequisites": "NAUI Cave Diver Level II certification, minimum 200 logged dives with 100 cave dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Full cave diving equipment",
+        "Emergency equipment for clients"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mine Diver Level I",
+      "code": "MN1",
+      "levelCode": "advanced",
+      "description": "The NAUI Mine Diver Level I course teaches specific skills and knowledge for mine diving operations. Qualified to penetrate to maximum depth of 100 feet (30m) and combined depth/distance of 200 feet (61m), within no-decompression limits.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/mine-1-course.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Cavern Diver certification or equivalent, minimum 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Overhead environment diving configuration",
+        "Primary and backup lights",
+        "Primary reel and backup spools"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Mine Diver Level II",
+      "code": "MN2",
+      "levelCode": "advanced",
+      "description": "The NAUI Mine Diver Level II course extends mine diving capabilities with complex penetrations and potential decompression diving in flooded mine environments. Advanced navigation and hazard management.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/mine-2-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Mine Diver Level I certification, minimum 100 logged dives with 25 mine dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Full technical overhead diving equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Ice Diver",
+      "code": "TIC",
+      "levelCode": "advanced",
+      "description": "The NAUI Technical Ice Diver course provides knowledge and skills for diving under ice. Qualified to plan and execute ice dives within no-decompression limits to maximum depth of 40 feet (12m) and 100 feet (30m) horizontal line from penetration hole.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/tech-ice-course.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 3,
+      "prerequisites": "NAUI Advanced Open Water Scuba Diver and Drysuit Diver certifications or equivalents",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Drysuit with thermal protection",
+        "Full technical configuration",
+        "Tether and communication system"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical DPV Diver",
+      "code": "TDPV",
+      "levelCode": "advanced",
+      "description": "The NAUI Technical DPV Diver course provides skills for conducting technical DPV dives in decompression environments. Learn tow procedures, gas management, and failure protocols with diver propulsion vehicles.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/tech-dpv-course.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI DPV Diver and Technical Decompression Diver certifications or equivalents",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Technical diving equipment",
+        "DPV with tow leash",
+        "Backup propulsion"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Overhead DPV Diver",
+      "code": "TODPV",
+      "levelCode": "advanced",
+      "description": "The NAUI Technical Overhead DPV Diver course covers basic principles and skills for technical DPV dives in overhead environments such as caves, mines, or decompression ceiling. Advanced towing, navigation, and team procedures.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/tech-overhead-dpv-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 4,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Technical DPV Diver and Cave II, Mine II, or Technical Decompression Diver certifications or equivalents",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Full technical overhead diving equipment",
+        "DPV rated for overhead environments"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Semi-Closed Rebreather (SCR) Diver",
+      "code": "SCR",
+      "levelCode": "advanced",
+      "description": "The NAUI Semi-Closed Rebreather Diver course provides training for using SCR units breathing EANx mixtures of 32-80% oxygen. Upon completion, competent to plan and execute unit-specific SCR dives up to 100 fsw (30m).",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/scr-course.jpg"
+      ],
+      "durationDays": 4,
+      "classroomHours": 12,
+      "poolHours": 6,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Advanced Open Water Scuba Diver and Nitrox Diver certifications or equivalents, minimum 50 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Unit-specific SCR",
+        "Bailout cylinder and regulator",
+        "Oxygen analyzer"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Diver (Closed Circuit Rebreather)",
+      "code": "CCR",
+      "levelCode": "advanced",
+      "description": "The NAUI CCR Diver course provides skills and knowledge for diving with closed circuit rebreathers on air diluent within no-decompression limits. Unit-specific training for safe recreational CCR diving.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/ccr-course.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 16,
+      "poolHours": 8,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Advanced Open Water Scuba Diver and Nitrox Diver certifications or equivalents, minimum 100 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Unit-specific CCR",
+        "Bailout cylinders and regulators",
+        "Gas analyzers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "CCR Mixed Gas Diver",
+      "code": "CCRMG",
+      "levelCode": "advanced",
+      "description": "The NAUI CCR Mixed Gas Diver course provides skills for utilizing helium-based or trimix breathing diluent gas mixtures on CCRs requiring decompression. Qualified to 200 fsw (61 msw) with constant PO2 units.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/ccr-mixed-gas-course.jpg"
+      ],
+      "durationDays": 6,
+      "classroomHours": 20,
+      "poolHours": 6,
+      "openWaterDives": 8,
+      "prerequisites": "NAUI CCR Diver and Technical Decompression Diver certifications or equivalents, minimum 150 logged dives with 50 CCR dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and diving physical exam required",
+      "requiredItems": [
+        "Unit-specific CCR configured for mixed gas",
+        "Multiple bailout cylinders",
+        "Helium and oxygen analyzers"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Extreme Exposure CCR Mixed Gas Diver",
+      "code": "XCCR",
+      "levelCode": "advanced",
+      "description": "The NAUI Extreme Exposure CCR Mixed Gas Diver course provides skills for utilizing trimix diluent on CCRs for dives exceeding 200 fsw (61 msw) up to 300 fsw (91 msw). At least four dives below 200 fsw required during training.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/extreme-ccr-course.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 24,
+      "poolHours": 6,
+      "openWaterDives": 10,
+      "prerequisites": "NAUI CCR Mixed Gas Diver certification, minimum 200 logged dives with 100 CCR dives and 25 decompression dives",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form and comprehensive diving physical exam required",
+      "requiredItems": [
+        "Unit-specific CCR for extreme exposure",
+        "Multiple bailout cylinders",
+        "Full redundancy systems"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Skin Diving Instructor",
+      "code": "SDI",
+      "levelCode": "instructor",
+      "description": "The NAUI Skin Diving Instructor certification qualifies individuals to train and certify skin divers and conduct snorkeling experience programs. Unique to NAUI, this rating allows independent skin diving instruction.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/skin-diving-instructor-course.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 12,
+      "poolHours": 8,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Skin or Open Water Scuba Diver certification, First Aid and CPR certification",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal skin diving equipment",
+        "Rescue equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Freediving Instructor",
+      "code": "FDI",
+      "levelCode": "instructor",
+      "description": "The NAUI/PFI Freediving Instructor certification qualifies individuals to teach all levels of recreational freediving courses. Comprehensive instructor training for apnea diving education.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/freediving-instructor-course.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 32,
+      "poolHours": 16,
+      "openWaterDives": 8,
+      "prerequisites": "NAUI Advanced Freediver certification, First Aid and CPR certification, minimum 3 years freediving experience",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Freediving Medical History form and physical exam required",
+      "requiredItems": [
+        "Competition-grade freediving equipment",
+        "Rescue equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Familiarization-Instruction-Testing (FIT)",
+      "code": "FIT",
+      "levelCode": "professional",
+      "description": "The NAUI FIT program is a non-certification prerequisite program for NAUI Assistant Instructor, Divemaster, or Instructor Crossover Course. Familiarizes candidates with NAUI standards, teaching methods, and evaluation procedures.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/fit-course.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 10,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Open Water Scuba Diver certification or equivalent from another agency",
+      "minAge": 18,
+      "medicalRequirements": "NAUI Medical History form required",
+      "requiredItems": [
+        "Personal dive equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Assistant Instructor",
+      "code": "AI",
+      "levelCode": "professional",
+      "description": "The NAUI Assistant Instructor program introduces diving instruction basics and tests fundamental water skills. Certification authorizes assistance to active-status NAUI Instructors in dive training. Recommended step toward NAUI Instructor.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/assistant-instructor-course.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 12,
+      "openWaterDives": 4,
+      "prerequisites": "NAUI Rescue Scuba Diver, Nitrox Diver, First Aid certifications, minimum 40 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed NAUI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Rescue equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Divemaster",
+      "code": "DM",
+      "levelCode": "professional",
+      "description": "The NAUI Divemaster rating is the highest leadership-level certification below Instructor. Designed to train experienced divers to organize and conduct open water dives for certified divers. Qualified to assist instructors and supervise dive activities.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/divemaster-course.jpg"
+      ],
+      "durationDays": 10,
+      "classroomHours": 40,
+      "poolHours": 16,
+      "openWaterDives": 10,
+      "prerequisites": "NAUI Master Scuba Diver, Rescue Scuba Diver, Nitrox Diver, First Aid for Dive Professionals, and Oxygen Provider certifications or equivalents, minimum 60 logged dives",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed NAUI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Dive computer",
+        "Rescue equipment",
+        "Oxygen delivery system"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Training Course (ITC)",
+      "code": "ITC",
+      "levelCode": "instructor",
+      "description": "The NAUI Instructor Training Course trains and qualifies NAUI Instructor member applicants. Learn effective methods to teach skin and scuba diving per NAUI standards. Includes Instructor Training Program (ITP) and Instructor Qualification Program (IQP).",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/itc-course.jpg"
+      ],
+      "durationDays": 14,
+      "classroomHours": 60,
+      "poolHours": 30,
+      "openWaterDives": 10,
+      "prerequisites": "NAUI Assistant Instructor or Divemaster, First Aid for Dive Professionals, Oxygen Provider, Nitrox Diver certifications, minimum 60 logged dives with 30 hours bottom time, pass NAUI Instructor Pre-Qualification Exam",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed NAUI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Teaching aids and materials",
+        "Rescue equipment"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Crossover Course (ICC)",
+      "code": "ICC",
+      "levelCode": "instructor",
+      "description": "The NAUI Instructor Crossover Course allows instructors from other certification agencies to become NAUI Instructors. Familiarizes crossover candidates with NAUI standards, procedures, and teaching philosophy.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/icc-course.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 20,
+      "poolHours": 12,
+      "openWaterDives": 4,
+      "prerequisites": "Current instructor certification from recognized agency, First Aid and Oxygen Provider certifications, pass NAUI Instructor Pre-Qualification Exam",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed NAUI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Current instructor credentials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Open Water Instructor",
+      "code": "OWI",
+      "levelCode": "instructor",
+      "description": "Upon successful completion of ITC or ICC, certified NAUI Instructors are qualified to independently teach NAUI sanctioned courses and authorize NAUI certification for graduates. Instructors are voting members of NAUI.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/open-water-instructor.jpg"
+      ],
+      "durationDays": 14,
+      "classroomHours": 60,
+      "poolHours": 30,
+      "openWaterDives": 10,
+      "prerequisites": "Complete NAUI ITC or ICC with passing evaluation scores",
+      "minAge": 18,
+      "medicalRequirements": "Physician-signed NAUI Medical Statement required",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Complete teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Specialty Instructor",
+      "code": "SI",
+      "levelCode": "instructor",
+      "description": "NAUI Specialty Instructor courses train instructors to teach specific specialty courses. Instructors may acquire ratings in areas like Digital Underwater Photographer, Enriched Air Diver, Deep Diver, and many more specialties.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/specialty-instructor.jpg"
+      ],
+      "durationDays": 2,
+      "classroomHours": 8,
+      "poolHours": 4,
+      "openWaterDives": 2,
+      "prerequisites": "NAUI Instructor certification, specialty diver certification in the relevant area, demonstrated experience in the specialty",
+      "minAge": 18,
+      "medicalRequirements": "Current NAUI Instructor medical clearance",
+      "requiredItems": [
+        "Specialty-specific equipment",
+        "Teaching materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Technical Instructor",
+      "code": "TI",
+      "levelCode": "instructor",
+      "description": "NAUI Technical Instructor ratings allow instructors to teach technical diving courses including decompression, trimix, cave, and wreck penetration. Requires extensive technical diving experience and training.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/technical-instructor.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 32,
+      "poolHours": 16,
+      "openWaterDives": 8,
+      "prerequisites": "NAUI Instructor certification, relevant technical diver certifications, minimum 200 logged dives with 100 technical dives",
+      "minAge": 21,
+      "medicalRequirements": "Current NAUI Instructor medical clearance with technical diving physical",
+      "requiredItems": [
+        "Full technical diving equipment",
+        "Teaching materials for technical courses"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Instructor Trainer (IT)",
+      "code": "IT",
+      "levelCode": "instructor",
+      "description": "The NAUI Instructor Trainer rating qualifies instructors to conduct the Instructor Training Program (ITP) phase of ITCs. Can evaluate candidate practice performances alongside Course Directors.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/instructor-trainer.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 12,
+      "openWaterDives": 4,
+      "prerequisites": "Active NAUI Instructor for minimum 3 years, certified minimum 75 divers, attend Staff Training Workshop",
+      "minAge": 21,
+      "medicalRequirements": "Current NAUI Instructor medical clearance",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Complete instructor training materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Course Director",
+      "code": "CD",
+      "levelCode": "instructor",
+      "description": "The NAUI Course Director is the highest instructor rating. Course Directors conduct the Instructor Qualification Program (IQP) phase of ITCs where all final instructor evaluations are made. Required for ITC final phase.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/course-director.jpg"
+      ],
+      "durationDays": 7,
+      "classroomHours": 40,
+      "poolHours": 20,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Instructor Trainer rating, minimum 5 years as active NAUI Instructor, certified minimum 150 divers, recommendation from NAUI Training Department",
+      "minAge": 25,
+      "medicalRequirements": "Current NAUI Instructor medical clearance",
+      "requiredItems": [
+        "Full personal dive equipment",
+        "Complete course director materials"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "First Aid Instructor",
+      "code": "FAI",
+      "levelCode": "instructor",
+      "description": "The NAUI/DAN First Aid Instructor Designation permits graduates to teach ALL NAUI/DAN first aid courses including BLS, CPR-Health Care Provider, Emergency Oxygen Provider, Hazardous Marine Life, Neurological Assessment, DFA Pro, and DEMP.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/first-aid-instructor.jpg"
+      ],
+      "durationDays": 3,
+      "classroomHours": 20,
+      "poolHours": 0,
+      "openWaterDives": 0,
+      "prerequisites": "Current first aid certifications including all courses to be taught, NAUI Instructor certification recommended",
+      "minAge": 18,
+      "medicalRequirements": null,
+      "requiredItems": [
+        "First aid training equipment",
+        "Rescue mannequins (provided)"
+      ],
+      "materialsIncluded": true
+    },
+    {
+      "name": "Public Safety Diving Instructor",
+      "code": "PSDI",
+      "levelCode": "instructor",
+      "description": "The NAUI Public Safety Diving Instructor rating qualifies instructors to teach NAUI Public Safety Diver courses. Requires extensive experience in public safety diving operations and instructor skills.",
+      "images": [
+        "https://www.naui.org/wp-content/uploads/psd-instructor.jpg"
+      ],
+      "durationDays": 5,
+      "classroomHours": 24,
+      "poolHours": 12,
+      "openWaterDives": 6,
+      "prerequisites": "NAUI Instructor certification, NAUI Public Safety Diver certification, minimum 2 years active PSD team experience",
+      "minAge": 21,
+      "medicalRequirements": "Current NAUI Instructor medical clearance with PSD physical",
+      "requiredItems": [
+        "Full PSD equipment",
+        "Teaching and demonstration equipment"
+      ],
+      "materialsIncluded": true
+    }
+  ]
+}
