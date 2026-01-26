@@ -4,6 +4,9 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createCustomer } from "../../../../lib/db/queries.server";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
+import { db } from "../../../../lib/db";
+import { user } from "../../../../lib/db/schema/auth";
+import { eq } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
@@ -42,6 +45,26 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     });
     return { errors, values };
+  }
+
+  // Check if email already exists as a tenant user
+  const [existingUser] = await db
+    .select()
+    .from(user)
+    .where(eq(user.email, email))
+    .limit(1);
+
+  if (existingUser) {
+    const values: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      if (typeof value === "string") {
+        values[key] = value;
+      }
+    });
+    return {
+      errors: { email: "This email is already registered as a tenant user" },
+      values,
+    };
   }
 
   // Parse certifications from form

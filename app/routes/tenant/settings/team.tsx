@@ -110,6 +110,42 @@ export async function action({ request }: ActionFunctionArgs) {
     const email = formData.get("email") as string;
     const role = formData.get("role") as string;
 
+    // Check if email is already a team member
+    const [existingMember] = await db
+      .select({
+        email: user.email,
+      })
+      .from(member)
+      .innerJoin(user, eq(member.userId, user.id))
+      .where(
+        and(
+          eq(member.organizationId, ctx.org.id),
+          eq(user.email, email)
+        )
+      )
+      .limit(1);
+
+    if (existingMember) {
+      return { error: "This email is already a team member" };
+    }
+
+    // Check if email already has a pending invitation
+    const [existingInvite] = await db
+      .select()
+      .from(invitation)
+      .where(
+        and(
+          eq(invitation.organizationId, ctx.org.id),
+          eq(invitation.email, email),
+          eq(invitation.status, "pending")
+        )
+      )
+      .limit(1);
+
+    if (existingInvite) {
+      return { error: "This email already has a pending invitation" };
+    }
+
     // Create invitation with generated ID
     const inviteId = crypto.randomUUID();
     await db.insert(invitation).values({
