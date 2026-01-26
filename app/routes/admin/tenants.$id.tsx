@@ -174,8 +174,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         .where(eq(subscriptionPlans.id, planId))
         .limit(1);
       if (selectedPlan) {
-        // Map to legacy plan names: free plans -> "free", paid plans -> "premium"
-        planName = selectedPlan.monthlyPrice === 0 ? "free" : "premium";
+        planName = selectedPlan.name.toLowerCase();
       }
     }
 

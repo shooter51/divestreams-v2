@@ -231,6 +231,7 @@ export function getThemeCSS(
     textColor: overrides?.textColor ?? baseTheme.textColor,
     headerBg: overrides?.headerBg ?? baseTheme.headerBg,
     footerBg: overrides?.footerBg ?? baseTheme.footerBg,
+    dark: baseTheme.dark,
   };
 
   // Generate CSS custom properties
