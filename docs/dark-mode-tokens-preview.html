@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiveStreams — Semantic Color Tokens</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f8f9fa; color: #1a1a2e; padding: 40px 20px; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 8px; }
+  .subtitle { text-align: center; color: #6b7280; margin-bottom: 40px; font-size: 14px; }
+
+  .mode-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 1100px; margin: 0 auto; }
+
+  .mode-panel {
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid #e5e7eb;
+  }
+  .mode-panel.light { background: #ffffff; }
+  .mode-panel.dark  { background: #030712; color: #f3f4f6; border-color: #374151; }
+
+  .mode-title { font-size: 20px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+  .mode-title .icon { font-size: 24px; }
+
+  .token-group { margin-bottom: 24px; }
+  .group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 12px; opacity: 0.6; }
+
+  .token-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .swatch {
+    width: 48px;
+    height: 32px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 1px solid rgba(128,128,128,0.2);
+  }
+  .token-info { flex: 1; }
+  .token-name { font-size: 13px; font-weight: 600; font-family: 'SF Mono', 'Fira Code', monospace; }
+  .token-hex  { font-size: 11px; opacity: 0.5; font-family: 'SF Mono', 'Fira Code', monospace; }
+
+  /* Example UI cards */
+  .example-section { max-width: 1100px; margin: 48px auto 0; }
+  .example-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; text-align: center; }
+  .example-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+
+  .example-card {
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid;
+  }
+  .example-card.light {
+    background: #ffffff;
+    border-color: #e5e7eb;
+  }
+  .example-card.dark {
+    background: #030712;
+    border-color: #374151;
+  }
+
+  .example-card .card-header {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .example-card .card-sub {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .example-card .card-inner {
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .example-card .card-inner p { font-size: 13px; line-height: 1.5; }
+  .example-card .btn {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-right: 8px;
+  }
+  .example-card .btn-outline {
+    border: 1px solid;
+    background: transparent;
+  }
+
+  .divider { width: 100%; height: 1px; margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<h1>DiveStreams — Semantic Color Tokens</h1>
+<p class="subtitle">Light &amp; Dark mode token values — CSS-only, system-preference driven</p>
+
+<!-- ========== TOKEN SWATCHES ========== -->
+<div class="mode-columns">
+
+  <!-- LIGHT MODE -->
+  <div class="mode-panel light">
+    <div class="mode-title"><span class="icon">☀️</span> Light Mode</div>
+
+    <!-- Surfaces -->
+    <div class="token-group">
+      <div class="group-label">Surfaces</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#ffffff"></div>
+        <div class="token-info"><div class="token-name">--surface</div><div class="token-hex">#ffffff · white</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#ffffff"></div>
+        <div class="token-info"><div class="token-name">--surface-raised</div><div class="token-hex">#ffffff · white (with shadow)</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#f9fafb"></div>
+        <div class="token-info"><div class="token-name">--surface-inset</div><div class="token-hex">#f9fafb · gray-50</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#f3f4f6"></div>
+        <div class="token-info"><div class="token-name">--surface-overlay</div><div class="token-hex">#f3f4f6 · gray-100</div></div>
+      </div>
+    </div>
+
+    <!-- Foreground -->
+    <div class="token-group">
+      <div class="group-label">Foreground (Text)</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#111827"></div>
+        <div class="token-info"><div class="token-name">--foreground</div><div class="token-hex">#111827 · gray-900</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#6b7280"></div>
+        <div class="token-info"><div class="token-name">--foreground-muted</div><div class="token-hex">#6b7280 · gray-500</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#9ca3af"></div>
+        <div class="token-info"><div class="token-name">--foreground-subtle</div><div class="token-hex">#9ca3af · gray-400</div></div>
+      </div>
+    </div>
+
+    <!-- Borders -->
+    <div class="token-group">
+      <div class="group-label">Borders</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#e5e7eb"></div>
+        <div class="token-info"><div class="token-name">--border</div><div class="token-hex">#e5e7eb · gray-200</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#d1d5db"></div>
+        <div class="token-info"><div class="token-name">--border-strong</div><div class="token-hex">#d1d5db · gray-300</div></div>
+      </div>
+    </div>
+
+    <!-- Brand -->
+    <div class="token-group">
+      <div class="group-label">Brand</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#2563eb"></div>
+        <div class="token-info"><div class="token-name">--brand</div><div class="token-hex">#2563eb · blue-600</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#1d4ed8"></div>
+        <div class="token-info"><div class="token-name">--brand-hover</div><div class="token-hex">#1d4ed8 · blue-700</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#eff6ff"></div>
+        <div class="token-info"><div class="token-name">--brand-muted</div><div class="token-hex">#eff6ff · blue-50</div></div>
+      </div>
+    </div>
+
+    <!-- Semantic -->
+    <div class="token-group">
+      <div class="group-label">Semantic</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#dc2626"></div>
+        <div class="token-info"><div class="token-name">--danger</div><div class="token-hex">#dc2626 · red-600</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#fef2f2"></div>
+        <div class="token-info"><div class="token-name">--danger-muted</div><div class="token-hex">#fef2f2 · red-50</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#16a34a"></div>
+        <div class="token-info"><div class="token-name">--success</div><div class="token-hex">#16a34a · green-600</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#f0fdf4"></div>
+        <div class="token-info"><div class="token-name">--success-muted</div><div class="token-hex">#f0fdf4 · green-50</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#d97706"></div>
+        <div class="token-info"><div class="token-name">--warning</div><div class="token-hex">#d97706 · amber-600</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#fffbeb"></div>
+        <div class="token-info"><div class="token-name">--warning-muted</div><div class="token-hex">#fffbeb · amber-50</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DARK MODE -->
+  <div class="mode-panel dark">
+    <div class="mode-title"><span class="icon">🌙</span> Dark Mode</div>
+
+    <!-- Surfaces -->
+    <div class="token-group">
+      <div class="group-label" style="color:#9ca3af">Surfaces</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#030712"></div>
+        <div class="token-info"><div class="token-name">--surface</div><div class="token-hex">#030712 · gray-950</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#111827"></div>
+        <div class="token-info"><div class="token-name">--surface-raised</div><div class="token-hex">#111827 · gray-900</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#1f2937"></div>
+        <div class="token-info"><div class="token-name">--surface-inset</div><div class="token-hex">#1f2937 · gray-800</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#1f2937"></div>
+        <div class="token-info"><div class="token-name">--surface-overlay</div><div class="token-hex">#1f2937 · gray-800</div></div>
+      </div>
+    </div>
+
+    <!-- Foreground -->
+    <div class="token-group">
+      <div class="group-label" style="color:#9ca3af">Foreground (Text)</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#f3f4f6"></div>
+        <div class="token-info"><div class="token-name">--foreground</div><div class="token-hex">#f3f4f6 · gray-100</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#9ca3af"></div>
+        <div class="token-info"><div class="token-name">--foreground-muted</div><div class="token-hex">#9ca3af · gray-400</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#4b5563"></div>
+        <div class="token-info"><div class="token-name">--foreground-subtle</div><div class="token-hex">#4b5563 · gray-600</div></div>
+      </div>
+    </div>
+
+    <!-- Borders -->
+    <div class="token-group">
+      <div class="group-label" style="color:#9ca3af">Borders</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#374151"></div>
+        <div class="token-info"><div class="token-name">--border</div><div class="token-hex">#374151 · gray-700</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#4b5563"></div>
+        <div class="token-info"><div class="token-name">--border-strong</div><div class="token-hex">#4b5563 · gray-600</div></div>
+      </div>
+    </div>
+
+    <!-- Brand -->
+    <div class="token-group">
+      <div class="group-label" style="color:#9ca3af">Brand</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#3b82f6"></div>
+        <div class="token-info"><div class="token-name">--brand</div><div class="token-hex">#3b82f6 · blue-500</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#2563eb"></div>
+        <div class="token-info"><div class="token-name">--brand-hover</div><div class="token-hex">#2563eb · blue-600</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#172554"></div>
+        <div class="token-info"><div class="token-name">--brand-muted</div><div class="token-hex">#172554 · blue-950</div></div>
+      </div>
+    </div>
+
+    <!-- Semantic -->
+    <div class="token-group">
+      <div class="group-label" style="color:#9ca3af">Semantic</div>
+      <div class="token-row">
+        <div class="swatch" style="background:#ef4444"></div>
+        <div class="token-info"><div class="token-name">--danger</div><div class="token-hex">#ef4444 · red-500</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#450a0a"></div>
+        <div class="token-info"><div class="token-name">--danger-muted</div><div class="token-hex">#450a0a · red-950</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#22c55e"></div>
+        <div class="token-info"><div class="token-name">--success</div><div class="token-hex">#22c55e · green-500</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#052e16"></div>
+        <div class="token-info"><div class="token-name">--success-muted</div><div class="token-hex">#052e16 · green-950</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#f59e0b"></div>
+        <div class="token-info"><div class="token-name">--warning</div><div class="token-hex">#f59e0b · amber-500</div></div>
+      </div>
+      <div class="token-row">
+        <div class="swatch" style="background:#451a03"></div>
+        <div class="token-info"><div class="token-name">--warning-muted</div><div class="token-hex">#451a03 · amber-950</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== EXAMPLE UI ========== -->
+<div class="example-section">
+  <div class="example-title">Example: How a Card Looks Using These Tokens</div>
+  <div class="example-grid">
+
+    <!-- Light card -->
+    <div class="example-card light">
+      <div class="card-header" style="color:#111827">Open Water Diver Course</div>
+      <div class="card-sub" style="color:#6b7280">PADI &middot; 4 days &middot; Beginner</div>
+      <div class="card-inner" style="background:#f9fafb; border:1px solid #e5e7eb;">
+        <p style="color:#111827">Learn fundamental diving skills including equipment setup, underwater navigation, and safety procedures. Includes 5 open water dives.</p>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+        <span style="display:inline-block; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:600; background:#f0fdf4; color:#16a34a;">Available</span>
+        <span style="display:inline-block; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:600; background:#fffbeb; color:#d97706;">3 spots left</span>
+      </div>
+      <div class="divider" style="background:#e5e7eb"></div>
+      <div style="margin-top:12px;">
+        <span class="btn" style="background:#2563eb; color:white;">Book Now</span>
+        <span class="btn btn-outline" style="color:#2563eb; border-color:#e5e7eb;">Details</span>
+      </div>
+    </div>
+
+    <!-- Dark card -->
+    <div class="example-card dark">
+      <div class="card-header" style="color:#f3f4f6">Open Water Diver Course</div>
+      <div class="card-sub" style="color:#9ca3af">PADI &middot; 4 days &middot; Beginner</div>
+      <div class="card-inner" style="background:#1f2937; border:1px solid #374151;">
+        <p style="color:#f3f4f6">Learn fundamental diving skills including equipment setup, underwater navigation, and safety procedures. Includes 5 open water dives.</p>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+        <span style="display:inline-block; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:600; background:#052e16; color:#22c55e;">Available</span>
+        <span style="display:inline-block; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:600; background:#451a03; color:#f59e0b;">3 spots left</span>
+      </div>
+      <div class="divider" style="background:#374151"></div>
+      <div style="margin-top:12px;">
+        <span class="btn" style="background:#3b82f6; color:white;">Book Now</span>
+        <span class="btn btn-outline" style="color:#3b82f6; border-color:#374151;">Details</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========== SIDEBAR EXAMPLE ========== -->
+<div class="example-section" style="margin-top:40px;">
+  <div class="example-title">Example: Dashboard Sidebar</div>
+  <div class="example-grid">
+
+    <!-- Light sidebar -->
+    <div style="display:flex; border-radius:12px; overflow:hidden; border:1px solid #e5e7eb; height:300px;">
+      <div style="width:220px; background:#ffffff; border-right:1px solid #e5e7eb; padding:20px 16px;">
+        <div style="font-size:15px; font-weight:700; color:#111827; margin-bottom:20px;">DiveStreams</div>
+        <div style="padding:8px 12px; border-radius:8px; background:#eff6ff; color:#2563eb; font-size:13px; font-weight:600; margin-bottom:4px;">Dashboard</div>
+        <div style="padding:8px 12px; border-radius:8px; color:#6b7280; font-size:13px; margin-bottom:4px;">Courses</div>
+        <div style="padding:8px 12px; border-radius:8px; color:#6b7280; font-size:13px; margin-bottom:4px;">Bookings</div>
+        <div style="padding:8px 12px; border-radius:8px; color:#6b7280; font-size:13px; margin-bottom:4px;">Students</div>
+        <div style="padding:8px 12px; border-radius:8px; color:#6b7280; font-size:13px;">Settings</div>
+      </div>
+      <div style="flex:1; background:#f9fafb; padding:20px;">
+        <div style="font-size:16px; font-weight:600; color:#111827; margin-bottom:12px;">Dashboard</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:8px; padding:16px;">
+            <div style="font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px;">Bookings</div>
+            <div style="font-size:24px; font-weight:700; color:#111827;">24</div>
+          </div>
+          <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:8px; padding:16px;">
+            <div style="font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px;">Revenue</div>
+            <div style="font-size:24px; font-weight:700; color:#111827;">$4,200</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dark sidebar -->
+    <div style="display:flex; border-radius:12px; overflow:hidden; border:1px solid #374151; height:300px;">
+      <div style="width:220px; background:#030712; border-right:1px solid #374151; padding:20px 16px;">
+        <div style="font-size:15px; font-weight:700; color:#f3f4f6; margin-bottom:20px;">DiveStreams</div>
+        <div style="padding:8px 12px; border-radius:8px; background:#172554; color:#3b82f6; font-size:13px; font-weight:600; margin-bottom:4px;">Dashboard</div>
+        <div style="padding:8px 12px; border-radius:8px; color:#9ca3af; font-size:13px; margin-bottom:4px;">Courses</div>
+        <div style="padding:8px 12px; border-radius:8px; color:#9ca3af; font-size:13px; margin-bottom:4px;">Bookings</div>
+        <div style="padding:8px 12px; border-radius:8px; color:#9ca3af; font-size:13px; margin-bottom:4px;">Students</div>
+        <div style="padding:8px 12px; border-radius:8px; color:#9ca3af; font-size:13px;">Settings</div>
+      </div>
+      <div style="flex:1; background:#111827; padding:20px;">
+        <div style="font-size:16px; font-weight:600; color:#f3f4f6; margin-bottom:12px;">Dashboard</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div style="background:#1f2937; border:1px solid #374151; border-radius:8px; padding:16px;">
+            <div style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Bookings</div>
+            <div style="font-size:24px; font-weight:700; color:#f3f4f6;">24</div>
+          </div>
+          <div style="background:#1f2937; border:1px solid #374151; border-radius:8px; padding:16px;">
+            <div style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Revenue</div>
+            <div style="font-size:24px; font-weight:700; color:#f3f4f6;">$4,200</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p style="text-align:center; margin-top:40px; font-size:12px; color:#9ca3af;">
+  All colors are CSS custom properties defined once in <code>app.css</code>, toggled via <code>@media (prefers-color-scheme: dark)</code>.
+</p>
+
+</body>
+</html>
