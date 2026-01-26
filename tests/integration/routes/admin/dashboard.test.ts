@@ -52,15 +52,19 @@ vi.mock("../../../../lib/db/schema/subscription", () => ({
   },
 }));
 
-vi.mock("drizzle-orm", () => ({
-  eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
-  ne: vi.fn((a, b) => ({ type: "ne", field: a, value: b })),
-  ilike: vi.fn((field, pattern) => ({ type: "ilike", field, pattern })),
-  or: vi.fn((...conditions) => ({ type: "or", conditions })),
-  desc: vi.fn((field) => ({ type: "desc", field })),
-  sql: vi.fn((strings, ...values) => ({ type: "sql", strings, values })),
-  count: vi.fn(() => ({ type: "count" })),
-}));
+vi.mock("drizzle-orm", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("drizzle-orm")>();
+  return {
+    ...actual,
+    eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
+    ne: vi.fn((a, b) => ({ type: "ne", field: a, value: b })),
+    ilike: vi.fn((field, pattern) => ({ type: "ilike", field, pattern })),
+    or: vi.fn((...conditions) => ({ type: "or", conditions })),
+    desc: vi.fn((field) => ({ type: "desc", field })),
+    sql: vi.fn((strings, ...values) => ({ type: "sql", strings, values })),
+    count: vi.fn(() => ({ type: "count" })),
+  };
+});
 
 import { db } from "../../../../lib/db";
 
