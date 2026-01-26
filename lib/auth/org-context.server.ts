@@ -282,18 +282,34 @@ export async function getOrgContext(
     .limit(1);
 
   // Fetch the plan details from subscriptionPlans table
-  // Match by plan name (e.g., "free", "professional", "enterprise")
+  // Prefer planId (modern FK) over legacy plan name field
   const planName = sub?.plan || "free";
-  const [planDetails] = await db
-    .select()
-    .from(subscriptionPlans)
-    .where(
-      and(
-        eq(subscriptionPlans.name, planName),
-        eq(subscriptionPlans.isActive, true)
+  let planDetails;
+  if (sub?.planId) {
+    [planDetails] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(
+        and(
+          eq(subscriptionPlans.id, sub.planId),
+          eq(subscriptionPlans.isActive, true)
+        )
       )
-    )
-    .limit(1);
+      .limit(1);
+  }
+  if (!planDetails) {
+    // Fall back to legacy plan name lookup
+    [planDetails] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(
+        and(
+          eq(subscriptionPlans.name, planName),
+          eq(subscriptionPlans.isActive, true)
+        )
+      )
+      .limit(1);
+  }
 
   // Determine if premium (any paid plan with active status)
   const isPremium =

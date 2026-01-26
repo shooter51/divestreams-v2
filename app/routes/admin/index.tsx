@@ -3,6 +3,7 @@ import { useLoaderData, Link, useFetcher, useSearchParams } from "react-router";
 import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
+import { subscriptionPlans } from "../../../lib/db/schema";
 import { eq, ilike, or, desc, sql, count, ne } from "drizzle-orm";
 import { requirePlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
 import { getTenantUrl, getBaseDomain } from "../../../lib/utils/url";
@@ -73,12 +74,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
           )
           .limit(1);
 
-        // Get subscription status
-        const [sub] = await db
-          .select()
+        // Get subscription status with plan details
+        const [subWithPlan] = await db
+          .select({
+            sub: subscription,
+            planName: subscriptionPlans.displayName,
+          })
           .from(subscription)
+          .leftJoin(subscriptionPlans, eq(subscription.planId, subscriptionPlans.id))
           .where(eq(subscription.organizationId, org.id))
           .limit(1);
+
+        const sub = subWithPlan?.sub;
+        const displayPlanName = subWithPlan?.planName || sub?.plan || "free";
 
         return {
           ...org,
@@ -86,7 +94,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
           memberCount: memberCount?.count || 0,
           ownerEmail: owner?.email || "—",
           subscriptionStatus: sub?.status || "free",
-          subscriptionPlan: sub?.plan || "free",
+          subscriptionPlan: displayPlanName,
           // Pre-compute tenant URL server-side where process.env.APP_URL is available
           tenantUrl: getTenantUrl(org.slug, "/tenant"),
         };
@@ -133,10 +141,11 @@ const statusColors: Record<string, string> = {
   canceled: "bg-danger-muted text-danger",
 };
 
-const planColors: Record<string, string> = {
-  free: "bg-surface-inset text-foreground-muted",
-  premium: "bg-info-muted text-info",
-};
+function getPlanColorClass(plan: string): string {
+  const lower = plan.toLowerCase();
+  if (lower === "free") return "bg-surface-inset text-foreground-muted";
+  return "bg-info-muted text-info";
+}
 
 export default function AdminOrganizationsPage() {
   const { organizations, search, error } = useLoaderData<typeof loader>();
@@ -242,9 +251,7 @@ export default function AdminOrganizationsPage() {
                   <td className="px-4 py-3 text-foreground-muted">{org.memberCount}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        planColors[org.subscriptionPlan] || "bg-surface-inset"
-                      }`}
+                      className={`text-xs px-2 py-1 rounded-full ${getPlanColorClass(org.subscriptionPlan)}`}
                     >
                       {org.subscriptionPlan}
                     </span>
