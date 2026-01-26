@@ -21,7 +21,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const { tenant } = await requireTenant(request);
+    const { tenant, organizationId } = await requireTenant(request);
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -111,12 +111,10 @@ export async function action({ request }: ActionFunctionArgs) {
     const nextOrder = countResult.count;
 
     // Save to database
-    // Note: Need organizationId from context for organization-based multi-tenancy
-    // For now, we use tenant.subdomain as a proxy - proper implementation would use requireOrgContext
     const [image] = await db
       .insert(schema.images)
       .values({
-        organizationId: tenant.subdomain, // Using subdomain as org identifier for now
+        organizationId, // Now using actual organization ID from context
         entityType,
         entityId,
         url: originalUpload.cdnUrl,
