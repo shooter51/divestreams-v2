@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiveStreams — Public Site Theme Dark Variants</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f0f1f3; color: #1a1a2e; padding: 40px 20px; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #6b7280; margin-bottom: 48px; font-size: 14px; }
+
+  .theme-section { max-width: 1100px; margin: 0 auto 48px; }
+  .theme-label { font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .theme-label .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .mode-tag {
+    display: inline-block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  /* Site mock */
+  .site-mock {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid;
+  }
+
+  /* Navbar */
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid;
+  }
+  .navbar .logo { font-size: 15px; font-weight: 700; }
+  .navbar .nav-links { display: flex; gap: 20px; font-size: 13px; }
+  .navbar .cta-btn {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 6px;
+    color: white;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 32px 24px;
+    text-align: center;
+  }
+  .hero h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .hero p { font-size: 13px; max-width: 360px; margin: 0 auto 16px; line-height: 1.5; }
+  .hero .hero-btn {
+    display: inline-block;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+  }
+
+  /* Course cards */
+  .cards-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 24px 24px;
+  }
+  .course-card {
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid;
+  }
+  .course-card .card-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .course-card .card-meta { font-size: 11px; margin-bottom: 10px; }
+  .course-card .card-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Public Site Themes — Light &amp; Dark</h1>
+<p class="subtitle">Each of the 5 presets with its automatic dark mode counterpart</p>
+
+<!-- ==================== OCEAN ==================== -->
+<div class="theme-section">
+  <div class="theme-label"><span class="dot" style="background:#2563eb"></span> Ocean</div>
+  <div class="pair">
+    <!-- Light -->
+    <div>
+      <div class="mode-tag" style="background:#e0e7ff; color:#3730a3;">Light</div>
+      <div class="site-mock" style="background:#ffffff; border-color:#e5e7eb;">
+        <div class="navbar" style="background:#ffffff; border-color:#e5e7eb;">
+          <div class="logo" style="color:#2563eb;">DiveShop</div>
+          <div class="nav-links" style="color:#4b5563;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#2563eb;">Book Now</div>
+        </div>
+        <div class="hero" style="background:linear-gradient(135deg, #eff6ff, #dbeafe);">
+          <h2 style="color:#1e3a5f;">Explore the Deep Blue</h2>
+          <p style="color:#4b5563;">Discover world-class diving experiences with certified PADI instructors.</p>
+          <div class="hero-btn" style="background:#2563eb;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#ffffff; border-color:#e5e7eb;">
+            <div class="card-title" style="color:#111827;">Open Water Diver</div>
+            <div class="card-meta" style="color:#6b7280;">4 days &middot; $450</div>
+            <div class="card-badge" style="background:#dbeafe; color:#2563eb;">Beginner</div>
+          </div>
+          <div class="course-card" style="background:#ffffff; border-color:#e5e7eb;">
+            <div class="card-title" style="color:#111827;">Advanced Diver</div>
+            <div class="card-meta" style="color:#6b7280;">3 days &middot; $380</div>
+            <div class="card-badge" style="background:#dbeafe; color:#2563eb;">Intermediate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Dark -->
+    <div>
+      <div class="mode-tag" style="background:#1e3a5f; color:#93c5fd;">Dark</div>
+      <div class="site-mock" style="background:#030712; border-color:#374151;">
+        <div class="navbar" style="background:#030712; border-color:#374151;">
+          <div class="logo" style="color:#60a5fa;">DiveShop</div>
+          <div class="nav-links" style="color:#9ca3af;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#2563eb;">Book Now</div>
+        </div>
+        <div class="hero" style="background:linear-gradient(135deg, #0c1929, #111d2e);">
+          <h2 style="color:#e0f2fe;">Explore the Deep Blue</h2>
+          <p style="color:#9ca3af;">Discover world-class diving experiences with certified PADI instructors.</p>
+          <div class="hero-btn" style="background:#2563eb;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#111827; border-color:#374151;">
+            <div class="card-title" style="color:#f3f4f6;">Open Water Diver</div>
+            <div class="card-meta" style="color:#9ca3af;">4 days &middot; $450</div>
+            <div class="card-badge" style="background:#172554; color:#60a5fa;">Beginner</div>
+          </div>
+          <div class="course-card" style="background:#111827; border-color:#374151;">
+            <div class="card-title" style="color:#f3f4f6;">Advanced Diver</div>
+            <div class="card-meta" style="color:#9ca3af;">3 days &middot; $380</div>
+            <div class="card-badge" style="background:#172554; color:#60a5fa;">Intermediate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TROPICAL ==================== -->
+<div class="theme-section">
+  <div class="theme-label"><span class="dot" style="background:#059669"></span> Tropical</div>
+  <div class="pair">
+    <!-- Light -->
+    <div>
+      <div class="mode-tag" style="background:#d1fae5; color:#065f46;">Light</div>
+      <div class="site-mock" style="background:#ffffff; border-color:#e5e7eb;">
+        <div class="navbar" style="background:#ffffff; border-color:#e5e7eb;">
+          <div class="logo" style="color:#059669;">IslandDive</div>
+          <div class="nav-links" style="color:#4b5563;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#059669;">Book Now</div>
+        </div>
+        <div class="hero" style="background:linear-gradient(135deg, #ecfdf5, #d1fae5);">
+          <h2 style="color:#064e3b;">Tropical Paradise Diving</h2>
+          <p style="color:#4b5563;">Crystal clear waters and vibrant coral reefs await your adventure.</p>
+          <div class="hero-btn" style="background:#059669;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#ffffff; border-color:#e5e7eb;">
+            <div class="card-title" style="color:#111827;">Reef Explorer</div>
+            <div class="card-meta" style="color:#6b7280;">2 days &middot; $280</div>
+            <div class="card-badge" style="background:#d1fae5; color:#059669;">Beginner</div>
+          </div>
+          <div class="course-card" style="background:#ffffff; border-color:#e5e7eb;">
+            <div class="card-title" style="color:#111827;">Night Dive Specialty</div>
+            <div class="card-meta" style="color:#6b7280;">1 day &middot; $180</div>
+            <div class="card-badge" style="background:#fef3c7; color:#d97706;">Advanced</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Dark -->
+    <div>
+      <div class="mode-tag" style="background:#064e3b; color:#6ee7b7;">Dark</div>
+      <div class="site-mock" style="background:#030712; border-color:#374151;">
+        <div class="navbar" style="background:#030712; border-color:#374151;">
+          <div class="logo" style="color:#34d399;">IslandDive</div>
+          <div class="nav-links" style="color:#9ca3af;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#059669;">Book Now</div>
+        </div>
+        <div class="hero" style="background:linear-gradient(135deg, #041f17, #0a2920);">
+          <h2 style="color:#d1fae5;">Tropical Paradise Diving</h2>
+          <p style="color:#9ca3af;">Crystal clear waters and vibrant coral reefs await your adventure.</p>
+          <div class="hero-btn" style="background:#059669;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#111827; border-color:#374151;">
+            <div class="card-title" style="color:#f3f4f6;">Reef Explorer</div>
+            <div class="card-meta" style="color:#9ca3af;">2 days &middot; $280</div>
+            <div class="card-badge" style="background:#022c22; color:#34d399;">Beginner</div>
+          </div>
+          <div class="course-card" style="background:#111827; border-color:#374151;">
+            <div class="card-title" style="color:#f3f4f6;">Night Dive Specialty</div>
+            <div class="card-meta" style="color:#9ca3af;">1 day &middot; $180</div>
+            <div class="card-badge" style="background:#451a03; color:#fbbf24;">Advanced</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MINIMAL ==================== -->
+<div class="theme-section">
+  <div class="theme-label"><span class="dot" style="background:#374151"></span> Minimal</div>
+  <div class="pair">
+    <!-- Light -->
+    <div>
+      <div class="mode-tag" style="background:#f3f4f6; color:#374151;">Light</div>
+      <div class="site-mock" style="background:#f9fafb; border-color:#e5e7eb;">
+        <div class="navbar" style="background:#ffffff; border-color:#e5e7eb;">
+          <div class="logo" style="color:#111827;">PureDive</div>
+          <div class="nav-links" style="color:#6b7280;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#111827;">Book Now</div>
+        </div>
+        <div class="hero" style="background:#ffffff;">
+          <h2 style="color:#111827;">Simply Dive</h2>
+          <p style="color:#6b7280;">Clean, focused dive training. No distractions, just diving.</p>
+          <div class="hero-btn" style="background:#111827;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#ffffff; border-color:#e5e7eb;">
+            <div class="card-title" style="color:#111827;">Open Water</div>
+            <div class="card-meta" style="color:#6b7280;">4 days &middot; $450</div>
+            <div class="card-badge" style="background:#f3f4f6; color:#374151;">Beginner</div>
+          </div>
+          <div class="course-card" style="background:#ffffff; border-color:#e5e7eb;">
+            <div class="card-title" style="color:#111827;">Rescue Diver</div>
+            <div class="card-meta" style="color:#6b7280;">5 days &middot; $520</div>
+            <div class="card-badge" style="background:#f3f4f6; color:#374151;">Advanced</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Dark -->
+    <div>
+      <div class="mode-tag" style="background:#374151; color:#d1d5db;">Dark</div>
+      <div class="site-mock" style="background:#030712; border-color:#374151;">
+        <div class="navbar" style="background:#111827; border-color:#374151;">
+          <div class="logo" style="color:#f3f4f6;">PureDive</div>
+          <div class="nav-links" style="color:#9ca3af;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#f3f4f6; color:#111827;">Book Now</div>
+        </div>
+        <div class="hero" style="background:#111827;">
+          <h2 style="color:#f3f4f6;">Simply Dive</h2>
+          <p style="color:#9ca3af;">Clean, focused dive training. No distractions, just diving.</p>
+          <div class="hero-btn" style="background:#f3f4f6; color:#111827;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#1f2937; border-color:#374151;">
+            <div class="card-title" style="color:#f3f4f6;">Open Water</div>
+            <div class="card-meta" style="color:#9ca3af;">4 days &middot; $450</div>
+            <div class="card-badge" style="background:#374151; color:#d1d5db;">Beginner</div>
+          </div>
+          <div class="course-card" style="background:#1f2937; border-color:#374151;">
+            <div class="card-title" style="color:#f3f4f6;">Rescue Diver</div>
+            <div class="card-meta" style="color:#9ca3af;">5 days &middot; $520</div>
+            <div class="card-badge" style="background:#374151; color:#d1d5db;">Advanced</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DARK (already dark) ==================== -->
+<div class="theme-section">
+  <div class="theme-label"><span class="dot" style="background:#22d3ee"></span> Dark (Existing)</div>
+  <div class="pair">
+    <!-- Light (this theme is already dark-first) -->
+    <div>
+      <div class="mode-tag" style="background:#164e63; color:#67e8f9;">Light (System Light)</div>
+      <div class="site-mock" style="background:#0f172a; border-color:#334155;">
+        <div class="navbar" style="background:#0f172a; border-color:#334155;">
+          <div class="logo" style="color:#22d3ee;">DeepDive</div>
+          <div class="nav-links" style="color:#94a3b8;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#22d3ee; color:#0f172a;">Book Now</div>
+        </div>
+        <div class="hero" style="background:linear-gradient(135deg, #0f172a, #1e293b);">
+          <h2 style="color:#e2e8f0;">Into the Abyss</h2>
+          <p style="color:#94a3b8;">Technical diving for those who crave depth and darkness.</p>
+          <div class="hero-btn" style="background:#22d3ee; color:#0f172a;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#1e293b; border-color:#334155;">
+            <div class="card-title" style="color:#e2e8f0;">Tec 40</div>
+            <div class="card-meta" style="color:#94a3b8;">6 days &middot; $890</div>
+            <div class="card-badge" style="background:#164e63; color:#22d3ee;">Technical</div>
+          </div>
+          <div class="course-card" style="background:#1e293b; border-color:#334155;">
+            <div class="card-title" style="color:#e2e8f0;">Cave Diver</div>
+            <div class="card-meta" style="color:#94a3b8;">8 days &middot; $1,200</div>
+            <div class="card-badge" style="background:#164e63; color:#22d3ee;">Expert</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Dark (deepened) -->
+    <div>
+      <div class="mode-tag" style="background:#0c1222; color:#67e8f9;">Dark (System Dark)</div>
+      <div class="site-mock" style="background:#030712; border-color:#1e293b;">
+        <div class="navbar" style="background:#030712; border-color:#1e293b;">
+          <div class="logo" style="color:#22d3ee;">DeepDive</div>
+          <div class="nav-links" style="color:#64748b;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#22d3ee; color:#030712;">Book Now</div>
+        </div>
+        <div class="hero" style="background:linear-gradient(135deg, #030712, #0f172a);">
+          <h2 style="color:#e2e8f0;">Into the Abyss</h2>
+          <p style="color:#64748b;">Technical diving for those who crave depth and darkness.</p>
+          <div class="hero-btn" style="background:#22d3ee; color:#030712;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#0f172a; border-color:#1e293b;">
+            <div class="card-title" style="color:#e2e8f0;">Tec 40</div>
+            <div class="card-meta" style="color:#64748b;">6 days &middot; $890</div>
+            <div class="card-badge" style="background:#0e2a38; color:#22d3ee;">Technical</div>
+          </div>
+          <div class="course-card" style="background:#0f172a; border-color:#1e293b;">
+            <div class="card-title" style="color:#e2e8f0;">Cave Diver</div>
+            <div class="card-meta" style="color:#64748b;">8 days &middot; $1,200</div>
+            <div class="card-badge" style="background:#0e2a38; color:#22d3ee;">Expert</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CLASSIC ==================== -->
+<div class="theme-section">
+  <div class="theme-label"><span class="dot" style="background:#4f46e5"></span> Classic</div>
+  <div class="pair">
+    <!-- Light -->
+    <div>
+      <div class="mode-tag" style="background:#e0e7ff; color:#3730a3;">Light</div>
+      <div class="site-mock" style="background:#ffffff; border-color:#e5e7eb;">
+        <div class="navbar" style="background:#ffffff; border-color:#e5e7eb;">
+          <div class="logo" style="color:#4f46e5;">CoralDive</div>
+          <div class="nav-links" style="color:#4b5563;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#4f46e5;">Book Now</div>
+        </div>
+        <div class="hero" style="background:linear-gradient(135deg, #eef2ff, #e0e7ff);">
+          <h2 style="color:#312e81;">Classic Dive Training</h2>
+          <p style="color:#4b5563;">Time-tested methods, modern safety standards, unforgettable experiences.</p>
+          <div class="hero-btn" style="background:#4f46e5;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#ffffff; border-color:#e5e7eb;">
+            <div class="card-title" style="color:#111827;">Divemaster</div>
+            <div class="card-meta" style="color:#6b7280;">14 days &middot; $1,800</div>
+            <div class="card-badge" style="background:#e0e7ff; color:#4f46e5;">Professional</div>
+          </div>
+          <div class="course-card" style="background:#ffffff; border-color:#e5e7eb;">
+            <div class="card-title" style="color:#111827;">Instructor Course</div>
+            <div class="card-meta" style="color:#6b7280;">21 days &middot; $3,200</div>
+            <div class="card-badge" style="background:#fce7f3; color:#db2777;">Elite</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Dark -->
+    <div>
+      <div class="mode-tag" style="background:#312e81; color:#a5b4fc;">Dark</div>
+      <div class="site-mock" style="background:#030712; border-color:#374151;">
+        <div class="navbar" style="background:#030712; border-color:#374151;">
+          <div class="logo" style="color:#818cf8;">CoralDive</div>
+          <div class="nav-links" style="color:#9ca3af;">
+            <span>Courses</span><span>Trips</span><span>About</span>
+          </div>
+          <div class="cta-btn" style="background:#4f46e5;">Book Now</div>
+        </div>
+        <div class="hero" style="background:linear-gradient(135deg, #0c0a2a, #1a1650);">
+          <h2 style="color:#e0e7ff;">Classic Dive Training</h2>
+          <p style="color:#9ca3af;">Time-tested methods, modern safety standards, unforgettable experiences.</p>
+          <div class="hero-btn" style="background:#4f46e5;">View Courses</div>
+        </div>
+        <div class="cards-row">
+          <div class="course-card" style="background:#111827; border-color:#374151;">
+            <div class="card-title" style="color:#f3f4f6;">Divemaster</div>
+            <div class="card-meta" style="color:#9ca3af;">14 days &middot; $1,800</div>
+            <div class="card-badge" style="background:#1e1b4b; color:#818cf8;">Professional</div>
+          </div>
+          <div class="course-card" style="background:#111827; border-color:#374151;">
+            <div class="card-title" style="color:#f3f4f6;">Instructor Course</div>
+            <div class="card-meta" style="color:#9ca3af;">21 days &middot; $3,200</div>
+            <div class="card-badge" style="background:#500724; color:#f472b6;">Elite</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="text-align:center; margin-top:16px; font-size:12px; color:#9ca3af;">
+  Each theme's dark variant activates automatically via <code>@media (prefers-color-scheme: dark)</code>. No toggle needed.
+</p>
+
+</body>
+</html>
