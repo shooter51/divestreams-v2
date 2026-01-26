@@ -175,15 +175,14 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
-    const addLink = page.getByRole("link", { name: /add|create|schedule.*trip|new/i });
-    const addButton = page.getByRole("button", { name: /add|create|schedule/i });
-    const addLinkVisible = await addLink.isVisible().catch(() => false);
-    const addBtnVisible = await addButton.isVisible().catch(() => false);
-    if (!addLinkVisible && !addBtnVisible) {
-      // Retry with longer wait
-      await page.waitForTimeout(3000);
-      await expect(addLink.or(addButton).first()).toBeVisible({ timeout: 5000 });
+    const scheduleLink = page.getByRole("link", { name: /schedule.*trip/i });
+    // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
+    if (!(await scheduleLink.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
     }
+    await expect(scheduleLink).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-388] A.6 Calendar shows current month", async ({ page }) => {

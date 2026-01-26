@@ -578,10 +578,17 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-85] 6.2 Boats page has Add Boat button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
     if (!await isAuthenticated(page)) return;
-    const addButton = await page.getByRole("link", { name: /add boat/i }).isVisible().catch(() => false);
-    expect(addButton).toBeTruthy();
+    const addLink = page.getByRole("link", { name: /add boat/i });
+    // Retry with reload if not found (Vite dep optimization can cause page reloads)
+    if (!(await addLink.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
+    await expect(addLink).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-86] 6.3 Navigate to new boat form", async ({ page }) => {
@@ -1500,10 +1507,17 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-164] 11.2 Trips page has Schedule Trip button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
     if (!await isAuthenticated(page)) return;
-    const scheduleButton = await page.getByRole("link", { name: /schedule trip/i }).isVisible().catch(() => false);
-    expect(scheduleButton).toBeTruthy();
+    const scheduleLink = page.getByRole("link", { name: /schedule trip/i });
+    // Retry with reload if not found (Vite dep optimization can cause page reloads)
+    if (!(await scheduleLink.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
+    await expect(scheduleLink).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-165] 11.3 Navigate to new trip form", async ({ page }) => {

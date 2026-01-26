@@ -152,8 +152,14 @@ test.describe.serial("Block A: Navigation & List View", () => {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
-    const addLink = page.getByRole("link", { name: /add|create|new.*customer/i });
-    await expect(addLink).toBeVisible({ timeout: 5000 });
+    const addLink = page.getByRole("link", { name: /add.*customer|create.*customer|new.*customer/i });
+    // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
+    if (!(await addLink.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
+    await expect(addLink).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-280] A.4 Customers list displays customer names", async ({ page }) => {

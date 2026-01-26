@@ -159,10 +159,20 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
+
+    // Retry with reload if form not loaded (Vite dep optimization can cause page reloads in CI)
+    const firstNameField = page.getByLabel(/first.*name/i);
+    if (!(await firstNameField.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
+    }
 
     // Fill customer form
-    await page.getByLabel(/first.*name/i).fill(testData.customer.firstName);
+    await expect(firstNameField).toBeVisible({ timeout: 8000 });
+    await firstNameField.fill(testData.customer.firstName);
     await page.getByLabel(/last.*name/i).fill(testData.customer.lastName);
     await page.getByLabel(/email/i).fill(testData.customer.email);
 

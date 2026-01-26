@@ -155,15 +155,14 @@ test.describe.serial("Block A: Navigation & List View", () => {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
-    const addLink = page.getByRole("link", { name: /add|create|new.*tour/i });
-    const addButton = page.getByRole("button", { name: /add|create|new/i });
-    const addLinkVisible = await addLink.isVisible().catch(() => false);
-    const addBtnVisible = await addButton.isVisible().catch(() => false);
-    if (!addLinkVisible && !addBtnVisible) {
-      // Retry with longer wait
-      await page.waitForTimeout(3000);
-      await expect(addLink.or(addButton).first()).toBeVisible({ timeout: 5000 });
+    const addLink = page.getByRole("link", { name: /add.*tour|create.*tour|new.*tour/i });
+    // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
+    if (!(await addLink.isVisible().catch(() => false))) {
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(2000);
     }
+    await expect(addLink).toBeVisible({ timeout: 8000 });
   });
 
   test("[KAN-326] A.4 Tours list displays tour names", async ({ page }) => {
