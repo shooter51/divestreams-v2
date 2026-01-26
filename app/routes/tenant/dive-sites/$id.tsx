@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import {
@@ -134,7 +134,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     await deleteDiveSite(organizationId, siteId);
-    return { deleted: true };
+    return redirect("/tenant/dive-sites");
   }
 
   return null;

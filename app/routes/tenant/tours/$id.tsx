@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import {
@@ -140,7 +140,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     await deleteTour(organizationId, tourId);
-    return { deleted: true };
+    return redirect("/tenant/tours");
   }
 
   return null;
