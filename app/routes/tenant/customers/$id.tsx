@@ -6,6 +6,7 @@ import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../.
 import { db } from "../../../../lib/db";
 import { customerCommunications } from "../../../../lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { sendEmail } from "../../../../lib/email/index";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
@@ -102,23 +103,53 @@ export async function action({ request, params }: ActionFunctionArgs) {
       return { error: "Subject and body are required" };
     }
 
-    // Log the communication (actual email sending would require SMTP setup)
+    // Actually send the email via SMTP [KAN-607 FIX]
     try {
+      const emailSent = await sendEmail({
+        to: customerEmail,
+        subject: subject,
+        html: `<p>${body.replace(/\n/g, '<br>')}</p>`,
+        text: body,
+      });
+
+      // Log the communication with actual send status
       await db.insert(customerCommunications).values({
         organizationId,
         customerId,
         type: "email",
         subject,
         body,
-        status: "sent", // In production, this would be "queued" until actually sent
-        sentAt: new Date(),
+        status: emailSent ? "sent" : "failed",
+        sentAt: emailSent ? new Date() : null,
         emailTo: customerEmail,
       });
 
-      return { success: true, message: "Email logged successfully. Note: Email delivery requires SMTP configuration." };
-    } catch {
-      // Table might not exist yet
-      return { success: true, message: "Email queued (communications table pending migration)" };
+      if (!emailSent) {
+        console.error("[Customer Email] Failed to send email to:", customerEmail);
+        return {
+          error: "Email could not be sent. Please check SMTP configuration or try again later.",
+        };
+      }
+
+      return { success: true, message: "Email sent successfully!" };
+    } catch (error) {
+      console.error("Error sending customer email:", error);
+      // Try to log the failed attempt
+      try {
+        await db.insert(customerCommunications).values({
+          organizationId,
+          customerId,
+          type: "email",
+          subject,
+          body,
+          status: "failed",
+          sentAt: null,
+          emailTo: customerEmail,
+        });
+      } catch {
+        // Table might not exist yet, ignore
+      }
+      return { error: "Failed to send email" };
     }
   }
 

@@ -35,6 +35,7 @@
     "tenant:create": "tsx scripts/tenant-create.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "platform:setup": "tsx scripts/setup-platform-admin.ts",
+    "email:verify": "tsx scripts/verify-email-config.ts",
     "worker": "tsx lib/jobs/worker.ts",
     "worker:zapier": "tsx lib/jobs/zapier-webhook-worker.ts"
   },
