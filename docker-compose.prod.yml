@@ -27,6 +27,28 @@ services:
     networks:
       - divestreams-network
 
+  worker:
+    image: ghcr.io/shooter51/divestreams-app:latest
+    container_name: divestreams-worker
+    restart: unless-stopped
+    command: npm run worker
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_prod}@postgres:5432/divestreams
+      - REDIS_URL=redis://redis:6379
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM:-noreply@divestreams.com}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - divestreams-network
+
   postgres:
     image: postgres:16-alpine
     container_name: divestreams-db
