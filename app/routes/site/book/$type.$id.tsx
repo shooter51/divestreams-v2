@@ -38,6 +38,8 @@ import {
   customers,
   equipment,
   organization,
+  trainingCourses,
+  trainingSessions,
 } from "../../../../lib/db/schema";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { nanoid } from "nanoid";
@@ -351,76 +353,146 @@ export async function loader({
       organizationId: org.id,
     };
   } else {
-    // Load course details
-    const [courseData] = await db
+    // Load course details - first try training_courses, then fall back to tours
+    let courseData: any = null;
+    let sessionsData: any[] = [];
+    let isTrainingCourse = false;
+
+    // Try training_courses table first
+    const [trainingCourseData] = await db
       .select({
-        id: tours.id,
-        name: tours.name,
-        description: tours.description,
-        type: tours.type,
-        price: tours.price,
-        currency: tours.currency,
-        duration: tours.duration,
-        maxParticipants: tours.maxParticipants,
-        includesEquipment: tours.includesEquipment,
-        includesMeals: tours.includesMeals,
-        includesTransport: tours.includesTransport,
+        id: trainingCourses.id,
+        name: trainingCourses.name,
+        description: trainingCourses.description,
+        type: sql<string>`'course'`,
+        price: trainingCourses.price,
+        currency: trainingCourses.currency,
+        duration: trainingCourses.durationDays,
+        maxParticipants: trainingCourses.maxStudents,
+        includesEquipment: trainingCourses.equipmentIncluded,
+        includesMeals: sql<boolean>`false`,
+        includesTransport: sql<boolean>`false`,
       })
-      .from(tours)
+      .from(trainingCourses)
       .where(
         and(
-          eq(tours.organizationId, org.id),
-          eq(tours.id, id),
-          eq(tours.type, "course"),
-          eq(tours.isActive, true)
+          eq(trainingCourses.organizationId, org.id),
+          eq(trainingCourses.id, id),
+          eq(trainingCourses.isActive, true),
+          eq(trainingCourses.isPublic, true)
         )
       )
       .limit(1);
+
+    if (trainingCourseData) {
+      courseData = trainingCourseData;
+      isTrainingCourse = true;
+
+      // Get scheduled sessions from training_sessions
+      const today = new Date().toISOString().split("T")[0];
+      sessionsData = await db
+        .select({
+          id: trainingSessions.id,
+          date: trainingSessions.startDate,
+          startTime: trainingSessions.startTime,
+          endTime: trainingSessions.endTime,
+          maxParticipants: trainingSessions.maxStudents,
+          price: trainingSessions.price,
+        })
+        .from(trainingSessions)
+        .where(
+          and(
+            eq(trainingSessions.organizationId, org.id),
+            eq(trainingSessions.courseId, id),
+            eq(trainingSessions.status, "scheduled"),
+            sql`${trainingSessions.startDate} >= ${today}`
+          )
+        )
+        .orderBy(trainingSessions.startDate, trainingSessions.startTime);
+    } else {
+      // Fall back to tours table
+      const [toursData] = await db
+        .select({
+          id: tours.id,
+          name: tours.name,
+          description: tours.description,
+          type: tours.type,
+          price: tours.price,
+          currency: tours.currency,
+          duration: tours.duration,
+          maxParticipants: tours.maxParticipants,
+          includesEquipment: tours.includesEquipment,
+          includesMeals: tours.includesMeals,
+          includesTransport: tours.includesTransport,
+        })
+        .from(tours)
+        .where(
+          and(
+            eq(tours.organizationId, org.id),
+            eq(tours.id, id),
+            eq(tours.type, "course"),
+            eq(tours.isActive, true)
+          )
+        )
+        .limit(1);
+
+      if (toursData) {
+        courseData = toursData;
+
+        // Get scheduled sessions from trips
+        const today = new Date().toISOString().split("T")[0];
+        sessionsData = await db
+          .select({
+            id: trips.id,
+            date: trips.date,
+            startTime: trips.startTime,
+            endTime: trips.endTime,
+            maxParticipants: trips.maxParticipants,
+            price: trips.price,
+          })
+          .from(trips)
+          .where(
+            and(
+              eq(trips.organizationId, org.id),
+              eq(trips.tourId, id),
+              eq(trips.isPublic, true),
+              eq(trips.status, "scheduled"),
+              sql`${trips.date} >= ${today}`
+            )
+          )
+          .orderBy(trips.date, trips.startTime);
+      }
+    }
 
     if (!courseData) {
       throw new Response("Course not found or not available", { status: 404 });
     }
 
-    // Get scheduled sessions
-    const today = new Date().toISOString().split("T")[0];
-    const sessionsData = await db
-      .select({
-        id: trips.id,
-        date: trips.date,
-        startTime: trips.startTime,
-        endTime: trips.endTime,
-        maxParticipants: trips.maxParticipants,
-        price: trips.price,
-      })
-      .from(trips)
-      .where(
-        and(
-          eq(trips.organizationId, org.id),
-          eq(trips.tourId, id),
-          eq(trips.isPublic, true),
-          eq(trips.status, "scheduled"),
-          sql`${trips.date} >= ${today}`
-        )
-      )
-      .orderBy(trips.date, trips.startTime);
-
     // Get booking counts for each session
     const sessionsWithAvailability = await Promise.all(
       sessionsData.map(async (session) => {
-        const [bookingCount] = await db
-          .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
-          .from(bookings)
-          .where(
-            and(
-              eq(bookings.tripId, session.id),
-              sql`${bookings.status} NOT IN ('canceled', 'no_show')`
-            )
-          );
+        // For training courses, use training_enrollments; for tours, use bookings
+        let bookedPart = 0;
+        if (isTrainingCourse) {
+          // TODO: Query training_enrollments when that table is created
+          // For now, assume 0 bookings for training courses
+          bookedPart = 0;
+        } else {
+          const [bookingCount] = await db
+            .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
+            .from(bookings)
+            .where(
+              and(
+                eq(bookings.tripId, session.id),
+                sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+              )
+            );
+          bookedPart = Number(bookingCount?.total || 0);
+        }
 
         const maxPart = Number(
           session.maxParticipants || courseData.maxParticipants
         );
-        const bookedPart = Number(bookingCount?.total || 0);
 
         return {
           id: session.id,
