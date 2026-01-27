@@ -26,6 +26,7 @@ COPY --from=builder /app/lib ./lib
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/scripts/run-migrations.mjs ./scripts/run-migrations.mjs
 COPY --from=builder /app/scripts/setup-admin.mjs ./scripts/setup-admin.mjs
+COPY --from=builder /app/scripts/seed-agency-templates.ts ./scripts/seed-agency-templates.ts
 COPY --from=builder /app/scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 RUN chmod +x ./scripts/docker-entrypoint.sh
 
