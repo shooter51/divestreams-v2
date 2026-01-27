@@ -417,6 +417,79 @@ describe("tenant/settings/team route", () => {
         expect(result).toEqual({ error: "Team invitations require a premium subscription" });
         expect(db.insert).not.toHaveBeenCalled();
       });
+
+      it("returns error when inviting email that is already a team member (KAN-599)", async () => {
+        // Mock select query to return existing member with matching email
+        const mockMemberCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          innerJoin: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([{ email: "owner@example.com" }]), // Existing member found
+        };
+
+        (db.select as Mock).mockImplementation(() => mockMemberCheckQuery);
+
+        const formData = new FormData();
+        formData.append("intent", "invite");
+        formData.append("email", "owner@example.com"); // Same as owner
+        formData.append("role", "admin");
+
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "This email is already a team member" });
+        expect(db.insert).not.toHaveBeenCalled();
+      });
+
+      it("returns error when inviting email that already has pending invitation (KAN-599)", async () => {
+        // Mock first select query to return no existing member
+        const mockMemberCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          innerJoin: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]), // No existing member
+        };
+
+        // Mock second select query to return pending invitation
+        const mockInviteCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([{
+            id: "invite-1",
+            email: "pending@example.com",
+            status: "pending"
+          }]), // Pending invitation found
+        };
+
+        let selectCallCount = 0;
+        (db.select as Mock).mockImplementation(() => {
+          selectCallCount++;
+          if (selectCallCount === 1) return mockMemberCheckQuery;
+          return mockInviteCheckQuery;
+        });
+
+        const formData = new FormData();
+        formData.append("intent", "invite");
+        formData.append("email", "pending@example.com");
+        formData.append("role", "member");
+
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "This email already has a pending invitation" });
+        expect(db.insert).not.toHaveBeenCalled();
+      });
     });
 
     describe("update-role intent", () => {

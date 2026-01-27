@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { member, user, invitation } from "../../../../lib/db/schema";
@@ -271,6 +271,13 @@ export default function TeamPage() {
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
 
+  // Close modal only on successful invitation
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      setShowInviteModal(false);
+    }
+  }, [fetcher.data]);
+
   const activeMembers = team.filter((m) => m.status === "active").length;
   const atLimit = planLimit !== -1 && activeMembers >= planLimit;
   const isNearLimit = planLimit !== -1 && limitRemaining <= Math.ceil(planLimit * 0.2);
@@ -515,9 +522,14 @@ export default function TeamPage() {
             <h2 className="text-lg font-semibold mb-4">Invite Team Member</h2>
             <fetcher.Form
               method="post"
-              onSubmit={() => setShowInviteModal(false)}
             >
               <input type="hidden" name="intent" value="invite" />
+
+              {fetcher.data?.error && (
+                <div className="bg-danger-bg text-danger border border-danger-border p-3 rounded-lg mb-4">
+                  {fetcher.data.error}
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div>
