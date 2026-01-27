@@ -306,8 +306,11 @@ export default function AccountProfile() {
               id="email"
               value={customer.email}
               disabled
-              className="w-full px-4 py-2.5 rounded-lg border bg-gray-50 opacity-60 cursor-not-allowed"
-              style={{ borderColor: "var(--color-border)" }}
+              className="w-full px-4 py-2.5 rounded-lg border opacity-60 cursor-not-allowed"
+              style={{
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
+              }}
             />
             <p className="mt-1.5 text-xs opacity-60">
               Contact support to change your email address

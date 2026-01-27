@@ -360,8 +360,8 @@ function StatusBadge({ status }: { status: string }) {
     confirmed: { bg: "#d1fae5", text: "#059669", label: "Confirmed" },
     checked_in: { bg: "#dbeafe", text: "#2563eb", label: "Checked In" },
     completed: { bg: "#e5e7eb", text: "#6b7280", label: "Completed" },
-    canceled: { bg: "#fee2e2", text: "#dc2626", label: "Cancelled" },
-    no_show: { bg: "#fee2e2", text: "#dc2626", label: "No Show" },
+    canceled: { bg: "var(--danger-bg)", text: "var(--danger-text)", label: "Cancelled" },
+    no_show: { bg: "var(--danger-bg)", text: "var(--danger-text)", label: "No Show" },
   };
 
   const style = statusStyles[status] || statusStyles.pending;
