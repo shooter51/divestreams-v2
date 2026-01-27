@@ -11,6 +11,7 @@ import { db } from "../../../lib/db/index";
 import { eq } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { useNotification } from "../../../lib/use-notification";
+import { useToast } from "../../../lib/toast-context";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -429,6 +430,9 @@ export default function ProductsPage() {
   // Show notifications from URL params
   useNotification();
 
+  // Get toast context for showing success/error messages
+  const { showToast } = useToast();
+
   const isSubmitting = fetcher.state === "submitting";
 
   const fetcherData = fetcher.data as {
@@ -438,13 +442,16 @@ export default function ProductsPage() {
     importResult?: { successCount: number; errorCount: number; errors: string[] };
   } | undefined;
 
-  // Close modal on successful create/update/delete
+  // Close modal and show toast on successful create/update/delete
   useEffect(() => {
-    if (fetcherData?.success) {
+    if (fetcherData?.success && fetcherData?.message) {
       setShowForm(false);
       setEditingProduct(null);
+      showToast(fetcherData.message, "success");
+    } else if (fetcherData?.error) {
+      showToast(fetcherData.error, "error");
     }
-  }, [fetcherData?.success]);
+  }, [fetcherData, showToast]);
 
   // Toggle product selection
   const toggleProductSelection = (productId: string) => {

@@ -12,6 +12,7 @@ import { db } from "../../../lib/db";
 import { discountCodes } from "../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { redirectWithNotification, useNotification } from "../../../lib/use-notification";
+import { useToast } from "../../../lib/toast-context";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
 
@@ -238,11 +239,21 @@ export default function DiscountsPage() {
 
   const { discountCodes } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingDiscount, setEditingDiscount] = useState<DiscountCode | null>(null);
 
   const isSubmitting = fetcher.state === "submitting";
-  const fetcherData = fetcher.data as { error?: string } | undefined;
+  const fetcherData = fetcher.data as { error?: string; success?: boolean; message?: string } | undefined;
+
+  // Show toast notifications for fetcher actions (toggle-active, etc.)
+  useEffect(() => {
+    if (fetcherData?.success && fetcherData?.message) {
+      showToast(fetcherData.message, "success");
+    } else if (fetcherData?.error) {
+      showToast(fetcherData.error, "error");
+    }
+  }, [fetcherData, showToast]);
 
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {

@@ -19,13 +19,19 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
 
   useEffect(() => {
     const duration = toast.duration ?? 5000;
+    let dismissTimer: NodeJS.Timeout;
+
     const timer = setTimeout(() => {
       setIsExiting(true);
-      setTimeout(() => onDismiss(toast.id), 300);
+      dismissTimer = setTimeout(() => onDismiss(toast.id), 300);
     }, duration);
 
-    return () => clearTimeout(timer);
-  }, [toast, onDismiss]);
+    // Clean up both timers to prevent memory leak
+    return () => {
+      clearTimeout(timer);
+      if (dismissTimer) clearTimeout(dismissTimer);
+    };
+  }, [toast.id, toast.duration, onDismiss]); // Only depend on primitive values
 
   const handleDismiss = () => {
     setIsExiting(true);
@@ -46,16 +52,29 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
     info: "ℹ",
   };
 
+  // Check for reduced motion preference (WCAG 2.1 2.3.3)
+  const prefersReducedMotion = typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+
+  // Use appropriate ARIA role (WCAG 2.1 4.1.3)
+  // Errors and warnings are assertive (role="alert")
+  // Success and info are polite (role="status")
+  const isAssertive = toast.type === 'error' || toast.type === 'warning';
+
   return (
     <div
       className={`
         ${typeStyles[toast.type]}
         border rounded-lg shadow-lg p-4 mb-3 flex items-center justify-between gap-3
         min-w-[320px] max-w-[500px]
-        transition-all duration-300 ease-in-out
-        ${isExiting ? "opacity-0 translate-x-full" : "opacity-100 translate-x-0"}
+        ${prefersReducedMotion ? '' : 'transition-all duration-300 ease-in-out'}
+        ${isExiting ? 'opacity-0' : 'opacity-100'}
+        ${isExiting && !prefersReducedMotion ? 'translate-x-full' : 'translate-x-0'}
       `}
-      role="alert"
+      role={isAssertive ? "alert" : "status"}
+      aria-live={isAssertive ? "assertive" : "polite"}
+      aria-atomic="true"
     >
       <div className="flex items-center gap-3">
         <span className="text-xl font-bold flex-shrink-0">{icons[toast.type]}</span>
@@ -63,7 +82,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       </div>
       <button
         onClick={handleDismiss}
-        className="flex-shrink-0 text-lg font-bold hover:opacity-70 transition-opacity"
+        className="flex-shrink-0 text-lg font-bold hover:opacity-70 transition-opacity min-h-[44px] min-w-[44px] flex items-center justify-center"
         aria-label="Dismiss notification"
       >
         ×
