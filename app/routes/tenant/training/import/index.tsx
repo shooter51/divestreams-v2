@@ -345,14 +345,14 @@ function Step({ number, title, active, completed }: { number: number; title: str
   );
 }
 
-function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: string; name: string; description?: string }>; isSubmitting: boolean }) {
+function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: string | null; name: string; description?: string }>; isSubmitting: boolean }) {
   const [selectedAgency, setSelectedAgency] = React.useState<string>("");
 
   const handleAgencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedAgency(e.target.value);
   };
 
-  const selectedAgencyData = agencies.find(a => a.code === selectedAgency);
+  const selectedAgencyData = agencies.find(a => a.code === selectedAgency && a.code !== null);
 
   return (
     <div>
@@ -380,8 +380,8 @@ function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: 
               disabled={isSubmitting}
             >
               <option value="">Select an agency...</option>
-              {agencies.map((agency) => (
-                <option key={agency.code} value={agency.code}>
+              {agencies.filter(a => a.code !== null).map((agency) => (
+                <option key={agency.code!} value={agency.code!}>
                   {agency.name}
                 </option>
               ))}

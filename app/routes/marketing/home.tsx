@@ -58,9 +58,9 @@ export default function HomePage() {
         <div className="flex gap-4 justify-center">
           <a
             href="/signup"
-            className="bg-brand text-white px-8 py-3 rounded-lg text-lg hover:bg-brand-hover"
+            className="bg-brand text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-brand-hover shadow-lg hover:shadow-xl transition-all"
           >
-            Start 14-Day Free Trial
+            Start Free Trial
           </a>
           <a
             href="/features"
@@ -69,7 +69,10 @@ export default function HomePage() {
             See Features
           </a>
         </div>
-        <p className="text-sm text-foreground-muted mt-4">No credit card required</p>
+        <div className="mt-4 flex flex-col items-center gap-1">
+          <p className="text-sm font-medium text-success">14 days free • No credit card required</p>
+          <p className="text-xs text-foreground-muted">Cancel anytime</p>
+        </div>
       </section>
 
       {/* Features Grid */}
@@ -118,12 +121,15 @@ export default function HomePage() {
           <p className="text-xl mb-8 text-blue-100">
             Join dive shops worldwide who trust DiveStreams to run their business.
           </p>
-          <a
-            href="/signup"
-            className="bg-surface-raised text-brand px-8 py-3 rounded-lg text-lg hover:bg-brand-muted inline-block"
-          >
-            Start Your Free Trial
-          </a>
+          <div className="flex flex-col items-center gap-3">
+            <a
+              href="/signup"
+              className="bg-surface-raised text-brand px-8 py-3 rounded-lg text-lg font-semibold hover:bg-brand-muted inline-block shadow-lg hover:shadow-xl transition-all"
+            >
+              Start Your 14-Day Free Trial
+            </a>
+            <p className="text-sm text-blue-100">No credit card required • Cancel anytime</p>
+          </div>
         </div>
       </section>
 
