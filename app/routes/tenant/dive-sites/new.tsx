@@ -71,7 +71,7 @@ export default function NewDiveSitePage() {
                 name="name"
                 required
                 defaultValue={actionData?.values?.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.name && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
@@ -89,7 +89,7 @@ export default function NewDiveSitePage() {
                 required
                 placeholder="e.g., South Bay, Outer Reef"
                 defaultValue={actionData?.values?.location}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.location && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.location}</p>
@@ -105,7 +105,7 @@ export default function NewDiveSitePage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function NewDiveSitePage() {
                 min="1"
                 max="100"
                 defaultValue={actionData?.values?.maxDepth}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.maxDepth && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.maxDepth}</p>
@@ -143,7 +143,7 @@ export default function NewDiveSitePage() {
                 name="difficulty"
                 required
                 defaultValue={actionData?.values?.difficulty || "intermediate"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
@@ -162,7 +162,7 @@ export default function NewDiveSitePage() {
                 name="conditions"
                 placeholder="e.g., Strong currents, calm waters, tidal dependent"
                 defaultValue={actionData?.values?.conditions}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -185,7 +185,7 @@ export default function NewDiveSitePage() {
                 max="90"
                 placeholder="e.g., 7.165"
                 defaultValue={actionData?.values?.latitude}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -201,7 +201,7 @@ export default function NewDiveSitePage() {
                 max="180"
                 placeholder="e.g., 134.271"
                 defaultValue={actionData?.values?.longitude}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -223,7 +223,7 @@ export default function NewDiveSitePage() {
               name="highlights"
               placeholder="e.g., Sharks, Corals, Wall dive, Wreck (comma-separated)"
               defaultValue={actionData?.values?.highlights}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
             <p className="text-xs text-foreground-muted mt-1">
               Separate multiple highlights with commas

@@ -97,7 +97,7 @@ export default function NewEnrollmentPage() {
           <select
             id="customerId"
             name="customerId"
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+            className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             required
           >
             <option value="">Select a student...</option>
@@ -120,7 +120,7 @@ export default function NewEnrollmentPage() {
             id="paymentStatus"
             name="paymentStatus"
             defaultValue="pending"
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+            className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           >
             <option value="pending">Pending</option>
             <option value="partial">Partial</option>
@@ -139,7 +139,7 @@ export default function NewEnrollmentPage() {
             step="0.01"
             min="0"
             defaultValue="0"
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+            className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           />
         </div>
 

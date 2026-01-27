@@ -510,7 +510,7 @@ export default function DiscountsPage() {
                       name="description"
                       defaultValue={editingDiscount?.description || ""}
                       placeholder="e.g., Summer 2024 promotion"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -520,7 +520,7 @@ export default function DiscountsPage() {
                       name="discountType"
                       defaultValue={editingDiscount?.discountType || "percentage"}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     >
                       <option value="percentage">Percentage (%)</option>
                       <option value="fixed">Fixed Amount ($)</option>
@@ -537,7 +537,7 @@ export default function DiscountsPage() {
                       defaultValue={editingDiscount?.discountValue || ""}
                       required
                       placeholder="e.g., 10"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -550,7 +550,7 @@ export default function DiscountsPage() {
                       min="0"
                       defaultValue={editingDiscount?.minBookingAmount || ""}
                       placeholder="No minimum"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -562,7 +562,7 @@ export default function DiscountsPage() {
                       min="1"
                       defaultValue={editingDiscount?.maxUses || ""}
                       placeholder="Unlimited"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -572,7 +572,7 @@ export default function DiscountsPage() {
                       type="datetime-local"
                       name="validFrom"
                       defaultValue={formatDateForInput(editingDiscount?.validFrom || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -582,7 +582,7 @@ export default function DiscountsPage() {
                       type="datetime-local"
                       name="validTo"
                       defaultValue={formatDateForInput(editingDiscount?.validTo || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -592,7 +592,7 @@ export default function DiscountsPage() {
                       name="applicableTo"
                       defaultValue={editingDiscount?.applicableTo || "all"}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     >
                       <option value="all">All Bookings</option>
                       <option value="tours">Tours Only</option>

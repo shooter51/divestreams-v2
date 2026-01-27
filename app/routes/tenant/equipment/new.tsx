@@ -72,7 +72,7 @@ export default function NewEquipmentPage() {
                   name="category"
                   required
                   defaultValue={actionData?.values?.category || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">Select category...</option>
                   <option value="bcd">BCD</option>
@@ -100,7 +100,7 @@ export default function NewEquipmentPage() {
                   required
                   placeholder="e.g., Aqualung Pro HD"
                   defaultValue={actionData?.values?.name}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 {actionData?.errors?.name && (
                   <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
@@ -119,7 +119,7 @@ export default function NewEquipmentPage() {
                   name="brand"
                   placeholder="e.g., Aqualung"
                   defaultValue={actionData?.values?.brand}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -133,7 +133,7 @@ export default function NewEquipmentPage() {
                   name="model"
                   placeholder="e.g., Pro HD"
                   defaultValue={actionData?.values?.model}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function NewEquipmentPage() {
                   id="serialNumber"
                   name="serialNumber"
                   defaultValue={actionData?.values?.serialNumber}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -189,7 +189,7 @@ export default function NewEquipmentPage() {
                   id="size"
                   name="size"
                   defaultValue={actionData?.values?.size || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">N/A</option>
                   <option value="XS">XS</option>
@@ -216,7 +216,7 @@ export default function NewEquipmentPage() {
                 id="status"
                 name="status"
                 defaultValue={actionData?.values?.status || "available"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="available">Available</option>
                 <option value="rented">Rented</option>
@@ -233,7 +233,7 @@ export default function NewEquipmentPage() {
                 id="condition"
                 name="condition"
                 defaultValue={actionData?.values?.condition || "good"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="excellent">Excellent</option>
                 <option value="good">Good</option>
@@ -292,7 +292,7 @@ export default function NewEquipmentPage() {
                 id="lastServiceDate"
                 name="lastServiceDate"
                 defaultValue={actionData?.values?.lastServiceDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -305,7 +305,7 @@ export default function NewEquipmentPage() {
                 id="nextServiceDate"
                 name="nextServiceDate"
                 defaultValue={actionData?.values?.nextServiceDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -319,7 +319,7 @@ export default function NewEquipmentPage() {
               name="serviceNotes"
               rows={2}
               defaultValue={actionData?.values?.serviceNotes}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
         </div>
@@ -337,7 +337,7 @@ export default function NewEquipmentPage() {
                 id="purchaseDate"
                 name="purchaseDate"
                 defaultValue={actionData?.values?.purchaseDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -371,7 +371,7 @@ export default function NewEquipmentPage() {
             name="notes"
             rows={3}
             defaultValue={actionData?.values?.notes}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+            className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           />
           <div className="mt-4">
             <label className="flex items-center gap-2">

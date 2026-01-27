@@ -275,7 +275,7 @@ export default function PublicSiteTeamPage() {
                     required
                     defaultValue={editingMember?.name}
                     placeholder="John Smith"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
 
@@ -291,7 +291,7 @@ export default function PublicSiteTeamPage() {
                     required
                     defaultValue={editingMember?.role}
                     placeholder="Owner & Lead Instructor"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
 
@@ -306,7 +306,7 @@ export default function PublicSiteTeamPage() {
                     rows={3}
                     defaultValue={editingMember?.bio || ""}
                     placeholder="Brief description about this team member..."
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
 
@@ -321,7 +321,7 @@ export default function PublicSiteTeamPage() {
                     name="imageUrl"
                     defaultValue={editingMember?.imageUrl || ""}
                     placeholder="https://example.com/photo.jpg"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
 
@@ -337,7 +337,7 @@ export default function PublicSiteTeamPage() {
                       name="email"
                       defaultValue={editingMember?.email || ""}
                       placeholder="john@example.com"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -351,7 +351,7 @@ export default function PublicSiteTeamPage() {
                       name="phone"
                       defaultValue={editingMember?.phone || ""}
                       placeholder="+1 555-1234"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
                 </div>
@@ -369,7 +369,7 @@ export default function PublicSiteTeamPage() {
                     max="99"
                     defaultValue={editingMember?.yearsExperience || ""}
                     placeholder="10"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
 
@@ -384,7 +384,7 @@ export default function PublicSiteTeamPage() {
                     name="certifications"
                     defaultValue={editingMember?.certifications?.join(", ") || ""}
                     placeholder="PADI Course Director, TDI Advanced Trimix"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   <p className="text-xs text-foreground-muted mt-1">
                     Separate multiple certifications with commas
@@ -402,7 +402,7 @@ export default function PublicSiteTeamPage() {
                     name="specialties"
                     defaultValue={editingMember?.specialties?.join(", ") || ""}
                     placeholder="Technical Diving, Underwater Photography"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   <p className="text-xs text-foreground-muted mt-1">
                     Separate multiple specialties with commas

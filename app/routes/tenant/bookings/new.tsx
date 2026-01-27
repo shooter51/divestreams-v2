@@ -169,7 +169,7 @@ export default function NewBookingPage() {
                 id="customerId"
                 name="customerId"
                 defaultValue={actionData?.values?.customerId || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               >
                 <option value="">Choose a customer...</option>
@@ -222,7 +222,7 @@ export default function NewBookingPage() {
                 id="tripId"
                 name="tripId"
                 defaultValue={actionData?.values?.tripId || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               >
                 <option value="">Choose a trip...</option>
@@ -353,7 +353,7 @@ export default function NewBookingPage() {
             id="source"
             name="source"
             defaultValue={actionData?.values?.source || "direct"}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+            className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           >
             <option value="direct">Direct (Walk-in/Phone)</option>
             <option value="website">Website</option>

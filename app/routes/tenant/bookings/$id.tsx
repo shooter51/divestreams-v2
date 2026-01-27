@@ -574,7 +574,7 @@ export default function BookingDetailPage() {
                 <select
                   name="paymentMethod"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">Select method...</option>
                   <option value="cash">Cash</option>
@@ -590,7 +590,7 @@ export default function BookingDetailPage() {
                 <input
                   type="text"
                   name="notes"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="Optional payment notes..."
                 />
               </div>

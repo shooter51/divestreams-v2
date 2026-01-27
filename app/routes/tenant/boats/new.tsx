@@ -73,7 +73,7 @@ export default function NewBoatPage() {
                 name="name"
                 required
                 defaultValue={actionData?.values?.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.name && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
@@ -89,7 +89,7 @@ export default function NewBoatPage() {
                   id="type"
                   name="type"
                   defaultValue={actionData?.values?.type || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">Select type...</option>
                   <option value="Dive Boat">Dive Boat</option>
@@ -113,7 +113,7 @@ export default function NewBoatPage() {
                   min="1"
                   max="100"
                   defaultValue={actionData?.values?.capacity}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 {actionData?.errors?.capacity && (
                   <p className="text-danger text-sm mt-1">{actionData.errors.capacity}</p>
@@ -130,7 +130,7 @@ export default function NewBoatPage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function NewBoatPage() {
               name="registrationNumber"
               placeholder="e.g., PW-1234-DV"
               defaultValue={actionData?.values?.registrationNumber}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function NewBoatPage() {
               name="amenities"
               placeholder="e.g., Dive platform, Sun deck, Toilet, Shower (comma-separated)"
               defaultValue={actionData?.values?.amenities}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
             <p className="text-xs text-foreground-muted mt-1">
               Separate multiple amenities with commas

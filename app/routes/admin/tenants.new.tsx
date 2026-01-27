@@ -280,7 +280,7 @@ export default function CreateOrganizationPage() {
               name="name"
               defaultValue={actionData?.values?.name || ""}
               placeholder="My Dive Shop"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               required
             />
             {actionData?.errors?.name && (
@@ -296,7 +296,7 @@ export default function CreateOrganizationPage() {
               id="plan"
               name="plan"
               defaultValue={actionData?.values?.plan || plans[0]?.name || "free"}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
               {plans.map((plan) => (
                 <option key={plan.id} value={plan.name}>
@@ -351,7 +351,7 @@ export default function CreateOrganizationPage() {
                 name="ownerEmail"
                 defaultValue={actionData?.values?.ownerEmail || ""}
                 placeholder="owner@example.com"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.ownerEmail && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.ownerEmail}</p>
@@ -368,7 +368,7 @@ export default function CreateOrganizationPage() {
                 name="ownerName"
                 defaultValue={actionData?.values?.ownerName || ""}
                 placeholder="John Smith"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -382,7 +382,7 @@ export default function CreateOrganizationPage() {
                 name="ownerPassword"
                 placeholder="Minimum 8 characters"
                 minLength={8}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.ownerPassword && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.ownerPassword}</p>

@@ -179,7 +179,7 @@ export default function PageEditPage() {
                 name="metaTitle"
                 defaultValue={page.metaTitle || ""}
                 placeholder="Page title for search engines"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
                 Recommended: 50-60 characters
@@ -247,7 +247,7 @@ export default function PageEditPage() {
             id="changeDescription"
             name="changeDescription"
             placeholder="Describe what you changed..."
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+            className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           />
         </div>
 

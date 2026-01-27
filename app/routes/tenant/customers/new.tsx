@@ -143,7 +143,7 @@ export default function NewCustomerPage() {
                 id="firstName"
                 name="firstName"
                 defaultValue={actionData?.values?.firstName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.firstName && (
@@ -159,7 +159,7 @@ export default function NewCustomerPage() {
                 id="lastName"
                 name="lastName"
                 defaultValue={actionData?.values?.lastName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.lastName && (
@@ -175,7 +175,7 @@ export default function NewCustomerPage() {
                 id="email"
                 name="email"
                 defaultValue={actionData?.values?.email}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.email && (
@@ -191,7 +191,7 @@ export default function NewCustomerPage() {
                 id="phone"
                 name="phone"
                 defaultValue={actionData?.values?.phone}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -203,7 +203,7 @@ export default function NewCustomerPage() {
                 id="dateOfBirth"
                 name="dateOfBirth"
                 defaultValue={actionData?.values?.dateOfBirth}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -221,7 +221,7 @@ export default function NewCustomerPage() {
                 id="certAgency"
                 name="certAgency"
                 defaultValue={actionData?.values?.certAgency}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="">Select...</option>
                 <option value="PADI">PADI</option>
@@ -240,7 +240,7 @@ export default function NewCustomerPage() {
                 id="certLevel"
                 name="certLevel"
                 defaultValue={actionData?.values?.certLevel}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="">Select...</option>
                 <option value="Open Water">Open Water</option>
@@ -259,7 +259,7 @@ export default function NewCustomerPage() {
                 id="certNumber"
                 name="certNumber"
                 defaultValue={actionData?.values?.certNumber}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -278,7 +278,7 @@ export default function NewCustomerPage() {
                 id="emergencyContactName"
                 name="emergencyContactName"
                 defaultValue={actionData?.values?.emergencyContactName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -290,7 +290,7 @@ export default function NewCustomerPage() {
                 id="emergencyContactPhone"
                 name="emergencyContactPhone"
                 defaultValue={actionData?.values?.emergencyContactPhone}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -303,7 +303,7 @@ export default function NewCustomerPage() {
                 name="emergencyContactRelation"
                 placeholder="e.g., Spouse, Parent"
                 defaultValue={actionData?.values?.emergencyContactRelation}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -323,7 +323,7 @@ export default function NewCustomerPage() {
                 rows={2}
                 placeholder="Any conditions we should know about..."
                 defaultValue={actionData?.values?.medicalConditions}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -335,7 +335,7 @@ export default function NewCustomerPage() {
                 name="medications"
                 rows={2}
                 defaultValue={actionData?.values?.medications}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -354,7 +354,7 @@ export default function NewCustomerPage() {
                 id="address"
                 name="address"
                 defaultValue={actionData?.values?.address}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div className="grid grid-cols-4 gap-4">
@@ -367,7 +367,7 @@ export default function NewCustomerPage() {
                   id="city"
                   name="city"
                   defaultValue={actionData?.values?.city}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
               <div>
@@ -379,7 +379,7 @@ export default function NewCustomerPage() {
                   id="state"
                   name="state"
                   defaultValue={actionData?.values?.state}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
               <div>
@@ -391,7 +391,7 @@ export default function NewCustomerPage() {
                   id="postalCode"
                   name="postalCode"
                   defaultValue={actionData?.values?.postalCode}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -404,7 +404,7 @@ export default function NewCustomerPage() {
                 id="country"
                 name="country"
                 defaultValue={actionData?.values?.country}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -423,7 +423,7 @@ export default function NewCustomerPage() {
                 name="notes"
                 rows={3}
                 defaultValue={actionData?.values?.notes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div className="flex items-center gap-2">
