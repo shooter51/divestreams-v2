@@ -297,7 +297,7 @@ export default function SiteEquipmentPage() {
   const hasFilters = category || search || sortBy !== "name";
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--color-card-bg)" }}>
       {/* Hero Section */}
       <section
         className="py-16 px-4"
@@ -310,7 +310,7 @@ export default function SiteEquipmentPage() {
           >
             Rental Equipment
           </h1>
-          <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
             Quality dive equipment available for rent. Choose from our wide selection
             of BCDs, regulators, wetsuits, and more.
           </p>
@@ -321,8 +321,8 @@ export default function SiteEquipmentPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar - Categories */}
           <aside className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-20">
-              <h2 className="text-lg font-semibold mb-4">Categories</h2>
+            <div className="rounded-xl shadow-sm p-6 sticky top-20" style={{ backgroundColor: "var(--color-card-bg)" }}>
+              <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-color)" }}>Categories</h2>
               <ul className="space-y-2">
                 <li>
                   <button
@@ -378,7 +378,7 @@ export default function SiteEquipmentPage() {
           {/* Main Content */}
           <main className="flex-1 min-w-0">
             {/* Search and Filters */}
-            <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <div className="rounded-xl shadow-sm p-4 mb-6" style={{ backgroundColor: "var(--color-card-bg)" }}>
               <div className="flex flex-col sm:flex-row gap-4">
                 {/* Search */}
                 <form onSubmit={handleSearchSubmit} className="flex-1">
@@ -390,7 +390,9 @@ export default function SiteEquipmentPage() {
                       placeholder="Search equipment..."
                       className="w-full px-4 py-2 pl-10 border rounded-lg focus:ring-2 focus:outline-none"
                       style={{
-                        borderColor: "var(--accent-color)",
+                        backgroundColor: "var(--color-card-bg)",
+                        borderColor: "var(--color-border)",
+                        color: "var(--text-color)",
                         // @ts-expect-error CSS custom property
                         "--tw-ring-color": "var(--primary-color)",
                       }}
@@ -418,7 +420,9 @@ export default function SiteEquipmentPage() {
                     onChange={(e) => handleSortChange(e.target.value)}
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none"
                     style={{
-                      borderColor: "var(--accent-color)",
+                      backgroundColor: "var(--color-card-bg)",
+                      borderColor: "var(--color-border)",
+                      color: "var(--text-color)",
                       // @ts-expect-error CSS custom property
                       "--tw-ring-color": "var(--primary-color)",
                     }}
@@ -433,8 +437,8 @@ export default function SiteEquipmentPage() {
                 {hasFilters && (
                   <button
                     onClick={handleClearFilters}
-                    className="px-4 py-2 border rounded-lg font-medium transition-colors hover:bg-gray-50"
-                    style={{ borderColor: "var(--accent-color)" }}
+                    className="px-4 py-2 border rounded-lg font-medium transition-colors"
+                    style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                   >
                     Clear
                   </button>
@@ -445,7 +449,7 @@ export default function SiteEquipmentPage() {
               {(category || search) && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {category && (
-                    <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm" style={{ backgroundColor: "var(--accent-color)", color: "var(--primary-color)" }}>
                       Category: {EQUIPMENT_CATEGORIES.find(c => c.value === category)?.label}
                       <button
                         onClick={() => handleCategoryFilter(null)}
@@ -456,7 +460,7 @@ export default function SiteEquipmentPage() {
                     </span>
                   )}
                   {search && (
-                    <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm" style={{ backgroundColor: "var(--accent-color)", color: "var(--primary-color)" }}>
                       Search: "{search}"
                       <button
                         onClick={() => {
@@ -473,14 +477,14 @@ export default function SiteEquipmentPage() {
                 </div>
               )}
 
-              <p className="mt-3 text-sm opacity-60">
+              <p className="mt-3 text-sm opacity-60" style={{ color: "var(--text-color)" }}>
                 Showing {equipment.length} of {total} items
               </p>
             </div>
 
             {/* Equipment Grid */}
             {equipment.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-xl shadow-sm">
+              <div className="text-center py-16 rounded-xl shadow-sm border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
                 <div
                   className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: "var(--accent-color)" }}
@@ -490,6 +494,7 @@ export default function SiteEquipmentPage() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    style={{ color: "var(--text-color)" }}
                   >
                     <path
                       strokeLinecap="round"
@@ -499,8 +504,8 @@ export default function SiteEquipmentPage() {
                     />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-semibold mb-2">No Equipment Found</h2>
-                <p className="opacity-75 mb-6">
+                <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>No Equipment Found</h2>
+                <p className="opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
                   {hasFilters
                     ? "Try adjusting your filters or search terms."
                     : "Check back soon for available equipment!"}
@@ -529,8 +534,8 @@ export default function SiteEquipmentPage() {
                     <button
                       onClick={() => goToPage(page - 1)}
                       disabled={page <= 1}
-                      className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                      style={{ borderColor: "var(--accent-color)" }}
+                      className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                     >
                       Previous
                     </button>
@@ -553,7 +558,7 @@ export default function SiteEquipmentPage() {
                             className="w-10 h-10 rounded-lg font-medium transition-colors"
                             style={{
                               backgroundColor: pageNum === page ? "var(--primary-color)" : "transparent",
-                              color: pageNum === page ? "white" : "inherit",
+                              color: pageNum === page ? "white" : "var(--text-color)",
                             }}
                           >
                             {pageNum}
@@ -564,8 +569,8 @@ export default function SiteEquipmentPage() {
                     <button
                       onClick={() => goToPage(page + 1)}
                       disabled={page >= totalPages}
-                      className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                      style={{ borderColor: "var(--accent-color)" }}
+                      className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                     >
                       Next
                     </button>
@@ -595,11 +600,11 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
   return (
     <Link
       to={`/site/equipment/${equipment.id}`}
-      className="group block bg-white rounded-xl shadow-sm overflow-hidden transition-shadow hover:shadow-md"
-      style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}
+      className="group block rounded-xl shadow-sm overflow-hidden transition-shadow hover:shadow-md border"
+      style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}
     >
       {/* Image */}
-      <div className="relative aspect-square overflow-hidden bg-gray-100">
+      <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: "var(--accent-color)" }}>
         {equipment.primaryImage ? (
           <img
             src={equipment.primaryImage}
@@ -638,11 +643,11 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-semibold mb-1 line-clamp-1">{equipment.name}</h3>
+        <h3 className="text-lg font-semibold mb-1 line-clamp-1" style={{ color: "var(--text-color)" }}>{equipment.name}</h3>
 
         {/* Brand & Model */}
         {(equipment.brand || equipment.model) && (
-          <p className="text-sm opacity-60 mb-3">
+          <p className="text-sm opacity-60 mb-3" style={{ color: "var(--text-color)" }}>
             {[equipment.brand, equipment.model].filter(Boolean).join(" ")}
           </p>
         )}
@@ -650,14 +655,14 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
         {/* Size */}
         {equipment.size && (
           <div className="mb-3">
-            <span className="text-sm">
+            <span className="text-sm" style={{ color: "var(--text-color)" }}>
               <span className="opacity-60">Size:</span> <span className="font-medium">{equipment.size}</span>
             </span>
           </div>
         )}
 
         {/* Price */}
-        <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: "var(--accent-color)" }}>
+        <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
           <div>
             <p
               className="text-xl font-bold"
@@ -666,7 +671,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
               {formatPrice(equipment.rentalPrice)}
             </p>
             {equipment.rentalPrice && (
-              <p className="text-xs opacity-50">per day</p>
+              <p className="text-xs opacity-50" style={{ color: "var(--text-color)" }}>per day</p>
             )}
           </div>
           <span
