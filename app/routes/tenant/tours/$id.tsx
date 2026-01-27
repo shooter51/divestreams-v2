@@ -139,8 +139,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
-    await deleteTour(organizationId, tourId);
-    return redirect("/tenant/tours");
+    try {
+      await deleteTour(organizationId, tourId);
+      return redirect("/tenant/tours");
+    } catch (error: any) {
+      return { deleteError: error.message || "Failed to delete tour" };
+    }
   }
 
   return null;
@@ -158,6 +162,7 @@ const tourTypes: Record<string, string> = {
 export default function TourDetailPage() {
   const { tour, upcomingTrips, diveSites, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const actionData = fetcher.data as { deleteError?: string } | undefined;
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -180,6 +185,14 @@ export default function TourDetailPage() {
           ← Back to Tours
         </Link>
       </div>
+
+      {/* Show delete error if any */}
+      {actionData?.deleteError && (
+        <div className="mb-6 p-4 bg-danger-muted border border-danger rounded-lg">
+          <p className="text-danger font-medium">Cannot delete tour</p>
+          <p className="text-danger text-sm mt-1">{actionData.deleteError}</p>
+        </div>
+      )}
 
       <div className="flex justify-between items-start mb-6">
         <div>

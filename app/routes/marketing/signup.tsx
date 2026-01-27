@@ -98,7 +98,17 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (Object.keys(errors).length > 0) {
-    return { errors, values: { shopName, subdomain, email, phone } };
+    return {
+      errors,
+      values: {
+        shopName,
+        subdomain,
+        email,
+        phone,
+        // Note: We don't preserve passwords for security reasons
+        // Users will need to re-enter them after fixing validation errors
+      }
+    };
   }
 
   try {
@@ -224,7 +234,7 @@ export default function SignupPage() {
                   type="text"
                   id="shopName"
                   name="shopName"
-                  defaultValue={actionData?.values?.shopName}
+                  defaultValue={actionData?.values?.shopName || ""}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="Paradise Dive Center"
                   required
@@ -243,7 +253,7 @@ export default function SignupPage() {
                     type="text"
                     id="subdomain"
                     name="subdomain"
-                    defaultValue={actionData?.values?.subdomain}
+                    defaultValue={actionData?.values?.subdomain || ""}
                     className="flex-1 px-4 py-2 border rounded-l-lg focus:ring-2 focus:ring-brand focus:border-brand"
                     placeholder="paradise"
                     pattern="[a-z0-9]+(-[a-z0-9]+)*"
@@ -266,7 +276,7 @@ export default function SignupPage() {
                   type="email"
                   id="email"
                   name="email"
-                  defaultValue={actionData?.values?.email}
+                  defaultValue={actionData?.values?.email || ""}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="owner@diveshop.com"
                   required
@@ -284,7 +294,7 @@ export default function SignupPage() {
                   type="tel"
                   id="phone"
                   name="phone"
-                  defaultValue={actionData?.values?.phone}
+                  defaultValue={actionData?.values?.phone || ""}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="+1 (555) 123-4567"
                 />

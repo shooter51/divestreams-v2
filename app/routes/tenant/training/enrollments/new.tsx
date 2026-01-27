@@ -15,7 +15,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw new Response("Session ID required", { status: 400 });
   }
 
-  const [session, customers] = await Promise.all([
+  const [session, customersResult] = await Promise.all([
     getSessionById(ctx.org.id, sessionId),
     getCustomers(ctx.org.id),
   ]);
@@ -24,7 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw new Response("Session not found", { status: 404 });
   }
 
-  return { session, customers };
+  return { session, customers: customersResult.customers };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -56,7 +56,28 @@ export async function action({ request }: ActionFunctionArgs) {
     return redirect(`/tenant/training/enrollments/${enrollment.id}`);
   } catch (error) {
     console.error("Error creating enrollment:", error);
-    return { errors: { form: "Failed to create enrollment" } };
+
+    // Return specific error messages
+    const errorMessage = error instanceof Error ? error.message : "Failed to create enrollment";
+
+    // Handle specific error cases
+    if (errorMessage.includes("already enrolled")) {
+      return { errors: { form: "This customer is already enrolled in this session" } };
+    }
+    if (errorMessage.includes("Session not found")) {
+      return { errors: { form: "Training session not found" } };
+    }
+    if (errorMessage.includes("Customer not found")) {
+      return { errors: { customerId: "Selected customer not found" } };
+    }
+    if (errorMessage.includes("cancelled")) {
+      return { errors: { form: "Cannot enroll in a cancelled session" } };
+    }
+    if (errorMessage.includes("full")) {
+      return { errors: { form: errorMessage } };
+    }
+
+    return { errors: { form: errorMessage } };
   }
 }
 

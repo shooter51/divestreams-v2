@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const customerList = await db
     .select()
     .from(customers)
-    .where(searchCondition ? sql`${baseCondition} AND ${searchCondition}` : baseCondition)
+    .where(searchCondition ? sql`${baseCondition} AND (${searchCondition})` : baseCondition)
     .orderBy(customers.lastName, customers.firstName)
     .limit(limit)
     .offset(offset);
@@ -41,7 +41,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const [{ value: total }] = await db
     .select({ value: count() })
     .from(customers)
-    .where(searchCondition ? sql`${baseCondition} AND ${searchCondition}` : baseCondition);
+    .where(searchCondition ? sql`${baseCondition} AND (${searchCondition})` : baseCondition);
 
   return {
     customers: customerList,

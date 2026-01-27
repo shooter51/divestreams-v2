@@ -197,6 +197,33 @@ describe("admin/tenants.new route", () => {
         expect((response as ActionErrorResponse).errors.name).toBe("Organization name is required");
       });
 
+      it("preserves form values when validation fails", async () => {
+        const formData = new FormData();
+        formData.append("slug", "");  // Invalid - empty
+        formData.append("name", "Test Shop");
+        formData.append("ownerEmail", "owner@example.com");
+        formData.append("ownerName", "Shop Owner");
+        formData.append("plan", "premium");
+        formData.append("createOwnerAccount", "on");
+        formData.append("seedDemoData", "on");
+
+        const request = new Request("https://admin.divestreams.com/tenants/new", {
+          method: "POST",
+          body: formData,
+        });
+
+        const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]) as { errors: Record<string, string>; values: Record<string, string | boolean> };
+
+        expect(response).toHaveProperty("errors");
+        expect(response).toHaveProperty("values");
+        expect(response.values.name).toBe("Test Shop");
+        expect(response.values.ownerEmail).toBe("owner@example.com");
+        expect(response.values.ownerName).toBe("Shop Owner");
+        expect(response.values.plan).toBe("premium");
+        expect(response.values.createOwnerAccount).toBe(true);
+        expect(response.values.seedDemo).toBe(true);
+      });
+
       it("accepts valid single-character slug", async () => {
         // Mock slug availability check (no existing org)
         const mockSelectQuery = {

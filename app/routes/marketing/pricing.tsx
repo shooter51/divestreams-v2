@@ -1,5 +1,6 @@
 import type { MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
+import { useState } from "react";
 import { db } from "../../../lib/db";
 import { subscriptionPlans, type SubscriptionPlan } from "../../../lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -118,6 +119,8 @@ export async function loader() {
 
 export default function PricingPage() {
   const { plans } = useLoaderData<typeof loader>();
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
+
   return (
     <div className="min-h-screen bg-surface-inset">
       {/* Navigation */}
@@ -147,10 +150,24 @@ export default function PricingPage() {
           Start with a 14-day free trial. No credit card required.
         </p>
         <div className="inline-flex items-center gap-2 bg-surface-raised rounded-full p-1 border">
-          <button className="px-4 py-2 rounded-full bg-brand text-white">
+          <button
+            onClick={() => setBillingInterval('monthly')}
+            className={`px-4 py-2 rounded-full transition-colors ${
+              billingInterval === 'monthly'
+                ? 'bg-brand text-white'
+                : 'text-foreground-muted hover:text-foreground'
+            }`}
+          >
             Monthly
           </button>
-          <button className="px-4 py-2 rounded-full text-foreground-muted">
+          <button
+            onClick={() => setBillingInterval('yearly')}
+            className={`px-4 py-2 rounded-full transition-colors ${
+              billingInterval === 'yearly'
+                ? 'bg-brand text-white'
+                : 'text-foreground-muted hover:text-foreground'
+            }`}
+          >
             Yearly (Save 20%)
           </button>
         </div>
@@ -164,6 +181,14 @@ export default function PricingPage() {
             const description = getPlanDescription(plan.name);
             const cta = getPlanCta(plan.name);
             const features: string[] = Array.isArray(plan.features) ? plan.features : [];
+
+            const price = billingInterval === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+            const displayPrice = billingInterval === 'monthly'
+              ? formatPrice(price)
+              : formatPrice(Math.round(price / 12));
+            const savingsPercent = billingInterval === 'yearly'
+              ? Math.round((1 - (plan.yearlyPrice / (plan.monthlyPrice * 12))) * 100)
+              : 0;
 
             return (
               <div
@@ -182,8 +207,18 @@ export default function PricingPage() {
                 <h3 className="text-xl font-bold mb-2">{plan.displayName}</h3>
                 <p className="text-foreground-muted mb-4">{description}</p>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold">{formatPrice(plan.monthlyPrice)}</span>
+                  <span className="text-4xl font-bold">{displayPrice}</span>
                   <span className="text-foreground-muted">/month</span>
+                  {billingInterval === 'yearly' && savingsPercent > 0 && (
+                    <div className="mt-2">
+                      <span className="inline-block bg-success-muted text-success px-2 py-1 rounded text-xs font-medium">
+                        Save {savingsPercent}%
+                      </span>
+                      <p className="text-xs text-foreground-muted mt-1">
+                        Billed {formatPrice(price)} annually
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <ul className="space-y-3 mb-8">
                   {features.map((feature) => (

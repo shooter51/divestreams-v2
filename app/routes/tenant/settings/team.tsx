@@ -10,6 +10,8 @@ import { sendEmail } from "../../../../lib/email";
 import { getAppUrl } from "../../../../lib/utils/url";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
+import { ChangePasswordForm } from "../../../../app/components/settings/ChangePasswordForm";
+import { auth } from "../../../../lib/auth";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -263,6 +265,51 @@ export async function action({ request }: ActionFunctionArgs) {
     return { success: true, message: "Invitation resent" };
   }
 
+  if (intent === "change-password") {
+    const userId = formData.get("userId") as string;
+    const currentPassword = formData.get("currentPassword") as string;
+    const newPassword = formData.get("newPassword") as string;
+
+    // Verify the user is trying to change their own password or is an admin
+    if (userId !== ctx.user.id) {
+      // Check if current user is owner/admin
+      const [currentUserMember] = await db
+        .select()
+        .from(member)
+        .where(
+          and(
+            eq(member.userId, ctx.user.id),
+            eq(member.organizationId, ctx.org.id)
+          )
+        )
+        .limit(1);
+
+      if (!currentUserMember || !["owner", "admin"].includes(currentUserMember.role)) {
+        return { error: "You don't have permission to change this user's password" };
+      }
+    }
+
+    try {
+      // Use Better Auth API to change password
+      const response = await auth.api.changePassword({
+        body: {
+          currentPassword,
+          newPassword,
+        },
+        headers: request.headers,
+      });
+
+      if (!response) {
+        return { error: "Failed to change password" };
+      }
+
+      return { success: true, message: "Password changed successfully" };
+    } catch (error: any) {
+      console.error("Password change error:", error);
+      return { error: error?.message || "Current password is incorrect" };
+    }
+  }
+
   return null;
 }
 
@@ -270,6 +317,7 @@ export default function TeamPage() {
   const { team, pendingInvites, roles, planLimit, limitRemaining, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [changePasswordUserId, setChangePasswordUserId] = useState<string | null>(null);
 
   // Close modal only on successful invitation
   useEffect(() => {
@@ -413,6 +461,14 @@ export default function TeamPage() {
                             ))}
                         </fetcher.Form>
                         <hr className="my-1" />
+                        <button
+                          type="button"
+                          onClick={() => setChangePasswordUserId(member.id)}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset"
+                        >
+                          Change Password
+                        </button>
+                        <hr className="my-1" />
                         <fetcher.Form
                           method="post"
                           onSubmit={(e) => {
@@ -514,6 +570,14 @@ export default function TeamPage() {
           ))}
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      {changePasswordUserId && (
+        <ChangePasswordForm
+          userId={changePasswordUserId}
+          onSuccess={() => setChangePasswordUserId(null)}
+        />
+      )}
 
       {/* Invite Modal */}
       {showInviteModal && (

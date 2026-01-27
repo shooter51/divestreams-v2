@@ -400,12 +400,27 @@ describe("Training Server - Enrollment Queries", () => {
 
   it("should create an enrollment", async () => {
     const { createEnrollment } = await import("../../../../lib/db/training.server");
+
+    // Mock session validation
+    mockReturnValue = [
+      {
+        id: "session-1",
+        status: "scheduled",
+        maxStudents: 10,
+        enrolledCount: 3,
+      },
+    ];
+
+    // Mock customer validation (second query)
+    vi.mocked(dbMock.where).mockResolvedValueOnce(mockReturnValue)
+      .mockResolvedValueOnce([{ id: "customer-1" }]) // Customer exists
+      .mockResolvedValueOnce([]); // No existing enrollment
+
     (dbMock.returning as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
       {
         id: "enroll-1",
         sessionId: "session-1",
-        studentId: "student-1",
-        enrollmentDate: new Date(),
+        customerId: "customer-1",
         status: "enrolled",
       },
     ]);
@@ -413,8 +428,7 @@ describe("Training Server - Enrollment Queries", () => {
     const result = await createEnrollment({
       organizationId: "org-1",
       sessionId: "session-1",
-      studentId: "student-1",
-      enrollmentDate: new Date(),
+      customerId: "customer-1",
       status: "enrolled",
     });
 
@@ -423,9 +437,10 @@ describe("Training Server - Enrollment Queries", () => {
 
   it("should update an enrollment", async () => {
     const { updateEnrollment } = await import("../../../../lib/db/training.server");
-    (dbMock.returning as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-      { id: "enroll-1", status: "completed" },
-    ]);
+
+    // Mock the returning value correctly
+    mockReturnValue = [{ id: "enroll-1", status: "completed" }];
+    (dbMock.returning as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockReturnValue);
 
     const result = await updateEnrollment("org-1", "enroll-1", { status: "completed" });
 

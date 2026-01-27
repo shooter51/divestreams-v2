@@ -516,12 +516,25 @@ export async function updateTourActiveStatus(organizationId: string, id: string,
 }
 
 export async function deleteTour(organizationId: string, id: string) {
-  // Delete related trips first to avoid foreign key constraint violations
-  await db
-    .delete(schema.trips)
+  // Check if there are any trips using this tour
+  const [tripCount] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(schema.trips)
     .where(and(
       eq(schema.trips.organizationId, organizationId),
       eq(schema.trips.tourId, id)
+    ));
+
+  if (tripCount && tripCount.count > 0) {
+    throw new Error(`Cannot delete tour: ${tripCount.count} trip(s) are using this tour. Please delete or reassign the trips first.`);
+  }
+
+  // Check if there are any tour dive site mappings
+  await db
+    .delete(schema.tourDiveSites)
+    .where(and(
+      eq(schema.tourDiveSites.organizationId, organizationId),
+      eq(schema.tourDiveSites.tourId, id)
     ));
 
   // Now delete the tour
@@ -1140,7 +1153,20 @@ export async function updateDiveSiteActiveStatus(organizationId: string, id: str
 }
 
 export async function deleteDiveSite(organizationId: string, id: string) {
-  // Actually delete the dive site instead of just deactivating
+  // Check if there are any tours using this dive site
+  const [tourCount] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(schema.tourDiveSites)
+    .where(and(
+      eq(schema.tourDiveSites.organizationId, organizationId),
+      eq(schema.tourDiveSites.diveSiteId, id)
+    ));
+
+  if (tourCount && tourCount.count > 0) {
+    throw new Error(`Cannot delete dive site: ${tourCount.count} tour(s) are using this site. Please remove it from tours first.`);
+  }
+
+  // Delete the dive site
   await db
     .delete(schema.diveSites)
     .where(and(

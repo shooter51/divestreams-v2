@@ -56,21 +56,33 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  await createTour(organizationId, {
-    name: formData.get("name") as string,
-    description: (formData.get("description") as string) || undefined,
-    type: formData.get("type") as string,
-    duration: formData.get("duration") ? Number(formData.get("duration")) : undefined,
-    maxParticipants: Number(formData.get("maxParticipants")),
-    minParticipants: formData.get("minParticipants") ? Number(formData.get("minParticipants")) : undefined,
-    price: Number(formData.get("price")),
-    currency: (formData.get("currency") as string) || undefined,
-    includesEquipment: formData.get("includesEquipment") === "true",
-    includesMeals: formData.get("includesMeals") === "true",
-    includesTransport: formData.get("includesTransport") === "true",
-    minCertLevel: (formData.get("minCertLevel") as string) || undefined,
-    minAge: formData.get("minAge") ? Number(formData.get("minAge")) : undefined,
-  });
+  try {
+    await createTour(organizationId, {
+      name: formData.get("name") as string,
+      description: (formData.get("description") as string) || undefined,
+      type: formData.get("type") as string,
+      duration: formData.get("duration") ? Number(formData.get("duration")) : undefined,
+      maxParticipants: Number(formData.get("maxParticipants")),
+      minParticipants: formData.get("minParticipants") ? Number(formData.get("minParticipants")) : undefined,
+      price: Number(formData.get("price")),
+      currency: (formData.get("currency") as string) || undefined,
+      includesEquipment: formData.get("includesEquipment") === "true",
+      includesMeals: formData.get("includesMeals") === "true",
+      includesTransport: formData.get("includesTransport") === "true",
+      minCertLevel: (formData.get("minCertLevel") as string) || undefined,
+      minAge: formData.get("minAge") ? Number(formData.get("minAge")) : undefined,
+    });
+  } catch (error: any) {
+    // Handle unique constraint violation
+    if (error?.code === "23505" || error?.message?.includes("duplicate") || error?.message?.includes("unique")) {
+      return {
+        errors: { name: "A tour with this name already exists" },
+        values: getFormValues(formData)
+      };
+    }
+    // Re-throw other errors
+    throw error;
+  }
 
   return redirect("/tenant/tours");
 }
@@ -403,13 +415,13 @@ export default function NewTourPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "Creating..." : "Create Tour"}
           </button>
           <Link
             to="/tenant/tours"
-            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
+            className={`px-6 py-2 border rounded-lg hover:bg-surface-inset ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
           >
             Cancel
           </Link>

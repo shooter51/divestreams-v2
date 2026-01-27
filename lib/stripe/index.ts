@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { db } from "../db";
 import { organization, subscription, subscriptionPlans } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 
 // Initialize Stripe
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -252,10 +252,40 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
   const sub = stripeSubscription as unknown as { current_period_end?: number };
   const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
 
+  // Get the price ID from the subscription
+  const item = stripeSubscription.items.data[0];
+  const priceId = item?.price?.id;
+
+  // Look up the plan by matching the price ID (monthly or yearly)
+  let planId: string | null = null;
+  let planName = "free";
+
+  if (priceId) {
+    const [matchedPlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(
+        or(
+          eq(subscriptionPlans.monthlyPriceId, priceId),
+          eq(subscriptionPlans.yearlyPriceId, priceId)
+        )
+      )
+      .limit(1);
+
+    if (matchedPlan) {
+      planId = matchedPlan.id;
+      planName = matchedPlan.name;
+    }
+  }
+
+  // Update subscription with plan reference
   await db
     .update(subscription)
     .set({
       stripeSubscriptionId: stripeSubscription.id,
+      stripePriceId: priceId || null,
+      planId: planId,
+      plan: planName,
       status: status,
       currentPeriodEnd: periodEnd,
       updatedAt: new Date(),

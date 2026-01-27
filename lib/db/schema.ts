@@ -295,6 +295,7 @@ export const tours = pgTable("tours", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => [
   index("tours_org_idx").on(table.organizationId),
+  uniqueIndex("tours_org_name_idx").on(table.organizationId, table.name),
 ]);
 
 // Tour to dive site mapping
