@@ -328,11 +328,11 @@ export default function SiteLoginPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.email
-                    ? "#fca5a5"
-                    : "var(--accent-color)",
+                    ? "var(--danger-border)"
+                    : "var(--color-border)",
                   backgroundColor: actionData?.errors?.email
-                    ? "#fef2f2"
-                    : "white",
+                    ? "var(--danger-bg)"
+                    : "var(--color-card-bg)",
                 }}
                 placeholder="you@example.com"
                 required
@@ -369,11 +369,11 @@ export default function SiteLoginPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.password
-                    ? "#fca5a5"
-                    : "var(--accent-color)",
+                    ? "var(--danger-border)"
+                    : "var(--color-border)",
                   backgroundColor: actionData?.errors?.password
-                    ? "#fef2f2"
-                    : "white",
+                    ? "var(--danger-bg)"
+                    : "var(--color-card-bg)",
                 }}
                 placeholder="Enter your password"
                 required

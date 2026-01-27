@@ -592,7 +592,7 @@ export default function SiteContactPage() {
 
               {/* General Error */}
               {actionData?.error && (
-                <div className="p-4 rounded-lg bg-red-50 text-red-700 flex items-center gap-2">
+                <div className="p-4 rounded-lg flex items-center gap-2" style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}>
                   <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
                   <p>{actionData.error}</p>
                 </div>

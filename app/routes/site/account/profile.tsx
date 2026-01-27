@@ -227,13 +227,13 @@ export default function AccountProfile() {
         </h3>
 
         {actionData?.type === "profile" && actionData?.success && (
-          <div className="mb-6 p-4 rounded-lg bg-green-50 text-green-700 text-sm">
+          <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>
             Profile updated successfully!
           </div>
         )}
 
         {actionData?.type === "profile" && actionData?.error && !actionData?.field && (
-          <div className="mb-6 p-4 rounded-lg bg-red-50 text-red-700 text-sm">
+          <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}>
             {actionData.error}
           </div>
         )}
@@ -361,13 +361,13 @@ export default function AccountProfile() {
         </h3>
 
         {actionData?.type === "password" && actionData?.success && (
-          <div className="mb-6 p-4 rounded-lg bg-green-50 text-green-700 text-sm">
+          <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>
             Password changed successfully!
           </div>
         )}
 
         {actionData?.type === "password" && actionData?.error && !actionData?.field && (
-          <div className="mb-6 p-4 rounded-lg bg-red-50 text-red-700 text-sm">
+          <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}>
             {actionData.error}
           </div>
         )}
