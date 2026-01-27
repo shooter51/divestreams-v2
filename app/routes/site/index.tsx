@@ -218,8 +218,8 @@ function TripCard({
       to={`/site/trips/${trip.id}`}
       className="group block rounded-xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300"
       style={{
-        backgroundColor: "white",
-        borderColor: "var(--accent-color)",
+        backgroundColor: "var(--color-card-bg)",
+        borderColor: "var(--color-border)",
       }}
     >
       {/* Trip Image */}
@@ -301,8 +301,8 @@ function CourseCard({
       to={`/site/courses/${course.id}`}
       className="group block rounded-xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300"
       style={{
-        backgroundColor: "white",
-        borderColor: "var(--accent-color)",
+        backgroundColor: "var(--color-card-bg)",
+        borderColor: "var(--color-border)",
       }}
     >
       {/* Course Image Placeholder */}
@@ -421,7 +421,7 @@ export default function SiteHomePage() {
                 to="/site/trips"
                 className="px-6 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105"
                 style={{
-                  backgroundColor: "white",
+                  backgroundColor: "var(--color-card-bg)",
                   color: "var(--primary-color)",
                 }}
               >
@@ -581,7 +581,7 @@ export default function SiteHomePage() {
                 to="/site/courses"
                 className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
                 style={{
-                  backgroundColor: "white",
+                  backgroundColor: "var(--color-card-bg)",
                   color: "var(--primary-color)",
                 }}
               >
@@ -689,7 +689,7 @@ export default function SiteHomePage() {
               {contactInfo.phone && (
                 <div
                   className="p-6 rounded-xl"
-                  style={{ backgroundColor: "white" }}
+                  style={{ backgroundColor: "var(--color-card-bg)" }}
                 >
                   <div
                     className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4"
@@ -725,7 +725,7 @@ export default function SiteHomePage() {
               {contactInfo.email && (
                 <div
                   className="p-6 rounded-xl"
-                  style={{ backgroundColor: "white" }}
+                  style={{ backgroundColor: "var(--color-card-bg)" }}
                 >
                   <div
                     className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4"
@@ -761,7 +761,7 @@ export default function SiteHomePage() {
               {contactInfo.hours && (
                 <div
                   className="p-6 rounded-xl"
-                  style={{ backgroundColor: "white" }}
+                  style={{ backgroundColor: "var(--color-card-bg)" }}
                 >
                   <div
                     className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4"

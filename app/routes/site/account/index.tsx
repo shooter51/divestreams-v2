@@ -228,7 +228,7 @@ export default function AccountDashboard() {
         {nextBooking ? (
           <div
             className="rounded-xl border p-6"
-            style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+            style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -268,7 +268,7 @@ export default function AccountDashboard() {
         ) : (
           <div
             className="rounded-xl border p-8 text-center"
-            style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+            style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
           >
             <WaveIcon className="w-12 h-12 mx-auto opacity-40 mb-4" />
             <p className="opacity-75">No upcoming bookings</p>
@@ -335,7 +335,7 @@ function StatCard({
   return (
     <div
       className="rounded-xl border p-5"
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div className="flex items-center gap-3">
         <div
@@ -370,7 +370,7 @@ function QuickLinkCard({
     <Link
       to={to}
       className="rounded-xl border p-5 flex items-start gap-4 transition-shadow hover:shadow-md"
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"

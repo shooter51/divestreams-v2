@@ -279,8 +279,8 @@ export default function SiteLoginPage() {
         <div
           className="rounded-xl p-8 shadow-lg border"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
           }}
         >
           <Form method="post" className="space-y-6">
@@ -453,13 +453,13 @@ export default function SiteLoginPage() {
             <div className="absolute inset-0 flex items-center">
               <div
                 className="w-full border-t"
-                style={{ borderColor: "var(--accent-color)" }}
+                style={{ borderColor: "var(--color-border)" }}
               />
             </div>
             <div className="relative flex justify-center text-sm">
               <span
                 className="px-4"
-                style={{ backgroundColor: "white", color: "var(--text-color)" }}
+                style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}
               >
                 New to {organization?.name || "our site"}?
               </span>
