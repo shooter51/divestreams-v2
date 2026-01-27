@@ -961,6 +961,100 @@ test.describe.serial("Block F: Public Site Settings", () => {
       }
     }
   });
+
+  // Block G: Team Invitation Error Messages (~2 tests)
+
+  test("[KAN-599] G.1 Team invitation displays error when email is already a member", async ({ page }) => {
+    await loginToTenant(page);
+    if (!(await isAuthenticated(page))) return;
+
+    // Navigate to team settings
+    await page.goto(getTenantUrl("/tenant/settings/team"));
+    await page.waitForTimeout(2000);
+
+    // Click "Invite Team Member" button to open modal
+    const inviteButton = page.getByRole("button", { name: /invite.*team.*member/i });
+    if (!(await inviteButton.isVisible().catch(() => false))) {
+      console.log("Invite button not found - skipping test");
+      return;
+    }
+    await inviteButton.click();
+    await page.waitForTimeout(500);
+
+    // Fill in email that is already a team member (owner's email)
+    const emailInput = page.getByLabel(/email/i);
+    await emailInput.fill(testData.user.email); // Owner's email
+
+    // Select a role
+    const roleSelect = page.locator("select[name='role']");
+    if (await roleSelect.isVisible().catch(() => false)) {
+      await roleSelect.selectOption("admin");
+    }
+
+    // Submit the form
+    const submitButton = page.getByRole("button", { name: /send.*invitation|invite/i });
+    await submitButton.click();
+    await page.waitForTimeout(1000);
+
+    // CRITICAL: Error message should be displayed and visible
+    const errorMessage = page.getByText(/this email is already a team member/i);
+    expect(await errorMessage.isVisible()).toBe(true);
+
+    // Modal should remain open to show the error
+    const modalTitle = page.getByText(/invite team member/i);
+    expect(await modalTitle.isVisible()).toBe(true);
+  });
+
+  test("[KAN-599] G.2 Team invitation displays error when email has pending invitation", async ({ page }) => {
+    await loginToTenant(page);
+    if (!(await isAuthenticated(page))) return;
+
+    // Navigate to team settings
+    await page.goto(getTenantUrl("/tenant/settings/team"));
+    await page.waitForTimeout(2000);
+
+    // First, create a pending invitation
+    const inviteButton = page.getByRole("button", { name: /invite.*team.*member/i });
+    if (!(await inviteButton.isVisible().catch(() => false))) {
+      console.log("Invite button not found - skipping test");
+      return;
+    }
+    await inviteButton.click();
+    await page.waitForTimeout(500);
+
+    const testEmail = `pending-invite-${Date.now()}@example.com`;
+    const emailInput = page.getByLabel(/email/i);
+    await emailInput.fill(testEmail);
+
+    const roleSelect = page.locator("select[name='role']");
+    if (await roleSelect.isVisible().catch(() => false)) {
+      await roleSelect.selectOption("member");
+    }
+
+    const submitButton = page.getByRole("button", { name: /send.*invitation|invite/i });
+    await submitButton.click();
+    await page.waitForTimeout(1000);
+
+    // Now try to invite the same email again
+    await inviteButton.click();
+    await page.waitForTimeout(500);
+
+    await emailInput.fill(testEmail); // Same email
+    if (await roleSelect.isVisible().catch(() => false)) {
+      await roleSelect.selectOption("member");
+    }
+
+    await submitButton.click();
+    await page.waitForTimeout(1000);
+
+    // CRITICAL: Error message should be displayed and visible
+    const errorMessage = page.getByText(/this email already has a pending invitation/i);
+    expect(await errorMessage.isVisible()).toBe(true);
+
+    // Modal should remain open to show the error
+    const modalTitle = page.getByText(/invite team member/i);
+    expect(await modalTitle.isVisible()).toBe(true);
+  });
 });
 
 });
