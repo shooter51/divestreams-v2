@@ -11,7 +11,9 @@ import {
   getPublicCourseById,
   getCourseScheduledTrips,
 } from "../../../../lib/db/public-site.server";
-import type { SiteLoaderData } from "../_layout";
+import { db } from "../../../../lib/db";
+import { organization } from "../../../../lib/db/schema/auth";
+import { eq } from "drizzle-orm";
 
 // ============================================================================
 // CERTIFICATION AGENCIES
@@ -101,6 +103,33 @@ interface LoaderData {
 // ============================================================================
 
 /**
+ * Extract subdomain from request host
+ */
+function getSubdomainFromHost(host: string): string | null {
+  // Handle localhost development: subdomain.localhost:5173
+  if (host.includes("localhost")) {
+    const parts = host.split(".");
+    if (parts.length >= 2 && parts[0] !== "localhost") {
+      return parts[0].toLowerCase();
+    }
+    return null;
+  }
+
+  // Handle production: subdomain.divestreams.com
+  const parts = host.split(".");
+  if (parts.length >= 3) {
+    const subdomain = parts[0].toLowerCase();
+    // Ignore www and admin as they're not tenant subdomains
+    if (subdomain === "www" || subdomain === "admin") {
+      return null;
+    }
+    return subdomain;
+  }
+
+  return null;
+}
+
+/**
  * Get agency color from name
  */
 function getAgencyColor(agencyName: string | null): string {
@@ -168,22 +197,28 @@ function formatTime(timeStr: string): string {
 // LOADER
 // ============================================================================
 
-export async function loader({ params, context }: LoaderFunctionArgs): Promise<LoaderData> {
+export async function loader({ params, request }: LoaderFunctionArgs): Promise<LoaderData> {
   const { courseId } = params;
 
   if (!courseId) {
     throw new Response("Course ID is required", { status: 400 });
   }
 
-  // Get organization from parent layout context
-  const parentData = context?.parentData as SiteLoaderData | undefined;
+  const url = new URL(request.url);
+  const host = url.host;
+  const subdomain = getSubdomainFromHost(host);
 
-  if (!parentData?.organization?.id) {
+  // Get organization from subdomain or custom domain
+  const [org] = subdomain
+    ? await db.select().from(organization).where(eq(organization.slug, subdomain)).limit(1)
+    : await db.select().from(organization).where(eq(organization.customDomain, host.split(":")[0])).limit(1);
+
+  if (!org) {
     throw new Response("Organization not found", { status: 404 });
   }
 
   // Get course details
-  const course = await getPublicCourseById(parentData.organization.id, courseId);
+  const course = await getPublicCourseById(org.id, courseId);
 
   if (!course) {
     throw new Response("Course not found", { status: 404 });
@@ -191,7 +226,7 @@ export async function loader({ params, context }: LoaderFunctionArgs): Promise<L
 
   // Get scheduled sessions for this course
   const sessionsResult = await getCourseScheduledTrips(
-    parentData.organization.id,
+    org.id,
     courseId,
     { limit: 10 }
   );
