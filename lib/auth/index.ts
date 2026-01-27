@@ -49,7 +49,7 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // 1 day
     cookieCache: {
       enabled: true, // REQUIRED for getSession() to work (Issue #4942)
-      maxAge: 60 * 5, // 5 minutes - cache duration before revalidating with DB
+      maxAge: 60 * 60, // 1 hour - cache duration before revalidating with DB (reduces queries by 92%)
     },
   },
   // Cookie configuration handled by Better Auth defaults
