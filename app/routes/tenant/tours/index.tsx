@@ -5,6 +5,7 @@ import { db } from "../../../../lib/db";
 import { tours, trips } from "../../../../lib/db/schema";
 import { eq, or, ilike, sql, count } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Tours - DiveStreams" }];
 
@@ -114,6 +115,9 @@ const tourTypes: Record<string, { label: string; color: string }> = {
 };
 
 export default function ToursPage() {
+  // Show notifications from URL params
+  useNotification();
+
   const {
     tours,
     total,

@@ -7,6 +7,7 @@ import { FeaturesContext } from "../../../lib/features-context";
 import { UpgradeModal } from "../../components/upgrade-modal";
 import type { PlanFeatureKey, PlanFeaturesObject, PlanLimits } from "../../../lib/plan-features";
 import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../../lib/plan-features";
+import { ToastProvider } from "../../../lib/toast-context";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -87,6 +88,7 @@ export default function TenantLayout() {
   ];
 
   return (
+    <ToastProvider>
       <div className="min-h-screen bg-surface-inset">
         {/* Trial Banner */}
         {isTrialing && trialDaysLeft > 0 && (
@@ -198,5 +200,6 @@ export default function TenantLayout() {
         )}
 
       </div>
+    </ToastProvider>
   );
 }

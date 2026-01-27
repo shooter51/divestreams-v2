@@ -5,6 +5,7 @@ import { tourSchema, validateFormData, getFormValues } from "../../../../lib/val
 import { createTour } from "../../../../lib/db/queries.server";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -84,7 +85,8 @@ export async function action({ request }: ActionFunctionArgs) {
     throw error;
   }
 
-  return redirect("/tenant/tours");
+  const tourName = formData.get("name") as string;
+  return redirect(redirectWithNotification("/tenant/tours", `Tour "${tourName}" has been successfully created`, "success"));
 }
 
 export default function NewTourPage() {
@@ -93,6 +95,9 @@ export default function NewTourPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const isNearLimit = limitMax !== -1 && limitRemaining <= Math.ceil(limitMax * 0.2);
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">

@@ -6,6 +6,7 @@ import { getTourById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { tourSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../components/ui";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Tour - DiveStreams" }];
 
@@ -141,7 +142,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.tours.organizationId, organizationId), eq(schema.tours.id, tourId)));
 
-  return redirect(`/tenant/tours/${tourId}`);
+  return redirect(redirectWithNotification(`/tenant/tours/${tourId}`, `Tour "${validation.data.name}" has been successfully updated`, "success"));
 }
 
 export default function EditTourPage() {
@@ -149,6 +150,9 @@ export default function EditTourPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">

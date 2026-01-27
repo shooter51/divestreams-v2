@@ -12,6 +12,7 @@ import {
 } from "../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Tour Details - DiveStreams" }];
 
@@ -140,8 +141,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     try {
+      const tour = await getTourById(organizationId, tourId);
+      const tourName = tour?.name || "Tour";
       await deleteTour(organizationId, tourId);
-      return redirect("/tenant/tours");
+      return redirect(redirectWithNotification("/tenant/tours", `${tourName} has been successfully deleted`, "success"));
     } catch (error: any) {
       return { deleteError: error.message || "Failed to delete tour" };
     }
@@ -163,6 +166,9 @@ export default function TourDetailPage() {
   const { tour, upcomingTrips, diveSites, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
+
+  // Show notifications from URL params
+  useNotification();
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
