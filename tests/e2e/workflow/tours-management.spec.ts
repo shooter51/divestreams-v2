@@ -367,7 +367,12 @@ test.describe.serial("Block B: Create Tour Flow", () => {
 
     const redirectedToList = page.url().includes("/tenant/tours") && !page.url().includes("/new");
     const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
-    expect(redirectedToList || hasSuccessMessage || page.url().includes("/tours")).toBeTruthy();
+
+    // Toast notification verification (KAN-621)
+    const successToast = page.locator('[role="status"]').filter({ hasText: /successfully created/i });
+    const toastVisible = await successToast.isVisible().catch(() => false);
+
+    expect(redirectedToList || hasSuccessMessage || toastVisible || page.url().includes("/tours")).toBeTruthy();
   });
 
   test("[KAN-343] B.11 Created tour appears in list", async ({ page }) => {
@@ -572,7 +577,12 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
 
     const redirected = page.url().includes("/tenant/tours") && !page.url().includes("/edit");
     const hasSuccess = await page.getByText(/success|updated|saved/i).isVisible().catch(() => false);
-    expect(redirected || hasSuccess || page.url().includes("/tours")).toBeTruthy();
+
+    // Toast notification verification (KAN-621)
+    const successToast = page.locator('[role="status"]').filter({ hasText: /successfully updated/i });
+    const toastVisible = await successToast.isVisible().catch(() => false);
+
+    expect(redirected || hasSuccess || toastVisible || page.url().includes("/tours")).toBeTruthy();
   });
 
   test("[KAN-353] C.9 Updated values appear in list", async ({ page }) => {

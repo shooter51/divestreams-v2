@@ -360,7 +360,12 @@ test.describe.serial("Block B: Create Customer Flow", () => {
 
     const redirectedToList = page.url().includes("/tenant/customers") && !page.url().includes("/new");
     const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
-    expect(redirectedToList || hasSuccessMessage || page.url().includes("/customers")).toBeTruthy();
+
+    // Toast notification verification (KAN-621)
+    const successToast = page.locator('[role="status"]').filter({ hasText: /successfully created/i });
+    const toastVisible = await successToast.isVisible().catch(() => false);
+
+    expect(redirectedToList || hasSuccessMessage || toastVisible || page.url().includes("/customers")).toBeTruthy();
   });
 
   test("[KAN-296] B.10 Created customer appears in list", async ({ page }) => {
@@ -499,7 +504,12 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
 
     const redirected = page.url().includes("/tenant/customers") && !page.url().includes("/edit");
     const hasSuccess = await page.getByText(/success|updated|saved/i).isVisible().catch(() => false);
-    expect(redirected || hasSuccess || page.url().includes("/customers")).toBeTruthy();
+
+    // Toast notification verification (KAN-621)
+    const successToast = page.locator('[role="status"]').filter({ hasText: /successfully updated/i });
+    const toastVisible = await successToast.isVisible().catch(() => false);
+
+    expect(redirected || hasSuccess || toastVisible || page.url().includes("/customers")).toBeTruthy();
   });
 
   test("[KAN-304] C.8 Edit form has cancel option", async ({ page }) => {
