@@ -167,7 +167,7 @@ export default function ProductDetailPage() {
                     <input type="hidden" name="adjustment" value="-1" />
                     <button
                       type="submit"
-                      className="px-3 py-1 border rounded hover:bg-surface-inset"
+                      className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-inset"
                     >
                       -1
                     </button>
@@ -177,7 +177,7 @@ export default function ProductDetailPage() {
                     <input type="hidden" name="adjustment" value="1" />
                     <button
                       type="submit"
-                      className="px-3 py-1 border rounded hover:bg-surface-inset"
+                      className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-inset"
                     >
                       +1
                     </button>
@@ -187,7 +187,7 @@ export default function ProductDetailPage() {
                     <input type="hidden" name="adjustment" value="10" />
                     <button
                       type="submit"
-                      className="px-3 py-1 border rounded hover:bg-surface-inset"
+                      className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-inset"
                     >
                       +10
                     </button>

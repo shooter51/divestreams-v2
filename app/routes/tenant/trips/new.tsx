@@ -284,7 +284,7 @@ export default function NewTripPage() {
                 id="tourId"
                 name="tourId"
                 defaultValue={actionData?.values?.tourId || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               >
                 <option value="">Choose a tour...</option>
@@ -316,7 +316,7 @@ export default function NewTripPage() {
                 value={startDate || actionData?.values?.date || defaultDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.date && (
@@ -332,7 +332,7 @@ export default function NewTripPage() {
                 id="startTime"
                 name="startTime"
                 defaultValue={actionData?.values?.startTime || "08:00"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.startTime && (
@@ -348,7 +348,7 @@ export default function NewTripPage() {
                 id="endTime"
                 name="endTime"
                 defaultValue={actionData?.values?.endTime || "12:00"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -386,7 +386,7 @@ export default function NewTripPage() {
                   name="recurrencePattern"
                   value={recurrencePattern}
                   onChange={(e) => setRecurrencePattern(e.target.value as RecurrencePattern)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
@@ -559,7 +559,7 @@ export default function NewTripPage() {
                 min="1"
                 placeholder={selectedTour ? String(selectedTour.maxParticipants) : "From tour"}
                 defaultValue={actionData?.values?.maxParticipants}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
                 Leave blank to use tour default
@@ -622,7 +622,7 @@ export default function NewTripPage() {
                 name="weatherNotes"
                 placeholder="e.g., Light wind expected, good visibility"
                 defaultValue={actionData?.values?.weatherNotes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -634,7 +634,7 @@ export default function NewTripPage() {
                 name="notes"
                 rows={2}
                 defaultValue={actionData?.values?.notes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>

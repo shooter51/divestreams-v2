@@ -94,10 +94,10 @@ export function RichTextEditor({
   return (
     <div className="border rounded-lg overflow-hidden bg-surface-raised">
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-2 bg-surface-inset border-b">
+      <div className="flex items-center gap-1 p-2 bg-surface-inset border-b border-border">
         {/* Format Dropdown */}
         <select
-          className="px-2 py-1 border rounded text-sm"
+          className="px-2 py-1 border border-border-strong rounded text-sm bg-surface-raised text-foreground"
           onChange={(e) => execCommand("formatBlock", e.target.value)}
           defaultValue=""
         >

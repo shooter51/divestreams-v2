@@ -98,7 +98,7 @@ export default function SessionsPage() {
             <select
               value={courseId}
               onChange={(e) => updateFilter("courseId", e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
               <option value="">All Courses</option>
               {courses.map((course) => (
@@ -117,7 +117,7 @@ export default function SessionsPage() {
             <select
               value={status}
               onChange={(e) => updateFilter("status", e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
               <option value="">All Statuses</option>
               <option value="scheduled">Scheduled</option>

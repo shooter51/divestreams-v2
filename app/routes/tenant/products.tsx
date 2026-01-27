@@ -810,7 +810,7 @@ export default function ProductsPage() {
                       name="name"
                       defaultValue={editingProduct?.name || ""}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -820,7 +820,7 @@ export default function ProductsPage() {
                       name="category"
                       defaultValue={editingProduct?.category || "equipment"}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     >
                       {CATEGORIES.map((cat) => (
                         <option key={cat} value={cat}>
@@ -836,7 +836,7 @@ export default function ProductsPage() {
                       type="text"
                       name="sku"
                       defaultValue={editingProduct?.sku || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                       placeholder="Optional"
                     />
                   </div>
@@ -874,7 +874,7 @@ export default function ProductsPage() {
                       min="0"
                       defaultValue={editingProduct?.price || ""}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -886,7 +886,7 @@ export default function ProductsPage() {
                       step="0.01"
                       min="0"
                       defaultValue={editingProduct?.costPrice || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                       placeholder="For margin calc"
                     />
                   </div>
@@ -898,7 +898,7 @@ export default function ProductsPage() {
                       name="stockQuantity"
                       min="0"
                       defaultValue={editingProduct?.stockQuantity ?? 0}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -909,7 +909,7 @@ export default function ProductsPage() {
                       name="lowStockThreshold"
                       min="0"
                       defaultValue={editingProduct?.lowStockThreshold ?? 5}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -926,7 +926,7 @@ export default function ProductsPage() {
                       step="0.01"
                       min="0"
                       defaultValue={editingProduct?.salePrice || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                       placeholder="Leave empty for no sale"
                     />
                   </div>
@@ -941,7 +941,7 @@ export default function ProductsPage() {
                       type="datetime-local"
                       name="saleStartDate"
                       defaultValue={formatDateForInput(editingProduct?.saleStartDate || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -951,7 +951,7 @@ export default function ProductsPage() {
                       type="datetime-local"
                       name="saleEndDate"
                       defaultValue={formatDateForInput(editingProduct?.saleEndDate || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -961,7 +961,7 @@ export default function ProductsPage() {
                       name="description"
                       rows={2}
                       defaultValue={editingProduct?.description || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 

@@ -530,7 +530,7 @@ export default function TeamPage() {
                     name="email"
                     required
                     placeholder="colleague@example.com"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
 
@@ -543,7 +543,7 @@ export default function TeamPage() {
                     name="role"
                     required
                     defaultValue="staff"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   >
                     {roles
                       .filter((r) => r.id !== "owner")

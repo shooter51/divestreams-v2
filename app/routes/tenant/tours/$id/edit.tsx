@@ -174,7 +174,7 @@ export default function EditTourPage() {
                 id="name"
                 name="name"
                 defaultValue={actionData?.values?.name || tour.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.name && (
@@ -191,7 +191,7 @@ export default function EditTourPage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description || tour.description}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -204,7 +204,7 @@ export default function EditTourPage() {
                   id="type"
                   name="type"
                   defaultValue={actionData?.values?.type || tour.type}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   required
                 >
                   <option value="single_dive">Single Dive</option>
@@ -226,7 +226,7 @@ export default function EditTourPage() {
                   name="duration"
                   min="1"
                   defaultValue={actionData?.values?.duration || tour.duration}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -267,7 +267,7 @@ export default function EditTourPage() {
                 id="currency"
                 name="currency"
                 defaultValue={actionData?.values?.currency || tour.currency}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
@@ -289,7 +289,7 @@ export default function EditTourPage() {
                 name="maxParticipants"
                 min="1"
                 defaultValue={actionData?.values?.maxParticipants || tour.maxParticipants}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.maxParticipants && (
@@ -307,7 +307,7 @@ export default function EditTourPage() {
                 name="minParticipants"
                 min="1"
                 defaultValue={actionData?.values?.minParticipants || tour.minParticipants}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -371,7 +371,7 @@ export default function EditTourPage() {
                 name="inclusionsStr"
                 placeholder="Bottled water, Towels, Photos (comma-separated)"
                 defaultValue={actionData?.values?.inclusionsStr || tour.inclusions?.join(", ")}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -385,7 +385,7 @@ export default function EditTourPage() {
                 name="exclusionsStr"
                 placeholder="Certification fees, Marine park fees (comma-separated)"
                 defaultValue={actionData?.values?.exclusionsStr || tour.exclusions?.join(", ")}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -403,7 +403,7 @@ export default function EditTourPage() {
                 id="minCertLevel"
                 name="minCertLevel"
                 defaultValue={actionData?.values?.minCertLevel || tour.minCertLevel}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="">None Required</option>
                 <option value="Open Water">Open Water</option>
@@ -424,7 +424,7 @@ export default function EditTourPage() {
                 min="1"
                 placeholder="e.g., 10"
                 defaultValue={actionData?.values?.minAge || tour.minAge || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -439,7 +439,7 @@ export default function EditTourPage() {
               name="requirementsStr"
               placeholder="Must swim, Medical clearance required (comma-separated)"
               defaultValue={actionData?.values?.requirementsStr || tour.requirements?.join(", ")}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
         </div>

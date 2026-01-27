@@ -208,7 +208,7 @@ export default function ProfileSettingsPage() {
                   name="name"
                   required
                   defaultValue={profile.name}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
               <div>
@@ -239,7 +239,7 @@ export default function ProfileSettingsPage() {
                   name="email"
                   required
                   defaultValue={profile.email}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
               <div>
@@ -251,7 +251,7 @@ export default function ProfileSettingsPage() {
                   id="phone"
                   name="phone"
                   defaultValue={profile.phone}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -265,7 +265,7 @@ export default function ProfileSettingsPage() {
                 id="website"
                 name="website"
                 defaultValue={profile.website}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -284,7 +284,7 @@ export default function ProfileSettingsPage() {
                 id="street"
                 name="street"
                 defaultValue={profile.address.street}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -298,7 +298,7 @@ export default function ProfileSettingsPage() {
                   id="city"
                   name="city"
                   defaultValue={profile.address.city}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
               <div>
@@ -310,7 +310,7 @@ export default function ProfileSettingsPage() {
                   id="state"
                   name="state"
                   defaultValue={profile.address.state}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -325,7 +325,7 @@ export default function ProfileSettingsPage() {
                   id="country"
                   name="country"
                   defaultValue={profile.address.country}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
               <div>
@@ -337,7 +337,7 @@ export default function ProfileSettingsPage() {
                   id="postalCode"
                   name="postalCode"
                   defaultValue={profile.address.postalCode}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -356,7 +356,7 @@ export default function ProfileSettingsPage() {
                 id="timezone"
                 name="timezone"
                 defaultValue={profile.timezone}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 {timezones.map((tz) => (
                   <option key={tz.value} value={tz.value}>
@@ -373,7 +373,7 @@ export default function ProfileSettingsPage() {
                 id="currency"
                 name="currency"
                 defaultValue={profile.currency}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 {currencies.map((c) => (
                   <option key={c.value} value={c.value}>
@@ -414,7 +414,7 @@ export default function ProfileSettingsPage() {
                   name="minAdvanceBooking"
                   min="0"
                   defaultValue={profile.bookingSettings.minAdvanceBooking}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 <p className="text-xs text-foreground-muted mt-1">
                   How far in advance customers must book
@@ -430,7 +430,7 @@ export default function ProfileSettingsPage() {
                   name="maxAdvanceBooking"
                   min="1"
                   defaultValue={profile.bookingSettings.maxAdvanceBooking}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 <p className="text-xs text-foreground-muted mt-1">
                   How far in future customers can book
@@ -446,7 +446,7 @@ export default function ProfileSettingsPage() {
                 id="cancellation"
                 name="cancellationPolicy"
                 defaultValue={profile.bookingSettings.cancellationPolicy}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="24h">Free cancellation up to 24 hours before</option>
                 <option value="48h">Free cancellation up to 48 hours before</option>
