@@ -206,6 +206,7 @@ export async function getCourses(
       name: schema.trainingCourses.name,
       code: schema.trainingCourses.code,
       description: schema.trainingCourses.description,
+      images: schema.trainingCourses.images,
       durationDays: schema.trainingCourses.durationDays,
       price: schema.trainingCourses.price,
       currency: schema.trainingCourses.currency,

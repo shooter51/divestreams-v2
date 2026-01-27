@@ -47,6 +47,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     name: c.name,
     code: c.code || "",
     description: c.description || "",
+    imageUrl: (c.images && Array.isArray(c.images) && c.images.length > 0) ? c.images[0] : null,
     agencyName: c.agencyName || "No Agency",
     levelName: c.levelName || "No Level",
     durationDays: c.durationDays || 0,
@@ -87,17 +88,25 @@ export default function CoursesIndexPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Training Courses</h1>
-          <p className="text-foreground-muted">{total} courses</p>
-        </div>
+      <div className="mb-6">
         <Link
-          to="/tenant/training/courses/new"
-          className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
+          to="/tenant/training"
+          className="text-brand hover:underline text-sm inline-flex items-center gap-1 mb-3"
         >
-          Create Course
+          ← Back to Training Dashboard
         </Link>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Training Courses</h1>
+            <p className="text-foreground-muted">{total} courses</p>
+          </div>
+          <Link
+            to="/tenant/training/courses/new"
+            className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
+          >
+            Create Course
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}
@@ -152,6 +161,9 @@ export default function CoursesIndexPage() {
           <table className="w-full">
             <thead className="bg-surface-inset border-b">
               <tr>
+                <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted w-20">
+                  Image
+                </th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-foreground-muted">
                   Course
                 </th>
@@ -175,6 +187,19 @@ export default function CoursesIndexPage() {
             <tbody className="divide-y">
               {courses.map((course) => (
                 <tr key={course.id} className="hover:bg-surface-inset">
+                  <td className="px-6 py-4">
+                    {course.imageUrl ? (
+                      <img
+                        src={course.imageUrl}
+                        alt={course.name}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-surface-inset rounded flex items-center justify-center text-foreground-muted text-xs">
+                        No image
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <div>
                       <Link
