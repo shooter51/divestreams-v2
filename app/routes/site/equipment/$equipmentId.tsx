@@ -227,11 +227,11 @@ export default function SiteEquipmentDetailPage() {
   const isAvailable = equipment.status === "available";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--color-card-bg)" }}>
       {/* Breadcrumb */}
-      <div className="bg-white border-b" style={{ borderColor: "var(--accent-color)" }}>
+      <div className="border-b" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm">
+          <nav className="flex items-center gap-2 text-sm" style={{ color: "var(--text-color)" }}>
             <Link to="/site" className="opacity-60 hover:opacity-100">Home</Link>
             <span className="opacity-40">/</span>
             <Link to="/site/equipment" className="opacity-60 hover:opacity-100">Equipment</Link>
@@ -246,7 +246,7 @@ export default function SiteEquipmentDetailPage() {
           {/* Image Gallery */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="aspect-square bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="aspect-square rounded-xl shadow-sm overflow-hidden border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
               {displayImages ? (
                 <img
                   src={displayImages[selectedImage]?.url || primaryImage?.url}
@@ -311,16 +311,16 @@ export default function SiteEquipmentDetailPage() {
                   </span>
                 )}
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">{equipment.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: "var(--text-color)" }}>{equipment.name}</h1>
               {(equipment.brand || equipment.model) && (
-                <p className="text-lg opacity-70">
+                <p className="text-lg opacity-70" style={{ color: "var(--text-color)" }}>
                   {[equipment.brand, equipment.model].filter(Boolean).join(" ")}
                 </p>
               )}
             </div>
 
             {/* Pricing */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="rounded-xl shadow-sm p-6 border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
               <div className="flex items-baseline gap-2 mb-2">
                 <span
                   className="text-4xl font-bold"
@@ -329,10 +329,10 @@ export default function SiteEquipmentDetailPage() {
                   {formatPrice(equipment.rentalPrice)}
                 </span>
                 {equipment.rentalPrice && (
-                  <span className="text-lg opacity-60">per day</span>
+                  <span className="text-lg opacity-60" style={{ color: "var(--text-color)" }}>per day</span>
                 )}
               </div>
-              <p className="text-sm opacity-60 mb-4">
+              <p className="text-sm opacity-60 mb-4" style={{ color: "var(--text-color)" }}>
                 Multi-day discounts available. Contact us for weekly rates.
               </p>
 
@@ -375,8 +375,8 @@ export default function SiteEquipmentDetailPage() {
                 </button>
                 <Link
                   to="/site/contact"
-                  className="block w-full px-6 py-3 rounded-lg text-center font-medium border transition-colors hover:bg-gray-50"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  className="block w-full px-6 py-3 rounded-lg text-center font-medium border transition-colors"
+                  style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
                 >
                   Check Availability
                 </Link>
@@ -384,39 +384,39 @@ export default function SiteEquipmentDetailPage() {
             </div>
 
             {/* Specifications */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4">Specifications</h2>
+            <div className="rounded-xl shadow-sm p-6 border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>Specifications</h2>
               <dl className="space-y-3">
                 {equipment.brand && (
-                  <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--accent-color)" }}>
+                  <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
                     <dt className="opacity-70">Brand</dt>
                     <dd className="font-medium">{equipment.brand}</dd>
                   </div>
                 )}
                 {equipment.model && (
-                  <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--accent-color)" }}>
+                  <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
                     <dt className="opacity-70">Model</dt>
                     <dd className="font-medium">{equipment.model}</dd>
                   </div>
                 )}
                 {equipment.size && (
-                  <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--accent-color)" }}>
+                  <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
                     <dt className="opacity-70">Size</dt>
                     <dd className="font-medium">{equipment.size}</dd>
                   </div>
                 )}
-                <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--accent-color)" }}>
+                <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
                   <dt className="opacity-70">Condition</dt>
                   <dd className="font-medium capitalize">{equipment.condition || "Good"}</dd>
                 </div>
                 {equipment.lastServiceDate && (
-                  <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--accent-color)" }}>
+                  <div className="flex justify-between py-2 border-b" style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}>
                     <dt className="opacity-70">Last Serviced</dt>
                     <dd className="font-medium">{formatDate(equipment.lastServiceDate)}</dd>
                   </div>
                 )}
                 {equipment.nextServiceDate && (
-                  <div className="flex justify-between py-2">
+                  <div className="flex justify-between py-2" style={{ color: "var(--text-color)" }}>
                     <dt className="opacity-70">Next Service</dt>
                     <dd className="font-medium">{formatDate(equipment.nextServiceDate)}</dd>
                   </div>
@@ -426,9 +426,9 @@ export default function SiteEquipmentDetailPage() {
 
             {/* Description / Notes */}
             {equipment.notes && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4">Description</h2>
-                <p className="opacity-80 whitespace-pre-wrap">{equipment.notes}</p>
+              <div className="rounded-xl shadow-sm p-6 border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
+                <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>Description</h2>
+                <p className="opacity-80 whitespace-pre-wrap" style={{ color: "var(--text-color)" }}>{equipment.notes}</p>
               </div>
             )}
 
@@ -451,9 +451,9 @@ export default function SiteEquipmentDetailPage() {
             )}
 
             {/* Rental Terms */}
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="font-semibold mb-3">Rental Terms</h3>
-              <ul className="space-y-2 text-sm opacity-80">
+            <div className="rounded-xl p-6 border" style={{ backgroundColor: "var(--accent-color)", borderColor: "var(--color-border)" }}>
+              <h3 className="font-semibold mb-3" style={{ color: "var(--text-color)" }}>Rental Terms</h3>
+              <ul className="space-y-2 text-sm opacity-80" style={{ color: "var(--text-color)" }}>
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path
@@ -503,8 +503,8 @@ export default function SiteEquipmentDetailPage() {
         <div className="mt-12 text-center">
           <Link
             to="/site/equipment"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border font-medium transition-colors hover:bg-gray-50"
-            style={{ borderColor: "var(--accent-color)" }}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border font-medium transition-colors"
+            style={{ borderColor: "var(--color-border)", color: "var(--text-color)" }}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
