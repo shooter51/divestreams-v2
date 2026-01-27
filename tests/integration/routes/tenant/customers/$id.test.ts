@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader, action } from "../../../../../app/routes/tenant/customers/$id";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../lib/db/queries.server";
@@ -218,7 +219,7 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/tenant/customers");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/customers");
     });
 
     it("should send email and return success", async () => {

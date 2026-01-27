@@ -196,8 +196,8 @@ export async function getAvailableAgencies() {
 
   return agencies.map(({ agencyCode }) => ({
     code: agencyCode,
-    name: agencyMetadata[agencyCode]?.name || agencyCode.toUpperCase(),
-    description: agencyMetadata[agencyCode]?.description,
+    name: agencyCode ? (agencyMetadata[agencyCode]?.name || agencyCode.toUpperCase()) : "UNKNOWN",
+    description: agencyCode ? agencyMetadata[agencyCode]?.description : undefined,
   }));
 }
 

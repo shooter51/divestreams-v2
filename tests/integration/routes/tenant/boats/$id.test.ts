@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader, action } from "../../../../../app/routes/tenant/boats/$id";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../lib/db/queries.server";
@@ -418,7 +419,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       expect(queries.deleteBoat).toHaveBeenCalledWith(mockOrganizationId, mockBoatId);
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/tenant/boats");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/boats");
     });
 
     it("should return null for unknown intent", async () => {

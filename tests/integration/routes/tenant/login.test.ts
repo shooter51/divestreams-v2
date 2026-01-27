@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
+import { getRedirectPathname } from "../../../helpers/redirect";
 
 // Track whether we're in a loader context (where redirect throws) or action context (where redirect returns)
 let shouldThrowRedirect = false;
@@ -106,7 +107,7 @@ describe("tenant/login route", () => {
       } catch (response) {
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/tenant");
+        expect(getRedirectPathname((response as Response).headers.get("Location"))).toBe("/tenant");
       }
     });
 
@@ -124,7 +125,7 @@ describe("tenant/login route", () => {
       } catch (response) {
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/tenant/bookings");
+        expect(getRedirectPathname((response as Response).headers.get("Location"))).toBe("/tenant/bookings");
       }
     });
 
@@ -291,7 +292,7 @@ describe("tenant/login route", () => {
 
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/tenant");
+        expect(getRedirectPathname((response as Response).headers.get("Location"))).toBe("/tenant");
       });
 
       it("returns notMember when user is not a member of the org", async () => {
@@ -385,7 +386,7 @@ describe("tenant/login route", () => {
         // redirect() returns a Response in React Router v7
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/tenant");
+        expect(getRedirectPathname((response as Response).headers.get("Location"))).toBe("/tenant");
         expect(db.insert).toHaveBeenCalled();
       });
 

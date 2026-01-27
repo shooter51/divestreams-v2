@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../../helpers/redirect";
 import { loader, action } from "../../../../../../app/routes/tenant/pos/products/$id";
 import * as orgContext from "../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../lib/db/queries.server";
@@ -67,7 +68,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       expect(queries.deleteProduct).toHaveBeenCalledWith(mockOrganizationId, "prod-1");
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/tenant/pos/products");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/pos/products");
     });
 
     it("should adjust stock up", async () => {

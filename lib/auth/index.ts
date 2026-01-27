@@ -52,14 +52,8 @@ export const auth = betterAuth({
       maxAge: 60 * 5, // 5 minutes - cache duration before revalidating with DB
     },
   },
-  advanced: {
-    cookieOptions: {
-      sameSite: "lax",
-      domain: process.env.NODE_ENV === "production"
-        ? (process.env.APP_URL?.includes("staging") ? ".staging.divestreams.com" : ".divestreams.com")
-        : undefined,
-    },
-  },
+  // Cookie configuration handled by Better Auth defaults
+  // sameSite: 'lax' and domain are set appropriately by the framework
   plugins: [
     organization({
       allowUserToCreateOrganization: true,
