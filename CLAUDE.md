@@ -115,14 +115,22 @@ This retags `ghcr.io/shooter51/divestreams-app:staging` → `:latest` and deploy
 |-------------|--------|------------|----------------|-----------|
 | **Production** | 1239852 | 72.62.166.128 | divestreams-v2 | :latest |
 | **Staging** | 1271895 | 76.13.28.28 | divestreams-staging | :staging |
+| **Dev** | 1296511 | 62.72.3.35 | divestreams-dev | :staging |
 
-**Containers (both environments):**
+**Containers (all environments):**
 | Container | Image | Purpose |
 |-----------|-------|---------|
 | divestreams-app | ghcr.io/shooter51/divestreams-app | Main React Router application (port 3000 internal) |
 | divestreams-db | postgres:16-alpine | PostgreSQL database |
 | divestreams-redis | redis:7-alpine | Redis cache/queue |
 | divestreams-caddy | caddy:2-alpine | Reverse proxy with SSL (ports 80/443) |
+| divestreams-worker | ghcr.io/shooter51/divestreams-app | Background job worker (BullMQ) |
+
+**Dev Environment Notes:**
+- Uses `:staging` image tag (CI/CD doesn't build `:dev` tag)
+- Configured for `dev.divestreams.com` but DNS not yet set up
+- Can be accessed directly via IP: http://62.72.3.35
+- To enable SSL, configure DNS A record: `dev.divestreams.com` → `62.72.3.35`
 
 ### Check Deployment Status
 ```bash
@@ -300,6 +308,10 @@ mcp__hostinger-mcp__VPS_getProjectLogsV1(virtualMachineId: 1239852, projectName:
 # Staging (VPS 1271895)
 mcp__hostinger-mcp__VPS_getProjectContainersV1(virtualMachineId: 1271895, projectName: "divestreams-staging")
 mcp__hostinger-mcp__VPS_getProjectLogsV1(virtualMachineId: 1271895, projectName: "divestreams-staging")
+
+# Dev (VPS 1296511)
+mcp__hostinger-mcp__VPS_getProjectContainersV1(virtualMachineId: 1296511, projectName: "divestreams-dev")
+mcp__hostinger-mcp__VPS_getProjectLogsV1(virtualMachineId: 1296511, projectName: "divestreams-dev")
 ```
 
 **DO NOT use `VPS_updateProjectV1` directly - always deploy via CI/CD pipeline (git push).**
