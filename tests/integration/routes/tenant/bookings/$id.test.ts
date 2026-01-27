@@ -189,7 +189,9 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.updateBookingStatus).toHaveBeenCalledWith(mockOrganizationId, mockBookingId, "cancelled");
-      expect(result).toEqual({ cancelled: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
     it("should confirm booking when intent is confirm", async () => {
@@ -206,7 +208,9 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.updateBookingStatus).toHaveBeenCalledWith(mockOrganizationId, mockBookingId, "confirmed");
-      expect(result).toEqual({ confirmed: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
     it("should complete booking when intent is complete", async () => {
@@ -223,7 +227,9 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.updateBookingStatus).toHaveBeenCalledWith(mockOrganizationId, mockBookingId, "completed");
-      expect(result).toEqual({ completed: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
     it("should mark as no-show when intent is no-show", async () => {
@@ -240,7 +246,9 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.updateBookingStatus).toHaveBeenCalledWith(mockOrganizationId, mockBookingId, "no_show");
-      expect(result).toEqual({ noShow: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
     it("should add payment when intent is add-payment with valid data", async () => {

@@ -282,6 +282,12 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
     });
 
     it("should delete site", async () => {
+      const mockSite = {
+        id: mockSiteId,
+        name: "Blue Corner",
+      };
+
+      vi.mocked(queries.getDiveSiteById).mockResolvedValue(mockSite as any);
       vi.mocked(queries.deleteDiveSite).mockResolvedValue(undefined);
 
       const formData = new FormData();
@@ -297,7 +303,7 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
       expect(queries.deleteDiveSite).toHaveBeenCalledWith(mockOrganizationId, mockSiteId);
       expect(result).toBeInstanceOf(Response);
       expect((result as Response).status).toBe(302);
-      expect((result as Response).headers.get("Location")).toBe("/tenant/dive-sites");
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe("/tenant/dive-sites");
     });
 
     it("should return null for unknown intent", async () => {
