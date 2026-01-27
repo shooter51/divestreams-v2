@@ -513,11 +513,6 @@ export async function getPublicCourseById(
     .limit(1);
 
   if (!course) {
-    console.log('[getPublicCourseById] Course not found:', {
-      organizationId,
-      courseId,
-      queryConditions: 'isPublic=true, isActive=true'
-    });
     return null;
   }
 
