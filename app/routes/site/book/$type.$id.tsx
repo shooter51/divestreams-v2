@@ -850,7 +850,7 @@ export default function BookingPage() {
       {/* Header */}
       <div
         className="border-b"
-        style={{ backgroundColor: "white", borderColor: "var(--accent-color)" }}
+        style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}
       >
         <div className="max-w-4xl mx-auto px-4 py-6">
           <Link
@@ -895,8 +895,8 @@ export default function BookingPage() {
             <div
               className="rounded-xl p-6 shadow-sm"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -942,7 +942,7 @@ export default function BookingPage() {
                   )}
 
                   {/* Session Selection */}
-                  <div className="pt-4 border-t" style={{ borderColor: "var(--accent-color)" }}>
+                  <div className="pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
                     <label className="block text-sm font-medium mb-2">
                       Select a Session Date *
                     </label>
@@ -1027,8 +1027,8 @@ export default function BookingPage() {
             <div
               className="rounded-xl p-6 shadow-sm"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -1044,7 +1044,7 @@ export default function BookingPage() {
                   type="button"
                   onClick={() => setParticipants(Math.max(1, participants - 1))}
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:bg-gray-50"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  style={{ borderColor: "var(--color-border)" }}
                   disabled={participants <= 1}
                 >
                   <MinusIcon className="w-5 h-5" />
@@ -1064,7 +1064,7 @@ export default function BookingPage() {
                   min="1"
                   max={maxParticipants}
                   className="w-20 text-center text-xl font-semibold border rounded-lg py-2"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  style={{ borderColor: "var(--color-border)" }}
                 />
                 <button
                   type="button"
@@ -1072,7 +1072,7 @@ export default function BookingPage() {
                     setParticipants(Math.min(maxParticipants, participants + 1))
                   }
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:bg-gray-50"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  style={{ borderColor: "var(--color-border)" }}
                   disabled={participants >= maxParticipants}
                 >
                   <PlusIcon className="w-5 h-5" />
@@ -1093,8 +1093,8 @@ export default function BookingPage() {
               <div
                 className="rounded-xl p-6 shadow-sm"
                 style={{
-                  backgroundColor: "white",
-                  borderColor: "var(--accent-color)",
+                  backgroundColor: "var(--color-card-bg)",
+                  borderColor: "var(--color-border)",
                   borderWidth: "1px",
                 }}
               >
@@ -1157,8 +1157,8 @@ export default function BookingPage() {
             <div
               className="rounded-xl p-6 shadow-sm"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -1313,7 +1313,7 @@ export default function BookingPage() {
                       name="phone"
                       defaultValue={actionData?.values?.phone}
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2"
-                      style={{ borderColor: "var(--accent-color)" }}
+                      style={{ borderColor: "var(--color-border)" }}
                     />
                   </div>
                 </div>
@@ -1324,8 +1324,8 @@ export default function BookingPage() {
             <div
               className="rounded-xl p-6 shadow-sm"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -1340,7 +1340,7 @@ export default function BookingPage() {
                 rows={3}
                 placeholder="Any dietary requirements, medical conditions, or special requests..."
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 resize-none"
-                style={{ borderColor: "var(--accent-color)" }}
+                style={{ borderColor: "var(--color-border)" }}
               />
             </div>
 
@@ -1357,8 +1357,8 @@ export default function BookingPage() {
             <div
               className="sticky top-24 rounded-xl p-6 shadow-lg"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -1392,7 +1392,7 @@ export default function BookingPage() {
                 {selectedEquipment.length > 0 && (
                   <div
                     className="pt-3 border-t space-y-2"
-                    style={{ borderColor: "var(--accent-color)" }}
+                    style={{ borderColor: "var(--color-border)" }}
                   >
                     <p className="text-sm font-medium">Equipment Rental:</p>
                     {selectedEquipment.map((eqId) => {
@@ -1415,7 +1415,7 @@ export default function BookingPage() {
                 {/* Total */}
                 <div
                   className="pt-4 border-t flex justify-between"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  style={{ borderColor: "var(--color-border)" }}
                 >
                   <span className="font-semibold">Total</span>
                   <span

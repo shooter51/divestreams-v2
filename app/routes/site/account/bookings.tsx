@@ -243,7 +243,7 @@ function BookingCard({ booking }: { booking: BookingItem }) {
   return (
     <div
       className={`rounded-xl border p-5 ${isCancelled ? "opacity-60" : ""}`}
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         {/* Left Side - Trip Info */}
@@ -331,7 +331,7 @@ function EmptyState({ filter }: { filter: string }) {
   return (
     <div
       className="rounded-xl border p-12 text-center"
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div
         className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4"

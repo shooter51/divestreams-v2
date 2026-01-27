@@ -400,11 +400,13 @@ export default function SiteContactPage() {
         <div
           className="rounded-2xl p-8 shadow-sm border"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
           }}
         >
-          <h2 className="text-2xl font-semibold mb-6">Send us a message</h2>
+          <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--text-color)" }}>
+            Send us a message
+          </h2>
 
           {actionData?.success ? (
             <div
@@ -439,6 +441,7 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-name"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Name <span className="text-red-500">*</span>
                 </label>
@@ -477,6 +480,7 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-email"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Email <span className="text-red-500">*</span>
                 </label>
@@ -515,6 +519,7 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-phone"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Phone <span className="text-sm opacity-50">(optional)</span>
                 </label>
@@ -552,6 +557,7 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-message"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Message <span className="text-red-500">*</span>
                 </label>
@@ -613,11 +619,13 @@ export default function SiteContactPage() {
           <div
             className="rounded-2xl p-8 shadow-sm border"
             style={{
-              backgroundColor: "white",
-              borderColor: "var(--accent-color)",
+              backgroundColor: "var(--color-card-bg)",
+              borderColor: "var(--color-border)",
             }}
           >
-            <h2 className="text-2xl font-semibold mb-6">Get in touch</h2>
+            <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--text-color)" }}>
+              Get in touch
+            </h2>
 
             <div className="space-y-6">
               {/* Address */}
