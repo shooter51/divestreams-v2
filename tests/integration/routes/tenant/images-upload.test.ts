@@ -312,8 +312,8 @@ describe("tenant/images/upload route", () => {
       const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
       const data = await response.json();
 
-      expect(response.status).toBe(500);
-      expect(data.error).toContain("Failed to upload image");
+      expect(response.status).toBe(503);
+      expect(data.error).toContain("Image storage is not configured");
     });
 
     it("uploads image successfully", async () => {

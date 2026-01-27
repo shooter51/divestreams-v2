@@ -11,6 +11,7 @@ vi.mock("../../../../../lib/db/queries.server");
 vi.mock("../../../../../lib/db", () => ({
   db: {
     select: vi.fn(),
+    insert: vi.fn(),
   },
 }));
 
@@ -223,6 +224,13 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
     });
 
     it("should send email and return success", async () => {
+      // Mock the insert chain for customerCommunications
+      const mockInsertBuilder = {
+        insert: vi.fn().mockReturnThis(),
+        values: vi.fn().mockResolvedValue([]),
+      };
+      vi.mocked(db.insert).mockReturnValue(mockInsertBuilder as any);
+
       const formData = new FormData();
       formData.append("intent", "send-email");
       formData.append("subject", "Test Email");

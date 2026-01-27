@@ -238,9 +238,10 @@ describe("marketing/signup route", () => {
       });
 
       it("returns error when email already exists", async () => {
-        // Mock db to return an existing user
+        // Mock db to return an existing user and a membership
         mockDb.limit.mockReset();
-        mockDb.limit.mockResolvedValueOnce([{ id: "existing-user" }]);
+        mockDb.limit.mockResolvedValueOnce([{ id: "existing-user" }]); // User lookup
+        mockDb.limit.mockResolvedValueOnce([{ id: "existing-membership" }]); // Membership lookup
 
         const formData = new FormData();
         formData.append("shopName", "My Dive Shop");

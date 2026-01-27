@@ -8,9 +8,9 @@
  * 3. Plans don't reset to "free" on deployment
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import { db } from "../lib/db";
-import { subscription, subscriptionPlans } from "../lib/db/schema";
+import { subscription, subscriptionPlans, organization } from "../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { handleSubscriptionUpdated } from "../lib/stripe/index";
 import type Stripe from "stripe";
@@ -20,11 +20,75 @@ describe("Subscription Plan Persistence (DIVE-166)", () => {
   let testPlanId: string;
   let testPriceId: string;
 
+  beforeAll(async () => {
+    // Ensure subscription plans exist in the test database
+    const existingPlans = await db.select().from(subscriptionPlans).limit(1);
+
+    if (existingPlans.length === 0) {
+      // Seed the plans if they don't exist
+      await db.insert(subscriptionPlans).values([
+        {
+          name: "free",
+          displayName: "Free",
+          monthlyPrice: 0,
+          yearlyPrice: 0,
+          features: {
+            has_tours_bookings: true,
+            has_equipment_boats: false,
+            has_training: false,
+            has_pos: false,
+            has_public_site: false,
+            has_advanced_notifications: false,
+            has_integrations: false,
+            has_api_access: false,
+          },
+          limits: {
+            users: 1,
+            customers: 50,
+            toursPerMonth: 5,
+            storageGb: 0.5,
+          },
+        },
+        {
+          name: "pro",
+          displayName: "Pro",
+          monthlyPriceId: "price_test_pro_monthly",
+          yearlyPriceId: "price_test_pro_yearly",
+          monthlyPrice: 9900,
+          yearlyPrice: 95000,
+          features: {
+            has_tours_bookings: true,
+            has_equipment_boats: true,
+            has_training: true,
+            has_pos: true,
+            has_public_site: true,
+            has_advanced_notifications: true,
+            has_integrations: false,
+            has_api_access: false,
+          },
+          limits: {
+            users: 10,
+            customers: 5000,
+            toursPerMonth: 100,
+            storageGb: 25,
+          },
+        },
+      ]);
+    }
+  }, 60000);
+
   beforeEach(async () => {
     // Create a test organization ID
     testOrgId = "test-org-" + Date.now();
 
-    // Get an existing plan from the database
+    // Create a test organization (required for foreign key)
+    await db.insert(organization).values({
+      id: testOrgId,
+      name: "Test Organization",
+      slug: "test-org-" + Date.now(),
+    });
+
+    // Get the pro plan from the database
     const [plan] = await db
       .select()
       .from(subscriptionPlans)
@@ -32,7 +96,7 @@ describe("Subscription Plan Persistence (DIVE-166)", () => {
       .limit(1);
 
     if (!plan) {
-      throw new Error("Pro plan not found in database - run migrations first");
+      throw new Error("Pro plan not found in database after seeding");
     }
 
     testPlanId = plan.id;
@@ -44,6 +108,13 @@ describe("Subscription Plan Persistence (DIVE-166)", () => {
       plan: "free",
       status: "active",
     });
+  });
+
+  afterEach(async () => {
+    // Clean up test data (cascade will delete subscription)
+    await db
+      .delete(organization)
+      .where(eq(organization.id, testOrgId));
   });
 
   it("should update planId when Stripe subscription is upgraded", async () => {

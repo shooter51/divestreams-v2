@@ -42,6 +42,7 @@ describe("Enrollment Validation Tests", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    vi.resetModules(); // Reset module cache between tests
     const { db } = await import("../../../../lib/db/index");
     dbMock = db;
   });
@@ -133,34 +134,12 @@ describe("Enrollment Validation Tests", () => {
   });
 
   it("should throw error when customer already enrolled", async () => {
+    // Reset before setting up this specific test
+    vi.clearAllMocks();
+
     // Mock valid session and customer but existing enrollment
-    (dbMock.where as Mock)
-      .mockResolvedValueOnce([
-        {
-          id: "session-1",
-          status: "scheduled",
-          maxStudents: 10,
-          enrolledCount: 3,
-        },
-      ])
-      .mockResolvedValueOnce([{ id: "customer-1" }]) // Customer exists
-      .mockResolvedValueOnce([{ id: "existing-enrollment" }]); // Already enrolled
-
-    const { createEnrollment } = await import("../../../../lib/db/training.server");
-
-    await expect(
-      createEnrollment({
-        organizationId: "org-1",
-        sessionId: "session-1",
-        customerId: "customer-1",
-      })
-    ).rejects.toThrow("Customer is already enrolled in this session");
-  });
-
-  it("should allow enrollment in scheduled session", async () => {
-    // Mock the select queries that happen in the validation
     let callCount = 0;
-    (dbMock.where as Mock).mockImplementation(() => {
+    (dbMock.where as Mock).mockReset().mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
         // Session validation
@@ -175,8 +154,52 @@ describe("Enrollment Validation Tests", () => {
       } else if (callCount === 2) {
         // Customer validation
         return Promise.resolve([{ id: "customer-1" }]);
+      } else if (callCount === 3) {
+        // Existing enrollment check - should find an enrollment
+        return Promise.resolve([{ id: "existing-enrollment" }]);
       } else {
-        // Existing enrollment check
+        // Shouldn't get here
+        return Promise.resolve([]);
+      }
+    });
+
+    const { createEnrollment } = await import("../../../../lib/db/training.server");
+
+    await expect(
+      createEnrollment({
+        organizationId: "org-1",
+        sessionId: "session-1",
+        customerId: "customer-1",
+      })
+    ).rejects.toThrow("Customer is already enrolled in this session");
+  });
+
+  it("should allow enrollment in scheduled session", async () => {
+    // Reset before setting up this specific test
+    vi.clearAllMocks();
+
+    // Mock the select queries that happen in the validation
+    let callCount = 0;
+    (dbMock.where as Mock).mockReset().mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        // Session validation
+        return Promise.resolve([
+          {
+            id: "session-1",
+            status: "scheduled",
+            maxStudents: 10,
+            enrolledCount: 3,
+          },
+        ]);
+      } else if (callCount === 2) {
+        // Customer validation
+        return Promise.resolve([{ id: "customer-1" }]);
+      } else if (callCount === 3) {
+        // Existing enrollment check - should NOT find any enrollment
+        return Promise.resolve([]);
+      } else {
+        // Shouldn't get here
         return Promise.resolve([]);
       }
     });
@@ -205,17 +228,24 @@ describe("Enrollment Validation Tests", () => {
 
   it("should allow enrollment in in_progress session", async () => {
     // Mock session in progress (e.g., started but still accepting students)
-    (dbMock.where as Mock)
-      .mockResolvedValueOnce([
-        {
-          id: "session-1",
-          status: "in_progress",
-          maxStudents: 10,
-          enrolledCount: 3,
-        },
-      ])
-      .mockResolvedValueOnce([{ id: "customer-1" }])
-      .mockResolvedValueOnce([]);
+    let callCount = 0;
+    (dbMock.where as Mock).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.resolve([
+          {
+            id: "session-1",
+            status: "in_progress",
+            maxStudents: 10,
+            enrolledCount: 3,
+          },
+        ]);
+      } else if (callCount === 2) {
+        return Promise.resolve([{ id: "customer-1" }]);
+      } else {
+        return Promise.resolve([]);
+      }
+    });
 
     (dbMock.returning as Mock).mockResolvedValueOnce([
       {
@@ -239,17 +269,24 @@ describe("Enrollment Validation Tests", () => {
 
   it("should allow enrollment in completed session (for late enrollments)", async () => {
     // Mock completed session (e.g., makeup class, late enrollment)
-    (dbMock.where as Mock)
-      .mockResolvedValueOnce([
-        {
-          id: "session-1",
-          status: "completed",
-          maxStudents: 10,
-          enrolledCount: 8,
-        },
-      ])
-      .mockResolvedValueOnce([{ id: "customer-1" }])
-      .mockResolvedValueOnce([]);
+    let callCount = 0;
+    (dbMock.where as Mock).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.resolve([
+          {
+            id: "session-1",
+            status: "completed",
+            maxStudents: 10,
+            enrolledCount: 8,
+          },
+        ]);
+      } else if (callCount === 2) {
+        return Promise.resolve([{ id: "customer-1" }]);
+      } else {
+        return Promise.resolve([]);
+      }
+    });
 
     (dbMock.returning as Mock).mockResolvedValueOnce([
       {
@@ -273,17 +310,24 @@ describe("Enrollment Validation Tests", () => {
 
   it("should allow enrollment when session has no max students limit", async () => {
     // Mock session with no max students (null/undefined)
-    (dbMock.where as Mock)
-      .mockResolvedValueOnce([
-        {
-          id: "session-1",
-          status: "scheduled",
-          maxStudents: null,
-          enrolledCount: 100,
-        },
-      ])
-      .mockResolvedValueOnce([{ id: "customer-1" }])
-      .mockResolvedValueOnce([]);
+    let callCount = 0;
+    (dbMock.where as Mock).mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.resolve([
+          {
+            id: "session-1",
+            status: "scheduled",
+            maxStudents: null,
+            enrolledCount: 100,
+          },
+        ]);
+      } else if (callCount === 2) {
+        return Promise.resolve([{ id: "customer-1" }]);
+      } else {
+        return Promise.resolve([]);
+      }
+    });
 
     (dbMock.returning as Mock).mockResolvedValueOnce([
       {

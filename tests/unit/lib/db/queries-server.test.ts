@@ -170,6 +170,13 @@ vi.mock("../../../../lib/db/schema", () => ({
     difficulty: "difficulty",
     isActive: "isActive",
   },
+  tourDiveSites: {
+    id: "id",
+    organizationId: "organizationId",
+    tourId: "tourId",
+    diveSiteId: "diveSiteId",
+    createdAt: "createdAt",
+  },
   rentals: {
     id: "id",
     organizationId: "organizationId",
@@ -187,8 +194,24 @@ vi.mock("../../../../lib/db/schema", () => ({
 describe("Server Queries Module", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    const mockOffset = vi.fn(() => Promise.resolve([]));
+    const mockLimitWithOffset = vi.fn(() => ({
+      offset: mockOffset,
+      then: (resolve: any) => resolve([]),
+    }));
     mockLimit.mockResolvedValue([]);
     mockReturning.mockResolvedValue([{ id: "item-1" }]);
+    // Reset where to return mockable chain by default
+    const mockOrderBy = vi.fn(() => ({
+      limit: mockLimitWithOffset,
+      then: (resolve: any) => resolve([]),
+    }));
+    dbMock.where = vi.fn(() => ({
+      limit: mockLimit,
+      orderBy: mockOrderBy,
+      returning: mockReturning,
+      then: (resolve: any) => resolve([]), // For direct await on where()
+    }));
   });
 
   describe("Module exports", () => {
@@ -933,6 +956,18 @@ describe("Server Queries Module", () => {
 
   describe("deleteTour", () => {
     it("soft deletes tour by setting isActive to false", async () => {
+      // Mock the count query to return 0 trips (allow deletion)
+      const mockOrderBy = vi.fn(() => ({
+        limit: mockLimit,
+        then: (resolve: any) => resolve([]),
+      }));
+      dbMock.where = vi.fn(() => ({
+        limit: mockLimit,
+        orderBy: mockOrderBy,
+        returning: mockReturning,
+        then: (resolve: any) => resolve([{ count: 0 }]),
+      }));
+
       const { deleteTour } = await import("../../../../lib/db/queries.server");
       const result = await deleteTour("org-1", "tour-1");
 

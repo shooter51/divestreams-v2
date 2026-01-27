@@ -50,6 +50,41 @@ vi.mock("../../../../../lib/db/schema", () => ({
     expiresAt: "expiresAt",
     createdAt: "createdAt",
   },
+  organization: {
+    id: "id",
+    name: "name",
+    slug: "slug",
+    logo: "logo",
+    createdAt: "createdAt",
+    metadata: "metadata",
+  },
+  session: {
+    id: "id",
+    userId: "userId",
+    expiresAt: "expiresAt",
+    token: "token",
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
+  },
+  account: {
+    id: "id",
+    userId: "userId",
+    accountId: "accountId",
+    providerId: "providerId",
+    accessToken: "accessToken",
+    refreshToken: "refreshToken",
+    expiresAt: "expiresAt",
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
+  },
+  verification: {
+    id: "id",
+    identifier: "identifier",
+    value: "value",
+    expiresAt: "expiresAt",
+    createdAt: "createdAt",
+    updatedAt: "updatedAt",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
