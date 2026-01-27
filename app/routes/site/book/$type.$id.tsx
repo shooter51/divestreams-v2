@@ -964,7 +964,7 @@ export default function BookingPage() {
                               backgroundColor:
                                 selectedSession === session.id
                                   ? "var(--accent-color)"
-                                  : "white",
+                                  : "var(--color-card-bg)",
                             }}
                           >
                             <div className="flex items-center gap-3">
@@ -1123,7 +1123,7 @@ export default function BookingPage() {
                           : "var(--accent-color)",
                         backgroundColor: selectedEquipment.includes(eq.id)
                           ? "var(--accent-color)"
-                          : "white",
+                          : "var(--color-card-bg)",
                       }}
                     >
                       <div className="flex items-center gap-3">

@@ -361,12 +361,12 @@ function PasswordRequirements({ password }: { password: string }) {
           key={index}
           className="flex items-center gap-2 text-sm"
           style={{
-            color: req.met ? "#10b981" : "var(--text-color)",
-            opacity: req.met ? 1 : 0.6,
+            color: req.met ? "var(--success-text)" : "var(--text-color)",
+            opacity: req.met ? 1 : 0.7,
           }}
         >
           {req.met ? (
-            <CheckCircleIcon className="w-4 h-4" style={{ color: "#10b981" }} />
+            <CheckCircleIcon className="w-4 h-4" style={{ color: "var(--success-text)" }} />
           ) : (
             <XCircleIcon className="w-4 h-4" style={{ opacity: 0.4 }} />
           )}
@@ -433,7 +433,6 @@ export default function SiteRegisterPage() {
                 <label
                   htmlFor="firstName"
                   className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-color)" }}
                   style={{ color: "var(--text-color)" }}
                 >
                   First Name <span className="text-red-500">*</span>
@@ -473,7 +472,6 @@ export default function SiteRegisterPage() {
                 <label
                   htmlFor="lastName"
                   className="block text-sm font-medium mb-2"
-                style={{ color: "var(--text-color)" }}
                   style={{ color: "var(--text-color)" }}
                 >
                   Last Name <span className="text-red-500">*</span>

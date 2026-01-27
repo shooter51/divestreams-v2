@@ -289,9 +289,9 @@ export default function SiteLoginPage() {
               <div
                 className="p-4 rounded-lg text-sm"
                 style={{
-                  backgroundColor: "#fef2f2",
-                  color: "#dc2626",
-                  border: "1px solid #fecaca",
+                  backgroundColor: "var(--danger-bg)",
+                  color: "var(--danger-text)",
+                  border: "1px solid var(--danger-border)",
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -338,7 +338,7 @@ export default function SiteLoginPage() {
                 required
               />
               {actionData?.errors?.email && (
-                <p className="mt-1.5 text-sm" style={{ color: "#dc2626" }}>
+                <p className="mt-1.5 text-sm" style={{ color: "var(--danger-text)" }}>
                   {actionData.errors.email}
                 </p>
               )}
@@ -379,7 +379,7 @@ export default function SiteLoginPage() {
                 required
               />
               {actionData?.errors?.password && (
-                <p className="mt-1.5 text-sm" style={{ color: "#dc2626" }}>
+                <p className="mt-1.5 text-sm" style={{ color: "var(--danger-text)" }}>
                   {actionData.errors.password}
                 </p>
               )}
