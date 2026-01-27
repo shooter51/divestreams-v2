@@ -48,6 +48,18 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // 1 day
     storeSessionInDatabase: true, // Explicitly store sessions in PostgreSQL
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+    },
+  },
+  advanced: {
+    cookieOptions: {
+      sameSite: "lax",
+      domain: process.env.NODE_ENV === "production"
+        ? (process.env.APP_URL?.includes("staging") ? ".staging.divestreams.com" : ".divestreams.com")
+        : undefined,
+    },
   },
   plugins: [
     organization({
