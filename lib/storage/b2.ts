@@ -18,7 +18,12 @@ let s3Client: S3Client | null = null;
 
 export function getS3Client(): S3Client | null {
   if (!B2_ENDPOINT || !B2_KEY_ID || !B2_APP_KEY) {
-    console.warn("B2 storage not configured - image uploads disabled");
+    console.error("B2 storage not configured - image uploads disabled. Missing:", {
+      B2_ENDPOINT: !!B2_ENDPOINT,
+      B2_KEY_ID: !!B2_KEY_ID,
+      B2_APP_KEY: !!B2_APP_KEY,
+      CDN_URL: !!CDN_URL
+    });
     return null;
   }
 

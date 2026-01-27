@@ -99,9 +99,10 @@ export async function action({ request }: ActionFunctionArgs) {
     // Upload to B2
     const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
     if (!originalUpload) {
+      console.error("B2 storage not configured. Missing environment variables: B2_ENDPOINT, B2_KEY_ID, B2_APP_KEY");
       return Response.json(
-        { error: "Failed to upload image. Storage not configured." },
-        { status: 500 }
+        { error: "Image storage is not configured. Please contact support." },
+        { status: 503 }
       );
     }
 
