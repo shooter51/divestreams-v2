@@ -166,16 +166,18 @@ export default function TenantLayout() {
                   <p className="text-sm font-medium text-foreground truncate">Staff User</p>
                   <p className="text-xs text-foreground-muted">Manager</p>
                 </div>
-                <Link
-                  to="/auth/logout"
-                  className="flex items-center gap-1.5 text-sm text-foreground-subtle hover:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded transition-colors"
-                  title="Sign out"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  <span>Sign Out</span>
-                </Link>
+                <form method="post" action="/auth/logout">
+                  <button
+                    type="submit"
+                    className="flex items-center gap-1.5 text-sm text-foreground-subtle hover:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded transition-colors"
+                    title="Sign out"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Sign Out</span>
+                  </button>
+                </form>
               </div>
             </div>
           </aside>
