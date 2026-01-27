@@ -214,8 +214,11 @@ export async function loader({ params, request }: LoaderFunctionArgs): Promise<L
     : await db.select().from(organization).where(eq(organization.customDomain, host.split(":")[0])).limit(1);
 
   if (!org) {
+    console.log('[CourseDetail] Organization not found:', { host, subdomain });
     throw new Response("Organization not found", { status: 404 });
   }
+
+  console.log('[CourseDetail] Found organization:', { orgId: org.id, orgSlug: org.slug, courseId });
 
   // Get course details
   const course = await getPublicCourseById(org.id, courseId);
