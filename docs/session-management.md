@@ -37,17 +37,23 @@ session: {
 
 ## Force Immediate Session Refresh
 
-When immediate propagation of changes is critical (e.g., revoking admin access, updating roles), use the `invalidateUserSessions()` helper:
+When immediate propagation of changes is critical (e.g., revoking admin access, updating roles), you can revoke specific sessions:
 
 ```typescript
-import { invalidateUserSessions } from "~/lib/auth/session-management";
+import { auth } from "~/lib/auth";
 
-// After updating user roles
-await updateUserRole(userId, newRole);
-await invalidateUserSessions(userId); // Force immediate refresh
+// Revoke a specific session (requires session token)
+await auth.api.revokeSession({
+  body: { token: session.token }
+});
+
+// Or revoke all other sessions for current user
+await auth.api.revokeOtherSessions({
+  headers: request.headers
+});
 ```
 
-This invalidates the cookie cache, forcing a fresh database lookup on the user's next request.
+**Note:** Better Auth v1.4.10 doesn't provide a built-in method to invalidate all sessions for a specific user ID. To achieve this, you would need to query sessions from the database and revoke them individually.
 
 ## Disable Cache for Specific Operations
 
