@@ -146,3 +146,90 @@ body {
   background-color: var(--surface);
   color: var(--foreground);
 }
+
+/* ============================================================================
+   FULLCALENDAR DARK MODE STYLES
+   ============================================================================ */
+
+/* FullCalendar base styles */
+.fc {
+  --fc-border-color: var(--border);
+  --fc-button-bg-color: var(--brand);
+  --fc-button-border-color: var(--brand);
+  --fc-button-hover-bg-color: var(--brand-hover);
+  --fc-button-hover-border-color: var(--brand-hover);
+  --fc-button-active-bg-color: var(--brand-hover);
+  --fc-button-active-border-color: var(--brand-hover);
+  --fc-today-bg-color: var(--surface-inset);
+  --fc-neutral-bg-color: var(--surface-raised);
+  --fc-page-bg-color: var(--surface);
+}
+
+/* Calendar headers and text */
+.fc .fc-toolbar-title,
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number,
+.fc .fc-timegrid-slot-label-cushion {
+  color: var(--foreground);
+}
+
+/* Day headers */
+.fc .fc-col-header-cell {
+  background-color: var(--surface-raised);
+  border-color: var(--border);
+}
+
+/* Time grid slots */
+.fc .fc-timegrid-slot {
+  border-color: var(--border);
+}
+
+/* Day cells */
+.fc .fc-daygrid-day,
+.fc .fc-timegrid-col {
+  background-color: var(--surface);
+  border-color: var(--border);
+}
+
+/* Today highlight */
+.fc .fc-day-today {
+  background-color: var(--surface-inset) !important;
+}
+
+/* Events */
+.fc-event {
+  border-width: 1px;
+  cursor: pointer;
+}
+
+.fc-event:hover {
+  opacity: 0.85;
+}
+
+/* More link */
+.fc .fc-more-link {
+  color: var(--brand);
+}
+
+/* Popover */
+.fc .fc-popover {
+  background-color: var(--surface-raised);
+  border-color: var(--border);
+}
+
+.fc .fc-popover-header {
+  background-color: var(--surface-inset);
+  color: var(--foreground);
+}
+
+/* Buttons */
+.fc .fc-button {
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: var(--brand-disabled);
+  border-color: var(--brand-disabled);
+  opacity: 0.6;
+}

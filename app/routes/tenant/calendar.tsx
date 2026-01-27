@@ -87,23 +87,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return { trips, isPremium: ctx.isPremium };
 }
 
-// Tour type colors
-const tourTypeColors: Record<string, { bg: string; border: string; text: string }> = {
-  single_dive: { bg: "#dbeafe", border: "#3b82f6", text: "#1e40af" },
-  multi_dive: { bg: "#e0e7ff", border: "#6366f1", text: "#3730a3" },
-  course: { bg: "#f3e8ff", border: "#a855f7", text: "#6b21a8" },
-  snorkel: { bg: "#cffafe", border: "#06b6d4", text: "#155e75" },
-  night_dive: { bg: "#f1f5f9", border: "#64748b", text: "#334155" },
-  other: { bg: "#f3f4f6", border: "#6b7280", text: "#374151" },
+// Tour type colors using theme variables
+const tourTypeColors: Record<string, { bg: string; border: string; text: string; className: string }> = {
+  single_dive: { bg: "var(--brand-muted)", border: "var(--brand)", text: "var(--brand)", className: "tour-single-dive" },
+  multi_dive: { bg: "var(--info-muted)", border: "var(--info)", text: "var(--info)", className: "tour-multi-dive" },
+  course: { bg: "var(--accent-muted)", border: "var(--accent)", text: "var(--accent)", className: "tour-course" },
+  snorkel: { bg: "var(--success-muted)", border: "var(--success)", text: "var(--success)", className: "tour-snorkel" },
+  night_dive: { bg: "var(--surface-inset)", border: "var(--border-strong)", text: "var(--foreground-muted)", className: "tour-night-dive" },
+  other: { bg: "var(--surface-overlay)", border: "var(--border)", text: "var(--foreground-subtle)", className: "tour-other" },
 };
 
-// Status colors for capacity indicator
+// Status colors for capacity indicator using theme variables
 function getCapacityColor(booked: number, max: number): string {
   const ratio = booked / max;
-  if (ratio >= 1) return "#ef4444"; // Full - red
-  if (ratio >= 0.75) return "#f97316"; // Almost full - orange
-  if (ratio >= 0.5) return "#eab308"; // Half - yellow
-  return "#22c55e"; // Available - green
+  if (ratio >= 1) return "var(--danger)"; // Full - red
+  if (ratio >= 0.75) return "var(--accent)"; // Almost full - orange
+  if (ratio >= 0.5) return "var(--warning)"; // Half - yellow
+  return "var(--success)"; // Available - green
 }
 
 interface CalendarTrip {
