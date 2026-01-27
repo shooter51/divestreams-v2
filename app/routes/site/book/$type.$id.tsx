@@ -401,9 +401,9 @@ export async function loader({
           id: trainingSessions.id,
           date: trainingSessions.startDate,
           startTime: trainingSessions.startTime,
-          endTime: trainingSessions.endTime,
+          endTime: trainingSessions.endDate, // Note: using endDate as endTime
           maxParticipants: trainingSessions.maxStudents,
-          price: trainingSessions.price,
+          price: trainingSessions.priceOverride, // Note: using priceOverride
         })
         .from(trainingSessions)
         .where(
