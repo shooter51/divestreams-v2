@@ -3,7 +3,7 @@ import { useLoaderData, Form, useActionData, useNavigation } from "react-router"
 import { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getAgencies, getAgencyById, createCourse } from "../../../../../lib/db/training.server";
-import { getAgencyTemplates, type AgencyCourseTemplate } from "../../../../../lib/data/agency-templates";
+import { getGlobalAgencyCourseTemplates } from "../../../../../lib/db/training-templates.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const orgContext = await requireOrgContext(request);
@@ -33,11 +33,11 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "Agency not found" };
     }
 
-    // Get templates for this agency
-    const templates = getAgencyTemplates(agency.code);
-    if (!templates) {
+    // Get templates for this agency from database
+    const templates = await getGlobalAgencyCourseTemplates(agency.code);
+    if (!templates || templates.length === 0) {
       return {
-        error: `No course templates available for ${agency.name}. Templates are available for: PADI, SSI, NAUI`
+        error: `No course templates available for ${agency.name}. Please contact support to enable templates for this agency.`
       };
     }
 
@@ -45,10 +45,21 @@ export async function action({ request }: ActionFunctionArgs) {
       success: true,
       step: "select-courses",
       agency: { id: agency.id, name: agency.name, code: agency.code },
-      courses: templates.courses.map((course, index) => ({
-        id: `${agency.code}-${course.code}`,
-        templateIndex: index,
-        ...course,
+      courses: templates.map((template) => ({
+        id: `${agency.code}-${template.code}`,
+        name: template.name,
+        code: template.code,
+        description: template.description,
+        images: template.images || [],
+        durationDays: template.durationDays,
+        classroomHours: template.classroomHours,
+        poolHours: template.poolHours,
+        openWaterDives: template.openWaterDives,
+        prerequisites: template.prerequisites,
+        minAge: template.minAge,
+        medicalRequirements: template.medicalRequirements,
+        requiredItems: template.requiredItems || [],
+        materialsIncluded: template.materialsIncluded,
       })),
     };
   }
@@ -64,23 +75,24 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Get the templates again to get full course data
-    const templates = getAgencyTemplates(agencyCode);
-    if (!templates) {
+    const templates = await getGlobalAgencyCourseTemplates(agencyCode);
+    if (!templates || templates.length === 0) {
       return { error: "Agency templates not found" };
     }
 
     // Filter to selected courses
-    const selectedCourses = templates.courses.filter((_, index) =>
-      selectedCourseIds.includes(`${agencyCode}-${templates.courses[index].code}`)
+    const selectedCourses = templates.filter((template) =>
+      selectedCourseIds.includes(`${agencyCode}-${template.code}`)
     );
 
     return {
       success: true,
       step: "preview",
       agency: { id: agencyId, name: agencyName, code: agencyCode },
-      selectedCourses: selectedCourses.map(course => ({
-        id: `${agencyCode}-${course.code}`,
-        ...course,
+      selectedCourses: selectedCourses.map(template => ({
+        id: `${agencyCode}-${template.code}`,
+        name: template.name,
+        code: template.code,
       })),
       selectedCount: selectedCourses.length,
     };
@@ -96,9 +108,9 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const courseCodes: string[] = JSON.parse(courseCodesJson);
-    const templates = getAgencyTemplates(agencyCode);
+    const templates = await getGlobalAgencyCourseTemplates(agencyCode);
 
-    if (!templates) {
+    if (!templates || templates.length === 0) {
       return { error: "Agency templates not found" };
     }
 
@@ -110,7 +122,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const errors: string[] = [];
 
     for (const code of courseCodes) {
-      const template = templates.courses.find(c => c.code === code);
+      const template = templates.find(t => t.code === code);
       if (!template) {
         errors.push(`Template not found for code: ${code}`);
         continue;
@@ -306,7 +318,15 @@ function SelectCoursesStep({
   agency,
   isSubmitting
 }: {
-  courses: Array<AgencyCourseTemplate & { id: string }>;
+  courses: Array<{
+    id: string;
+    name: string;
+    code: string;
+    description: string;
+    durationDays: number;
+    openWaterDives: number;
+    minAge: number;
+  }>;
   agency: { id: string; name: string; code: string };
   isSubmitting: boolean;
 }) {
@@ -426,7 +446,11 @@ function PreviewStep({
   agency,
   isSubmitting
 }: {
-  selectedCourses: Array<AgencyCourseTemplate & { id: string }>;
+  selectedCourses: Array<{
+    id: string;
+    name: string;
+    code: string;
+  }>;
   agency: { id: string; name: string; code: string };
   isSubmitting: boolean;
 }) {
