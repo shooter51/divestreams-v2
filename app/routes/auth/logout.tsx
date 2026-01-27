@@ -1,26 +1,34 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-
-// Clear session cookie by setting it to expire immediately
-function clearSessionCookie(): string {
-  return "session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Secure";
-}
+import { auth } from "../../../lib/auth";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  // For GET requests, clear session and redirect to login
+  // For GET requests, use Better Auth to sign out
+  const response = await auth.api.signOut({
+    headers: request.headers,
+    asResponse: true,
+  });
+
+  // Get the Set-Cookie header to clear the session
+  const cookies = response.headers.get("set-cookie");
+
   return redirect("/auth/login", {
-    headers: {
-      "Set-Cookie": clearSessionCookie(),
-    },
+    headers: cookies ? { "Set-Cookie": cookies } : {},
   });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  // Clear session cookie and redirect to login
+  // Use Better Auth to sign out
+  const response = await auth.api.signOut({
+    headers: request.headers,
+    asResponse: true,
+  });
+
+  // Get the Set-Cookie header to clear the session
+  const cookies = response.headers.get("set-cookie");
+
   return redirect("/auth/login", {
-    headers: {
-      "Set-Cookie": clearSessionCookie(),
-    },
+    headers: cookies ? { "Set-Cookie": cookies } : {},
   });
 }
 
