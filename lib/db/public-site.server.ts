@@ -495,6 +495,7 @@ export async function getPublicCourseById(
       minAge: trainingCourses.minAge,
       prerequisites: trainingCourses.prerequisites,
       medicalRequirements: trainingCourses.medicalRequirements,
+      images: trainingCourses.images,
       agencyName: certificationAgencies.name,
       levelName: certificationLevels.name,
     })
