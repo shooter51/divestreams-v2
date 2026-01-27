@@ -304,6 +304,8 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       timeStyle: "short",
     });
 
+    let emailSent = false;
+
     if (contactInfo?.email) {
       const notificationEmail = contactFormNotificationEmail({
         name: name.trim(),
@@ -315,12 +317,14 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
         submittedAt: formattedDate,
       });
 
-      await sendEmail({
+      const notificationResult = await sendEmail({
         to: contactInfo.email,
         subject: notificationEmail.subject,
         html: notificationEmail.html,
         text: notificationEmail.text,
       });
+
+      emailSent = emailSent || notificationResult;
     }
 
     // Send auto-reply confirmation to customer
@@ -331,12 +335,21 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       contactPhone: contactInfo?.phone ?? undefined,
     });
 
-    await sendEmail({
+    const autoReplyResult = await sendEmail({
       to: email.trim(),
       subject: autoReplyEmail.subject,
       html: autoReplyEmail.html,
       text: autoReplyEmail.text,
     });
+
+    emailSent = emailSent || autoReplyResult;
+
+    // Message is saved in database regardless of email delivery
+    // But warn user if emails failed to send
+    if (!emailSent) {
+      console.error("[Contact Form] WARNING: Message saved but emails failed to send");
+      console.error(`[Contact Form] Organization: ${org.name}, Customer: ${email.trim()}`);
+    }
 
     return { success: true };
   } catch (error) {
