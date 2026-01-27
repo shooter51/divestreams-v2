@@ -127,7 +127,7 @@ export default function EditBookingPage() {
                   min="1"
                   max="20"
                   defaultValue={booking.participants}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -140,7 +140,7 @@ export default function EditBookingPage() {
                   name="status"
                   required
                   defaultValue={booking.status}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="pending">Pending</option>
                   <option value="confirmed">Confirmed</option>
@@ -161,7 +161,7 @@ export default function EditBookingPage() {
                 rows={3}
                 placeholder="Any special requirements or requests from the customer..."
                 defaultValue={booking.specialRequests}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -175,7 +175,7 @@ export default function EditBookingPage() {
                 rows={3}
                 placeholder="Notes visible only to staff..."
                 defaultValue={booking.internalNotes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>

@@ -298,6 +298,11 @@ export function getThemeStyleBlock(
   --color-border: ${darkFinal ? "#334155" : "#E5E7EB"};
   --color-primary-hover: ${adjustBrightness(finalPrimary, -10)};
   --color-primary-text: ${getContrastColor(finalPrimary)};
+  --danger-bg: #FEE2E2;
+  --danger-text: #991B1B;
+  --danger-border: #FCA5A5;
+  --success-bg: #D1FAE5;
+  --success-text: #065F46;
 }
 @media (prefers-color-scheme: dark) {
   .site-theme {
@@ -310,6 +315,11 @@ export function getThemeStyleBlock(
     --color-border: ${dark.borderColor};
     --color-primary-hover: ${adjustBrightness(overrides?.primaryColor ?? dark.primaryColor, 15)};
     --color-primary-text: ${getContrastColor(overrides?.primaryColor ?? dark.primaryColor)};
+    --danger-bg: #7F1D1D;
+    --danger-text: #FCA5A5;
+    --danger-border: #991B1B;
+    --success-bg: #064E3B;
+    --success-text: #6EE7B7;
   }
 }`;
 }

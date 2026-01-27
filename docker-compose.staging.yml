@@ -9,6 +9,7 @@ services:
       - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_staging}@db:5432/divestreams
       - REDIS_URL=redis://redis:6379
       - AUTH_SECRET=${AUTH_SECRET}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - AUTH_URL=${AUTH_URL:-https://staging.divestreams.com}
       - APP_URL=${APP_URL:-https://staging.divestreams.com}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
@@ -22,6 +23,32 @@ services:
       - PLATFORM_ADMIN_EMAIL=${PLATFORM_ADMIN_EMAIL}
       - PLATFORM_ADMIN_PASSWORD=${PLATFORM_ADMIN_PASSWORD}
       - PLATFORM_ADMIN_NAME=${PLATFORM_ADMIN_NAME:-Platform Admin}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - divestreams-network
+
+  worker:
+    image: ghcr.io/shooter51/divestreams-app:staging
+    container_name: divestreams-staging-worker
+    restart: unless-stopped
+    command: npm run worker
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_staging}@db:5432/divestreams
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SECRET=${AUTH_SECRET}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - AUTH_URL=${AUTH_URL:-https://staging.divestreams.com}
+      - APP_URL=${APP_URL:-https://staging.divestreams.com}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM:-noreply@divestreams.com}
     depends_on:
       db:
         condition: service_healthy
@@ -73,7 +100,8 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-    command: ["sh", "-c", "caddy reverse-proxy --from :80 --to app:3000"]
+      - /docker/divestreams-staging/caddy-config:/etc/caddy:ro
+      - /docker/divestreams-staging/certs:/certs:ro
     depends_on:
       - app
     networks:

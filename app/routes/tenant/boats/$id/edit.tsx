@@ -148,7 +148,7 @@ export default function EditBoatPage() {
                 name="name"
                 required
                 defaultValue={actionData?.values?.name || boat.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.name && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
@@ -164,7 +164,7 @@ export default function EditBoatPage() {
                   id="type"
                   name="type"
                   defaultValue={actionData?.values?.type || boat.type}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">Select type...</option>
                   <option value="Dive Boat">Dive Boat</option>
@@ -188,7 +188,7 @@ export default function EditBoatPage() {
                   min="1"
                   max="100"
                   defaultValue={actionData?.values?.capacity || boat.capacity}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -202,7 +202,7 @@ export default function EditBoatPage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description || boat.description}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -231,14 +231,14 @@ export default function EditBoatPage() {
               id="registrationNumber"
               name="registrationNumber"
               defaultValue={actionData?.values?.registrationNumber || boat.registrationNumber}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
         </div>
 
         {/* Amenities */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Amenities</h2>
+          <h2 className="font-semibold mb-4">Amenities & Features</h2>
           <div>
             <label htmlFor="amenities" className="block text-sm font-medium mb-1">
               Amenities
@@ -247,10 +247,52 @@ export default function EditBoatPage() {
               type="text"
               id="amenities"
               name="amenities"
-              placeholder="e.g., Dive platform, Sun deck, Toilet (comma-separated)"
+              placeholder="e.g., Dive platform, Sun deck, Toilet, Shower (comma-separated)"
               defaultValue={actionData?.values?.amenities || boat.amenities?.join(", ")}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
+            <p className="text-xs text-foreground-muted mt-1">
+              Separate multiple amenities with commas
+            </p>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-sm font-medium mb-2">Common amenities:</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Dive platform",
+                "Sun deck",
+                "Toilet",
+                "Freshwater shower",
+                "Camera station",
+                "Storage lockers",
+                "Shade cover",
+                "First aid kit",
+                "Sound system",
+                "BBQ grill",
+              ].map((amenity) => (
+                <button
+                  key={amenity}
+                  type="button"
+                  onClick={(e) => {
+                    const input = document.getElementById("amenities") as HTMLInputElement;
+                    const current = input.value;
+                    const amenitiesArray = current.split(",").map((s) => s.trim()).filter(Boolean);
+
+                    if (amenitiesArray.includes(amenity)) {
+                      // Remove amenity
+                      input.value = amenitiesArray.filter((a) => a !== amenity).join(", ");
+                    } else {
+                      // Add amenity
+                      input.value = current ? `${current}, ${amenity}` : amenity;
+                    }
+                  }}
+                  className="text-xs bg-surface-inset hover:bg-surface-overlay px-2 py-1 rounded"
+                >
+                  + {amenity}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

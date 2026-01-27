@@ -294,6 +294,21 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       phone: phone?.trim() || undefined,
     });
 
+    // Send welcome email
+    try {
+      const { triggerCustomerWelcomeEmail } = await import("../../../lib/email/triggers");
+      await triggerCustomerWelcomeEmail({
+        customerEmail: email.toLowerCase().trim(),
+        customerName: `${firstName.trim()} ${lastName.trim()}`,
+        shopName: org.name,
+        subdomain: subdomain,
+        tenantId: org.id,
+      });
+    } catch (emailError) {
+      console.error("Failed to send customer welcome email:", emailError);
+      // Continue even if email fails
+    }
+
     // Auto-login the customer
     try {
       const { token, expiresAt } = await loginCustomer(org.id, email, password);
@@ -346,12 +361,12 @@ function PasswordRequirements({ password }: { password: string }) {
           key={index}
           className="flex items-center gap-2 text-sm"
           style={{
-            color: req.met ? "#10b981" : "var(--text-color)",
-            opacity: req.met ? 1 : 0.6,
+            color: req.met ? "var(--success-text)" : "var(--text-color)",
+            opacity: req.met ? 1 : 0.7,
           }}
         >
           {req.met ? (
-            <CheckCircleIcon className="w-4 h-4" style={{ color: "#10b981" }} />
+            <CheckCircleIcon className="w-4 h-4" style={{ color: "var(--success-text)" }} />
           ) : (
             <XCircleIcon className="w-4 h-4" style={{ opacity: 0.4 }} />
           )}
@@ -383,7 +398,7 @@ export default function SiteRegisterPage() {
   if (!loaderData) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold">Sign Up</h1>
+        <h1 className="text-4xl font-bold" style={{ color: "var(--text-color)" }}>Sign Up</h1>
         <p className="mt-4 text-lg opacity-75">Loading...</p>
       </div>
     );
@@ -396,7 +411,7 @@ export default function SiteRegisterPage() {
       <div className="max-w-md mx-auto">
         {/* Page Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Create an Account</h1>
+          <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--text-color)" }}>Create an Account</h1>
           <p className="opacity-75">
             Join {organization.name} to book trips and manage your reservations.
           </p>
@@ -406,8 +421,8 @@ export default function SiteRegisterPage() {
         <div
           className="rounded-2xl p-8 shadow-sm border"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
           }}
         >
           <Form method="post" className="space-y-5">
@@ -418,6 +433,7 @@ export default function SiteRegisterPage() {
                 <label
                   htmlFor="firstName"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   First Name <span className="text-red-500">*</span>
                 </label>
@@ -456,6 +472,7 @@ export default function SiteRegisterPage() {
                 <label
                   htmlFor="lastName"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Last Name <span className="text-red-500">*</span>
                 </label>
@@ -495,6 +512,7 @@ export default function SiteRegisterPage() {
               <label
                 htmlFor="email"
                 className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-color)" }}
               >
                 Email <span className="text-red-500">*</span>
               </label>
@@ -533,6 +551,7 @@ export default function SiteRegisterPage() {
               <label
                 htmlFor="phone"
                 className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-color)" }}
               >
                 Phone <span className="text-sm opacity-50">(optional)</span>
               </label>
@@ -570,6 +589,7 @@ export default function SiteRegisterPage() {
               <label
                 htmlFor="password"
                 className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-color)" }}
               >
                 Password <span className="text-red-500">*</span>
               </label>
@@ -622,6 +642,7 @@ export default function SiteRegisterPage() {
               <label
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium mb-2"
+                style={{ color: "var(--text-color)" }}
               >
                 Confirm Password <span className="text-red-500">*</span>
               </label>

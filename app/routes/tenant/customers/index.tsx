@@ -217,14 +217,14 @@ export default function CustomersPage() {
               <button
                 onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page - 1) })}
                 disabled={page <= 1}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
                 Previous
               </button>
               <button
                 onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page + 1) })}
                 disabled={page >= totalPages}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
                 Next
               </button>

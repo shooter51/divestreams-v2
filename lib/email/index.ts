@@ -17,8 +17,9 @@ function getTransporter() {
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
-    if (!host) {
-      console.warn("SMTP not configured - emails will be logged only");
+    if (!host || !user || !pass) {
+      console.warn("[Email] SMTP not fully configured - missing required credentials");
+      console.warn(`[Email] Configuration status: host=${!!host}, user=${!!user}, pass=${!!pass}`);
       return null;
     }
 
@@ -26,7 +27,7 @@ function getTransporter() {
       host,
       port,
       secure: port === 465,
-      auth: user && pass ? { user, pass } : undefined,
+      auth: { user, pass },
     });
   }
   return transporter;
@@ -41,16 +42,57 @@ interface EmailOptions {
   text?: string;
 }
 
+/**
+ * Check if email service is configured
+ */
+export function isEmailConfigured(): boolean {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  return !!(host && user && pass);
+}
+
+/**
+ * Verify SMTP connection on startup
+ * Call this during app initialization to detect configuration issues early
+ */
+export async function verifyEmailConnection(): Promise<{ success: boolean; error?: string }> {
+  const transport = getTransporter();
+
+  if (!transport) {
+    return {
+      success: false,
+      error: "SMTP not configured - missing credentials (check SMTP_HOST, SMTP_USER, SMTP_PASS)",
+    };
+  }
+
+  try {
+    await transport.verify();
+    console.log("[Email] ✅ SMTP connection verified successfully");
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Email] ❌ SMTP connection verification failed:", errorMessage);
+    return { success: false, error: errorMessage };
+  }
+}
+
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   const transport = getTransporter();
 
   if (!transport) {
-    // Log email in development
-    console.log("📧 Email (not sent - SMTP not configured):");
+    // SMTP not configured - log for development but return false in production
+    const isDevelopment = process.env.NODE_ENV !== "production";
+
+    console.error("[Email] Cannot send email - SMTP not configured");
+    console.log("📧 Email (not sent):");
     console.log(`   To: ${options.to}`);
     console.log(`   Subject: ${options.subject}`);
     console.log(`   Body: ${options.text || options.html.substring(0, 100)}...`);
-    return true;
+
+    // In development, pretend it worked for testing
+    // In production, return false so calling code knows email failed
+    return isDevelopment;
   }
 
   try {
@@ -61,9 +103,11 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       html: options.html,
       text: options.text,
     });
+    console.log(`[Email] ✅ Sent to ${options.to}: ${options.subject}`);
     return true;
   } catch (error) {
-    console.error("Failed to send email:", error);
+    console.error("[Email] ❌ Failed to send:", error);
+    console.error(`[Email] Details: to=${options.to}, subject=${options.subject}`);
     return false;
   }
 }
@@ -358,6 +402,75 @@ ${data.resetUrl}
 This link will expire in 1 hour. If you didn't request this, you can ignore this email.
 
 DiveStreams
+  `;
+
+  return { subject, html, text };
+}
+
+export function customerWelcomeEmail(data: {
+  customerName: string;
+  shopName: string;
+  loginUrl: string;
+}) {
+  const subject = `Welcome to ${data.shopName}!`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+        .button { display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin: 15px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Welcome! 🎉</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${data.customerName},</p>
+          <p>Thank you for creating an account with <strong>${data.shopName}</strong>!</p>
+          <p>You can now:</p>
+          <ul>
+            <li>Book dive trips and training courses</li>
+            <li>View and manage your reservations</li>
+            <li>Access your diving history</li>
+            <li>Update your profile and certifications</li>
+          </ul>
+          <p style="text-align: center;">
+            <a href="${data.loginUrl}" class="button">Sign In to Your Account</a>
+          </p>
+        </div>
+        <div class="footer">
+          <p>${data.shopName} • Powered by DiveStreams</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Welcome to ${data.shopName}!
+
+Hi ${data.customerName},
+
+Thank you for creating an account with ${data.shopName}!
+
+You can now:
+- Book dive trips and training courses
+- View and manage your reservations
+- Access your diving history
+- Update your profile and certifications
+
+Sign in to your account at:
+${data.loginUrl}
+
+${data.shopName} • Powered by DiveStreams
   `;
 
   return { subject, html, text };

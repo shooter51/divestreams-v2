@@ -94,6 +94,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         features,
         limits,
         isActive,
+        adminModified: true, // [KAN-594] Mark as admin-customized
       });
     } else {
       // Update existing plan
@@ -109,6 +110,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
           features,
           limits,
           isActive,
+          adminModified: true, // [KAN-594] Mark as admin-customized to prevent migration overwrites
           updatedAt: new Date(),
         })
         .where(eq(subscriptionPlans.id, planId!));

@@ -279,8 +279,8 @@ export default function SiteLoginPage() {
         <div
           className="rounded-xl p-8 shadow-lg border"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
           }}
         >
           <Form method="post" className="space-y-6">
@@ -289,9 +289,9 @@ export default function SiteLoginPage() {
               <div
                 className="p-4 rounded-lg text-sm"
                 style={{
-                  backgroundColor: "#fef2f2",
-                  color: "#dc2626",
-                  border: "1px solid #fecaca",
+                  backgroundColor: "var(--danger-bg)",
+                  color: "var(--danger-text)",
+                  border: "1px solid var(--danger-border)",
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -328,17 +328,17 @@ export default function SiteLoginPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.email
-                    ? "#fca5a5"
-                    : "var(--accent-color)",
+                    ? "var(--danger-border)"
+                    : "var(--color-border)",
                   backgroundColor: actionData?.errors?.email
-                    ? "#fef2f2"
-                    : "white",
+                    ? "var(--danger-bg)"
+                    : "var(--color-card-bg)",
                 }}
                 placeholder="you@example.com"
                 required
               />
               {actionData?.errors?.email && (
-                <p className="mt-1.5 text-sm" style={{ color: "#dc2626" }}>
+                <p className="mt-1.5 text-sm" style={{ color: "var(--danger-text)" }}>
                   {actionData.errors.email}
                 </p>
               )}
@@ -369,17 +369,17 @@ export default function SiteLoginPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.password
-                    ? "#fca5a5"
-                    : "var(--accent-color)",
+                    ? "var(--danger-border)"
+                    : "var(--color-border)",
                   backgroundColor: actionData?.errors?.password
-                    ? "#fef2f2"
-                    : "white",
+                    ? "var(--danger-bg)"
+                    : "var(--color-card-bg)",
                 }}
                 placeholder="Enter your password"
                 required
               />
               {actionData?.errors?.password && (
-                <p className="mt-1.5 text-sm" style={{ color: "#dc2626" }}>
+                <p className="mt-1.5 text-sm" style={{ color: "var(--danger-text)" }}>
                   {actionData.errors.password}
                 </p>
               )}
@@ -453,13 +453,13 @@ export default function SiteLoginPage() {
             <div className="absolute inset-0 flex items-center">
               <div
                 className="w-full border-t"
-                style={{ borderColor: "var(--accent-color)" }}
+                style={{ borderColor: "var(--color-border)" }}
               />
             </div>
             <div className="relative flex justify-center text-sm">
               <span
                 className="px-4"
-                style={{ backgroundColor: "white", color: "var(--text-color)" }}
+                style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}
               >
                 New to {organization?.name || "our site"}?
               </span>

@@ -37,6 +37,42 @@ bd graph                    # Show dependency graph
 **Issue Prefix:** `DIVE-`
 **Sync Branch:** `beads-sync`
 
+## Atlassian Jira Integration
+
+**Jira Instance:** https://divestreams.atlassian.net/
+**Project Key:** `KAN`
+
+### MCP Connector Setup
+
+The project uses the `mcp-atlassian` connector for Jira API access via Claude Code.
+
+**Setup Steps:**
+
+1. **Generate API Token:**
+   - Visit https://id.atlassian.com/manage-profile/security/api-tokens
+   - Create a new token with a descriptive name (e.g., "Claude Code MCP")
+   - Copy the token (only shown once)
+
+2. **Configure Local MCP:**
+   - Copy `.mcp.json.example` to `.mcp.json`
+   - Update `JIRA_USERNAME` with your Atlassian email
+   - Update `JIRA_API_TOKEN` with your API token
+   - **IMPORTANT:** Never commit `.mcp.json` (already in `.gitignore`)
+
+3. **Restart Claude Code:**
+   - Exit and restart Claude Code to load the MCP connector
+
+**Available Commands (after setup):**
+- "Show me all open issues in KAN project"
+- "Find bugs assigned to me"
+- "What's the status of KAN-615?"
+- "Create a bug ticket for [issue]"
+- "Update KAN-592 status to Done"
+- "Add a comment to KAN-615"
+
+**Configuration File:** `.mcp.json` (local only, not in git)
+**Template File:** `.mcp.json.example` (in git, has placeholders)
+
 ## Deployment
 
 ### CI/CD Pipeline - THE ONLY WAY TO DEPLOY

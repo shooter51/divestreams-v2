@@ -220,20 +220,20 @@ export default function AccountProfile() {
       {/* Profile Information */}
       <div
         className="rounded-xl border p-6"
-        style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+        style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
       >
         <h3 className="text-lg font-semibold mb-6" style={{ color: "var(--text-color)" }}>
           Personal Information
         </h3>
 
         {actionData?.type === "profile" && actionData?.success && (
-          <div className="mb-6 p-4 rounded-lg bg-green-50 text-green-700 text-sm">
+          <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>
             Profile updated successfully!
           </div>
         )}
 
         {actionData?.type === "profile" && actionData?.error && !actionData?.field && (
-          <div className="mb-6 p-4 rounded-lg bg-red-50 text-red-700 text-sm">
+          <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}>
             {actionData.error}
           </div>
         )}
@@ -306,8 +306,11 @@ export default function AccountProfile() {
               id="email"
               value={customer.email}
               disabled
-              className="w-full px-4 py-2.5 rounded-lg border bg-gray-50 opacity-60 cursor-not-allowed"
-              style={{ borderColor: "var(--accent-color)" }}
+              className="w-full px-4 py-2.5 rounded-lg border opacity-60 cursor-not-allowed"
+              style={{
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
+              }}
             />
             <p className="mt-1.5 text-xs opacity-60">
               Contact support to change your email address
@@ -329,7 +332,7 @@ export default function AccountProfile() {
               defaultValue={customer.phone || ""}
               placeholder="+1 (555) 123-4567"
               className="w-full px-4 py-2.5 rounded-lg border transition-colors"
-              style={{ borderColor: "var(--accent-color)" }}
+              style={{ borderColor: "var(--color-border)" }}
             />
           </div>
 
@@ -351,20 +354,20 @@ export default function AccountProfile() {
       {/* Change Password */}
       <div
         className="rounded-xl border p-6"
-        style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+        style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
       >
         <h3 className="text-lg font-semibold mb-6" style={{ color: "var(--text-color)" }}>
           Change Password
         </h3>
 
         {actionData?.type === "password" && actionData?.success && (
-          <div className="mb-6 p-4 rounded-lg bg-green-50 text-green-700 text-sm">
+          <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>
             Password changed successfully!
           </div>
         )}
 
         {actionData?.type === "password" && actionData?.error && !actionData?.field && (
-          <div className="mb-6 p-4 rounded-lg bg-red-50 text-red-700 text-sm">
+          <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}>
             {actionData.error}
           </div>
         )}
@@ -465,7 +468,7 @@ export default function AccountProfile() {
       {/* Logout Section */}
       <div
         className="rounded-xl border p-6"
-        style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+        style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
       >
         <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-color)" }}>
           Sign Out

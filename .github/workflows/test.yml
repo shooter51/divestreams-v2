@@ -185,7 +185,7 @@ jobs:
 
       - name: Report test results to Jira
         if: always()
-        run: tsx scripts/jira-test-reporter.ts
+        run: npx tsx scripts/jira-test-reporter.ts
         env:
           JIRA_HOST: ${{ secrets.JIRA_HOST }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}

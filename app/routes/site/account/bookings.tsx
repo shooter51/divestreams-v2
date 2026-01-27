@@ -243,7 +243,7 @@ function BookingCard({ booking }: { booking: BookingItem }) {
   return (
     <div
       className={`rounded-xl border p-5 ${isCancelled ? "opacity-60" : ""}`}
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         {/* Left Side - Trip Info */}
@@ -331,7 +331,7 @@ function EmptyState({ filter }: { filter: string }) {
   return (
     <div
       className="rounded-xl border p-12 text-center"
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div
         className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4"
@@ -360,8 +360,8 @@ function StatusBadge({ status }: { status: string }) {
     confirmed: { bg: "#d1fae5", text: "#059669", label: "Confirmed" },
     checked_in: { bg: "#dbeafe", text: "#2563eb", label: "Checked In" },
     completed: { bg: "#e5e7eb", text: "#6b7280", label: "Completed" },
-    canceled: { bg: "#fee2e2", text: "#dc2626", label: "Cancelled" },
-    no_show: { bg: "#fee2e2", text: "#dc2626", label: "No Show" },
+    canceled: { bg: "var(--danger-bg)", text: "var(--danger-text)", label: "Cancelled" },
+    no_show: { bg: "var(--danger-bg)", text: "var(--danger-text)", label: "No Show" },
   };
 
   const style = statusStyles[status] || statusStyles.pending;

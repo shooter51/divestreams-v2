@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { member, user, invitation } from "../../../../lib/db/schema";
@@ -109,6 +109,42 @@ export async function action({ request }: ActionFunctionArgs) {
 
     const email = formData.get("email") as string;
     const role = formData.get("role") as string;
+
+    // Check if email is already a team member
+    const [existingMember] = await db
+      .select({
+        email: user.email,
+      })
+      .from(member)
+      .innerJoin(user, eq(member.userId, user.id))
+      .where(
+        and(
+          eq(member.organizationId, ctx.org.id),
+          eq(user.email, email)
+        )
+      )
+      .limit(1);
+
+    if (existingMember) {
+      return { error: "This email is already a team member" };
+    }
+
+    // Check if email already has a pending invitation
+    const [existingInvite] = await db
+      .select()
+      .from(invitation)
+      .where(
+        and(
+          eq(invitation.organizationId, ctx.org.id),
+          eq(invitation.email, email),
+          eq(invitation.status, "pending")
+        )
+      )
+      .limit(1);
+
+    if (existingInvite) {
+      return { error: "This email already has a pending invitation" };
+    }
 
     // Create invitation with generated ID
     const inviteId = crypto.randomUUID();
@@ -234,6 +270,13 @@ export default function TeamPage() {
   const { team, pendingInvites, roles, planLimit, limitRemaining, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
+
+  // Close modal only on successful invitation
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      setShowInviteModal(false);
+    }
+  }, [fetcher.data]);
 
   const activeMembers = team.filter((m) => m.status === "active").length;
   const atLimit = planLimit !== -1 && activeMembers >= planLimit;
@@ -479,9 +522,14 @@ export default function TeamPage() {
             <h2 className="text-lg font-semibold mb-4">Invite Team Member</h2>
             <fetcher.Form
               method="post"
-              onSubmit={() => setShowInviteModal(false)}
             >
               <input type="hidden" name="intent" value="invite" />
+
+              {fetcher.data?.error && (
+                <div className="bg-danger-bg text-danger border border-danger-border p-3 rounded-lg mb-4">
+                  {fetcher.data.error}
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div>
@@ -494,7 +542,7 @@ export default function TeamPage() {
                     name="email"
                     required
                     placeholder="colleague@example.com"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
 
@@ -507,7 +555,7 @@ export default function TeamPage() {
                     name="role"
                     required
                     defaultValue="staff"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   >
                     {roles
                       .filter((r) => r.id !== "owner")

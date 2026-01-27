@@ -276,7 +276,7 @@ export default function AlbumDetailPage() {
                         const form = e.currentTarget.form;
                         if (form) fetcher.submit(form);
                       }}
-                      className="px-2 py-1 text-xs rounded bg-surface-raised"
+                      className="px-2 py-1 text-xs rounded bg-surface-raised text-foreground border border-border-strong"
                     >
                       <option value="published">Published</option>
                       <option value="draft">Draft</option>

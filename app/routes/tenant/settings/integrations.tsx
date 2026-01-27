@@ -1494,7 +1494,7 @@ export default function IntegrationsPage() {
                   value={twilioAccountSid}
                   onChange={(e) => setTwilioAccountSid(e.target.value)}
                   placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
@@ -1512,7 +1512,7 @@ export default function IntegrationsPage() {
                   value={twilioAuthToken}
                   onChange={(e) => setTwilioAuthToken(e.target.value)}
                   placeholder="Your Twilio Auth Token"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
@@ -1530,7 +1530,7 @@ export default function IntegrationsPage() {
                   value={twilioPhoneNumber}
                   onChange={(e) => setTwilioPhoneNumber(e.target.value)}
                   placeholder="+1234567890"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
@@ -1548,7 +1548,7 @@ export default function IntegrationsPage() {
                   value={twilioMessagingServiceSid}
                   onChange={(e) => setTwilioMessagingServiceSid(e.target.value)}
                   placeholder="MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                 />
                 <p className="text-xs text-foreground-muted mt-1">
                   If using a Messaging Service instead of a phone number
@@ -1622,7 +1622,7 @@ export default function IntegrationsPage() {
                   value={testSmsNumber}
                   onChange={(e) => setTestSmsNumber(e.target.value)}
                   placeholder="+1234567890"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
@@ -1914,7 +1914,7 @@ export default function IntegrationsPage() {
                   value={zapierUserWebhookUrl}
                   onChange={(e) => setZapierUserWebhookUrl(e.target.value)}
                   placeholder="https://hooks.zapier.com/hooks/catch/..."
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                 />
                 <p className="text-xs text-foreground-muted mt-1">
                   If you want DiveStreams to push events to Zapier, enter your Zapier Catch Hook URL here.
@@ -2044,7 +2044,7 @@ export default function IntegrationsPage() {
                   value={zapierUserWebhookUrl}
                   onChange={(e) => setZapierUserWebhookUrl(e.target.value)}
                   placeholder="https://hooks.zapier.com/hooks/catch/..."
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                 />
               </div>
 
@@ -2283,7 +2283,7 @@ export default function IntegrationsPage() {
                       value={xeroRevenueAccountCode}
                       onChange={(e) => setXeroRevenueAccountCode(e.target.value)}
                       placeholder="e.g., 200 or 4000"
-                      className="w-full border rounded-lg p-2 text-sm"
+                      className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                     />
                     <p className="text-xs text-foreground-muted mt-1">
                       The account code for booking revenue in your Xero chart of accounts
@@ -2298,7 +2298,7 @@ export default function IntegrationsPage() {
                       name="defaultTaxType"
                       value={xeroTaxType}
                       onChange={(e) => setXeroTaxType(e.target.value)}
-                      className="w-full border rounded-lg p-2 text-sm"
+                      className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                     >
                       <option value="">Select tax type...</option>
                       <option value="OUTPUT">OUTPUT (Standard Tax)</option>
@@ -2322,7 +2322,7 @@ export default function IntegrationsPage() {
                       value={xeroInvoicePrefix}
                       onChange={(e) => setXeroInvoicePrefix(e.target.value)}
                       placeholder="e.g., DS-"
-                      className="w-full border rounded-lg p-2 text-sm"
+                      className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                     />
                     <p className="text-xs text-foreground-muted mt-1">
                       Prefix added to invoice references (e.g., DS-12345)
@@ -2448,7 +2448,7 @@ export default function IntegrationsPage() {
                       value={whatsAppPhoneNumberId}
                       onChange={(e) => setWhatsAppPhoneNumberId(e.target.value)}
                       placeholder="123456789012345"
-                      className="w-full border rounded-lg p-2 text-sm"
+                      className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                       required={whatsAppApiType === "meta"}
                     />
                     <p className="text-xs text-foreground-muted mt-1">
@@ -2466,7 +2466,7 @@ export default function IntegrationsPage() {
                       value={whatsAppBusinessAccountId}
                       onChange={(e) => setWhatsAppBusinessAccountId(e.target.value)}
                       placeholder="123456789012345"
-                      className="w-full border rounded-lg p-2 text-sm"
+                      className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                       required={whatsAppApiType === "meta"}
                     />
                     <p className="text-xs text-foreground-muted mt-1">
@@ -2484,7 +2484,7 @@ export default function IntegrationsPage() {
                       value={whatsAppAccessToken}
                       onChange={(e) => setWhatsAppAccessToken(e.target.value)}
                       placeholder="Your permanent access token"
-                      className="w-full border rounded-lg p-2 text-sm"
+                      className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                       required={whatsAppApiType === "meta"}
                     />
                     <p className="text-xs text-foreground-muted mt-1">
@@ -2522,7 +2522,7 @@ export default function IntegrationsPage() {
                       value={whatsAppTwilioAccountSid}
                       onChange={(e) => setWhatsAppTwilioAccountSid(e.target.value)}
                       placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                      className="w-full border rounded-lg p-2 text-sm"
+                      className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                       required={whatsAppApiType === "twilio"}
                     />
                     <p className="text-xs text-foreground-muted mt-1">
@@ -2540,7 +2540,7 @@ export default function IntegrationsPage() {
                       value={whatsAppTwilioAuthToken}
                       onChange={(e) => setWhatsAppTwilioAuthToken(e.target.value)}
                       placeholder="Your Twilio Auth Token"
-                      className="w-full border rounded-lg p-2 text-sm"
+                      className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                       required={whatsAppApiType === "twilio"}
                     />
                     <p className="text-xs text-foreground-muted mt-1">
@@ -2558,7 +2558,7 @@ export default function IntegrationsPage() {
                       value={whatsAppTwilioNumber}
                       onChange={(e) => setWhatsAppTwilioNumber(e.target.value)}
                       placeholder="+14155238886"
-                      className="w-full border rounded-lg p-2 text-sm"
+                      className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                       required={whatsAppApiType === "twilio"}
                     />
                     <p className="text-xs text-foreground-muted mt-1">
@@ -2644,7 +2644,7 @@ export default function IntegrationsPage() {
                   value={testWhatsAppNumber}
                   onChange={(e) => setTestWhatsAppNumber(e.target.value)}
                   placeholder="+1234567890"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
@@ -2712,7 +2712,7 @@ export default function IntegrationsPage() {
                   value={googleClientId}
                   onChange={(e) => setGoogleClientId(e.target.value)}
                   placeholder="your-client-id.apps.googleusercontent.com"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
               </div>
@@ -2727,7 +2727,7 @@ export default function IntegrationsPage() {
                   value={googleClientSecret}
                   onChange={(e) => setGoogleClientSecret(e.target.value)}
                   placeholder="Your Google Client Secret"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
@@ -2808,7 +2808,7 @@ export default function IntegrationsPage() {
                   value={mailchimpClientId}
                   onChange={(e) => setMailchimpClientId(e.target.value)}
                   placeholder="Your Mailchimp Client ID"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
               </div>
@@ -2823,7 +2823,7 @@ export default function IntegrationsPage() {
                   value={mailchimpClientSecret}
                   onChange={(e) => setMailchimpClientSecret(e.target.value)}
                   placeholder="Your Mailchimp Client Secret"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
@@ -2904,7 +2904,7 @@ export default function IntegrationsPage() {
                   value={quickBooksClientId}
                   onChange={(e) => setQuickBooksClientId(e.target.value)}
                   placeholder="Your QuickBooks Client ID"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
               </div>
@@ -2919,7 +2919,7 @@ export default function IntegrationsPage() {
                   value={quickBooksClientSecret}
                   onChange={(e) => setQuickBooksClientSecret(e.target.value)}
                   placeholder="Your QuickBooks Client Secret"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">
@@ -3000,7 +3000,7 @@ export default function IntegrationsPage() {
                   value={xeroClientId}
                   onChange={(e) => setXeroClientId(e.target.value)}
                   placeholder="Your Xero Client ID"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
               </div>
@@ -3015,7 +3015,7 @@ export default function IntegrationsPage() {
                   value={xeroClientSecret}
                   onChange={(e) => setXeroClientSecret(e.target.value)}
                   placeholder="Your Xero Client Secret"
-                  className="w-full border rounded-lg p-2 text-sm"
+                  className="w-full border border-border-strong rounded-lg p-2 text-sm bg-surface-raised text-foreground"
                   required
                 />
                 <p className="text-xs text-foreground-muted mt-1">

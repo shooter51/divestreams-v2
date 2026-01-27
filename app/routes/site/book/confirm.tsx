@@ -160,12 +160,12 @@ export default function BookingConfirmationPage() {
         <div
           className="rounded-xl p-6 shadow-lg mb-6"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
             borderWidth: "1px",
           }}
         >
-          <div className="text-center mb-6 pb-6 border-b" style={{ borderColor: "var(--accent-color)" }}>
+          <div className="text-center mb-6 pb-6 border-b" style={{ borderColor: "var(--color-border)" }}>
             <p className="text-sm opacity-75 mb-1">Booking Reference</p>
             <p
               className="text-3xl font-bold font-mono tracking-wider"
@@ -257,7 +257,7 @@ export default function BookingConfirmationPage() {
             )}
 
             {/* Payment Summary */}
-            <div className="pt-4 border-t" style={{ borderColor: "var(--accent-color)" }}>
+            <div className="pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
               <h3 className="font-semibold mb-3" style={{ color: "var(--text-color)" }}>
                 Payment Summary
               </h3>
@@ -272,7 +272,7 @@ export default function BookingConfirmationPage() {
                     <span>{formatCurrency(booking.tax, booking.currency)}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-semibold text-lg pt-2 border-t" style={{ borderColor: "var(--accent-color)" }}>
+                <div className="flex justify-between font-semibold text-lg pt-2 border-t" style={{ borderColor: "var(--color-border)" }}>
                   <span>Total</span>
                   <span style={{ color: "var(--primary-color)" }}>
                     {formatCurrency(booking.total, booking.currency)}
@@ -287,8 +287,8 @@ export default function BookingConfirmationPage() {
         <div
           className="rounded-xl p-6 shadow-sm mb-6 flex items-start gap-4"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
             borderWidth: "1px",
           }}
         >
@@ -314,8 +314,8 @@ export default function BookingConfirmationPage() {
         <div
           className="rounded-xl p-6 shadow-sm mb-6"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
             borderWidth: "1px",
           }}
         >
@@ -373,7 +373,7 @@ export default function BookingConfirmationPage() {
             to="/site"
             className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold border transition-colors hover:bg-gray-50"
             style={{
-              borderColor: "var(--accent-color)",
+              borderColor: "var(--color-border)",
               color: "var(--text-color)",
             }}
           >

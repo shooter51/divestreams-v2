@@ -59,7 +59,18 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (Object.keys(errors).length > 0) {
-    return { errors };
+    return {
+      errors,
+      values: {
+        slug,
+        name,
+        ownerEmail,
+        ownerName,
+        plan,
+        createOwnerAccount,
+        seedDemo,
+      },
+    };
   }
 
   // Check slug availability
@@ -70,7 +81,40 @@ export async function action({ request }: ActionFunctionArgs) {
     .limit(1);
 
   if (existingOrg) {
-    return { errors: { slug: "This slug is already taken" } };
+    return {
+      errors: { slug: "This slug is already taken" },
+      values: {
+        slug,
+        name,
+        ownerEmail,
+        ownerName,
+        plan,
+        createOwnerAccount,
+        seedDemo,
+      },
+    };
+  }
+
+  // Check organization name uniqueness
+  const [existingOrgName] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.name, name))
+    .limit(1);
+
+  if (existingOrgName) {
+    return {
+      errors: { name: "An organization with this name already exists" },
+      values: {
+        slug,
+        name,
+        ownerEmail,
+        ownerName,
+        plan,
+        createOwnerAccount,
+        seedDemo,
+      },
+    };
   }
 
   try {
@@ -208,6 +252,7 @@ export default function CreateOrganizationPage() {
                 type="text"
                 id="slug"
                 name="slug"
+                defaultValue={actionData?.values?.slug || ""}
                 placeholder="my-dive-shop"
                 pattern="[a-z0-9][a-z0-9-]*[a-z0-9]|[a-z0-9]"
                 className="flex-1 px-3 py-2 border rounded-l-lg focus:ring-2 focus:ring-brand"
@@ -233,8 +278,9 @@ export default function CreateOrganizationPage() {
               type="text"
               id="name"
               name="name"
+              defaultValue={actionData?.values?.name || ""}
               placeholder="My Dive Shop"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               required
             />
             {actionData?.errors?.name && (
@@ -249,8 +295,8 @@ export default function CreateOrganizationPage() {
             <select
               id="plan"
               name="plan"
-              defaultValue={plans[0]?.name || "free"}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              defaultValue={actionData?.values?.plan || plans[0]?.name || "free"}
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
               {plans.map((plan) => (
                 <option key={plan.id} value={plan.name}>
@@ -265,6 +311,7 @@ export default function CreateOrganizationPage() {
               type="checkbox"
               id="seedDemoData"
               name="seedDemoData"
+              defaultChecked={actionData?.values?.seedDemo || false}
               className="w-4 h-4 rounded border-border-strong text-brand focus:ring-brand"
             />
             <div>
@@ -285,7 +332,7 @@ export default function CreateOrganizationPage() {
               type="checkbox"
               id="createOwnerAccount"
               name="createOwnerAccount"
-              defaultChecked
+              defaultChecked={actionData?.values?.createOwnerAccount !== undefined ? actionData.values.createOwnerAccount : true}
               className="w-4 h-4 rounded border-border-strong text-brand focus:ring-brand"
             />
             <label htmlFor="createOwnerAccount" className="font-semibold text-foreground">
@@ -302,8 +349,9 @@ export default function CreateOrganizationPage() {
                 type="email"
                 id="ownerEmail"
                 name="ownerEmail"
+                defaultValue={actionData?.values?.ownerEmail || ""}
                 placeholder="owner@example.com"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.ownerEmail && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.ownerEmail}</p>
@@ -318,8 +366,9 @@ export default function CreateOrganizationPage() {
                 type="text"
                 id="ownerName"
                 name="ownerName"
+                defaultValue={actionData?.values?.ownerName || ""}
                 placeholder="John Smith"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -333,7 +382,7 @@ export default function CreateOrganizationPage() {
                 name="ownerPassword"
                 placeholder="Minimum 8 characters"
                 minLength={8}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.ownerPassword && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.ownerPassword}</p>

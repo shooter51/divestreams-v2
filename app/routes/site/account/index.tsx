@@ -228,7 +228,7 @@ export default function AccountDashboard() {
         {nextBooking ? (
           <div
             className="rounded-xl border p-6"
-            style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+            style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -268,7 +268,7 @@ export default function AccountDashboard() {
         ) : (
           <div
             className="rounded-xl border p-8 text-center"
-            style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+            style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
           >
             <WaveIcon className="w-12 h-12 mx-auto opacity-40 mb-4" />
             <p className="opacity-75">No upcoming bookings</p>
@@ -335,7 +335,7 @@ function StatCard({
   return (
     <div
       className="rounded-xl border p-5"
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div className="flex items-center gap-3">
         <div
@@ -370,7 +370,7 @@ function QuickLinkCard({
     <Link
       to={to}
       className="rounded-xl border p-5 flex items-start gap-4 transition-shadow hover:shadow-md"
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -394,8 +394,8 @@ function StatusBadge({ status }: { status: string }) {
     confirmed: { bg: "#d1fae5", text: "#059669", label: "Confirmed" },
     checked_in: { bg: "#dbeafe", text: "#2563eb", label: "Checked In" },
     completed: { bg: "#e5e7eb", text: "#6b7280", label: "Completed" },
-    canceled: { bg: "#fee2e2", text: "#dc2626", label: "Canceled" },
-    no_show: { bg: "#fee2e2", text: "#dc2626", label: "No Show" },
+    canceled: { bg: "var(--danger-bg)", text: "var(--danger-text)", label: "Canceled" },
+    no_show: { bg: "var(--danger-bg)", text: "var(--danger-text)", label: "No Show" },
   };
 
   const style = statusStyles[status] || statusStyles.pending;

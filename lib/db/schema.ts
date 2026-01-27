@@ -88,6 +88,8 @@ export const subscriptionPlans = pgTable("subscription_plans", {
     storageGb: number;
   }>(),
   isActive: boolean("is_active").notNull().default(true),
+  // [KAN-594] Prevents migration 0017/0020 from overwriting admin customizations
+  adminModified: boolean("admin_modified").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

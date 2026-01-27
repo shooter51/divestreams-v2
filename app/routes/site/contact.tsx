@@ -304,6 +304,8 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       timeStyle: "short",
     });
 
+    let emailSent = false;
+
     if (contactInfo?.email) {
       const notificationEmail = contactFormNotificationEmail({
         name: name.trim(),
@@ -315,12 +317,14 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
         submittedAt: formattedDate,
       });
 
-      await sendEmail({
+      const notificationResult = await sendEmail({
         to: contactInfo.email,
         subject: notificationEmail.subject,
         html: notificationEmail.html,
         text: notificationEmail.text,
       });
+
+      emailSent = emailSent || notificationResult;
     }
 
     // Send auto-reply confirmation to customer
@@ -331,12 +335,21 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       contactPhone: contactInfo?.phone ?? undefined,
     });
 
-    await sendEmail({
+    const autoReplyResult = await sendEmail({
       to: email.trim(),
       subject: autoReplyEmail.subject,
       html: autoReplyEmail.html,
       text: autoReplyEmail.text,
     });
+
+    emailSent = emailSent || autoReplyResult;
+
+    // Message is saved in database regardless of email delivery
+    // But warn user if emails failed to send
+    if (!emailSent) {
+      console.error("[Contact Form] WARNING: Message saved but emails failed to send");
+      console.error(`[Contact Form] Organization: ${org.name}, Customer: ${email.trim()}`);
+    }
 
     return { success: true };
   } catch (error) {
@@ -400,11 +413,13 @@ export default function SiteContactPage() {
         <div
           className="rounded-2xl p-8 shadow-sm border"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
           }}
         >
-          <h2 className="text-2xl font-semibold mb-6">Send us a message</h2>
+          <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--text-color)" }}>
+            Send us a message
+          </h2>
 
           {actionData?.success ? (
             <div
@@ -439,6 +454,7 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-name"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Name <span className="text-red-500">*</span>
                 </label>
@@ -477,6 +493,7 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-email"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Email <span className="text-red-500">*</span>
                 </label>
@@ -515,6 +532,7 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-phone"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Phone <span className="text-sm opacity-50">(optional)</span>
                 </label>
@@ -552,6 +570,7 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-message"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Message <span className="text-red-500">*</span>
                 </label>
@@ -586,7 +605,7 @@ export default function SiteContactPage() {
 
               {/* General Error */}
               {actionData?.error && (
-                <div className="p-4 rounded-lg bg-red-50 text-red-700 flex items-center gap-2">
+                <div className="p-4 rounded-lg flex items-center gap-2" style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}>
                   <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
                   <p>{actionData.error}</p>
                 </div>
@@ -613,11 +632,13 @@ export default function SiteContactPage() {
           <div
             className="rounded-2xl p-8 shadow-sm border"
             style={{
-              backgroundColor: "white",
-              borderColor: "var(--accent-color)",
+              backgroundColor: "var(--color-card-bg)",
+              borderColor: "var(--color-border)",
             }}
           >
-            <h2 className="text-2xl font-semibold mb-6">Get in touch</h2>
+            <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--text-color)" }}>
+              Get in touch
+            </h2>
 
             <div className="space-y-6">
               {/* Address */}

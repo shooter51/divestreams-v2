@@ -33,7 +33,7 @@ export function Input({ label, error, helpText, required, className = "", ...pro
       <input
         {...props}
         required={required}
-        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${
+        className={`w-full px-3 py-2 border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand ${
           error ? "border-danger" : "border-border-strong"
         } ${className}`}
       />
@@ -55,7 +55,7 @@ export function Select({ label, error, helpText, required, options, placeholder,
       <select
         {...props}
         required={required}
-        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${
+        className={`w-full px-3 py-2 border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand ${
           error ? "border-danger" : "border-border-strong"
         } ${className}`}
       >
@@ -82,7 +82,7 @@ export function Textarea({ label, error, helpText, required, className = "", ...
       <textarea
         {...props}
         required={required}
-        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${
+        className={`w-full px-3 py-2 border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand ${
           error ? "border-danger" : "border-border-strong"
         } ${className}`}
       />
@@ -128,7 +128,7 @@ export function MoneyInput({ label, error, currency = "$", required, className =
           min="0"
           {...props}
           required={required}
-          className={`w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand ${
+          className={`w-full pl-7 pr-3 py-2 border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand ${
             error ? "border-danger" : "border-border-strong"
           } ${className}`}
         />

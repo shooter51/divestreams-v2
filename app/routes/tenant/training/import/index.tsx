@@ -1,15 +1,15 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useActionData, useNavigation } from "react-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
-import { getAgencies, getAgencyById, createCourse } from "../../../../../lib/db/training.server";
-import { getAgencyTemplates, type AgencyCourseTemplate } from "../../../../../lib/data/agency-templates";
+import { getAgencies, createAgency, createCourse } from "../../../../../lib/db/training.server";
+import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const orgContext = await requireOrgContext(request);
+  await requireOrgContext(request);
 
-  // Get available agencies for this organization
-  const agencies = await getAgencies(orgContext.org.id);
+  // Get all available agencies from global templates
+  const agencies = await getAvailableAgencies();
 
   return { agencies };
 }
@@ -19,36 +19,43 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const step = formData.get("step") as string;
-  const agencyId = formData.get("agencyId") as string;
 
   // Step 1: User selected an agency - fetch available course templates
   if (step === "select-agency") {
-    if (!agencyId) {
+    const agencyCode = formData.get("agencyCode") as string;
+    const agencyName = formData.get("agencyName") as string;
+
+    if (!agencyCode) {
       return { error: "Please select a certification agency" };
     }
 
-    // Get the agency from database to get its code
-    const agency = await getAgencyById(orgContext.org.id, agencyId);
-    if (!agency) {
-      return { error: "Agency not found" };
-    }
-
-    // Get templates for this agency
-    const templates = getAgencyTemplates(agency.code);
-    if (!templates) {
+    // Get templates for this agency from database
+    const templates = await getGlobalAgencyCourseTemplates(agencyCode);
+    if (!templates || templates.length === 0) {
       return {
-        error: `No course templates available for ${agency.name}. Templates are available for: PADI, SSI, NAUI`
+        error: `No course templates available for ${agencyName}. Please contact support to enable templates for this agency.`
       };
     }
 
     return {
       success: true,
       step: "select-courses",
-      agency: { id: agency.id, name: agency.name, code: agency.code },
-      courses: templates.courses.map((course, index) => ({
-        id: `${agency.code}-${course.code}`,
-        templateIndex: index,
-        ...course,
+      agency: { code: agencyCode, name: agencyName },
+      courses: templates.map((template) => ({
+        id: `${agencyCode}-${template.code}`,
+        name: template.name,
+        code: template.code,
+        description: template.description,
+        images: template.images || [],
+        durationDays: template.durationDays,
+        classroomHours: template.classroomHours,
+        poolHours: template.poolHours,
+        openWaterDives: template.openWaterDives,
+        prerequisites: template.prerequisites,
+        minAge: template.minAge,
+        medicalRequirements: template.medicalRequirements,
+        requiredItems: template.requiredItems || [],
+        materialsIncluded: template.materialsIncluded,
       })),
     };
   }
@@ -64,23 +71,24 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Get the templates again to get full course data
-    const templates = getAgencyTemplates(agencyCode);
-    if (!templates) {
+    const templates = await getGlobalAgencyCourseTemplates(agencyCode);
+    if (!templates || templates.length === 0) {
       return { error: "Agency templates not found" };
     }
 
     // Filter to selected courses
-    const selectedCourses = templates.courses.filter((_, index) =>
-      selectedCourseIds.includes(`${agencyCode}-${templates.courses[index].code}`)
+    const selectedCourses = templates.filter((template) =>
+      selectedCourseIds.includes(`${agencyCode}-${template.code}`)
     );
 
     return {
       success: true,
       step: "preview",
-      agency: { id: agencyId, name: agencyName, code: agencyCode },
-      selectedCourses: selectedCourses.map(course => ({
-        id: `${agencyCode}-${course.code}`,
-        ...course,
+      agency: { code: agencyCode, name: agencyName },
+      selectedCourses: selectedCourses.map(template => ({
+        id: `${agencyCode}-${template.code}`,
+        name: template.name,
+        code: template.code,
       })),
       selectedCount: selectedCourses.length,
     };
@@ -89,6 +97,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Step 3: Execute the import
   if (step === "execute-import") {
     const agencyCode = formData.get("agencyCode") as string;
+    const agencyName = formData.get("agencyName") as string;
     const courseCodesJson = formData.get("courseCodes") as string;
 
     if (!agencyCode || !courseCodesJson) {
@@ -96,21 +105,31 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const courseCodes: string[] = JSON.parse(courseCodesJson);
-    const templates = getAgencyTemplates(agencyCode);
+    const templates = await getGlobalAgencyCourseTemplates(agencyCode);
 
-    if (!templates) {
+    if (!templates || templates.length === 0) {
       return { error: "Agency templates not found" };
     }
 
-    // Get the agency record for linking
-    const agencies = await getAgencies(orgContext.org.id);
-    const agency = agencies.find(a => a.code.toLowerCase() === agencyCode.toLowerCase());
+    // Find or create the agency record for this tenant
+    const existingAgencies = await getAgencies(orgContext.org.id);
+    let agency = existingAgencies.find(a => a.code.toLowerCase() === agencyCode.toLowerCase());
+
+    if (!agency) {
+      // Create the agency for this tenant
+      agency = await createAgency({
+        organizationId: orgContext.org.id,
+        name: agencyName,
+        code: agencyCode,
+        isActive: true,
+      });
+    }
 
     const importedCourses: string[] = [];
     const errors: string[] = [];
 
     for (const code of courseCodes) {
-      const template = templates.courses.find(c => c.code === code);
+      const template = templates.find(t => t.code === code);
       if (!template) {
         errors.push(`Template not found for code: ${code}`);
         continue;
@@ -119,7 +138,7 @@ export async function action({ request }: ActionFunctionArgs) {
       try {
         const course = await createCourse({
           organizationId: orgContext.org.id,
-          agencyId: agency?.id,
+          agencyId: agency.id,
           name: template.name,
           code: template.code,
           description: template.description,
@@ -251,39 +270,52 @@ function Step({ number, title, active, completed }: { number: number; title: str
   );
 }
 
-function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ id: string; name: string; code: string }>; isSubmitting: boolean }) {
+function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: string; name: string; description?: string }>; isSubmitting: boolean }) {
+  const [selectedAgency, setSelectedAgency] = React.useState<string>("");
+
+  const handleAgencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedAgency(e.target.value);
+  };
+
+  const selectedAgencyData = agencies.find(a => a.code === selectedAgency);
+
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Step 1: Select Certification Agency</h2>
       <p className="text-foreground-muted mb-6">
-        Choose the certification agency whose courses you want to import. We support PADI, SSI, and NAUI course templates.
+        Choose the certification agency whose courses you want to import. We support 10 major certification agencies with 680+ course templates.
       </p>
 
       <Form method="post" className="max-w-md">
         <input type="hidden" name="step" value="select-agency" />
+        <input type="hidden" name="agencyCode" value={selectedAgency} />
+        <input type="hidden" name="agencyName" value={selectedAgencyData?.name || ""} />
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="agencyId" className="block text-sm font-medium mb-2">
+            <label htmlFor="agencySelect" className="block text-sm font-medium mb-2">
               Certification Agency *
             </label>
             <select
-              id="agencyId"
-              name="agencyId"
+              id="agencySelect"
+              value={selectedAgency}
+              onChange={handleAgencyChange}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               required
               disabled={isSubmitting}
             >
               <option value="">Select an agency...</option>
               {agencies.map((agency) => (
-                <option key={agency.id} value={agency.id}>
+                <option key={agency.code} value={agency.code}>
                   {agency.name}
                 </option>
               ))}
             </select>
-            <p className="text-sm text-foreground-muted mt-1">
-              Don't see your agency? Add it in Settings → Training → Agencies first.
-            </p>
+            {selectedAgencyData?.description && (
+              <p className="text-sm text-foreground-muted mt-2">
+                {selectedAgencyData.description}
+              </p>
+            )}
           </div>
 
           <div className="pt-4">
@@ -306,8 +338,16 @@ function SelectCoursesStep({
   agency,
   isSubmitting
 }: {
-  courses: Array<AgencyCourseTemplate & { id: string }>;
-  agency: { id: string; name: string; code: string };
+  courses: Array<{
+    id: string;
+    name: string;
+    code: string;
+    description: string;
+    durationDays: number;
+    openWaterDives: number;
+    minAge: number;
+  }>;
+  agency: { code: string; name: string };
   isSubmitting: boolean;
 }) {
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
@@ -361,7 +401,6 @@ function SelectCoursesStep({
 
       <Form method="post">
         <input type="hidden" name="step" value="select-courses" />
-        <input type="hidden" name="agencyId" value={agency.id} />
         <input type="hidden" name="agencyCode" value={agency.code} />
         <input type="hidden" name="agencyName" value={agency.name} />
 
@@ -426,8 +465,12 @@ function PreviewStep({
   agency,
   isSubmitting
 }: {
-  selectedCourses: Array<AgencyCourseTemplate & { id: string }>;
-  agency: { id: string; name: string; code: string };
+  selectedCourses: Array<{
+    id: string;
+    name: string;
+    code: string;
+  }>;
+  agency: { code: string; name: string };
   isSubmitting: boolean;
 }) {
   return (
@@ -469,8 +512,8 @@ function PreviewStep({
 
       <Form method="post" className="space-y-4">
         <input type="hidden" name="step" value="execute-import" />
-        <input type="hidden" name="agencyId" value={agency.id} />
         <input type="hidden" name="agencyCode" value={agency.code} />
+        <input type="hidden" name="agencyName" value={agency.name} />
         <input type="hidden" name="courseCodes" value={JSON.stringify(selectedCourses.map(c => c.code))} />
 
         <div className="flex gap-3">

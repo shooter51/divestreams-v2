@@ -178,7 +178,7 @@ export default function NotificationsPage() {
                 <select
                   name="reminderDaysBefore"
                   defaultValue={settings.reminderDaysBefore}
-                  className="ml-2 px-2 py-1 border rounded"
+                  className="ml-2 px-2 py-1 border border-border-strong rounded bg-surface-raised text-foreground"
                 >
                   <option value="1">1 day</option>
                   <option value="2">2 days</option>
@@ -248,7 +248,7 @@ export default function NotificationsPage() {
                 <select
                   name="lowCapacityThreshold"
                   defaultValue={settings.lowCapacityThreshold}
-                  className="ml-2 px-2 py-1 border rounded"
+                  className="ml-2 px-2 py-1 border border-border-strong rounded bg-surface-raised text-foreground"
                 >
                   <option value="1">1 spot</option>
                   <option value="2">2 spots</option>

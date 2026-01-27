@@ -89,3 +89,24 @@ export async function triggerPasswordReset(params: {
     resetUrl,
   });
 }
+
+/**
+ * Trigger a welcome email for new customers
+ */
+export async function triggerCustomerWelcomeEmail(params: {
+  customerEmail: string;
+  customerName: string;
+  shopName: string;
+  subdomain: string;
+  tenantId: string;
+}): Promise<void> {
+  const loginUrl = getTenantUrl(params.subdomain, "/site/login");
+
+  await sendEmail("customer-welcome", {
+    to: params.customerEmail,
+    tenantId: params.tenantId,
+    customerName: params.customerName,
+    shopName: params.shopName,
+    loginUrl,
+  });
+}

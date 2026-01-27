@@ -14,6 +14,8 @@ import {
 import { sendEmail } from "../email";
 
 export const auth = betterAuth({
+  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
+  baseURL: process.env.AUTH_URL || process.env.APP_URL || "http://localhost:3000",
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
@@ -45,6 +47,18 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true, // REQUIRED for getSession() to work (Issue #4942)
+      maxAge: 60 * 5, // 5 minutes - cache duration before revalidating with DB
+    },
+  },
+  advanced: {
+    cookieOptions: {
+      sameSite: "lax",
+      domain: process.env.NODE_ENV === "production"
+        ? (process.env.APP_URL?.includes("staging") ? ".staging.divestreams.com" : ".divestreams.com")
+        : undefined,
+    },
   },
   plugins: [
     organization({

@@ -6,7 +6,8 @@ import { getTenantUrl } from "../../../lib/utils/url";
 import { hashPassword } from "../../../lib/auth/password.server";
 import { db } from "../../../lib/db";
 import { user, account, member, organization } from "../../../lib/db/schema/auth";
-import { eq } from "drizzle-orm";
+import { customers } from "../../../lib/db/schema";
+import { eq, sql } from "drizzle-orm";
 
 export const meta: MetaFunction = () => {
   return [
@@ -60,8 +61,33 @@ export async function action({ request }: ActionFunctionArgs) {
       .from(user)
       .where(eq(user.email, email))
       .limit(1);
+
     if (existingUser) {
-      errors.email = "An account with this email already exists";
+      // Check if user has any organization memberships
+      const [membership] = await db
+        .select({ id: member.id })
+        .from(member)
+        .where(eq(member.userId, existingUser.id))
+        .limit(1);
+
+      if (membership) {
+        // User has an active organization - can't sign up again
+        errors.email = "An account with this email already exists";
+      } else {
+        // Orphaned user with no organization - delete it so signup can proceed
+        await db.delete(user).where(eq(user.id, existingUser.id));
+        await db.delete(account).where(eq(account.userId, existingUser.id));
+      }
+    } else {
+      // Check if email exists as a customer
+      const existingCustomer = await db
+        .select({ id: customers.id })
+        .from(customers)
+        .where(eq(customers.email, email))
+        .limit(1);
+      if (existingCustomer.length > 0) {
+        errors.email = "This email is already registered as a customer";
+      }
     }
   }
 

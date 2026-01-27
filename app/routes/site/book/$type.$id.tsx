@@ -38,6 +38,8 @@ import {
   customers,
   equipment,
   organization,
+  trainingCourses,
+  trainingSessions,
 } from "../../../../lib/db/schema";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { nanoid } from "nanoid";
@@ -351,76 +353,152 @@ export async function loader({
       organizationId: org.id,
     };
   } else {
-    // Load course details
-    const [courseData] = await db
+    // Load course details - first try training_courses, then fall back to tours
+    let courseData: any = null;
+    let sessionsData: any[] = [];
+    let isTrainingCourse = false;
+
+    // Try training_courses table first
+    const trainingCourseResults = await db
       .select({
-        id: tours.id,
-        name: tours.name,
-        description: tours.description,
-        type: tours.type,
-        price: tours.price,
-        currency: tours.currency,
-        duration: tours.duration,
-        maxParticipants: tours.maxParticipants,
-        includesEquipment: tours.includesEquipment,
-        includesMeals: tours.includesMeals,
-        includesTransport: tours.includesTransport,
+        id: trainingCourses.id,
+        name: trainingCourses.name,
+        description: trainingCourses.description,
+        price: trainingCourses.price,
+        currency: trainingCourses.currency,
+        duration: trainingCourses.durationDays,
+        maxParticipants: trainingCourses.maxStudents,
+        includesEquipment: trainingCourses.equipmentIncluded,
       })
-      .from(tours)
+      .from(trainingCourses)
       .where(
         and(
-          eq(tours.organizationId, org.id),
-          eq(tours.id, id),
-          eq(tours.type, "course"),
-          eq(tours.isActive, true)
+          eq(trainingCourses.organizationId, org.id),
+          eq(trainingCourses.id, id),
+          eq(trainingCourses.isActive, true),
+          eq(trainingCourses.isPublic, true)
         )
       )
       .limit(1);
+
+    const trainingCourseData = trainingCourseResults[0]
+      ? {
+          ...trainingCourseResults[0],
+          type: "course" as const,
+          includesMeals: false,
+          includesTransport: false,
+        }
+      : null;
+
+    if (trainingCourseData) {
+      courseData = trainingCourseData;
+      isTrainingCourse = true;
+
+      // Get scheduled sessions from training_sessions
+      const today = new Date().toISOString().split("T")[0];
+      sessionsData = await db
+        .select({
+          id: trainingSessions.id,
+          date: trainingSessions.startDate,
+          startTime: trainingSessions.startTime,
+          endTime: trainingSessions.endDate, // Note: using endDate as endTime
+          maxParticipants: trainingSessions.maxStudents,
+          price: trainingSessions.priceOverride, // Note: using priceOverride
+        })
+        .from(trainingSessions)
+        .where(
+          and(
+            eq(trainingSessions.organizationId, org.id),
+            eq(trainingSessions.courseId, id),
+            eq(trainingSessions.status, "scheduled"),
+            sql`${trainingSessions.startDate} >= ${today}`
+          )
+        )
+        .orderBy(trainingSessions.startDate, trainingSessions.startTime);
+    } else {
+      // Fall back to tours table
+      const [toursData] = await db
+        .select({
+          id: tours.id,
+          name: tours.name,
+          description: tours.description,
+          type: tours.type,
+          price: tours.price,
+          currency: tours.currency,
+          duration: tours.duration,
+          maxParticipants: tours.maxParticipants,
+          includesEquipment: tours.includesEquipment,
+          includesMeals: tours.includesMeals,
+          includesTransport: tours.includesTransport,
+        })
+        .from(tours)
+        .where(
+          and(
+            eq(tours.organizationId, org.id),
+            eq(tours.id, id),
+            eq(tours.type, "course"),
+            eq(tours.isActive, true)
+          )
+        )
+        .limit(1);
+
+      if (toursData) {
+        courseData = toursData;
+
+        // Get scheduled sessions from trips
+        const today = new Date().toISOString().split("T")[0];
+        sessionsData = await db
+          .select({
+            id: trips.id,
+            date: trips.date,
+            startTime: trips.startTime,
+            endTime: trips.endTime,
+            maxParticipants: trips.maxParticipants,
+            price: trips.price,
+          })
+          .from(trips)
+          .where(
+            and(
+              eq(trips.organizationId, org.id),
+              eq(trips.tourId, id),
+              eq(trips.isPublic, true),
+              eq(trips.status, "scheduled"),
+              sql`${trips.date} >= ${today}`
+            )
+          )
+          .orderBy(trips.date, trips.startTime);
+      }
+    }
 
     if (!courseData) {
       throw new Response("Course not found or not available", { status: 404 });
     }
 
-    // Get scheduled sessions
-    const today = new Date().toISOString().split("T")[0];
-    const sessionsData = await db
-      .select({
-        id: trips.id,
-        date: trips.date,
-        startTime: trips.startTime,
-        endTime: trips.endTime,
-        maxParticipants: trips.maxParticipants,
-        price: trips.price,
-      })
-      .from(trips)
-      .where(
-        and(
-          eq(trips.organizationId, org.id),
-          eq(trips.tourId, id),
-          eq(trips.isPublic, true),
-          eq(trips.status, "scheduled"),
-          sql`${trips.date} >= ${today}`
-        )
-      )
-      .orderBy(trips.date, trips.startTime);
-
     // Get booking counts for each session
     const sessionsWithAvailability = await Promise.all(
       sessionsData.map(async (session) => {
-        const [bookingCount] = await db
-          .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
-          .from(bookings)
-          .where(
-            and(
-              eq(bookings.tripId, session.id),
-              sql`${bookings.status} NOT IN ('canceled', 'no_show')`
-            )
-          );
+        // For training courses, use training_enrollments; for tours, use bookings
+        let bookedPart = 0;
+        if (isTrainingCourse) {
+          // TODO: Query training_enrollments when that table is created
+          // For now, assume 0 bookings for training courses
+          bookedPart = 0;
+        } else {
+          const [bookingCount] = await db
+            .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
+            .from(bookings)
+            .where(
+              and(
+                eq(bookings.tripId, session.id),
+                sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+              )
+            );
+          bookedPart = Number(bookingCount?.total || 0);
+        }
 
         const maxPart = Number(
           session.maxParticipants || courseData.maxParticipants
         );
-        const bookedPart = Number(bookingCount?.total || 0);
 
         return {
           id: session.id,
@@ -772,7 +850,7 @@ export default function BookingPage() {
       {/* Header */}
       <div
         className="border-b"
-        style={{ backgroundColor: "white", borderColor: "var(--accent-color)" }}
+        style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}
       >
         <div className="max-w-4xl mx-auto px-4 py-6">
           <Link
@@ -817,8 +895,8 @@ export default function BookingPage() {
             <div
               className="rounded-xl p-6 shadow-sm"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -864,7 +942,7 @@ export default function BookingPage() {
                   )}
 
                   {/* Session Selection */}
-                  <div className="pt-4 border-t" style={{ borderColor: "var(--accent-color)" }}>
+                  <div className="pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
                     <label className="block text-sm font-medium mb-2">
                       Select a Session Date *
                     </label>
@@ -886,7 +964,7 @@ export default function BookingPage() {
                               backgroundColor:
                                 selectedSession === session.id
                                   ? "var(--accent-color)"
-                                  : "white",
+                                  : "var(--color-card-bg)",
                             }}
                           >
                             <div className="flex items-center gap-3">
@@ -949,8 +1027,8 @@ export default function BookingPage() {
             <div
               className="rounded-xl p-6 shadow-sm"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -966,7 +1044,7 @@ export default function BookingPage() {
                   type="button"
                   onClick={() => setParticipants(Math.max(1, participants - 1))}
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:bg-gray-50"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  style={{ borderColor: "var(--color-border)" }}
                   disabled={participants <= 1}
                 >
                   <MinusIcon className="w-5 h-5" />
@@ -986,7 +1064,7 @@ export default function BookingPage() {
                   min="1"
                   max={maxParticipants}
                   className="w-20 text-center text-xl font-semibold border rounded-lg py-2"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  style={{ borderColor: "var(--color-border)" }}
                 />
                 <button
                   type="button"
@@ -994,7 +1072,7 @@ export default function BookingPage() {
                     setParticipants(Math.min(maxParticipants, participants + 1))
                   }
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:bg-gray-50"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  style={{ borderColor: "var(--color-border)" }}
                   disabled={participants >= maxParticipants}
                 >
                   <PlusIcon className="w-5 h-5" />
@@ -1015,8 +1093,8 @@ export default function BookingPage() {
               <div
                 className="rounded-xl p-6 shadow-sm"
                 style={{
-                  backgroundColor: "white",
-                  borderColor: "var(--accent-color)",
+                  backgroundColor: "var(--color-card-bg)",
+                  borderColor: "var(--color-border)",
                   borderWidth: "1px",
                 }}
               >
@@ -1045,7 +1123,7 @@ export default function BookingPage() {
                           : "var(--accent-color)",
                         backgroundColor: selectedEquipment.includes(eq.id)
                           ? "var(--accent-color)"
-                          : "white",
+                          : "var(--color-card-bg)",
                       }}
                     >
                       <div className="flex items-center gap-3">
@@ -1079,8 +1157,8 @@ export default function BookingPage() {
             <div
               className="rounded-xl p-6 shadow-sm"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -1235,7 +1313,7 @@ export default function BookingPage() {
                       name="phone"
                       defaultValue={actionData?.values?.phone}
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2"
-                      style={{ borderColor: "var(--accent-color)" }}
+                      style={{ borderColor: "var(--color-border)" }}
                     />
                   </div>
                 </div>
@@ -1246,8 +1324,8 @@ export default function BookingPage() {
             <div
               className="rounded-xl p-6 shadow-sm"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -1262,7 +1340,7 @@ export default function BookingPage() {
                 rows={3}
                 placeholder="Any dietary requirements, medical conditions, or special requests..."
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 resize-none"
-                style={{ borderColor: "var(--accent-color)" }}
+                style={{ borderColor: "var(--color-border)" }}
               />
             </div>
 
@@ -1279,8 +1357,8 @@ export default function BookingPage() {
             <div
               className="sticky top-24 rounded-xl p-6 shadow-lg"
               style={{
-                backgroundColor: "white",
-                borderColor: "var(--accent-color)",
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
                 borderWidth: "1px",
               }}
             >
@@ -1314,7 +1392,7 @@ export default function BookingPage() {
                 {selectedEquipment.length > 0 && (
                   <div
                     className="pt-3 border-t space-y-2"
-                    style={{ borderColor: "var(--accent-color)" }}
+                    style={{ borderColor: "var(--color-border)" }}
                   >
                     <p className="text-sm font-medium">Equipment Rental:</p>
                     {selectedEquipment.map((eqId) => {
@@ -1337,7 +1415,7 @@ export default function BookingPage() {
                 {/* Total */}
                 <div
                   className="pt-4 border-t flex justify-between"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  style={{ borderColor: "var(--color-border)" }}
                 >
                   <span className="font-semibold">Total</span>
                   <span

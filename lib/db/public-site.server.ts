@@ -495,6 +495,7 @@ export async function getPublicCourseById(
       minAge: trainingCourses.minAge,
       prerequisites: trainingCourses.prerequisites,
       medicalRequirements: trainingCourses.medicalRequirements,
+      images: trainingCourses.images,
       agencyName: certificationAgencies.name,
       levelName: certificationLevels.name,
     })
@@ -515,13 +516,14 @@ export async function getPublicCourseById(
     return null;
   }
 
-  // Get images from images table
+  // Get images from images table (for custom uploaded images)
   const imageMap = await getCourseImagesMap(organizationId, [courseId]);
-  const courseImages = imageMap.get(courseId) || null;
+  const customImages = imageMap.get(courseId) || null;
 
+  // Use custom images if available, otherwise use template images from course
   return {
     ...course,
-    images: courseImages,
+    images: customImages && customImages.length > 0 ? customImages : course.images,
   };
 }
 
