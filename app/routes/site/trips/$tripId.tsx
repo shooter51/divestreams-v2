@@ -436,13 +436,19 @@ export default function SiteTripDetailPage() {
 
           {/* Availability Badge */}
           <div
-            className={`absolute top-4 right-4 px-4 py-2 rounded-full text-sm font-semibold ${
-              isFull
-                ? "bg-red-500 text-white"
+            className="absolute top-4 right-4 px-4 py-2 rounded-full text-sm font-semibold"
+            style={{
+              backgroundColor: isFull
+                ? "var(--danger-bg)"
                 : trip.availableSpots <= 3
-                ? "bg-yellow-400 text-yellow-900"
-                : "bg-green-500 text-white"
-            }`}
+                ? "#FEF3C7"
+                : "var(--success-bg)",
+              color: isFull
+                ? "var(--danger-text)"
+                : trip.availableSpots <= 3
+                ? "#92400E"
+                : "var(--success-text)",
+            }}
           >
             {isFull ? "Sold Out" : `${trip.availableSpots} spots available`}
           </div>
@@ -759,10 +765,10 @@ export default function SiteTripDetailPage() {
                   <p className="text-xs font-medium opacity-60 mb-3" style={{ color: "var(--text-color)" }}>INCLUDED IN PRICE</p>
                   <div className="flex flex-wrap gap-2">
                     {trip.includesEquipment && (
-                      <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Equipment</span>
+                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "#DBEAFE", color: "#1E40AF" }}>Equipment</span>
                     )}
                     {trip.includesMeals && (
-                      <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Meals</span>
+                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>Meals</span>
                     )}
                     {trip.includesTransport && (
                       <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">Transport</span>

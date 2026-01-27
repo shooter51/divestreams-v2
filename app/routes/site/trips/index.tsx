@@ -518,13 +518,19 @@ function TripCard({ trip }: { trip: TripCard }) {
         )}
         {/* Availability Badge */}
         <div
-          className={`absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-medium ${
-            isFull
-              ? "bg-red-100 text-red-700"
+          className="absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-medium"
+          style={{
+            backgroundColor: isFull
+              ? "var(--danger-bg)"
               : trip.availableSpots <= 3
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-green-100 text-green-700"
-          }`}
+              ? "#FEF3C7"
+              : "var(--success-bg)",
+            color: isFull
+              ? "var(--danger-text)"
+              : trip.availableSpots <= 3
+              ? "#92400E"
+              : "var(--success-text)",
+          }}
         >
           {isFull ? "Sold Out" : `${trip.availableSpots} spots left`}
         </div>
@@ -598,12 +604,12 @@ function TripCard({ trip }: { trip: TripCard }) {
         {/* Inclusions */}
         <div className="flex flex-wrap gap-2 mb-4">
           {trip.includesEquipment && (
-            <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">
+            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "#DBEAFE", color: "#1E40AF" }}>
               Equipment
             </span>
           )}
           {trip.includesMeals && (
-            <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">
+            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>
               Meals
             </span>
           )}
