@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getEnrollments, getSessions } from "../../../../../lib/db/training.server";
+import { useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Enrollments - DiveStreams" }];
 
@@ -82,6 +83,8 @@ const paymentStatusColors: Record<string, string> = {
 };
 
 export default function EnrollmentsPage() {
+  useNotification();
+
   const { enrollments, sessions, total, status, sessionId, stats } =
     useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();

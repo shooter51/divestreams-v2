@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { getTripWithFullDetails, getAllBoats, getAllTours } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Trip - DiveStreams" }];
 
@@ -97,7 +98,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.trips.organizationId, organizationId), eq(schema.trips.id, tripId)));
 
-  return redirect(`/tenant/trips/${tripId}`);
+  return redirect(redirectWithNotification(`/tenant/trips/${tripId}`, "Trip has been successfully updated", "success"));
 }
 
 export default function EditTripPage() {

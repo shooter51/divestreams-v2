@@ -3,6 +3,7 @@ import { redirect, useActionData, useNavigation, Link, useLoaderData } from "rea
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createDiveSite } from "../../../../lib/db/queries.server";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
 
@@ -39,13 +40,17 @@ export async function action({ request }: ActionFunctionArgs) {
     visibility: (formData.get("visibility") as string) || undefined,
   });
 
-  return redirect("/tenant/dive-sites");
+  const diveSiteName = formData.get("name") as string;
+  return redirect(redirectWithNotification("/tenant/dive-sites", `Dive Site "${diveSiteName}" has been successfully created`, "success"));
 }
 
 export default function NewDiveSitePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">

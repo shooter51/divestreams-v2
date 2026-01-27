@@ -6,6 +6,7 @@ import {
   getLevels,
   createCourse,
 } from "../../../../../lib/db/training.server";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Create Course - DiveStreams" }];
 
@@ -85,7 +86,8 @@ export async function action({ request }: ActionFunctionArgs) {
     isPublic,
   });
 
-  return redirect("/tenant/training/courses");
+  const courseName = name.trim();
+  return redirect(redirectWithNotification("/tenant/training/courses", `Course "${courseName}" has been successfully created`, "success"));
 }
 
 export default function NewCoursePage() {
@@ -93,6 +95,9 @@ export default function NewCoursePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">

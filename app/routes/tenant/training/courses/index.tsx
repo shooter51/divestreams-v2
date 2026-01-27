@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getCourses, getAgencies } from "../../../../../lib/db/training.server";
+import { useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Training Courses - DiveStreams" }];
 
@@ -72,6 +73,9 @@ export default function CoursesIndexPage() {
   const { courses, agencies, total, search, agencyFilter, statusFilter } =
     useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

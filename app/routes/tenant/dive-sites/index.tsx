@@ -4,6 +4,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { diveSites as diveSitesTable } from "../../../../lib/db/schema";
 import { eq, ilike, and } from "drizzle-orm";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Dive Sites - DiveStreams" }];
 
@@ -62,6 +63,9 @@ const difficultyColors: Record<string, string> = {
 export default function DiveSitesPage() {
   const { diveSites, total, search, difficulty } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

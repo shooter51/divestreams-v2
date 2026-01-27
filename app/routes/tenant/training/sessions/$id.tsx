@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, useNavigate } from "react-router";
+import { useLoaderData, Link, useFetcher, useNavigate, redirect } from "react-router";
 import { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import {
@@ -9,6 +9,7 @@ import {
   deleteSession,
   getCourses,
 } from "../../../../../lib/db/training.server";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Session Details - DiveStreams" }];
 
@@ -43,7 +44,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const newStatus = formData.get("status") as string;
     if (newStatus) {
       await updateSession(ctx.org.id, sessionId, { status: newStatus });
-      return { success: true, message: `Session status updated to ${newStatus}` };
+      return redirect(redirectWithNotification(`/tenant/training/sessions/${sessionId}`, "Session has been successfully updated", "success"));
     }
     return { error: "Status is required" };
   }
@@ -72,12 +73,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
     if (notes !== undefined) updates.notes = notes || null;
 
     await updateSession(ctx.org.id, sessionId, updates);
-    return { success: true, message: "Session updated successfully" };
+    return redirect(redirectWithNotification(`/tenant/training/sessions/${sessionId}`, "Session has been successfully updated", "success"));
   }
 
   if (intent === "delete") {
     await deleteSession(ctx.org.id, sessionId);
-    return { success: true, deleted: true };
+    return redirect(redirectWithNotification("/tenant/training/sessions", "Session has been successfully deleted", "success"));
   }
 
   return null;
@@ -106,17 +107,13 @@ const enrollmentStatusColors: Record<string, string> = {
 };
 
 export default function SessionDetailPage() {
+  useNotification();
+
   const { session, enrollments, courses } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string; deleted?: boolean }>();
+  const fetcher = useFetcher<{ error?: string }>();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  // Redirect after delete
-  if (fetcher.data?.deleted) {
-    navigate("/tenant/training/sessions");
-    return null;
-  }
 
   const spotsAvailable = (session.maxStudents || 0) - (session.enrolledCount || 0);
   const sessionPrice = session.priceOverride || session.coursePrice || "0";
@@ -201,12 +198,7 @@ export default function SessionDetailPage() {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {fetcher.data?.success && fetcher.data?.message && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
-          {fetcher.data.message}
-        </div>
-      )}
+      {/* Error Messages */}
       {fetcher.data?.error && (
         <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {fetcher.data.error}

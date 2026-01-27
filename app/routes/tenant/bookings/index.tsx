@@ -5,6 +5,7 @@ import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
 import { eq, or, ilike, sql, count, and, gte } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Bookings - DiveStreams" }];
 
@@ -136,6 +137,8 @@ const statusColors: Record<string, string> = {
 };
 
 export default function BookingsPage() {
+  useNotification();
+
   const {
     bookings,
     total,

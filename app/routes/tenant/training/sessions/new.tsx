@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getCourseById, getCourses, createSession } from "../../../../../lib/db/training.server";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Schedule Session - DiveStreams" }];
 
@@ -68,7 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
     status: "scheduled",
   });
 
-  return redirect(`/tenant/training/sessions/${session.id}`);
+  return redirect(redirectWithNotification("/tenant/training/sessions", "Session has been successfully created", "success"));
 }
 
 export default function NewSessionPage() {

@@ -4,6 +4,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { trips as tripsTable, tours, boats, bookings } from "../../../../lib/db/schema";
 import { eq, and, gte, or, sql, lt } from "drizzle-orm";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Trips - DiveStreams" }];
 
@@ -123,6 +124,8 @@ const statusColors: Record<string, string> = {
 };
 
 export default function TripsPage() {
+  useNotification();
+
   const { trips, tripsByDate, total, view, tourId } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 

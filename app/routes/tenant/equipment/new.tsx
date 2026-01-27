@@ -5,6 +5,7 @@ import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createEquipment } from "../../../../lib/db/queries.server";
 import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
+import { redirectWithNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Add Equipment - DiveStreams" }];
 
@@ -38,7 +39,8 @@ export async function action({ request }: ActionFunctionArgs) {
     isPublic: formData.get("isPublic") === "true",
   });
 
-  return redirect("/tenant/equipment");
+  const equipmentName = formData.get("name") as string;
+  return redirect(redirectWithNotification("/tenant/equipment", `Equipment "${equipmentName}" has been successfully created`, "success"));
 }
 
 export default function NewEquipmentPage() {

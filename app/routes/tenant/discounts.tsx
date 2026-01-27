@@ -6,11 +6,12 @@
 
 import { useState, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher } from "react-router";
+import { useLoaderData, useFetcher, redirect } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { discountCodes } from "../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { redirectWithNotification, useNotification } from "../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
 
@@ -88,7 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
       isActive: true,
     });
 
-    return { success: true, message: "Discount code created" };
+    return redirect(redirectWithNotification("/tenant/discounts", "Discount has been successfully created", "success"));
   }
 
   if (intent === "update") {
@@ -153,7 +154,7 @@ export async function action({ request }: ActionFunctionArgs) {
         )
       );
 
-    return { success: true, message: "Discount code updated" };
+    return redirect(redirectWithNotification("/tenant/discounts", "Discount has been successfully updated", "success"));
   }
 
   if (intent === "toggle-active") {
@@ -181,7 +182,7 @@ export async function action({ request }: ActionFunctionArgs) {
         eq(discountCodes.id, id)
       )
     );
-    return { success: true, message: "Discount code deleted" };
+    return redirect(redirectWithNotification("/tenant/discounts", "Discount has been successfully deleted", "success"));
   }
 
   return { error: "Invalid intent" };
@@ -233,21 +234,15 @@ function formatDiscountValue(type: string, value: string): string {
 }
 
 export default function DiscountsPage() {
+  useNotification();
+
   const { discountCodes } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showForm, setShowForm] = useState(false);
   const [editingDiscount, setEditingDiscount] = useState<DiscountCode | null>(null);
 
   const isSubmitting = fetcher.state === "submitting";
-  const fetcherData = fetcher.data as { success?: boolean; message?: string; error?: string } | undefined;
-
-  // Close modal on successful create/update/delete
-  useEffect(() => {
-    if (fetcherData?.success) {
-      setShowForm(false);
-      setEditingDiscount(null);
-    }
-  }, [fetcherData?.success]);
+  const fetcherData = fetcher.data as { error?: string } | undefined;
 
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {
@@ -283,13 +278,7 @@ export default function DiscountsPage() {
         </button>
       </div>
 
-      {/* Success/Error Messages */}
-      {fetcherData?.success && (
-        <div className="bg-success-muted border border-success text-success p-3 rounded-lg mb-4">
-          {fetcherData.message}
-        </div>
-      )}
-
+      {/* Error Messages */}
       {fetcherData?.error && !fetcherData.error.includes("Percentage discount") && (
         <div className="bg-danger-muted border border-danger text-danger p-3 rounded-lg mb-4">
           {fetcherData.error}

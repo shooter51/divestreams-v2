@@ -3,6 +3,7 @@ import { useLoaderData, useActionData, Link, redirect, useSearchParams } from "r
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getSessionById, createEnrollment } from "../../../../../lib/db/training.server";
 import { getCustomers } from "../../../../../lib/db/queries.server";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "New Enrollment - DiveStreams" }];
 
@@ -53,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
       amountPaid: amountPaid || "0.00",
     });
 
-    return redirect(`/tenant/training/enrollments/${enrollment.id}`);
+    return redirect(redirectWithNotification("/tenant/training/enrollments", "Enrollment has been successfully created", "success"));
   } catch (error) {
     console.error("Error creating enrollment:", error);
 

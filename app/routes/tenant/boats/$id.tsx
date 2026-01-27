@@ -13,6 +13,7 @@ import {
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { maintenanceLogs } from "../../../../lib/db/schema";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Boat Details - DiveStreams" }];
 
@@ -159,8 +160,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
+    const boat = await getBoatById(organizationId, boatId);
+    const boatName = boat?.name || "Boat";
     await deleteBoat(organizationId, boatId);
-    return redirect("/tenant/boats");
+    return redirect(redirectWithNotification("/tenant/boats", `${boatName} has been successfully deleted`, "success"));
   }
 
   if (intent === "log-maintenance") {
@@ -196,6 +199,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function BoatDetailPage() {
   const { boat, recentTrips, upcomingTrips, stats, images, maintenanceHistory, maintenanceDue } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this boat?")) {

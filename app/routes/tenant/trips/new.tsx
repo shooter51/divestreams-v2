@@ -5,6 +5,7 @@ import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { tripSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getTours, getBoats, getStaff, createTrip } from "../../../../lib/db/queries.server";
 import { createRecurringTrip, type RecurrencePattern } from "../../../../lib/trips/recurring.server";
+import { redirectWithNotification } from "../../../../lib/use-notification";
 
 // Client-side helper to preview recurrence dates
 function calculatePreviewDates(
@@ -197,7 +198,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   }
 
-  return redirect("/tenant/trips");
+  return redirect(redirectWithNotification("/tenant/trips", "Trip has been successfully created", "success"));
 }
 
 // Day names for weekly selection

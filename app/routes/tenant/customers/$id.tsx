@@ -7,6 +7,7 @@ import { db } from "../../../../lib/db";
 import { customerCommunications } from "../../../../lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { sendEmail } from "../../../../lib/email/index";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
@@ -90,8 +91,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
+    const customerData = await getCustomerById(organizationId, customerId);
+    const customerName = customerData ? `${customerData.firstName} ${customerData.lastName}` : "Customer";
     await deleteCustomer(organizationId, customerId);
-    return redirect("/tenant/customers");
+    return redirect(redirectWithNotification("/tenant/customers", `${customerName} has been successfully deleted`, "success"));
   }
 
   if (intent === "send-email") {
@@ -160,6 +163,9 @@ export default function CustomerDetailPage() {
   const { customer, bookings, communications } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const [showEmailModal, setShowEmailModal] = useState(false);
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this customer? This cannot be undone.")) {

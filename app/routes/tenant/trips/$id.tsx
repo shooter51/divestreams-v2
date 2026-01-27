@@ -16,6 +16,8 @@ import {
   getRecurringSeriesInstances,
   cancelRecurringSeries,
 } from "../../../../lib/trips/recurring.server";
+import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
+import { redirect } from "react-router";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
 
@@ -109,21 +111,21 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "cancel") {
     await updateTripStatus(organizationId, tripId, "cancelled");
-    return { cancelled: true };
+    return redirect(redirectWithNotification(`/tenant/trips/${tripId}`, "Trip has been successfully cancelled", "success"));
   }
 
   if (intent === "cancel-series") {
     const templateId = formData.get("templateId") as string;
     if (templateId) {
       await cancelRecurringSeries(organizationId, templateId, { includeTemplate: true });
-      return { seriesCancelled: true };
+      return redirect(redirectWithNotification("/tenant/trips", "Trip series has been successfully cancelled", "success"));
     }
     return { error: "Template ID required to cancel series" };
   }
 
   if (intent === "complete") {
     await updateTripStatus(organizationId, tripId, "completed");
-    return { completed: true };
+    return redirect(redirectWithNotification(`/tenant/trips/${tripId}`, "Trip has been successfully marked as complete", "success"));
   }
 
   if (intent === "send-bulk-email") {
@@ -209,6 +211,8 @@ const messageTemplates = [
 ];
 
 export default function TripDetailPage() {
+  useNotification();
+
   const { trip, bookings, revenue, recurringInfo } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string; seriesCancelled?: boolean }>();
   const [showEmailModal, setShowEmailModal] = useState(false);

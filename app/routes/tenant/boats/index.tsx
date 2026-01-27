@@ -6,6 +6,7 @@ import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { boats as boatsTable, trips } from "../../../../lib/db/schema";
 import { eq, ilike, sql, count, and } from "drizzle-orm";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Boats - DiveStreams" }];
 
@@ -91,6 +92,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function BoatsPage() {
+  // Show notifications from URL params
+  useNotification();
+
   const { boats, total, activeCount, totalCapacity, search } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 

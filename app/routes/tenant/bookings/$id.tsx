@@ -3,6 +3,8 @@ import { useLoaderData, Link, useFetcher } from "react-router";
 import { useState } from "react";
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus, recordPayment } from "../../../../lib/db/queries.server";
+import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
+import { redirect } from "react-router";
 
 export const meta: MetaFunction = () => [{ title: "Booking Details - DiveStreams" }];
 
@@ -63,22 +65,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "cancel") {
     await updateBookingStatus(organizationId, bookingId, "cancelled");
-    return { cancelled: true };
+    return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully cancelled", "success"));
   }
 
   if (intent === "confirm") {
     await updateBookingStatus(organizationId, bookingId, "confirmed");
-    return { confirmed: true };
+    return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully confirmed", "success"));
   }
 
   if (intent === "complete") {
     await updateBookingStatus(organizationId, bookingId, "completed");
-    return { completed: true };
+    return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully marked as complete", "success"));
   }
 
   if (intent === "no-show") {
     await updateBookingStatus(organizationId, bookingId, "no_show");
-    return { noShow: true };
+    return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully marked as no-show", "success"));
   }
 
   if (intent === "add-payment") {
@@ -121,6 +123,8 @@ const statusColors: Record<string, string> = {
 };
 
 export default function BookingDetailPage() {
+  useNotification();
+
   const { booking } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ error?: string; message?: string; paymentAdded?: boolean }>();
   const [showPaymentModal, setShowPaymentModal] = useState(false);

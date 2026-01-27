@@ -10,6 +10,7 @@ import { getTenantDb } from "../../../lib/db/tenant.server";
 import { db } from "../../../lib/db/index";
 import { eq } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
+import { useNotification } from "../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -97,7 +98,7 @@ export async function action({ request }: ActionFunctionArgs) {
       isActive: true,
     });
 
-    return { success: true, message: "Product created" };
+    return { success: true, message: `Product "${name}" has been successfully created` };
   }
 
   if (intent === "update") {
@@ -136,7 +137,7 @@ export async function action({ request }: ActionFunctionArgs) {
       })
       .where(eq(tables.products.id, id));
 
-    return { success: true, message: "Product updated" };
+    return { success: true, message: `Product "${name}" has been successfully updated` };
   }
 
   if (intent === "adjust-stock") {
@@ -161,8 +162,13 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     const id = formData.get("id") as string;
+    const [product] = await db
+      .select()
+      .from(tables.products)
+      .where(eq(tables.products.id, id));
+    const productName = product?.name || "Product";
     await db.delete(tables.products).where(eq(tables.products.id, id));
-    return { success: true, message: "Product deleted" };
+    return { success: true, message: `${productName} has been successfully deleted` };
   }
 
   if (intent === "bulk-update-stock") {
@@ -419,6 +425,9 @@ export default function ProductsPage() {
   const [bulkUpdateType, setBulkUpdateType] = useState<"set" | "adjust">("adjust");
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState("");
+
+  // Show notifications from URL params
+  useNotification();
 
   const isSubmitting = fetcher.state === "submitting";
 

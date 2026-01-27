@@ -4,6 +4,7 @@ import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById } from "../../../../lib/db/queries.server";
 import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
+import { redirectWithNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }];
 
@@ -121,7 +122,7 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error("Failed to queue booking confirmation email:", emailError);
   }
 
-  return redirect("/tenant/bookings");
+  return redirect(redirectWithNotification("/tenant/bookings", "Booking has been successfully created", "success"));
 }
 
 export default function NewBookingPage() {

@@ -9,6 +9,7 @@ import { equipment } from "../../../../lib/db/schema";
 import { eq, or, ilike, sql, count, and } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Equipment - DiveStreams" }];
 
@@ -145,6 +146,9 @@ const conditionColors: Record<string, string> = {
 };
 
 export default function EquipmentPage() {
+  // Show notifications from URL params
+  useNotification();
+
   const {
     equipment,
     stats,

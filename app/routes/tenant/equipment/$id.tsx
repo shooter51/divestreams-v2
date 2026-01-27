@@ -14,6 +14,7 @@ import {
 } from "../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
 
@@ -164,8 +165,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
+    const equipment = await getEquipmentById(organizationId, equipmentId);
+    const equipmentName = equipment?.name || "Equipment";
     await deleteEquipment(organizationId, equipmentId);
-    return redirect("/tenant/equipment");
+    return redirect(redirectWithNotification("/tenant/equipment", `${equipmentName} has been successfully deleted`, "success"));
   }
 
   return null;
@@ -200,6 +203,9 @@ export default function EquipmentDetailPage() {
   const { equipment, rentalHistory, serviceHistory, stats, images } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this equipment?")) {

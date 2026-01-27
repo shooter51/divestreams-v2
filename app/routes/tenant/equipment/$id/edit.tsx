@@ -8,6 +8,7 @@ import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../../app/components/ui";
 import { BarcodeScannerModal } from "../../../../components/BarcodeScannerModal";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Equipment - DiveStreams" }];
 
@@ -136,7 +137,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.equipment.organizationId, organizationId), eq(schema.equipment.id, equipmentId)));
 
-  return redirect(`/tenant/equipment/${equipmentId}`);
+  return redirect(redirectWithNotification(`/tenant/equipment/${equipmentId}`, `Equipment "${validation.data.name}" has been successfully updated`, "success"));
 }
 
 export default function EditEquipmentPage() {

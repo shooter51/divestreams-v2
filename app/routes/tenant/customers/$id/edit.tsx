@@ -5,6 +5,7 @@ import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { getCustomerById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { customerSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Customer - DiveStreams" }];
 
@@ -99,7 +100,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.customers.organizationId, organizationId), eq(schema.customers.id, customerId)));
 
-  return redirect(`/tenant/customers/${customerId}`);
+  const customerName = `${validation.data.firstName} ${validation.data.lastName}`;
+  return redirect(redirectWithNotification(`/tenant/customers/${customerId}`, `Customer "${customerName}" has been successfully updated`, "success"));
 }
 
 export default function EditCustomerPage() {
@@ -107,6 +109,9 @@ export default function EditCustomerPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">

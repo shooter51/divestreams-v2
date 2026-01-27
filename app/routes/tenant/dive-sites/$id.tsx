@@ -12,6 +12,7 @@ import {
 } from "../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Dive Site Details - DiveStreams" }];
 
@@ -134,8 +135,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     try {
+      const site = await getDiveSiteById(organizationId, siteId);
+      const siteName = site?.name || "Dive site";
       await deleteDiveSite(organizationId, siteId);
-      return redirect("/tenant/dive-sites");
+      return redirect(redirectWithNotification("/tenant/dive-sites", `${siteName} has been successfully deleted`, "success"));
     } catch (error: any) {
       return { deleteError: error.message || "Failed to delete dive site" };
     }
@@ -155,6 +158,9 @@ export default function DiveSiteDetailPage() {
   const { diveSite, recentTrips, stats, toursUsingSite, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this dive site?")) {

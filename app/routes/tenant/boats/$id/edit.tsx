@@ -6,6 +6,7 @@ import { getBoatById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../../app/components/ui";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Boat - DiveStreams" }];
 
@@ -115,7 +116,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.boats.organizationId, organizationId), eq(schema.boats.id, boatId)));
 
-  return redirect(`/tenant/boats/${boatId}`);
+  return redirect(redirectWithNotification(`/tenant/boats/${boatId}`, `Boat "${validation.data.name}" has been successfully updated`, "success"));
 }
 
 export default function EditBoatPage() {

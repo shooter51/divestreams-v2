@@ -5,6 +5,7 @@ import { db } from "../../../../lib/db";
 import { customers } from "../../../../lib/db/schema";
 import { eq, or, ilike, sql, count } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Customers - DiveStreams" }];
 
@@ -70,6 +71,9 @@ export default function CustomersPage() {
     isPremium
   } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

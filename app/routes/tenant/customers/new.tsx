@@ -7,6 +7,7 @@ import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { user } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
@@ -97,7 +98,7 @@ export async function action({ request }: ActionFunctionArgs) {
       notes: formData.get("notes") as string || undefined,
     });
 
-    return redirect("/tenant/customers");
+    return redirect(redirectWithNotification("/tenant/customers", `Customer "${firstName} ${lastName}" has been successfully created`, "success"));
   } catch (error) {
     console.error("Failed to create customer:", error);
     const values: Record<string, string> = {};
@@ -119,6 +120,9 @@ export default function NewCustomerPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const isNearLimit = limitMax !== -1 && limitRemaining <= Math.ceil(limitMax * 0.2);
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">

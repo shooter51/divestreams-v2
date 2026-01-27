@@ -7,6 +7,7 @@ import {
   deleteCourse,
   updateCourse,
 } from "../../../../../lib/db/training.server";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Course Details - DiveStreams" }];
 
@@ -53,8 +54,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
+    const course = await getCourseById(ctx.org.id, courseId);
+    const courseName = course?.name || "Course";
     await deleteCourse(ctx.org.id, courseId);
-    return redirect("/tenant/training/courses");
+    return redirect(redirectWithNotification("/tenant/training/courses", `${courseName} has been successfully deleted`, "success"));
   }
 
   return null;
@@ -63,6 +66,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function CourseDetailPage() {
   const { course, sessions } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDelete = () => {
     if (

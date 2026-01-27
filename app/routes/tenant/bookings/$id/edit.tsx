@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Booking - DiveStreams" }];
 
@@ -68,7 +69,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.bookings.organizationId, organizationId), eq(schema.bookings.id, bookingId)));
 
-  return redirect(`/tenant/bookings/${bookingId}`);
+  return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully updated", "success"));
 }
 
 export default function EditBookingPage() {

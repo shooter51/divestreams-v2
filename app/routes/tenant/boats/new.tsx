@@ -3,6 +3,7 @@ import { redirect, useActionData, useNavigation, Link, useLoaderData } from "rea
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createBoat } from "../../../../lib/db/queries.server";
+import { redirectWithNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Add Boat - DiveStreams" }];
 
@@ -41,7 +42,8 @@ export async function action({ request }: ActionFunctionArgs) {
     isActive: formData.get("isActive") === "true",
   });
 
-  return redirect("/tenant/boats");
+  const boatName = formData.get("name") as string;
+  return redirect(redirectWithNotification("/tenant/boats", `Boat "${boatName}" has been successfully created`, "success"));
 }
 
 export default function NewBoatPage() {

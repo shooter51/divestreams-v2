@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getSessions, getCourses } from "../../../../../lib/db/training.server";
+import { useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Training Sessions - DiveStreams" }];
 
@@ -45,6 +46,8 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function SessionsPage() {
+  useNotification();
+
   const { sessions, courses, total, courseId, status } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 

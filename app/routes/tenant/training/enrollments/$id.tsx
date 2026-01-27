@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, useNavigate } from "react-router";
+import { useLoaderData, Link, useFetcher, useNavigate, redirect } from "react-router";
 import { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import {
@@ -7,6 +7,7 @@ import {
   updateEnrollment,
   deleteEnrollment,
 } from "../../../../../lib/db/training.server";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [
   { title: "Enrollment Details - DiveStreams" },
@@ -77,7 +78,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       status,
       completedAt,
     });
-    return { success: true, message: "Status updated successfully" };
+    return redirect(redirectWithNotification(`/tenant/training/enrollments/${enrollmentId}`, "Enrollment has been successfully updated", "success"));
   }
 
   if (intent === "update-payment") {
@@ -88,7 +89,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       paymentStatus,
       amountPaid,
     });
-    return { success: true, message: "Payment updated successfully" };
+    return redirect(redirectWithNotification(`/tenant/training/enrollments/${enrollmentId}`, "Enrollment has been successfully updated", "success"));
   }
 
   if (intent === "update-progress") {
@@ -113,7 +114,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         finalExamScore,
       },
     });
-    return { success: true, message: "Progress updated successfully" };
+    return redirect(redirectWithNotification(`/tenant/training/enrollments/${enrollmentId}`, "Enrollment has been successfully updated", "success"));
   }
 
   if (intent === "add-skill-checkoff") {
@@ -141,7 +142,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     await updateEnrollment(ctx.org.id, enrollmentId, {
       skillCheckoffs: [...existingCheckoffs, newCheckoff],
     });
-    return { success: true, message: "Skill checkoff added successfully" };
+    return redirect(redirectWithNotification(`/tenant/training/enrollments/${enrollmentId}`, "Enrollment has been successfully updated", "success"));
   }
 
   if (intent === "issue-certification") {
@@ -157,18 +158,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
       certificationNumber,
       certificationDate: new Date().toISOString().split("T")[0],
     });
-    return { success: true, message: "Certification issued successfully" };
+    return redirect(redirectWithNotification(`/tenant/training/enrollments/${enrollmentId}`, "Enrollment has been successfully updated", "success"));
   }
 
   if (intent === "update-notes") {
     const notes = formData.get("notes") as string;
     await updateEnrollment(ctx.org.id, enrollmentId, { notes });
-    return { success: true, message: "Notes updated successfully" };
+    return redirect(redirectWithNotification(`/tenant/training/enrollments/${enrollmentId}`, "Enrollment has been successfully updated", "success"));
   }
 
   if (intent === "delete") {
     await deleteEnrollment(ctx.org.id, enrollmentId);
-    return { deleted: true };
+    return redirect(redirectWithNotification("/tenant/training/enrollments", "Enrollment has been successfully deleted", "success"));
   }
 
   return null;
@@ -190,22 +191,15 @@ const paymentStatusColors: Record<string, string> = {
 };
 
 export default function EnrollmentDetailPage() {
+  useNotification();
+
   const { enrollment } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{
     error?: string;
-    message?: string;
-    success?: boolean;
-    deleted?: boolean;
   }>();
   const navigate = useNavigate();
   const [showSkillModal, setShowSkillModal] = useState(false);
   const [showCertModal, setShowCertModal] = useState(false);
-
-  // Handle redirect after delete
-  if (fetcher.data?.deleted) {
-    navigate("/tenant/training/enrollments");
-    return null;
-  }
 
   const handleDelete = () => {
     if (
@@ -283,12 +277,7 @@ export default function EnrollmentDetailPage() {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {fetcher.data?.message && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
-          {fetcher.data.message}
-        </div>
-      )}
+      {/* Error Messages */}
       {fetcher.data?.error && (
         <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {fetcher.data.error}

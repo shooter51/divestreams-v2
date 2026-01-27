@@ -6,6 +6,7 @@ import { getDiveSiteById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../../app/components/ui";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Dive Site - DiveStreams" }];
 
@@ -121,7 +122,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.diveSites.organizationId, organizationId), eq(schema.diveSites.id, siteId)));
 
-  return redirect(`/tenant/dive-sites/${siteId}`);
+  const diveSiteName = validation.data.name;
+  return redirect(redirectWithNotification(`/tenant/dive-sites/${siteId}`, `Dive Site "${diveSiteName}" has been successfully updated`, "success"));
 }
 
 export default function EditDiveSitePage() {
@@ -129,6 +131,9 @@ export default function EditDiveSitePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">
