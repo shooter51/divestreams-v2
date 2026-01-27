@@ -359,19 +359,16 @@ export async function loader({
     let isTrainingCourse = false;
 
     // Try training_courses table first
-    const [trainingCourseData] = await db
+    const trainingCourseResults = await db
       .select({
         id: trainingCourses.id,
         name: trainingCourses.name,
         description: trainingCourses.description,
-        type: sql<string>`'course'`,
         price: trainingCourses.price,
         currency: trainingCourses.currency,
         duration: trainingCourses.durationDays,
         maxParticipants: trainingCourses.maxStudents,
         includesEquipment: trainingCourses.equipmentIncluded,
-        includesMeals: sql<boolean>`false`,
-        includesTransport: sql<boolean>`false`,
       })
       .from(trainingCourses)
       .where(
@@ -383,6 +380,15 @@ export async function loader({
         )
       )
       .limit(1);
+
+    const trainingCourseData = trainingCourseResults[0]
+      ? {
+          ...trainingCourseResults[0],
+          type: "course" as const,
+          includesMeals: false,
+          includesTransport: false,
+        }
+      : null;
 
     if (trainingCourseData) {
       courseData = trainingCourseData;
