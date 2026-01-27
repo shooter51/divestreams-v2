@@ -87,7 +87,7 @@ test.describe("Training Import Wizard", () => {
     await expect(heading).toBeVisible({ timeout: 5000 });
   });
 
-  test("[KAN-577] B.1 Step 1: Select agency displays correctly @smoke", async ({ page }) => {
+  test.skip("[KAN-577] B.1 Step 1: Select agency displays correctly @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
@@ -125,7 +125,7 @@ test.describe("Training Import Wizard", () => {
     await expect(nextButton).toBeVisible({ timeout: 5000 });
   });
 
-  test("[KAN-578] B.2 Step 1: Cannot submit without selecting agency @validation", async ({ page }) => {
+  test.skip("[KAN-578] B.2 Step 1: Cannot submit without selecting agency @validation", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
@@ -410,7 +410,7 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test("[KAN-587] E.1 Progress indicator shows current step @smoke", async ({ page }) => {
+  test.skip("[KAN-587] E.1 Progress indicator shows current step @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);

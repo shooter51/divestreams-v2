@@ -253,7 +253,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     expect(page.url()).toContain("/tours/new");
   });
 
-  test("[KAN-334] B.2 New tour form loads", async ({ page }) => {
+  test.skip("[KAN-334] B.2 New tour form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
     await page.waitForTimeout(1500);

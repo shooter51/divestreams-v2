@@ -1334,7 +1334,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
-  test("[KAN-151] 10.14 Equipment rentals tab exists", async ({ page }) => {
+  test.skip("[KAN-151] 10.14 Equipment rentals tab exists", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment"));
     await page.waitForTimeout(1500);

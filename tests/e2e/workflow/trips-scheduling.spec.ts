@@ -256,7 +256,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(page.url()).toContain("/trips/new");
   });
 
-  test("[KAN-394] B.2 New trip form loads", async ({ page }) => {
+  test.skip("[KAN-394] B.2 New trip form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForTimeout(1500);

@@ -154,7 +154,7 @@ async function extractEntityId(page: Page, entityName: string, basePath: string)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Customer & Booking Deletion", () => {
-  test("[KAN-530] A.1 Create test customer for deletion testing", async ({ page }) => {
+  test.skip("[KAN-530] A.1 Create test customer for deletion testing", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 

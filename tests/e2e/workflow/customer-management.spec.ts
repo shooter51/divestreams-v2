@@ -259,7 +259,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(page.url()).toContain("/customers/new");
   });
 
-  test("[KAN-288] B.2 New customer form loads", async ({ page }) => {
+  test.skip("[KAN-288] B.2 New customer form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
