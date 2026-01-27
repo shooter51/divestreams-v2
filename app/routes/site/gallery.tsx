@@ -287,22 +287,13 @@ export default function GalleryPage() {
                             : [...currentTags, tag];
                           updateFilter("tags", newTags.length > 0 ? newTags.join(",") : null);
                         }}
-                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                          filters.tags?.includes(tag)
-                            ? "bg-blue-600 text-white"
-                            : ""
-                        } ${
-                          !isActiveTag
-                            ? "hover:opacity-80"
-                            : ""
-                        }`}
+                        className="px-3 py-1 rounded-full text-sm font-medium transition-colors hover:opacity-90"
                         style={{
-                          backgroundColor: isActiveTag ? "var(--primary-color)" : "var(--color-card-bg)",
-                          color: isActiveTag ? "var(--color-primary-text)" : "var(--text-color)",
+                          backgroundColor: filters.tags?.includes(tag) ? "var(--primary-color)" : "var(--color-card-bg)",
+                          color: filters.tags?.includes(tag) ? "var(--color-primary-text)" : "var(--text-color)",
                           borderColor: "var(--color-border)",
                           borderWidth: "1px",
                         }}
-                        }`}
                       >
                         {tag}
                       </button>
