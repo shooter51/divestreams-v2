@@ -95,7 +95,8 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-    command: ["sh", "-c", "caddy reverse-proxy --from :80 --to app:3000"]
+      - /docker/divestreams-staging/caddy-config:/etc/caddy:ro
+      - /docker/divestreams-staging/certs:/certs:ro
     depends_on:
       - app
     networks:
