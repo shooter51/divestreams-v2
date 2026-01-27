@@ -40,6 +40,10 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_staging}@db:5432/divestreams
       - REDIS_URL=redis://redis:6379
+      - AUTH_SECRET=${AUTH_SECRET}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - AUTH_URL=${AUTH_URL:-https://staging.divestreams.com}
+      - APP_URL=${APP_URL:-https://staging.divestreams.com}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER}
