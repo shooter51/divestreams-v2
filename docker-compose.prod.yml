@@ -9,6 +9,7 @@ services:
       - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_prod}@postgres:5432/divestreams
       - REDIS_URL=redis://redis:6379
       - AUTH_SECRET=${AUTH_SECRET}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - AUTH_URL=${AUTH_URL:-https://divestreams.com}
       - APP_URL=${APP_URL:-https://divestreams.com}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
