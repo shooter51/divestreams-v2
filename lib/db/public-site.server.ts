@@ -513,16 +513,22 @@ export async function getPublicCourseById(
     .limit(1);
 
   if (!course) {
+    console.log('[getPublicCourseById] Course not found:', {
+      organizationId,
+      courseId,
+      queryConditions: 'isPublic=true, isActive=true'
+    });
     return null;
   }
 
-  // Get images from images table
+  // Get images from images table (for custom uploaded images)
   const imageMap = await getCourseImagesMap(organizationId, [courseId]);
-  const courseImages = imageMap.get(courseId) || null;
+  const customImages = imageMap.get(courseId) || null;
 
+  // Use custom images if available, otherwise use template images from course
   return {
     ...course,
-    images: courseImages,
+    images: customImages && customImages.length > 0 ? customImages : course.images,
   };
 }
 
