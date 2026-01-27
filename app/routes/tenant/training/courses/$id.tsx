@@ -44,6 +44,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return { toggled: true };
   }
 
+  if (intent === "toggle-public") {
+    const course = await getCourseById(ctx.org.id, courseId);
+    if (course) {
+      await updateCourse(ctx.org.id, courseId, { isPublic: !course.isPublic });
+    }
+    return { toggled: true };
+  }
+
   if (intent === "delete") {
     await deleteCourse(ctx.org.id, courseId);
     return redirect("/tenant/training/courses");
@@ -92,6 +100,15 @@ export default function CourseDetailPage() {
             {!course.isActive && (
               <span className="text-sm bg-surface-inset text-foreground-muted px-2 py-1 rounded">
                 Inactive
+              </span>
+            )}
+            {course.isPublic ? (
+              <span className="text-sm bg-brand-muted text-brand px-2 py-1 rounded">
+                Public
+              </span>
+            ) : (
+              <span className="text-sm bg-surface-inset text-foreground-muted px-2 py-1 rounded">
+                Private
               </span>
             )}
           </div>
@@ -303,6 +320,15 @@ export default function CourseDetailPage() {
                   className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
                 >
                   {course.isActive ? "Deactivate Course" : "Activate Course"}
+                </button>
+              </fetcher.Form>
+              <fetcher.Form method="post">
+                <input type="hidden" name="intent" value="toggle-public" />
+                <button
+                  type="submit"
+                  className="w-full text-center border px-4 py-2 rounded-lg hover:bg-surface-inset"
+                >
+                  {course.isPublic ? "Make Private" : "Make Public"}
                 </button>
               </fetcher.Form>
             </div>
