@@ -1,5 +1,6 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
+import { useState } from "react";
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createBoat } from "../../../../lib/db/queries.server";
@@ -50,6 +51,38 @@ export default function NewBoatPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Parse initial amenities from actionData
+  const initialAmenities = actionData?.values?.amenities
+    ? actionData.values.amenities.split(",").map((s: string) => s.trim()).filter(Boolean)
+    : [];
+
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(initialAmenities);
+
+  const commonAmenities = [
+    "Dive platform",
+    "Sun deck",
+    "Toilet",
+    "Freshwater shower",
+    "Camera station",
+    "Storage lockers",
+    "Shade cover",
+    "First aid kit",
+    "Sound system",
+    "BBQ grill",
+  ];
+
+  const toggleAmenity = (amenity: string) => {
+    setSelectedAmenities((prev) =>
+      prev.includes(amenity)
+        ? prev.filter((a) => a !== amenity)
+        : [...prev, amenity]
+    );
+  };
+
+  const removeAmenity = (amenity: string) => {
+    setSelectedAmenities((prev) => prev.filter((a) => a !== amenity));
+  };
 
   return (
     <div className="max-w-2xl">
@@ -159,59 +192,64 @@ export default function NewBoatPage() {
         {/* Amenities */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Amenities & Features</h2>
+
+          {/* Hidden input to store selected amenities as comma-separated string */}
+          <input
+            type="hidden"
+            name="amenities"
+            value={selectedAmenities.join(", ")}
+          />
+
+          {/* Selected amenities as removable chips */}
+          {selectedAmenities.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">
+                Selected Amenities
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {selectedAmenities.map((amenity) => (
+                  <span
+                    key={amenity}
+                    className="inline-flex items-center gap-1 bg-brand-muted text-brand px-3 py-1 rounded-full text-sm"
+                  >
+                    {amenity}
+                    <button
+                      type="button"
+                      onClick={() => removeAmenity(amenity)}
+                      className="hover:text-brand-hover"
+                      aria-label={`Remove ${amenity}`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Common amenities - hide already selected ones */}
           <div>
-            <label htmlFor="amenities" className="block text-sm font-medium mb-1">
-              Amenities
-            </label>
-            <input
-              type="text"
-              id="amenities"
-              name="amenities"
-              placeholder="e.g., Dive platform, Sun deck, Toilet, Shower (comma-separated)"
-              defaultValue={actionData?.values?.amenities}
-              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-            />
-            <p className="text-xs text-foreground-muted mt-1">
-              Separate multiple amenities with commas
-            </p>
-          </div>
-
-          <div className="mt-4">
-            <p className="text-sm font-medium mb-2">Common amenities:</p>
+            <p className="text-sm font-medium mb-2">Add Amenities:</p>
             <div className="flex flex-wrap gap-2">
-              {[
-                "Dive platform",
-                "Sun deck",
-                "Toilet",
-                "Freshwater shower",
-                "Camera station",
-                "Storage lockers",
-                "Shade cover",
-                "First aid kit",
-                "Sound system",
-                "BBQ grill",
-              ].map((amenity) => (
-                <button
-                  key={amenity}
-                  type="button"
-                  onClick={(e) => {
-                    const input = document.getElementById("amenities") as HTMLInputElement;
-                    const current = input.value;
-                    const amenitiesArray = current.split(",").map((s) => s.trim()).filter(Boolean);
-
-                    if (amenitiesArray.includes(amenity)) {
-                      // Remove amenity
-                      input.value = amenitiesArray.filter((a) => a !== amenity).join(", ");
-                    } else {
-                      // Add amenity
-                      input.value = current ? `${current}, ${amenity}` : amenity;
-                    }
-                  }}
-                  className="text-xs bg-surface-inset hover:bg-surface-overlay px-2 py-1 rounded"
-                >
-                  + {amenity}
-                </button>
-              ))}
+              {commonAmenities
+                .filter((amenity) => !selectedAmenities.includes(amenity))
+                .map((amenity) => (
+                  <button
+                    key={amenity}
+                    type="button"
+                    onClick={() => toggleAmenity(amenity)}
+                    className="text-xs bg-surface-inset hover:bg-brand hover:text-white px-3 py-1 rounded transition-colors"
+                  >
+                    + {amenity}
+                  </button>
+                ))}
+              {commonAmenities.every((amenity) => selectedAmenities.includes(amenity)) && (
+                <p className="text-xs text-foreground-muted italic">
+                  All common amenities added! You can remove any by clicking the × button above.
+                </p>
+              )}
             </div>
           </div>
         </div>
