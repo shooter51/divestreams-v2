@@ -256,7 +256,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-334] B.2 New tour form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    if (!(await isAuthenticated(page)) return;
+    if (!(await isAuthenticated(page))) return;
     // Wait for form to be visible (condition-based waiting, not arbitrary timeout)
     await page.locator("form").waitFor({ state: "visible", timeout: 10000 });
     const hasForm = await page.locator("form").isVisible();
