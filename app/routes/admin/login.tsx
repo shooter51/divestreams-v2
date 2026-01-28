@@ -9,12 +9,6 @@ import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { getAppUrl } from "../../../lib/utils/url";
 
-type ActionData = {
-  error?: string;
-  notPlatformMember?: {
-    email: string;
-  };
-};
 
 export const meta: MetaFunction = () => [{ title: "Admin Login - DiveStreams" }];
 
@@ -47,11 +41,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {
-    return { error: "Please enter a valid email address" };
+    return { error: "Please enter a valid email address", email: email || "" };
   }
 
   if (typeof password !== "string" || !password) {
-    return { error: "Password is required" };
+    return { error: "Password is required", email: email || "" };
   }
 
   try {
@@ -68,13 +62,13 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok) {
-      return { error: userData.message || "Invalid email or password" };
+      return { error: userData.message || "Invalid email or password", email };
     }
 
     const userId = userData?.user?.id;
 
     if (!userId) {
-      return { error: "Failed to get user information" };
+      return { error: "Failed to get user information", email };
     }
 
     // Find the platform organization
@@ -86,7 +80,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (!platformOrg) {
       console.error("Platform organization not found");
-      return { error: "Platform configuration error. Please contact support." };
+      return { error: "Platform configuration error. Please contact support.", email };
     }
 
     // Check if user is a member of the platform organization
@@ -119,9 +113,17 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error("Admin login error:", error);
-    return { error: "An error occurred during login. Please try again." };
+    return { error: "An error occurred during login. Please try again.", email: email || "" };
   }
 }
+
+type ActionData = {
+  error?: string;
+  email?: string;
+  notPlatformMember?: {
+    email: string;
+  };
+};
 
 export default function AdminLoginPage() {
   const actionData = useActionData<ActionData>();
@@ -193,6 +195,7 @@ export default function AdminLoginPage() {
               autoComplete="email"
               autoFocus
               required
+              defaultValue={actionData?.email || ""}
               className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               placeholder="admin@example.com"
             />
