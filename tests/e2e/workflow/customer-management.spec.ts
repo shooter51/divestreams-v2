@@ -259,12 +259,13 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     expect(page.url()).toContain("/customers/new");
   });
 
-  test.skip("[KAN-288] B.2 New customer form loads", async ({ page }) => {
+  test("[KAN-288] B.2 New customer form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
-    const hasForm = await page.locator("form").isVisible().catch(() => false);
+    // Wait for form to be visible (condition-based waiting, not arbitrary timeout)
+    await page.locator("form").waitFor({ state: "visible", timeout: 10000 });
+    const hasForm = await page.locator("form").isVisible();
     expect(hasForm).toBeTruthy();
   });
 

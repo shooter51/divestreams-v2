@@ -256,12 +256,13 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     expect(page.url()).toContain("/trips/new");
   });
 
-  test.skip("[KAN-394] B.2 New trip form loads", async ({ page }) => {
+  test("[KAN-394] B.2 New trip form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
-    await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
-    const hasForm = await page.locator("form").isVisible().catch(() => false);
+    // Wait for form to be visible (condition-based waiting, not arbitrary timeout)
+    await page.locator("form").waitFor({ state: "visible", timeout: 10000 });
+    const hasForm = await page.locator("form").isVisible();
     expect(hasForm).toBeTruthy();
   });
 

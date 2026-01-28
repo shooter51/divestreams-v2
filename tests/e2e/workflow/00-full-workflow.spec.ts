@@ -1334,12 +1334,13 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
-  test.skip("[KAN-151] 10.14 Equipment rentals tab exists", async ({ page }) => {
+  test("[KAN-151] 10.14 Equipment rentals tab exists", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment"));
-    await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
-    const rentalsTab = await page.getByRole("button", { name: /rental/i }).isVisible().catch(() => false);
+    // Wait for rentals tab to be visible (condition-based waiting, not arbitrary timeout)
+    await page.getByRole("button", { name: /rental/i }).waitFor({ state: "visible", timeout: 10000 });
+    const rentalsTab = await page.getByRole("button", { name: /rental/i }).isVisible();
     expect(rentalsTab).toBeTruthy();
   });
 

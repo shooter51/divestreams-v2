@@ -154,20 +154,22 @@ async function extractEntityId(page: Page, entityName: string, basePath: string)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 test.describe.serial("Block A: Customer & Booking Deletion", () => {
-  test.skip("[KAN-530] A.1 Create test customer for deletion testing", async ({ page }) => {
+  test("[KAN-530] A.1 Create test customer for deletion testing", async ({ page }) => {
     await loginToTenant(page);
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
 
-    // Retry with reload if form not loaded (Vite dep optimization can cause page reloads in CI)
+    // Wait for first name field with condition-based waiting (retry with reload if needed)
     const firstNameField = page.getByLabel(/first.*name/i);
-    if (!(await firstNameField.isVisible().catch(() => false))) {
+    try {
+      await firstNameField.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
+      // Retry with reload if form not loaded (Vite dep optimization can cause page reloads in CI)
       await page.reload();
       await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await firstNameField.waitFor({ state: "visible", timeout: 8000 });
     }
 
     // Fill customer form

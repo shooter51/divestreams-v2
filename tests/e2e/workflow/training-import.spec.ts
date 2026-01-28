@@ -87,10 +87,9 @@ test.describe("Training Import Wizard", () => {
     await expect(heading).toBeVisible({ timeout: 5000 });
   });
 
-  test.skip("[KAN-577] B.1 Step 1: Select agency displays correctly @smoke", async ({ page }) => {
+  test("[KAN-577] B.1 Step 1: Select agency displays correctly @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
 
     // Check if we were redirected (feature gate)
     if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
@@ -98,12 +97,14 @@ test.describe("Training Import Wizard", () => {
       return;
     }
 
-    // Verify Step 1 is active (retry with reload if needed)
+    // Wait for Step 1 with condition-based waiting (retry with reload if needed)
     const step1 = page.locator('text=Select Agency');
-    if (!(await step1.isVisible().catch(() => false))) {
+    try {
+      await step1.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
       await page.reload();
       await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await step1.waitFor({ state: "visible", timeout: 8000 });
     }
     await expect(step1).toBeVisible({ timeout: 8000 });
 
@@ -125,10 +126,9 @@ test.describe("Training Import Wizard", () => {
     await expect(nextButton).toBeVisible({ timeout: 5000 });
   });
 
-  test.skip("[KAN-578] B.2 Step 1: Cannot submit without selecting agency @validation", async ({ page }) => {
+  test("[KAN-578] B.2 Step 1: Cannot submit without selecting agency @validation", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
 
     // Check if we were redirected (feature gate)
     if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
@@ -136,12 +136,14 @@ test.describe("Training Import Wizard", () => {
       return;
     }
 
-    // Try to submit without selection - retry with reload if button not found
+    // Wait for Next button with condition-based waiting (retry with reload if needed)
     const nextButton = page.getByRole("button", { name: /next.*select courses/i });
-    if (!(await nextButton.isVisible().catch(() => false))) {
+    try {
+      await nextButton.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
       await page.reload();
       await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await nextButton.waitFor({ state: "visible", timeout: 8000 });
     }
     await expect(nextButton).toBeVisible({ timeout: 8000 });
     await nextButton.click();
@@ -410,10 +412,9 @@ test.describe("Training Import Wizard", () => {
     }
   });
 
-  test.skip("[KAN-587] E.1 Progress indicator shows current step @smoke", async ({ page }) => {
+  test("[KAN-587] E.1 Progress indicator shows current step @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
     await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
 
     // Check if we were redirected (feature gate)
     if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
@@ -421,14 +422,14 @@ test.describe("Training Import Wizard", () => {
       return;
     }
 
-    // Step 1: Verify step 1 is active (blue circle with "1")
-    // The step indicator has: div.rounded-full with bg-blue-600 when active
+    // Wait for step 1 indicator with condition-based waiting (retry with reload if needed)
     const step1Circle = page.locator('div.rounded-full:has-text("1")').first();
-    // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
-    if (!(await step1Circle.isVisible().catch(() => false))) {
+    try {
+      await step1Circle.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
       await page.reload();
       await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await step1Circle.waitFor({ state: "visible", timeout: 8000 });
     }
     await expect(step1Circle).toBeVisible({ timeout: 8000 });
     const step1Classes = await step1Circle.getAttribute('class');
