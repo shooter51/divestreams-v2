@@ -134,8 +134,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Create subscription record (let DB generate UUID)
     console.log(`[TENANT CREATE] Creating subscription for org: ${orgId}`);
+
+    // Look up the plan ID from the plan name
+    const [selectedPlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.name, plan))
+      .limit(1);
+
     await db.insert(subscription).values({
       organizationId: orgId,
+      planId: selectedPlan?.id || null,
       plan,
       status: "active",
       createdAt: new Date(),
