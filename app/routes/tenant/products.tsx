@@ -413,7 +413,7 @@ export default function ProductsPage() {
   const fetcher = useFetcher();
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithSaleFields | null>(null);
-  const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string } | null>(null);
+  const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string; currentStock: number } | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importResult, setImportResult] = useState<{
     successCount: number;
@@ -766,7 +766,7 @@ export default function ProductsPage() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => setStockAdjustment({ id: product.id, name: product.name })}
+                          onClick={() => setStockAdjustment({ id: product.id, name: product.name, currentStock: product.stockQuantity })}
                           className="px-2 py-1 text-sm bg-surface-inset rounded hover:bg-surface-overlay"
                           title="Adjust Stock"
                         >
@@ -1058,6 +1058,11 @@ export default function ProductsPage() {
               <input type="hidden" name="intent" value="adjust-stock" />
               <input type="hidden" name="id" value={stockAdjustment.id} />
 
+              <div className="bg-surface-inset rounded-lg p-3 mb-3">
+                <div className="text-sm text-foreground-muted">Current Stock</div>
+                <div className="text-2xl font-bold text-foreground">{stockAdjustment.currentStock}</div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Adjustment (+ to add, - to remove)
@@ -1069,6 +1074,9 @@ export default function ProductsPage() {
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-center text-xl"
                   placeholder="e.g., 10 or -5"
                 />
+                <p className="text-xs text-foreground-muted mt-1">
+                  Note: Stock cannot go below 0. Negative adjustments will be clamped.
+                </p>
               </div>
 
               <div className="flex gap-3">

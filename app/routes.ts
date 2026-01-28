@@ -39,6 +39,11 @@ export default [
 
       // POS
       route("pos", "routes/tenant/pos.tsx"),
+      route("pos/products", "routes/tenant/pos/products/index.tsx"),
+      route("pos/products/new", "routes/tenant/pos/products/new.tsx"),
+      route("pos/products/:id", "routes/tenant/pos/products/$id.tsx"),
+      route("pos/products/:id/edit", "routes/tenant/pos/products/$id/edit.tsx"),
+      route("pos/transactions", "routes/tenant/pos/transactions/index.tsx"),
 
       // Customers
       route("customers", "routes/tenant/customers/index.tsx"),
@@ -117,6 +122,8 @@ export default [
       route("settings/billing", "routes/tenant/settings/billing.tsx"),
       route("settings/team", "routes/tenant/settings/team.tsx"),
       route("settings/integrations", "routes/tenant/settings/integrations.tsx"),
+      route("settings/integrations/quickbooks", "routes/tenant/settings/integrations/quickbooks.tsx"),
+      route("settings/integrations/zapier", "routes/tenant/settings/integrations/zapier.tsx"),
       route("settings/notifications", "routes/tenant/settings/notifications.tsx"),
       route("settings/booking-widget", "routes/tenant/settings/booking-widget.tsx"),
 

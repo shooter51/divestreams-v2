@@ -96,6 +96,7 @@ interface LoaderData {
   course: CourseDetail;
   sessions: ScheduledSession[];
   totalSessions: number;
+  organizationSlug: string;
 }
 
 // ============================================================================
@@ -235,6 +236,7 @@ export async function loader({ params, request }: LoaderFunctionArgs): Promise<L
     course,
     sessions: sessionsResult.trips,
     totalSessions: sessionsResult.total,
+    organizationSlug: subdomain || org.slug,
   };
 }
 
@@ -472,11 +474,13 @@ function SessionCard({
   courseId,
   defaultPrice,
   currency,
+  organizationSlug,
 }: {
   session: ScheduledSession;
   courseId: string;
   defaultPrice: string;
   currency: string;
+  organizationSlug: string;
 }) {
   const price = session.price || defaultPrice;
 
@@ -512,7 +516,7 @@ function SessionCard({
           {formatPrice(price, currency)}
         </span>
         <Link
-          to={`/site/book/course/${courseId}?session=${session.id}`}
+          to={`/embed/${organizationSlug}/courses/${courseId}/enroll?sessionId=${session.id}`}
           className="px-4 py-2 text-white font-semibold rounded-lg transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--primary-color)" }}
         >
@@ -532,12 +536,14 @@ function SessionsSection({
   courseId,
   defaultPrice,
   currency,
+  organizationSlug,
 }: {
   sessions: ScheduledSession[];
   totalSessions: number;
   courseId: string;
   defaultPrice: string;
   currency: string;
+  organizationSlug: string;
 }) {
   if (sessions.length === 0) {
     return (
@@ -579,6 +585,7 @@ function SessionsSection({
             courseId={courseId}
             defaultPrice={defaultPrice}
             currency={currency}
+            organizationSlug={organizationSlug}
           />
         ))}
       </div>
@@ -596,7 +603,7 @@ function SessionsSection({
 // ============================================================================
 
 export default function SiteCourseDetailPage() {
-  const { course, sessions, totalSessions } = useLoaderData<typeof loader>();
+  const { course, sessions, totalSessions, organizationSlug } = useLoaderData<typeof loader>();
 
   // Get agency info for styling
   const agencyColor = getAgencyColor(course.agencyName);
@@ -768,7 +775,7 @@ export default function SiteCourseDetailPage() {
 
             {/* Enroll Button */}
             <Link
-              to={`/site/book/course/${course.id}`}
+              to={`/embed/${organizationSlug}/courses/${course.id}/enroll`}
               className="w-full py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
               style={{ backgroundColor: "var(--primary-color)" }}
             >
@@ -832,6 +839,7 @@ export default function SiteCourseDetailPage() {
           courseId={course.id}
           defaultPrice={course.price}
           currency={course.currency}
+          organizationSlug={organizationSlug}
         />
       </div>
 
