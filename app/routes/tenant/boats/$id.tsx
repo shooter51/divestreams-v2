@@ -177,6 +177,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const nextMaintenanceDate = formData.get("nextMaintenanceDate") as string;
     const nextMaintenanceType = formData.get("nextMaintenanceType") as string;
 
+    // Validate cost if provided
+    if (cost && cost.trim() !== "") {
+      const costNum = parseFloat(cost);
+      if (isNaN(costNum) || costNum < 0) {
+        return {
+          maintenanceLogged: false,
+          error: "Cost must be a valid number >= $0 (or leave blank for free/warranty work)",
+        };
+      }
+    }
+
     await db.insert(maintenanceLogs).values({
       organizationId,
       boatId,

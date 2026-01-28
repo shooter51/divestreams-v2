@@ -84,13 +84,26 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "add-payment") {
-    const amount = parseFloat(formData.get("amount") as string);
+    const amountStr = formData.get("amount") as string;
+    const amount = parseFloat(amountStr);
     const paymentMethod = formData.get("paymentMethod") as string;
     const notes = formData.get("notes") as string;
 
-    if (!amount || amount <= 0) {
-      return { error: "Valid payment amount is required" };
+    // Validate amount is a valid number
+    if (isNaN(amount)) {
+      return { error: "Payment amount must be a valid number" };
     }
+
+    // Allow $0 OR >= $1 (but not $0.01-$0.99)
+    if (amount > 0 && amount < 1) {
+      return { error: "Payment amount must be at least $1 (or $0)" };
+    }
+
+    // Don't allow negative amounts
+    if (amount < 0) {
+      return { error: "Payment amount cannot be negative" };
+    }
+
     if (!paymentMethod) {
       return { error: "Payment method is required" };
     }

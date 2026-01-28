@@ -9,6 +9,7 @@ import { eq, and } from "drizzle-orm";
 
 type ActionData = {
   error?: string;
+  email?: string;
   notMember?: {
     orgName: string;
     orgId: string;
@@ -71,7 +72,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Null check before using
     if (typeof userId !== "string" || typeof orgId !== "string" || !userId || !orgId) {
-      return { error: "Missing user or organization information" };
+      return { error: "Missing user or organization information", email: "" };
     }
 
     try {
@@ -102,7 +103,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(validatedRedirectTo);
     } catch (error) {
       console.error("Join error:", error);
-      return { error: "Failed to join organization. Please try again." };
+      return { error: "Failed to join organization. Please try again.", email: "" };
     }
   }
 
@@ -112,11 +113,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {
-    return { error: "Please enter a valid email address" };
+    return { error: "Please enter a valid email address", email: email || "" };
   }
 
   if (typeof password !== "string" || !password) {
-    return { error: "Password is required" };
+    return { error: "Password is required", email: email || "" };
   }
 
   try {
@@ -133,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok) {
-      return { error: userData.message || "Invalid email or password" };
+      return { error: userData.message || "Invalid email or password", email };
     }
 
     const userId = userData?.user?.id;
@@ -187,7 +188,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return { error: "An error occurred during login. Please try again." };
+    return { error: "An error occurred during login. Please try again.", email: email || "" };
   }
 }
 
@@ -306,6 +307,7 @@ export default function LoginPage() {
                   type="email"
                   autoComplete="email"
                   required
+                  defaultValue={actionData?.email || ""}
                   className="appearance-none block w-full px-3 py-2 border border-border-strong rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand"
                   placeholder="you@example.com"
                 />

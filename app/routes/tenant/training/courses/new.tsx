@@ -52,6 +52,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!price || isNaN(parseFloat(price))) {
     errors.price = "Valid price is required";
+  } else {
+    const priceNum = parseFloat(price);
+    if (priceNum < 0) {
+      errors.price = "Price cannot be negative";
+    }
+    // Allow free courses (price = $0) - dive shops may offer free intro courses or promotional courses
   }
 
   if (Object.keys(errors).length > 0) {

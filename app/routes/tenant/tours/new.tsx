@@ -57,6 +57,22 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
+  // Additional server-side price validation
+  const priceStr = formData.get("price") as string;
+  const priceNum = parseFloat(priceStr);
+  if (isNaN(priceNum)) {
+    return {
+      errors: { price: "Price must be a valid number" },
+      values: getFormValues(formData)
+    };
+  }
+  if (priceNum < 1) {
+    return {
+      errors: { price: "Price must be at least $1" },
+      values: getFormValues(formData)
+    };
+  }
+
   try {
     await createTour(organizationId, {
       name: formData.get("name") as string,

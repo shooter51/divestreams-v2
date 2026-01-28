@@ -114,7 +114,16 @@ export async function action({ request }: ActionFunctionArgs) {
     const maxAdvanceBooking = Number(formData.get("maxAdvanceBooking")) || 90;
     const cancellationPolicy = (formData.get("cancellationPolicy") as string) || "24h";
     const requireDeposit = formData.get("requireDeposit") === "true";
-    const depositPercent = Number(formData.get("depositPercent")) || 25;
+    const depositPercentStr = formData.get("depositPercent") as string;
+    const depositPercent = parseFloat(depositPercentStr);
+
+    // Validate deposit percentage (0-100)
+    if (isNaN(depositPercent)) {
+      return { error: "Deposit percentage must be a valid number" };
+    }
+    if (depositPercent < 0 || depositPercent > 100) {
+      return { error: "Deposit percentage must be between 0 and 100" };
+    }
 
     // Store metadata as JSON string
     const newMetadata = JSON.stringify({
