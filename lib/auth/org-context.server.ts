@@ -311,9 +311,12 @@ export async function getOrgContext(
       .limit(1);
   }
 
-  // Determine if premium (any paid plan with active status)
+  // Determine if premium based on plan details (not legacy string field)
+  // Use planDetails.monthlyPrice to ensure we check the authoritative FK relationship
   const isPremium =
-    planName !== "free" && sub?.status === "active";
+    planDetails &&
+    planDetails.monthlyPrice > 0 &&
+    sub?.status === "active";
 
   // Set limits based on subscription plan from database
   // Fall back to free tier limits if plan not found
