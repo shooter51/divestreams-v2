@@ -19,20 +19,30 @@ BEGIN
         FROM information_schema.schemata
         WHERE schema_name LIKE 'tenant_%'
     LOOP
-        -- Check if sale_price column exists
-        IF NOT EXISTS (
+        -- Check if products table exists first
+        IF EXISTS (
             SELECT 1
-            FROM information_schema.columns
+            FROM information_schema.tables
             WHERE table_schema = tenant_schema
             AND table_name = 'products'
-            AND column_name = 'sale_price'
         ) THEN
-            -- Add sale pricing columns
-            EXECUTE format('ALTER TABLE %I.products ADD COLUMN sale_price DECIMAL(10, 2)', tenant_schema);
-            EXECUTE format('ALTER TABLE %I.products ADD COLUMN sale_start_date TIMESTAMP', tenant_schema);
-            EXECUTE format('ALTER TABLE %I.products ADD COLUMN sale_end_date TIMESTAMP', tenant_schema);
+            -- Check if sale_price column exists
+            IF NOT EXISTS (
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = tenant_schema
+                AND table_name = 'products'
+                AND column_name = 'sale_price'
+            ) THEN
+                -- Add sale pricing columns
+                EXECUTE format('ALTER TABLE %I.products ADD COLUMN sale_price DECIMAL(10, 2)', tenant_schema);
+                EXECUTE format('ALTER TABLE %I.products ADD COLUMN sale_start_date TIMESTAMP', tenant_schema);
+                EXECUTE format('ALTER TABLE %I.products ADD COLUMN sale_end_date TIMESTAMP', tenant_schema);
 
-            RAISE NOTICE 'Added sale pricing columns to %.products', tenant_schema;
+                RAISE NOTICE 'Added sale pricing columns to %.products', tenant_schema;
+            END IF;
+        ELSE
+            RAISE NOTICE 'Skipping %: products table does not exist', tenant_schema;
         END IF;
     END LOOP;
 END $$;
