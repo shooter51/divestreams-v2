@@ -521,10 +521,9 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
   );
 }
 
-// Split Payment Modal
+// Split Payment Modal (Cash-only for now - card payments require Stripe integration)
 export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModalProps) {
-  const [payments, setPayments] = useState<Array<{ method: "card" | "cash"; amount: number }>>([]);
-  const [currentMethod, setCurrentMethod] = useState<"card" | "cash">("card");
+  const [payments, setPayments] = useState<Array<{ method: "cash"; amount: number }>>([]);
   const [currentAmount, setCurrentAmount] = useState("");
 
   const paidAmount = payments.reduce((sum, p) => sum + p.amount, 0);
@@ -533,7 +532,7 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
   const addPayment = () => {
     const amount = parseFloat(currentAmount);
     if (!isNaN(amount) && amount > 0 && amount <= remaining) {
-      setPayments([...payments, { method: currentMethod, amount }]);
+      setPayments([...payments, { method: "cash", amount }]);
       setCurrentAmount("");
     }
   };
@@ -568,7 +567,7 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
             <div className="space-y-2">
               {payments.map((payment, index) => (
                 <div key={index} className="flex items-center justify-between p-2 bg-surface-inset rounded">
-                  <span className="capitalize">{payment.method}</span>
+                  <span>Cash</span>
                   <div className="flex items-center gap-2">
                     <span>${payment.amount.toFixed(2)}</span>
                     <button
@@ -583,30 +582,11 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
             </div>
           )}
 
-          {/* Add payment */}
+          {/* Add payment (Cash only) */}
           {remaining > 0 && (
             <div className="p-4 border rounded-lg space-y-3">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentMethod("card")}
-                  className={`flex-1 py-2 rounded-lg ${
-                    currentMethod === "card"
-                      ? "bg-brand text-white"
-                      : "bg-surface-inset hover:bg-surface-overlay"
-                  }`}
-                >
-                  Card
-                </button>
-                <button
-                  onClick={() => setCurrentMethod("cash")}
-                  className={`flex-1 py-2 rounded-lg ${
-                    currentMethod === "cash"
-                      ? "bg-green-600 text-white"
-                      : "bg-surface-inset hover:bg-surface-overlay"
-                  }`}
-                >
-                  Cash
-                </button>
+              <div className="text-sm text-foreground-muted">
+                Add cash payment
               </div>
               <div className="flex gap-2">
                 <input
@@ -616,6 +596,7 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
                   onChange={(e) => setCurrentAmount(e.target.value)}
                   placeholder="Amount"
                   className="flex-1 px-3 py-2 border rounded-lg"
+                  autoFocus
                 />
                 <button
                   onClick={() => setCurrentAmount(remaining.toFixed(2))}
@@ -626,7 +607,7 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
                 <button
                   onClick={addPayment}
                   disabled={!currentAmount || parseFloat(currentAmount) <= 0}
-                  className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-surface-overlay"
                 >
                   Add
                 </button>

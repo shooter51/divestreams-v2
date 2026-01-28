@@ -233,7 +233,9 @@ function RentalCard({
   const [showDays, setShowDays] = useState(false);
   const [days, setDays] = useState(1);
 
-  if (!equipment.rentalPrice) return null;
+  // Equipment should always have a rental price if it gets here from the backend query
+  // But keep this as a safety check - should not happen in practice
+  if (!equipment.rentalPrice || Number(equipment.rentalPrice) <= 0) return null;
 
   return (
     <div className="p-4 bg-surface-raised rounded-lg shadow-sm border">

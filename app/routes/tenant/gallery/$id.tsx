@@ -229,8 +229,7 @@ export default function AlbumDetailPage() {
             Images ({images.length})
           </h2>
           <Link
-            to="/tenant/images/upload"
-            state={{ albumId: album.id }}
+            to={`/tenant/gallery/upload-images?albumId=${album.id}`}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
             + Upload Images
@@ -245,8 +244,7 @@ export default function AlbumDetailPage() {
               Upload your first images to this album
             </p>
             <Link
-              to="/tenant/images/upload"
-              state={{ albumId: album.id }}
+              to={`/tenant/gallery/upload-images?albumId=${album.id}`}
               className="inline-block bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover"
             >
               Upload Images

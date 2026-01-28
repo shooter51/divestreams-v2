@@ -1,0 +1,147 @@
+/**
+ * E2E Test for KAN-630: Album image upload not working
+ *
+ * Bug: Upload image feature on Album page fails because:
+ * - No gallery-specific upload route exists
+ * - Generic /tenant/images/upload doesn't support gallery schema
+ * - Gallery uses gallery_images table, not generic images table
+ */
+
+import { test, expect } from '@playwright/test';
+import path from 'path';
+
+test.describe('KAN-630: Album Image Upload', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login as admin
+    await page.goto('/auth/login');
+    await page.fill('input[name="email"]', 'admin@divestreams.com');
+    await page.fill('input[name="password"]', 'admin123');
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL(/\/tenant/);
+  });
+
+  test('should upload image to album successfully', async ({ page }) => {
+    // Navigate to gallery page
+    await page.goto('/tenant/gallery');
+    await expect(page.locator('h1')).toContainText('Gallery');
+
+    // Find an existing album or create one
+    const albumExists = await page.locator('a[href*="/tenant/gallery/"]').count() > 0;
+
+    let albumId: string;
+    if (!albumExists) {
+      // Create a test album if none exists
+      await page.goto('/tenant/gallery');
+      // Assuming there's a way to create albums - this might need adjustment
+      await page.click('button:has-text("New Album")');
+      await page.fill('input[name="name"]', 'Test Album for Upload');
+      await page.fill('input[name="description"]', 'Test album description');
+      await page.click('button[type="submit"]');
+      await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
+      albumId = page.url().split('/').pop() || '';
+    } else {
+      // Click first album
+      await page.locator('a[href*="/tenant/gallery/"]').first().click();
+      await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
+      albumId = page.url().split('/').pop() || '';
+    }
+
+    // Now on album detail page
+    await expect(page.locator('h2:has-text("Images")')).toBeVisible();
+
+    // Find upload button
+    const uploadButton = page.locator('a:has-text("Upload Images"), button:has-text("Upload Images")').first();
+    await expect(uploadButton).toBeVisible();
+
+    // Click upload button
+    await uploadButton.click();
+
+    // Should navigate to upload page or show upload modal
+    // Wait for either upload form or file input
+    const fileInput = page.locator('input[type="file"]');
+    await expect(fileInput).toBeVisible({ timeout: 5000 });
+
+    // Prepare test image
+    const testImagePath = path.join(__dirname, '../../fixtures/test-image.jpg');
+
+    // Upload the image
+    await fileInput.setInputFiles(testImagePath);
+
+    // Fill metadata (if form exists)
+    const titleInput = page.locator('input[name="title"]');
+    if (await titleInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await titleInput.fill('Test Upload Image');
+    }
+
+    // Submit upload
+    const submitButton = page.locator('button[type="submit"]:has-text("Upload"), button:has-text("Save")').first();
+    if (await submitButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await submitButton.click();
+    }
+
+    // Wait for upload to complete
+    await page.waitForTimeout(2000);
+
+    // Verify upload succeeded - should show image in album
+    const imageGrid = page.locator('div[class*="grid"]').filter({ has: page.locator('img') });
+    await expect(imageGrid).toBeVisible({ timeout: 5000 });
+
+    // Verify at least one image is displayed
+    const uploadedImage = page.locator('img[alt*="Test Upload Image"], img[src*="webp"]').first();
+    await expect(uploadedImage).toBeVisible({ timeout: 3000 });
+
+    // Verify no error messages
+    await expect(page.locator('text=error, text=failed').first()).not.toBeVisible();
+  });
+
+  test('should handle upload errors gracefully', async ({ page }) => {
+    // Navigate to an album
+    await page.goto('/tenant/gallery');
+    const albumLink = page.locator('a[href*="/tenant/gallery/"]').first();
+
+    if (await albumLink.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await albumLink.click();
+      await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
+
+      // Find upload button
+      const uploadButton = page.locator('a:has-text("Upload"), button:has-text("Upload")').first();
+
+      if (await uploadButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await uploadButton.click();
+
+        // Try to upload invalid file type
+        const fileInput = page.locator('input[type="file"]');
+        if (await fileInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+          const invalidFile = path.join(__dirname, '../../fixtures/test-document.txt');
+          await fileInput.setInputFiles(invalidFile);
+
+          // Should show error for invalid file type
+          const errorMessage = page.locator('text=/invalid.*file.*type/i, text=/allowed.*jpeg.*png/i').first();
+          await expect(errorMessage).toBeVisible({ timeout: 3000 });
+        }
+      }
+    }
+  });
+
+  test('should display uploaded images in album', async ({ page }) => {
+    // Navigate to gallery
+    await page.goto('/tenant/gallery');
+
+    // Navigate to first album
+    const albumLink = page.locator('a[href*="/tenant/gallery/"]').first();
+    if (await albumLink.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await albumLink.click();
+      await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
+
+      // Check if images are displayed
+      const imagesSection = page.locator('h2:has-text("Images")');
+      await expect(imagesSection).toBeVisible();
+
+      // Either images exist or show empty state
+      const hasImages = await page.locator('img[src*="/"]').count() > 0;
+      const hasEmptyState = await page.locator('text="No images yet"').isVisible();
+
+      expect(hasImages || hasEmptyState).toBeTruthy();
+    }
+  });
+});

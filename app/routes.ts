@@ -95,6 +95,8 @@ export default [
       // Gallery
       route("gallery", "routes/tenant/gallery/index.tsx"),
       route("gallery/new", "routes/tenant/gallery/new.tsx"),
+      route("gallery/upload-images", "routes/tenant/gallery/upload-images.tsx"),
+      route("gallery/upload", "routes/tenant/gallery/upload.tsx"),
       route("gallery/:id", "routes/tenant/gallery/$id.tsx"),
 
       // Training Module

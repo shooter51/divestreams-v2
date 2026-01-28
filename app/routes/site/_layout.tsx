@@ -5,13 +5,15 @@
  * Handles tenant resolution, theme application, and site navigation.
  */
 
-import { Outlet, Link, useLoaderData, useLocation } from "react-router";
+import { Outlet, Link, useLoaderData, useLocation, Form } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { eq, or } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization, type PublicSiteSettings } from "../../../lib/db/schema/auth";
+import type { Customer } from "../../../lib/db/schema";
 import { getTheme, getThemeStyleBlock, type ThemeName } from "../../../lib/themes/public-site-themes";
+import { getCustomerBySession } from "../../../lib/auth/customer-auth.server";
 
 // ============================================================================
 // THEME CSS VARIABLES
@@ -135,6 +137,7 @@ export interface SiteLoaderData {
     gallery: boolean;
   };
   contactInfo: PublicSiteSettings["contactInfo"];
+  customer: Customer | null;
 }
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoaderData> {
@@ -223,6 +226,22 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     secondaryColor: settings.secondaryColor || undefined,
   });
 
+  // Check for customer session
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const cookies = Object.fromEntries(
+    cookieHeader.split("; ").filter(Boolean).map((c) => {
+      const [key, ...rest] = c.split("=");
+      return [key, rest.join("=")];
+    })
+  );
+
+  const sessionToken = cookies["customer_session"];
+  let customer: Customer | null = null;
+
+  if (sessionToken) {
+    customer = await getCustomerBySession(sessionToken);
+  }
+
   return {
     organization: {
       id: org.id,
@@ -235,6 +254,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     darkCSS,
     enabledPages: settings.pages,
     contactInfo: settings.contactInfo,
+    customer,
   };
 }
 
@@ -243,7 +263,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
 // ============================================================================
 
 export default function SiteLayout() {
-  const { organization, themeVars, enabledPages, contactInfo, darkCSS } =
+  const { organization, themeVars, enabledPages, contactInfo, darkCSS, customer } =
     useLoaderData<typeof loader>();
   const location = useLocation();
 
@@ -348,24 +368,51 @@ export default function SiteLayout() {
 
             {/* Auth Actions */}
             <div className="flex items-center gap-3">
-              <Link
-                to="/site/login"
-                className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                style={{
-                  color: "var(--primary-color)",
-                }}
-              >
-                Log In
-              </Link>
-              <Link
-                to="/site/register"
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
-                style={{
-                  backgroundColor: "var(--primary-color)",
-                }}
-              >
-                Sign Up
-              </Link>
+              {customer ? (
+                <>
+                  <Link
+                    to="/site/account"
+                    className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                    style={{
+                      color: "var(--primary-color)",
+                    }}
+                  >
+                    My Account
+                  </Link>
+                  <Form method="post" action="/site/account/logout">
+                    <button
+                      type="submit"
+                      className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:opacity-80"
+                      style={{
+                        color: "var(--text-color)",
+                      }}
+                    >
+                      Log Out
+                    </button>
+                  </Form>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/site/login"
+                    className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                    style={{
+                      color: "var(--primary-color)",
+                    }}
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/site/register"
+                    className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: "var(--primary-color)",
+                    }}
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 

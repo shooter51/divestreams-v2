@@ -419,8 +419,10 @@ export default function POSPage() {
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold">Point of Sale</h1>
           <button
+            type="button"
             onClick={clearCart}
-            className="px-4 py-2 text-sm bg-surface-inset rounded-lg hover:bg-surface-overlay"
+            className="px-4 py-2 text-sm bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
+            aria-label="Start new sale and clear cart"
           >
             New Sale
           </button>

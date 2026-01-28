@@ -92,7 +92,8 @@ export async function getPOSEquipment(tables: TenantTables, organizationId: stri
       and(
         eq(tables.equipment.organizationId, organizationId),
         eq(tables.equipment.isRentable, true),
-        eq(tables.equipment.status, "available")
+        eq(tables.equipment.status, "available"),
+        sql`${tables.equipment.rentalPrice} IS NOT NULL AND ${tables.equipment.rentalPrice} > 0`
       )
     )
     .orderBy(tables.equipment.category, tables.equipment.name);

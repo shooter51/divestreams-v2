@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, Link, redirect, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
-import { getSessionById, createEnrollment } from "../../../../../lib/db/training.server";
+import { getSessionById, createEnrollment, getSessions } from "../../../../../lib/db/training.server";
 import { getCustomers } from "../../../../../lib/db/queries.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 
@@ -12,20 +12,41 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const sessionId = url.searchParams.get("sessionId");
 
-  if (!sessionId) {
-    throw new Response("Session ID required", { status: 400 });
+  // Support two modes:
+  // 1. With sessionId - pre-selected session (from session detail page)
+  // 2. Without sessionId - show session selector (from dashboard/enrollments list)
+
+  if (sessionId) {
+    // Mode 1: Session pre-selected
+    const [session, customersResult] = await Promise.all([
+      getSessionById(ctx.org.id, sessionId),
+      getCustomers(ctx.org.id),
+    ]);
+
+    if (!session) {
+      throw new Response("Session not found", { status: 404 });
+    }
+
+    return {
+      session,
+      sessions: null,
+      customers: customersResult.customers,
+      mode: "pre-selected" as const
+    };
+  } else {
+    // Mode 2: User needs to select a session
+    const [sessions, customersResult] = await Promise.all([
+      getSessions(ctx.org.id),
+      getCustomers(ctx.org.id),
+    ]);
+
+    return {
+      session: null,
+      sessions,
+      customers: customersResult.customers,
+      mode: "select-session" as const
+    };
   }
-
-  const [session, customersResult] = await Promise.all([
-    getSessionById(ctx.org.id, sessionId),
-    getCustomers(ctx.org.id),
-  ]);
-
-  if (!session) {
-    throw new Response("Session not found", { status: 404 });
-  }
-
-  return { session, customers: customersResult.customers };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -95,33 +116,71 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function NewEnrollmentPage() {
-  const { session, customers } = useLoaderData<typeof loader>();
+  const { session, sessions, customers, mode } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("sessionId");
+
+  // Determine back link and header based on mode
+  const backLink = session
+    ? `/tenant/training/sessions/${session.id}`
+    : "/tenant/training";
+  const backText = session ? "← Back to Session" : "← Back to Training";
 
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
         <Link
-          to={`/tenant/training/sessions/${session.id}`}
+          to={backLink}
           className="text-brand hover:underline text-sm"
         >
-          ← Back to Session
+          {backText}
         </Link>
         <h1 className="text-2xl font-bold mt-2">Enroll Student</h1>
-        <p className="text-foreground-muted mt-1">
-          {session.courseName} - {new Date(session.startDate).toLocaleDateString()}
-        </p>
+        {session && (
+          <p className="text-foreground-muted mt-1">
+            {session.courseName} - {new Date(session.startDate).toLocaleDateString()}
+          </p>
+        )}
       </div>
 
       <form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
-        <input type="hidden" name="sessionId" value={sessionId || ""} />
-
         {actionData?.errors?.form && (
           <div className="bg-danger-muted text-danger p-3 rounded-lg text-sm">
             {actionData.errors.form}
           </div>
+        )}
+
+        {/* Session Selector (only shown when no session pre-selected) */}
+        {mode === "select-session" && sessions && (
+          <div>
+            <label htmlFor="sessionId" className="block text-sm font-medium mb-1">
+              Training Session *
+            </label>
+            <select
+              id="sessionId"
+              name="sessionId"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+              required
+            >
+              <option value="">Select a session...</option>
+              {sessions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.courseName} - {new Date(s.startDate).toLocaleDateString()}
+                  {s.startTime ? ` at ${s.startTime}` : ""}
+                  {" "}({s.enrolledCount || 0}/{s.maxStudents || "∞"} enrolled)
+                </option>
+              ))}
+            </select>
+            {actionData?.errors?.sessionId && (
+              <p className="text-danger text-sm mt-1">{actionData.errors.sessionId}</p>
+            )}
+          </div>
+        )}
+
+        {/* Hidden input when session is pre-selected */}
+        {mode === "pre-selected" && (
+          <input type="hidden" name="sessionId" value={sessionId || ""} />
         )}
 
         <div>
@@ -185,7 +244,7 @@ export default function NewEnrollmentPage() {
             Create Enrollment
           </button>
           <Link
-            to={`/tenant/training/sessions/${session.id}`}
+            to={backLink}
             className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
           >
             Cancel

@@ -334,8 +334,10 @@ export default function POSPage() {
           </div>
 
           <button
+            type="button"
             onClick={clearCart}
             className="w-full bg-brand text-white py-3 rounded-lg hover:bg-brand-hover transition-colors"
+            aria-label="Start new sale and clear cart"
           >
             New Sale
           </button>
