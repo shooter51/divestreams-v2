@@ -983,14 +983,44 @@ git push origin staging
 ```
 
 ### Step 8: Batch Transition to DEV REVIEW (You)
+**CRITICAL:** Always transition Jira issues after fixes are complete, tested, and deployed.
+
 ```javascript
-// Transition all 5 issues together
+// Transition all 5 issues together in parallel (single message)
 [Parallel Jira updates]:
-  jira_transition_issue(key: "KAN-638", transition: "DEV REVIEW", comment: "...")
-  jira_transition_issue(key: "KAN-637", transition: "DEV REVIEW", comment: "...")
-  jira_transition_issue(key: "KAN-638", transition: "DEV REVIEW", comment: "...")
-  jira_transition_issue(key: "KAN-635", transition: "DEV REVIEW", comment: "...")
-  jira_transition_issue(key: "KAN-634", transition: "DEV REVIEW", comment: "...")
+  mcp__atlassian__jira_transition_issue(
+    issue_key: "KAN-638",
+    transition_id: "2",  // DEV REVIEW
+    comment: "Fixed and deployed to staging.\n\n**Root Cause:** ...\n**Fix:** ...\n**Testing:** ✅ ...\n**Deployment:** Commit: xxx, Branch: staging"
+  )
+  mcp__atlassian__jira_transition_issue(key: "KAN-637", transition_id: "2", comment: "...")
+  mcp__atlassian__jira_transition_issue(key: "KAN-636", transition_id: "2", comment: "...")
+  mcp__atlassian__jira_transition_issue(key: "KAN-635", transition_id: "2", comment: "...")
+  mcp__atlassian__jira_transition_issue(key: "KAN-634", transition_id: "2", comment: "...")
+```
+
+**Comment Template:**
+```
+Fixed and deployed to staging.
+
+**Root Cause:** [What was broken and why]
+
+**Fix Implemented:**
+- [Primary fix with file references]
+- [Completeness: X/Y instances fixed]
+
+**Files Changed:**
+- [file]: [description]
+
+**Testing:**
+✅ TypeScript clean
+✅ Build succeeds
+✅ [X] tests passing ([Y] new tests)
+
+**Deployment:**
+- Commit: [hash]
+- Branch: staging
+- Ready for QA verification
 ```
 
 ### Parallel Execution Benefits
