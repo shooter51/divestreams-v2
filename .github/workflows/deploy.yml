@@ -180,6 +180,57 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
+      - name: Setup SSH key for staging VPS
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_VPS_SSH_KEY }}" > ~/.ssh/staging_key
+          chmod 600 ~/.ssh/staging_key
+          ssh-keyscan -H 76.13.28.28 >> ~/.ssh/known_hosts
+
+      - name: Update B2 configuration on staging VPS
+        env:
+          B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+          B2_REGION: ${{ secrets.B2_REGION }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          CDN_URL: ${{ secrets.CDN_URL }}
+        run: |
+          echo "📝 Updating B2 configuration on staging VPS..."
+
+          # Create update script with B2 variables
+          cat > /tmp/update-b2-env.sh << 'ENVSCRIPT'
+          #!/bin/bash
+          cd /docker/divestreams-staging
+
+          # Backup .env
+          cp .env .env.backup-$(date +%Y%m%d-%H%M%S)
+
+          # Update or add B2 variables
+          grep -q "^B2_ENDPOINT=" .env && sed -i "s|^B2_ENDPOINT=.*|B2_ENDPOINT=PLACEHOLDER_B2_ENDPOINT|" .env || echo "B2_ENDPOINT=PLACEHOLDER_B2_ENDPOINT" >> .env
+          grep -q "^B2_REGION=" .env && sed -i "s|^B2_REGION=.*|B2_REGION=PLACEHOLDER_B2_REGION|" .env || echo "B2_REGION=PLACEHOLDER_B2_REGION" >> .env
+          grep -q "^B2_BUCKET=" .env && sed -i "s|^B2_BUCKET=.*|B2_BUCKET=PLACEHOLDER_B2_BUCKET|" .env || echo "B2_BUCKET=PLACEHOLDER_B2_BUCKET" >> .env
+          grep -q "^B2_KEY_ID=" .env && sed -i "s|^B2_KEY_ID=.*|B2_KEY_ID=PLACEHOLDER_B2_KEY_ID|" .env || echo "B2_KEY_ID=PLACEHOLDER_B2_KEY_ID" >> .env
+          grep -q "^B2_APP_KEY=" .env && sed -i "s|^B2_APP_KEY=.*|B2_APP_KEY=PLACEHOLDER_B2_APP_KEY|" .env || echo "B2_APP_KEY=PLACEHOLDER_B2_APP_KEY" >> .env
+          grep -q "^CDN_URL=" .env && sed -i "s|^CDN_URL=.*|CDN_URL=PLACEHOLDER_CDN_URL|" .env || echo "CDN_URL=PLACEHOLDER_CDN_URL" >> .env
+
+          echo "B2 configuration updated"
+          ENVSCRIPT
+
+          # Replace placeholders with actual secret values
+          sed -i "s|PLACEHOLDER_B2_ENDPOINT|$B2_ENDPOINT|g" /tmp/update-b2-env.sh
+          sed -i "s|PLACEHOLDER_B2_REGION|$B2_REGION|g" /tmp/update-b2-env.sh
+          sed -i "s|PLACEHOLDER_B2_BUCKET|$B2_BUCKET|g" /tmp/update-b2-env.sh
+          sed -i "s|PLACEHOLDER_B2_KEY_ID|$B2_KEY_ID|g" /tmp/update-b2-env.sh
+          sed -i "s|PLACEHOLDER_B2_APP_KEY|$B2_APP_KEY|g" /tmp/update-b2-env.sh
+          sed -i "s|PLACEHOLDER_CDN_URL|$CDN_URL|g" /tmp/update-b2-env.sh
+
+          # Copy script to VPS and execute
+          scp -i ~/.ssh/staging_key -o StrictHostKeyChecking=no /tmp/update-b2-env.sh root@76.13.28.28:/tmp/
+          ssh -i ~/.ssh/staging_key -o StrictHostKeyChecking=no root@76.13.28.28 'bash /tmp/update-b2-env.sh && rm /tmp/update-b2-env.sh'
+
+          echo "✅ B2 configuration updated"
+
       - name: Deploy to staging VPS
         run: |
           echo "Deploying to staging (VPS 1271895)"
@@ -212,6 +263,30 @@ jobs:
           fi
 
           echo "✅ All 4 containers are running"
+
+      - name: Verify B2 storage configuration
+        run: |
+          echo "Checking B2 environment variables..."
+          LOGS=$(curl -s -X GET \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1271895/docker/divestreams-staging/logs" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          # Check for B2 configuration error in logs
+          if echo "$LOGS" | jq -r '.[] | select(.service == "app") | .entries[].line' | grep -q "B2 storage not configured"; then
+            echo "❌ ERROR: B2 storage is not configured on staging VPS"
+            echo ""
+            echo "B2 environment variables are missing from /docker/divestreams-staging/.env"
+            echo "Required variables: B2_ENDPOINT, B2_REGION, B2_BUCKET, B2_KEY_ID, B2_APP_KEY, CDN_URL"
+            echo ""
+            echo "To fix, SSH into staging VPS and run:"
+            echo "  cd /docker/divestreams-staging"
+            echo "  # Add B2 variables to .env file"
+            echo "  docker compose down && docker compose up -d"
+            exit 1
+          fi
+
+          echo "✅ B2 storage configuration verified"
 
   # ─────────────────────────────────────────────
   # Smoke Tests (against live staging)
