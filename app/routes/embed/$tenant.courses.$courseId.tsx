@@ -6,6 +6,7 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
+import { useState, useEffect } from "react";
 import {
   getOrganizationBySlug,
   getPublicCourseById,
@@ -69,6 +70,18 @@ export default function CourseDetailPage() {
     organization: { slug: string };
     branding: { primaryColor: string };
   }>();
+
+  // Session selection state
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null
+  );
+
+  // Auto-select single session for better UX
+  useEffect(() => {
+    if (course.upcomingSessions.length === 1 && !selectedSessionId) {
+      setSelectedSessionId(course.upcomingSessions[0].id);
+    }
+  }, [course.upcomingSessions, selectedSessionId]);
 
   const totalHours = (course.classroomHours || 0) + (course.poolHours || 0);
   const totalDives = course.openWaterDives || 0;
@@ -248,10 +261,32 @@ export default function CourseDetailPage() {
                 Available Training Sessions
               </h3>
               <div className="space-y-2">
-                {course.upcomingSessions.map((session) => (
+                {course.upcomingSessions.map((session) => {
+                  const isSelected = selectedSessionId === session.id;
+                  const handleSelect = (e: React.MouseEvent | React.KeyboardEvent) => {
+                    if ('key' in e && e.key !== 'Enter' && e.key !== ' ') {
+                      return;
+                    }
+                    if ('key' in e) {
+                      e.preventDefault();
+                    }
+                    setSelectedSessionId(session.id);
+                  };
+
+                  return (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Select session on ${formatDate(session.startDate)}`}
+                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                      isSelected ? 'bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'
+                    }`}
+                    style={{
+                      borderColor: isSelected ? branding.primaryColor : "#e5e7eb",
+                    }}
+                    onClick={handleSelect}
+                    onKeyDown={handleSelect}
                   >
                     <div>
                       <div className="font-medium">
@@ -277,18 +312,23 @@ export default function CourseDetailPage() {
                           ? `${session.availableSpots} spots`
                           : "Full"}
                       </span>
-                      {session.availableSpots > 0 && (
-                        <Link
-                          to={`/embed/${tenantSlug}/courses/${course.id}/enroll?sessionId=${session.id}`}
-                          className="text-sm font-medium px-4 py-2 rounded text-white"
-                          style={{ backgroundColor: branding.primaryColor }}
+                      {isSelected && (
+                        <svg
+                          className="w-6 h-6 text-green-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
                         >
-                          Enroll
-                        </Link>
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
                       )}
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
             </div>
           )}
@@ -387,19 +427,44 @@ export default function CourseDetailPage() {
             </div>
 
             {course.upcomingSessions.length > 0 ? (
-              <>
-                <div className="text-sm text-gray-600 text-center mb-3">
-                  Select a session above to enroll
-                </div>
-                <p className="text-xs text-gray-500 text-center">
-                  Choose from {course.upcomingSessions.length} available session
-                  {course.upcomingSessions.length !== 1 ? "s" : ""}
-                </p>
-              </>
+              selectedSessionId ? (
+                <Link
+                  to={`/embed/${tenantSlug}/courses/${course.id}/enroll?sessionId=${selectedSessionId}`}
+                  className="w-full py-3 text-white font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                  style={{ backgroundColor: branding.primaryColor }}
+                >
+                  Enroll Now
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+              ) : (
+                <>
+                  <button
+                    disabled
+                    aria-disabled="true"
+                    aria-describedby="enroll-helper-text-embed"
+                    className="w-full py-3 text-white font-semibold rounded-lg opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
+                    style={{ backgroundColor: branding.primaryColor }}
+                  >
+                    Enroll Now
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </button>
+                  <p id="enroll-helper-text-embed" className="mt-2 text-sm text-center opacity-75">
+                    Select a session below to enroll
+                  </p>
+                </>
+              )
             ) : (
-              <p className="text-xs text-gray-500 text-center">
-                Contact us for upcoming session dates
-              </p>
+              <Link
+                to={`/embed/${tenantSlug}/contact`}
+                className="w-full py-3 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
+                style={{ backgroundColor: branding.primaryColor }}
+              >
+                Contact Us
+              </Link>
             )}
           </div>
         </div>

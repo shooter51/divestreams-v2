@@ -7,6 +7,7 @@
 
 import { Link, useLoaderData } from "react-router";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { useState, useEffect } from "react";
 import {
   getPublicCourseById,
   getCourseScheduledTrips,
@@ -475,19 +476,51 @@ function SessionCard({
   defaultPrice,
   currency,
   organizationSlug,
+  isSelected,
+  onSelect,
 }: {
   session: ScheduledSession;
   courseId: string;
   defaultPrice: string;
   currency: string;
   organizationSlug: string;
+  isSelected?: boolean;
+  onSelect?: (sessionId: string) => void;
 }) {
   const price = session.price || defaultPrice;
 
+  const handleSelect = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if ('key' in e && e.key !== 'Enter' && e.key !== ' ') {
+      return;
+    }
+    if ('key' in e) {
+      e.preventDefault();
+    }
+    onSelect?.(session.id);
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Select session on ${formatDate(session.date)} at ${formatTime(session.startTime)}`}
+      className={`bg-white rounded-xl shadow-sm border-2 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+        isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+      }`}
+      style={{
+        borderColor: isSelected ? "var(--primary-color)" : "#e5e7eb",
+        ...(document.activeElement === null ? {} : {})
+      }}
+      onClick={handleSelect}
+      onKeyDown={handleSelect}
+    >
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
+          {isSelected && (
+            <svg className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary-color)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )}
           <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
@@ -519,6 +552,7 @@ function SessionCard({
           to={`/embed/${organizationSlug}/courses/${courseId}/enroll?sessionId=${session.id}`}
           className="px-4 py-2 text-white font-semibold rounded-lg transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--primary-color)" }}
+          onClick={(e) => e.stopPropagation()}
         >
           Enroll
         </Link>
@@ -537,6 +571,8 @@ function SessionsSection({
   defaultPrice,
   currency,
   organizationSlug,
+  selectedSessionId,
+  onSelectSession,
 }: {
   sessions: ScheduledSession[];
   totalSessions: number;
@@ -544,6 +580,8 @@ function SessionsSection({
   defaultPrice: string;
   currency: string;
   organizationSlug: string;
+  selectedSessionId?: string | null;
+  onSelectSession?: (sessionId: string) => void;
 }) {
   if (sessions.length === 0) {
     return (
@@ -586,6 +624,8 @@ function SessionsSection({
             defaultPrice={defaultPrice}
             currency={currency}
             organizationSlug={organizationSlug}
+            isSelected={selectedSessionId === session.id}
+            onSelect={onSelectSession}
           />
         ))}
       </div>
@@ -605,6 +645,16 @@ function SessionsSection({
 export default function SiteCourseDetailPage() {
   const { course, sessions, totalSessions, organizationSlug } = useLoaderData<typeof loader>();
 
+  // Session selection state
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+
+  // Auto-select single session for better UX
+  useEffect(() => {
+    if (sessions.length === 1 && !selectedSessionId) {
+      setSelectedSessionId(sessions[0].id);
+    }
+  }, [sessions, selectedSessionId]);
+
   // Get agency info for styling
   const agencyColor = getAgencyColor(course.agencyName);
   const agencyInfo = course.agencyName ? {
@@ -612,6 +662,10 @@ export default function SiteCourseDetailPage() {
     color: agencyColor,
     description: CERTIFICATION_AGENCIES[course.agencyName.toLowerCase()]?.description || `${course.agencyName} certified course`,
   } : null;
+
+  // Determine enrollment state
+  const hasSessionsAvailable = sessions.length > 0;
+  const canEnrollNow = hasSessionsAvailable && selectedSessionId !== null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -774,16 +828,50 @@ export default function SiteCourseDetailPage() {
             </div>
 
             {/* Enroll Button */}
-            <Link
-              to={`/embed/${organizationSlug}/courses/${course.id}/enroll`}
-              className="w-full py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
-              style={{ backgroundColor: "var(--primary-color)" }}
-            >
-              Enroll Now
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
+            {!hasSessionsAvailable ? (
+              // No sessions available - show Contact Us
+              <Link
+                to="/site/contact"
+                className="w-full py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ backgroundColor: "var(--primary-color)" }}
+              >
+                Contact Us
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </Link>
+            ) : canEnrollNow ? (
+              // Session selected - allow enrollment
+              <Link
+                to={`/embed/${organizationSlug}/courses/${course.id}/enroll?sessionId=${selectedSessionId}`}
+                className="w-full py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ backgroundColor: "var(--primary-color)" }}
+              >
+                Enroll Now
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            ) : (
+              // Sessions available but none selected - disabled state
+              <div>
+                <button
+                  disabled
+                  aria-disabled="true"
+                  aria-describedby="enroll-helper-text"
+                  className="w-full py-3 text-white font-semibold rounded-lg opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ backgroundColor: "var(--primary-color)" }}
+                >
+                  Enroll Now
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </button>
+                <p id="enroll-helper-text" className="mt-2 text-sm text-center opacity-75">
+                  Select a session below to enroll
+                </p>
+              </div>
+            )}
 
             {/* Quick Info */}
             <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
@@ -840,6 +928,8 @@ export default function SiteCourseDetailPage() {
           defaultPrice={course.price}
           currency={course.currency}
           organizationSlug={organizationSlug}
+          selectedSessionId={selectedSessionId}
+          onSelectSession={setSelectedSessionId}
         />
       </div>
 
