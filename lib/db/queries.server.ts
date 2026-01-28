@@ -499,6 +499,38 @@ export async function duplicateTour(organizationId: string, sourceTourId: string
     })
     .returning();
 
+  // Copy tour images
+  const sourceImages = await db
+    .select()
+    .from(schema.images)
+    .where(
+      and(
+        eq(schema.images.organizationId, organizationId),
+        eq(schema.images.entityType, "tour"),
+        eq(schema.images.entityId, sourceTourId)
+      )
+    );
+
+  if (sourceImages.length > 0) {
+    await db.insert(schema.images).values(
+      sourceImages.map((image) => ({
+        organizationId,
+        entityType: "tour" as const,
+        entityId: tour.id,
+        url: image.url,
+        thumbnailUrl: image.thumbnailUrl,
+        filename: image.filename,
+        mimeType: image.mimeType,
+        sizeBytes: image.sizeBytes,
+        width: image.width,
+        height: image.height,
+        alt: image.alt,
+        sortOrder: image.sortOrder,
+        isPrimary: image.isPrimary,
+      }))
+    );
+  }
+
   return mapTour(tour);
 }
 
