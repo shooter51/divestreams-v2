@@ -97,5 +97,25 @@ export default tseslint.config(
       "prefer-const": "warn",
       "no-var": "error",
     },
+  },
+  // Playwright E2E test-specific rules
+  {
+    files: ["tests/e2e/**/*.{ts,tsx,js,jsx}", "tests/e2e/**/*.page.{ts,tsx}"],
+    rules: {
+      // Prevent usage of waitForTimeout (anti-pattern that causes flaky tests)
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='waitForTimeout']",
+          message:
+            "❌ waitForTimeout() is prohibited. Use condition-based waiting instead:\n" +
+            "  ✅ await page.waitForLoadState('networkidle')\n" +
+            "  ✅ await locator.waitFor({ state: 'visible' })\n" +
+            "  ✅ await expect(locator).toBeVisible({ timeout: 10000 })\n" +
+            "See: tests/e2e/workflow/customer-management.spec.ts for examples\n" +
+            "Related: KAN-625, DIVE-ika",
+        },
+      ],
+    },
   }
 );
