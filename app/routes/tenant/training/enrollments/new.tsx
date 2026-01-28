@@ -41,6 +41,18 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!sessionId) errors.sessionId = "Session is required";
   if (!customerId) errors.customerId = "Customer is required";
 
+  // Validate amount paid (must be >= 1 if provided)
+  if (amountPaid) {
+    const amount = parseFloat(amountPaid);
+    if (isNaN(amount)) {
+      errors.amountPaid = "Amount must be a valid number";
+    } else if (amount < 0) {
+      errors.amountPaid = "Amount cannot be negative";
+    } else if (amount > 0 && amount < 1) {
+      errors.amountPaid = "Amount paid must be at least $1 (or $0 for free enrollment)";
+    }
+  }
+
   if (Object.keys(errors).length > 0) {
     return { errors };
   }

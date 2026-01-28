@@ -106,16 +106,30 @@ export async function action({ request }: ActionFunctionArgs) {
     const applicableTo = formData.get("applicableTo") as string || "all";
     const isActive = formData.get("isActive") === "true";
 
-    // Validate discount value
+    // Validate discount value (min 1, max 100 for percentage)
     const discountValue = parseFloat(discountValueStr);
-    if (isNaN(discountValue) || discountValue <= 0) {
-      return { error: "Discount value must be a positive number" };
+    if (isNaN(discountValue)) {
+      return { error: "Discount value must be a valid number" };
+    }
+    if (discountValue < 1) {
+      return { error: "Discount value must be at least 1" };
     }
     if (discountType === "percentage" && discountValue > 100) {
       return { error: "Percentage discount cannot exceed 100%" };
     }
     if (discountType === "fixed" && discountValue > 100000) {
       return { error: "Fixed discount amount is too large (max $100,000)" };
+    }
+
+    // Validate min booking amount (must be >= 1 if provided)
+    if (minBookingAmount) {
+      const minAmount = parseFloat(minBookingAmount);
+      if (isNaN(minAmount)) {
+        return { error: "Minimum booking amount must be a valid number" };
+      }
+      if (minAmount < 1) {
+        return { error: "Minimum booking amount must be at least $1" };
+      }
     }
 
     // Check if code already exists for this organization (for a different discount)
@@ -533,7 +547,7 @@ export default function DiscountsPage() {
                       type="number"
                       name="discountValue"
                       step="0.01"
-                      min="0"
+                      min="1"
                       max="100"
                       defaultValue={editingDiscount?.discountValue || ""}
                       required
@@ -559,7 +573,7 @@ export default function DiscountsPage() {
                       }}
                     />
                     <p className="text-xs text-foreground-muted mt-1">
-                      Maximum 100% for percentage discounts
+                      Min 1, max 100 for percentage discounts
                     </p>
                     {fetcherData?.error && fetcherData.error.includes("Percentage discount") && (
                       <p className="text-xs text-danger mt-1">{fetcherData.error}</p>
@@ -572,11 +586,14 @@ export default function DiscountsPage() {
                       type="number"
                       name="minBookingAmount"
                       step="0.01"
-                      min="0"
+                      min="1"
                       defaultValue={editingDiscount?.minBookingAmount || ""}
                       placeholder="No minimum"
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
+                    <p className="text-xs text-foreground-muted mt-1">
+                      Min $1 if specified
+                    </p>
                   </div>
 
                   <div>
