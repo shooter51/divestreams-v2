@@ -150,7 +150,7 @@ export const organization = pgTable(
   "organization",
   {
     id: text("id").primaryKey(),
-    name: text("name").notNull(),
+    name: text("name").notNull().unique(),
     slug: text("slug").notNull().unique(),
     logo: text("logo"),
     metadata: text("metadata"), // JSON stored as text for flexibility
@@ -161,6 +161,7 @@ export const organization = pgTable(
   },
   (table) => [
     uniqueIndex("organization_slug_idx").on(table.slug),
+    index("organization_name_idx").on(table.name),
   ]
 );
 
