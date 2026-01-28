@@ -147,6 +147,17 @@ body {
   color: var(--foreground);
 }
 
+/* Select dropdown styling for dark mode support */
+select {
+  color-scheme: light dark; /* Enables native dark mode for dropdowns */
+}
+
+/* Style select options to match theme */
+select option {
+  background-color: var(--surface-raised);
+  color: var(--foreground);
+}
+
 /* ============================================================================
    FULLCALENDAR DARK MODE STYLES
    ============================================================================ */
