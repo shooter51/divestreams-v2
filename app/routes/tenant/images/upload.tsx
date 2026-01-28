@@ -147,8 +147,14 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error("Image upload error:", error);
+
+    // Provide more specific error message in development
+    const errorMessage = process.env.NODE_ENV === "development" && error instanceof Error
+      ? `Failed to upload image: ${error.message}`
+      : "Failed to upload image";
+
     return Response.json(
-      { error: "Failed to upload image" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
