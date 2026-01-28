@@ -231,25 +231,17 @@ export default function EquipmentPage() {
             </svg>
             Scan Barcode
           </button>
-          {/* Rental management button - premium only */}
-          {hasEquipmentRentals ? (
-            <Link
-              to="/tenant/equipment/rentals"
-              className="px-4 py-2 border rounded-lg hover:bg-surface-inset text-sm"
-            >
-              Manage Rentals
-            </Link>
-          ) : (
-            <button
-              className="px-4 py-2 border rounded-lg text-foreground-subtle cursor-not-allowed text-sm relative group"
-              disabled
-            >
-              Manage Rentals
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity">
-                Premium feature
-              </span>
-            </button>
-          )}
+          {/* Rental management button - coming soon */}
+          <button
+            className="px-4 py-2 border rounded-lg text-foreground-subtle cursor-not-allowed text-sm relative group"
+            disabled
+            title={hasEquipmentRentals ? "Coming soon" : "Premium feature required"}
+          >
+            Manage Rentals
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity">
+              {hasEquipmentRentals ? "Coming soon" : "Premium feature"}
+            </span>
+          </button>
           <Link
             to="/tenant/equipment/new"
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
