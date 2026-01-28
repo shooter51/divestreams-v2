@@ -307,6 +307,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     images: tripImages,
     diveSites: diveSitesList,
     organizationName: org.name,
+    organizationSlug: subdomain || org.slug,
   };
 }
 
@@ -365,7 +366,7 @@ function formatPrice(price: string, currency: string): string {
 // ============================================================================
 
 export default function SiteTripDetailPage() {
-  const { trip, images, diveSites, organizationName } = useLoaderData<typeof loader>();
+  const { trip, images, diveSites, organizationName, organizationSlug } = useLoaderData<typeof loader>();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
 
@@ -745,7 +746,7 @@ export default function SiteTripDetailPage() {
 
               {/* Book Now Button */}
               <Link
-                to={`/site/book/trip/${trip.id}`}
+                to={`/embed/${organizationSlug}/book?tripId=${trip.id}`}
                 className={`block w-full py-4 rounded-lg text-center font-semibold text-lg transition-opacity ${
                   isFull
                     ? "bg-gray-400 text-white cursor-not-allowed"
