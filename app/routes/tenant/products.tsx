@@ -1205,13 +1205,14 @@ export default function ProductsPage() {
                   type="number"
                   name="value"
                   required
+                  min={bulkUpdateType === "set" ? "0" : undefined}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-center text-xl"
                   placeholder={bulkUpdateType === "adjust" ? "e.g., 10 or -5" : "e.g., 50"}
                 />
                 <p className="text-xs text-foreground-muted mt-1">
                   {bulkUpdateType === "adjust"
                     ? "Use positive numbers to add stock, negative to remove"
-                    : "All selected products will be set to this quantity"
+                    : "All selected products will be set to this quantity (minimum: 0)"
                   }
                 </p>
               </div>
