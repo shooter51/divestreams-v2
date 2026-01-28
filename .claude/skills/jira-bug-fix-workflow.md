@@ -21,7 +21,50 @@ description: Complete TDD-driven workflow for Jira bugs - Root cause analysis, t
 
 ---
 
-## The Workflow
+## Execution Modes
+
+### Sequential Mode (Default)
+Work through bugs one at a time. Best for:
+- Learning/understanding the codebase
+- Complex bugs requiring deep focus
+- When bugs might be related
+
+### Parallel Mode (Recommended for 3+ bugs)
+**Use parallel agents to fix multiple bugs simultaneously.**
+
+**When to use:**
+- 3+ independent bugs found in Discovery
+- Bugs are in different features/routes (no overlap)
+- Want to maximize throughput
+
+**How it works:**
+```javascript
+// After Discovery phase finds 5 bugs, spawn 5 parallel bug-fix agents
+[Single Message - All agents spawned together]:
+  Task("Bug Fix Agent #1", "Fix KAN-XXX using full TDD workflow...", "general-purpose")
+  Task("Bug Fix Agent #2", "Fix KAN-YYY using full TDD workflow...", "general-purpose")
+  Task("Bug Fix Agent #3", "Fix KAN-ZZZ using full TDD workflow...", "general-purpose")
+  Task("Bug Fix Agent #4", "Fix KAN-AAA using full TDD workflow...", "general-purpose")
+  Task("Bug Fix Agent #5", "Fix KAN-BBB using full TDD workflow...", "general-purpose")
+```
+
+**Each agent independently:**
+1. Performs root cause analysis
+2. Writes failing test
+3. Implements fix
+4. Verifies test passes
+5. Reports completion
+
+**Then you:**
+1. Collect all fixes
+2. Run unified peer review (all fixes together)
+3. Address critical blockers
+4. Push all fixes together
+5. Transition all issues to DEV REVIEW
+
+---
+
+## The Workflow (Per Bug)
 
 ```
 ┌─────────────────┐
@@ -104,6 +147,82 @@ TodoWrite({
   }))
 })
 ```
+
+### Parallel Execution Decision
+
+**If 3+ bugs found:**
+
+```javascript
+// Ask user: "Found X bugs. Fix in parallel (faster) or sequential (safer)?"
+AskUserQuestion({
+  questions: [{
+    question: `Found ${bugCount} bugs. How should I proceed?`,
+    header: "Execution Mode",
+    options: [
+      {
+        label: "Parallel (Recommended)",
+        description: `Spawn ${bugCount} agents to fix all bugs simultaneously. Faster but uses more resources.`
+      },
+      {
+        label: "Sequential",
+        description: "Fix bugs one at a time. Slower but easier to follow progress."
+      },
+      {
+        label: "Top 3 Only",
+        description: "Fix only the 3 highest priority bugs in parallel."
+      }
+    ],
+    multiSelect: false
+  }]
+})
+```
+
+**If user chooses "Parallel":**
+
+```javascript
+// CRITICAL: Spawn ALL agents in SINGLE message
+[Single Message]:
+  Task("Bug Fix Agent #1", `
+    You are an independent bug fix agent.
+
+    **YOUR TASK:** Fix KAN-${bug1.key} using complete TDD workflow
+
+    **PHASES TO EXECUTE:**
+    1. Root Cause Analysis
+    2. Write failing test (TDD Red)
+    3. Implement fix
+    4. Verify test passes (TDD Green)
+    5. Report completion
+
+    **BUG DETAILS:**
+    - Key: ${bug1.key}
+    - Summary: ${bug1.summary}
+    - Description: ${bug1.description}
+    - Priority: ${bug1.priority}
+
+    **REQUIREMENTS:**
+    - Search for similar defects (completeness check)
+    - Create E2E or integration test
+    - Fix ALL instances found
+    - Document changes clearly
+
+    **DELIVERABLES:**
+    - Test file created
+    - Code fix implemented
+    - All tests passing
+    - Summary of changes
+  `, "general-purpose"),
+
+  Task("Bug Fix Agent #2", `... [same format for bug 2]`, "general-purpose"),
+  Task("Bug Fix Agent #3", `... [same format for bug 3]`, "general-purpose"),
+  // ... spawn N agents for N bugs
+```
+
+**Agent Coordination:**
+- Each agent works independently
+- No inter-agent communication needed (bugs must be independent)
+- All agents report to main coordinator (you)
+- Main coordinator runs peer review after all agents complete
 
 ---
 
@@ -748,6 +867,149 @@ User: "Fix the Jira bugs"
 - CI/CD pipeline failures
 - Staging deployment errors
 - Bug still reproduces on staging
+
+---
+
+## Parallel Execution Workflow (3+ Bugs)
+
+### Step 1: Discovery Phase (You)
+```
+Found 5 bugs: KAN-638, KAN-637, KAN-636, KAN-635, KAN-634
+All are independent (different features/routes)
+```
+
+### Step 2: Spawn Parallel Bug Fix Agents (You)
+**CRITICAL:** All agents spawned in SINGLE message
+
+```javascript
+[Single Message with 5 Task calls]:
+  Task("Bug Fix Agent #1 - KAN-638", `
+    Fix KAN-638: Customer unable to book course
+
+    **FULL TDD WORKFLOW:**
+    1. Root cause analysis (search for similar defects)
+    2. Write failing test
+    3. Implement fix (all instances)
+    4. Verify test passes
+    5. Report summary
+
+    **BUG DETAILS:**
+    Key: KAN-638
+    Summary: Customer unable to book a course
+    Description: [full description]
+    Priority: High
+
+    **DELIVERABLES:**
+    - File: tests/e2e/bugs/KAN-638-course-booking.spec.ts
+    - Fix: app/routes/site/courses/$courseId.tsx
+    - Status: All tests passing
+    - Summary: What was fixed + completeness %
+  `, "general-purpose"),
+
+  Task("Bug Fix Agent #2 - KAN-637", `[same format]`, "general-purpose"),
+  Task("Bug Fix Agent #3 - KAN-636", `[same format]`, "general-purpose"),
+  Task("Bug Fix Agent #4 - KAN-635", `[same format]`, "general-purpose"),
+  Task("Bug Fix Agent #5 - KAN-634", `[same format]`, "general-purpose")
+```
+
+### Step 3: Wait for All Agents to Complete
+**Each agent reports:**
+- ✅ Root cause identified
+- ✅ Failing test written
+- ✅ Fix implemented
+- ✅ Test now passes
+- Summary: "Fixed X instances in Y files"
+
+### Step 4: Unified Peer Review (You)
+**After all 5 agents complete, run peer-review-and-fix skill:**
+
+```javascript
+// Spawn 5 peer reviewers to review ALL 5 fixes
+[Single Message with 5 Task calls]:
+  Task("Peer Reviewer #1", "Review KAN-638 fix for completeness...", "general-purpose"),
+  Task("Peer Reviewer #2", "Review KAN-637 fix for completeness...", "general-purpose"),
+  Task("Peer Reviewer #3", "Review KAN-636 fix for completeness...", "general-purpose"),
+  Task("Peer Reviewer #4", "Review KAN-635 fix for completeness...", "general-purpose"),
+  Task("Peer Reviewer #5", "Review KAN-634 fix for completeness...", "general-purpose")
+```
+
+### Step 5: Compile Unified Report (You)
+```markdown
+# Unified Peer Review Report
+**Date:** 2026-01-28
+**Issues Reviewed:** 5
+**Reviewers:** 5 Independent Peer Reviewers
+
+## Executive Summary
+
+| Issue | Fix Quality | Completeness | Verdict | Files Changed |
+|-------|-------------|--------------|---------|---------------|
+| KAN-638 | ⭐⭐⭐⭐⭐ | 100% | APPROVED | 1 file |
+| KAN-637 | ⭐⭐⭐⭐ | 80% | APPROVED WITH CONDITIONS | 2 files |
+| KAN-636 | ⭐⭐⭐⭐⭐ | 100% | APPROVED | 1 file |
+| KAN-635 | ⭐⭐⭐ | 60% | NEEDS CHANGES | 3 files |
+| KAN-634 | ⭐⭐⭐⭐⭐ | 100% | APPROVED | 2 files |
+
+**Critical Blockers Found:** 1 (KAN-635 incomplete)
+**Total Files Changed:** 9
+**Total Tests Added:** 15
+```
+
+### Step 6: Fix Critical Blockers (You)
+```
+KAN-635 Verdict: NEEDS CHANGES
+Reason: Only fixed primary instance, 2 similar instances remain
+
+Action: Fix remaining instances
+Result: Completeness 60% → 100%
+```
+
+### Step 7: Batch Deploy (You)
+```bash
+# All 5 fixes committed together
+git add .
+git commit -m "fix: batch bug fixes (KAN-638, KAN-637, KAN-636, KAN-635, KAN-634)
+
+**KAN-638:** Customer booking - added session selection requirement
+**KAN-637:** [description]
+**KAN-636:** [description]
+**KAN-635:** [description] (peer review blocker fixed)
+**KAN-634:** [description]
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+"
+
+git push origin staging
+```
+
+### Step 8: Batch Transition to DEV REVIEW (You)
+```javascript
+// Transition all 5 issues together
+[Parallel Jira updates]:
+  jira_transition_issue(key: "KAN-638", transition: "DEV REVIEW", comment: "...")
+  jira_transition_issue(key: "KAN-637", transition: "DEV REVIEW", comment: "...")
+  jira_transition_issue(key: "KAN-638", transition: "DEV REVIEW", comment: "...")
+  jira_transition_issue(key: "KAN-635", transition: "DEV REVIEW", comment: "...")
+  jira_transition_issue(key: "KAN-634", transition: "DEV REVIEW", comment: "...")
+```
+
+### Parallel Execution Benefits
+**Time Savings:**
+- Sequential: 5 bugs × 30 min/bug = 150 minutes
+- Parallel: 30 min (longest bug) + 10 min (review) = 40 minutes
+- **Savings: 73% faster**
+
+**Quality:**
+- Same TDD rigor per bug
+- Same peer review coverage
+- Same deployment verification
+- Unified peer review catches cross-cutting issues
+
+**When NOT to use parallel:**
+- Bugs are related/overlapping
+- Bugs affect same files
+- Learning/understanding phase
+- First time with TDD workflow
 
 ---
 
