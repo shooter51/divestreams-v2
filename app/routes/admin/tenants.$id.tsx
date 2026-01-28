@@ -174,7 +174,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         .where(eq(subscriptionPlans.id, planId))
         .limit(1);
       if (selectedPlan) {
-        planName = selectedPlan.name.toLowerCase();
+        planName = selectedPlan.name;
       }
     }
 
