@@ -71,7 +71,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (Object.keys(errors).length > 0) {
-    return { errors };
+    return { errors, email: email || "" };
   }
 
   try {
@@ -93,7 +93,7 @@ export async function action({ request }: ActionFunctionArgs) {
         message: userData?.message,
         email,
       });
-      return { errors: { form: userData?.message || "Invalid email or password" } };
+      return { errors: { form: userData?.message || "Invalid email or password" }, email: email || "" };
     }
 
     // Get redirect URL from query params
@@ -106,7 +106,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return { errors: { form: "Invalid email or password" } };
+    return { errors: { form: "Invalid email or password" }, email: email || "" };
   }
 }
 
@@ -144,7 +144,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 autoComplete="email"
-                defaultValue={formData?.get("email")?.toString() || ""}
+                defaultValue={actionData?.email || ""}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />

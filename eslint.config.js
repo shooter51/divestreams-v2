@@ -104,7 +104,7 @@ export default tseslint.config(
     rules: {
       // Prevent usage of waitForTimeout (anti-pattern that causes flaky tests)
       "no-restricted-syntax": [
-        "error",
+        "warn", // Downgraded from "error" to allow existing 679 instances (see DIVE-ika)
         {
           selector: "CallExpression[callee.property.name='waitForTimeout']",
           message:

@@ -81,6 +81,26 @@ export async function action({ request }: ActionFunctionArgs) {
     const saleStartDate = formData.get("saleStartDate") as string || null;
     const saleEndDate = formData.get("saleEndDate") as string || null;
 
+    // Validate price (required, must be >= $1)
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum)) {
+      return { error: "Price must be a valid number" };
+    }
+    if (priceNum < 1) {
+      return { error: "Price must be at least $1" };
+    }
+
+    // Validate costPrice (optional, but must be >= $0 if provided)
+    if (costPrice) {
+      const costNum = parseFloat(costPrice);
+      if (isNaN(costNum)) {
+        return { error: "Cost price must be a valid number" };
+      }
+      if (costNum < 0) {
+        return { error: "Cost price cannot be negative" };
+      }
+    }
+
     await db.insert(tables.products).values({
       organizationId: tenant.subdomain, // Using subdomain as org identifier
       name,
@@ -117,6 +137,26 @@ export async function action({ request }: ActionFunctionArgs) {
     const saleStartDate = formData.get("saleStartDate") as string || null;
     const saleEndDate = formData.get("saleEndDate") as string || null;
     const isActive = formData.get("isActive") === "true";
+
+    // Validate price (required, must be >= $1)
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum)) {
+      return { error: "Price must be a valid number" };
+    }
+    if (priceNum < 1) {
+      return { error: "Price must be at least $1" };
+    }
+
+    // Validate costPrice (optional, but must be >= $0 if provided)
+    if (costPrice) {
+      const costNum = parseFloat(costPrice);
+      if (isNaN(costNum)) {
+        return { error: "Cost price must be a valid number" };
+      }
+      if (costNum < 0) {
+        return { error: "Cost price cannot be negative" };
+      }
+    }
 
     await db
       .update(tables.products)
