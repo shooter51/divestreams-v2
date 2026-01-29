@@ -73,8 +73,9 @@ export async function action({ request }: ActionFunctionArgs) {
     };
   }
 
+  let newTour;
   try {
-    await createTour(organizationId, {
+    newTour = await createTour(organizationId, {
       name: formData.get("name") as string,
       description: (formData.get("description") as string) || undefined,
       type: formData.get("type") as string,
@@ -102,7 +103,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const tourName = formData.get("name") as string;
-  return redirect(redirectWithNotification("/tenant/tours", `Tour "${tourName}" has been successfully created`, "success"));
+  // Redirect to edit page to allow image upload
+  return redirect(redirectWithNotification(`/tenant/tours/${newTour.id}/edit`, `Tour "${tourName}" created! Now add images to complete your tour listing.`, "success"));
 }
 
 export default function NewTourPage() {
