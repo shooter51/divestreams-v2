@@ -257,13 +257,18 @@ export default function NewEquipmentPage() {
                 value="true"
                 defaultChecked={actionData?.values?.isRentable !== "false"}
                 className="rounded"
+                id="isRentableCheckbox"
               />
               <span className="font-medium">Available for Rental</span>
             </label>
+            <p className="text-xs text-foreground-muted -mt-2 ml-7">
+              Equipment marked as rentable will appear in the POS rental section
+            </p>
 
             <div className="w-1/2">
               <label htmlFor="rentalPrice" className="block text-sm font-medium mb-1">
-                Rental Price (per day)
+                Rental Price (per day) {" "}
+                <span className="text-foreground-muted text-xs">(required if rentable)</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -272,11 +277,18 @@ export default function NewEquipmentPage() {
                   id="rentalPrice"
                   name="rentalPrice"
                   step="0.01"
-                  min="0"
+                  min="0.01"
+                  placeholder="10.00"
                   defaultValue={actionData?.values?.rentalPrice}
                   className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
+              <p className="text-xs text-foreground-muted mt-1">
+                Equipment with no rental price won't appear in POS
+              </p>
+              {actionData?.errors?.rentalPrice && (
+                <p className="text-danger text-sm mt-1">{actionData.errors.rentalPrice}</p>
+              )}
             </div>
           </div>
         </div>

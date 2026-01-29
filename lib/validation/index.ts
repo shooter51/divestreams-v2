@@ -255,7 +255,19 @@ export const equipmentSchema = z.object({
   purchaseDate: z.string().optional(),
   purchasePrice: optionalCostNumber, // Purchase prices can be $0 (donated/free equipment)
   notes: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    // If equipment is marked as rentable, rental price must be provided
+    if (data.isRentable && (!data.rentalPrice || data.rentalPrice <= 0)) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Rental price is required for rentable equipment and must be at least $1",
+    path: ["rentalPrice"], // Show error on rentalPrice field
+  }
+);
 
 export type EquipmentInput = z.infer<typeof equipmentSchema>;
 
