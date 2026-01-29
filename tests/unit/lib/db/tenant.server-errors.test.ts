@@ -50,6 +50,21 @@ describe("Tenant Server Module - Error Paths", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test";
+
+    // Default mock for subscriptionPlans query (used in createTenant)
+    const mockFrom = vi.fn().mockReturnThis();
+    const mockWhere = vi.fn().mockReturnThis();
+    const mockLimit = vi.fn().mockResolvedValue([{ id: "free-plan-id" }]);
+
+    (mockDb.select as any).mockReturnValue({
+      from: mockFrom,
+    });
+    mockFrom.mockReturnValue({
+      where: mockWhere,
+    });
+    mockWhere.mockReturnValue({
+      limit: mockLimit,
+    });
   });
 
   afterEach(() => {
