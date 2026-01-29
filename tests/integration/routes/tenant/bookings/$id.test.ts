@@ -279,7 +279,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
     it("should return error if payment amount is invalid", async () => {
       const formData = new FormData();
       formData.append("intent", "add-payment");
-      formData.append("amount", "0");
+      formData.append("amount", "0.50"); // Invalid: between 0 and 1
       formData.append("paymentMethod", "card");
 
       const request = new Request("http://test.com/tenant/bookings/booking-456", {
@@ -290,7 +290,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.recordPayment).not.toHaveBeenCalled();
-      expect(result).toEqual({ error: "Valid payment amount is required" });
+      expect(result).toEqual({ error: "Payment amount must be at least $1 (or $0)" });
     });
 
     it("should return error if payment method is missing", async () => {
