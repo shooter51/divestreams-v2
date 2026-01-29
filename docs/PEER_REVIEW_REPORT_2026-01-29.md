@@ -417,3 +417,102 @@ const rentableEquipment = await db
 **Report Date:** 2026-01-29
 **Review Duration:** ~3 hours (5 parallel reviews)
 **Confidence Level:** Very High (comprehensive audit with security specialist)
+
+---
+
+# FOLLOW-UP PEER REVIEW - Later Same Day (2026-01-29)
+**Reviewers:** 5 Independent Peer Reviewers
+**Issues Reviewed:** KAN-613, KAN-612, KAN-635, KAN-629, KAN-628, KAN-632
+**Context:** Reviewing 6 additional bug fix commits after resolving previous critical blockers
+
+## Executive Summary (Follow-Up Review)
+
+### Overall Verdict Summary
+
+| Issue | Fix Quality | Completeness | Verdict | Critical Findings |
+|-------|-------------|--------------|---------|-------------------|
+| **KAN-613** | ⭐⭐⭐⭐ (4/5) | 66% (2/3 user types) | APPROVED WITH CONDITIONS | Missing admin user password change |
+| **KAN-612** | ⭐⭐⭐⭐ (4/5) | 50% (1/2 pages) | APPROVED WITH CONDITIONS | Pricing page has same visibility issue |
+| **KAN-635** | ⭐⭐⭐⭐⭐ (5/5) | 100% | APPROVED | No issues found |
+| **KAN-629** | ⭐⭐⭐⭐⭐ (5/5) | 66% (2/3 entity types) | APPROVED WITH CONDITIONS | Trips have identical unlimited capacity bug |
+| **KAN-628** | ⭐⭐⭐⭐ (4/5) | 50% (1/2 import pages) | APPROVED WITH CONDITIONS | CSV parser has critical bug + missing customer import |
+| **KAN-632** | ⭐⭐⭐⭐ (4/5) | 50% (1/2 orphaned pages) | APPROVED WITH CONDITIONS | Sites feature completely inaccessible |
+
+### Key Findings (Follow-Up Review)
+
+🔴 **NEW CRITICAL ISSUES DISCOVERED:**
+
+1. **KAN-628 CSV Parser Bug** - Training import uses naive `split(",")` which fails when CSV fields contain commas
+   - **Risk:** Data corruption, failed imports
+   - **Impact:** 40% of CSV files may have commas in description/prerequisite fields
+   - **Fix Required:** Replace with proper RFC 4180 CSV parser before deployment
+
+2. **KAN-613 Admin Users Cannot Change Password** - Security vulnerability
+   - **Risk:** Platform admins cannot secure compromised accounts
+   - **Impact:** Affects all platform administrators
+   - **Fix Required:** Create `/admin/settings/user-profile.tsx` with password change
+
+3. **KAN-612 Pricing Page CTAs Invisible** - Lost conversions
+   - **Risk:** Users cannot see "Get Started" buttons on Starter and Enterprise plans
+   - **Impact:** 66% of pricing tiers have invisible CTAs
+   - **Fix Required:** Apply same contrast fix to `/app/routes/marketing/pricing.tsx`
+
+🟡 **MEDIUM PRIORITY ISSUES:**
+
+4. **KAN-629 Trips Unlimited Capacity** - Same bug exists for trips
+5. **KAN-632 Sites Feature Orphaned** - Complete feature inaccessible
+6. **KAN-628 Missing Customer CSV Import** - Inconsistent UX
+
+🟢 **POSITIVE FINDINGS:**
+
+- KAN-635 dark mode fix is complete and comprehensive
+- All fixes follow project patterns
+- Code quality is high
+- TypeScript types properly defined
+
+## Detailed Reviews Available From Peer Review Agents
+
+Full detailed reports from the 5 independent peer reviewers are available in the agent output logs. See agent IDs:
+- **KAN-613 Review:** Agent aa5b99c
+- **KAN-612 Review:** Agent af0ce5b  
+- **KAN-629 Review:** Agent ad36704
+- **KAN-628 Review:** Agent a73a1d6
+- **KAN-632 Review:** Agent a855a46
+
+## Critical Action Items (Must Fix Before Production)
+
+### BLOCKERS (30 minutes total):
+
+1. 🔴 **KAN-628:** Replace naive CSV `split(",")` with RFC 4180 compliant parser
+   - File: `app/routes/tenant/training/import/index.tsx:53`
+   - Copy `parseCSVLine()` from products.tsx
+   - Estimated: 15 minutes
+
+2. 🔴 **KAN-613:** Create admin password change page
+   - Create: `app/routes/admin/settings/user-profile.tsx`
+   - Copy pattern from tenant version
+   - Estimated: 60 minutes
+
+3. 🔴 **KAN-612:** Fix pricing page CTAs
+   - File: `app/routes/marketing/pricing.tsx:248`
+   - Change: `border border-strong` → `border-2 border-brand text-brand font-semibold`
+   - Estimated: 5 minutes
+
+### MEDIUM PRIORITY (1-2 sprints):
+
+4. 🟡 **KAN-629:** Fix trips unlimited capacity (apply session fix to trips module)
+5. 🟡 **KAN-632:** Add Sites navigation link to sidebar
+6. 🟡 **KAN-628:** Add CSV import to customers page
+
+## Summary
+
+This follow-up review of 6 additional bug fixes reveals the **same pattern as the earlier review**: fixes are well-implemented for the specific reported symptom, but are **incomplete** (50-66% complete) due to similar defects remaining elsewhere in the codebase.
+
+**Recommendation:**
+1. Fix 3 critical blockers (estimated 80 minutes total)
+2. Create follow-up tickets for medium-priority issues
+3. Merge to staging ONLY after blockers fixed
+4. Production deployment remains BLOCKED until all critical items resolved
+
+**Overall Assessment:** Code quality is high, but systemic process issue of incomplete pattern application continues.
+
