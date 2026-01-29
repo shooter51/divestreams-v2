@@ -28,7 +28,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  await createDiveSite(organizationId, {
+  const newSite = await createDiveSite(organizationId, {
     name: formData.get("name") as string,
     description: (formData.get("description") as string) || undefined,
     latitude: formData.get("latitude") ? Number(formData.get("latitude")) : undefined,
@@ -41,7 +41,8 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   const diveSiteName = formData.get("name") as string;
-  return redirect(redirectWithNotification("/tenant/dive-sites", `Dive Site "${diveSiteName}" has been successfully created`, "success"));
+  // Redirect to edit page to allow image upload
+  return redirect(redirectWithNotification(`/tenant/dive-sites/${newSite.id}/edit`, `Dive Site "${diveSiteName}" created! Now add images to complete your site listing.`, "success"));
 }
 
 export default function NewDiveSitePage() {

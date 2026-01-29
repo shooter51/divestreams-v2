@@ -33,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const amenitiesStr = formData.get("amenities") as string;
   const amenities = amenitiesStr ? JSON.parse(amenitiesStr) as string[] : undefined;
 
-  await createBoat(organizationId, {
+  const newBoat = await createBoat(organizationId, {
     name: formData.get("name") as string,
     description: (formData.get("description") as string) || undefined,
     capacity: Number(formData.get("capacity")),
@@ -44,7 +44,8 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   const boatName = formData.get("name") as string;
-  return redirect(redirectWithNotification("/tenant/boats", `Boat "${boatName}" has been successfully created`, "success"));
+  // Redirect to edit page to allow image upload
+  return redirect(redirectWithNotification(`/tenant/boats/${newBoat.id}/edit`, `Boat "${boatName}" created! Now add images to complete your boat listing.`, "success"));
 }
 
 export default function NewBoatPage() {
