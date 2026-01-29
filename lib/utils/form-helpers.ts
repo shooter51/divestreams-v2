@@ -22,7 +22,7 @@
  * };
  * ```
  */
-export type FormErrorResponse<T = {}> = {
+export type FormErrorResponse<T = Record<string, never>> = {
   error?: string;
   errors?: Record<string, string>;
 } & Partial<T>;
