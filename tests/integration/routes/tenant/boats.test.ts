@@ -36,6 +36,13 @@ vi.mock("../../../../lib/db/schema", () => ({
     boatId: "boatId",
     organizationId: "organizationId",
   },
+  images: {
+    id: "id",
+    entityType: "entityType",
+    entityId: "entityId",
+    url: "url",
+    organizationId: "organizationId",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
