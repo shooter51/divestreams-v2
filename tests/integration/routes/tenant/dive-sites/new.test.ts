@@ -28,7 +28,8 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createDiveSite).mockResolvedValue(undefined);
+      const mockSite = { id: "site-123", name: "Blue Corner" };
+      vi.mocked(queries.createDiveSite).mockResolvedValue(mockSite as any);
 
       const formData = new FormData();
       formData.append("name", "Blue Corner");
@@ -61,10 +62,10 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
         })
       );
 
-      // Check redirect
+      // Check redirect to edit page
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/dive-sites");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe(`/tenant/dive-sites/${mockSite.id}/edit`);
     });
 
     it("should return validation errors for missing name", async () => {
@@ -127,7 +128,8 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createDiveSite).mockResolvedValue(undefined);
+      const mockSite = { id: "site-456", name: "Simple Site" };
+      vi.mocked(queries.createDiveSite).mockResolvedValue(mockSite as any);
 
       const formData = new FormData();
       formData.append("name", "Simple Site");
@@ -158,7 +160,8 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createDiveSite).mockResolvedValue(undefined);
+      const mockSite = { id: "site-789", name: "Coral Garden" };
+      vi.mocked(queries.createDiveSite).mockResolvedValue(mockSite as any);
 
       const formData = new FormData();
       formData.append("name", "Coral Garden");
@@ -183,7 +186,8 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createDiveSite).mockResolvedValue(undefined);
+      const mockSite = { id: "site-101", name: "No Highlights Site" };
+      vi.mocked(queries.createDiveSite).mockResolvedValue(mockSite as any);
 
       const formData = new FormData();
       formData.append("name", "No Highlights Site");
@@ -207,7 +211,8 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createDiveSite).mockResolvedValue(undefined);
+      const mockSite = { id: "site-202", name: "GPS Site" };
+      vi.mocked(queries.createDiveSite).mockResolvedValue(mockSite as any);
 
       const formData = new FormData();
       formData.append("name", "GPS Site");
