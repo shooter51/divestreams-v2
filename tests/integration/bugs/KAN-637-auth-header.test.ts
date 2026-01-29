@@ -117,11 +117,25 @@ describe("KAN-637: Site layout auth header state", () => {
     expect(customer, "Customer should exist in DB before test").toBeDefined();
 
     // Create a mock request with customer session cookie
-    const request = new Request(`http://${org.slug}.localhost:5173/site`, {
+    // Note: We can't use new Request() with Cookie header because it's a forbidden header
+    // Instead, create a mock request object that mimics the Request interface
+    const request = {
+      url: `http://${org.slug}.localhost:5173/site`,
+      method: "GET",
       headers: {
-        Cookie: `customer_session=${testSessionToken}`,
+        get: (name: string) => {
+          if (name === "Cookie") {
+            return `customer_session=${testSessionToken}`;
+          }
+          return null;
+        },
+        has: (name: string) => name === "Cookie",
+        forEach: () => {},
+        entries: () => [],
+        keys: () => [],
+        values: () => [],
       },
-    });
+    } as unknown as Request;
 
     const loaderData = await loader({ request, params: {}, context: {} });
 
@@ -160,11 +174,24 @@ describe("KAN-637: Site layout auth header state", () => {
     const [org] = await db.select().from(organization).where(eq(organization.id, testOrgId)).limit(1);
 
     // Create a mock request with invalid session token
-    const request = new Request(`http://${org.slug}.localhost:5173/site`, {
+    const invalidToken = "invalid-token-12345";
+    const request = {
+      url: `http://${org.slug}.localhost:5173/site`,
+      method: "GET",
       headers: {
-        Cookie: "customer_session=invalid-token-12345",
+        get: (name: string) => {
+          if (name === "Cookie") {
+            return `customer_session=${invalidToken}`;
+          }
+          return null;
+        },
+        has: (name: string) => name === "Cookie",
+        forEach: () => {},
+        entries: () => [],
+        keys: () => [],
+        values: () => [],
       },
-    });
+    } as unknown as Request;
 
     const loaderData = await loader({ request, params: {}, context: {} });
 
@@ -191,11 +218,23 @@ describe("KAN-637: Site layout auth header state", () => {
     const [org] = await db.select().from(organization).where(eq(organization.id, testOrgId)).limit(1);
 
     // Create a mock request with expired session token
-    const request = new Request(`http://${org.slug}.localhost:5173/site`, {
+    const request = {
+      url: `http://${org.slug}.localhost:5173/site`,
+      method: "GET",
       headers: {
-        Cookie: `customer_session=${expiredToken}`,
+        get: (name: string) => {
+          if (name === "Cookie") {
+            return `customer_session=${expiredToken}`;
+          }
+          return null;
+        },
+        has: (name: string) => name === "Cookie",
+        forEach: () => {},
+        entries: () => [],
+        keys: () => [],
+        values: () => [],
       },
-    });
+    } as unknown as Request;
 
     const loaderData = await loader({ request, params: {}, context: {} });
 
