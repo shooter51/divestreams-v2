@@ -5,6 +5,7 @@
  */
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 
 // B2 configuration from environment
 const B2_ENDPOINT = process.env.B2_ENDPOINT;
@@ -36,6 +37,8 @@ export function getS3Client(): S3Client | null {
         secretAccessKey: B2_APP_KEY,
       },
       forcePathStyle: true, // Required for B2 (uses path-style URLs)
+      requestChecksumCalculation: "WHEN_REQUIRED", // Disable automatic checksums
+      responseChecksumValidation: "WHEN_REQUIRED", // Disable checksum validation
     });
   }
 
@@ -60,45 +63,43 @@ export async function uploadToB2(
   const client = getS3Client();
   if (!client) return null;
 
-  // Ensure buffer is valid
   if (!body || body.length === 0) {
     throw new Error("Empty buffer provided for upload");
   }
 
-  console.log(`Uploading to B2: key=${key}, size=${body.length} bytes, contentType=${contentType}`);
-  console.log(`B2 Config: bucket=${B2_BUCKET}, endpoint=${B2_ENDPOINT}, region=${B2_REGION}`);
-  console.log(`Buffer type: ${body.constructor.name}, isBuffer: ${Buffer.isBuffer(body)}`);
-
-  // Convert Buffer to Uint8Array for better compatibility with AWS SDK v3
-  const bodyArray = new Uint8Array(body);
-
-  const command = new PutObjectCommand({
-    Bucket: B2_BUCKET,
-    Key: key,
-    Body: bodyArray,
-    ContentType: contentType,
-    ContentLength: bodyArray.length,
-    CacheControl: "public, max-age=31536000",
-    ChecksumAlgorithm: undefined, // Disable checksums for B2 compatibility
-  });
-
-  console.log(`Sending PutObjectCommand...`);
+  console.log(`Uploading to B2 via multipart: key=${key}, size=${body.length} bytes`);
 
   try {
-    const response = await client.send(command);
-    console.log(`B2 upload response:`, response.$metadata);
+    // Use Upload class which handles multipart uploads and works better with B2
+    const upload = new Upload({
+      client,
+      params: {
+        Bucket: B2_BUCKET,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+        CacheControl: "public, max-age=31536000",
+      },
+      // Force single part upload for small files to avoid multipart overhead
+      queueSize: 1,
+      partSize: 1024 * 1024 * 5, // 5MB parts
+    });
+
+    await upload.done();
+
+    console.log(`✅ B2 upload SUCCESS via multipart!`);
+
+    // Construct correct URL (endpoint is already full URL, don't append to it)
+    const url = `${B2_ENDPOINT.replace(/\/$/, '')}/${B2_BUCKET}/${key}`;
+    const cdnUrl = CDN_URL ? `${CDN_URL}/${key}` : url;
+
+    console.log(`B2 upload successful: ${cdnUrl}`);
+
+    return { key, url, cdnUrl };
   } catch (error) {
-    console.error(`B2 upload failed:`, error);
+    console.error(`❌ B2 multipart upload failed:`, error);
     throw error;
   }
-
-  // Construct correct URL (endpoint is already full URL, don't append to it)
-  const url = `${B2_ENDPOINT.replace(/\/$/, '')}/${B2_BUCKET}/${key}`;
-  const cdnUrl = CDN_URL ? `${CDN_URL}/${key}` : url;
-
-  console.log(`B2 upload successful: ${cdnUrl}`);
-
-  return { key, url, cdnUrl };
 }
 
 export async function deleteFromB2(key: string): Promise<boolean> {
