@@ -82,7 +82,7 @@ vi.mock("drizzle-orm", () => ({
 }));
 
 import { auth } from "../../../../lib/auth";
-import { getSubdomainFromRequest } from "../../../../lib/auth/org-context.server";
+import { getSubdomainFromRequest, getOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 
 describe("tenant/login route", () => {
@@ -90,13 +90,15 @@ describe("tenant/login route", () => {
     vi.clearAllMocks();
     mockRedirect.mockClear();
     shouldThrowRedirect = false; // Reset for each test
+    (getOrgContext as Mock).mockResolvedValue(null); // Default: no org context
   });
 
   describe("loader", () => {
     it("redirects to /tenant when already logged in", async () => {
       shouldThrowRedirect = true; // loader uses throw redirect()
-      (auth.api.getSession as Mock).mockResolvedValue({
+      (getOrgContext as Mock).mockResolvedValue({
         user: { id: "user-1", email: "test@example.com" },
+        org: { id: "org-1", name: "Demo Dive Shop", slug: "demo" },
       });
 
       const request = new Request("https://demo.divestreams.com/login");
@@ -114,8 +116,9 @@ describe("tenant/login route", () => {
 
     it("redirects to specified path when already logged in with redirect param", async () => {
       shouldThrowRedirect = true; // loader uses throw redirect()
-      (auth.api.getSession as Mock).mockResolvedValue({
+      (getOrgContext as Mock).mockResolvedValue({
         user: { id: "user-1", email: "test@example.com" },
+        org: { id: "org-1", name: "Demo Dive Shop", slug: "demo" },
       });
 
       const request = new Request("https://demo.divestreams.com/login?redirect=/tenant/bookings");
@@ -239,7 +242,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Invalid credentials" });
+        expect(response).toEqual({ error: "Invalid credentials", email: "user@example.com" });
       });
 
       it("redirects to /tenant when login is successful and user is a member", async () => {
@@ -403,7 +406,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Missing user or organization information" });
+        expect(response).toEqual({ error: "Missing user or organization information", email: "" });
       });
 
       it("returns error when orgId is missing", async () => {
@@ -418,7 +421,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Missing user or organization information" });
+        expect(response).toEqual({ error: "Missing user or organization information", email: "" });
       });
 
       it("does not create duplicate membership", async () => {
@@ -471,7 +474,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "An error occurred during login. Please try again." });
+        expect(response).toEqual({ error: "An error occurred during login. Please try again.", email: "user@example.com" });
         expect(consoleSpy).toHaveBeenCalled();
 
         consoleSpy.mockRestore();
