@@ -129,7 +129,7 @@ describe("admin/login route", () => {
 
       const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(response).toEqual({ error: "Please enter a valid email address" });
+      expect(response).toEqual({ error: "Please enter a valid email address", email: "" });
     });
 
     it("returns error when email is invalid format", async () => {
@@ -144,7 +144,7 @@ describe("admin/login route", () => {
 
       const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(response).toEqual({ error: "Please enter a valid email address" });
+      expect(response).toEqual({ error: "Please enter a valid email address", email: "notanemail" });
     });
 
     it("returns error when password is empty", async () => {
@@ -159,7 +159,7 @@ describe("admin/login route", () => {
 
       const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(response).toEqual({ error: "Password is required" });
+      expect(response).toEqual({ error: "Password is required", email: "admin@example.com" });
     });
 
     it("returns error when password is not provided", async () => {
@@ -173,7 +173,7 @@ describe("admin/login route", () => {
 
       const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(response).toEqual({ error: "Password is required" });
+      expect(response).toEqual({ error: "Password is required", email: "admin@example.com" });
     });
 
     it("returns error when Better Auth returns invalid credentials", async () => {
@@ -198,7 +198,7 @@ describe("admin/login route", () => {
         body: { email: "admin@example.com", password: "wrongpassword" },
         asResponse: true,
       });
-      expect(response).toEqual({ error: "Invalid credentials" });
+      expect(response).toEqual({ error: "Invalid credentials", email: "admin@example.com" });
     });
 
     it("redirects to dashboard when user is a platform member", async () => {
@@ -381,7 +381,7 @@ describe("admin/login route", () => {
 
       const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(response).toEqual({ error: "An error occurred during login. Please try again." });
+      expect(response).toEqual({ error: "An error occurred during login. Please try again.", email: "admin@example.com" });
       expect(consoleSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
@@ -420,7 +420,7 @@ describe("admin/login route", () => {
 
       const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(response).toEqual({ error: "Platform configuration error. Please contact support." });
+      expect(response).toEqual({ error: "Platform configuration error. Please contact support.", email: "admin@example.com" });
 
       consoleSpy.mockRestore();
     });
