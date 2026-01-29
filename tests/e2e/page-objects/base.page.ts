@@ -146,11 +146,11 @@ export abstract class TenantBasePage extends BasePage {
 }
 
 /**
- * Admin-scoped base page
+ * Admin-scoped base page (tenant admin panel)
  */
 export abstract class AdminBasePage extends BasePage {
   protected get adminUrl(): string {
-    return "http://admin.localhost:5173";
+    return "http://demo.localhost:5173/tenant";
   }
 
   /**

@@ -24,7 +24,7 @@ test.describe('KAN-631: POS New Sale Button @critical @pos', () => {
 
     // Login as demo user
     await loginPage.goto();
-    await loginPage.login('demo@example.com', 'Demo123!');
+    await loginPage.login('owner@demo.com', 'demo1234');
 
     // Navigate to POS
     await posPage.goto();

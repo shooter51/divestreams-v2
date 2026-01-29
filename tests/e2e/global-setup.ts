@@ -58,7 +58,7 @@ async function globalSetup(config: FullConfig) {
     const userResult = await auth.api.signUpEmail({
       body: {
         email: "owner@demo.com",
-        password: "demo123",
+        password: "demo1234",
         name: "Demo Owner",
       },
     });
@@ -79,7 +79,7 @@ async function globalSetup(config: FullConfig) {
     console.log("✓ Demo organization created successfully");
     console.log("  - Organization: demo.localhost:5173");
     console.log("  - Email: owner@demo.com");
-    console.log("  - Password: demo123");
+    console.log("  - Password: demo1234");
   } catch (error) {
     console.error("Failed to create demo organization:", error);
     // Don't fail the test run - tests will handle missing org gracefully

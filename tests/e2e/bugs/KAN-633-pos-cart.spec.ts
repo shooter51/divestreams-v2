@@ -22,7 +22,7 @@ test.describe("KAN-633: POS Rentals and Trips Cart @critical @pos", () => {
 
     // Login as demo user
     await loginPage.goto();
-    await loginPage.login("demo@example.com", "Demo123!");
+    await loginPage.login("owner@demo.com", "demo1234");
 
     // Navigate to POS
     await posPage.goto();
