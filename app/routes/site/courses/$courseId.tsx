@@ -373,7 +373,7 @@ function WhatsIncludedSection({ course }: { course: CourseDetail }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-surface-raised dark:bg-surface-raised rounded-xl shadow-sm border border-border-strong p-6">
       <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-color)" }}>
         What's Included
       </h2>
@@ -398,7 +398,7 @@ function WhatsIncludedSection({ course }: { course: CourseDetail }) {
           <ul className="space-y-2 text-sm opacity-75">
             {excludedItems.map((item, index) => (
               <li key={index} className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 {item}
@@ -443,7 +443,7 @@ function PrerequisitesSection({ course }: { course: CourseDetail }) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-surface-raised dark:bg-surface-raised rounded-xl shadow-sm border border-border-strong p-6">
       <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-color)" }}>
         Prerequisites
       </h2>
@@ -504,11 +504,11 @@ function SessionCard({
       role="button"
       tabIndex={0}
       aria-label={`Select session on ${formatDate(session.date)} at ${formatTime(session.startTime)}`}
-      className={`bg-white rounded-xl shadow-sm border-2 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-        isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+      className={`bg-surface-raised rounded-xl shadow-sm border-2 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+        isSelected ? 'bg-brand-muted dark:bg-brand-muted/20' : 'hover:bg-surface-overlay'
       }`}
       style={{
-        borderColor: isSelected ? "var(--primary-color)" : "#e5e7eb",
+        borderColor: isSelected ? "var(--primary-color)" : "var(--border-color)",
         ...(document.activeElement === null ? {} : {})
       }}
       onClick={handleSelect}
@@ -585,7 +585,7 @@ function SessionsSection({
 }) {
   if (sessions.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+      <div className="bg-surface-raised rounded-xl shadow-sm border border-border-strong p-6 text-center">
         <svg
           className="w-12 h-12 mx-auto mb-3 opacity-50"
           style={{ color: "var(--primary-color)" }}
@@ -733,7 +733,7 @@ export default function SiteCourseDetailPage() {
                 </span>
               )}
               {course.levelName && (
-                <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-gray-100 text-gray-700 rounded-full">
+                <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-surface-inset text-foreground rounded-full">
                   {course.levelName}
                 </span>
               )}
@@ -813,7 +813,7 @@ export default function SiteCourseDetailPage() {
         <div className="lg:col-span-1 space-y-6">
           {/* Price Card */}
           <div
-            className="bg-white rounded-xl shadow-lg border-2 p-6 sticky top-24"
+            className="bg-surface-raised rounded-xl shadow-lg border-2 p-6 sticky top-24"
             style={{ borderColor: "var(--primary-color)" }}
           >
             <div className="text-center mb-6">
@@ -874,7 +874,7 @@ export default function SiteCourseDetailPage() {
             )}
 
             {/* Quick Info */}
-            <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+            <div className="mt-6 pt-6 border-t border-border-strong space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
