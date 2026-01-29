@@ -31,6 +31,7 @@ vi.mock("../../../../lib/auth", () => ({
   auth: {
     api: {
       signInEmail: vi.fn(),
+      getSession: vi.fn(),
     },
   },
 }));
@@ -75,6 +76,8 @@ describe("auth/login route", () => {
     (db.from as Mock).mockReturnThis();
     (db.where as Mock).mockReturnThis();
     (db.limit as Mock).mockResolvedValue([mockOrg]);
+    (getOrgContext as Mock).mockResolvedValue(null); // Default: no org context
+    (auth.api.getSession as Mock).mockResolvedValue(null); // Default: no session
   });
 
   describe("loader", () => {
@@ -125,7 +128,11 @@ describe("auth/login route", () => {
       const request = new Request("https://demo.divestreams.com/auth/login");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(result).toEqual({ tenantName: "Demo Dive Shop" });
+      expect(result).toEqual({
+        tenantName: "Demo Dive Shop",
+        mainSiteUrl: "https://divestreams.com",
+        noAccessError: null
+      });
     });
   });
 
