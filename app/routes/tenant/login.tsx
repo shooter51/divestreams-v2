@@ -2,10 +2,11 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "react
 import { Form, Link, useActionData, useNavigation, useSearchParams, useLoaderData, redirect } from "react-router";
 import { useState } from "react";
 import { auth } from "../../../lib/auth";
-import { getSubdomainFromRequest } from "../../../lib/auth/org-context.server";
+import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
+import { getAppUrl } from "../../../lib/utils/url";
 
 type ActionData = {
   error?: string;
@@ -18,22 +19,18 @@ type ActionData = {
   };
 };
 
+type LoaderData = {
+  orgName: string;
+  orgId: string | null;
+  subdomain: string | null;
+  noAccessError?: string | null;
+  mainSiteUrl?: string;
+};
+
 export const meta: MetaFunction = () => [{ title: "Login - DiveStreams" }];
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  // Check if already logged in
-  const sessionData = await auth.api.getSession({
-    headers: request.headers,
-  });
-
-  if (sessionData?.user) {
-    // Already logged in, redirect to app
-    const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/tenant";
-    throw redirect(redirectTo);
-  }
-
-  // Get org info for display
+export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderData> {
+  // Get org info first
   const subdomain = getSubdomainFromRequest(request);
   let orgName = "this shop";
   let orgId: string | null = null;
@@ -49,6 +46,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
       orgName = org.name;
       orgId = org.id;
     }
+  }
+
+  // Check if already logged in to THIS organization
+  const orgContext = await getOrgContext(request);
+  if (orgContext) {
+    const url = new URL(request.url);
+    const redirectTo = url.searchParams.get("redirect") || "/tenant";
+    throw redirect(redirectTo);
+  }
+
+  // Check if user has a session but no membership in THIS organization
+  const sessionData = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (sessionData && sessionData.user) {
+    // User is logged in but doesn't have access to this organization
+    return {
+      orgName,
+      orgId,
+      subdomain,
+      mainSiteUrl: getAppUrl(),
+      noAccessError: `You are logged in as ${sessionData.user.email}, but you don't have access to this organization. Please contact the organization owner to request access, or log out and sign in with a different account.`
+    };
   }
 
   return { orgName, orgId, subdomain };
@@ -193,7 +214,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function LoginPage() {
-  const { orgName } = useLoaderData<typeof loader>();
+  const { orgName, noAccessError, mainSiteUrl } = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
@@ -284,6 +305,28 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Access Denied Warning - shown when user is logged in but doesn't have access to this org */}
+        {noAccessError && mainSiteUrl && (
+          <div className="mb-6 bg-warning-muted border border-warning text-warning p-4 rounded-xl">
+            <div className="font-semibold mb-2">🔒 Access Denied</div>
+            <p className="text-sm">{noAccessError}</p>
+            <div className="mt-4 flex gap-2">
+              <a
+                href="/auth/logout"
+                className="flex-1 px-4 py-2 bg-warning text-white rounded-lg hover:bg-warning-hover text-center text-sm"
+              >
+                Log Out
+              </a>
+              <a
+                href={mainSiteUrl}
+                className="flex-1 px-4 py-2 border-2 border-warning text-warning rounded-lg hover:bg-warning-muted text-center text-sm"
+              >
+                Go to Main Site
+              </a>
+            </div>
+          </div>
+        )}
+
         <div className="bg-surface-raised py-8 px-4 shadow-sm rounded-xl sm:px-10">
           {/* Error Message */}
           {actionData?.error && (
