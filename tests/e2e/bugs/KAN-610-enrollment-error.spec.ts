@@ -21,13 +21,14 @@ import { test, expect } from "@playwright/test";
 test.describe("KAN-610: New Enrollment Button Error", () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin to demo tenant
-    await page.goto("http://demo.localhost:5173/admin");
+    await page.goto("http://demo.localhost:5173/tenant/login");
     await page.waitForLoadState("networkidle");
 
-    // Fill in admin password if on login page
-    const passwordInput = page.locator('input[name="password"]');
-    if (await passwordInput.isVisible()) {
-      await passwordInput.fill("admin");
+    // Fill in login credentials
+    const emailInput = page.locator('input[name="email"]');
+    if (await emailInput.isVisible()) {
+      await emailInput.fill("owner@demo.com");
+      await page.locator('input[name="password"]').fill("demo1234");
       await page.locator('button[type="submit"]').click();
       await page.waitForLoadState("networkidle");
     }
