@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher } from "react-router";
+import { useLoaderData, useFetcher, Link } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
@@ -435,6 +435,15 @@ export default function POSPage() {
             </svg>
             Scan Barcode
           </button>
+          <Link
+            to="/tenant/pos/transactions"
+            className="px-4 py-2 text-sm border rounded-lg hover:bg-surface-inset flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            Transactions
+          </Link>
         </div>
         <div className="text-sm text-foreground-muted">
           {tenant.name} - {new Date().toLocaleDateString()}
