@@ -194,10 +194,17 @@ describe("tenant/boats route", () => {
         groupBy: vi.fn().mockResolvedValue([{ boatId: "boat-1", count: 15 }]),
       };
 
+      const mockImagesQuery = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       (db.select as Mock).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return mockBoatsQuery;
+        if (selectCallCount === 2) return mockImagesQuery;
         return mockTripsQuery;
       });
 
@@ -295,10 +302,17 @@ describe("tenant/boats route", () => {
         groupBy: vi.fn().mockResolvedValue([]),
       };
 
+      const mockImagesQuery = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       (db.select as Mock).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return mockBoatsQuery;
+        if (selectCallCount === 2) return mockImagesQuery;
         return mockTripsQuery;
       });
 
@@ -337,10 +351,17 @@ describe("tenant/boats route", () => {
         groupBy: vi.fn().mockResolvedValue([]),
       };
 
+      const mockImagesQuery = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       (db.select as Mock).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return mockBoatsQuery;
+        if (selectCallCount === 2) return mockImagesQuery;
         return mockTripsQuery;
       });
 
