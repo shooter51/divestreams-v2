@@ -68,10 +68,18 @@ export async function createStripeCustomer(orgId: string): Promise<string | null
       .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
       .where(eq(subscription.organizationId, orgId));
   } else {
+    // Look up the free plan to get its ID
+    const [freePlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.name, "free"))
+      .limit(1);
+
     // Create a new subscription record if none exists
     await db.insert(subscription).values({
       organizationId: orgId,
       plan: "free",
+      planId: freePlan?.id || null, // Set both plan and planId
       status: "active",
       stripeCustomerId: customer.id,
     });
