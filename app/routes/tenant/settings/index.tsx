@@ -345,6 +345,14 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={isSeeding}
+                onClick={(e) => {
+                  if (!window.confirm(
+                    "This will add sample customers, tours, bookings, equipment, and products to your account. " +
+                    "This action cannot be easily undone. Continue?"
+                  )) {
+                    e.preventDefault();
+                  }
+                }}
                 className="px-4 py-2 text-sm bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSeeding ? "Seeding..." : "Load Demo Data"}
