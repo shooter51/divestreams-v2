@@ -119,7 +119,7 @@ jobs:
 
       - name: Run E2E tests (all 230 workflow tests)
         run: |
-          if [ "${{ github.event.head_commit.message }}" == *"[e2e:failing]"* ]; then
+          if echo "${{ github.event.head_commit.message }}" | grep -q "\[e2e:failing\]"; then
             echo "Running only failing E2E tests..."
             npm run test:e2e:failing
           else
