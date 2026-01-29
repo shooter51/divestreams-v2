@@ -113,6 +113,18 @@ export default function PublicSiteAppearanceSettings() {
     setFontFamily(settings.fontFamily);
   }, [settings]);
 
+  // Update custom colors when theme changes
+  const handleThemeChange = (newTheme: PublicSiteSettings["theme"]) => {
+    setTheme(newTheme);
+
+    // Find the theme and update colors to match its defaults
+    const selectedTheme = themes.find(t => t.id === newTheme);
+    if (selectedTheme && selectedTheme.colors.length >= 2) {
+      setPrimaryColor(selectedTheme.colors[0]);
+      setSecondaryColor(selectedTheme.colors[1]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
@@ -152,7 +164,7 @@ export default function PublicSiteAppearanceSettings() {
                   name="theme"
                   value={themeOption.id}
                   checked={theme === themeOption.id}
-                  onChange={(e) => setTheme(e.target.value as PublicSiteSettings["theme"])}
+                  onChange={(e) => handleThemeChange(e.target.value as PublicSiteSettings["theme"])}
                   className="sr-only"
                 />
                 <div className="flex gap-1 mb-3">
