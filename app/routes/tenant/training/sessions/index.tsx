@@ -210,7 +210,7 @@ export default function SessionsPage() {
                       <div className="flex items-center gap-6">
                         <div className="text-right">
                           <p className="font-medium">
-                            {session.enrolledCount || 0}/{session.maxStudents || "?"} enrolled
+                            {session.enrolledCount || 0}{session.maxStudents ? `/${session.maxStudents}` : ""} enrolled
                           </p>
                           <p className="text-sm text-foreground-muted">
                             {session.priceOverride

@@ -115,7 +115,8 @@ export default function SessionDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const spotsAvailable = (session.maxStudents || 0) - (session.enrolledCount || 0);
+  // If maxStudents is null/undefined, treat as unlimited (no calculation needed)
+  const spotsAvailable = session.maxStudents ? session.maxStudents - (session.enrolledCount || 0) : null;
   const sessionPrice = session.priceOverride || session.coursePrice || "0";
 
   const handleStatusChange = (newStatus: string) => {
@@ -173,7 +174,7 @@ export default function SessionDetailPage() {
           )}
         </div>
         <div className="flex gap-2">
-          {session.status !== "cancelled" && session.status !== "completed" && spotsAvailable > 0 && (
+          {session.status !== "cancelled" && session.status !== "completed" && (spotsAvailable === null || spotsAvailable > 0) && (
             <Link
               to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
               className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
@@ -212,12 +213,14 @@ export default function SessionDetailPage() {
           <div className="grid grid-cols-4 gap-4">
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
-                {session.enrolledCount || 0}/{session.maxStudents || "?"}
+                {session.enrolledCount || 0}{session.maxStudents ? `/${session.maxStudents}` : ""}
               </p>
               <p className="text-foreground-muted text-sm">Enrolled</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-success">{spotsAvailable}</p>
+              <p className={`text-2xl font-bold ${spotsAvailable !== null && spotsAvailable > 0 ? "text-success" : spotsAvailable === 0 ? "text-danger" : ""}`}>
+                {spotsAvailable !== null ? spotsAvailable : "∞"}
+              </p>
               <p className="text-foreground-muted text-sm">Spots Left</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
@@ -413,7 +416,7 @@ export default function SessionDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Enrolled Students ({enrollments.length})</h2>
-              {spotsAvailable > 0 && session.status !== "cancelled" && session.status !== "completed" && (
+              {(spotsAvailable === null || spotsAvailable > 0) && session.status !== "cancelled" && session.status !== "completed" && (
                 <Link
                   to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
                   className="text-brand text-sm hover:underline"
@@ -532,8 +535,8 @@ export default function SessionDetailPage() {
               </div>
               <div className="flex justify-between text-sm font-medium">
                 <span>Available</span>
-                <span className={spotsAvailable === 0 ? "text-danger" : "text-success"}>
-                  {session.maxStudents ? spotsAvailable : "Unlimited"}
+                <span className={spotsAvailable === 0 ? "text-danger" : spotsAvailable !== null ? "text-success" : ""}>
+                  {spotsAvailable !== null ? spotsAvailable : "Unlimited"}
                 </span>
               </div>
               {session.maxStudents && (
