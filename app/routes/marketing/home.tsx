@@ -47,7 +47,7 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-5xl font-bold text-foreground mb-6">
+        <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6 drop-shadow-sm">
           Run Your Dive Shop
           <span className="text-brand"> Effortlessly</span>
         </h1>
@@ -64,7 +64,7 @@ export default function HomePage() {
           </a>
           <a
             href="/features"
-            className="border border-strong px-8 py-3 rounded-lg text-lg hover:bg-surface-inset"
+            className="border-2 border-brand text-brand px-8 py-3 rounded-lg text-lg font-semibold hover:bg-brand-muted transition-all"
           >
             See Features
           </a>
