@@ -130,7 +130,10 @@ export async function createCheckoutSession(
   const priceId = billingPeriod === "yearly" ? plan.yearlyPriceId : plan.monthlyPriceId;
 
   if (!priceId) {
-    throw new Error(`No ${billingPeriod} price configured for ${planName} plan`);
+    throw new Error(
+      `Subscription upgrade not available: The "${planName}" plan does not have a Stripe Price ID configured for ${billingPeriod} billing. ` +
+      `Please contact support or try a different billing period.`
+    );
   }
 
   const session = await stripe.checkout.sessions.create({

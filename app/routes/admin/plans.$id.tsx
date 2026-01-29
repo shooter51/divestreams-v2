@@ -236,6 +236,7 @@ export default function EditPlanPage() {
           <div>
             <label htmlFor="monthlyPriceId" className="block text-sm font-medium mb-1">
               Stripe Monthly Price ID
+              <span className="text-danger ml-1">*</span>
             </label>
             <input
               type="text"
@@ -245,11 +246,15 @@ export default function EditPlanPage() {
               placeholder="price_..."
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
             />
+            <p className="text-xs text-foreground-muted mt-1">
+              Required for subscription upgrades. Create a Price in Stripe Dashboard for the monthly amount, then paste its ID here.
+            </p>
           </div>
 
           <div>
             <label htmlFor="yearlyPriceId" className="block text-sm font-medium mb-1">
               Stripe Yearly Price ID
+              <span className="text-danger ml-1">*</span>
             </label>
             <input
               type="text"
@@ -259,6 +264,9 @@ export default function EditPlanPage() {
               placeholder="price_..."
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
             />
+            <p className="text-xs text-foreground-muted mt-1">
+              Required for subscription upgrades. Create a Price in Stripe Dashboard for the yearly amount, then paste its ID here.
+            </p>
           </div>
 
           <div className="col-span-2">
