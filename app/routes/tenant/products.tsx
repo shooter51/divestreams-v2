@@ -104,7 +104,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     await db.insert(tables.products).values({
-      organizationId: tenant.subdomain, // Using subdomain as org identifier
+      organizationId, // Use actual organization UUID
       name,
       category,
       price,
@@ -325,7 +325,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       try {
         await db.insert(tables.products).values({
-          organizationId: tenant.subdomain, // Using subdomain as org identifier
+          organizationId, // Use actual organization UUID
           name: row.name,
           sku: row.sku,
           category: validCategories.includes(category) ? category : "other",
