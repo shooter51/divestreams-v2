@@ -256,6 +256,7 @@ export default function DiscountsPage() {
   const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingDiscount, setEditingDiscount] = useState<DiscountCode | null>(null);
+  const [discountType, setDiscountType] = useState<string>("percentage");
 
   const isSubmitting = fetcher.state === "submitting";
   const fetcherData = fetcher.data as { error?: string; success?: boolean; message?: string } | undefined;
@@ -295,6 +296,7 @@ export default function DiscountsPage() {
         <button
           onClick={() => {
             setEditingDiscount(null);
+            setDiscountType("percentage");
             setShowForm(true);
           }}
           className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
@@ -303,12 +305,7 @@ export default function DiscountsPage() {
         </button>
       </div>
 
-      {/* Error Messages */}
-      {fetcherData?.error && !fetcherData.error.includes("Percentage discount") && (
-        <div className="bg-danger-muted border border-danger text-danger p-3 rounded-lg mb-4">
-          {fetcherData.error}
-        </div>
-      )}
+      {/* Error Messages - Removed from here, shown in modal instead */}
 
       {/* Active Discounts */}
       <div className="mb-8">
@@ -374,7 +371,9 @@ export default function DiscountsPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => {
-                              setEditingDiscount(discount as DiscountCode);
+                              const disc = discount as DiscountCode;
+                              setEditingDiscount(disc);
+                              setDiscountType(disc.discountType);
                               setShowForm(true);
                             }}
                             className="px-2 py-1 text-sm text-brand hover:bg-brand-muted rounded"
@@ -404,7 +403,10 @@ export default function DiscountsPage() {
           <div className="bg-surface-inset rounded-lg p-8 text-center">
             <p className="text-foreground-muted mb-4">No active discount codes.</p>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                setDiscountType("percentage");
+                setShowForm(true);
+              }}
               className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
             >
               Create Your First Discount Code
@@ -470,7 +472,9 @@ export default function DiscountsPage() {
                           )}
                           <button
                             onClick={() => {
-                              setEditingDiscount(discount as DiscountCode);
+                              const disc = discount as DiscountCode;
+                              setEditingDiscount(disc);
+                              setDiscountType(disc.discountType);
                               setShowForm(true);
                             }}
                             className="px-2 py-1 text-sm text-brand hover:bg-brand-muted rounded"
@@ -500,6 +504,13 @@ export default function DiscountsPage() {
               <fetcher.Form method="post" className="space-y-4">
                 <input type="hidden" name="intent" value={editingDiscount ? "update" : "create"} />
                 {editingDiscount && <input type="hidden" name="id" value={editingDiscount.id} />}
+
+                {/* Show all error messages inside the modal */}
+                {fetcherData?.error && (
+                  <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg">
+                    {fetcherData.error}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
@@ -534,6 +545,7 @@ export default function DiscountsPage() {
                       name="discountType"
                       defaultValue={editingDiscount?.discountType || "percentage"}
                       required
+                      onChange={(e) => setDiscountType(e.target.value)}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     >
                       <option value="percentage">Percentage (%)</option>
@@ -548,36 +560,17 @@ export default function DiscountsPage() {
                       name="discountValue"
                       step="0.01"
                       min="1"
-                      max="100"
+                      max={discountType === "percentage" ? "100" : "100000"}
                       defaultValue={editingDiscount?.discountValue || ""}
                       required
-                      placeholder="e.g., 10"
+                      placeholder={discountType === "percentage" ? "e.g., 10" : "e.g., 25.00"}
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-                      onInvalid={(e) => {
-                        const target = e.target as HTMLInputElement;
-                        const type = (document.querySelector('[name="discountType"]') as HTMLSelectElement)?.value;
-                        if (type === "percentage" && parseFloat(target.value) > 100) {
-                          target.setCustomValidity("Percentage discount cannot exceed 100%");
-                        } else {
-                          target.setCustomValidity("");
-                        }
-                      }}
-                      onChange={(e) => {
-                        const target = e.target;
-                        const type = (document.querySelector('[name="discountType"]') as HTMLSelectElement)?.value;
-                        if (type === "percentage" && parseFloat(target.value) > 100) {
-                          target.setCustomValidity("Percentage discount cannot exceed 100%");
-                        } else {
-                          target.setCustomValidity("");
-                        }
-                      }}
                     />
                     <p className="text-xs text-foreground-muted mt-1">
-                      Min 1, max 100 for percentage discounts
+                      {discountType === "percentage"
+                        ? "Min 1%, max 100%"
+                        : "Min $1, max $100,000"}
                     </p>
-                    {fetcherData?.error && fetcherData.error.includes("Percentage discount") && (
-                      <p className="text-xs text-danger mt-1">{fetcherData.error}</p>
-                    )}
                   </div>
 
                   <div>
@@ -587,12 +580,13 @@ export default function DiscountsPage() {
                       name="minBookingAmount"
                       step="0.01"
                       min="1"
+                      max="100000"
                       defaultValue={editingDiscount?.minBookingAmount || ""}
                       placeholder="No minimum"
                       className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                     <p className="text-xs text-foreground-muted mt-1">
-                      Min $1 if specified
+                      Optional: $1 - $100,000
                     </p>
                   </div>
 
