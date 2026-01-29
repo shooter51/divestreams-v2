@@ -46,6 +46,7 @@ vi.mock("../../../../lib/auth", () => ({
 // Mock the org-context module
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   getSubdomainFromRequest: vi.fn(),
+  getOrgContext: vi.fn(),
 }));
 
 // Mock the database module
