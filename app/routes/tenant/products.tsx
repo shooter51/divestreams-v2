@@ -664,7 +664,7 @@ export default function ProductsPage() {
           {selectedProducts.size > 0 && (
             <button
               onClick={() => setShowBulkUpdate(true)}
-              className="px-4 py-2 bg-warning-muted text-white rounded-lg hover:bg-warning"
+              className="px-4 py-2 bg-warning text-white rounded-lg hover:bg-warning-hover shadow-sm"
             >
               Bulk Update ({selectedProducts.size})
             </button>
