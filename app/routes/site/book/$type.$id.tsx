@@ -233,19 +233,18 @@ export async function loader({
         eq(equipment.organizationId, org.id),
         eq(equipment.isRentable, true),
         eq(equipment.status, "available"),
-        eq(equipment.isPublic, true)
+        eq(equipment.isPublic, true),
+        sql`${equipment.rentalPrice} IS NOT NULL AND ${equipment.rentalPrice} > 0`
       )
     )
     .orderBy(equipment.category, equipment.name);
 
-  const equipmentList: RentalEquipment[] = rentableEquipment
-    .filter((e) => e.rentalPrice)
-    .map((e) => ({
-      id: e.id,
-      name: e.name,
-      category: e.category,
-      rentalPrice: e.rentalPrice!,
-    }));
+  const equipmentList: RentalEquipment[] = rentableEquipment.map((e) => ({
+    id: e.id,
+    name: e.name,
+    category: e.category,
+    rentalPrice: e.rentalPrice!,
+  }));
 
   const customerData: CustomerData | null = customer
     ? {

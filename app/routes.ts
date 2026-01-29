@@ -33,6 +33,10 @@ export default [
     // Gallery upload API (outside layout - JSON responses only)
     route("gallery/upload", "routes/tenant/gallery/upload.tsx"),
 
+    // Reports export API (outside layout - file responses only)
+    route("reports/export/csv", "routes/tenant/reports/export.csv.tsx"),
+    route("reports/export/pdf", "routes/tenant/reports/export.pdf.tsx"),
+
     // Tenant dashboard layout
     layout("routes/tenant/layout.tsx", [
       index("routes/tenant/dashboard.tsx"),
@@ -119,8 +123,6 @@ export default [
 
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
-      route("reports/export/csv", "routes/tenant/reports/export.csv.tsx"),
-      route("reports/export/pdf", "routes/tenant/reports/export.pdf.tsx"),
 
       // Settings
       route("settings", "routes/tenant/settings/index.tsx"),

@@ -8,7 +8,7 @@ import { useLoaderData, useFetcher, Form } from "react-router";
 import { requireTenant } from "../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import { db } from "../../../lib/db/index";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
@@ -178,7 +178,10 @@ export async function action({ request }: ActionFunctionArgs) {
         isActive,
         updatedAt: new Date(),
       })
-      .where(eq(tables.products.id, id));
+      .where(and(
+        eq(tables.products.organizationId, organizationId),
+        eq(tables.products.id, id)
+      ));
 
     return { success: true, message: `Product "${name}" has been successfully updated` };
   }
@@ -190,14 +193,20 @@ export async function action({ request }: ActionFunctionArgs) {
     const [product] = await db
       .select()
       .from(tables.products)
-      .where(eq(tables.products.id, id));
+      .where(and(
+        eq(tables.products.organizationId, organizationId),
+        eq(tables.products.id, id)
+      ));
 
     if (product) {
       const newQuantity = Math.max(0, product.stockQuantity + adjustment);
       await db
         .update(tables.products)
         .set({ stockQuantity: newQuantity, updatedAt: new Date() })
-        .where(eq(tables.products.id, id));
+        .where(and(
+          eq(tables.products.organizationId, organizationId),
+          eq(tables.products.id, id)
+        ));
     }
 
     return { success: true, message: `Stock adjusted by ${adjustment}` };
@@ -208,9 +217,15 @@ export async function action({ request }: ActionFunctionArgs) {
     const [product] = await db
       .select()
       .from(tables.products)
-      .where(eq(tables.products.id, id));
+      .where(and(
+        eq(tables.products.organizationId, organizationId),
+        eq(tables.products.id, id)
+      ));
     const productName = product?.name || "Product";
-    await db.delete(tables.products).where(eq(tables.products.id, id));
+    await db.delete(tables.products).where(and(
+      eq(tables.products.organizationId, organizationId),
+      eq(tables.products.id, id)
+    ));
     return { success: true, message: `${productName} has been successfully deleted` };
   }
 
@@ -231,21 +246,30 @@ export async function action({ request }: ActionFunctionArgs) {
         await db
           .update(tables.products)
           .set({ stockQuantity: Math.max(0, value), updatedAt: new Date() })
-          .where(eq(tables.products.id, productId));
+          .where(and(
+            eq(tables.products.organizationId, organizationId),
+            eq(tables.products.id, productId)
+          ));
         updatedCount++;
       } else {
         // Adjust by value
         const [product] = await db
           .select()
           .from(tables.products)
-          .where(eq(tables.products.id, productId));
+          .where(and(
+            eq(tables.products.organizationId, organizationId),
+            eq(tables.products.id, productId)
+          ));
 
         if (product) {
           const newQuantity = Math.max(0, product.stockQuantity + value);
           await db
             .update(tables.products)
             .set({ stockQuantity: newQuantity, updatedAt: new Date() })
-            .where(eq(tables.products.id, productId));
+            .where(and(
+              eq(tables.products.organizationId, organizationId),
+              eq(tables.products.id, productId)
+            ));
           updatedCount++;
         }
       }
