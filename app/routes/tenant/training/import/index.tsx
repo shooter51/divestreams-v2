@@ -20,6 +20,126 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const step = formData.get("step") as string;
 
+  // CSV Upload Handler
+  if (step === "csv-upload") {
+    const csvFile = formData.get("csvFile") as File | null;
+
+    if (!csvFile || csvFile.size === 0) {
+      return {
+        error: "No CSV file was uploaded. Please select a file before clicking Upload CSV.",
+        suggestion: "Click 'Choose File' or 'Browse' to select your CSV file, then click 'Upload CSV'."
+      };
+    }
+
+    try {
+      const csvText = await csvFile.text();
+      const lines = csvText.trim().split("\n");
+
+      if (lines.length < 2) {
+        return {
+          error: "The uploaded CSV file appears to be empty or only contains a header row.",
+          suggestion: "Make sure your CSV file contains course data rows below the header row."
+        };
+      }
+
+      // Parse CSV (skip header row)
+      const importedCourses: string[] = [];
+      const errors: { course: string; reason: string }[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        const columns = line.split(",").map(col => col.trim().replace(/^"|"$/g, "")); // Remove quotes
+
+        if (columns.length < 12) {
+          errors.push({
+            course: `Row ${i + 1}`,
+            reason: `Invalid CSV format - expected 12 columns, got ${columns.length}. Make sure all commas are present.`
+          });
+          continue;
+        }
+
+        const [agencyCode, courseName, courseCode, description, durationDays, classroomHours, poolHours, openWaterDives, minAge, prerequisites, price, currency] = columns;
+
+        if (!agencyCode || !courseName) {
+          errors.push({
+            course: `Row ${i + 1}`,
+            reason: "Missing required fields: agency_code and course_name are required."
+          });
+          continue;
+        }
+
+        try {
+          // Find or create agency
+          const existingAgencies = await getAgencies(orgContext.org.id);
+          let agency = existingAgencies.find(a => a.code.toLowerCase() === agencyCode.toLowerCase());
+
+          if (!agency) {
+            agency = await createAgency({
+              organizationId: orgContext.org.id,
+              name: agencyCode.toUpperCase(),
+              code: agencyCode.toLowerCase(),
+              isActive: true,
+            });
+          }
+
+          // Create course
+          await createCourse({
+            organizationId: orgContext.org.id,
+            agencyId: agency.id,
+            name: courseName,
+            code: courseCode || "",
+            description: description || "",
+            durationDays: parseInt(durationDays) || 0,
+            classroomHours: classroomHours ? parseInt(classroomHours) : undefined,
+            poolHours: poolHours ? parseInt(poolHours) : undefined,
+            openWaterDives: openWaterDives ? parseInt(openWaterDives) : undefined,
+            minAge: minAge ? parseInt(minAge) : undefined,
+            prerequisites: prerequisites || undefined,
+            price: price || "0.00",
+            currency: currency || "USD",
+            isActive: true,
+            isPublic: false,
+          });
+
+          importedCourses.push(courseName);
+        } catch (error) {
+          console.error(`Failed to import CSV row ${i + 1}:`, error);
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          errors.push({
+            course: courseName || `Row ${i + 1}`,
+            reason: errorMessage.includes("duplicate") || errorMessage.includes("unique")
+              ? "This course already exists in your catalog."
+              : "Database error while creating course. Please check the CSV format."
+          });
+        }
+      }
+
+      if (errors.length > 0 && importedCourses.length === 0) {
+        return {
+          error: "None of the courses in the CSV could be imported. See details below.",
+          detailedErrors: errors,
+          suggestion: "Check that your CSV file matches the template format exactly."
+        };
+      }
+
+      return {
+        success: true,
+        step: "complete",
+        importedCount: importedCourses.length,
+        importedCourses,
+        detailedErrors: errors.length > 0 ? errors : undefined,
+      };
+    } catch (error) {
+      console.error("CSV parsing error:", error);
+      return {
+        error: "Failed to parse the CSV file. Make sure it's a valid CSV format.",
+        suggestion: "Download the CSV template again and make sure you're using the correct format."
+      };
+    }
+  }
+
   // Step 1: User selected an agency - fetch available course templates
   if (step === "select-agency") {
     const agencyCode = formData.get("agencyCode") as string;
@@ -229,26 +349,47 @@ export default function TrainingImportPage() {
           Import course templates from certification agencies to quickly populate your course catalog
         </p>
 
-        {/* CSV Template Download */}
+        {/* CSV Upload Section */}
         <div className="mt-4 p-4 bg-brand-muted border border-brand rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-medium text-brand">Need to import custom courses?</h3>
-              <p className="text-sm text-brand mt-1">
-                Download our CSV template to bulk import your own training courses
-              </p>
-            </div>
+          <h3 className="font-medium text-brand mb-3">Import Custom Courses via CSV</h3>
+          <p className="text-sm text-brand mb-4">
+            Download our CSV template, fill it with your course data, then upload it below to bulk import custom courses
+          </p>
+          <div className="flex gap-3">
             <a
               href="/templates/training-courses-import-template.csv"
               download
-              className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-white text-brand border border-brand rounded-lg hover:bg-brand-muted transition-colors flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               Download CSV Template
             </a>
+            <Form method="post" encType="multipart/form-data" className="flex-1 flex gap-2">
+              <input type="hidden" name="step" value="csv-upload" />
+              <input
+                type="file"
+                name="csvFile"
+                accept=".csv"
+                className="flex-1 px-3 py-2 border border-brand rounded-lg bg-white text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-brand file:text-white hover:file:bg-brand-hover"
+                required
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Upload CSV
+              </button>
+            </Form>
           </div>
+          <p className="text-xs text-brand mt-2 italic">
+            CSV format: agency_code, course_name, course_code, description, duration_days, classroom_hours, pool_hours, open_water_dives, min_age, prerequisites, price, currency
+          </p>
         </div>
       </div>
 
