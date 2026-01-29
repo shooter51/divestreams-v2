@@ -242,10 +242,10 @@ export default function PricingPage() {
                 </ul>
                 <a
                   href="/signup"
-                  className={`block text-center py-3 rounded-lg ${
+                  className={`block text-center py-3 rounded-lg font-semibold ${
                     popular
                       ? "bg-brand text-white hover:bg-brand-hover"
-                      : "border border-strong hover:bg-surface-inset"
+                      : "border-2 border-brand text-brand hover:bg-brand-muted transition-all"
                   }`}
                 >
                   {cta}

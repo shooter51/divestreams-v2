@@ -50,7 +50,7 @@ export async function action({ request }: ActionFunctionArgs) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        const columns = line.split(",").map(col => col.trim().replace(/^"|"$/g, "")); // Remove quotes
+        const columns = parseCSVLine(line).map(col => col.trim());
 
         if (columns.length < 12) {
           errors.push({
@@ -827,4 +827,36 @@ function CompleteStep({
       </div>
     </div>
   );
+}
+
+/**
+ * RFC 4180 compliant CSV parser that handles quoted fields and embedded commas
+ * Copied from products.tsx to ensure consistent CSV parsing across the codebase
+ */
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        // Escaped quote
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current);
+  return result;
 }
