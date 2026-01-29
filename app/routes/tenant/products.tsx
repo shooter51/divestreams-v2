@@ -285,12 +285,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const csvData = formData.get("csvData") as string;
 
     if (!csvData) {
-      return { error: "No CSV data provided" };
+      return { error: "Please select a CSV file to upload." };
     }
 
     const lines = csvData.split("\n").filter(line => line.trim());
     if (lines.length < 2) {
-      return { error: "CSV must have a header row and at least one data row" };
+      return { error: "Your CSV file appears to be empty. Please make sure it has a header row and at least one product." };
     }
 
     // Parse header row
@@ -300,7 +300,14 @@ export async function action({ request }: ActionFunctionArgs) {
     const requiredColumns = ["name", "sku", "price", "stockquantity"];
     const missingColumns = requiredColumns.filter(col => !headers.includes(col));
     if (missingColumns.length > 0) {
-      return { error: `Missing required columns: ${missingColumns.join(", ")}` };
+      const friendlyNames: Record<string, string> = {
+        name: "Product Name",
+        sku: "SKU",
+        price: "Price",
+        stockquantity: "Stock Quantity"
+      };
+      const missingFriendly = missingColumns.map(col => friendlyNames[col] || col);
+      return { error: `Your CSV is missing required columns: ${missingFriendly.join(", ")}. Please download the template and make sure all required columns are included.` };
     }
 
     const validCategories = ["equipment", "apparel", "accessories", "courses", "rental", "consumables", "other"];
@@ -321,22 +328,22 @@ export async function action({ request }: ActionFunctionArgs) {
 
       // Validate required fields
       if (!row.name) {
-        errors.push(`Row ${i + 1}: Missing required field 'name'`);
+        errors.push(`Row ${i + 1}: Product name is required. Please add a name for this product.`);
         errorCount++;
         continue;
       }
       if (!row.sku) {
-        errors.push(`Row ${i + 1}: Missing required field 'sku'`);
+        errors.push(`Row ${i + 1}: SKU is required for "${row.name}". Please add a unique SKU code.`);
         errorCount++;
         continue;
       }
       if (!row.price || isNaN(parseFloat(row.price))) {
-        errors.push(`Row ${i + 1}: Invalid or missing 'price'`);
+        errors.push(`Row ${i + 1}: "${row.name}" needs a valid price (e.g., 25.99). Please check the price column.`);
         errorCount++;
         continue;
       }
       if (row.stockquantity === "" || isNaN(parseInt(row.stockquantity))) {
-        errors.push(`Row ${i + 1}: Invalid or missing 'stockQuantity'`);
+        errors.push(`Row ${i + 1}: "${row.name}" needs a valid stock quantity (e.g., 10). Please enter a number.`);
         errorCount++;
         continue;
       }
@@ -344,7 +351,7 @@ export async function action({ request }: ActionFunctionArgs) {
       // Validate category
       const category = row.category?.toLowerCase() || "other";
       if (!validCategories.includes(category)) {
-        errors.push(`Row ${i + 1}: Invalid category '${row.category}', using 'other'`);
+        errors.push(`Row ${i + 1}: "${row.name}" has an invalid category. Valid categories are: ${validCategories.join(", ")}. Setting to "other".`);
       }
 
       try {
@@ -363,7 +370,15 @@ export async function action({ request }: ActionFunctionArgs) {
         });
         successCount++;
       } catch (err) {
-        errors.push(`Row ${i + 1}: Database error - ${err instanceof Error ? err.message : "Unknown error"}`);
+        const errorMsg = err instanceof Error ? err.message : "Unknown error";
+        // Provide user-friendly error messages for common database errors
+        if (errorMsg.includes("duplicate") || errorMsg.includes("unique")) {
+          errors.push(`Row ${i + 1}: SKU "${row.sku}" already exists. Please use a unique SKU for each product.`);
+        } else if (errorMsg.includes("constraint")) {
+          errors.push(`Row ${i + 1}: "${row.name}" has invalid data. Please check that all values meet the requirements.`);
+        } else {
+          errors.push(`Row ${i + 1}: Could not save "${row.name}". ${errorMsg}`);
+        }
         errorCount++;
       }
     }
