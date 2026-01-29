@@ -1,0 +1,104 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e5]:
+      - link "The Dive Shop LA The Dive Shop LA" [ref=e6] [cursor=pointer]:
+        - /url: /site
+        - img "The Dive Shop LA" [ref=e7]
+        - generic [ref=e8]: The Dive Shop LA
+      - navigation [ref=e9]:
+        - link "Home" [ref=e10] [cursor=pointer]:
+          - /url: /site
+        - link "About" [ref=e11] [cursor=pointer]:
+          - /url: /site/about
+        - link "Trips" [ref=e12] [cursor=pointer]:
+          - /url: /site/trips
+        - link "Courses" [ref=e13] [cursor=pointer]:
+          - /url: /site/courses
+        - link "Equipment" [ref=e14] [cursor=pointer]:
+          - /url: /site/equipment
+        - link "Gallery" [ref=e15] [cursor=pointer]:
+          - /url: /site/gallery
+        - link "Contact" [ref=e16] [cursor=pointer]:
+          - /url: /site/contact
+      - generic [ref=e17]:
+        - link "Log In" [ref=e18] [cursor=pointer]:
+          - /url: /site/login
+        - link "Sign Up" [ref=e19] [cursor=pointer]:
+          - /url: /site/register
+  - main [ref=e20]:
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - heading "Welcome Back" [level=1] [ref=e24]
+        - paragraph [ref=e25]: Sign in to your The Dive Shop LA
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: Email Address
+            - textbox "Email Address" [ref=e30]:
+              - /placeholder: you@example.com
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]: Password
+              - link "Forgot password?" [ref=e34] [cursor=pointer]:
+                - /url: /site/forgot-password
+            - textbox "Password" [ref=e35]:
+              - /placeholder: Enter your password
+          - generic [ref=e36]:
+            - checkbox "Remember me for 30 days" [ref=e37]
+            - generic [ref=e38] [cursor=pointer]: Remember me for 30 days
+          - button "Sign In" [ref=e39]
+        - generic [ref=e44]: New to The Dive Shop LA?
+        - link "Create an Account" [ref=e45] [cursor=pointer]:
+          - /url: /site/register?redirect=%2Fsite%2Faccount
+      - paragraph [ref=e46]:
+        - text: Having trouble signing in?
+        - link "Contact us" [ref=e47] [cursor=pointer]:
+          - /url: /site/contact
+  - contentinfo [ref=e48]:
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - link "The Dive Shop LA The Dive Shop LA" [ref=e52] [cursor=pointer]:
+            - /url: /site
+            - img "The Dive Shop LA" [ref=e53]
+            - generic [ref=e54]: The Dive Shop LA
+          - paragraph [ref=e55]: 4567 Marina Boulevard Marina del Rey, CA 90292
+        - generic [ref=e56]:
+          - heading "Quick Links" [level=4] [ref=e57]
+          - list [ref=e58]:
+            - listitem [ref=e59]:
+              - link "Home" [ref=e60] [cursor=pointer]:
+                - /url: /site
+            - listitem [ref=e61]:
+              - link "About" [ref=e62] [cursor=pointer]:
+                - /url: /site/about
+            - listitem [ref=e63]:
+              - link "Trips" [ref=e64] [cursor=pointer]:
+                - /url: /site/trips
+            - listitem [ref=e65]:
+              - link "Courses" [ref=e66] [cursor=pointer]:
+                - /url: /site/courses
+            - listitem [ref=e67]:
+              - link "Equipment" [ref=e68] [cursor=pointer]:
+                - /url: /site/equipment
+        - generic [ref=e69]:
+          - heading "Contact" [level=4] [ref=e70]
+          - list [ref=e71]:
+            - listitem [ref=e72]:
+              - link "(310) 555-0147" [ref=e73] [cursor=pointer]:
+                - /url: tel:(310) 555-0147
+            - listitem [ref=e74]:
+              - link "info@thediveshopla.com" [ref=e75] [cursor=pointer]:
+                - /url: mailto:info@thediveshopla.com
+            - listitem [ref=e76]: "Mon-Fri: 9:00 AM - 6:00 PM Sat-Sun: 8:00 AM - 5:00 PM Closed: Tuesdays"
+      - generic [ref=e77]:
+        - paragraph [ref=e78]: © 2026 The Dive Shop LA. All rights reserved.
+        - generic [ref=e79]:
+          - link "My Account" [ref=e80] [cursor=pointer]:
+            - /url: /site/account
+          - link "Powered by DiveStreams" [ref=e81] [cursor=pointer]:
+            - /url: https://divestreams.com
+```

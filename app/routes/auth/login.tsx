@@ -1,10 +1,10 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, useLoaderData } from "react-router";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-context.server";
 import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
-import { organization } from "../../../lib/db/schema/auth";
+import { organization, member } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => {
@@ -110,9 +110,40 @@ export async function action({ request }: ActionFunctionArgs) {
       return { errors: { form: userData?.message || "Invalid email or password" }, email: email || "" };
     }
 
-    // Get redirect URL from query params
+    const userId = userData?.user?.id;
+
+    // Check if user is a member of the current org
+    if (subdomain && userId) {
+      // Check membership
+      const [existingMember] = await db
+        .select()
+        .from(member)
+        .where(
+          and(
+            eq(member.userId, userId),
+            eq(member.organizationId, org.id)
+          )
+        )
+        .limit(1);
+
+      if (!existingMember) {
+        // User authenticated successfully but is NOT a member of this organization
+        return {
+          errors: {
+            form: `You don't have access to this organization. Please contact the organization owner to request access.`
+          },
+          email: email || ""
+        };
+      }
+    }
+
+    // Get redirect URL from query params and validate to prevent open redirects
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/tenant";
+    const rawRedirect = url.searchParams.get("redirect") || "/tenant";
+    // Only allow relative URLs (must start with / and not contain ://)
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+      ? rawRedirect
+      : "/tenant";
 
     // Redirect to app WITH the session cookies
     return redirect(redirectTo, {

@@ -83,8 +83,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const redirectTo = formData.get("redirectTo");
 
-  // Validate redirectTo and default to /app
-  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/tenant";
+  // Validate redirectTo to prevent open redirects (only allow relative URLs)
+  let validatedRedirectTo = "/tenant"; // default
+  if (typeof redirectTo === "string" && redirectTo.startsWith("/") && !redirectTo.includes("://")) {
+    validatedRedirectTo = redirectTo;
+  }
 
   // Handle "join" intent - user wants to join org as customer
   if (intent === "join") {
