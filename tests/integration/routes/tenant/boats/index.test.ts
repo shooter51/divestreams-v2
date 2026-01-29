@@ -113,10 +113,18 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         groupBy: vi.fn().mockResolvedValue(mockTripCounts),
       };
 
+      // Third query: images
+      const mockImagesBuilder = {
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as any;
+        if (selectCallCount === 2) return mockTripCountsBuilder as any;
+        return mockImagesBuilder as any;
       });
 
       const request = new Request("http://test.com/tenant/boats");
@@ -155,10 +163,17 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         groupBy: vi.fn().mockResolvedValue(mockTripCounts),
       };
 
+      const mockImagesBuilder = {
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as any;
+        if (selectCallCount === 2) return mockTripCountsBuilder as any;
+        return mockImagesBuilder as any;
       });
 
       const request = new Request("http://test.com/tenant/boats?q=explorer");
@@ -193,10 +208,17 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         groupBy: vi.fn().mockResolvedValue(mockTripCounts),
       };
 
+      const mockImagesBuilder = {
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as any;
+        if (selectCallCount === 2) return mockTripCountsBuilder as any;
+        return mockImagesBuilder as any;
       });
 
       const request = new Request("http://test.com/tenant/boats");
@@ -249,10 +271,17 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         groupBy: vi.fn().mockResolvedValue(mockTripCounts),
       };
 
+      const mockImagesBuilder = {
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as any;
+        if (selectCallCount === 2) return mockTripCountsBuilder as any;
+        return mockImagesBuilder as any;
       });
 
       const request = new Request("http://test.com/tenant/boats");
@@ -284,10 +313,17 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         groupBy: vi.fn().mockResolvedValue(mockTripCounts),
       };
 
+      const mockImagesBuilder = {
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as any;
+        if (selectCallCount === 2) return mockTripCountsBuilder as any;
+        return mockImagesBuilder as any;
       });
 
       const request = new Request("http://test.com/tenant/boats");
@@ -312,10 +348,17 @@ describe("app/routes/tenant/boats/index.tsx", () => {
         groupBy: vi.fn().mockResolvedValue(mockTripCounts),
       };
 
+      const mockImagesBuilder = {
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockBoatsBuilder : mockTripCountsBuilder) as any;
+        if (selectCallCount === 1) return mockBoatsBuilder as any;
+        if (selectCallCount === 2) return mockTripCountsBuilder as any;
+        return mockImagesBuilder as any;
       });
 
       vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
