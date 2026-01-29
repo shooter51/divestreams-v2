@@ -1,11 +1,10 @@
 /**
- * Backblaze B2 Storage Service
+ * AWS S3 / B2 Storage Service
  *
  * S3-compatible API for image uploads with Cloudflare CDN.
  */
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { Upload } from "@aws-sdk/lib-storage";
 
 // B2 configuration from environment
 const B2_ENDPOINT = process.env.B2_ENDPOINT;
@@ -29,17 +28,23 @@ export function getS3Client(): S3Client | null {
   }
 
   if (!s3Client) {
-    s3Client = new S3Client({
-      endpoint: B2_ENDPOINT,
+    // For AWS S3, don't set endpoint - SDK uses default AWS endpoints
+    // For B2/R2, set endpoint to their S3-compatible API
+    const clientConfig: any = {
       region: B2_REGION,
       credentials: {
         accessKeyId: B2_KEY_ID,
         secretAccessKey: B2_APP_KEY,
       },
-      forcePathStyle: true, // Required for B2 (uses path-style URLs)
-      requestChecksumCalculation: "WHEN_REQUIRED", // Disable automatic checksums
-      responseChecksumValidation: "WHEN_REQUIRED", // Disable checksum validation
-    });
+    };
+
+    // Only set endpoint for non-AWS S3 services (B2, R2, etc)
+    if (B2_ENDPOINT && !B2_ENDPOINT.includes('amazonaws.com')) {
+      clientConfig.endpoint = B2_ENDPOINT;
+      clientConfig.forcePathStyle = true; // Required for B2/R2
+    }
+
+    s3Client = new S3Client(clientConfig);
   }
 
   return s3Client;
@@ -67,37 +72,31 @@ export async function uploadToB2(
     throw new Error("Empty buffer provided for upload");
   }
 
-  console.log(`Uploading to B2 via multipart: key=${key}, size=${body.length} bytes`);
+  console.log(`Uploading to S3: key=${key}, size=${body.length} bytes`);
 
   try {
-    // Use Upload class which handles multipart uploads and works better with B2
-    const upload = new Upload({
-      client,
-      params: {
-        Bucket: B2_BUCKET,
-        Key: key,
-        Body: body,
-        ContentType: contentType,
-        CacheControl: "public, max-age=31536000",
-      },
-      // Force single part upload for small files to avoid multipart overhead
-      queueSize: 1,
-      partSize: 1024 * 1024 * 5, // 5MB parts
+    // Use Buffer directly (tested and confirmed working with AWS S3)
+    const command = new PutObjectCommand({
+      Bucket: B2_BUCKET,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000",
     });
 
-    await upload.done();
+    await client.send(command);
 
-    console.log(`✅ B2 upload SUCCESS via multipart!`);
+    console.log(`✅ S3 upload SUCCESS!`);
 
-    // Construct correct URL (endpoint is already full URL, don't append to it)
-    const url = `${B2_ENDPOINT.replace(/\/$/, '')}/${B2_BUCKET}/${key}`;
+    // Construct S3 URL
+    const url = `https://${B2_BUCKET}.s3.${B2_REGION}.amazonaws.com/${key}`;
     const cdnUrl = CDN_URL ? `${CDN_URL}/${key}` : url;
 
-    console.log(`B2 upload successful: ${cdnUrl}`);
+    console.log(`S3 upload successful: ${cdnUrl}`);
 
     return { key, url, cdnUrl };
   } catch (error) {
-    console.error(`❌ B2 multipart upload failed:`, error);
+    console.error(`❌ S3 upload failed:`, error);
     throw error;
   }
 }
