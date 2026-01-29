@@ -131,20 +131,28 @@ export async function action({ request }: ActionFunctionArgs) {
       })
       .returning();
 
-    return Response.json({
-      success: true,
-      image: {
-        id: image.id,
-        url: image.url,
-        thumbnailUrl: image.thumbnailUrl,
-        filename: image.filename,
-        width: image.width,
-        height: image.height,
-        alt: image.alt,
-        sortOrder: image.sortOrder,
-        isPrimary: image.isPrimary,
-      },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        image: {
+          id: image.id,
+          url: image.url,
+          thumbnailUrl: image.thumbnailUrl,
+          filename: image.filename,
+          width: image.width,
+          height: image.height,
+          alt: image.alt,
+          sortOrder: image.sortOrder,
+          isPrimary: image.isPrimary,
+        },
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   } catch (error) {
     console.error("Image upload error:", error);
 
