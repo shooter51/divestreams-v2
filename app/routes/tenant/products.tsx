@@ -23,6 +23,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const products = await db
       .select()
       .from(tables.products)
+      .where(eq(tables.products.organizationId, organizationId))
       .orderBy(tables.products.category, tables.products.name);
 
     return { tenant, products, migrationNeeded: false };
@@ -50,6 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
           updatedAt: tables.products.updatedAt,
         })
         .from(tables.products)
+        .where(eq(tables.products.organizationId, organizationId))
         .orderBy(tables.products.category, tables.products.name);
 
       return { tenant, products, migrationNeeded: true };
