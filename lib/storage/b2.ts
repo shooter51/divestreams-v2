@@ -69,13 +69,17 @@ export async function uploadToB2(
   console.log(`B2 Config: bucket=${B2_BUCKET}, endpoint=${B2_ENDPOINT}, region=${B2_REGION}`);
   console.log(`Buffer type: ${body.constructor.name}, isBuffer: ${Buffer.isBuffer(body)}`);
 
+  // Convert Buffer to Uint8Array for better compatibility with AWS SDK v3
+  const bodyArray = new Uint8Array(body);
+
   const command = new PutObjectCommand({
     Bucket: B2_BUCKET,
     Key: key,
-    Body: body,
+    Body: bodyArray,
     ContentType: contentType,
-    ContentLength: body.length,
+    ContentLength: bodyArray.length,
     CacheControl: "public, max-age=31536000",
+    ChecksumAlgorithm: undefined, // Disable checksums for B2 compatibility
   });
 
   console.log(`Sending PutObjectCommand...`);
