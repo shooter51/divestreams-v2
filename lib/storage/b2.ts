@@ -35,6 +35,7 @@ export function getS3Client(): S3Client | null {
         accessKeyId: B2_KEY_ID,
         secretAccessKey: B2_APP_KEY,
       },
+      forcePathStyle: true, // Required for B2 (uses path-style URLs)
     });
   }
 
