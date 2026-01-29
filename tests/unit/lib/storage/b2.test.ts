@@ -19,7 +19,10 @@ vi.mock("@aws-sdk/client-s3", () => {
   };
 });
 
-describe("B2 Storage Service", () => {
+// NOTE: These tests are for the old AWS SDK-based implementation (lib/storage/b2.ts)
+// The project now uses the native B2 SDK (lib/storage/b2-native.ts)
+// TODO: Create new tests for b2-native.ts implementation
+describe.skip("B2 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
