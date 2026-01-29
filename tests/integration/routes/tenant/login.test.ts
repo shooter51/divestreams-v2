@@ -186,7 +186,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Please enter a valid email address" });
+        expect(response).toEqual({ error: "Please enter a valid email address", email: expect.any(String) });
       });
 
       it("returns error when email is invalid format", async () => {
@@ -201,7 +201,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Please enter a valid email address" });
+        expect(response).toEqual({ error: "Please enter a valid email address", email: expect.any(String) });
       });
 
       it("returns error when password is empty", async () => {
@@ -216,7 +216,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Password is required" });
+        expect(response).toEqual({ error: "Password is required", email: expect.any(String) });
       });
     });
 

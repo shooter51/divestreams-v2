@@ -640,6 +640,7 @@ describe("Validation Module", () => {
       const data = {
         category: "bcd",
         name: "BCD Large",
+        isRentable: false,
       };
       const result = equipmentSchema.safeParse(data);
       expect(result.success).toBe(true);

@@ -204,8 +204,8 @@ describe("tenant/boats route", () => {
       (db.select as Mock).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return mockBoatsQuery;
-        if (selectCallCount === 2) return mockImagesQuery;
-        return mockTripsQuery;
+        if (selectCallCount === 2) return mockTripsQuery;
+        return mockImagesQuery;
       });
 
       const request = new Request("https://demo.divestreams.com/tenant/boats");
@@ -312,8 +312,8 @@ describe("tenant/boats route", () => {
       (db.select as Mock).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return mockBoatsQuery;
-        if (selectCallCount === 2) return mockImagesQuery;
-        return mockTripsQuery;
+        if (selectCallCount === 2) return mockTripsQuery;
+        return mockImagesQuery;
       });
 
       const request = new Request("https://demo.divestreams.com/tenant/boats");
@@ -361,8 +361,8 @@ describe("tenant/boats route", () => {
       (db.select as Mock).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return mockBoatsQuery;
-        if (selectCallCount === 2) return mockImagesQuery;
-        return mockTripsQuery;
+        if (selectCallCount === 2) return mockTripsQuery;
+        return mockImagesQuery;
       });
 
       const request = new Request("https://demo.divestreams.com/tenant/boats");
