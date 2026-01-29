@@ -167,7 +167,3 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 }
-
-export default function ImageUpload() {
-  return null;
-}

@@ -91,7 +91,3 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 }
-
-export default function ImageReorder() {
-  return null;
-}

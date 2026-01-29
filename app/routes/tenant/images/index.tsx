@@ -49,7 +49,3 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return Response.json({ images });
 }
-
-export default function ImageList() {
-  return null;
-}
