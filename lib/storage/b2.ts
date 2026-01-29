@@ -66,15 +66,27 @@ export async function uploadToB2(
   }
 
   console.log(`Uploading to B2: key=${key}, size=${body.length} bytes, contentType=${contentType}`);
+  console.log(`B2 Config: bucket=${B2_BUCKET}, endpoint=${B2_ENDPOINT}, region=${B2_REGION}`);
+  console.log(`Buffer type: ${body.constructor.name}, isBuffer: ${Buffer.isBuffer(body)}`);
 
-  await client.send(new PutObjectCommand({
+  const command = new PutObjectCommand({
     Bucket: B2_BUCKET,
     Key: key,
     Body: body,
     ContentType: contentType,
-    ContentLength: body.length, // Explicitly set Content-Length
-    CacheControl: "public, max-age=31536000", // 1 year cache
-  }));
+    ContentLength: body.length,
+    CacheControl: "public, max-age=31536000",
+  });
+
+  console.log(`Sending PutObjectCommand...`);
+
+  try {
+    const response = await client.send(command);
+    console.log(`B2 upload response:`, response.$metadata);
+  } catch (error) {
+    console.error(`B2 upload failed:`, error);
+    throw error;
+  }
 
   // Construct correct URL (endpoint is already full URL, don't append to it)
   const url = `${B2_ENDPOINT.replace(/\/$/, '')}/${B2_BUCKET}/${key}`;
