@@ -226,6 +226,13 @@ export default function SettingsPage() {
     disabled?: boolean;
   }> = [
     {
+      href: "/tenant/settings/user-profile",
+      title: "My Profile",
+      description: "Update your personal information and change your password",
+      icon: "👤",
+      preview: null,
+    },
+    {
       href: "/tenant/settings/profile",
       title: "Shop Profile",
       description: "Business name, address, timezone, and booking settings",
