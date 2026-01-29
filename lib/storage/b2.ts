@@ -59,16 +59,27 @@ export async function uploadToB2(
   const client = getS3Client();
   if (!client) return null;
 
+  // Ensure buffer is valid
+  if (!body || body.length === 0) {
+    throw new Error("Empty buffer provided for upload");
+  }
+
+  console.log(`Uploading to B2: key=${key}, size=${body.length} bytes, contentType=${contentType}`);
+
   await client.send(new PutObjectCommand({
     Bucket: B2_BUCKET,
     Key: key,
     Body: body,
     ContentType: contentType,
+    ContentLength: body.length, // Explicitly set Content-Length
     CacheControl: "public, max-age=31536000", // 1 year cache
   }));
 
-  const url = `${B2_ENDPOINT}/${B2_BUCKET}/${key}`;
+  // Construct correct URL (endpoint is already full URL, don't append to it)
+  const url = `${B2_ENDPOINT.replace(/\/$/, '')}/${B2_BUCKET}/${key}`;
   const cdnUrl = CDN_URL ? `${CDN_URL}/${key}` : url;
+
+  console.log(`B2 upload successful: ${cdnUrl}`);
 
   return { key, url, cdnUrl };
 }
