@@ -9,9 +9,10 @@ vi.mock("../../../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../../../lib/db/queries.server");
 
 describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
-  const mockOrganizationId = "org-123";
+  const mockOrganizationId = "123e4567-e89b-12d3-a456-426614174000";
+  const mockProductId = "223e4567-e89b-12d3-a456-426614174001";
   const mockProduct = {
-    id: "prod-1",
+    id: mockProductId,
     name: "Dive Mask",
     category: "equipment",
     price: 50,
@@ -33,10 +34,10 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
     it("should fetch product", async () => {
       vi.mocked(queries.getProductById).mockResolvedValue(mockProduct as any);
 
-      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit");
-      const result = await loader({ request, params: { id: "prod-1" }, context: {} });
+      const request = new Request(`http://test.com/tenant/pos/products/${mockProductId}/edit`);
+      const result = await loader({ request, params: { id: mockProductId }, context: {} });
 
-      expect(queries.getProductById).toHaveBeenCalledWith(mockOrganizationId, "prod-1");
+      expect(queries.getProductById).toHaveBeenCalledWith(mockOrganizationId, mockProductId);
       expect(result.product).toEqual(mockProduct);
     });
 
@@ -64,17 +65,17 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       formData.append("trackInventory", "on");
       formData.append("isActive", "on");
 
-      const request = new Request("http://test.com/tenant/pos/products/prod-1/edit", {
+      const request = new Request(`http://test.com/tenant/pos/products/${mockProductId}/edit`, {
         method: "POST",
         body: formData,
       });
 
-      const result = await action({ request, params: { id: "prod-1" }, context: {} });
+      const result = await action({ request, params: { id: mockProductId }, context: {} });
 
       expect(queries.updateProduct).toHaveBeenCalled();
       const callArgs = vi.mocked(queries.updateProduct).mock.calls[0];
       expect(callArgs[0]).toBe(mockOrganizationId);
-      expect(callArgs[1]).toBe("prod-1");
+      expect(callArgs[1]).toBe(mockProductId);
       expect(callArgs[2].name).toBe("Updated Dive Mask");
       expect(callArgs[2].category).toBe("equipment");
       expect(callArgs[2].price).toBe(55);
@@ -85,7 +86,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
 
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/pos/products/prod-1");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe(`/tenant/pos/products/${mockProductId}`);
     });
 
     it("should return validation error for missing name", async () => {
