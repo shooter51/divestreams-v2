@@ -19,12 +19,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect(getAppUrl());
   }
 
-  // Check if already logged in
-  const orgContext = await getOrgContext(request);
-  if (orgContext) {
-    return redirect("/tenant");
-  }
-
   // Get organization name for display
   const [org] = await db
     .select()
@@ -36,7 +30,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect(getAppUrl());
   }
 
-  return { tenantName: org.name };
+  // Check if already logged in to THIS organization
+  const orgContext = await getOrgContext(request);
+  if (orgContext) {
+    return redirect("/tenant");
+  }
+
+  // Check if user has a session but no membership in THIS organization
+  const sessionData = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (sessionData && sessionData.user) {
+    // User is logged in but doesn't have access to this organization
+    return {
+      tenantName: org.name,
+      mainSiteUrl: getAppUrl(),
+      noAccessError: `You are logged in as ${sessionData.user.email}, but you don't have access to this organization. Please contact the organization owner to request access, or log out and sign in with a different account.`
+    };
+  }
+
+  return { tenantName: org.name, noAccessError: null, mainSiteUrl: getAppUrl() };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -111,7 +125,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function LoginPage() {
-  const { tenantName } = useLoaderData<typeof loader>();
+  const { tenantName, noAccessError, mainSiteUrl } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -126,6 +140,27 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-brand">{tenantName}</h1>
           <p className="text-foreground-muted mt-2">Sign in to your account</p>
         </div>
+
+        {noAccessError && (
+          <div className="bg-warning-muted border border-warning text-warning p-4 rounded-xl mb-6">
+            <div className="font-semibold mb-2">🔒 Access Denied</div>
+            <p className="text-sm">{noAccessError}</p>
+            <div className="mt-4 flex gap-2">
+              <a
+                href="/auth/logout"
+                className="flex-1 px-4 py-2 bg-warning text-white rounded-lg hover:bg-warning-hover text-center text-sm"
+              >
+                Log Out
+              </a>
+              <a
+                href={mainSiteUrl}
+                className="flex-1 px-4 py-2 border-2 border-warning text-warning rounded-lg hover:bg-warning-muted text-center text-sm"
+              >
+                Go to Main Site
+              </a>
+            </div>
+          </div>
+        )}
 
         <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
           {actionData?.errors?.form && (
