@@ -48,8 +48,18 @@ vi.mock("../../../../../lib/db/gallery.server", () => ({
 }));
 
 describe("Gallery Upload Route", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+
+    // Reset mock implementations that may have been changed by previous tests
+    const { isValidImageType, uploadToB2 } = await import("../../../../../lib/storage");
+    vi.mocked(isValidImageType).mockImplementation((type: string) => type.startsWith("image/"));
+    vi.mocked(uploadToB2).mockImplementation((key: string, buffer: Buffer, mimeType: string) =>
+      Promise.resolve({
+        cdnUrl: `https://cdn.example.com/${key}`,
+        key,
+      })
+    );
   });
 
   it("should upload gallery image successfully", async () => {
