@@ -6,6 +6,8 @@
  * - Filter by status (all/upcoming/completed/cancelled)
  * - Booking cards with trip/course name, date, status, price
  * - Link to receipt/details
+ *
+ * Verification: Trigger CI/CD for staging baseline test validation
  */
 
 import { useState } from "react";
