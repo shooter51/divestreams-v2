@@ -1051,12 +1051,11 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   const hasSsi = existingAgencies.some((a) => a.code.toLowerCase() === "ssi");
   const hasNaui = existingAgencies.some((a) => a.code.toLowerCase() === "naui");
 
-  let trainingStats = { agencies: 0, levels: 0, courses: 0 };
+  let trainingStats = { agencies: 0, levels: 0 };
 
   // Seed each agency individually if it doesn't exist
   let agenciesSeeded = 0;
   let levelsSeeded = 0;
-  let coursesSeeded = 0;
 
   try {
     // Seed PADI if missing
@@ -1101,45 +1100,12 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         })
         .returning();
 
-      // Seed sample courses for PADI
-      await db.insert(schema.trainingCourses).values([
-        {
-          organizationId,
-          agencyId: padiAgency.id,
-          levelId: openWaterLevel.id,
-          name: "Open Water Diver Certification",
-          code: "OWD",
-          description: "Become a certified diver!",
-          durationDays: 3,
-          classroomHours: 8,
-          poolHours: 8,
-          openWaterDives: 4,
-          price: "449.00",
-          currency: "USD",
-          isPublic: true,
-        },
-        {
-          organizationId,
-          agencyId: padiAgency.id,
-          levelId: advancedLevel.id,
-          requiredCertLevel: openWaterLevel.id,
-          name: "Advanced Open Water Diver",
-          code: "AOWD",
-          description: "Build confidence and skills",
-          durationDays: 2,
-          classroomHours: 4,
-          poolHours: 0,
-          openWaterDives: 5,
-          price: "399.00",
-          currency: "USD",
-          isPublic: true,
-        },
-      ]);
+      // Note: Course seeding removed (KAN-650) - users should import courses via training import feature
+      // Only seeding agencies and certification levels (reference data)
 
       agenciesSeeded++;
       levelsSeeded += 2;
-      coursesSeeded += 2;
-      console.log("  ✓ PADI agency seeded");
+      console.log("  ✓ PADI agency seeded (agencies and levels only)");
     }
 
     // Seed SSI if missing
@@ -1227,12 +1193,12 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     }
 
     if (agenciesSeeded > 0) {
-      console.log(`  ✓ Training data seeded (${agenciesSeeded} agencies, ${levelsSeeded} levels, ${coursesSeeded} courses)`);
+      console.log(`  ✓ Training data seeded (${agenciesSeeded} agencies, ${levelsSeeded} levels only - no courses)`);
     } else {
       console.log("  ℹ️  All training agencies already exist, skipping...");
     }
 
-    trainingStats = { agencies: agenciesSeeded, levels: levelsSeeded, courses: coursesSeeded };
+    trainingStats = { agencies: agenciesSeeded, levels: levelsSeeded };
   } catch (error) {
     console.warn("  ⚠️  Warning: Training data seeding failed:", error);
   }
@@ -1345,7 +1311,6 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   console.log(`  - ${rentalCount} rentals`);
   console.log(`  - ${trainingStats.agencies} training agencies`);
   console.log(`  - ${trainingStats.levels} certification levels`);
-  console.log(`  - ${trainingStats.courses} training courses`);
   console.log(`  - ${galleryStats.albums} gallery albums`);
   console.log(`  - ${galleryStats.images} gallery images`);
 }
