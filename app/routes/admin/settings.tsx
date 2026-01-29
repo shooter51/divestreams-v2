@@ -15,6 +15,14 @@ export default function AdminSettings() {
       <div className="flex gap-6">
         <nav className="w-48 space-y-1">
           <NavLink
+            to="/admin/settings/user-profile"
+            className={({ isActive }) =>
+              `block px-4 py-2 rounded ${isActive ? "bg-brand-muted text-brand" : "hover:bg-surface-inset"}`
+            }
+          >
+            My Profile
+          </NavLink>
+          <NavLink
             to="/admin/settings/team"
             className={({ isActive }) =>
               `block px-4 py-2 rounded ${isActive ? "bg-brand-muted text-brand" : "hover:bg-surface-inset"}`
