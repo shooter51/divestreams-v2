@@ -619,14 +619,18 @@ export async function getStripeSettings(
   const result = await getIntegrationWithTokens(orgId, "stripe");
   const publishableKey = result?.refreshToken || null;
 
+  // Fetch current account status from Stripe to ensure accuracy
+  // Don't rely on cached settings.chargesEnabled which may be stale
+  const accountInfo = await getStripeAccountInfo(orgId);
+
   return {
     connected: true,
     accountId: integration.accountId,
     accountName: integration.accountName,
     liveMode: (settings?.liveMode as boolean) ?? false,
     webhookConfigured: !!(settings?.webhookEndpointId),
-    chargesEnabled: (settings?.chargesEnabled as boolean) ?? false,
-    payoutsEnabled: (settings?.payoutsEnabled as boolean) ?? false,
+    chargesEnabled: accountInfo?.chargesEnabled ?? false,
+    payoutsEnabled: accountInfo?.payoutsEnabled ?? false,
     publishableKeyPrefix: publishableKey ? publishableKey.slice(0, 12) + "..." : null,
   };
 }
