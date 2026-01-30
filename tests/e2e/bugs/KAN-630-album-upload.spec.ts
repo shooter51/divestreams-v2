@@ -13,11 +13,16 @@ import path from 'path';
 test.describe('KAN-630: Album Image Upload', () => {
   test.beforeEach(async ({ page }) => {
     // Login as demo tenant admin
-    await page.goto('http://demo.localhost:5173/tenant/login');
-    await page.fill('input[name="email"]', 'owner@demo.com');
-    await page.fill('input[name="password"]', 'demo1234');
-    await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/\/tenant/);
+    await page.goto("http://demo.localhost:5173/auth/login");
+    await page.waitForLoadState("networkidle");
+
+    // Fill in login credentials using accessibility-based selectors
+    await page.getByLabel(/email/i).fill("owner@demo.com");
+    await page.getByLabel(/password/i).fill("demo1234");
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    // Wait for redirect to tenant dashboard after successful login
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   });
 
   test('should upload image to album successfully', async ({ page }) => {

@@ -4,9 +4,10 @@ import * as path from "path";
 import { db } from "../../lib/db";
 import { organization, user, member } from "../../lib/db/schema/auth";
 import { subscription, subscriptionPlans } from "../../lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { createTenant } from "../../lib/db/tenant.server";
 import { auth } from "../../lib/auth";
+import { seedDemoData } from "../../lib/db/seed-demo-data.server";
 
 async function globalSetup(config: FullConfig) {
   // Load .env file
@@ -71,21 +72,37 @@ async function globalSetup(config: FullConfig) {
     if (!existingUser) {
       console.log("Creating demo owner user...");
 
-      // Create owner user via Better Auth
-      const userResult = await auth.api.signUpEmail({
-        body: {
-          email: "owner@demo.com",
-          password: "demo1234",
-          name: "Demo Owner",
-        },
-      });
+      try {
+        // Create owner user via Better Auth
+        const userResult = await auth.api.signUpEmail({
+          body: {
+            email: "owner@demo.com",
+            password: "demo1234",
+            name: "Demo Owner",
+          },
+        });
 
-      if (!userResult.user) {
-        throw new Error("Failed to create demo owner user");
+        if (!userResult.user) {
+          throw new Error("Failed to create demo owner user");
+        }
+
+        demoUserId = userResult.user.id;
+        console.log("✓ Demo owner user created");
+      } catch (error) {
+        // Race condition: user may have been created by another worker between check and create
+        console.log("User creation conflict detected, re-querying...");
+        const [newUser] = await db
+          .select()
+          .from(user)
+          .where(eq(user.email, "owner@demo.com"))
+          .limit(1);
+
+        if (!newUser) {
+          throw new Error("Failed to create or find demo user after conflict");
+        }
+        demoUserId = newUser.id;
+        console.log("✓ Demo owner user exists (created by parallel worker)");
       }
-
-      demoUserId = userResult.user.id;
-      console.log("✓ Demo owner user created");
     } else {
       demoUserId = existingUser.id;
       console.log("✓ Demo owner user already exists");
@@ -103,14 +120,20 @@ async function globalSetup(config: FullConfig) {
 
     if (!existingMember) {
       console.log("Creating member relationship for demo user...");
-      await db.insert(member).values({
-        id: crypto.randomUUID(),
-        organizationId: demoOrg.id,
-        userId: demoUserId,
-        role: "owner",
-        createdAt: new Date(),
-      });
-      console.log("✓ Demo member relationship created");
+      try {
+        await db.insert(member).values({
+          id: crypto.randomUUID(),
+          organizationId: demoOrg.id,
+          userId: demoUserId,
+          role: "owner",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        console.log("✓ Demo member relationship created");
+      } catch (error) {
+        console.error("❌ Failed to create member relationship:", error);
+        throw error; // Don't swallow this error - it's critical for tests
+      }
     } else {
       console.log("✓ Demo member relationship already exists");
     }
@@ -148,6 +171,31 @@ async function globalSetup(config: FullConfig) {
     console.log("  - Email: owner@demo.com");
     console.log("  - Password: demo1234");
     console.log("  - Plan: ENTERPRISE (all features enabled)");
+
+    // Seed demo data (products, equipment, trips) for E2E tests
+    console.log("\nSeeding demo tenant data (products, equipment, trips)...");
+    try {
+      // Call seedDemoData which will create products, equipment, and trips
+      await seedDemoData("tenant_demo", demoOrg.id);
+      console.log("✓ Demo data seeded successfully");
+    } catch (error) {
+      console.warn("⚠️  Demo data seeding failed (will use minimal data):", error);
+      // Insert minimal test data directly if seedDemoData fails
+      const { getTenantDb } = await import("../../lib/db/tenant.server");
+      const { schema } = getTenantDb("tenant_demo");
+
+      // Insert minimal products for POS tests
+      await db.execute(sql`
+        INSERT INTO tenant_demo.products (id, name, description, category, price, cost_price, sku, stock_quantity, track_inventory, is_active, created_at, updated_at)
+        VALUES
+          (gen_random_uuid(), 'Test Product 1', 'Test product for E2E', 'Test', 29.99, 15.00, 'TEST-001', 50, true, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Test Product 2', 'Test product for E2E', 'Test', 39.99, 20.00, 'TEST-002', 50, true, true, NOW(), NOW()),
+          (gen_random_uuid(), 'Test Product 3', 'Test product for E2E', 'Test', 49.99, 25.00, 'TEST-003', 50, true, true, NOW(), NOW())
+        ON CONFLICT DO NOTHING
+      `);
+      console.log("✓ Minimal test data inserted");
+    }
+
   } catch (error) {
     console.error("Failed to setup demo environment:", error);
     // Don't fail the test run - tests will handle missing org gracefully
