@@ -261,7 +261,7 @@ export default function EditTripPage() {
               <option value="confirmed">Confirmed</option>
               <option value="full">Full</option>
               <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="canceled">Cancelled</option>
             </select>
           </div>
         </div>

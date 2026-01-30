@@ -172,7 +172,7 @@ export default function AccountBookings() {
     { value: "all", label: "All Bookings" },
     { value: "upcoming", label: "Upcoming" },
     { value: "completed", label: "Completed" },
-    { value: "cancelled", label: "Cancelled" },
+    { value: "canceled", label: "Cancelled" },
   ];
 
   const handleFilterChange = (newFilter: string) => {
