@@ -132,7 +132,7 @@ export abstract class TenantBasePage extends BasePage {
    * Navigate to tenant app route
    */
   async gotoApp(path: string = ""): Promise<void> {
-    await this.page.goto(`${this.tenantUrl}/app${path}`);
+    await this.page.goto(`${this.tenantUrl}/tenant${path}`);
     await this.waitForNavigation();
   }
 
