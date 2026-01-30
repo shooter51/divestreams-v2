@@ -1193,12 +1193,283 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     }
 
     if (agenciesSeeded > 0) {
-      console.log(`  ✓ Training data seeded (${agenciesSeeded} agencies, ${levelsSeeded} levels only - no courses)`);
+      console.log(`  ✓ Training data seeded (${agenciesSeeded} agencies, ${levelsSeeded} levels)`);
     } else {
-      console.log("  ℹ️  All training agencies already exist, skipping...");
+      console.log("  ℹ️  All training agencies already exist");
     }
 
-    trainingStats = { agencies: agenciesSeeded, levels: levelsSeeded };
+    // Seed training courses if missing
+    const existingCourses = await db
+      .select()
+      .from(schema.trainingCourses)
+      .where(eq(schema.trainingCourses.organizationId, organizationId));
+
+    let coursesSeeded = 0;
+    let sessionsSeeded = 0;
+
+    if (existingCourses.length === 0) {
+      console.log("  → Seeding training courses and sessions...");
+
+      // Get agency IDs for course creation
+      const [padiAgency] = await db
+        .select()
+        .from(schema.certificationAgencies)
+        .where(
+          and(
+            eq(schema.certificationAgencies.organizationId, organizationId),
+            eq(schema.certificationAgencies.code, "padi")
+          )
+        )
+        .limit(1);
+
+      const [ssiAgency] = await db
+        .select()
+        .from(schema.certificationAgencies)
+        .where(
+          and(
+            eq(schema.certificationAgencies.organizationId, organizationId),
+            eq(schema.certificationAgencies.code, "ssi")
+          )
+        )
+        .limit(1);
+
+      // Get certification level IDs
+      const [owdLevel] = await db
+        .select()
+        .from(schema.certificationLevels)
+        .where(
+          and(
+            eq(schema.certificationLevels.organizationId, organizationId),
+            eq(schema.certificationLevels.code, "padi-owd")
+          )
+        )
+        .limit(1);
+
+      const [aowdLevel] = await db
+        .select()
+        .from(schema.certificationLevels)
+        .where(
+          and(
+            eq(schema.certificationLevels.organizationId, organizationId),
+            eq(schema.certificationLevels.code, "padi-aowd")
+          )
+        )
+        .limit(1);
+
+      const [rescueLevel] = await db
+        .select()
+        .from(schema.certificationLevels)
+        .where(
+          and(
+            eq(schema.certificationLevels.organizationId, organizationId),
+            eq(schema.certificationLevels.code, "padi-rescue")
+          )
+        )
+        .limit(1);
+
+      // Create 4 demo courses
+      const courses = [];
+
+      // Course 1: PADI Open Water Diver (beginner, 4 days, $450)
+      if (padiAgency && owdLevel) {
+        const [course1] = await db
+          .insert(schema.trainingCourses)
+          .values({
+            organizationId,
+            agencyId: padiAgency.id,
+            levelId: owdLevel.id,
+            name: "PADI Open Water Diver",
+            code: "OWD",
+            description: "Learn to dive with PADI, the world's leading scuba diving training organization. This entry-level course teaches you the skills and knowledge to become a certified diver.",
+            durationDays: 4,
+            classroomHours: 8,
+            poolHours: 8,
+            openWaterDives: 4,
+            price: "450.00",
+            currency: "USD",
+            minStudents: 2,
+            maxStudents: 8,
+            materialsIncluded: true,
+            equipmentIncluded: false,
+            minAge: 10,
+            prerequisites: "Basic swimming ability, comfort in water",
+            medicalRequirements: "PADI Medical Statement required",
+            isPublic: true,
+            isActive: true,
+            sortOrder: 1,
+          })
+          .returning();
+        courses.push(course1);
+        coursesSeeded++;
+      }
+
+      // Course 2: PADI Advanced Open Water (intermediate, 2 days, $350)
+      if (padiAgency && aowdLevel) {
+        const [course2] = await db
+          .insert(schema.trainingCourses)
+          .values({
+            organizationId,
+            agencyId: padiAgency.id,
+            levelId: aowdLevel.id,
+            name: "PADI Advanced Open Water",
+            code: "AOWD",
+            description: "Build on your Open Water skills with adventure dives including deep diving, underwater navigation, and three specialty dives of your choice.",
+            durationDays: 2,
+            classroomHours: 0,
+            poolHours: 0,
+            openWaterDives: 5,
+            price: "350.00",
+            currency: "USD",
+            minStudents: 2,
+            maxStudents: 6,
+            materialsIncluded: true,
+            equipmentIncluded: false,
+            minAge: 12,
+            prerequisites: "PADI Open Water Diver or equivalent",
+            requiredCertLevel: owdLevel.id,
+            isPublic: true,
+            isActive: true,
+            sortOrder: 2,
+          })
+          .returning();
+        courses.push(course2);
+        coursesSeeded++;
+      }
+
+      // Course 3: SSI Enriched Air Nitrox (specialty, 1 day, $175)
+      if (ssiAgency) {
+        const [course3] = await db
+          .insert(schema.trainingCourses)
+          .values({
+            organizationId,
+            agencyId: ssiAgency.id,
+            name: "SSI Enriched Air Nitrox",
+            code: "EAN",
+            description: "Learn to safely dive with enriched air (nitrox) to extend your bottom time and reduce nitrogen loading.",
+            durationDays: 1,
+            classroomHours: 4,
+            poolHours: 0,
+            openWaterDives: 0,
+            price: "175.00",
+            currency: "USD",
+            minStudents: 2,
+            maxStudents: 10,
+            materialsIncluded: true,
+            equipmentIncluded: false,
+            minAge: 12,
+            prerequisites: "Any entry-level certification",
+            isPublic: true,
+            isActive: true,
+            sortOrder: 3,
+          })
+          .returning();
+        courses.push(course3);
+        coursesSeeded++;
+      }
+
+      // Course 4: PADI Rescue Diver (advanced, 3 days, $550)
+      if (padiAgency && rescueLevel) {
+        const [course4] = await db
+          .insert(schema.trainingCourses)
+          .values({
+            organizationId,
+            agencyId: padiAgency.id,
+            levelId: rescueLevel.id,
+            name: "PADI Rescue Diver",
+            code: "RESCUE",
+            description: "Challenge yourself to become a better dive buddy by learning to prevent and manage diving emergencies.",
+            durationDays: 3,
+            classroomHours: 12,
+            poolHours: 8,
+            openWaterDives: 4,
+            price: "550.00",
+            currency: "USD",
+            minStudents: 2,
+            maxStudents: 6,
+            materialsIncluded: true,
+            equipmentIncluded: false,
+            minAge: 12,
+            prerequisites: "PADI Advanced Open Water + 20 logged dives + CPR/First Aid certification within 24 months",
+            requiredCertLevel: aowdLevel?.id,
+            isPublic: true,
+            isActive: true,
+            sortOrder: 4,
+          })
+          .returning();
+        courses.push(course4);
+        coursesSeeded++;
+      }
+
+      // Create 2-3 sessions per course (mix of scheduled and open status)
+      for (const course of courses) {
+        // Session 1: Near future (2 weeks out) - scheduled
+        const [session1] = await db
+          .insert(schema.trainingSessions)
+          .values({
+            organizationId,
+            courseId: course.id,
+            startDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            startTime: "09:00:00",
+            location: "Dive Shop Classroom & Pool",
+            meetingPoint: "Front desk at 8:45 AM",
+            instructorName: "Sarah Johnson",
+            maxStudents: course.maxStudents,
+            status: "scheduled",
+            notes: "All materials provided. Bring swimsuit and towel.",
+          })
+          .returning();
+        sessionsSeeded++;
+
+        // Session 2: Next month - open for enrollment
+        const [session2] = await db
+          .insert(schema.trainingSessions)
+          .values({
+            organizationId,
+            courseId: course.id,
+            startDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            startTime: null, // Test nullable startTime
+            location: "Dive Shop Classroom",
+            instructorName: "Mike Torres",
+            maxStudents: course.maxStudents,
+            status: "open",
+            notes: "Schedule flexible - time TBA based on student availability.",
+          })
+          .returning();
+        sessionsSeeded++;
+
+        // Session 3: Weekend session (if not specialty course)
+        if (course.durationDays > 1) {
+          const [session3] = await db
+            .insert(schema.trainingSessions)
+            .values({
+              organizationId,
+              courseId: course.id,
+              startDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+              startTime: "08:00:00",
+              location: "Dive Shop & Local Beach",
+              meetingPoint: "Meet at shop, carpool to beach",
+              instructorName: "David Chen",
+              maxStudents: course.maxStudents - 2, // Smaller weekend class
+              priceOverride: (parseFloat(course.price) + 50).toString(), // Weekend premium
+              status: "open",
+              notes: "Weekend intensive format. Lunch included.",
+            })
+            .returning();
+          sessionsSeeded++;
+        }
+      }
+
+      console.log(`  ✓ Created ${coursesSeeded} courses and ${sessionsSeeded} sessions`);
+    } else {
+      console.log("  ℹ️  Training courses already exist, skipping...");
+    }
+
+    trainingStats = {
+      agencies: agenciesSeeded,
+      levels: levelsSeeded,
+      courses: coursesSeeded,
+      sessions: sessionsSeeded
+    };
   } catch (error) {
     console.warn("  ⚠️  Warning: Training data seeding failed:", error);
   }
@@ -1311,6 +1582,8 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   console.log(`  - ${rentalCount} rentals`);
   console.log(`  - ${trainingStats.agencies} training agencies`);
   console.log(`  - ${trainingStats.levels} certification levels`);
+  console.log(`  - ${trainingStats.courses || 0} training courses`);
+  console.log(`  - ${trainingStats.sessions || 0} training sessions`);
   console.log(`  - ${galleryStats.albums} gallery albums`);
   console.log(`  - ${galleryStats.images} gallery images`);
 }
