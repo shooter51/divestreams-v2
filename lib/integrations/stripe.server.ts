@@ -934,3 +934,61 @@ export async function deleteTerminalReader(
     };
   }
 }
+
+// ============================================================================
+// REFUNDS
+// ============================================================================
+
+/**
+ * Create a refund for a PaymentIntent
+ *
+ * Used for processing POS refunds when original payment was made by card.
+ * Can do full or partial refunds.
+ */
+export async function createStripeRefund(
+  orgId: string,
+  paymentIntentId: string,
+  options?: {
+    amount?: number; // Amount in cents (undefined = full refund)
+    reason?: "duplicate" | "fraudulent" | "requested_by_customer";
+    metadata?: Record<string, string>;
+  }
+): Promise<{ refundId: string; amount: number; status: string } | null> {
+  const client = await getStripeClient(orgId);
+
+  if (!client) {
+    return null;
+  }
+
+  const { stripe, integration } = client;
+
+  try {
+    const refund = await stripe.refunds.create({
+      payment_intent: paymentIntentId,
+      amount: options?.amount,
+      reason: options?.reason,
+      metadata: {
+        orgId,
+        source: "pos_refund",
+        ...options?.metadata,
+      },
+    });
+
+    await logSyncOperation(integration.id, "create_refund", "success", {
+      entityType: "refund",
+      externalId: refund.id,
+    });
+
+    return {
+      refundId: refund.id,
+      amount: refund.amount,
+      status: refund.status,
+    };
+  } catch (error) {
+    await logSyncOperation(integration.id, "create_refund", "failed", {
+      entityType: "refund",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
+}

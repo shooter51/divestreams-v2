@@ -19,6 +19,8 @@ import {
   processPOSCheckout,
   generateAgreementNumber,
   getProductByBarcode,
+  getTransactionById,
+  processPOSRefund,
 } from "../../../lib/db/pos.server";
 import { db } from "../../../lib/db/index";
 import { organizationSettings } from "../../../lib/db/schema";
@@ -29,6 +31,7 @@ import {
   createPOSPaymentIntent,
   createTerminalConnectionToken,
   listTerminalReaders,
+  createStripeRefund,
 } from "../../../lib/integrations/stripe.server";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { Cart } from "../../components/pos/Cart";
@@ -181,6 +184,68 @@ export async function action({ request }: ActionFunctionArgs) {
       };
     }
     return { barcodeNotFound: true, scannedBarcode: barcode };
+  }
+
+  if (intent === "lookup-transaction") {
+    const transactionId = formData.get("transactionId") as string;
+
+    if (!transactionId) {
+      return { error: "Transaction ID is required" };
+    }
+
+    try {
+      const transaction = await getTransactionById(tables, organizationId, transactionId);
+
+      if (!transaction) {
+        return { error: "Transaction not found" };
+      }
+
+      return { transaction };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Failed to lookup transaction" };
+    }
+  }
+
+  if (intent === "process-refund") {
+    try {
+      const data = JSON.parse(formData.get("data") as string);
+      const userId = ctx.user.id;
+
+      // If original payment was by card, process Stripe refund first
+      let stripeRefundId: string | undefined;
+
+      if (data.paymentMethod === "card" && data.stripePaymentId) {
+        const refund = await createStripeRefund(organizationId, data.stripePaymentId, {
+          reason: "requested_by_customer",
+          metadata: {
+            originalTransactionId: data.originalTransactionId,
+            refundReason: data.refundReason,
+          },
+        });
+
+        if (!refund) {
+          return { error: "Stripe refund failed. Stripe not connected." };
+        }
+
+        stripeRefundId = refund.refundId;
+      }
+
+      // Process the refund in our system
+      const result = await processPOSRefund(tables, organizationId, {
+        originalTransactionId: data.originalTransactionId,
+        userId,
+        refundReason: data.refundReason,
+        stripeRefundId,
+      });
+
+      return {
+        success: true,
+        refundId: result.refundTransaction.id,
+        amount: Math.abs(Number(result.refundTransaction.amount)),
+      };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Refund processing failed" };
+    }
   }
 
   if (intent === "checkout") {
