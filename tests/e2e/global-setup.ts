@@ -4,7 +4,7 @@ import * as path from "path";
 import { db } from "../../lib/db";
 import { organization, user, member } from "../../lib/db/schema/auth";
 import { subscription, subscriptionPlans } from "../../lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { createTenant } from "../../lib/db/tenant.server";
 import { auth } from "../../lib/auth";
 
@@ -27,61 +27,98 @@ async function globalSetup(config: FullConfig) {
       .where(eq(organization.slug, "demo"))
       .limit(1);
 
-    if (existingOrg) {
+    let demoOrg = existingOrg;
+
+    if (!existingOrg) {
+      console.log("Creating demo organization for E2E tests...");
+
+      // Create tenant and organization
+      await createTenant({
+        subdomain: "demo",
+        name: "Demo Dive Shop",
+        email: "owner@demo.com",
+        phone: "+1-555-0100",
+        timezone: "America/Los_Angeles",
+        currency: "USD",
+      });
+
+      // Get the organization ID
+      const [newDemoOrg] = await db
+        .select()
+        .from(organization)
+        .where(eq(organization.slug, "demo"))
+        .limit(1);
+
+      if (!newDemoOrg) {
+        throw new Error("Failed to create demo organization");
+      }
+
+      demoOrg = newDemoOrg;
+      console.log("✓ Demo organization created");
+    } else {
       console.log("✓ Demo organization already exists");
-      return;
     }
 
-    console.log("Creating demo organization for E2E tests...");
-
-    // Create tenant and organization
-    await createTenant({
-      subdomain: "demo",
-      name: "Demo Dive Shop",
-      email: "owner@demo.com",
-      phone: "+1-555-0100",
-      timezone: "America/Los_Angeles",
-      currency: "USD",
-    });
-
-    // Get the organization ID
-    const [demoOrg] = await db
+    // Always check if the demo user exists (even if org exists)
+    const [existingUser] = await db
       .select()
-      .from(organization)
-      .where(eq(organization.slug, "demo"))
+      .from(user)
+      .where(eq(user.email, "owner@demo.com"))
       .limit(1);
 
-    if (!demoOrg) {
-      throw new Error("Failed to create demo organization");
+    let demoUserId: string;
+
+    if (!existingUser) {
+      console.log("Creating demo owner user...");
+
+      // Create owner user via Better Auth
+      const userResult = await auth.api.signUpEmail({
+        body: {
+          email: "owner@demo.com",
+          password: "demo1234",
+          name: "Demo Owner",
+        },
+      });
+
+      if (!userResult.user) {
+        throw new Error("Failed to create demo owner user");
+      }
+
+      demoUserId = userResult.user.id;
+      console.log("✓ Demo owner user created");
+    } else {
+      demoUserId = existingUser.id;
+      console.log("✓ Demo owner user already exists");
     }
 
-    // Create owner user via Better Auth
-    const userResult = await auth.api.signUpEmail({
-      body: {
-        email: "owner@demo.com",
-        password: "demo1234",
-        name: "Demo Owner",
-      },
-    });
+    // Always check if member relationship exists (regardless of user/org existence)
+    const [existingMember] = await db
+      .select()
+      .from(member)
+      .where(and(
+        eq(member.userId, demoUserId),
+        eq(member.organizationId, demoOrg.id)
+      ))
+      .limit(1);
 
-    if (!userResult.user) {
-      throw new Error("Failed to create demo owner user");
+    if (!existingMember) {
+      console.log("Creating member relationship for demo user...");
+      await db.insert(member).values({
+        id: crypto.randomUUID(),
+        organizationId: demoOrg.id,
+        userId: demoUserId,
+        role: "owner",
+        createdAt: new Date(),
+      });
+      console.log("✓ Demo member relationship created");
+    } else {
+      console.log("✓ Demo member relationship already exists");
     }
-
-    // Add user as owner/member of demo organization
-    await db.insert(member).values({
-      id: crypto.randomUUID(),
-      organizationId: demoOrg.id,
-      userId: userResult.user.id,
-      email: "owner@demo.com",
-      role: "owner",
-      createdAt: new Date(),
-    });
 
     // Upgrade demo org to ENTERPRISE plan for full feature access in E2E tests
     // This ensures all features (POS, Training, Public Site, Equipment) are accessible
     // without hitting feature gate redirects during test execution
-    console.log("Upgrading demo organization to ENTERPRISE plan...");
+    console.log("Checking demo organization subscription plan...");
 
     const [enterprisePlan] = await db
       .select()
@@ -106,13 +143,13 @@ async function globalSetup(config: FullConfig) {
       })
       .where(eq(subscription.organizationId, demoOrg.id));
 
-    console.log("✓ Demo organization created successfully");
+    console.log("✓ Demo environment ready for E2E tests");
     console.log("  - Organization: demo.localhost:5173");
     console.log("  - Email: owner@demo.com");
     console.log("  - Password: demo1234");
     console.log("  - Plan: ENTERPRISE (all features enabled)");
   } catch (error) {
-    console.error("Failed to create demo organization:", error);
+    console.error("Failed to setup demo environment:", error);
     // Don't fail the test run - tests will handle missing org gracefully
   }
 }

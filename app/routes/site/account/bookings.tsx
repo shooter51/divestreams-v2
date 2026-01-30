@@ -293,15 +293,13 @@ function BookingCard({ booking }: { booking: BookingItem }) {
           <p className="text-lg font-semibold" style={{ color: "var(--text-color)" }}>
             {formatCurrency(booking.total, booking.currency)}
           </p>
-          {isUpcoming && !isCancelled && (
-            <Link
-              to={`/site/trips/${booking.trip.tour.id}`}
-              className="text-sm font-medium transition-opacity hover:opacity-80"
-              style={{ color: "var(--primary-color)" }}
-            >
-              View Trip Details
-            </Link>
-          )}
+          <Link
+            to={`/site/account/bookings/${booking.id}`}
+            className="text-sm font-medium transition-opacity hover:opacity-80"
+            style={{ color: "var(--primary-color)" }}
+          >
+            View Details
+          </Link>
         </div>
       </div>
     </div>

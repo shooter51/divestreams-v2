@@ -12,7 +12,11 @@ export class LoginPage extends TenantBasePage {
   async login(email: string, password: string): Promise<void> {
     await this.fillByLabel(/email/i, email);
     await this.fillByLabel(/password/i, password);
-    await this.clickButton(/sign in/i);
+    // Click and wait for navigation after successful login
+    await Promise.all([
+      this.page.waitForNavigation({ waitUntil: "networkidle", timeout: 15000 }),
+      this.clickButton(/sign in/i),
+    ]);
   }
 
   async expectLoginForm(): Promise<void> {

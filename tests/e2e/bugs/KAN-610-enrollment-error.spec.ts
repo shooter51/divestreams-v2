@@ -21,17 +21,16 @@ import { test, expect } from "@playwright/test";
 test.describe("KAN-610: New Enrollment Button Error", () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin to demo tenant
-    await page.goto("http://demo.localhost:5173/tenant/login");
+    await page.goto("http://demo.localhost:5173/auth/login");
     await page.waitForLoadState("networkidle");
 
     // Fill in login credentials
-    const emailInput = page.locator('input[name="email"]');
-    if (await emailInput.isVisible()) {
-      await emailInput.fill("owner@demo.com");
-      await page.locator('input[name="password"]').fill("demo1234");
-      await page.locator('button[type="submit"]').click();
-      await page.waitForLoadState("networkidle");
-    }
+    await page.getByLabel(/email/i).fill("owner@demo.com");
+    await page.getByLabel(/password/i).fill("demo1234");
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    // Wait for redirect to tenant dashboard after successful login
+    await page.waitForURL(/\/tenant/, { timeout: 10000 });
   });
 
   test("should load enrollment form from training dashboard without error", async ({ page }) => {

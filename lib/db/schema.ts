@@ -411,6 +411,10 @@ export const bookings = pgTable("bookings", {
   specialRequests: text("special_requests"),
   internalNotes: text("internal_notes"),
 
+  // Cancellation tracking (KAN-652)
+  cancelledAt: timestamp("cancelled_at"),
+  cancellationReason: text("cancellation_reason"),
+
   // Source tracking
   source: text("source").default("direct"), // direct, online, referral, etc.
 
