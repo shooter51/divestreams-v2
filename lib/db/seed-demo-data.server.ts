@@ -1,6 +1,6 @@
 import { db } from "./index";
 import * as schema from "./schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { organization } from "./schema/auth";
 
 // ============================================================================
