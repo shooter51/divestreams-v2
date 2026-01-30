@@ -982,7 +982,7 @@ export async function createStripeRefund(
     return {
       refundId: refund.id,
       amount: refund.amount,
-      status: refund.status,
+      status: refund.status || "pending",
     };
   } catch (error) {
     await logSyncOperation(integration.id, "create_refund", "failed", {

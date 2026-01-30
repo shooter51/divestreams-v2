@@ -43,6 +43,10 @@ import {
   RentalAgreementModal,
   CustomerSearchModal,
 } from "../../components/pos/CheckoutModals";
+import {
+  TransactionLookupModal,
+  RefundConfirmationModal,
+} from "../../components/pos/RefundModals";
 import type { CartItem } from "../../../lib/validation/pos";
 
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
@@ -311,6 +315,30 @@ export default function POSPage() {
   const [pendingCheckout, setPendingCheckout] = useState<"card" | "cash" | "split" | null>(null);
   const [barcodeError, setBarcodeError] = useState<string | null>(null);
 
+  // Refund modal state
+  const [showTransactionLookup, setShowTransactionLookup] = useState(false);
+  const [showRefundConfirmation, setShowRefundConfirmation] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<{
+    id: string;
+    amount: string;
+    paymentMethod: string;
+    stripePaymentId: string | null;
+    items: Array<{
+      type: string;
+      name: string;
+      quantity?: number;
+      unitPrice: number;
+      total: number;
+    }>;
+    createdAt: string;
+    customer: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    } | null;
+  } | null>(null);
+  const [refundSuccess, setRefundSuccess] = useState<{ amount: number } | null>(null);
+
   // Cart calculations
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
   const tax = subtotal * (taxRate / 100);
@@ -451,6 +479,28 @@ export default function POSPage() {
     fetcher.submit(formData, { method: "POST" });
   }, [fetcher]);
 
+  // Refund handling
+  const handleTransactionFound = useCallback((transaction: typeof selectedTransaction) => {
+    setSelectedTransaction(transaction);
+    setShowTransactionLookup(false);
+    setShowRefundConfirmation(true);
+  }, []);
+
+  const handleRefundConfirm = useCallback((refundReason: string) => {
+    if (!selectedTransaction) return;
+
+    const formData = new FormData();
+    formData.append("intent", "process-refund");
+    formData.append("data", JSON.stringify({
+      originalTransactionId: selectedTransaction.id,
+      paymentMethod: selectedTransaction.paymentMethod,
+      stripePaymentId: selectedTransaction.stripePaymentId,
+      refundReason,
+    }));
+
+    fetcher.submit(formData, { method: "POST" });
+  }, [selectedTransaction, fetcher]);
+
   // Update search results and handle barcode results when fetcher returns
   useEffect(() => {
     const fetcherData = fetcher.data as {
@@ -458,6 +508,9 @@ export default function POSPage() {
       scannedProduct?: { id: string; name: string; price: string; stockQuantity: number };
       barcodeNotFound?: boolean;
       scannedBarcode?: string;
+      success?: boolean;
+      refundId?: string;
+      amount?: number;
     } | undefined;
 
     if (fetcherData?.customers) {
@@ -474,6 +527,15 @@ export default function POSPage() {
       setBarcodeError(`Product not found for barcode: ${fetcherData.scannedBarcode}`);
       // Clear error after 3 seconds
       setTimeout(() => setBarcodeError(null), 3000);
+    }
+
+    // Handle refund success
+    if (fetcherData?.success && fetcherData?.refundId && fetcherData?.amount) {
+      setRefundSuccess({ amount: fetcherData.amount });
+      setShowRefundConfirmation(false);
+      setSelectedTransaction(null);
+      // Clear success message after 5 seconds
+      setTimeout(() => setRefundSuccess(null), 5000);
     }
   }, [fetcher.data, addProduct]);
 
@@ -499,6 +561,15 @@ export default function POSPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
             </svg>
             Scan Barcode
+          </button>
+          <button
+            onClick={() => setShowTransactionLookup(true)}
+            className="px-4 py-2 text-sm border border-amber-600 text-amber-600 rounded-lg hover:bg-amber-50 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+            </svg>
+            Refund
           </button>
           <Link
             to="/tenant/pos/transactions"
@@ -645,6 +716,25 @@ export default function POSPage() {
         showConfirmation={false}
       />
 
+      {/* Refund Modals */}
+      <TransactionLookupModal
+        isOpen={showTransactionLookup}
+        onClose={() => setShowTransactionLookup(false)}
+        onTransactionFound={handleTransactionFound}
+      />
+
+      {selectedTransaction && (
+        <RefundConfirmationModal
+          isOpen={showRefundConfirmation}
+          onClose={() => {
+            setShowRefundConfirmation(false);
+            setSelectedTransaction(null);
+          }}
+          transaction={selectedTransaction}
+          onConfirm={handleRefundConfirm}
+        />
+      )}
+
       {/* Barcode Error Toast */}
       {barcodeError && (
         <div className="fixed bottom-4 left-4 bg-amber-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
@@ -659,6 +749,13 @@ export default function POSPage() {
       {(fetcher.data as { success?: boolean; receiptNumber?: string } | undefined)?.success && (
         <div className="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg">
           Sale complete! Receipt #{(fetcher.data as { receiptNumber: string }).receiptNumber}
+        </div>
+      )}
+
+      {/* Refund Success Toast */}
+      {refundSuccess && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg">
+          Refund processed successfully! ${refundSuccess.amount.toFixed(2)} refunded to customer.
         </div>
       )}
     </div>

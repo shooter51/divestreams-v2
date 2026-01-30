@@ -483,14 +483,26 @@ export const transactions = pgTable("transactions", {
   stripePaymentId: text("stripe_payment_id"),
 
   // Line items for POS
-  items: jsonb("items").$type<{
+  items: jsonb("items").$type<Array<{
     description: string;
     quantity: number;
     unitPrice: number;
     total: number;
-  }[]>(),
+    type?: string;
+    productId?: string;
+    equipmentId?: string;
+    tripId?: string;
+    tourName?: string;
+    days?: number;
+    dailyRate?: number;
+    participants?: number;
+  }>>(),
 
   notes: text("notes"),
+
+  // Refund tracking
+  refundedTransactionId: uuid("refunded_transaction_id").references((): any => transactions.id, { onDelete: "set null" }),
+  refundReason: text("refund_reason"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (table) => [
