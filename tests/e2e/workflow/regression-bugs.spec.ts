@@ -176,7 +176,8 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     await expect(firstNameField).toBeVisible({ timeout: 8000 });
     await firstNameField.fill(testData.customer.firstName);
     await page.getByLabel(/last.*name/i).fill(testData.customer.lastName);
-    await page.getByLabel(/email/i).fill(testData.customer.email);
+    // Use specific email input to avoid matching marketingOptIn checkbox
+    await page.getByRole("textbox", { name: /email/i }).fill(testData.customer.email);
 
     const phoneField = page.getByLabel(/phone/i);
     if (await phoneField.isVisible().catch(() => false)) {

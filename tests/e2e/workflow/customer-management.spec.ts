@@ -264,8 +264,9 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     await page.goto(getTenantUrl("/tenant/customers/new"));
     if (!(await isAuthenticated(page))) return;
     // Wait for form to be visible (condition-based waiting, not arbitrary timeout)
-    await page.locator("form").waitFor({ state: "visible", timeout: 10000 });
-    const hasForm = await page.locator("form").isVisible();
+    // Use specific selector to avoid matching sign-out form in header
+    await page.locator("form.space-y-6").waitFor({ state: "visible", timeout: 10000 });
+    const hasForm = await page.locator("form.space-y-6").isVisible();
     expect(hasForm).toBeTruthy();
   });
 

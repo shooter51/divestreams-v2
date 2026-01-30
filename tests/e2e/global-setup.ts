@@ -3,6 +3,7 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 import { db } from "../../lib/db";
 import { organization, user, member } from "../../lib/db/schema/auth";
+import { subscription, subscriptionPlans } from "../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { createTenant } from "../../lib/db/tenant.server";
 import { auth } from "../../lib/auth";
@@ -77,10 +78,37 @@ async function globalSetup(config: FullConfig) {
       createdAt: new Date(),
     });
 
+    // Upgrade demo org to ENTERPRISE plan for full feature access in E2E tests
+    // This ensures all features (POS, Training, Public Site, Equipment) are accessible
+    // without hitting feature gate redirects during test execution
+    console.log("Upgrading demo organization to ENTERPRISE plan...");
+
+    const [enterprisePlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.name, "enterprise"))
+      .limit(1);
+
+    if (enterprisePlan) {
+      await db
+        .update(subscription)
+        .set({
+          plan: "enterprise",
+          planId: enterprisePlan.id,
+          status: "active",
+        })
+        .where(eq(subscription.organizationId, demoOrg.id));
+
+      console.log("✓ Demo organization upgraded to ENTERPRISE plan");
+    } else {
+      console.warn("⚠️  Enterprise plan not found - demo org will remain on FREE plan");
+    }
+
     console.log("✓ Demo organization created successfully");
     console.log("  - Organization: demo.localhost:5173");
     console.log("  - Email: owner@demo.com");
     console.log("  - Password: demo1234");
+    console.log("  - Plan: ENTERPRISE (all features enabled)");
   } catch (error) {
     console.error("Failed to create demo organization:", error);
     // Don't fail the test run - tests will handle missing org gracefully
