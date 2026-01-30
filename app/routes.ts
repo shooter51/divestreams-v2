@@ -40,6 +40,9 @@ export default [
     route("reports/export/csv", "routes/tenant/reports/export.csv.tsx"),
     route("reports/export/pdf", "routes/tenant/reports/export.pdf.tsx"),
 
+    // Tenant login (outside layout - no auth required)
+    route("login", "routes/tenant/login.tsx"),
+
     // Tenant dashboard layout
     layout("routes/tenant/layout.tsx", [
       index("routes/tenant/dashboard.tsx"),
