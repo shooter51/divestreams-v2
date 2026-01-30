@@ -74,6 +74,12 @@ describe("Subscription Plan Persistence (DIVE-166)", () => {
           },
         },
       ]);
+
+      // Verify plans were inserted (fixes CI race condition)
+      const verifyPlans = await db.select().from(subscriptionPlans).limit(2);
+      if (verifyPlans.length < 2) {
+        throw new Error("Failed to seed subscription plans in beforeAll");
+      }
     }
   }, 60000);
 
