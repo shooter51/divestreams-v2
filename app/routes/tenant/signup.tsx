@@ -26,7 +26,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (sessionData?.user) {
     // Already logged in, redirect to app
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/tenant";
+    const rawRedirect = url.searchParams.get("redirect") || "/tenant";
+    // Validate redirect to prevent open redirect attacks (only allow relative URLs)
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+      ? rawRedirect : "/tenant";
     throw redirect(redirectTo);
   }
 
@@ -59,8 +62,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const confirmPassword = formData.get("confirmPassword");
   const redirectTo = formData.get("redirectTo");
 
-  // Validate redirectTo and default to /app
-  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/tenant";
+  // Validate redirectTo to prevent open redirect attacks
+  const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/tenant";
+  // Only allow relative URLs (must start with / and not contain ://)
+  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+    ? rawRedirect : "/tenant";
 
   // Validation
   const errors: Record<string, string> = {};

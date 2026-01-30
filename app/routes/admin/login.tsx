@@ -36,8 +36,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const password = formData.get("password");
   const redirectTo = formData.get("redirectTo");
 
-  // Validate redirectTo and default to /dashboard
-  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/dashboard";
+  // Validate redirectTo to prevent open redirect attacks
+  const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/dashboard";
+  // Only allow relative URLs (must start with / and not contain ://)
+  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+    ? rawRedirect : "/dashboard";
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {

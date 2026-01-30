@@ -12,10 +12,10 @@ import path from 'path';
 
 test.describe('KAN-630: Album Image Upload', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as admin
-    await page.goto('/auth/login');
-    await page.fill('input[name="email"]', 'admin@divestreams.com');
-    await page.fill('input[name="password"]', 'admin123');
+    // Login as demo tenant admin
+    await page.goto('http://demo.localhost:5173/tenant/login');
+    await page.fill('input[name="email"]', 'owner@demo.com');
+    await page.fill('input[name="password"]', 'demo1234');
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/\/tenant/);
   });
