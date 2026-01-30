@@ -48,6 +48,20 @@ export function TransactionLookupModal({
   const [transactionId, setTransactionId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // Handle Escape key to close modal (accessibility)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen]);
+
   // Handle fetcher response
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data) {
@@ -85,9 +99,10 @@ export function TransactionLookupModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Lookup Transaction</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="lookup-modal-title">
+      <div className="absolute inset-0" onClick={handleClose} />
+      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md relative z-10">
+        <h2 id="lookup-modal-title" className="text-xl font-bold mb-4">Lookup Transaction</h2>
 
         <div className="space-y-4">
           <div>
@@ -152,6 +167,20 @@ export function RefundConfirmationModal({
   const [refundReason, setRefundReason] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Handle Escape key to close modal (accessibility)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isProcessing) {
+        handleClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, isProcessing]);
+
   const handleConfirm = () => {
     if (!refundReason) {
       return;
@@ -173,9 +202,10 @@ export function RefundConfirmationModal({
   const formattedTime = new Date(transaction.createdAt).toLocaleTimeString();
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Confirm Refund</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="refund-modal-title">
+      <div className="absolute inset-0" onClick={!isProcessing ? handleClose : undefined} />
+      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10">
+        <h2 id="refund-modal-title" className="text-xl font-bold mb-4">Confirm Refund</h2>
 
         {/* Transaction Summary */}
         <div className="space-y-4 mb-6">

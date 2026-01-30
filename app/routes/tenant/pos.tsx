@@ -7,6 +7,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
+import { z } from "zod";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
@@ -191,13 +192,16 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "lookup-transaction") {
-    const transactionId = formData.get("transactionId") as string;
-
-    if (!transactionId) {
-      return { error: "Transaction ID is required" };
-    }
-
     try {
+      // Validate input with Zod schema
+      const transactionLookupSchema = z.object({
+        transactionId: z.string().uuid("Invalid transaction ID format"),
+      });
+
+      const { transactionId } = transactionLookupSchema.parse({
+        transactionId: formData.get("transactionId"),
+      });
+
       const transaction = await getTransactionById(tables, organizationId, transactionId);
 
       if (!transaction) {
@@ -206,13 +210,25 @@ export async function action({ request }: ActionFunctionArgs) {
 
       return { transaction };
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return { error: error.errors[0].message };
+      }
       return { error: error instanceof Error ? error.message : "Failed to lookup transaction" };
     }
   }
 
   if (intent === "process-refund") {
     try {
-      const data = JSON.parse(formData.get("data") as string);
+      // Validate input with Zod schema
+      const refundRequestSchema = z.object({
+        originalTransactionId: z.string().uuid("Invalid transaction ID format"),
+        paymentMethod: z.enum(["cash", "card", "split"]),
+        stripePaymentId: z.string().optional(),
+        refundReason: z.string().min(1, "Refund reason is required").max(500, "Refund reason too long"),
+      });
+
+      const rawData = JSON.parse(formData.get("data") as string);
+      const data = refundRequestSchema.parse(rawData);
       const userId = ctx.user.id;
 
       // If original payment was by card, process Stripe refund first
@@ -248,6 +264,9 @@ export async function action({ request }: ActionFunctionArgs) {
         amount: Math.abs(Number(result.refundTransaction.amount)),
       };
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return { error: error.errors[0].message };
+      }
       return { error: error instanceof Error ? error.message : "Refund processing failed" };
     }
   }
