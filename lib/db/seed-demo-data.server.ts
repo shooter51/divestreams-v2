@@ -851,8 +851,8 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         minBookingAmount: discount.minBookingAmount || null,
         maxUses: discount.maxUses || null,
         applicableTo: discount.applicableTo,
-        validFrom: validFrom.toISOString().split("T")[0],
-        validTo: validTo.toISOString().split("T")[0],
+        validFrom: validFrom, // timestamp field expects Date object
+        validTo: validTo, // timestamp field expects Date object
         isActive: true,
       });
   }
@@ -1082,14 +1082,14 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         organizationId,
         customerId: customerIds[rental.customerIdx],
         equipmentId: equipmentIds[rental.equipmentIdx],
-        rentedAt: rentedAt.toISOString(),
-        dueAt: dueAt.toISOString().split("T")[0],
-        returnedAt: returnedAt?.toISOString(),
+        rentedAt: rentedAt,
+        dueAt: dueAt,
+        returnedAt: returnedAt,
         dailyRate: rental.dailyRate,
         totalCharge: totalCharge.toFixed(2),
         status: rental.status,
         agreementNumber: agreementNum,
-        agreementSignedAt: rentedAt.toISOString(),
+        agreementSignedAt: rentedAt,
         agreementSignedBy: customers[rental.customerIdx].firstName + " " + customers[rental.customerIdx].lastName,
         notes: rental.status === "overdue" ? "OVERDUE - Customer contacted" : null,
       });
