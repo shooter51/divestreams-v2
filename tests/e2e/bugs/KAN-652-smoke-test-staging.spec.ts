@@ -38,7 +38,7 @@ test.describe('KAN-652: Staging Smoke Test', () => {
     await page.goto(`${STAGING_URL}/site/account/bookings`);
 
     // Should redirect to login or show bookings page
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const url = page.url();
     console.log(`Bookings page redirected to: ${url}`);

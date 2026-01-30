@@ -64,7 +64,7 @@ test.describe("KAN-637: Auth header state after login @bug", () => {
 
     // Navigate back to home page to verify header state
     await page.goto("http://e2etest.localhost:5173/site");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     const header = page.locator("header");
 

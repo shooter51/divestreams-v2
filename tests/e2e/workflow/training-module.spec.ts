@@ -257,7 +257,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-449] B.2 Courses page has Add/Create Course button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
     const addLink = page.getByRole("link", { name: /add.*course|create.*course|new.*course/i });
@@ -267,7 +267,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     const newVisible = await newLink.isVisible().catch(() => false);
     if (!addVisible && !newVisible) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await page.waitForTimeout(2000);
     }
     await expect(addLink.or(newLink).first()).toBeVisible({ timeout: 8000 });

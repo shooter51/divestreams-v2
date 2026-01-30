@@ -159,7 +159,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Wait for first name field with condition-based waiting (retry with reload if needed)
     const firstNameField = page.getByLabel(/first.*name/i);
@@ -168,7 +168,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     } catch {
       // Retry with reload if form not loaded (Vite dep optimization can cause page reloads in CI)
       await page.reload();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await firstNameField.waitFor({ state: "visible", timeout: 8000 });
     }
 
@@ -187,18 +187,18 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     // Submit
     await page.getByRole("button", { name: /create|save|add/i }).click();
     await page.waitForTimeout(3000);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Extract customer ID - navigate to list and wait for full load
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     await page.waitForTimeout(2500);
     let customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
 
     // Retry once if not found (race condition mitigation)
     if (!customerId) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await page.waitForTimeout(2000);
       customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
     }

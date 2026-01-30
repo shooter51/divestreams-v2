@@ -619,7 +619,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     expect(page.url()).toContain("/account");
 
     // Wait for page to fully hydrate before checking content
-    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForLoadState('load').catch(() => {});
     await page.waitForTimeout(500); // Small delay for React hydration
 
     // Should have dashboard content - check for "My Account" heading that's always present in layout

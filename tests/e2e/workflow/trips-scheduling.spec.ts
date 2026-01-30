@@ -172,14 +172,14 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
   test("[KAN-387] A.5 Trips page has Add/Schedule button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
     const scheduleLink = page.getByRole("link", { name: /schedule.*trip/i });
     // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
     if (!(await scheduleLink.isVisible().catch(() => false))) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await page.waitForTimeout(2000);
     }
     await expect(scheduleLink).toBeVisible({ timeout: 8000 });

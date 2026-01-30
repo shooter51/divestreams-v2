@@ -17,7 +17,7 @@ test.describe('KAN-634: POS Split Payment', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to demo tenant POS page
     await page.goto('http://demo.localhost:5173/tenant/pos');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Verify POS interface loaded
     await expect(page.getByRole('heading', { name: /point of sale/i })).toBeVisible();

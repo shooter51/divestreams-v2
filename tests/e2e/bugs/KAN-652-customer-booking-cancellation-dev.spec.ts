@@ -29,7 +29,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to demo tenant
     await page.goto('https://demo.dev.divestreams.com/site');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
   });
 
   test('customer can view their booking details', async ({ page }) => {
@@ -42,22 +42,22 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.fill('input[name="confirmPassword"]', 'TestPass123!');
     await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // 2. Book a trip
     await page.goto('https://demo.dev.divestreams.com/site/trips');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const firstTrip = page.locator('a[href*="/site/trips/"]').first();
     await expect(firstTrip).toBeVisible();
     await firstTrip.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Fill booking form
     const bookButton = page.locator('button:has-text("Book Now")').first();
     if (await bookButton.isVisible()) {
       await bookButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
     }
 
     // Skip if no booking available
@@ -69,11 +69,11 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
 
     await page.fill('input[name="participants"]', '1');
     await page.click('button[type="submit"]:has-text("Continue")');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // 3. Navigate to My Bookings
     await page.goto('https://demo.dev.divestreams.com/site/account/bookings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Should see booking in list
     await expect(page.locator('text=/Booking #/i')).toBeVisible();
@@ -82,7 +82,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
     const viewDetailsLink = page.locator('a:has-text("View Details")').first();
     await expect(viewDetailsLink).toBeVisible();
     await viewDetailsLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // 5. Verify booking details page loaded
     await expect(page.locator('h1:has-text("Booking Details")')).toBeVisible();
@@ -113,20 +113,20 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
     await page.fill('input[name="password"]', 'TestPass123!');
     await page.fill('input[name="confirmPassword"]', 'TestPass123!');
     await page.click('button[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Book a trip
     await page.goto('https://demo.dev.divestreams.com/site/trips');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const firstTrip = page.locator('a[href*="/site/trips/"]').first();
     await firstTrip.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const bookButton = page.locator('button:has-text("Book Now")').first();
     if (await bookButton.isVisible()) {
       await bookButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
     }
 
     const hasBookingForm = await page.locator('input[name="firstName"]').count() > 0;
@@ -137,15 +137,15 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
 
     await page.fill('input[name="participants"]', '1');
     await page.click('button[type="submit"]:has-text("Continue")');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // 2. Navigate to booking details
     await page.goto('https://demo.dev.divestreams.com/site/account/bookings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const viewDetailsLink = page.locator('a:has-text("View Details")').first();
     await viewDetailsLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // 3. Click "Cancel Booking" button
     const cancelButton = page.locator('button:has-text("Cancel Booking")');
@@ -169,7 +169,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
     // 6. Confirm cancellation
     const confirmButton = page.locator('button:has-text("Confirm Cancellation")');
     await confirmButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // 7. Verify success message
     await expect(page.locator('text=/cancelled successfully/i')).toBeVisible();
@@ -184,7 +184,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
   test('cancelled booking shows correct status and reason', async ({ page }) => {
     // Assume a cancelled booking exists (from previous test or setup)
     await page.goto('https://demo.dev.divestreams.com/site/account/bookings?filter=cancelled');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Check if there are any cancelled bookings
     const hasCancelledBookings = await page.locator('a:has-text("View Details")').count() > 0;
@@ -197,7 +197,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
     // Click on first cancelled booking
     const viewDetailsLink = page.locator('a:has-text("View Details")').first();
     await viewDetailsLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Verify status badge shows "CANCELLED"
     await expect(page.locator('text=/CANCELLED/i')).toBeVisible();
@@ -220,7 +220,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
     // This test assumes there's at least one active booking
 
     await page.goto('https://demo.dev.divestreams.com/site/account/bookings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const hasBookings = await page.locator('a:has-text("View Details")').count() > 0;
     if (!hasBookings) {
@@ -230,7 +230,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
 
     const viewDetailsLink = page.locator('a:has-text("View Details")').first();
     await viewDetailsLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const cancelButton = page.locator('button:has-text("Cancel Booking")');
     if (await cancelButton.count() === 0) {
@@ -269,13 +269,13 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
   test('cancelled booking appears in "Cancelled" filter tab', async ({ page }) => {
     // Navigate to My Bookings
     await page.goto('https://demo.dev.divestreams.com/site/account/bookings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Click on "Cancelled" filter tab
     const cancelledTab = page.locator('button:has-text("Cancelled")');
     await expect(cancelledTab).toBeVisible();
     await cancelledTab.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Check if URL has filter parameter
     expect(page.url()).toContain('filter=cancelled');
@@ -300,7 +300,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
 
   test('custom cancellation reason works with "Other" option', async ({ page }) => {
     await page.goto('https://demo.dev.divestreams.com/site/account/bookings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const hasBookings = await page.locator('a:has-text("View Details")').count() > 0;
     if (!hasBookings) {
@@ -310,7 +310,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
 
     const viewDetailsLink = page.locator('a:has-text("View Details")').first();
     await viewDetailsLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const cancelButton = page.locator('button:has-text("Cancel Booking")');
     if (await cancelButton.count() === 0) {
@@ -339,14 +339,14 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
 
     // Submit cancellation
     await confirmButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Should see success message
     await expect(page.locator('text=/cancelled successfully/i')).toBeVisible();
 
     // Reload page to see updated cancellation reason
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Should show the custom reason in cancellation info
     await expect(page.locator(`text=${customReason}`)).toBeVisible();
@@ -355,7 +355,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
   test('completed bookings cannot be cancelled', async ({ page }) => {
     // Navigate to completed bookings
     await page.goto('https://demo.dev.divestreams.com/site/account/bookings?filter=completed');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const hasCompletedBookings = await page.locator('a:has-text("View Details")').count() > 0;
 
@@ -367,7 +367,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
     // Click on first completed booking
     const viewDetailsLink = page.locator('a:has-text("View Details")').first();
     await viewDetailsLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Verify status is "COMPLETED"
     await expect(page.locator('text=/COMPLETED/i')).toBeVisible();
@@ -383,7 +383,7 @@ test.describe('KAN-652: Customer Booking Cancellation', () => {
     // For this test, we'll navigate to a booking details page
     // and verify the link structure exists
     await page.goto('https://demo.dev.divestreams.com/site/account/bookings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     const hasBookings = await page.locator('a:has-text("View Details")').count() > 0;
     if (!hasBookings) {

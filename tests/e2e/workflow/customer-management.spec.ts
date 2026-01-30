@@ -149,14 +149,14 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-279] A.3 Customers list has Add button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
     const addLink = page.getByRole("link", { name: /add.*customer|create.*customer|new.*customer/i });
     // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
     if (!(await addLink.isVisible().catch(() => false))) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await page.waitForTimeout(2000);
     }
     await expect(addLink).toBeVisible({ timeout: 8000 });

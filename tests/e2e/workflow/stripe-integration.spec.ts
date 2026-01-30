@@ -84,7 +84,7 @@ test.describe("Stripe Integration", () => {
     await page.goto(getTenantUrl("/tenant/settings/integrations"));
 
     // Wait for page to load
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     await page.waitForTimeout(2000);
 
     // Find the Stripe integration card by its unique structure
@@ -92,7 +92,7 @@ test.describe("Stripe Integration", () => {
     // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
     if (!(await stripeCard.isVisible().catch(() => false))) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await page.waitForTimeout(2000);
     }
     await expect(stripeCard).toBeVisible({ timeout: 8000 });

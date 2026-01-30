@@ -354,7 +354,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
 
     // Navigate to settings page first to get cookies set properly
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Submit the seed training agencies form directly via POST
     // This is idempotent and safe to call multiple times - only seeds PADI/SSI/NAUI
@@ -372,7 +372,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
 
     // Verify by checking that agencies exist by navigating to training import
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Check that the agency dropdown has PADI, SSI, or NAUI
     const agencyDropdown = page.locator('select[name="agencyId"]');
@@ -578,14 +578,14 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-85] 6.2 Boats page has Add Boat button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     await page.waitForTimeout(2000);
     if (!await isAuthenticated(page)) return;
     const addLink = page.getByRole("link", { name: /add boat/i });
     // Retry with reload if not found (Vite dep optimization can cause page reloads)
     if (!(await addLink.isVisible().catch(() => false))) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await page.waitForTimeout(2000);
     }
     await expect(addLink).toBeVisible({ timeout: 8000 });
@@ -1508,14 +1508,14 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-164] 11.2 Trips page has Schedule Trip button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     await page.waitForTimeout(2000);
     if (!await isAuthenticated(page)) return;
     const scheduleLink = page.getByRole("link", { name: /schedule trip/i });
     // Retry with reload if not found (Vite dep optimization can cause page reloads)
     if (!(await scheduleLink.isVisible().catch(() => false))) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await page.waitForTimeout(2000);
     }
     await expect(scheduleLink).toBeVisible({ timeout: 8000 });

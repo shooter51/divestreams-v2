@@ -142,7 +142,7 @@ If a test is flaky:
 
 1. **Never add `waitForTimeout()`** - it won't fix the root cause
 2. Check if you're waiting for the right condition
-3. Use `page.waitForLoadState('networkidle')` after navigation
+3. Use `page.waitForLoadState('load')` after navigation (avoid 'networkidle' for apps with polling/websockets)
 4. Add explicit waits for elements: `await locator.waitFor({ state: 'visible' })`
 5. Use Playwright's trace viewer: `npx playwright test --trace on`
 6. Run with `--headed` to see what's happening: `npx playwright test --headed`
@@ -157,7 +157,7 @@ The ESLint rule will warn you if you try to use `waitForTimeout()`:
 
 ```
 ❌ waitForTimeout() is prohibited. Use condition-based waiting instead:
-  ✅ await page.waitForLoadState('networkidle')
+  ✅ await page.waitForLoadState('load')  # Prefer 'load' over 'networkidle'
   ✅ await locator.waitFor({ state: 'visible' })
   ✅ await expect(locator).toBeVisible({ timeout: 10000 })
 ```
