@@ -1,0 +1,299 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - heading "Demo Dive Shop" [level=1] [ref=e6]
+      - paragraph [ref=e7]: demo.divestreams.com
+    - navigation [ref=e8]:
+      - list [ref=e9]:
+        - listitem [ref=e10]:
+          - link "📊 Dashboard" [ref=e11] [cursor=pointer]:
+            - /url: /tenant
+            - generic [ref=e12]: 📊
+            - text: Dashboard
+        - listitem [ref=e13]:
+          - link "📅 Bookings" [ref=e14] [cursor=pointer]:
+            - /url: /tenant/bookings
+            - generic [ref=e15]: 📅
+            - text: Bookings
+        - listitem [ref=e16]:
+          - link "🗓️ Calendar" [ref=e17] [cursor=pointer]:
+            - /url: /tenant/calendar
+            - generic [ref=e18]: 🗓️
+            - text: Calendar
+        - listitem [ref=e19]:
+          - link "👥 Customers" [ref=e20] [cursor=pointer]:
+            - /url: /tenant/customers
+            - generic [ref=e21]: 👥
+            - text: Customers
+        - listitem [ref=e22]:
+          - link "🏝️ Tours" [ref=e23] [cursor=pointer]:
+            - /url: /tenant/tours
+            - generic [ref=e24]: 🏝️
+            - text: Tours
+        - listitem [ref=e25]:
+          - link "🚤 Trips" [ref=e26] [cursor=pointer]:
+            - /url: /tenant/trips
+            - generic [ref=e27]: 🚤
+            - text: Trips
+        - listitem [ref=e28]:
+          - link "🌊 Dive Sites" [ref=e29] [cursor=pointer]:
+            - /url: /tenant/dive-sites
+            - generic [ref=e30]: 🌊
+            - text: Dive Sites
+        - listitem [ref=e31]:
+          - link "⛵ Boats" [ref=e32] [cursor=pointer]:
+            - /url: /tenant/boats
+            - generic [ref=e33]: ⛵
+            - text: Boats
+        - listitem [ref=e34]:
+          - link "🤿 Equipment" [ref=e35] [cursor=pointer]:
+            - /url: /tenant/equipment
+            - generic [ref=e36]: 🤿
+            - text: Equipment
+        - listitem [ref=e37]:
+          - link "📦 Products" [ref=e38] [cursor=pointer]:
+            - /url: /tenant/products
+            - generic [ref=e39]: 📦
+            - text: Products
+        - listitem [ref=e40]:
+          - link "🏷️ Discounts" [ref=e41] [cursor=pointer]:
+            - /url: /tenant/discounts
+            - generic [ref=e42]: 🏷️
+            - text: Discounts
+        - listitem [ref=e43]:
+          - link "🎓 Training" [ref=e44] [cursor=pointer]:
+            - /url: /tenant/training
+            - generic [ref=e45]: 🎓
+            - text: Training
+        - listitem [ref=e46]:
+          - link "📸 Gallery" [ref=e47] [cursor=pointer]:
+            - /url: /tenant/gallery
+            - generic [ref=e48]: 📸
+            - text: Gallery
+        - listitem [ref=e49]:
+          - link "💳 POS" [ref=e50] [cursor=pointer]:
+            - /url: /tenant/pos
+            - generic [ref=e51]: 💳
+            - text: POS
+        - listitem [ref=e52]:
+          - link "📈 Reports" [ref=e53] [cursor=pointer]:
+            - /url: /tenant/reports
+            - generic [ref=e54]: 📈
+            - text: Reports
+        - listitem [ref=e55]:
+          - link "⚙️ Settings" [ref=e56] [cursor=pointer]:
+            - /url: /tenant/settings
+            - generic [ref=e57]: ⚙️
+            - text: Settings
+    - generic [ref=e59]:
+      - img [ref=e61]
+      - generic [ref=e63]:
+        - paragraph [ref=e64]: Staff User
+        - paragraph [ref=e65]: Manager
+      - button "Sign Out" [ref=e67]:
+        - img [ref=e68]
+        - generic [ref=e70]: Sign Out
+  - main [ref=e71]:
+    - generic [ref=e72]:
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - heading "Point of Sale" [level=1] [ref=e75]
+          - button "Start new sale and clear cart" [ref=e76]: New Sale
+          - button "Scan Barcode" [ref=e77]:
+            - img [ref=e78]
+            - text: Scan Barcode
+          - button "Refund" [ref=e80]:
+            - img [ref=e81]
+            - text: Refund
+          - link "Transactions" [ref=e83] [cursor=pointer]:
+            - /url: /tenant/pos/transactions
+            - img [ref=e84]
+            - text: Transactions
+        - generic [ref=e86]: Demo Dive Shop - 1/30/2026
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - button "retail" [ref=e90]
+            - button "rentals" [ref=e91]
+            - button "trips" [active] [ref=e92]
+          - generic [ref=e94]:
+            - textbox "Search trips..." [ref=e96]
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - paragraph [ref=e100]: Two Tank Morning Dive
+                - paragraph [ref=e101]: 08:00:00
+                - paragraph [ref=e102]: $120.00
+                - paragraph [ref=e103]: 13 spots left
+                - button "Book Now" [ref=e104]
+              - generic [ref=e105]:
+                - paragraph [ref=e106]: Two Tank Morning Dive
+                - paragraph [ref=e107]: 08:00:00
+                - paragraph [ref=e108]: $120.00
+                - paragraph [ref=e109]: 16 spots left
+                - button "Book Now" [ref=e110]
+              - generic [ref=e111]:
+                - paragraph [ref=e112]: Snorkel Safari
+                - paragraph [ref=e113]: 09:00:00
+                - paragraph [ref=e114]: $65.00
+                - paragraph [ref=e115]: 20 spots left
+                - button "Book Now" [ref=e116]
+              - generic [ref=e117]:
+                - paragraph [ref=e118]: Snorkel Safari
+                - paragraph [ref=e119]: 09:00:00
+                - paragraph [ref=e120]: $65.00
+                - paragraph [ref=e121]: 17 spots left
+                - button "Book Now" [ref=e122]
+              - generic [ref=e123]:
+                - paragraph [ref=e124]: Two Tank Morning Dive
+                - paragraph [ref=e125]: 08:00:00
+                - paragraph [ref=e126]: $120.00
+                - paragraph [ref=e127]: 16 spots left
+                - button "Book Now" [ref=e128]
+              - generic [ref=e129]:
+                - paragraph [ref=e130]: Two Tank Morning Dive
+                - paragraph [ref=e131]: 08:00:00
+                - paragraph [ref=e132]: $120.00
+                - paragraph [ref=e133]: 14 spots left
+                - button "Book Now" [ref=e134]
+              - generic [ref=e135]:
+                - paragraph [ref=e136]: Discover Scuba Diving
+                - paragraph [ref=e137]: 09:00:00
+                - paragraph [ref=e138]: $150.00
+                - paragraph [ref=e139]: 4 spots left
+                - button "Book Now" [ref=e140]
+              - generic [ref=e141]:
+                - paragraph [ref=e142]: Discover Scuba Diving
+                - paragraph [ref=e143]: 09:00:00
+                - paragraph [ref=e144]: $150.00
+                - paragraph [ref=e145]: 3 spots left
+                - button "Book Now" [ref=e146]
+              - generic [ref=e147]:
+                - paragraph [ref=e148]: Two Tank Morning Dive
+                - paragraph [ref=e149]: 08:00:00
+                - paragraph [ref=e150]: $120.00
+                - paragraph [ref=e151]: 16 spots left
+                - button "Book Now" [ref=e152]
+              - generic [ref=e153]:
+                - paragraph [ref=e154]: Two Tank Morning Dive
+                - paragraph [ref=e155]: 08:00:00
+                - paragraph [ref=e156]: $120.00
+                - paragraph [ref=e157]: 14 spots left
+                - button "Book Now" [ref=e158]
+              - generic [ref=e159]:
+                - paragraph [ref=e160]: Night Dive Adventure
+                - paragraph [ref=e161]: 17:30:00
+                - paragraph [ref=e162]: $85.00
+                - paragraph [ref=e163]: 7 spots left
+                - button "Book Now" [ref=e164]
+              - generic [ref=e165]:
+                - paragraph [ref=e166]: Night Dive Adventure
+                - paragraph [ref=e167]: 17:30:00
+                - paragraph [ref=e168]: $85.00
+                - paragraph [ref=e169]: 8 spots left
+                - button "Book Now" [ref=e170]
+              - generic [ref=e171]:
+                - paragraph [ref=e172]: Wreck Explorer
+                - paragraph [ref=e173]: 08:30:00
+                - paragraph [ref=e174]: $95.00
+                - paragraph [ref=e175]: 6 spots left
+                - button "Book Now" [ref=e176]
+              - generic [ref=e177]:
+                - paragraph [ref=e178]: Wreck Explorer
+                - paragraph [ref=e179]: 08:30:00
+                - paragraph [ref=e180]: $95.00
+                - paragraph [ref=e181]: 6 spots left
+                - button "Book Now" [ref=e182]
+              - generic [ref=e183]:
+                - paragraph [ref=e184]: Two Tank Morning Dive
+                - paragraph [ref=e185]: 13:30:00
+                - paragraph [ref=e186]: $120.00
+                - paragraph [ref=e187]: 16 spots left
+                - button "Book Now" [ref=e188]
+              - generic [ref=e189]:
+                - paragraph [ref=e190]: Two Tank Morning Dive
+                - paragraph [ref=e191]: 13:30:00
+                - paragraph [ref=e192]: $120.00
+                - paragraph [ref=e193]: 16 spots left
+                - button "Book Now" [ref=e194]
+              - generic [ref=e195]:
+                - paragraph [ref=e196]: Two Tank Morning Dive
+                - paragraph [ref=e197]: 08:00:00
+                - paragraph [ref=e198]: $120.00
+                - paragraph [ref=e199]: 12 spots left
+                - button "Book Now" [ref=e200]
+              - generic [ref=e201]:
+                - paragraph [ref=e202]: Two Tank Morning Dive
+                - paragraph [ref=e203]: 08:00:00
+                - paragraph [ref=e204]: $120.00
+                - paragraph [ref=e205]: 16 spots left
+                - button "Book Now" [ref=e206]
+              - generic [ref=e207]:
+                - paragraph [ref=e208]: Snorkel Safari
+                - paragraph [ref=e209]: 09:00:00
+                - paragraph [ref=e210]: $65.00
+                - paragraph [ref=e211]: 20 spots left
+                - button "Book Now" [ref=e212]
+              - generic [ref=e213]:
+                - paragraph [ref=e214]: Snorkel Safari
+                - paragraph [ref=e215]: 09:00:00
+                - paragraph [ref=e216]: $65.00
+                - paragraph [ref=e217]: 20 spots left
+                - button "Book Now" [ref=e218]
+              - generic [ref=e219]:
+                - paragraph [ref=e220]: Discover Scuba Diving
+                - paragraph [ref=e221]: 09:00:00
+                - paragraph [ref=e222]: $150.00
+                - paragraph [ref=e223]: 4 spots left
+                - button "Book Now" [ref=e224]
+              - generic [ref=e225]:
+                - paragraph [ref=e226]: Discover Scuba Diving
+                - paragraph [ref=e227]: 09:00:00
+                - paragraph [ref=e228]: $150.00
+                - paragraph [ref=e229]: 4 spots left
+                - button "Book Now" [ref=e230]
+              - generic [ref=e231]:
+                - paragraph [ref=e232]: Two Tank Morning Dive
+                - paragraph [ref=e233]: 08:00:00
+                - paragraph [ref=e234]: $120.00
+                - paragraph [ref=e235]: 16 spots left
+                - button "Book Now" [ref=e236]
+              - generic [ref=e237]:
+                - paragraph [ref=e238]: Two Tank Morning Dive
+                - paragraph [ref=e239]: 08:00:00
+                - paragraph [ref=e240]: $120.00
+                - paragraph [ref=e241]: 16 spots left
+                - button "Book Now" [ref=e242]
+              - generic [ref=e243]:
+                - paragraph [ref=e244]: Night Dive Adventure
+                - paragraph [ref=e245]: 17:30:00
+                - paragraph [ref=e246]: $85.00
+                - paragraph [ref=e247]: 8 spots left
+                - button "Book Now" [ref=e248]
+              - generic [ref=e249]:
+                - paragraph [ref=e250]: Night Dive Adventure
+                - paragraph [ref=e251]: 17:30:00
+                - paragraph [ref=e252]: $85.00
+                - paragraph [ref=e253]: 8 spots left
+                - button "Book Now" [ref=e254]
+        - generic [ref=e256]:
+          - heading "Cart" [level=2] [ref=e258]
+          - paragraph [ref=e260]: Cart is empty
+          - button "Add Customer (Optional)" [ref=e262]
+          - generic [ref=e263]:
+            - generic [ref=e264]:
+              - generic [ref=e265]: Subtotal
+              - generic [ref=e266]: $0.00
+            - generic [ref=e267]:
+              - generic [ref=e268]: Tax (0%)
+              - generic [ref=e269]: $0.00
+            - generic [ref=e270]:
+              - generic [ref=e271]: Total
+              - generic [ref=e272]: $0.00
+          - generic [ref=e274]:
+            - button "Card" [disabled] [ref=e275]
+            - button "Cash" [disabled] [ref=e276]
+            - button "Split" [disabled] [ref=e277]
+```
