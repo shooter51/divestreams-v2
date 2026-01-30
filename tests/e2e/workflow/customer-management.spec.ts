@@ -63,7 +63,7 @@ const getTenantUrl = (path: string = "/") =>
 // Helper to login to tenant
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
-  await page.getByLabel(/email/i).fill(testData.user.email);
+  await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
@@ -294,7 +294,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
     // Try multiple selectors for the email field
-    const emailByLabel = await page.getByLabel(/email/i).isVisible().catch(() => false);
+    const emailByLabel = await page.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
     const emailById = await page.locator('#email').isVisible().catch(() => false);
     const emailByName = await page.locator('input[name="email"]').isVisible().catch(() => false);
     expect(emailByLabel || emailById || emailByName).toBeTruthy();
@@ -344,7 +344,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
       await lastNameField.fill(testData.customer.lastName);
     }
 
-    const emailField = page.getByLabel(/email/i);
+    const emailField = page.getByRole("textbox", { name: /email/i });
     if (await emailField.isVisible().catch(() => false)) {
       await emailField.fill(testData.customer.email);
     }

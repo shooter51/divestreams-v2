@@ -119,7 +119,7 @@ export class TeamPage extends TenantBasePage {
 
   async inviteMember(email: string, role: string): Promise<void> {
     await this.page.getByRole("button", { name: /invite|add member/i }).click();
-    await this.page.getByLabel(/email/i).fill(email);
+    await this.page.getByRole("textbox", { name: /email/i }).fill(email);
     await this.page.getByLabel(/role/i).selectOption(role);
     await this.page.getByRole("button", { name: /send invite|invite/i }).click();
   }

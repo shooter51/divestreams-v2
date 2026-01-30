@@ -1,20 +1,70 @@
 # Page snapshot
 
 ```yaml
-- generic [ref=e3]:
-  - generic [ref=e4]:
-    - heading "The Dive Shop LA" [level=1] [ref=e5]
-    - paragraph [ref=e6]: Sign in to your account
-  - generic [ref=e7]:
-    - generic [ref=e8]: Invalid email or password
-    - generic [ref=e9]:
-      - generic [ref=e10]:
-        - generic [ref=e11]: Email
-        - textbox "Email" [ref=e12]: admin@divestreams.com
-      - generic [ref=e13]:
-        - generic [ref=e14]: Password
-        - textbox "Password" [ref=e15]
-    - button "Sign In" [ref=e16]
-    - link "Forgot your password?" [ref=e17] [cursor=pointer]:
-      - /url: /auth/forgot-password
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e4]: DiveStreams
+    - generic [ref=e5]:
+      - link "Features" [ref=e6] [cursor=pointer]:
+        - /url: /features
+      - link "Pricing" [ref=e7] [cursor=pointer]:
+        - /url: /pricing
+      - link "Start Free Trial" [ref=e8] [cursor=pointer]:
+        - /url: /signup
+  - generic [ref=e9]:
+    - heading "Run Your Dive Shop Effortlessly" [level=1] [ref=e10]
+    - paragraph [ref=e11]: The all-in-one platform for dive shops to manage bookings, customers, equipment, and operations. Built by divers, for divers.
+    - generic [ref=e12]:
+      - link "Start Free Trial" [ref=e13] [cursor=pointer]:
+        - /url: /signup
+      - link "See Features" [ref=e14] [cursor=pointer]:
+        - /url: /features
+    - generic [ref=e15]:
+      - paragraph [ref=e16]: 14 days free • No credit card required
+      - paragraph [ref=e17]: Cancel anytime
+  - generic [ref=e18]:
+    - heading "Everything You Need to Manage Your Dive Shop" [level=2] [ref=e19]
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]: 📅
+        - heading "Booking Management" [level=3] [ref=e23]
+        - paragraph [ref=e24]: Take online bookings 24/7, manage schedules, and reduce no-shows with automated reminders.
+      - generic [ref=e25]:
+        - generic [ref=e26]: 👥
+        - heading "Customer Database" [level=3] [ref=e27]
+        - paragraph [ref=e28]: Track certifications, medical info, and dive history. Build lasting relationships.
+      - generic [ref=e29]:
+        - generic [ref=e30]: 🚤
+        - heading "Tour & Trip Planning" [level=3] [ref=e31]
+        - paragraph [ref=e32]: Create tours, schedule trips, assign boats and staff, all from one dashboard.
+      - generic [ref=e33]:
+        - generic [ref=e34]: 🤿
+        - heading "Equipment Tracking" [level=3] [ref=e35]
+        - paragraph [ref=e36]: Manage inventory, track rentals, and never miss a service date.
+      - generic [ref=e37]:
+        - generic [ref=e38]: 💳
+        - heading "Payment Processing" [level=3] [ref=e39]
+        - paragraph [ref=e40]: Accept deposits, process payments, and manage invoices with Stripe integration.
+      - generic [ref=e41]:
+        - generic [ref=e42]: 📊
+        - heading "Reports & Insights" [level=3] [ref=e43]
+        - paragraph [ref=e44]: Understand your business with revenue reports, booking trends, and customer analytics.
+  - generic [ref=e46]:
+    - heading "Ready to Streamline Your Operations?" [level=2] [ref=e47]
+    - paragraph [ref=e48]: Join dive shops worldwide who trust DiveStreams to run their business.
+    - generic [ref=e49]:
+      - link "Start Your 14-Day Free Trial" [ref=e50] [cursor=pointer]:
+        - /url: /signup
+      - paragraph [ref=e51]: No credit card required • Cancel anytime
+  - contentinfo [ref=e52]:
+    - generic [ref=e53]:
+      - generic [ref=e54]: DiveStreams
+      - generic [ref=e55]:
+        - link "Pricing" [ref=e56] [cursor=pointer]:
+          - /url: /pricing
+        - link "Features" [ref=e57] [cursor=pointer]:
+          - /url: /features
+        - link "Support" [ref=e58] [cursor=pointer]:
+          - /url: mailto:support@divestreams.com
+    - generic [ref=e59]: © 2026 DiveStreams. All rights reserved.
 ```

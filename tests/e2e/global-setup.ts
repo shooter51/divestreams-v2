@@ -89,20 +89,22 @@ async function globalSetup(config: FullConfig) {
       .where(eq(subscriptionPlans.name, "enterprise"))
       .limit(1);
 
-    if (enterprisePlan) {
-      await db
-        .update(subscription)
-        .set({
-          plan: "enterprise",
-          planId: enterprisePlan.id,
-          status: "active",
-        })
-        .where(eq(subscription.organizationId, demoOrg.id));
-
-      console.log("✓ Demo organization upgraded to ENTERPRISE plan");
-    } else {
-      console.warn("⚠️  Enterprise plan not found - demo org will remain on FREE plan");
+    if (!enterprisePlan) {
+      throw new Error(
+        "❌ SETUP FAILED: Enterprise subscription plan not found in database.\n" +
+        "   This will cause 40+ E2E test failures due to feature gate restrictions.\n" +
+        "   Fix: Run 'npm run db:seed' or 'tsx scripts/seed.ts' to populate subscription_plans table."
+      );
     }
+
+    await db
+      .update(subscription)
+      .set({
+        plan: "enterprise",
+        planId: enterprisePlan.id,
+        status: "active",
+      })
+      .where(eq(subscription.organizationId, demoOrg.id));
 
     console.log("✓ Demo organization created successfully");
     console.log("  - Organization: demo.localhost:5173");

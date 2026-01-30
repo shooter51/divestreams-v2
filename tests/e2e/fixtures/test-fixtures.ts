@@ -34,7 +34,7 @@ export async function loginToTenant(
     return;
   }
 
-  await page.getByLabel(/email/i).fill(email);
+  await page.getByRole("textbox", { name: /email/i }).fill(email);
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
 

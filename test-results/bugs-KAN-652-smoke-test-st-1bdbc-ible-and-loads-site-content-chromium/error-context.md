@@ -69,7 +69,7 @@
                 - button "Settings" [ref=f2e33] [cursor=pointer]:
                   - img
                 - link "Watch on YouTube" [ref=f2e34] [cursor=pointer]:
-                  - /url: https://www.youtube.com/watch?list=TLGGgMIzTx7mDlwyOTAxMjAyNg&v=VXuH-KOeiAo
+                  - /url: https://www.youtube.com/watch?list=TLGGgMIzTx7mDlwzMDAxMjAyNg&v=VXuH-KOeiAo
                   - img
                 - button "Full screen (f)" [ref=f2e35] [cursor=pointer]:
                   - img

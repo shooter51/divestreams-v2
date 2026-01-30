@@ -16,7 +16,7 @@ export class LoginPage extends TenantBasePage {
   }
 
   async expectLoginForm(): Promise<void> {
-    await expect(this.page.getByLabel(/email/i)).toBeVisible();
+    await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
     await expect(this.page.getByLabel(/password/i)).toBeVisible();
     await expect(this.page.getByRole("button", { name: /sign in/i })).toBeVisible();
   }
@@ -52,7 +52,7 @@ export class ForgotPasswordPage extends TenantBasePage {
   }
 
   async expectForm(): Promise<void> {
-    await expect(this.page.getByLabel(/email/i)).toBeVisible();
+    await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
     await expect(this.page.getByRole("button", { name: /send reset link/i })).toBeVisible();
   }
 
@@ -108,7 +108,7 @@ export class SignupPage {
   }): Promise<void> {
     await this.page.getByLabel(/subdomain/i).fill(data.subdomain);
     await this.page.getByLabel(/business name/i).fill(data.businessName);
-    await this.page.getByLabel(/email/i).fill(data.email);
+    await this.page.getByRole("textbox", { name: /email/i }).fill(data.email);
     await this.page.getByLabel(/password/i).fill(data.password);
   }
 
@@ -119,7 +119,7 @@ export class SignupPage {
   async expectForm(): Promise<void> {
     await expect(this.page.getByLabel(/subdomain/i)).toBeVisible();
     await expect(this.page.getByLabel(/business name/i)).toBeVisible();
-    await expect(this.page.getByLabel(/email/i)).toBeVisible();
+    await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
     await expect(this.page.getByLabel(/password/i)).toBeVisible();
   }
 
