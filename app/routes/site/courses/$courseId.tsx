@@ -60,7 +60,7 @@ const CERTIFICATION_AGENCIES: Record<string, { name: string; color: string; desc
 interface ScheduledSession {
   id: string;
   date: string;
-  startTime: string;
+  startTime: string | null;
   endTime: string | null;
   maxParticipants: number | null;
   price: string | null;
@@ -187,7 +187,8 @@ function formatDate(dateStr: string): string {
 /**
  * Format time for display
  */
-function formatTime(timeStr: string): string {
+function formatTime(timeStr: string | null): string {
+  if (!timeStr) return "Time TBA";
   const [hours, minutes] = timeStr.split(":");
   const h = parseInt(hours, 10);
   const ampm = h >= 12 ? "PM" : "AM";
@@ -503,7 +504,7 @@ function SessionCard({
     <div
       role="button"
       tabIndex={0}
-      aria-label={`Select session on ${formatDate(session.date)} at ${formatTime(session.startTime)}`}
+      aria-label={`Select session on ${formatDate(session.date)}${session.startTime ? ` at ${formatTime(session.startTime)}` : ''}`}
       className={`bg-surface-raised rounded-xl shadow-sm border-2 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
         isSelected ? 'bg-brand-muted dark:bg-brand-muted/20' : 'hover:bg-surface-overlay'
       }`}

@@ -540,7 +540,7 @@ export async function getCourseScheduledTrips(
   trips: Array<{
     id: string;
     date: string;
-    startTime: string;
+    startTime: string | null;
     endTime: string | null;
     maxParticipants: number | null;
     price: string | null;
