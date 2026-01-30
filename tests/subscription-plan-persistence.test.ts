@@ -104,19 +104,19 @@ describe("Subscription Plan Persistence (DIVE-166)", () => {
       slug: "test-org-" + Date.now(),
     });
 
-    // Get the pro plan from the database
+    // Get the test plan by price ID (not by name, to ensure we get the right one)
     const [plan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "pro"))
+      .where(eq(subscriptionPlans.monthlyPriceId, "price_test_pro_monthly"))
       .limit(1);
 
     if (!plan) {
-      throw new Error("Pro plan not found in database after seeding");
+      throw new Error("Test plan with price_test_pro_monthly not found");
     }
 
     testPlanId = plan.id;
-    testPriceId = plan.monthlyPriceId || "price_test_123";
+    testPriceId = plan.monthlyPriceId!; // We know it exists from the query
 
     // Create a test subscription (starting as free)
     await db.insert(subscription).values({
@@ -217,11 +217,11 @@ describe("Subscription Plan Persistence (DIVE-166)", () => {
   });
 
   it("should handle yearly price IDs correctly", async () => {
-    // Get a plan with a yearly price
+    // Get the test plan by price ID
     const [plan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "pro"))
+      .where(eq(subscriptionPlans.monthlyPriceId, "price_test_pro_monthly"))
       .limit(1);
 
     if (!plan?.yearlyPriceId) {
