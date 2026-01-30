@@ -200,7 +200,7 @@ export async function getCourses(
     isPublic?: boolean;
   }
 ) {
-  let query = db
+  const query = db
     .select({
       id: schema.trainingCourses.id,
       name: schema.trainingCourses.name,

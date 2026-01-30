@@ -51,10 +51,16 @@ vi.mock("../../../../lib/db/schema/auth", () => ({
     name: "name",
     slug: "slug",
   },
+  member: {
+    userId: "userId",
+    organizationId: "organizationId",
+    role: "role",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
+  and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
 vi.mock("../../../../lib/utils/url", () => ({

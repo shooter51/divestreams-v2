@@ -58,7 +58,7 @@ export async function getPublicGalleryImages(
     offset = 0,
   } = filters;
 
-  let query = db
+  const query = db
     .select({
       id: galleryImages.id,
       organizationId: galleryImages.organizationId,
