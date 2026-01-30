@@ -176,7 +176,7 @@ async function globalSetup(config: FullConfig) {
     console.log("\nSeeding demo tenant data (products, equipment, trips)...");
     try {
       // Call seedDemoData which will create products, equipment, and trips
-      await seedDemoData("tenant_demo", demoOrg.id);
+      await seedDemoData(demoOrg.id);
       console.log("✓ Demo data seeded successfully");
     } catch (error) {
       console.warn("⚠️  Demo data seeding failed (will use minimal data):", error);
