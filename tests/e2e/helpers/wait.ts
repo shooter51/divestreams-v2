@@ -21,8 +21,9 @@ export async function waitForFormVisible(page: Page, timeout = 10000): Promise<v
 }
 
 /**
- * Wait for navigation to complete (network idle state).
+ * Wait for navigation to complete (load state).
  * Useful after clicking links or submitting forms.
+ * Note: Uses 'load' instead of 'networkidle' for better reliability with apps that have polling/websockets.
  *
  * @param page - The Playwright page object
  * @param timeout - Maximum time to wait in milliseconds (default: 10000)
@@ -32,7 +33,7 @@ export async function waitForFormVisible(page: Page, timeout = 10000): Promise<v
  * await waitForNavigation(page);
  */
 export async function waitForNavigation(page: Page, timeout = 10000): Promise<void> {
-  await page.waitForLoadState('networkidle', { timeout });
+  await page.waitForLoadState('load', { timeout });
 }
 
 /**

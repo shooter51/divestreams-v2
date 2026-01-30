@@ -428,12 +428,12 @@ export class POSPage extends TenantBasePage {
 
   async navigateAway(): Promise<void> {
     await this.gotoApp("/dashboard");
-    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForLoadState("load");
   }
 
   async navigateBack(): Promise<void> {
     await this.goto();
-    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForLoadState("load");
   }
 
   // ============================================
