@@ -1114,7 +1114,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   const hasSsi = existingAgencies.some((a) => a.code.toLowerCase() === "ssi");
   const hasNaui = existingAgencies.some((a) => a.code.toLowerCase() === "naui");
 
-  let trainingStats = { agencies: 0, levels: 0 };
+  let trainingStats = { agencies: 0, levels: 0, courses: 0, sessions: 0 };
 
   // Seed each agency individually if it doesn't exist
   let agenciesSeeded = 0;

@@ -7,7 +7,6 @@
 
 import { db } from "../db";
 import { trips } from "../db/schema";
-import { organization } from "../db/schema/auth";
 import { eq, and, gte, sql, or } from "drizzle-orm";
 
 // ============================================================================
@@ -525,20 +524,12 @@ export async function cancelRecurringSeries(
 
   // Sync cancelled trips to Google Calendar (async, don't block response)
   if (tripsToBeCancelled.length > 0) {
-    // Get organization timezone
-    const [org] = await db
-      .select({ timezone: organization.timezone })
-      .from(organization)
-      .where(eq(organization.id, organizationId))
-      .limit(1);
-
-    const timezone = org?.timezone || "UTC";
-
     // Import and sync each cancelled trip to Google Calendar
+    // Note: syncTripToCalendar defaults to UTC timezone
     import("../integrations/google-calendar.server")
       .then(({ syncTripToCalendar }) => {
         tripsToBeCancelled.forEach((trip) => {
-          syncTripToCalendar(organizationId, trip.id, timezone).catch((error) =>
+          syncTripToCalendar(organizationId, trip.id).catch((error) =>
             console.error(`Google Calendar sync failed for cancelled trip ${trip.id}:`, error)
           );
         });
