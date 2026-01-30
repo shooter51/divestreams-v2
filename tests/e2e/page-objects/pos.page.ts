@@ -40,7 +40,8 @@ export class POSPage extends TenantBasePage {
 
   async expectTabActive(tab: "retail" | "rentals" | "trips"): Promise<void> {
     const tabButton = this.page.getByRole("button", { name: new RegExp(`^${tab}$`, "i") });
-    await expect(tabButton).toHaveClass(/bg-white|text-blue/);
+    // Active tabs use semantic tokens: bg-surface-raised and text-brand
+    await expect(tabButton).toHaveClass(/bg-surface-raised.*text-brand/);
   }
 
   // ============================================
@@ -176,8 +177,8 @@ export class POSPage extends TenantBasePage {
   }
 
   async getCartItemCount(): Promise<number> {
-    // Each cart item is in a div with bg-gray-50 class
-    return await this.cartContainer.locator(".bg-gray-50").count();
+    // Each cart item is in a div with bg-surface-inset class (semantic design token)
+    return await this.cartContainer.locator(".bg-surface-inset").count();
   }
 
   async getCartItemByIndex(index: number): Promise<{
@@ -185,7 +186,7 @@ export class POSPage extends TenantBasePage {
     details: string;
     total: string;
   }> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(index);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(index);
     const name = await cartItem.locator("p.font-medium").first().textContent() || "";
     const details = await cartItem.locator("p.text-sm.text-gray-600").textContent() || "";
     const total = await cartItem.locator("p.font-medium").last().textContent() || "";
@@ -197,7 +198,7 @@ export class POSPage extends TenantBasePage {
     details: string;
     total: string;
   }> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").filter({ hasText: itemName });
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").filter({ hasText: itemName });
     const name = await cartItem.locator("p.font-medium").first().textContent() || "";
     const details = await cartItem.locator("p.text-sm.text-gray-600").textContent() || "";
     const total = await cartItem.locator("p.font-medium").last().textContent() || "";
@@ -205,23 +206,23 @@ export class POSPage extends TenantBasePage {
   }
 
   async increaseQuantity(itemIndex: number): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(itemIndex);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(itemIndex);
     await cartItem.locator("button").filter({ hasText: "+" }).click();
   }
 
   async decreaseQuantity(itemIndex: number): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(itemIndex);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(itemIndex);
     await cartItem.locator("button").filter({ hasText: "-" }).click();
   }
 
   async getItemQuantity(itemIndex: number): Promise<number> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(itemIndex);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(itemIndex);
     const quantityText = await cartItem.locator(".w-6.text-center").textContent();
     return parseInt(quantityText || "0", 10);
   }
 
   async updateItemQuantity(index: number, quantity: number): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(index);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(index);
     const currentQty = await this.getItemQuantity(index);
 
     if (quantity > currentQty) {
@@ -238,13 +239,13 @@ export class POSPage extends TenantBasePage {
   }
 
   async removeCartItem(index: number): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(index);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(index);
     // The remove button has an X icon (SVG with path)
     await cartItem.locator("button.text-red-500").click();
   }
 
   async removeCartItemByName(itemName: string): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").filter({ hasText: itemName });
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").filter({ hasText: itemName });
     await cartItem.locator("button.text-red-500").click();
   }
 
