@@ -109,6 +109,11 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
 
+      - name: Seed subscription plans
+        run: npm run db:seed
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+
       - name: Build application
         run: npm run build
         env:

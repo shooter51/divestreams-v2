@@ -449,3 +449,176 @@ export async function getEquipmentByBarcode(tables: TenantTables, organizationId
     .limit(1);
   return equipment;
 }
+
+/**
+ * Get transaction by ID with items and customer info
+ */
+export async function getTransactionById(tables: TenantTables, organizationId: string, transactionId: string) {
+  const [transaction] = await db
+    .select({
+      transaction: tables.transactions,
+      customerFirstName: tables.customers.firstName,
+      customerLastName: tables.customers.lastName,
+      customerEmail: tables.customers.email,
+    })
+    .from(tables.transactions)
+    .leftJoin(tables.customers, eq(tables.transactions.customerId, tables.customers.id))
+    .where(
+      and(
+        eq(tables.transactions.organizationId, organizationId),
+        eq(tables.transactions.id, transactionId)
+      )
+    )
+    .limit(1);
+
+  if (!transaction) return null;
+
+  return {
+    ...transaction.transaction,
+    customer: transaction.customerFirstName
+      ? {
+          firstName: transaction.customerFirstName,
+          lastName: transaction.customerLastName,
+          email: transaction.customerEmail,
+        }
+      : null,
+  };
+}
+
+/**
+ * Process POS refund for a transaction
+ * Handles full refund of all items with inventory/equipment adjustments
+ *
+ * IMPORTANT: Wrapped in database transaction for atomicity
+ */
+export async function processPOSRefund(
+  tables: TenantTables,
+  organizationId: string,
+  data: {
+    originalTransactionId: string;
+    userId: string;
+    refundReason: string;
+    stripeRefundId?: string;
+  }
+) {
+  // Wrap entire refund process in transaction for atomicity
+  return await db.transaction(async (tx) => {
+    // Get the original transaction
+    const original = await getTransactionById(tables, organizationId, data.originalTransactionId);
+
+    if (!original) {
+      throw new Error("Original transaction not found");
+    }
+
+    if (original.type === "refund") {
+      throw new Error("Cannot refund a refund transaction");
+    }
+
+    if (original.type !== "sale") {
+      throw new Error(`Cannot refund transaction of type '${original.type}'. Only 'sale' transactions can be refunded.`);
+    }
+
+    // Check if transaction has already been refunded (double-refund prevention)
+    const [existingRefund] = await tx
+      .select()
+      .from(tables.transactions)
+      .where(eq(tables.transactions.refundedTransactionId, data.originalTransactionId))
+      .limit(1);
+
+    if (existingRefund) {
+      throw new Error("Transaction has already been refunded");
+    }
+
+    // Create refund transaction
+    const [refundTransaction] = await tx
+      .insert(tables.transactions)
+      .values({
+        organizationId,
+        type: "refund",
+        bookingId: null,
+        customerId: original.customerId,
+        userId: data.userId,
+        amount: `-${original.amount}`, // Negative amount for refund
+        currency: original.currency,
+        paymentMethod: original.paymentMethod,
+        stripePaymentId: data.stripeRefundId,
+        items: original.items,
+        notes: `Refund for transaction ${original.id}`,
+        refundedTransactionId: original.id,
+        refundReason: data.refundReason,
+      })
+      .returning();
+
+    // Process inventory adjustments for products
+    const items = (original.items as Array<{
+      type: string;
+      productId?: string;
+      quantity?: number;
+      equipmentId?: string;
+      tripId?: string;
+    }>) || [];
+
+    for (const item of items) {
+      if (item.type === "product" && item.productId && item.quantity) {
+        // Return products to inventory
+        await tx
+          .update(tables.products)
+          .set({
+            stockQuantity: sql`${tables.products.stockQuantity} + ${item.quantity}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(tables.products.id, item.productId));
+      }
+
+      if (item.type === "rental" && item.equipmentId) {
+        // Return equipment to available status
+        await tx
+          .update(tables.equipment)
+          .set({ status: "available", updatedAt: new Date() })
+          .where(eq(tables.equipment.id, item.equipmentId));
+
+        // Update rental status to returned
+        await tx
+          .update(tables.rentals)
+          .set({ status: "returned", returnedAt: new Date() })
+          .where(
+            and(
+              eq(tables.rentals.transactionId, original.id),
+              eq(tables.rentals.equipmentId, item.equipmentId)
+            )
+          );
+      }
+
+      if (item.type === "booking" && item.tripId && original.customerId) {
+        // Find and cancel the booking created by this POS transaction
+        // Match by tripId, customerId, source, and creation time window
+        const [booking] = await tx
+          .select()
+          .from(tables.bookings)
+          .where(
+            and(
+              eq(tables.bookings.organizationId, organizationId),
+              eq(tables.bookings.tripId, item.tripId),
+              eq(tables.bookings.customerId, original.customerId),
+              eq(tables.bookings.source, "pos"),
+              sql`${tables.bookings.createdAt} >= ${original.createdAt} - interval '1 minute'`,
+              sql`${tables.bookings.createdAt} <= ${original.createdAt} + interval '1 minute'`
+            )
+          )
+          .limit(1);
+
+        if (booking) {
+          await tx
+            .update(tables.bookings)
+            .set({ status: "cancelled", updatedAt: new Date() })
+            .where(eq(tables.bookings.id, booking.id));
+        }
+      }
+    }
+
+    return {
+      refundTransaction,
+      originalTransaction: original,
+    };
+  });
+}

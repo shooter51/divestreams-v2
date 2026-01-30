@@ -143,6 +143,11 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
 
+      - name: Seed subscription plans
+        run: npm run db:seed
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+
       # Note: No build step needed - playwright starts instrumented dev server
       - name: Run E2E tests with coverage
         run: npm run test:coverage:e2e

@@ -619,14 +619,18 @@ export async function getStripeSettings(
   const result = await getIntegrationWithTokens(orgId, "stripe");
   const publishableKey = result?.refreshToken || null;
 
+  // Fetch current account status from Stripe to ensure accuracy
+  // Don't rely on cached settings.chargesEnabled which may be stale
+  const accountInfo = await getStripeAccountInfo(orgId);
+
   return {
     connected: true,
     accountId: integration.accountId,
     accountName: integration.accountName,
     liveMode: (settings?.liveMode as boolean) ?? false,
     webhookConfigured: !!(settings?.webhookEndpointId),
-    chargesEnabled: (settings?.chargesEnabled as boolean) ?? false,
-    payoutsEnabled: (settings?.payoutsEnabled as boolean) ?? false,
+    chargesEnabled: accountInfo?.chargesEnabled ?? false,
+    payoutsEnabled: accountInfo?.payoutsEnabled ?? false,
     publishableKeyPrefix: publishableKey ? publishableKey.slice(0, 12) + "..." : null,
   };
 }
@@ -928,5 +932,63 @@ export async function deleteTerminalReader(
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete reader",
     };
+  }
+}
+
+// ============================================================================
+// REFUNDS
+// ============================================================================
+
+/**
+ * Create a refund for a PaymentIntent
+ *
+ * Used for processing POS refunds when original payment was made by card.
+ * Can do full or partial refunds.
+ */
+export async function createStripeRefund(
+  orgId: string,
+  paymentIntentId: string,
+  options?: {
+    amount?: number; // Amount in cents (undefined = full refund)
+    reason?: "duplicate" | "fraudulent" | "requested_by_customer";
+    metadata?: Record<string, string>;
+  }
+): Promise<{ refundId: string; amount: number; status: string } | null> {
+  const client = await getStripeClient(orgId);
+
+  if (!client) {
+    return null;
+  }
+
+  const { stripe, integration } = client;
+
+  try {
+    const refund = await stripe.refunds.create({
+      payment_intent: paymentIntentId,
+      amount: options?.amount,
+      reason: options?.reason,
+      metadata: {
+        orgId,
+        source: "pos_refund",
+        ...options?.metadata,
+      },
+    });
+
+    await logSyncOperation(integration.id, "create_refund", "success", {
+      entityType: "refund",
+      externalId: refund.id,
+    });
+
+    return {
+      refundId: refund.id,
+      amount: refund.amount,
+      status: refund.status || "pending",
+    };
+  } catch (error) {
+    await logSyncOperation(integration.id, "create_refund", "failed", {
+      entityType: "refund",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
   }
 }
