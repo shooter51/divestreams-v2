@@ -181,16 +181,13 @@ async function globalSetup(config: FullConfig) {
     } catch (error) {
       console.warn("⚠️  Demo data seeding failed (will use minimal data):", error);
       // Insert minimal test data directly if seedDemoData fails
-      const { getTenantDb } = await import("../../lib/db/tenant.server");
-      const { schema } = getTenantDb("tenant_demo");
-
-      // Insert minimal products for POS tests
+      // Use PUBLIC schema with organization_id (not tenant schemas)
       await db.execute(sql`
-        INSERT INTO tenant_demo.products (id, name, description, category, price, cost_price, sku, stock_quantity, track_inventory, is_active, created_at, updated_at)
+        INSERT INTO public.products (id, organization_id, name, description, category, price, cost_price, sku, stock_quantity, track_inventory, is_active, created_at, updated_at)
         VALUES
-          (gen_random_uuid(), 'Test Product 1', 'Test product for E2E', 'Test', 29.99, 15.00, 'TEST-001', 50, true, true, NOW(), NOW()),
-          (gen_random_uuid(), 'Test Product 2', 'Test product for E2E', 'Test', 39.99, 20.00, 'TEST-002', 50, true, true, NOW(), NOW()),
-          (gen_random_uuid(), 'Test Product 3', 'Test product for E2E', 'Test', 49.99, 25.00, 'TEST-003', 50, true, true, NOW(), NOW())
+          (gen_random_uuid(), ${demoOrg.id}, 'Test Product 1', 'Test product for E2E', 'Test', 29.99, 15.00, 'TEST-001', 50, true, true, NOW(), NOW()),
+          (gen_random_uuid(), ${demoOrg.id}, 'Test Product 2', 'Test product for E2E', 'Test', 39.99, 20.00, 'TEST-002', 50, true, true, NOW(), NOW()),
+          (gen_random_uuid(), ${demoOrg.id}, 'Test Product 3', 'Test product for E2E', 'Test', 49.99, 25.00, 'TEST-003', 50, true, true, NOW(), NOW())
         ON CONFLICT DO NOTHING
       `);
       console.log("✓ Minimal test data inserted");

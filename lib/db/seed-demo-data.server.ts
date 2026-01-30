@@ -2,7 +2,6 @@ import { db } from "./index";
 import * as schema from "./schema";
 import { eq, sql } from "drizzle-orm";
 import { organization } from "./schema/auth";
-import postgres from "postgres";
 
 // ============================================================================
 // DEMO IMAGE URLS - Using Unsplash for realistic diving photos
@@ -76,9 +75,9 @@ const DEMO_IMAGES = {
  * @param organizationId - The organization ID to seed data for
  */
 export async function seedDemoData(organizationId: string): Promise<void> {
-  // Look up organization to get subdomain/slug for tenant schema
+  // Verify organization exists
   const [org] = await db
-    .select({ slug: organization.slug })
+    .select({ id: organization.id })
     .from(organization)
     .where(eq(organization.id, organizationId))
     .limit(1);
@@ -86,15 +85,6 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   if (!org) {
     throw new Error(`Organization ${organizationId} not found`);
   }
-
-  const schemaName = `tenant_${org.slug.toLowerCase()}`;
-
-  // Create postgres client for raw SQL operations on tenant schema
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL environment variable is not set");
-  }
-  const client = postgres(connectionString);
 
   // Demo Customers
   const customers = [
@@ -226,40 +216,31 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
-  // Insert customers into tenant schema (tenant tables don't have organization_id)
+  // Insert customers into PUBLIC schema with organizationId
   const customerIds: string[] = [];
   for (const customer of customers) {
-    const [result] = await client.unsafe(`
-      INSERT INTO "${schemaName}".customers (
-        email, first_name, last_name, phone, date_of_birth,
-        emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
-        certifications, country, city, total_dives, notes, tags,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5,
-        $6, $7, $8,
-        $9::jsonb, $10, $11, $12, $13, $14::jsonb,
-        NOW(), NOW()
-      )
-      RETURNING id
-    `, [
-      customer.email,
-      customer.firstName,
-      customer.lastName,
-      customer.phone || null,
-      customer.dateOfBirth || null,
-      customer.emergencyContactName || null,
-      customer.emergencyContactPhone || null,
-      customer.emergencyContactRelation || null,
-      JSON.stringify(customer.certifications || []),
-      customer.country || null,
-      customer.city || null,
-      customer.totalDives || 0,
-      customer.notes || null,
-      JSON.stringify(customer.tags || []),
-    ]);
+    const [result] = await db
+      .insert(schema.customers)
+      .values({
+        organizationId,
+        email: customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        phone: customer.phone || null,
+        dateOfBirth: customer.dateOfBirth || null,
+        emergencyContactName: customer.emergencyContactName || null,
+        emergencyContactPhone: customer.emergencyContactPhone || null,
+        emergencyContactRelation: customer.emergencyContactRelation || null,
+        certifications: customer.certifications || [],
+        country: customer.country || null,
+        city: customer.city || null,
+        totalDives: customer.totalDives || 0,
+        notes: customer.notes || null,
+        tags: customer.tags || [],
+      })
+      .returning({ id: schema.customers.id });
 
-    if (result && result.id) {
+    if (result) {
       customerIds.push(result.id);
     }
   }
@@ -333,35 +314,28 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
-  // Insert dive sites into tenant schema (tenant tables don't have organization_id)
+  // Insert dive sites into PUBLIC schema with organizationId
   const diveSiteIds: string[] = [];
   for (const site of diveSites) {
-    const [result] = await client.unsafe(`
-      INSERT INTO "${schemaName}".dive_sites (
-        name, description, latitude, longitude, max_depth, min_depth,
-        difficulty, current_strength, visibility, highlights, images,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6,
-        $7, $8, $9, $10::jsonb, $11::jsonb,
-        NOW(), NOW()
-      )
-      RETURNING id
-    `, [
-      site.name,
-      site.description,
-      site.latitude,
-      site.longitude,
-      site.maxDepth,
-      site.minDepth,
-      site.difficulty,
-      site.currentStrength,
-      site.visibility,
-      JSON.stringify(site.highlights),
-      JSON.stringify(site.images),
-    ]);
+    const [result] = await db
+      .insert(schema.diveSites)
+      .values({
+        organizationId,
+        name: site.name,
+        description: site.description,
+        latitude: site.latitude,
+        longitude: site.longitude,
+        maxDepth: site.maxDepth,
+        minDepth: site.minDepth,
+        difficulty: site.difficulty,
+        currentStrength: site.currentStrength,
+        visibility: site.visibility,
+        highlights: site.highlights,
+        images: site.images,
+      })
+      .returning({ id: schema.diveSites.id });
 
-    if (result && result.id) {
+    if (result) {
       diveSiteIds.push(result.id);
     }
   }
@@ -388,29 +362,24 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
-  // Insert boats into tenant schema
+  // Insert boats into PUBLIC schema with organizationId
   const boatIds: string[] = [];
   for (const boat of boats) {
-    const [result] = await client.unsafe(`
-      INSERT INTO "${schemaName}".boats (
-        name, description, capacity, type, registration_number, amenities, images,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6::jsonb, $7::jsonb,
-        NOW(), NOW()
-      )
-      RETURNING id
-    `, [
-      boat.name,
-      boat.description,
-      boat.capacity,
-      boat.type,
-      boat.registrationNumber,
-      JSON.stringify(boat.amenities),
-      JSON.stringify(boat.images),
-    ]);
+    const [result] = await db
+      .insert(schema.boats)
+      .values({
+        organizationId,
+        name: boat.name,
+        description: boat.description,
+        capacity: boat.capacity,
+        type: boat.type,
+        registrationNumber: boat.registrationNumber,
+        amenities: boat.amenities,
+        images: boat.images,
+      })
+      .returning({ id: schema.boats.id });
 
-    if (result && result.id) {
+    if (result) {
       boatIds.push(result.id);
     }
   }
@@ -439,29 +408,26 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     { category: "torch", name: "BigBlue AL1200", brand: "BigBlue", rentalPrice: "15.00" },
   ];
 
-  // Insert equipment into tenant schema
+  // Insert equipment into PUBLIC schema with organizationId
   const equipmentIds: string[] = [];
   for (const item of equipmentItems) {
-    const [result] = await client.unsafe(`
-      INSERT INTO "${schemaName}".equipment (
-        category, name, brand, size, rental_price,
-        is_rentable, status, condition,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5,
-        true, 'available', 'good',
-        NOW(), NOW()
-      )
-      RETURNING id
-    `, [
-      item.category,
-      item.name,
-      item.brand,
-      item.size || null,
-      item.rentalPrice,
-    ]);
+    const [result] = await db
+      .insert(schema.equipment)
+      .values({
+        organizationId,
+        category: item.category,
+        name: item.name,
+        brand: item.brand,
+        size: item.size || null,
+        rentalPrice: item.rentalPrice,
+        isRentable: true,
+        status: "available",
+        condition: "good",
+        isPublic: false,
+      })
+      .returning({ id: schema.equipment.id });
 
-    if (result && result.id) {
+    if (result) {
       equipmentIds.push(result.id);
     }
   }
@@ -548,47 +514,38 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
-  // Insert tours into tenant schema
+  // Insert tours into PUBLIC schema with organizationId
   const tourIds: string[] = [];
   for (const tour of tours) {
-    const [result] = await client.unsafe(`
-      INSERT INTO "${schemaName}".tours (
-        name, description, type, duration, max_participants, min_participants, price,
-        includes_equipment, includes_meals, includes_transport,
-        inclusions, exclusions, min_cert_level, min_age, requirements, images,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7,
-        $8, $9, $10,
-        $11::jsonb, $12::jsonb, $13, $14, $15::jsonb, $16::jsonb,
-        NOW(), NOW()
-      )
-      RETURNING id
-    `, [
-      tour.name,
-      tour.description,
-      tour.type,
-      tour.duration,
-      tour.maxParticipants,
-      tour.minParticipants,
-      tour.price,
-      tour.includesEquipment,
-      tour.includesMeals,
-      tour.includesTransport,
-      JSON.stringify(tour.inclusions || []),
-      JSON.stringify(tour.exclusions || []),
-      tour.minCertLevel || null,
-      tour.minAge || null,
-      JSON.stringify(tour.requirements || []),
-      JSON.stringify(tour.images || []),
-    ]);
+    const [result] = await db
+      .insert(schema.tours)
+      .values({
+        organizationId,
+        name: tour.name,
+        description: tour.description,
+        type: tour.type,
+        duration: tour.duration,
+        maxParticipants: tour.maxParticipants,
+        minParticipants: tour.minParticipants,
+        price: tour.price,
+        includesEquipment: tour.includesEquipment,
+        includesMeals: tour.includesMeals,
+        includesTransport: tour.includesTransport,
+        inclusions: tour.inclusions || [],
+        exclusions: tour.exclusions || [],
+        minCertLevel: tour.minCertLevel || null,
+        minAge: tour.minAge || null,
+        requirements: tour.requirements || [],
+        images: tour.images || [],
+      })
+      .returning({ id: schema.tours.id });
 
-    if (result && result.id) {
+    if (result) {
       tourIds.push(result.id);
     }
   }
 
-  // Link tours to dive sites in tenant schema
+  // Link tours to dive sites in PUBLIC schema
   const tourDiveSiteLinks = [
     { tourId: tourIds[0], diveSiteId: diveSiteIds[0], order: 1 }, // Discover -> Coral Garden
     { tourId: tourIds[1], diveSiteId: diveSiteIds[0], order: 1 }, // Two Tank -> Coral Garden
@@ -599,10 +556,13 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   ];
 
   for (const link of tourDiveSiteLinks) {
-    await client.unsafe(`
-      INSERT INTO "${schemaName}".tour_dive_sites (tour_id, dive_site_id, "order")
-      VALUES ($1, $2, $3)
-    `, [link.tourId, link.diveSiteId, link.order]);
+    await db
+      .insert(schema.tourDiveSites)
+      .values({
+        tourId: link.tourId,
+        diveSiteId: link.diveSiteId,
+        order: link.order,
+      });
   }
 
   // Demo Trips (scheduled in the coming weeks)
@@ -629,31 +589,28 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     { tourIdx: 2, boatIdx: 0, daysFromNow: 15, startTime: "17:30", endTime: "20:30" },
   ];
 
-  // Insert trips into tenant schema
+  // Insert trips into PUBLIC schema with organizationId
   const tripIds: string[] = [];
   for (const trip of trips) {
     const tripDate = new Date(today);
     tripDate.setDate(tripDate.getDate() + trip.daysFromNow);
     const dateStr = tripDate.toISOString().split("T")[0];
 
-    const [result] = await client.unsafe(`
-      INSERT INTO "${schemaName}".trips (
-        tour_id, boat_id, date, start_time, end_time, status,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, 'scheduled',
-        NOW(), NOW()
-      )
-      RETURNING id
-    `, [
-      tourIds[trip.tourIdx],
-      boatIds[trip.boatIdx],
-      dateStr,
-      trip.startTime,
-      trip.endTime,
-    ]);
+    const [result] = await db
+      .insert(schema.trips)
+      .values({
+        organizationId,
+        tourId: tourIds[trip.tourIdx],
+        boatId: boatIds[trip.boatIdx],
+        date: dateStr,
+        startTime: trip.startTime,
+        endTime: trip.endTime,
+        status: "scheduled",
+        isPublic: false,
+      })
+      .returning({ id: schema.trips.id });
 
-    if (result && result.id) {
+    if (result) {
       tripIds.push(result.id);
     }
   }
@@ -673,7 +630,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   // Tour prices for calculating totals
   const tourPrices = [150, 120, 85, 95, 65];
 
-  // Insert bookings into tenant schema
+  // Insert bookings into PUBLIC schema with organizationId
   for (let i = 0; i < bookings.length; i++) {
     const booking = bookings[i];
     const tripData = trips[booking.tripIdx];
@@ -683,28 +640,22 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     const total = subtotal + tax;
     const paidAmount = booking.paymentStatus === "paid" ? total : booking.paymentStatus === "partial" ? total * 0.5 : 0;
 
-    await client.unsafe(`
-      INSERT INTO "${schemaName}".bookings (
-        booking_number, trip_id, customer_id, participants, status,
-        subtotal, tax, total, payment_status, paid_amount, source,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5,
-        $6, $7, $8, $9, $10, 'direct',
-        NOW(), NOW()
-      )
-    `, [
-      `BK-${String(1000 + i).padStart(4, "0")}`,
-      tripIds[booking.tripIdx],
-      customerIds[booking.customerIdx],
-      booking.participants,
-      booking.status,
-      subtotal.toFixed(2),
-      tax.toFixed(2),
-      total.toFixed(2),
-      booking.paymentStatus,
-      paidAmount.toFixed(2),
-    ]);
+    await db
+      .insert(schema.bookings)
+      .values({
+        organizationId,
+        bookingNumber: `BK-${String(1000 + i).padStart(4, "0")}`,
+        tripId: tripIds[booking.tripIdx],
+        customerId: customerIds[booking.customerIdx],
+        participants: booking.participants,
+        status: booking.status,
+        subtotal: subtotal.toFixed(2),
+        tax: tax.toFixed(2),
+        total: total.toFixed(2),
+        paymentStatus: booking.paymentStatus,
+        paidAmount: paidAmount.toFixed(2),
+        source: "direct",
+      });
   }
 
   // ============================================================================
@@ -814,28 +765,23 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
-  // Insert products into tenant schema
+  // Insert products into PUBLIC schema with organizationId
   for (const product of products) {
-    await client.unsafe(`
-      INSERT INTO "${schemaName}".products (
-        name, sku, category, description, price, cost_price,
-        stock_quantity, image_url, track_inventory, is_active,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6,
-        $7, $8, true, true,
-        NOW(), NOW()
-      )
-    `, [
-      product.name,
-      product.sku,
-      product.category,
-      product.description || null,
-      product.price,
-      product.costPrice || null,
-      product.stockQuantity || 0,
-      product.imageUrl || null,
-    ]);
+    await db
+      .insert(schema.products)
+      .values({
+        organizationId,
+        name: product.name,
+        sku: product.sku,
+        category: product.category,
+        description: product.description || null,
+        price: product.price,
+        costPrice: product.costPrice || null,
+        stockQuantity: product.stockQuantity || 0,
+        imageUrl: product.imageUrl || null,
+        trackInventory: true,
+        isActive: true,
+      });
   }
 
   // ============================================================================
@@ -891,31 +837,23 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   const validTo = new Date();
   validTo.setMonth(validTo.getMonth() + 6); // Valid for 6 months
 
-  // Insert discount codes into tenant schema
+  // Insert discount codes into PUBLIC schema with organizationId
   for (const discount of discountCodes) {
-    await client.unsafe(`
-      INSERT INTO "${schemaName}".discount_codes (
-        code, description, discount_type, discount_value,
-        min_booking_amount, max_uses, applicable_to,
-        valid_from, valid_to, is_active,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4,
-        $5, $6, $7,
-        $8, $9, true,
-        NOW(), NOW()
-      )
-    `, [
-      discount.code,
-      discount.description,
-      discount.discountType,
-      discount.discountValue,
-      discount.minBookingAmount || null,
-      discount.maxUses || null,
-      discount.applicableTo,
-      validFrom,
-      validTo,
-    ]);
+    await db
+      .insert(schema.discountCodes)
+      .values({
+        organizationId,
+        code: discount.code,
+        description: discount.description,
+        discountType: discount.discountType,
+        discountValue: discount.discountValue,
+        minBookingAmount: discount.minBookingAmount || null,
+        maxUses: discount.maxUses || null,
+        applicableTo: discount.applicableTo,
+        validFrom: validFrom.toISOString().split("T")[0],
+        validTo: validTo.toISOString().split("T")[0],
+        isActive: true,
+      });
   }
 
   // ============================================================================
@@ -932,35 +870,31 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     { bookingIdx: 6, amount: 132.00, method: "cash" }, // BK-1006 - partial (50%)
   ];
 
-  // Insert transactions into tenant schema
+  // Insert transactions into PUBLIC schema with organizationId
   for (let i = 0; i < transactionData.length; i++) {
     const txn = transactionData[i];
     const booking = bookings[txn.bookingIdx];
     const tripData = trips[booking.tripIdx];
     const price = tourPrices[tripData.tourIdx];
 
-    await client.unsafe(`
-      INSERT INTO "${schemaName}".transactions (
-        type, customer_id, amount, payment_method, items, notes,
-        created_at, updated_at
-      ) VALUES (
-        'payment', $1, $2, $3, $4::jsonb, $5,
-        NOW(), NOW()
-      )
-    `, [
-      customerIds[booking.customerIdx],
-      txn.amount.toFixed(2),
-      txn.method,
-      JSON.stringify([
-        {
-          description: tours[tripData.tourIdx].name,
-          quantity: booking.participants,
-          unitPrice: price,
-          total: price * booking.participants,
-        },
-      ]),
-      `Payment for booking BK-${String(1000 + txn.bookingIdx).padStart(4, "0")}`,
-    ]);
+    await db
+      .insert(schema.transactions)
+      .values({
+        organizationId,
+        type: "payment",
+        customerId: customerIds[booking.customerIdx],
+        amount: txn.amount.toFixed(2),
+        paymentMethod: txn.method,
+        items: [
+          {
+            description: tours[tripData.tourIdx].name,
+            quantity: booking.participants,
+            unitPrice: price,
+            total: price * booking.participants,
+          },
+        ],
+        notes: `Payment for booking BK-${String(1000 + txn.bookingIdx).padStart(4, "0")}`,
+      });
   }
 
   // ============================================================================
@@ -1022,29 +956,25 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     });
   });
 
-  // Insert all images into tenant schema
+  // Insert all images into PUBLIC schema with organizationId
   for (const img of imageEntries) {
-    await client.unsafe(`
-      INSERT INTO "${schemaName}".images (
-        entity_type, entity_id, url, thumbnail_url, filename, mime_type,
-        size_bytes, width, height, alt, sort_order, is_primary,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, 'image/jpeg',
-        $6, 1200, 800, $7, $8, $9,
-        NOW(), NOW()
-      )
-    `, [
-      img.entityType,
-      img.entityId,
-      img.url,
-      img.url.replace("w=1200", "w=200"), // Generate thumbnail URL
-      img.filename,
-      150000 + Math.floor(Math.random() * 100000), // Random size 150-250KB
-      `${img.entityType.replace("_", " ")} image`,
-      img.sortOrder,
-      img.isPrimary,
-    ]);
+    await db
+      .insert(schema.images)
+      .values({
+        organizationId,
+        entityType: img.entityType,
+        entityId: img.entityId,
+        url: img.url,
+        thumbnailUrl: img.url.replace("w=1200", "w=200"), // Generate thumbnail URL
+        filename: img.filename,
+        mimeType: "image/jpeg",
+        sizeBytes: 150000 + Math.floor(Math.random() * 100000), // Random size 150-250KB
+        width: 1200,
+        height: 800,
+        alt: `${img.entityType.replace("_", " ")} image`,
+        sortOrder: img.sortOrder,
+        isPrimary: img.isPrimary,
+      });
   }
 
   // ============================================================================
@@ -1144,33 +1074,24 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     // Generate agreement number
     const agreementNum = `RNT-${String(2024001 + rentalCount).padStart(7, "0")}`;
 
-    // Insert rental into tenant schema
-    await client.unsafe(`
-      INSERT INTO "${schemaName}".rentals (
-        customer_id, equipment_id, rented_at, due_at, returned_at,
-        daily_rate, total_charge, status, agreement_number,
-        agreement_signed_at, agreement_signed_by, notes,
-        created_at, updated_at
-      ) VALUES (
-        $1, $2, $3, $4, $5,
-        $6, $7, $8, $9,
-        $10, $11, $12,
-        NOW(), NOW()
-      )
-    `, [
-      customerIds[rental.customerIdx],
-      equipmentIds[rental.equipmentIdx],
-      rentedAt,
-      dueAt,
-      returnedAt,
-      rental.dailyRate,
-      totalCharge.toFixed(2),
-      rental.status,
-      agreementNum,
-      rentedAt,
-      customers[rental.customerIdx].firstName + " " + customers[rental.customerIdx].lastName,
-      rental.status === "overdue" ? "OVERDUE - Customer contacted" : null,
-    ]);
+    // Insert rental into PUBLIC schema with organizationId
+    await db
+      .insert(schema.rentals)
+      .values({
+        organizationId,
+        customerId: customerIds[rental.customerIdx],
+        equipmentId: equipmentIds[rental.equipmentIdx],
+        rentedAt: rentedAt.toISOString(),
+        dueAt: dueAt.toISOString().split("T")[0],
+        returnedAt: returnedAt?.toISOString(),
+        dailyRate: rental.dailyRate,
+        totalCharge: totalCharge.toFixed(2),
+        status: rental.status,
+        agreementNumber: agreementNum,
+        agreementSignedAt: rentedAt.toISOString(),
+        agreementSignedBy: customers[rental.customerIdx].firstName + " " + customers[rental.customerIdx].lastName,
+        notes: rental.status === "overdue" ? "OVERDUE - Customer contacted" : null,
+      });
 
     rentalCount++;
   }
@@ -1727,7 +1648,4 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   console.log(`  - ${trainingStats.sessions || 0} training sessions`);
   console.log(`  - ${galleryStats.albums} gallery albums`);
   console.log(`  - ${galleryStats.images} gallery images`);
-
-  // Close the postgres client
-  await client.end();
 }
