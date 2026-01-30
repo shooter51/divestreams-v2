@@ -21,6 +21,9 @@ export default [
   // Better Auth API (catch-all for /api/auth/*)
   route("api/auth/*", "routes/api/auth.$.tsx"),
 
+  // Site disabled page (shown when public site is disabled)
+  route("site-disabled", "routes/site-disabled.tsx"),
+
   // Tenant application routes (accessed via subdomain)
   // These routes check for tenant context in their loaders
   ...prefix("tenant", [
