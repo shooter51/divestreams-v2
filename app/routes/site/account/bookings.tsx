@@ -34,7 +34,7 @@ interface BookingItem {
   trip: {
     id: string;
     date: string;
-    startTime: string;
+    startTime: string | null;
     tour: {
       id: string;
       name: string;
@@ -425,7 +425,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatTime(timeStr: string): string {
+function formatTime(timeStr: string | null): string {
+  if (!timeStr) return "Time TBA";
   const [hours, minutes] = timeStr.split(":");
   const date = new Date();
   date.setHours(parseInt(hours, 10), parseInt(minutes, 10));

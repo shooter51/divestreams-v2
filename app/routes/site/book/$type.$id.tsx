@@ -55,7 +55,7 @@ interface TripDetails {
   tourDescription: string | null;
   tourType: string;
   date: string;
-  startTime: string;
+  startTime: string | null;
   endTime: string | null;
   maxParticipants: number;
   availableSpots: number;
@@ -82,7 +82,7 @@ interface CourseDetails {
   sessions: Array<{
     id: string;
     date: string;
-    startTime: string;
+    startTime: string | null;
     endTime: string | null;
     maxParticipants: number | null;
     availableSpots: number;
@@ -1490,7 +1490,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatTime(timeStr: string): string {
+function formatTime(timeStr: string | null): string {
+  if (!timeStr) return "Time TBA";
   const [hours, minutes] = timeStr.split(":");
   const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? "PM" : "AM";
