@@ -35,12 +35,19 @@ describe("seedDemoData", () => {
 
     (db.insert as ReturnType<typeof vi.fn>).mockReturnValue({ values: mockValues });
 
-    // Set up select chain mocks for organization lookup
+    // Set up select chain mocks
+    // First call: organization lookup (should return the org)
+    // Second call: customer existence check (should return empty to allow seeding)
+    let selectCallCount = 0;
     const mockLimit = vi.fn().mockImplementation((limitValue) => {
-      if (limitValue === 1) {
+      selectCallCount++;
+      if (selectCallCount === 1) {
+        // First call: organization lookup
         return Promise.resolve([{ id: mockOrganizationId }]);
+      } else {
+        // Second call: customer existence check (return empty to allow seeding)
+        return Promise.resolve([]);
       }
-      return Promise.resolve([]);
     });
 
     const mockWhere = vi.fn().mockImplementation(() => {
