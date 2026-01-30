@@ -18,6 +18,7 @@ import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { syncBookingCancellationToCalendar } from "../../../../lib/integrations/google-calendar-bookings.server";
 
 // ============================================================================
 // TYPES
@@ -209,7 +210,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     // Verify booking belongs to customer
     const [booking] = await db
-      .select({ id: bookings.id, status: bookings.status })
+      .select({
+        id: bookings.id,
+        status: bookings.status,
+        tripId: bookings.tripId,
+        organizationId: bookings.organizationId,
+      })
       .from(bookings)
       .where(
         and(
@@ -245,6 +251,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
         updatedAt: new Date(),
       })
       .where(eq(bookings.id, bookingId));
+
+    // Sync cancellation to Google Calendar (remove customer from attendees)
+    try {
+      await syncBookingCancellationToCalendar(
+        booking.organizationId,
+        booking.tripId
+        // timezone defaults to UTC
+      );
+    } catch (error) {
+      // Log error but don't block cancellation
+      console.error("Failed to sync cancellation to Google Calendar:", error);
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
