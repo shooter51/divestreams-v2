@@ -69,6 +69,7 @@ async function globalSetup(config: FullConfig) {
 
     // Add user as owner/member of demo organization
     await db.insert(member).values({
+      id: crypto.randomUUID(),
       organizationId: demoOrg.id,
       userId: userResult.user.id,
       email: "owner@demo.com",
