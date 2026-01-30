@@ -31,7 +31,7 @@ interface TripCard {
   tourDescription: string | null;
   tourType: string;
   date: string;
-  startTime: string;
+  startTime: string | null;
   endTime: string | null;
   maxParticipants: number;
   availableSpots: number;
@@ -231,7 +231,8 @@ function formatDate(dateString: string): string {
   });
 }
 
-function formatTime(timeString: string): string {
+function formatTime(timeString: string | null): string {
+  if (!timeString) return "Time TBA";
   const [hours, minutes] = timeString.split(":");
   const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? "PM" : "AM";
