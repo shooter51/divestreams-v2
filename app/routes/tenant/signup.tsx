@@ -164,6 +164,7 @@ export async function action({ request }: ActionFunctionArgs) {
               organizationId: org.id,
               role: "customer",
               createdAt: new Date(),
+              updatedAt: new Date(),
             });
           }
         }

@@ -120,6 +120,7 @@ export async function action({ request }: ActionFunctionArgs) {
           organizationId: orgId,
           role: "customer",
           createdAt: new Date(),
+          updatedAt: new Date(),
         });
       }
 

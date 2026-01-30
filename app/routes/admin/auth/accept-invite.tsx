@@ -174,6 +174,8 @@ export async function action({ request }: ActionFunctionArgs) {
       userId,
       organizationId: invite.organizationId,
       role: invite.role,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
   }
 
