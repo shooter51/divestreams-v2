@@ -445,11 +445,11 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     const [result] = await client.unsafe(`
       INSERT INTO "${schemaName}".equipment (
         category, name, brand, size, rental_price,
-        is_rentable, status, condition, is_public,
+        is_rentable, status, condition,
         created_at, updated_at
       ) VALUES (
         $1, $2, $3, $4, $5,
-        true, 'available', 'good', true,
+        true, 'available', 'good',
         NOW(), NOW()
       )
       RETURNING id
@@ -638,10 +638,10 @@ export async function seedDemoData(organizationId: string): Promise<void> {
 
     const [result] = await client.unsafe(`
       INSERT INTO "${schemaName}".trips (
-        tour_id, boat_id, date, start_time, end_time, status, is_public,
+        tour_id, boat_id, date, start_time, end_time, status,
         created_at, updated_at
       ) VALUES (
-        $1, $2, $3, $4, $5, 'scheduled', true,
+        $1, $2, $3, $4, $5, 'scheduled',
         NOW(), NOW()
       )
       RETURNING id
