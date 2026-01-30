@@ -21,11 +21,16 @@ describe("Subscription Plan Persistence (DIVE-166)", () => {
   let testPriceId: string;
 
   beforeAll(async () => {
-    // Ensure subscription plans exist in the test database
-    const existingPlans = await db.select().from(subscriptionPlans).limit(1);
+    // Ensure subscription plans with test price IDs exist
+    // Check for the specific test plan (not just any plans)
+    const existingTestPlan = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.monthlyPriceId, "price_test_pro_monthly"))
+      .limit(1);
 
-    if (existingPlans.length === 0) {
-      // Seed the plans if they don't exist
+    if (existingTestPlan.length === 0) {
+      // Seed the test plans if they don't exist
       await db.insert(subscriptionPlans).values([
         {
           name: "free",
@@ -74,12 +79,17 @@ describe("Subscription Plan Persistence (DIVE-166)", () => {
           },
         },
       ]);
+    }
 
-      // Verify plans were inserted (fixes CI race condition)
-      const verifyPlans = await db.select().from(subscriptionPlans).limit(2);
-      if (verifyPlans.length < 2) {
-        throw new Error("Failed to seed subscription plans in beforeAll");
-      }
+    // Verify test plan exists (whether just inserted or already present)
+    const [testPlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.monthlyPriceId, "price_test_pro_monthly"))
+      .limit(1);
+
+    if (!testPlan) {
+      throw new Error("Test plan with price_test_pro_monthly not found after seeding");
     }
   }, 60000);
 
