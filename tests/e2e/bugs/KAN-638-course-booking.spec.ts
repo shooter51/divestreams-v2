@@ -29,7 +29,7 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await page.goto('http://demo.localhost:5173/site/courses');
 
     // Wait for courses to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
   });
 
   test('should require session selection before enabling Enroll Now button', async ({ page }) => {
@@ -39,7 +39,7 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await firstCourseLink.click();
 
     // Wait for course detail page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     await expect(page.locator('h1')).toBeVisible();
 
     // Find the sidebar "Enroll Now" button
@@ -61,7 +61,7 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await firstCourseLink.click();
 
     // Wait for course detail page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Check if there are available sessions
     const sessionCards = page.locator('text=/Available Training Sessions/i');
@@ -84,7 +84,7 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await sessionEnrollButton.click();
 
     // ✅ THIS SHOULD PASS: Session enroll buttons work correctly
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Verify we're on the enrollment form
     await expect(page.locator('h1:has-text("Enroll in Course")')).toBeVisible();
@@ -104,7 +104,7 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await firstCourseLink.click();
 
     // Wait for course detail page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Check if there are available sessions
     const hasSessionsSection = await page.locator('text=/Available Training Sessions/i').count() > 0;
@@ -131,7 +131,7 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await sidebarEnrollButton.click();
 
     // ❌ THIS WILL FAIL: Should navigate to enrollment form with sessionId
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Verify we're on the enrollment form
     await expect(page.locator('h1:has-text("Enroll in Course")')).toBeVisible();
@@ -149,7 +149,7 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await firstCourseLink.click();
 
     // Wait for course detail page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Try to force-click the sidebar button (if it's not disabled)
     const sidebarEnrollButton = page.locator('a:has-text("Enroll Now")').first();
@@ -189,7 +189,7 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await firstCourseLink.click();
 
     // Wait for course detail page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Check if there are no available sessions
     const noSessionsMessage = page.locator('text=/No Scheduled Sessions|Contact us/i');

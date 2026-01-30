@@ -22,7 +22,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin to demo tenant
     await page.goto("http://demo.localhost:5173/auth/login");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Fill in login credentials
     await page.getByLabel(/email/i).fill("owner@demo.com");
@@ -36,7 +36,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
   test("should load enrollment form from training dashboard without error", async ({ page }) => {
     // Navigate to training dashboard
     await page.goto("http://demo.localhost:5173/tenant/training");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Wait for the Quick Actions section to be visible
     await expect(page.locator("h2:has-text('Quick Actions')")).toBeVisible({ timeout: 10000 });
@@ -47,7 +47,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
     await newEnrollmentButton.click();
 
     // Should NOT get 400/500 error
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Check we're on the enrollment form page
     await expect(page).toHaveURL(/\/tenant\/training\/enrollments\/new/);
@@ -67,7 +67,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
   test("should load enrollment form from enrollments list without error", async ({ page }) => {
     // Navigate to enrollments list
     await page.goto("http://demo.localhost:5173/tenant/training/enrollments");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Wait for page to load (check for heading)
     await expect(page.locator("h1:has-text('Training Enrollments')")).toBeVisible({ timeout: 10000 });
@@ -78,7 +78,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
     await newEnrollmentButton.click();
 
     // Should NOT get 400/500 error
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Check we're on the enrollment form page
     await expect(page).toHaveURL(/\/tenant\/training\/enrollments\/new/);
@@ -98,7 +98,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
   test("should allow session selection when no sessionId provided", async ({ page }) => {
     // Go directly to enrollment form without sessionId
     await page.goto("http://demo.localhost:5173/tenant/training/enrollments/new");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Wait for form to load
     await expect(page.locator("h1:has-text('Enroll Student')")).toBeVisible({ timeout: 10000 });
@@ -117,7 +117,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
     // Create a test session first
     // This assumes there's at least one session available
     await page.goto("http://demo.localhost:5173/tenant/training/sessions");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Wait for sessions page to load
     await expect(page.locator("h1:has-text('Training Sessions')")).toBeVisible({ timeout: 10000 });
@@ -126,13 +126,13 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
     const firstSession = page.locator('a[href*="/tenant/training/sessions/"]').first();
     if (await firstSession.isVisible()) {
       await firstSession.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Click "Enroll Student" or "Add Enrollment" button
       const enrollButton = page.locator('a:has-text("Enroll Student"), a:has-text("Add Enrollment")').first();
       if (await enrollButton.isVisible()) {
         await enrollButton.click();
-        await page.waitForLoadState("networkidle");
+        await page.waitForLoadState("load");
 
         // Should work as before
         await expect(page).toHaveURL(/sessionId=/);

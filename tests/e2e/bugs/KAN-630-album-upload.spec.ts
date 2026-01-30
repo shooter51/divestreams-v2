@@ -14,7 +14,7 @@ test.describe('KAN-630: Album Image Upload', () => {
   test.beforeEach(async ({ page }) => {
     // Login as demo tenant admin
     await page.goto("http://demo.localhost:5173/auth/login");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Fill in login credentials using accessibility-based selectors
     await page.getByLabel(/email/i).fill("owner@demo.com");
