@@ -559,6 +559,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     await db
       .insert(schema.tourDiveSites)
       .values({
+        organizationId,
         tourId: link.tourId,
         diveSiteId: link.diveSiteId,
         order: link.order,
