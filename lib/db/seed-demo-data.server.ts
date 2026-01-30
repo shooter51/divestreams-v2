@@ -86,6 +86,18 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     throw new Error(`Organization ${organizationId} not found`);
   }
 
+  // Check if data already exists for this organization
+  const [existingCustomer] = await db
+    .select({ id: schema.customers.id })
+    .from(schema.customers)
+    .where(eq(schema.customers.organizationId, organizationId))
+    .limit(1);
+
+  if (existingCustomer) {
+    console.log(`⚠️  Demo data already exists for organization ${organizationId}, skipping seed`);
+    return;
+  }
+
   // Demo Customers
   const customers = [
     {

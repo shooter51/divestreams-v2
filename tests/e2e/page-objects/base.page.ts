@@ -22,7 +22,7 @@ export abstract class BasePage {
    */
   async clickAndWaitForNavigation(locator: Locator): Promise<void> {
     await Promise.all([
-      this.page.waitForNavigation({ waitUntil: "networkidle" }),
+      this.page.waitForNavigation({ waitUntil: "load" }),
       locator.click(),
     ]);
   }

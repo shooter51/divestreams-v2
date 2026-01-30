@@ -13,10 +13,9 @@ export class LoginPage extends TenantBasePage {
     await this.fillByLabel(/email/i, email);
     await this.fillByLabel(/password/i, password);
     // Click and wait for navigation after successful login
-    await Promise.all([
-      this.page.waitForNavigation({ waitUntil: "networkidle", timeout: 15000 }),
-      this.clickButton(/sign in/i),
-    ]);
+    await this.clickButton(/sign in/i);
+    // Wait for redirect to tenant dashboard (URL change is more reliable than networkidle)
+    await this.page.waitForURL(/\/tenant/, { timeout: 15000 });
   }
 
   async expectLoginForm(): Promise<void> {
