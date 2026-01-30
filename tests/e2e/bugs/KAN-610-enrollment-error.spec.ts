@@ -35,8 +35,11 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
 
   test("should load enrollment form from training dashboard without error", async ({ page }) => {
     // Navigate to training dashboard
-    await page.goto("/tenant/training");
+    await page.goto("http://demo.localhost:5173/tenant/training");
     await page.waitForLoadState("networkidle");
+
+    // Wait for the Quick Actions section to be visible
+    await expect(page.locator("h2:has-text('Quick Actions')")).toBeVisible({ timeout: 10000 });
 
     // Click "New Enrollment" in Quick Actions
     const newEnrollmentButton = page.locator('a:has-text("New Enrollment")').first();
@@ -49,8 +52,8 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
     // Check we're on the enrollment form page
     await expect(page).toHaveURL(/\/tenant\/training\/enrollments\/new/);
 
-    // Should see the form title
-    await expect(page.locator("h1")).toContainText(/Enroll Student|New Enrollment/);
+    // Should see the form title (use more specific selector to avoid multiple h1s)
+    await expect(page.locator("h1:has-text('Enroll Student')")).toBeVisible();
 
     // Should NOT see error messages
     await expect(page.locator("text=Session ID required")).not.toBeVisible();
@@ -63,8 +66,11 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
 
   test("should load enrollment form from enrollments list without error", async ({ page }) => {
     // Navigate to enrollments list
-    await page.goto("/tenant/training/enrollments");
+    await page.goto("http://demo.localhost:5173/tenant/training/enrollments");
     await page.waitForLoadState("networkidle");
+
+    // Wait for page to load (check for heading)
+    await expect(page.locator("h1:has-text('Training Enrollments')")).toBeVisible({ timeout: 10000 });
 
     // Click "New Enrollment" button
     const newEnrollmentButton = page.locator('a:has-text("New Enrollment")').first();
@@ -77,8 +83,8 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
     // Check we're on the enrollment form page
     await expect(page).toHaveURL(/\/tenant\/training\/enrollments\/new/);
 
-    // Should see the form title
-    await expect(page.locator("h1")).toContainText(/Enroll Student|New Enrollment/);
+    // Should see the form title (use more specific selector to avoid multiple h1s)
+    await expect(page.locator("h1:has-text('Enroll Student')")).toBeVisible();
 
     // Should NOT see error messages
     await expect(page.locator("text=Session ID required")).not.toBeVisible();
@@ -91,8 +97,11 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
 
   test("should allow session selection when no sessionId provided", async ({ page }) => {
     // Go directly to enrollment form without sessionId
-    await page.goto("/tenant/training/enrollments/new");
+    await page.goto("http://demo.localhost:5173/tenant/training/enrollments/new");
     await page.waitForLoadState("networkidle");
+
+    // Wait for form to load
+    await expect(page.locator("h1:has-text('Enroll Student')")).toBeVisible({ timeout: 10000 });
 
     // Should NOT error
     await expect(page.locator("text=Session ID required")).not.toBeVisible();
@@ -107,8 +116,11 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
   test("should still work with sessionId query parameter (existing flow)", async ({ page }) => {
     // Create a test session first
     // This assumes there's at least one session available
-    await page.goto("/tenant/training/sessions");
+    await page.goto("http://demo.localhost:5173/tenant/training/sessions");
     await page.waitForLoadState("networkidle");
+
+    // Wait for sessions page to load
+    await expect(page.locator("h1:has-text('Training Sessions')")).toBeVisible({ timeout: 10000 });
 
     // Get first session if exists
     const firstSession = page.locator('a[href*="/tenant/training/sessions/"]').first();
@@ -116,8 +128,8 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
       await firstSession.click();
       await page.waitForLoadState("networkidle");
 
-      // Click "Enroll Student" button
-      const enrollButton = page.locator('a:has-text("Enroll Student")').first();
+      // Click "Enroll Student" or "Add Enrollment" button
+      const enrollButton = page.locator('a:has-text("Enroll Student"), a:has-text("Add Enrollment")').first();
       if (await enrollButton.isVisible()) {
         await enrollButton.click();
         await page.waitForLoadState("networkidle");

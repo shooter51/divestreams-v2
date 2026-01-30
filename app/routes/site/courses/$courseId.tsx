@@ -509,7 +509,6 @@ function SessionCard({
       }`}
       style={{
         borderColor: isSelected ? "var(--primary-color)" : "var(--border-color)",
-        ...(document.activeElement === null ? {} : {})
       }}
       onClick={handleSelect}
       onKeyDown={handleSelect}
