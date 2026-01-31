@@ -83,7 +83,7 @@ Error: element(s) not found
 ### Hypothesis 1: Build vs Dev Server Difference ⭐ MOST LIKELY
 - **Local**: Tests run against dev server (`npm run dev`)
 - **CI/CD**: Tests run against production build
-- **Issue**: Production build may have JavaScript bundling issues, missing chunks, or initialization failures
+- **Issue**: Production build wasn't being served to Playwright, causing 100% UI failure. The build step created production assets but no server was running to serve them, while Playwright expected to auto-start dev server per its config
 
 ### Hypothesis 2: Resource/Timing Issues
 - CI/CD runners may be slower, causing race conditions

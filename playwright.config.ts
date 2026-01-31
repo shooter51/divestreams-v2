@@ -57,6 +57,8 @@ export default defineConfig({
   ],
   // Only start local webServer when testing against localhost
   // For remote tests (smoke tests against staging), skip webServer
+  // IMPORTANT: CI/CD relies on this webServer config to auto-start dev server
+  // See .github/workflows/deploy.yml - no separate build step needed for E2E tests
   webServer: isRemoteTest
     ? undefined
     : {
