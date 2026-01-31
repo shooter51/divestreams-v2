@@ -93,8 +93,8 @@ export class POSPage extends TenantBasePage {
   // ============================================
 
   async addRentalToCart(equipmentName: string, days: number = 1): Promise<void> {
-    // Find the rental card
-    const rentalCard = this.productGrid.locator("div.p-4").filter({ hasText: equipmentName });
+    // Find the rental card (use .first() to handle multiple items with same name)
+    const rentalCard = this.productGrid.locator("div.p-4").filter({ hasText: equipmentName }).first();
 
     // Click "Add Rental" button
     await rentalCard.getByRole("button", { name: /add rental/i }).click();
@@ -114,7 +114,7 @@ export class POSPage extends TenantBasePage {
   }
 
   async getRentalCardInfo(equipmentName: string): Promise<{ name: string; size?: string; dailyRate: string }> {
-    const rentalCard = this.productGrid.locator("div.p-4").filter({ hasText: equipmentName });
+    const rentalCard = this.productGrid.locator("div.p-4").filter({ hasText: equipmentName }).first();
     const name = await rentalCard.locator("p.font-medium").textContent() || "";
     const sizeEl = rentalCard.locator("p.text-sm.text-gray-600");
     const size = (await sizeEl.isVisible()) ? (await sizeEl.textContent())?.replace("Size: ", "") : undefined;
@@ -127,8 +127,8 @@ export class POSPage extends TenantBasePage {
   // ============================================
 
   async addTripToCart(tourName: string, participants: number = 1): Promise<void> {
-    // Find the trip card
-    const tripCard = this.productGrid.locator("div.p-4").filter({ hasText: tourName });
+    // Find the trip card (use .first() to handle multiple trips with same name)
+    const tripCard = this.productGrid.locator("div.p-4").filter({ hasText: tourName }).first();
 
     // Click "Book Now" button
     await tripCard.getByRole("button", { name: /book now/i }).click();
@@ -148,7 +148,7 @@ export class POSPage extends TenantBasePage {
   }
 
   async getTripCardInfo(tourName: string): Promise<{ name: string; time: string; price: string; spotsLeft: string }> {
-    const tripCard = this.productGrid.locator("div.p-4").filter({ hasText: tourName });
+    const tripCard = this.productGrid.locator("div.p-4").filter({ hasText: tourName }).first();
     const name = await tripCard.locator("p.font-medium").textContent() || "";
     const time = await tripCard.locator("p.text-sm.text-gray-600").textContent() || "";
     const price = await tripCard.locator(".text-purple-600").textContent() || "";

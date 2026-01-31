@@ -133,12 +133,12 @@ test.describe("KAN-633: POS Rentals and Trips Cart @critical @pos", () => {
     // Add morning dive for 2 participants
     await posPage.addTripToCart(testProducts.trips.morningDive.tourName, 2);
 
-    // Add afternoon dive for 3 participants
-    await posPage.addTripToCart(testProducts.trips.afternoonDive.tourName, 3);
+    // Add night dive for 3 participants
+    await posPage.addTripToCart(testProducts.trips.nightDive.tourName, 3);
 
     // Verify both in cart
     await posPage.expectCartItem(testProducts.trips.morningDive.tourName);
-    await posPage.expectCartItem(testProducts.trips.afternoonDive.tourName);
+    await posPage.expectCartItem(testProducts.trips.nightDive.tourName);
 
     const cartCount = await posPage.getCartItemCount();
     expect(cartCount).toBe(2);
