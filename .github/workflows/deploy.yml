@@ -353,22 +353,23 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
           REDIS_URL: redis://localhost:6379
           AUTH_SECRET: test-secret-for-ci
-          APP_URL: http://127.0.0.1:3000
+          APP_URL: http://localhost:3000
           ADMIN_PASSWORD: DiveAdmin2026
           PORT: 3000
 
       - name: Wait for production server
-        run: npx wait-on http://127.0.0.1:3000 --timeout 30000
+        run: npx wait-on http://localhost:3000 --timeout 30000
 
       - name: Run critical smoke tests against production build
         run: npx playwright test tests/e2e/ --grep "@smoke|@critical"
         env:
-          BASE_URL: http://127.0.0.1:3000
+          BASE_URL: http://localhost:3000
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
           REDIS_URL: redis://localhost:6379
           AUTH_SECRET: test-secret-for-ci
-          APP_URL: http://127.0.0.1:3000
+          APP_URL: http://localhost:3000
           ADMIN_PASSWORD: DiveAdmin2026
+          SKIP_WEB_SERVER: true  # Prevent Playwright from auto-starting dev server
 
       - name: Stop production server
         if: always()

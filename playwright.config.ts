@@ -7,7 +7,8 @@ dotenv.config();
 const collectCoverage = process.env.E2E_COVERAGE === "true";
 const baseURL = process.env.BASE_URL || "http://localhost:5173";
 // Detect remote tests: any URL that's not localhost (supports both http:// and https://)
-const isRemoteTest = !baseURL.includes("localhost");
+// or when explicitly disabled via SKIP_WEB_SERVER (for prod-build smoke tests)
+const isRemoteTest = !baseURL.includes("localhost") || process.env.SKIP_WEB_SERVER === "true";
 
 export default defineConfig({
   testDir: "./tests/e2e",
