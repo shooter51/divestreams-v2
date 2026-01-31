@@ -105,7 +105,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Setup database schema and run migrations
-        run: npm run db:migrate
+        run: node scripts/run-migrations.mjs
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
 
@@ -332,7 +332,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Setup database schema and run migrations
-        run: npm run db:migrate
+        run: node scripts/run-migrations.mjs
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
 
