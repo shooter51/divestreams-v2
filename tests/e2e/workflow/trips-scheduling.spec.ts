@@ -175,7 +175,7 @@ test.describe.serial("Block A: Navigation & Calendar View", () => {
     await page.waitForLoadState("load");
     await page.waitForTimeout(2000);
     if (!(await isAuthenticated(page))) return;
-    const scheduleLink = page.getByRole("link", { name: /schedule.*trip/i });
+    const scheduleLink = page.getByRole("link", { name: /schedule.*trip/i }).first();
     // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
     if (!(await scheduleLink.isVisible().catch(() => false))) {
       await page.reload();

@@ -364,8 +364,8 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     await page.goto(getTenantUrl("/tenant/discounts"));
     await page.waitForTimeout(1500);
 
-    // Click add button
-    const addBtn = page.getByRole("button", { name: /add|create|new/i });
+    // Click add button (use .first() to handle multiple matching buttons)
+    const addBtn = page.getByRole("button", { name: /add|create|new/i }).first();
     await addBtn.click();
     await page.waitForTimeout(1000);
 
@@ -508,8 +508,8 @@ test.describe.serial("Block C: Product Modal Issues", () => {
     await page.goto(getTenantUrl("/tenant/products"));
     await page.waitForTimeout(1500);
 
-    // Click add button
-    const addBtn = page.getByRole("button", { name: /add|create|new/i });
+    // Click add button (use .first() to handle multiple matching buttons)
+    const addBtn = page.getByRole("button", { name: /add|create|new/i }).first();
     await addBtn.click();
     await page.waitForTimeout(1000);
 
