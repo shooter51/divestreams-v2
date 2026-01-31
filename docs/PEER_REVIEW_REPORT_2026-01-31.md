@@ -331,3 +331,37 @@ All critical blockers have been resolved through a series of progressive fixes. 
 **Reviewed by:** Claude Sonnet 4.5
 **Review completed:** 2026-01-31
 **Total time invested:** ~2 hours of debugging and fixes
+
+---
+
+## Update: Post-Review Fix (2026-01-31 14:00)
+
+### Commit: df6f620 - KAN-633 POS rental/trip cart strict mode violations
+
+**Issue Discovered**: After deploying fixes from the initial peer review, KAN-633 tests were still failing with Playwright strict mode violations.
+
+**Root Cause**: 
+- Seed data creates multiple items with identical names (e.g., 3x "Aqua Lung Pro HD" BCDs with sizes M, L, XL)
+- Page object methods used `.filter({ hasText: equipmentName })` without `.first()`
+- This matched ALL items with that name, causing strict mode to fail: "resolved to 6 elements"
+
+**Fix Applied**:
+1. Added `.first()` to 4 page object methods:
+   - `addRentalToCart()` (line 97)
+   - `getRentalCardInfo()` (line 117)
+   - `addTripToCart()` (line 131)
+   - `getTripCardInfo()` (line 151)
+
+2. Fixed test fixture reference:
+   - Changed `afternoonDive` (non-existent) to `nightDive` (matches seed data)
+
+**Results**: 
+- ✅ **KAN-633: 7/7 PASSING** (was 6/7 failing)
+- All tests now complete successfully
+
+**Files Modified**:
+- `tests/e2e/page-objects/pos.page.ts` - Added `.first()` to handle duplicate items
+- `tests/e2e/bugs/KAN-633-pos-cart.spec.ts` - Fixed fixture reference
+
+**Verdict**: APPROVED - Complete fix for KAN-633 test failures
+
