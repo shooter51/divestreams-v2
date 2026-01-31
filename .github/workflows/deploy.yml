@@ -120,7 +120,8 @@ jobs:
       - name: Run E2E tests (all 230 workflow tests)
         run: |
           # Check first line of commit message for [e2e:failing] flag
-          COMMIT_MSG_FIRST_LINE=$(echo "${{ github.event.head_commit.message }}" | head -n 1)
+          # Use environment variable to avoid bash interpretation of special characters
+          COMMIT_MSG_FIRST_LINE=$(printf '%s\n' "$COMMIT_MESSAGE" | head -n 1)
           if echo "$COMMIT_MSG_FIRST_LINE" | grep -q "\[e2e:failing\]"; then
             echo "Running only failing E2E tests..."
             npm run test:e2e:failing
@@ -129,6 +130,7 @@ jobs:
             npx playwright test tests/e2e/
           fi
         env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
           REDIS_URL: redis://localhost:6379
           AUTH_SECRET: test-secret-for-ci
