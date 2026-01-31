@@ -90,7 +90,7 @@ export async function action({ request }: ActionFunctionArgs) {
       isActive: true,
     });
 
-    return redirect(redirectWithNotification("/tenant/discounts", "Discount has been successfully created", "success"));
+    return { success: true, message: `Discount code "${code}" has been successfully created` };
   }
 
   if (intent === "update") {
@@ -169,7 +169,7 @@ export async function action({ request }: ActionFunctionArgs) {
         )
       );
 
-    return redirect(redirectWithNotification("/tenant/discounts", "Discount has been successfully updated", "success"));
+    return { success: true, message: `Discount code "${code}" has been successfully updated` };
   }
 
   if (intent === "toggle-active") {
@@ -197,7 +197,7 @@ export async function action({ request }: ActionFunctionArgs) {
         eq(discountCodes.id, id)
       )
     );
-    return redirect(redirectWithNotification("/tenant/discounts", "Discount has been successfully deleted", "success"));
+    return { success: true, message: "Discount code has been successfully deleted" };
   }
 
   return { error: "Invalid intent" };
@@ -261,9 +261,11 @@ export default function DiscountsPage() {
   const isSubmitting = fetcher.state === "submitting";
   const fetcherData = fetcher.data as { error?: string; success?: boolean; message?: string } | undefined;
 
-  // Show toast notifications for fetcher actions (toggle-active, etc.)
+  // Close modal and show toast on successful create/update/delete
   useEffect(() => {
     if (fetcherData?.success && fetcherData?.message) {
+      setShowForm(false);
+      setEditingDiscount(null);
       showToast(fetcherData.message, "success");
     } else if (fetcherData?.error) {
       showToast(fetcherData.error, "error");
