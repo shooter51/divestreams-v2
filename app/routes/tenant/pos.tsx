@@ -95,7 +95,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     listTerminalReaders(organizationId),
   ]);
 
-  const stripeConnected = stripeSettings?.connected && stripeSettings?.chargesEnabled;
+  // Allow Stripe connection if:
+  // 1. Fully onboarded (charges_enabled = true), OR
+  // 2. In test mode (sandbox accounts don't require full onboarding)
+  const stripeConnected = stripeSettings?.connected &&
+    (stripeSettings?.chargesEnabled || !stripeSettings?.liveMode);
   const hasTerminalReaders = terminalReaders && terminalReaders.length > 0;
 
   return {
