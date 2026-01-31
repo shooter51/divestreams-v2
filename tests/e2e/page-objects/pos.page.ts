@@ -188,7 +188,7 @@ export class POSPage extends TenantBasePage {
   }> {
     const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(index);
     const name = await cartItem.locator("p.font-medium").first().textContent() || "";
-    const details = await cartItem.locator("p.text-sm.text-gray-600").textContent() || "";
+    const details = await cartItem.locator("p.text-sm.text-foreground-muted").textContent() || "";
     const total = await cartItem.locator("p.font-medium").last().textContent() || "";
     return { name: name.trim(), details: details.trim(), total: total.trim() };
   }
@@ -200,7 +200,7 @@ export class POSPage extends TenantBasePage {
   }> {
     const cartItem = this.cartContainer.locator(".bg-surface-inset").filter({ hasText: itemName });
     const name = await cartItem.locator("p.font-medium").first().textContent() || "";
-    const details = await cartItem.locator("p.text-sm.text-gray-600").textContent() || "";
+    const details = await cartItem.locator("p.text-sm.text-foreground-muted").textContent() || "";
     const total = await cartItem.locator("p.font-medium").last().textContent() || "";
     return { name: name.trim(), details: details.trim(), total: total.trim() };
   }
