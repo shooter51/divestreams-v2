@@ -12,11 +12,19 @@ import { eq, and } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { requireFeature } from "../../../lib/feature-guards.server";
+import { PLAN_FEATURES } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+
+  // Products are part of POS functionality - require POS feature
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
+
+  const { tenant, organizationId } = ctx;
   const { schema: tables } = getTenantDb(organizationId);
 
   try {
@@ -63,7 +71,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+
+  // Products are part of POS functionality - require POS feature
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
+
+  const { tenant, organizationId } = ctx;
   const { schema: tables } = getTenantDb(organizationId);
 
   const formData = await request.formData();
