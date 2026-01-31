@@ -11,16 +11,24 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../page-objects/auth.page';
+import { POSPage } from '../page-objects/pos.page';
 
 test.describe('KAN-634: POS Split Payment', () => {
+  let posPage: POSPage;
 
   test.beforeEach(async ({ page }) => {
-    // Navigate to demo tenant POS page
-    await page.goto('http://demo.localhost:5173/tenant/pos');
-    await page.waitForLoadState('load');
+    // Initialize page objects
+    posPage = new POSPage(page, 'demo');
+    const loginPage = new LoginPage(page, 'demo');
 
-    // Verify POS interface loaded
-    await expect(page.getByRole('heading', { name: /point of sale/i })).toBeVisible();
+    // Login as demo user
+    await loginPage.goto();
+    await loginPage.login('owner@demo.com', 'demo1234');
+
+    // Navigate to POS
+    await posPage.goto();
+    await posPage.expectPOSInterface();
   });
 
   test('KAN-634-A: Split payment modal opens and shows correct UI', async ({ page }) => {
@@ -37,13 +45,15 @@ test.describe('KAN-634: POS Split Payment', () => {
 
     // Verify split modal opens
     await expect(page.getByText(/split payment/i)).toBeVisible();
-    await expect(page.getByText(/total/i)).toBeVisible();
-    await expect(page.getByText(/paid/i)).toBeVisible();
-    await expect(page.getByText(/remaining/i)).toBeVisible();
+    // Scope to modal to avoid matching cart elements
+    const splitModal = page.locator('[role="dialog"], .modal').filter({ hasText: /split payment/i });
+    await expect(splitModal.getByText(/total/i).first()).toBeVisible();
+    await expect(splitModal.getByText(/paid/i)).toBeVisible();
+    await expect(splitModal.getByText(/remaining/i)).toBeVisible();
 
     // ✅ FIXED: Should only show cash option (card removed from split)
     await expect(page.getByRole('button', { name: /^cash$/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /add/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^add$/i })).toBeVisible();
   });
 
   test('KAN-634-B: Cash-only split payment works', async ({ page }) => {
@@ -62,7 +72,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
     // Add full amount as cash
     await page.getByPlaceholder(/amount/i).fill(totalAmount.toString());
-    await page.getByRole('button', { name: /add/i }).click();
+    await page.getByRole('button', { name: /^add$/i }).click();
 
     // Complete sale button should be enabled when full amount is paid
     const completeButton = page.getByRole('button', { name: /complete sale/i });
@@ -90,7 +100,7 @@ test.describe('KAN-634: POS Split Payment', () => {
     // Add first payment (half of total)
     const firstPayment = Math.floor(totalAmount / 2);
     await page.getByPlaceholder(/amount/i).fill(firstPayment.toString());
-    await page.getByRole('button', { name: /add/i }).click();
+    await page.getByRole('button', { name: /^add$/i }).click();
 
     // Verify first payment is listed
     await expect(page.getByText(`$${firstPayment.toFixed(2)}`)).toBeVisible();
@@ -101,7 +111,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
     // Add second payment (remaining amount)
     await page.getByRole('button', { name: /rest/i }).click(); // Use "Rest" button
-    await page.getByRole('button', { name: /add/i }).click();
+    await page.getByRole('button', { name: /^add$/i }).click();
 
     // Complete sale button should be enabled
     const completeButton = page.getByRole('button', { name: /complete sale/i });
@@ -124,7 +134,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
     // Add cash payment
     await page.getByPlaceholder(/amount/i).fill('20');
-    await page.getByRole('button', { name: /add/i }).click();
+    await page.getByRole('button', { name: /^add$/i }).click();
 
     // Verify payment is listed
     await expect(page.getByText('$20.00')).toBeVisible();
@@ -154,7 +164,7 @@ test.describe('KAN-634: POS Split Payment', () => {
     // Add less than total amount
     const partialAmount = totalAmount - 10;
     await page.getByPlaceholder(/amount/i).fill(partialAmount.toString());
-    await page.getByRole('button', { name: /add/i }).click();
+    await page.getByRole('button', { name: /^add$/i }).click();
 
     // Complete sale button should be disabled
     const completeButton = page.getByRole('button', { name: /complete sale/i });
