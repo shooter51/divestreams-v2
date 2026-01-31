@@ -20,16 +20,22 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { TenantBasePage } from '../page-objects/base.page';
+
+// Helper page object for public site navigation
+class PublicSitePage extends TenantBasePage {
+  async gotoCourses(): Promise<void> {
+    await this.gotoSite('/courses');
+  }
+}
 
 test.describe('KAN-638: Course Booking Flow', () => {
+  let sitePage: PublicSitePage;
 
   test.beforeEach(async ({ page }) => {
-    // Navigate to a course detail page on customer-facing site
-    // Using demo tenant for testing
-    await page.goto('http://demo.localhost:5173/site/courses');
-
-    // Wait for courses to load
-    await page.waitForLoadState('load');
+    // Navigate to courses page on customer-facing site using base URL
+    sitePage = new PublicSitePage(page, 'demo');
+    await sitePage.gotoCourses();
   });
 
   test('should require session selection before enabling Enroll Now button', async ({ page }) => {

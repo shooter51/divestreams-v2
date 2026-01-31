@@ -125,7 +125,9 @@ export abstract class TenantBasePage extends BasePage {
   }
 
   protected get tenantUrl(): string {
-    return `http://${this.tenantSubdomain}.localhost:5173`;
+    // Extract host from baseUrl (e.g., "http://localhost:5173" -> "localhost:5173")
+    const baseUrlHost = this.baseUrl.replace(/^https?:\/\//, '');
+    return `http://${this.tenantSubdomain}.${baseUrlHost}`;
   }
 
   /**
@@ -141,6 +143,14 @@ export abstract class TenantBasePage extends BasePage {
    */
   async gotoAuth(path: string = ""): Promise<void> {
     await this.page.goto(`${this.tenantUrl}/auth${path}`);
+    await this.waitForNavigation();
+  }
+
+  /**
+   * Navigate to public site route (customer-facing pages)
+   */
+  async gotoSite(path: string = ""): Promise<void> {
+    await this.page.goto(`${this.tenantUrl}/site${path}`);
     await this.waitForNavigation();
   }
 }
