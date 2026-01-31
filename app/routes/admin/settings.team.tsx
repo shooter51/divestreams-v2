@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { db } from "../../../lib/db";
 import { member, user, invitation, organization } from "../../../lib/db/schema/auth";
@@ -303,6 +303,13 @@ export default function AdminTeamPage() {
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
 
+  // Close modal on successful invite
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data?.message && showInviteModal) {
+      setShowInviteModal(false);
+    }
+  }, [fetcher.data, showInviteModal]);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -525,10 +532,14 @@ export default function AdminTeamPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4">Invite Team Member</h2>
-            <fetcher.Form
-              method="post"
-              onSubmit={() => setShowInviteModal(false)}
-            >
+
+            {fetcher.data?.error && (
+              <div className="mb-4 bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg text-sm">
+                {fetcher.data.error}
+              </div>
+            )}
+
+            <fetcher.Form method="post">
               <input type="hidden" name="intent" value="invite" />
 
               <div className="space-y-4">

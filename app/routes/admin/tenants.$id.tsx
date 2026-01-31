@@ -1,6 +1,6 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link, useFetcher } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db } from "../../../lib/db";
 import { organization, member, user, account } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
@@ -359,9 +359,21 @@ export default function OrganizationDetailsPage() {
   };
 
   // Handle fetcher response for generated password
-  if (fetcher.data?.generatedPassword && !generatedPassword) {
-    setGeneratedPassword(fetcher.data.generatedPassword);
-  }
+  useEffect(() => {
+    if (fetcher.data?.generatedPassword && !generatedPassword) {
+      setGeneratedPassword(fetcher.data.generatedPassword);
+    }
+  }, [fetcher.data, generatedPassword]);
+
+  // Close modal on successful email change or password reset (send link)
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data?.message && modal.type) {
+      // Don't close if it's a generated password - user needs to see it
+      if (!fetcher.data.generatedPassword) {
+        closeModal();
+      }
+    }
+  }, [fetcher.data, modal.type]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
