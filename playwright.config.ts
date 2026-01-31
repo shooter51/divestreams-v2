@@ -12,6 +12,8 @@ const isRemoteTest = !baseURL.includes("localhost") || process.env.SKIP_WEB_SERV
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  // Skip dev-specific tests in CI (they use remote dev URLs not available in CI)
+  testIgnore: process.env.CI ? ["**/*-dev*.spec.ts"] : [],
   fullyParallel: false, // Sequential for coverage collection
   forbidOnly: !!process.env.CI,
   retries: 0,
