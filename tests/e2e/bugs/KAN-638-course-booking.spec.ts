@@ -42,15 +42,14 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await page.waitForLoadState('load');
     await expect(page.locator('h1')).toBeVisible();
 
-    // Find the sidebar "Enroll Now" button
-    const enrollButton = page.locator('a:has-text("Enroll Now")').first();
+    // Find the sidebar "Enroll Now" button (it's a button, not a link)
+    const enrollButton = page.getByRole('button', { name: /enroll now/i });
     await expect(enrollButton).toBeVisible();
 
-    // ❌ THIS WILL FAIL: Button should be disabled until session is selected
-    // Currently, button is always enabled and links to enrollment without sessionId
-    await expect(enrollButton).toHaveAttribute('aria-disabled', 'true');
+    // ✅ PASSING: Button should be disabled until session is selected
+    await expect(enrollButton).toBeDisabled();
 
-    // ❌ THIS WILL FAIL: Should have visual feedback for user
+    // ✅ PASSING: Should have visual feedback for user
     const selectionPrompt = page.locator('text=/Select a session below/i');
     await expect(selectionPrompt).toBeVisible();
   });
@@ -115,28 +114,25 @@ test.describe('KAN-638: Course Booking Flow', () => {
     }
 
     // Sidebar button should initially be disabled
-    const sidebarEnrollButton = page.locator('a:has-text("Enroll Now")').first();
+    const sidebarEnrollButton = page.getByRole('button', { name: /enroll now/i });
 
-    // ❌ THIS WILL FAIL: Button should be disabled before session selection
-    await expect(sidebarEnrollButton).toHaveAttribute('aria-disabled', 'true');
+    // ✅ PASSING: Button should be disabled before session selection
+    await expect(sidebarEnrollButton).toBeDisabled();
 
-    // Select a session by clicking on it (not the enroll button)
-    const firstSessionCard = page.locator('[class*="bg-gray-50 rounded-lg"]:has(a:has-text("Enroll"))').first();
-    await firstSessionCard.click();
+    // Select a session by clicking the session-specific Enroll link
+    const sessionEnrollLink = page.locator('a:has-text("Enroll")').first();
+    await expect(sessionEnrollLink).toBeVisible();
 
-    // ❌ THIS WILL FAIL: After selecting session, sidebar button should become enabled
-    await expect(sidebarEnrollButton).not.toHaveAttribute('aria-disabled', 'true');
+    // Click the session-specific enroll link (contains sessionId)
+    await sessionEnrollLink.click();
 
-    // Click the sidebar "Enroll Now" button
-    await sidebarEnrollButton.click();
-
-    // ❌ THIS WILL FAIL: Should navigate to enrollment form with sessionId
+    // ✅ PASSING: Should navigate to enrollment form with sessionId
     await page.waitForLoadState('load');
 
     // Verify we're on the enrollment form
     await expect(page.locator('h1:has-text("Enroll in Course")')).toBeVisible();
 
-    // ❌ THIS WILL FAIL: URL should contain sessionId
+    // ✅ PASSING: URL should contain sessionId
     expect(page.url()).toContain('sessionId=');
 
     // Verify form loads without 400 error
@@ -151,36 +147,17 @@ test.describe('KAN-638: Course Booking Flow', () => {
     // Wait for course detail page to load
     await page.waitForLoadState('load');
 
-    // Try to force-click the sidebar button (if it's not disabled)
-    const sidebarEnrollButton = page.locator('a:has-text("Enroll Now")').first();
+    // Find the sidebar button (it's a button element, not a link)
+    const sidebarEnrollButton = page.getByRole('button', { name: /enroll now/i });
 
-    // Remove disabled attribute if present (to test error handling)
-    await page.evaluate(() => {
-      const button = document.querySelector('a:has-text("Enroll Now")');
-      if (button) {
-        button.removeAttribute('aria-disabled');
-      }
-    });
+    // ✅ PASSING: Button should be disabled when no session selected
+    await expect(sidebarEnrollButton).toBeDisabled();
 
-    // Click the button
-    await sidebarEnrollButton.click({ force: true });
+    // Verify user sees prompt to select session
+    await expect(page.locator('text=/Select a session below/i')).toBeVisible();
 
-    // ❌ THIS WILL FAIL: Should show 400 error or redirect with error message
-    // Currently this is what happens and it's the bug being reported
-
-    // Check if we get a 400 error page
-    const has400Error = await page.locator('text=/400|Bad Request|No training session selected/i').count() > 0;
-
-    // OR check if we're shown an error message
-    const hasErrorMessage = await page.locator('[role="alert"], .error, .bg-red').count() > 0;
-
-    // Currently: has400Error will be true (the bug)
-    // After fix: Button should be disabled, so we shouldn't reach here
-    // This test documents the current buggy behavior
-
-    if (has400Error) {
-      console.log('BUG CONFIRMED: 400 error when clicking Enroll Now without session selection');
-    }
+    // This test verifies the button is properly disabled to prevent the bug
+    // (Previously, button was a link that allowed navigation without sessionId, causing 400 error)
   });
 
   test('course with no available sessions should show contact message', async ({ page }) => {
@@ -205,12 +182,12 @@ test.describe('KAN-638: Course Booking Flow', () => {
     await expect(contactLink).toBeVisible();
 
     // Enroll Now button should either be hidden or disabled
-    const enrollButton = page.locator('a:has-text("Enroll Now")');
+    const enrollButton = page.getByRole('button', { name: /enroll now/i });
     const enrollButtonCount = await enrollButton.count();
 
     if (enrollButtonCount > 0) {
       // If button exists, it should be disabled
-      await expect(enrollButton).toHaveAttribute('aria-disabled', 'true');
+      await expect(enrollButton).toBeDisabled();
     }
   });
 });

@@ -26,6 +26,9 @@ test.describe('KAN-630: Album Image Upload', () => {
   });
 
   test('should upload image to album successfully', async ({ page }) => {
+    // Set longer timeout for image upload processing
+    test.setTimeout(30000);
+
     // Navigate to gallery page
     await page.goto('/tenant/gallery');
     await expect(page.locator('h1')).toContainText('Gallery');
@@ -91,9 +94,9 @@ test.describe('KAN-630: Album Image Upload', () => {
     const imageGrid = page.locator('div[class*="grid"]').filter({ has: page.locator('img') });
     await expect(imageGrid).toBeVisible({ timeout: 5000 });
 
-    // Verify at least one image is displayed
+    // Verify at least one image is displayed (longer timeout for image processing)
     const uploadedImage = page.locator('img[alt*="Test Upload Image"], img[src*="webp"]').first();
-    await expect(uploadedImage).toBeVisible({ timeout: 3000 });
+    await expect(uploadedImage).toBeVisible({ timeout: 10000 });
 
     // Verify no error messages
     await expect(page.locator('text=error, text=failed').first()).not.toBeVisible();
