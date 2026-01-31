@@ -114,13 +114,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
 
-      - name: Build application
-        run: npm run build
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
-          REDIS_URL: redis://localhost:6379
-          AUTH_SECRET: test-secret-for-ci
-          APP_URL: http://localhost:5173
+      # NOTE: No build step needed - Playwright config starts dev server automatically
+      # See playwright.config.ts webServer configuration (line 60-85)
 
       - name: Run E2E tests (all 230 workflow tests)
         run: |
