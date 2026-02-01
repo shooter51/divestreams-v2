@@ -524,13 +524,13 @@ function TripCard({ trip }: { trip: TripCard }) {
             backgroundColor: isFull
               ? "var(--danger-bg)"
               : trip.availableSpots <= 3
-              ? "#FEF3C7"
-              : "var(--success-bg)",
+              ? "var(--warning-muted)"
+              : "var(--success-muted)",
             color: isFull
               ? "var(--danger-text)"
               : trip.availableSpots <= 3
-              ? "#92400E"
-              : "var(--success-text)",
+              ? "var(--warning)"
+              : "var(--success)",
           }}
         >
           {isFull ? "Sold Out" : `${trip.availableSpots} spots left`}
@@ -605,12 +605,12 @@ function TripCard({ trip }: { trip: TripCard }) {
         {/* Inclusions */}
         <div className="flex flex-wrap gap-2 mb-4">
           {trip.includesEquipment && (
-            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "#DBEAFE", color: "#1E40AF" }}>
+            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--info-muted)", color: "var(--info)" }}>
               Equipment
             </span>
           )}
           {trip.includesMeals && (
-            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>
+            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-muted)", color: "var(--success)" }}>
               Meals
             </span>
           )}

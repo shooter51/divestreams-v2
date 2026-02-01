@@ -404,11 +404,12 @@ export default function BookingConfirmationPage() {
 
 function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; bgColor: string; textColor: string }> = {
-    pending: { label: "Pending", bgColor: "#fef3c7", textColor: "#92400e" },
-    confirmed: { label: "Confirmed", bgColor: "#d1fae5", textColor: "#065f46" },
-    completed: { label: "Completed", bgColor: "#dbeafe", textColor: "#1e40af" },
-    canceled: { label: "Canceled", bgColor: "#fee2e2", textColor: "#991b1b" },
-    no_show: { label: "No Show", bgColor: "#f3f4f6", textColor: "#374151" },
+    pending: { label: "Pending", bgColor: "var(--warning-muted)", textColor: "var(--warning)" },
+    confirmed: { label: "Confirmed", bgColor: "var(--success-muted)", textColor: "var(--success)" },
+    checked_in: { label: "Checked In", bgColor: "var(--brand-muted)", textColor: "var(--brand)" },
+    completed: { label: "Completed", bgColor: "var(--surface-overlay)", textColor: "var(--foreground-muted)" },
+    canceled: { label: "Canceled", bgColor: "var(--danger-muted)", textColor: "var(--danger)" },
+    no_show: { label: "No Show", bgColor: "var(--accent-muted)", textColor: "var(--accent)" },
   };
 
   const config = statusConfig[status] || statusConfig.pending;
@@ -425,10 +426,11 @@ function StatusBadge({ status }: { status: string }) {
 
 function PaymentBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; bgColor: string; textColor: string }> = {
-    pending: { label: "Payment Pending", bgColor: "#fef3c7", textColor: "#92400e" },
-    paid: { label: "Paid", bgColor: "#d1fae5", textColor: "#065f46" },
-    refunded: { label: "Refunded", bgColor: "#dbeafe", textColor: "#1e40af" },
-    failed: { label: "Payment Failed", bgColor: "#fee2e2", textColor: "#991b1b" },
+    pending: { label: "Payment Pending", bgColor: "var(--warning-muted)", textColor: "var(--warning)" },
+    partial: { label: "Partial Payment", bgColor: "var(--warning-muted)", textColor: "var(--warning)" },
+    paid: { label: "Paid", bgColor: "var(--success-muted)", textColor: "var(--success)" },
+    refunded: { label: "Refunded", bgColor: "var(--surface-overlay)", textColor: "var(--foreground-muted)" },
+    failed: { label: "Payment Failed", bgColor: "var(--danger-muted)", textColor: "var(--danger)" },
   };
 
   const config = statusConfig[status] || statusConfig.pending;

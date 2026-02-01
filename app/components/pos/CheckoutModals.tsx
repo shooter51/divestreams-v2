@@ -87,15 +87,24 @@ export function CardModal({
   useEffect(() => {
     if (!stripe || step !== "manual-entry") return;
 
+    // Detect dark mode from system preference
+    const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    // Get colors from CSS variables (fallback to computed values)
+    const computedStyle = getComputedStyle(document.documentElement);
+    const foreground = computedStyle.getPropertyValue("--foreground").trim() || (isDarkMode ? "#f3f4f6" : "#111827");
+    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() || (isDarkMode ? "#9ca3af" : "#6b7280");
+    const danger = computedStyle.getPropertyValue("--danger").trim() || (isDarkMode ? "#ef4444" : "#dc2626");
+
     const elements = stripe.elements();
     const card = elements.create("card", {
       style: {
         base: {
           fontSize: "16px",
-          color: "#424770",
-          "::placeholder": { color: "#aab7c4" },
+          color: foreground,
+          "::placeholder": { color: foregroundMuted },
         },
-        invalid: { color: "#9e2146" },
+        invalid: { color: danger },
       },
     });
 
@@ -158,21 +167,40 @@ export function CardModal({
 
     setStep("processing");
 
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card: cardElement },
-    });
+    try {
+      // Wrap Stripe call in Promise.race for 30-second timeout
+      const result = await Promise.race([
+        stripe.confirmCardPayment(clientSecret, {
+          payment_method: { card: cardElement },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Payment timeout - please try again")), 30000)
+        ),
+      ]);
 
-    if (result.error) {
-      setError(result.error.message || "Payment failed");
+      if (result.error) {
+        setError(result.error.message || "Payment failed");
+        setStep("error");
+      } else if (result.paymentIntent?.status === "succeeded") {
+        setPaymentIntentId(intentId);
+        setStep("success");
+        // Auto-complete after showing success
+        setTimeout(() => {
+          onComplete([{ method: "card", amount: total, stripePaymentIntentId: intentId }]);
+          handleClose();
+        }, 1500);
+      } else {
+        // Handle unexpected response format
+        console.error("Unexpected payment response:", result);
+        setError("Payment status unclear - please contact support");
+        setStep("error");
+      }
+    } catch (err) {
+      // Handle timeout, network errors, and other exceptions
+      const errorMessage = err instanceof Error ? err.message : "Payment failed - please try again";
+      console.error("Payment confirmation error:", err);
+      setError(errorMessage);
       setStep("error");
-    } else if (result.paymentIntent?.status === "succeeded") {
-      setPaymentIntentId(intentId);
-      setStep("success");
-      // Auto-complete after showing success
-      setTimeout(() => {
-        onComplete([{ method: "card", amount: total, stripePaymentIntentId: intentId }]);
-        handleClose();
-      }, 1500);
     }
   };
 

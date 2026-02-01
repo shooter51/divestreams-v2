@@ -443,13 +443,13 @@ export default function SiteTripDetailPage() {
               backgroundColor: isFull
                 ? "var(--danger-bg)"
                 : trip.availableSpots <= 3
-                ? "#FEF3C7"
-                : "var(--success-bg)",
+                ? "var(--warning-muted)"
+                : "var(--success-muted)",
               color: isFull
                 ? "var(--danger-text)"
                 : trip.availableSpots <= 3
-                ? "#92400E"
-                : "var(--success-text)",
+                ? "var(--warning)"
+                : "var(--success)",
             }}
           >
             {isFull ? "Sold Out" : `${trip.availableSpots} spots available`}
@@ -767,10 +767,10 @@ export default function SiteTripDetailPage() {
                   <p className="text-xs font-medium opacity-60 mb-3" style={{ color: "var(--text-color)" }}>INCLUDED IN PRICE</p>
                   <div className="flex flex-wrap gap-2">
                     {trip.includesEquipment && (
-                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "#DBEAFE", color: "#1E40AF" }}>Equipment</span>
+                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--info-muted)", color: "var(--info)" }}>Equipment</span>
                     )}
                     {trip.includesMeals && (
-                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-bg)", color: "var(--success-text)" }}>Meals</span>
+                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-muted)", color: "var(--success)" }}>Meals</span>
                     )}
                     {trip.includesTransport && (
                       <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">Transport</span>

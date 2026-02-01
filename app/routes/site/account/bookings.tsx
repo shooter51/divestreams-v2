@@ -356,12 +356,12 @@ function EmptyState({ filter }: { filter: string }) {
 
 function StatusBadge({ status }: { status: string }) {
   const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "#fef3c7", text: "#d97706", label: "Pending" },
-    confirmed: { bg: "#d1fae5", text: "#059669", label: "Confirmed" },
-    checked_in: { bg: "#dbeafe", text: "#2563eb", label: "Checked In" },
-    completed: { bg: "#e5e7eb", text: "#6b7280", label: "Completed" },
-    canceled: { bg: "var(--danger-bg)", text: "var(--danger-text)", label: "Cancelled" },
-    no_show: { bg: "var(--danger-bg)", text: "var(--danger-text)", label: "No Show" },
+    pending: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Pending" },
+    confirmed: { bg: "var(--success-muted)", text: "var(--success)", label: "Confirmed" },
+    checked_in: { bg: "var(--brand-muted)", text: "var(--brand)", label: "Checked In" },
+    completed: { bg: "var(--surface-overlay)", text: "var(--foreground-muted)", label: "Completed" },
+    canceled: { bg: "var(--danger-muted)", text: "var(--danger)", label: "Cancelled" },
+    no_show: { bg: "var(--accent-muted)", text: "var(--accent)", label: "No Show" },
   };
 
   const style = statusStyles[status] || statusStyles.pending;
@@ -378,10 +378,10 @@ function StatusBadge({ status }: { status: string }) {
 
 function PaymentBadge({ status }: { status: string }) {
   const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "#fef3c7", text: "#d97706", label: "Unpaid" },
-    partial: { bg: "#fef3c7", text: "#d97706", label: "Partial" },
-    paid: { bg: "#d1fae5", text: "#059669", label: "Paid" },
-    refunded: { bg: "#e5e7eb", text: "#6b7280", label: "Refunded" },
+    pending: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Unpaid" },
+    partial: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Partial" },
+    paid: { bg: "var(--success-muted)", text: "var(--success)", label: "Paid" },
+    refunded: { bg: "var(--surface-overlay)", text: "var(--foreground-muted)", label: "Refunded" },
   };
 
   const style = statusStyles[status] || statusStyles.pending;
