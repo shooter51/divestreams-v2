@@ -44,12 +44,13 @@ export function sanitizeHtml(html: string, allowedTags?: string[]): string {
  * Works in both browser and server environments
  */
 export function sanitizeIframeEmbed(html: string): string {
-  // Whitelist of allowed iframe domains
+  // Whitelist of allowed iframe domains and paths
   const allowedDomains = [
     "google.com/maps",
     "maps.google.com",
     "openstreetmap.org",
     "youtube.com/embed",
+    "youtube-nocookie.com/embed",
     "vimeo.com/video",
   ];
 
@@ -67,6 +68,11 @@ export function sanitizeIframeEmbed(html: string): string {
   }
 
   const src = srcMatch[1];
+
+  // Only allow HTTPS for embeds
+  if (!src.startsWith("https://")) {
+    return ""; // Must use HTTPS
+  }
 
   // Validate src is from an allowed domain
   const isAllowed = allowedDomains.some((domain) => src.includes(domain));
@@ -86,27 +92,64 @@ export function sanitizeIframeEmbed(html: string): string {
 }
 
 /**
- * Validate and sanitize URLs to prevent open redirects and javascript: protocol
+ * Validate and sanitize URLs to prevent javascript: protocol and other dangerous URLs
+ * Allows http:, https:, mailto:, tel:, and relative URLs by default
+ * Returns "about:blank" for dangerous/invalid URLs
  */
-export function sanitizeUrl(url: string, allowExternal = false): string {
+export function sanitizeUrl(url: string, allowDataUrls = false): string {
+  if (!url || typeof url !== "string") {
+    return "about:blank";
+  }
+
+  // Normalize and trim
+  const trimmed = url.trim();
+
+  if (!trimmed || trimmed === "null" || trimmed === "undefined") {
+    return "about:blank";
+  }
+
   try {
-    const parsed = new URL(url, typeof window !== "undefined" ? window.location.origin : "https://divestreams.com");
+    // Decode URL encoding and normalize for dangerous protocol detection
+    let normalized = trimmed.toLowerCase().replace(/\s/g, '');
 
-    // Block dangerous protocols
-    if (!["http:", "https:", ""].includes(parsed.protocol)) {
-      return "#";
+    // Decode common URL encodings that might be used to obfuscate protocols
+    try {
+      normalized = decodeURIComponent(normalized);
+    } catch {
+      // If decoding fails, continue with the original
     }
 
-    // If external URLs not allowed, only allow relative URLs
-    if (!allowExternal && parsed.protocol) {
-      // Has protocol = absolute URL
-      return "#";
+    // Remove any remaining whitespace after decoding
+    normalized = normalized.replace(/\s/g, '');
+
+    const dangerousProtocols = ['javascript:', 'vbscript:', 'file:'];
+    if (!allowDataUrls) {
+      dangerousProtocols.push('data:');
     }
 
-    return url;
+    for (const protocol of dangerousProtocols) {
+      if (normalized.startsWith(protocol) || normalized.includes(protocol)) {
+        return "about:blank";
+      }
+    }
+
+    // Try to parse as URL
+    const parsed = new URL(trimmed, typeof window !== "undefined" ? window.location.origin : "https://divestreams.com");
+
+    // Allow safe protocols
+    const safeProtocols = ["http:", "https:", "mailto:", "tel:", ""];
+    if (allowDataUrls) {
+      safeProtocols.push("data:");
+    }
+
+    if (!safeProtocols.includes(parsed.protocol)) {
+      return "about:blank";
+    }
+
+    return trimmed;
   } catch {
-    // Invalid URL
-    return "#";
+    // Invalid URL format
+    return "about:blank";
   }
 }
 

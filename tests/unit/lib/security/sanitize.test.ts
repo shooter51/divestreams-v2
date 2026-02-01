@@ -17,7 +17,7 @@ describe("Security Sanitization", () => {
   describe("escapeHtml", () => {
     it("should escape basic HTML tags", () => {
       expect(escapeHtml("<script>alert('XSS')</script>")).toBe(
-        "&lt;script&gt;alert(&#x27;XSS&#x27;)&lt;/script&gt;"
+        "&lt;script&gt;alert(&#x27;XSS&#x27;)&lt;&#x2F;script&gt;"
       );
     });
 
@@ -28,7 +28,7 @@ describe("Security Sanitization", () => {
     });
 
     it("should escape HTML entities", () => {
-      expect(escapeHtml('& < > " \\' /'))toBe(
+      expect(escapeHtml(`& < > " ' /`)).toBe(
         "&amp; &lt; &gt; &quot; &#x27; &#x2F;"
       );
     });
@@ -45,13 +45,13 @@ describe("Security Sanitization", () => {
       expect(
         escapeHtml("<script>alert(1)</script><script>alert(2)</script>")
       ).toBe(
-        "&lt;script&gt;alert(1)&lt;/script&gt;&lt;script&gt;alert(2)&lt;/script&gt;"
+        "&lt;script&gt;alert(1)&lt;&#x2F;script&gt;&lt;script&gt;alert(2)&lt;&#x2F;script&gt;"
       );
     });
 
     it("should escape nested HTML", () => {
       expect(escapeHtml("<div><span>text</span></div>")).toBe(
-        "&lt;div&gt;&lt;span&gt;text&lt;/span&gt;&lt;/div&gt;"
+        "&lt;div&gt;&lt;span&gt;text&lt;&#x2F;span&gt;&lt;&#x2F;div&gt;"
       );
     });
 
