@@ -39,6 +39,10 @@ export async function action({ request }: ActionFunctionArgs) {
     isPublic: formData.get("isPublic") === "true",
   });
 
+  if (!newEquipment) {
+    return { errors: { form: "Failed to create equipment" }, values: getFormValues(formData) };
+  }
+
   const equipmentName = formData.get("name") as string;
   return redirect(redirectWithNotification(`/tenant/equipment/${newEquipment.id}`, `Equipment "${equipmentName}" created successfully! Add images below to complete your equipment listing.`, "success"));
 }
