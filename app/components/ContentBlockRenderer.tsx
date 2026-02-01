@@ -3,8 +3,12 @@
  *
  * Renders different types of content blocks from the page builder.
  * Each block type has its own rendering logic and styling.
+ *
+ * SECURITY: All user-generated HTML is sanitized with DOMPurify
+ * to prevent XSS attacks.
  */
 
+import DOMPurify from "isomorphic-dompurify";
 import type {
   ContentBlock,
   HeadingBlock,
@@ -83,19 +87,31 @@ function HeadingRenderer({ block }: { block: HeadingBlock }) {
 }
 
 function ParagraphRenderer({ block }: { block: ParagraphBlock }) {
+  // Sanitize HTML to prevent XSS attacks
+  const sanitized = DOMPurify.sanitize(block.content, {
+    ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "code"],
+    ALLOWED_ATTR: ["href", "target", "rel"],
+  });
+
   return (
     <div
       className="prose prose-lg max-w-none mb-6"
-      dangerouslySetInnerHTML={{ __html: block.content }}
+      dangerouslySetInnerHTML={{ __html: sanitized }}
     />
   );
 }
 
 function HtmlRenderer({ block }: { block: HtmlBlock }) {
+  // Sanitize HTML to prevent XSS attacks
+  const sanitized = DOMPurify.sanitize(block.content, {
+    ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "h1", "h2", "h3", "div", "span", "code", "pre"],
+    ALLOWED_ATTR: ["href", "target", "rel", "class", "style"],
+  });
+
   return (
     <div
       className="mb-6"
-      dangerouslySetInnerHTML={{ __html: block.content }}
+      dangerouslySetInnerHTML={{ __html: sanitized }}
     />
   );
 }
