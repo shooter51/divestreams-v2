@@ -13,6 +13,7 @@ import { db } from "../db";
 import {
   organization,
   member,
+  account,
 } from "../db/schema/auth";
 import { subscription } from "../db/schema/subscription";
 import { subscriptionPlans, customers, tours, bookings } from "../db/schema";
@@ -456,6 +457,24 @@ export async function requireOrgContext(request: Request): Promise<OrgContext> {
 
     // Otherwise redirect to main login
     throw redirect("/login");
+  }
+
+  // Check if user is forced to change password
+  const [userAccount] = await db
+    .select()
+    .from(account)
+    .where(eq(account.userId, context.user.id))
+    .limit(1);
+
+  if (userAccount?.forcePasswordChange) {
+    const url = new URL(request.url);
+    // Allow access to password change page and logout
+    if (
+      !url.pathname.includes("/settings/password") &&
+      !url.pathname.includes("/logout")
+    ) {
+      throw redirect("/tenant/settings/password?forced=true");
+    }
   }
 
   return context;
