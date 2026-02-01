@@ -44,8 +44,8 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   const boatName = formData.get("name") as string;
-  // Redirect to edit page to allow image upload
-  return redirect(redirectWithNotification(`/tenant/boats/${newBoat.id}/edit`, `Boat "${boatName}" created! Now add images to complete your boat listing.`, "success"));
+  // Redirect to detail page where user can immediately add images via ImageManager
+  return redirect(redirectWithNotification(`/tenant/boats/${newBoat.id}`, `Boat "${boatName}" created successfully! Add images below to complete your boat listing.`, "success"));
 }
 
 export default function NewBoatPage() {

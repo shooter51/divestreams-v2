@@ -709,7 +709,8 @@ export default function SiteRegisterPage() {
                 <span className="text-sm">
                   I agree to the{" "}
                   <Link
-                    to="/site/terms"
+                    to="/terms"
+                    target="_blank"
                     className="underline hover:opacity-80"
                     style={{ color: "var(--primary-color)" }}
                   >
@@ -717,7 +718,8 @@ export default function SiteRegisterPage() {
                   </Link>{" "}
                   and{" "}
                   <Link
-                    to="/site/privacy"
+                    to="/privacy"
+                    target="_blank"
                     className="underline hover:opacity-80"
                     style={{ color: "var(--primary-color)" }}
                   >

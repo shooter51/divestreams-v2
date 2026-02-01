@@ -103,8 +103,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const tourName = formData.get("name") as string;
-  // Redirect to edit page to allow image upload
-  return redirect(redirectWithNotification(`/tenant/tours/${newTour.id}/edit`, `Tour "${tourName}" created! Now add images to complete your tour listing.`, "success"));
+  // Redirect to detail page where user can immediately add images via ImageManager
+  return redirect(redirectWithNotification(`/tenant/tours/${newTour.id}`, `Tour "${tourName}" created successfully! Add images below to complete your tour listing.`, "success"));
 }
 
 export default function NewTourPage() {
