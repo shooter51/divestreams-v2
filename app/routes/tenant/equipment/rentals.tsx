@@ -20,7 +20,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_EQUIPMENT_BOATS);
 
-  const { db, schema } = getTenantDb(ctx.tenant.subdomain);
+  const organizationId = ctx.org.id;
+  const { db, schema } = getTenantDb(organizationId);
   const url = new URL(request.url);
   const status = url.searchParams.get("status") || "active";
 
@@ -94,7 +95,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_EQUIPMENT_BOATS);
 
-  const { db, schema } = getTenantDb(ctx.tenant.subdomain);
+  const organizationId = ctx.org.id;
+  const { db, schema } = getTenantDb(organizationId);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
