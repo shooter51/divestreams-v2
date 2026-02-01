@@ -160,7 +160,9 @@ export abstract class TenantBasePage extends BasePage {
  */
 export abstract class AdminBasePage extends BasePage {
   protected get adminUrl(): string {
-    return "http://demo.localhost:5173/tenant";
+    // Extract host from baseUrl (e.g., "http://localhost:5173" -> "localhost:5173")
+    const baseUrlHost = this.baseUrl.replace(/^https?:\/\//, '');
+    return `http://demo.${baseUrlHost}/tenant`;
   }
 
   /**

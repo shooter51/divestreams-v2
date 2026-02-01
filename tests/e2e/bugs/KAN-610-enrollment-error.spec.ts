@@ -17,11 +17,27 @@
  */
 
 import { test, expect } from "@playwright/test";
+import { TenantBasePage } from "../page-objects/base.page";
+
+// Helper page object for tenant navigation
+class TrainingPage extends TenantBasePage {
+  async gotoLogin(): Promise<void> {
+    await this.gotoAuth("/login");
+  }
+
+  async gotoTraining(): Promise<void> {
+    await this.goto("/training");
+  }
+}
 
 test.describe("KAN-610: New Enrollment Button Error", () => {
+  let trainingPage: TrainingPage;
+
   test.beforeEach(async ({ page }) => {
+    trainingPage = new TrainingPage(page, "demo");
+
     // Login as admin to demo tenant
-    await page.goto("http://demo.localhost:5173/auth/login");
+    await trainingPage.gotoLogin();
     await page.waitForLoadState("load");
 
     // Fill in login credentials
@@ -35,7 +51,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
 
   test("should load enrollment form from training dashboard without error", async ({ page }) => {
     // Navigate to training dashboard
-    await page.goto("http://demo.localhost:5173/tenant/training");
+    await trainingPage.gotoTraining();
     await page.waitForLoadState("load");
 
     // Wait for the Quick Actions section to be visible
@@ -66,7 +82,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
 
   test("should load enrollment form from enrollments list without error", async ({ page }) => {
     // Navigate to enrollments list
-    await page.goto("http://demo.localhost:5173/tenant/training/enrollments");
+    await trainingPage.goto("/training/enrollments");
     await page.waitForLoadState("load");
 
     // Wait for page to load (check for heading)
@@ -97,7 +113,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
 
   test("should allow session selection when no sessionId provided", async ({ page }) => {
     // Go directly to enrollment form without sessionId
-    await page.goto("http://demo.localhost:5173/tenant/training/enrollments/new");
+    await trainingPage.goto("/training/enrollments/new");
     await page.waitForLoadState("load");
 
     // Wait for form to load

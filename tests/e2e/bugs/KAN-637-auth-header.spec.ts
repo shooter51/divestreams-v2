@@ -8,16 +8,38 @@
  */
 
 import { test, expect } from "@playwright/test";
+import { TenantBasePage } from "../page-objects/base.page";
+
+// Helper page object for public site navigation
+class PublicSitePage extends TenantBasePage {
+  async gotoSiteRegister(): Promise<void> {
+    await this.gotoSite("/register");
+  }
+
+  async gotoSiteLogin(): Promise<void> {
+    await this.gotoSite("/login");
+  }
+
+  async gotoSiteHome(): Promise<void> {
+    await this.gotoSite("");
+  }
+}
 
 test.describe("KAN-637: Auth header state after login @bug", () => {
+  let sitePage: PublicSitePage;
+
+  test.beforeEach(async ({ page }) => {
+    sitePage = new PublicSitePage(page, "e2etest");
+  });
+
   // Helper function to create a test customer via API
-  async function createTestCustomer(page: any, email: string, password: string) {
+  async function createTestCustomer(page: any, sitePage: PublicSitePage, email: string, password: string) {
     // Use cookies to simulate customer login for testing
     // This bypasses the registration UI and focuses on the header bug
     const context = page.context();
 
     // For now, use the UI flow since we need the actual session cookie
-    await page.goto("http://e2etest.localhost:5173/site/register");
+    await sitePage.gotoSiteRegister();
 
     // Check if register page exists and public site is enabled
     const registerHeading = page.getByRole("heading", { name: /create.*account|sign up/i });
@@ -43,7 +65,7 @@ test.describe("KAN-637: Auth header state after login @bug", () => {
       const errorText = await page.textContent("body");
       if (errorText?.includes("already")) {
         // Email exists, try to login instead
-        await page.goto("http://e2etest.localhost:5173/site/login");
+        await sitePage.gotoSiteLogin();
         await page.getByLabel(/email/i).fill(email);
         await page.getByLabel(/password/i).fill(password);
         await page.getByRole("button", { name: /sign in|log in/i }).click();
@@ -59,11 +81,11 @@ test.describe("KAN-637: Auth header state after login @bug", () => {
     const testPassword = "TestPassword123!";
 
     // Create and login test customer
-    const created = await createTestCustomer(page, testEmail, testPassword);
+    const created = await createTestCustomer(page, sitePage, testEmail, testPassword);
     if (!created) return; // Skip if public site not enabled
 
     // Navigate back to home page to verify header state
-    await page.goto("http://e2etest.localhost:5173/site");
+    await sitePage.gotoSiteHome();
     await page.waitForLoadState("load");
 
     const header = page.locator("header");

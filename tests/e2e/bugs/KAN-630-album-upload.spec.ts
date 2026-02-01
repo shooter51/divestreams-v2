@@ -9,11 +9,23 @@
 
 import { test, expect } from '@playwright/test';
 import path from 'path';
+import { TenantBasePage } from '../page-objects/base.page';
+
+// Helper page object for tenant navigation
+class AlbumPage extends TenantBasePage {
+  async gotoLogin(): Promise<void> {
+    await this.gotoAuth('/login');
+  }
+}
 
 test.describe('KAN-630: Album Image Upload', () => {
+  let albumPage: AlbumPage;
+
   test.beforeEach(async ({ page }) => {
+    albumPage = new AlbumPage(page, 'demo');
+
     // Login as demo tenant admin
-    await page.goto("http://demo.localhost:5173/auth/login");
+    await albumPage.gotoLogin();
     await page.waitForLoadState("load");
 
     // Fill in login credentials using accessibility-based selectors

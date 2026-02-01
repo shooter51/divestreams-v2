@@ -40,7 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   const equipmentName = formData.get("name") as string;
-  return redirect(redirectWithNotification("/tenant/equipment", `Equipment "${equipmentName}" has been successfully created`, "success"));
+  return redirect(redirectWithNotification(`/tenant/equipment/${newEquipment.id}`, `Equipment "${equipmentName}" created successfully! Add images below to complete your equipment listing.`, "success"));
 }
 
 export default function NewEquipmentPage() {
