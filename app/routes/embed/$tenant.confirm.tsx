@@ -79,6 +79,19 @@ export default function BookingConfirmationPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      {/* Back Navigation */}
+      <div className="mb-6">
+        <Link
+          to={`/embed/${tenantSlug}`}
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Back to Tours</span>
+        </Link>
+      </div>
+
       {/* Success Header */}
       <div className="text-center mb-8">
         <div
