@@ -231,9 +231,12 @@ export default function NewEnrollmentPage() {
             name="amountPaid"
             step="0.01"
             min="0"
-            defaultValue="0"
+            defaultValue={actionData?.errors?.amountPaid ? "" : "0"}
             className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           />
+          {actionData?.errors?.amountPaid && (
+            <p className="text-danger text-sm mt-1">{actionData.errors.amountPaid}</p>
+          )}
         </div>
 
         <div className="flex gap-3 pt-4">

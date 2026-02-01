@@ -98,6 +98,7 @@ export default [
       // Equipment
       route("equipment", "routes/tenant/equipment/index.tsx"),
       route("equipment/new", "routes/tenant/equipment/new.tsx"),
+      route("equipment/rentals", "routes/tenant/equipment/rentals.tsx"),
       route("equipment/:id/edit", "routes/tenant/equipment/$id/edit.tsx"),
       route("equipment/:id", "routes/tenant/equipment/$id.tsx"),
 
