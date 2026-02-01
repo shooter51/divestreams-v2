@@ -235,6 +235,33 @@ export async function processPOSCheckout(
     notes?: string;
   }
 ) {
+  // SECURITY: Validate payment amounts match calculated totals
+  // Recalculate subtotal from items to prevent manipulation
+  const calculatedSubtotal = data.items.reduce((sum, item) => sum + item.total, 0);
+
+  // Verify client-provided subtotal matches calculated subtotal
+  if (Math.abs(calculatedSubtotal - data.subtotal) > 0.01) {
+    throw new Error(
+      `Payment validation failed: Subtotal mismatch. Expected ${calculatedSubtotal.toFixed(2)}, received ${data.subtotal.toFixed(2)}`
+    );
+  }
+
+  // Verify total = subtotal + tax (allowing 1 cent rounding difference)
+  const calculatedTotal = data.subtotal + data.tax;
+  if (Math.abs(calculatedTotal - data.total) > 0.01) {
+    throw new Error(
+      `Payment validation failed: Total mismatch. Expected ${calculatedTotal.toFixed(2)}, received ${data.total.toFixed(2)}`
+    );
+  }
+
+  // Verify payment amounts sum to transaction total
+  const paymentTotal = data.payments.reduce((sum, p) => sum + p.amount, 0);
+  if (Math.abs(paymentTotal - data.total) > 0.01) {
+    throw new Error(
+      `Payment validation failed: Payment amounts (${paymentTotal.toFixed(2)}) do not match transaction total (${data.total.toFixed(2)})`
+    );
+  }
+
   const receiptNumber = await generateReceiptNumber(tables, organizationId);
 
   // Determine payment method string

@@ -14,6 +14,7 @@
  */
 
 import Stripe from "stripe";
+import crypto from "crypto";
 import {
   connectIntegration,
   getIntegrationWithTokens,
@@ -690,6 +691,18 @@ export async function createPOSPaymentIntent(
   const { stripe, integration } = client;
 
   try {
+    // SECURITY: Generate idempotency key to prevent double-charging on retry/timeout
+    // Use receipt number if available, otherwise use timestamp
+    const idempotencyBase = metadata?.receiptNumber
+      ? `${orgId}-${metadata.receiptNumber}-${amount}`
+      : `${orgId}-${amount}-${Date.now()}`;
+
+    const idempotencyKey = crypto
+      .createHash("sha256")
+      .update(idempotencyBase)
+      .digest("hex")
+      .substring(0, 50); // Stripe idempotency keys max 255 chars
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "usd", // Could be configurable per org
@@ -701,6 +714,8 @@ export async function createPOSPaymentIntent(
         source: "pos",
         ...metadata,
       },
+    }, {
+      idempotencyKey,
     });
 
     await logSyncOperation(integration.id, "create_payment_intent", "success", {

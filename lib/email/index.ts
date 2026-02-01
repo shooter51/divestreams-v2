@@ -6,6 +6,7 @@
 
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
+import { escapeHtml } from "../security/sanitize";
 
 // Lazy transporter initialization
 let transporter: Transporter | null = null;
@@ -149,33 +150,33 @@ export function bookingConfirmationEmail(data: {
           <h1>Booking Confirmed! ✓</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.customerName},</p>
-          <p>Your booking with <strong>${data.shopName}</strong> has been confirmed!</p>
+          <p>Hi ${escapeHtml(data.customerName)},</p>
+          <p>Your booking with <strong>${escapeHtml(data.shopName)}</strong> has been confirmed!</p>
 
           <div class="details">
             <div class="detail-row">
               <span class="label">Booking Number</span>
-              <span class="value">${data.bookingNumber}</span>
+              <span class="value">${escapeHtml(data.bookingNumber)}</span>
             </div>
             <div class="detail-row">
               <span class="label">Trip</span>
-              <span class="value">${data.tripName}</span>
+              <span class="value">${escapeHtml(data.tripName)}</span>
             </div>
             <div class="detail-row">
               <span class="label">Date</span>
-              <span class="value">${data.tripDate}</span>
+              <span class="value">${escapeHtml(data.tripDate)}</span>
             </div>
             <div class="detail-row">
               <span class="label">Time</span>
-              <span class="value">${data.tripTime}</span>
+              <span class="value">${escapeHtml(data.tripTime)}</span>
             </div>
             <div class="detail-row">
               <span class="label">Participants</span>
-              <span class="value">${data.participants}</span>
+              <span class="value">${escapeHtml(data.participants.toString())}</span>
             </div>
             <div class="detail-row">
               <span class="label">Total</span>
-              <span class="value">${data.total}</span>
+              <span class="value">${escapeHtml(data.total)}</span>
             </div>
           </div>
 
@@ -183,7 +184,7 @@ export function bookingConfirmationEmail(data: {
           <p>If you have any questions, please contact us.</p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -263,7 +264,7 @@ export function bookingReminderEmail(data: {
           <p>Please arrive 15 minutes before departure.</p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -329,7 +330,7 @@ export function welcomeEmail(data: {
           </p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -447,7 +448,7 @@ export function customerWelcomeEmail(data: {
           </p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -515,25 +516,25 @@ export function contactFormNotificationEmail(data: {
 
           <div class="details">
             <div class="detail-row">
-              <span class="label">From:</span> ${data.name} (${data.email})
+              <span class="label">From:</span> ${escapeHtml(data.name)} (${escapeHtml(data.email)})
             </div>
-            ${data.phone ? `<div class="detail-row"><span class="label">Phone:</span> ${data.phone}</div>` : ""}
-            ${data.subject ? `<div class="detail-row"><span class="label">Subject:</span> ${data.subject}</div>` : ""}
+            ${data.phone ? `<div class="detail-row"><span class="label">Phone:</span> ${escapeHtml(data.phone)}</div>` : ""}
+            ${data.subject ? `<div class="detail-row"><span class="label">Subject:</span> ${escapeHtml(data.subject)}</div>` : ""}
             <div class="detail-row">
-              <span class="label">Submitted:</span> ${data.submittedAt}
+              <span class="label">Submitted:</span> ${escapeHtml(data.submittedAt)}
             </div>
-            ${data.referrerPage ? `<div class="detail-row"><span class="label">Page:</span> ${data.referrerPage}</div>` : ""}
+            ${data.referrerPage ? `<div class="detail-row"><span class="label">Page:</span> ${escapeHtml(data.referrerPage)}</div>` : ""}
           </div>
 
           <div class="message-box">
             <div class="label">Message:</div>
-            <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${data.message}</p>
+            <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${escapeHtml(data.message)}</p>
           </div>
 
-          <p><strong>Reply to:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
+          <p><strong>Reply to:</strong> <a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a></p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -603,7 +604,7 @@ export function contactFormAutoReplyEmail(data: {
           <p>Best regards,<br>${data.shopName} Team</p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>

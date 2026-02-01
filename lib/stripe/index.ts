@@ -143,22 +143,18 @@ export async function createCheckoutSession(
       const currentSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
 
       if (currentSubscription.status === "active") {
-        // Get current plan details for comparison
-        const [currentPlan] = await db
-          .select()
-          .from(subscriptionPlans)
-          .where(eq(subscriptionPlans.name, sub.plan))
-          .limit(1);
+        // SECURITY: Fetch prices from Stripe API to prevent manipulation
+        // Get current price from Stripe (not database)
+        const currentPriceId = currentSubscription.items.data[0].price.id;
+        const currentStripePrice = await stripe.prices.retrieve(currentPriceId);
+        const currentPriceAmount = currentStripePrice.unit_amount || 0;
 
-        const currentPrice = billingPeriod === "yearly"
-          ? (currentPlan?.yearlyPrice ? Number(currentPlan.yearlyPrice) : 0)
-          : (currentPlan?.monthlyPrice ? Number(currentPlan.monthlyPrice) : 0);
+        // Get new price from Stripe (not database)
+        const newStripePrice = await stripe.prices.retrieve(priceId);
+        const newPriceAmount = newStripePrice.unit_amount || 0;
 
-        const newPrice = billingPeriod === "yearly"
-          ? (plan.yearlyPrice ? Number(plan.yearlyPrice) : 0)
-          : (plan.monthlyPrice ? Number(plan.monthlyPrice) : 0);
-
-        const isUpgrade = newPrice > currentPrice;
+        // Determine if this is an upgrade or downgrade based on Stripe prices
+        const isUpgrade = newPriceAmount > currentPriceAmount;
 
         // Update the subscription
         await stripe.subscriptions.update(sub.stripeSubscriptionId, {
