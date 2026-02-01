@@ -141,7 +141,7 @@ What you can do:
 - Contact your bank if the issue persists
 - Try a different payment method
 
-${retryUrl ? `Update your payment method: ${retryUrl}` : ''}
+${data.retryUrl ? `Update your payment method: ${data.retryUrl}` : ''}
 
 Need help? Contact us and we'll be happy to assist.
 
