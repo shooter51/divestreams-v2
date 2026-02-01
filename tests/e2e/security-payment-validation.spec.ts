@@ -7,7 +7,7 @@
  */
 
 import { test, expect } from "@playwright/test";
-import { loginAsAdmin, seedDemoData } from "../helpers";
+import { loginAsAdmin, seedDemoData } from "../helpers/index.ts";
 
 test.describe("Payment Validation Security", () => {
   test.beforeEach(async ({ page }) => {

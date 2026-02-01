@@ -6,7 +6,7 @@
  */
 
 import { test, expect } from "@playwright/test";
-import { loginAsAdmin, loginAsCustomer, seedDemoData } from "../helpers";
+import { loginAsAdmin, loginAsCustomer, seedDemoData } from "../helpers/index.ts";
 
 test.describe("XSS Prevention Security", () => {
   test.beforeEach(async ({ page }) => {
