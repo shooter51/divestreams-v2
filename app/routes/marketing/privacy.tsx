@@ -1,314 +1,192 @@
-import type { MetaFunction } from "react-router";
+/**
+ * Privacy Policy Page
+ * Public-facing privacy policy for legal compliance (GDPR, CCPA, etc.)
+ */
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: "Privacy Policy - DiveStreams" },
-    { name: "description", content: "Privacy Policy for DiveStreams dive shop management software." },
-  ];
-};
+import type { MetaFunction } from "react-router";
+import { Link } from "react-router";
+
+export const meta: MetaFunction = () => [
+  { title: "Privacy Policy - DiveStreams" },
+  { name: "description", content: "DiveStreams privacy policy and data protection practices" },
+];
 
 export default function PrivacyPage() {
+  const lastUpdated = "January 31, 2026";
+
   return (
-    <div className="min-h-screen bg-surface-raised">
-      {/* Navigation */}
-      <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold text-brand">
-          DiveStreams
-        </a>
-        <div className="flex gap-6 items-center">
-          <a href="/features" className="text-foreground-muted hover:text-brand">
-            Features
-          </a>
-          <a href="/pricing" className="text-foreground-muted hover:text-brand">
-            Pricing
-          </a>
-          <a href="/signup" className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover">
-            Start Free Trial
-          </a>
+    <div className="min-h-screen bg-surface">
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="mb-8">
+          <Link to="/" className="text-brand hover:underline">
+            ← Back to Home
+          </Link>
         </div>
-      </nav>
 
-      {/* Header */}
-      <section className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-4xl font-bold text-foreground mb-4">
-          Privacy Policy
-        </h1>
-        <p className="text-foreground-muted">
-          Last updated: January 12, 2026
-        </p>
-      </section>
+        <article className="prose prose-slate max-w-none">
+          <h1 className="text-4xl font-bold mb-2">Privacy Policy</h1>
+          <p className="text-foreground-muted mb-8">Last updated: {lastUpdated}</p>
 
-      {/* Content */}
-      <section className="container mx-auto px-4 pb-20 max-w-4xl">
-        <div className="prose prose-lg max-w-none">
-          <Section title="1. Introduction">
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
             <p>
-              DiveStreams ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy
-              explains how we collect, use, disclose, and safeguard your information when you use our dive shop
-              management platform ("Service").
+              Welcome to DiveStreams ("we," "our," or "us"). We are committed to protecting your personal
+              information and your right to privacy. This Privacy Policy explains how we collect, use, disclose,
+              and safeguard your information when you visit our website or use our services.
             </p>
-            <p>
-              Please read this Privacy Policy carefully. By using the Service, you consent to the data practices
-              described in this policy. If you do not agree with the terms of this Privacy Policy, please do not
-              access or use the Service.
-            </p>
-          </Section>
+          </section>
 
-          <Section title="2. Information We Collect">
-            <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">2.1 Information You Provide</h3>
-            <p>
-              We collect information you voluntarily provide when you:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Create an account:</strong> Name, email address, phone number, business name, and billing information</li>
-              <li><strong>Use our Service:</strong> Customer data, booking information, equipment records, and business data you enter</li>
-              <li><strong>Contact us:</strong> Communications you send via email, support tickets, or other channels</li>
-              <li><strong>Subscribe:</strong> Payment card details (processed securely through Stripe)</li>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">2. Information We Collect</h2>
+            <p>We collect information that you provide directly to us, including:</p>
+            <ul className="list-disc pl-6 mb-4">
+              <li>Name, email address, and contact information</li>
+              <li>Diving certification details and experience level</li>
+              <li>Payment information (processed securely through Stripe)</li>
+              <li>Booking and reservation details</li>
+              <li>Communications with our support team</li>
             </ul>
-
-            <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">2.2 Information Collected Automatically</h3>
-            <p>
-              When you access the Service, we automatically collect:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Device information:</strong> Browser type, operating system, device type, and unique device identifiers</li>
-              <li><strong>Log data:</strong> IP address, access times, pages viewed, and referring URL</li>
-              <li><strong>Usage data:</strong> Features used, actions taken, and time spent on the Service</li>
-              <li><strong>Location data:</strong> General geographic location based on IP address</li>
+            <p>We also automatically collect certain information when you use our services:</p>
+            <ul className="list-disc pl-6">
+              <li>Device and browser information</li>
+              <li>IP address and location data</li>
+              <li>Usage data and analytics</li>
+              <li>Cookies and similar tracking technologies</li>
             </ul>
+          </section>
 
-            <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">2.3 Information from Third Parties</h3>
-            <p>
-              We may receive information from third-party services you connect to DiveStreams, such as:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Payment processors (transaction status and billing information)</li>
-              <li>Email service providers (delivery status)</li>
-              <li>Analytics services (aggregated usage patterns)</li>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">3. How We Use Your Information</h2>
+            <p>We use the information we collect to:</p>
+            <ul className="list-disc pl-6">
+              <li>Provide, maintain, and improve our services</li>
+              <li>Process your bookings and payments</li>
+              <li>Send you booking confirmations and updates</li>
+              <li>Respond to your inquiries and provide customer support</li>
+              <li>Send marketing communications (with your consent)</li>
+              <li>Analyze usage patterns and improve user experience</li>
+              <li>Comply with legal obligations and prevent fraud</li>
             </ul>
-          </Section>
+          </section>
 
-          <Section title="3. How We Use Your Information">
-            <p>
-              We use the collected information to:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Provide, maintain, and improve the Service</li>
-              <li>Process transactions and send related information</li>
-              <li>Send administrative messages, updates, and security alerts</li>
-              <li>Respond to your comments, questions, and support requests</li>
-              <li>Monitor and analyze usage patterns and trends</li>
-              <li>Detect, prevent, and address technical issues and fraud</li>
-              <li>Personalize and improve your experience</li>
-              <li>Send promotional communications (with your consent)</li>
-              <li>Comply with legal obligations</li>
-            </ul>
-          </Section>
-
-          <Section title="4. Cookies and Tracking Technologies">
-            <p>
-              We use cookies and similar tracking technologies to collect and store information about your
-              interactions with the Service.
-            </p>
-            <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">Types of Cookies We Use:</h3>
-            <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Essential cookies:</strong> Required for the Service to function properly (authentication, security)</li>
-              <li><strong>Functional cookies:</strong> Remember your preferences and settings</li>
-              <li><strong>Analytics cookies:</strong> Help us understand how you use the Service</li>
-              <li><strong>Marketing cookies:</strong> Used to deliver relevant advertisements (only with consent)</li>
-            </ul>
-            <p className="mt-4">
-              You can control cookies through your browser settings. However, disabling certain cookies may
-              affect the functionality of the Service.
-            </p>
-          </Section>
-
-          <Section title="5. How We Share Your Information">
-            <p>
-              We may share your information in the following circumstances:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">4. Information Sharing and Disclosure</h2>
+            <p>We may share your information with:</p>
+            <ul className="list-disc pl-6">
               <li>
-                <strong>Service providers:</strong> With third-party vendors who perform services on our behalf
-                (hosting, payment processing, email delivery, analytics)
+                <strong>Service Providers:</strong> Third-party companies that help us operate our business
+                (e.g., payment processors, email services, analytics providers)
               </li>
               <li>
-                <strong>Business transfers:</strong> In connection with a merger, acquisition, or sale of assets
+                <strong>Dive Operators:</strong> When you book a dive trip, we share your information with
+                the dive shop or tour operator to fulfill your reservation
               </li>
               <li>
-                <strong>Legal requirements:</strong> When required by law or to respond to legal process
+                <strong>Legal Requirements:</strong> When required by law or to protect our rights
               </li>
               <li>
-                <strong>Protection of rights:</strong> To protect the rights, property, and safety of DiveStreams,
-                our users, or others
-              </li>
-              <li>
-                <strong>With your consent:</strong> When you explicitly authorize the sharing
+                <strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets
               </li>
             </ul>
             <p className="mt-4">
-              <strong>We do not sell your personal information to third parties.</strong>
+              We do not sell your personal information to third parties.
             </p>
-          </Section>
+          </section>
 
-          <Section title="6. Third-Party Services">
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">5. Data Security</h2>
             <p>
-              Our Service integrates with third-party services that have their own privacy policies:
+              We implement appropriate technical and organizational measures to protect your personal information
+              against unauthorized access, alteration, disclosure, or destruction. This includes:
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Stripe:</strong> Payment processing (<a href="https://stripe.com/privacy" className="text-brand hover:underline" target="_blank" rel="noopener noreferrer">Stripe Privacy Policy</a>)</li>
-              <li><strong>SendGrid:</strong> Email delivery</li>
-              <li><strong>Google Analytics:</strong> Usage analytics (if enabled)</li>
+            <ul className="list-disc pl-6">
+              <li>Encryption of data in transit and at rest</li>
+              <li>Secure payment processing through PCI-DSS compliant providers</li>
+              <li>Regular security assessments and updates</li>
+              <li>Access controls and authentication measures</li>
             </ul>
-            <p className="mt-4">
-              We encourage you to review the privacy policies of these third-party services.
-            </p>
-          </Section>
+          </section>
 
-          <Section title="7. Data Security">
-            <p>
-              We implement appropriate technical and organizational security measures to protect your information, including:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Encryption of data in transit (TLS/SSL) and at rest</li>
-              <li>Regular security assessments and penetration testing</li>
-              <li>Access controls and authentication requirements</li>
-              <li>Secure data centers with physical security measures</li>
-              <li>Employee training on data protection practices</li>
-            </ul>
-            <p className="mt-4">
-              While we strive to protect your information, no method of transmission over the Internet or
-              electronic storage is 100% secure. We cannot guarantee absolute security.
-            </p>
-          </Section>
-
-          <Section title="8. Data Retention">
-            <p>
-              We retain your information for as long as your account is active or as needed to provide the Service.
-              We may also retain information as necessary to:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Comply with legal obligations</li>
-              <li>Resolve disputes</li>
-              <li>Enforce our agreements</li>
-              <li>Maintain business records</li>
-            </ul>
-            <p className="mt-4">
-              After account deletion, we will delete or anonymize your data within 90 days, except where
-              retention is required by law.
-            </p>
-          </Section>
-
-          <Section title="9. Your Rights and Choices">
-            <p>
-              Depending on your location, you may have the following rights:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Access:</strong> Request a copy of the personal information we hold about you</li>
-              <li><strong>Correction:</strong> Request correction of inaccurate or incomplete information</li>
-              <li><strong>Deletion:</strong> Request deletion of your personal information</li>
-              <li><strong>Portability:</strong> Request a machine-readable copy of your data</li>
-              <li><strong>Restriction:</strong> Request restriction of processing in certain circumstances</li>
-              <li><strong>Objection:</strong> Object to processing based on legitimate interests</li>
-              <li><strong>Withdraw consent:</strong> Withdraw consent where processing is based on consent</li>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">6. Your Privacy Rights</h2>
+            <p>Depending on your location, you may have the following rights:</p>
+            <ul className="list-disc pl-6">
+              <li>
+                <strong>Access:</strong> Request a copy of your personal information
+              </li>
+              <li>
+                <strong>Correction:</strong> Request correction of inaccurate or incomplete data
+              </li>
+              <li>
+                <strong>Deletion:</strong> Request deletion of your personal information
+              </li>
+              <li>
+                <strong>Opt-Out:</strong> Unsubscribe from marketing communications
+              </li>
+              <li>
+                <strong>Data Portability:</strong> Request your data in a portable format
+              </li>
+              <li>
+                <strong>Object:</strong> Object to processing of your personal information
+              </li>
             </ul>
             <p className="mt-4">
               To exercise these rights, please contact us at{" "}
-              <a href="mailto:privacy@divestreams.com" className="text-brand hover:underline">privacy@divestreams.com</a>.
-              We will respond to your request within 30 days.
+              <a href="mailto:privacy@divestreams.com" className="text-brand hover:underline">
+                privacy@divestreams.com
+              </a>
             </p>
-          </Section>
+          </section>
 
-          <Section title="10. International Data Transfers">
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">7. Cookies and Tracking</h2>
             <p>
-              Your information may be transferred to and processed in countries other than your country of residence.
-              These countries may have different data protection laws.
+              We use cookies and similar tracking technologies to enhance your experience. You can control
+              cookies through your browser settings. Disabling cookies may limit your ability to use certain
+              features of our service.
             </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">8. International Data Transfers</h2>
             <p>
-              When we transfer data internationally, we implement appropriate safeguards, such as standard
-              contractual clauses, to ensure adequate protection of your information.
+              Your information may be transferred to and processed in countries other than your own. We ensure
+              appropriate safeguards are in place to protect your information in accordance with this Privacy
+              Policy and applicable data protection laws.
             </p>
-          </Section>
+          </section>
 
-          <Section title="11. Children's Privacy">
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">9. Children's Privacy</h2>
             <p>
-              The Service is not intended for children under 18 years of age. We do not knowingly collect
-              personal information from children. If we learn we have collected information from a child,
-              we will delete it promptly.
+              Our services are not intended for children under 13 years of age. We do not knowingly collect
+              personal information from children under 13. If you are a parent or guardian and believe we have
+              collected information about a child, please contact us immediately.
             </p>
-          </Section>
+          </section>
 
-          <Section title="12. California Privacy Rights">
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">10. Changes to This Privacy Policy</h2>
             <p>
-              If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA):
+              We may update this Privacy Policy from time to time. We will notify you of any changes by posting
+              the new Privacy Policy on this page and updating the "Last updated" date. Your continued use of
+              our services after any changes constitutes acceptance of the updated Privacy Policy.
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Right to know what personal information is collected, used, shared, or sold</li>
-              <li>Right to delete personal information held by businesses</li>
-              <li>Right to opt-out of the sale of personal information</li>
-              <li>Right to non-discrimination for exercising your rights</li>
-            </ul>
-            <p className="mt-4">
-              To exercise your CCPA rights, contact us at{" "}
-              <a href="mailto:privacy@divestreams.com" className="text-brand hover:underline">privacy@divestreams.com</a>.
-            </p>
-          </Section>
+          </section>
 
-          <Section title="13. Changes to This Privacy Policy">
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
             <p>
-              We may update this Privacy Policy from time to time. We will notify you of any material changes by:
+              If you have questions or concerns about this Privacy Policy, please contact us at:
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Posting the new Privacy Policy on this page</li>
-              <li>Updating the "Last updated" date</li>
-              <li>Sending an email notification (for significant changes)</li>
-            </ul>
-            <p className="mt-4">
-              We encourage you to review this Privacy Policy periodically for any changes.
-            </p>
-          </Section>
-
-          <Section title="14. Contact Us">
-            <p>
-              If you have questions about this Privacy Policy or our data practices, please contact us:
-            </p>
-            <p className="mt-4">
-              <strong>DiveStreams</strong><br />
-              Email: <a href="mailto:privacy@divestreams.com" className="text-brand hover:underline">privacy@divestreams.com</a><br />
-              Support: <a href="mailto:support@divestreams.com" className="text-brand hover:underline">support@divestreams.com</a>
-            </p>
-            <p className="mt-4">
-              For data protection inquiries in the European Union, you may also contact our Data Protection Officer at{" "}
-              <a href="mailto:dpo@divestreams.com" className="text-brand hover:underline">dpo@divestreams.com</a>.
-            </p>
-          </Section>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="container mx-auto px-4 py-12 border-t">
-        <div className="flex justify-between items-center text-foreground-muted">
-          <div className="text-xl font-bold text-brand">DiveStreams</div>
-          <div className="flex gap-6">
-            <a href="/pricing">Pricing</a>
-            <a href="/features">Features</a>
-            <a href="/terms">Terms</a>
-            <a href="/privacy">Privacy</a>
-          </div>
-        </div>
-        <div className="text-center text-foreground-muted mt-8">
-          © {new Date().getFullYear()} DiveStreams. All rights reserved.
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-8">
-      <h2 className="text-2xl font-bold text-foreground mb-4">{title}</h2>
-      <div className="text-foreground-muted space-y-4">{children}</div>
+            <div className="mt-4 p-4 bg-surface-raised rounded-lg">
+              <p className="font-semibold">DiveStreams</p>
+              <p>Email: <a href="mailto:privacy@divestreams.com" className="text-brand hover:underline">privacy@divestreams.com</a></p>
+              <p>Support: <a href="mailto:support@divestreams.com" className="text-brand hover:underline">support@divestreams.com</a></p>
+            </div>
+          </section>
+        </article>
+      </div>
     </div>
   );
 }
