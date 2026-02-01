@@ -120,6 +120,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         limits,
         isActive,
         adminModified: true, // [KAN-594] Mark as admin-customized
+        metadata: stripeResult ? { stripeProductId: stripeResult.productId } : null,
       });
     } else {
       // Get existing plan to check if we need to update Stripe prices
@@ -177,6 +178,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
           limits,
           isActive,
           adminModified: true, // [KAN-594] Mark as admin-customized to prevent migration overwrites
+          metadata: stripeResult
+            ? { stripeProductId: stripeResult.productId }
+            : existingPlan?.metadata, // Preserve existing metadata if no Stripe update
           updatedAt: new Date(),
         })
         .where(eq(subscriptionPlans.id, planId!));

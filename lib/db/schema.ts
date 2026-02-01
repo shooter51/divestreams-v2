@@ -90,6 +90,11 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   isActive: boolean("is_active").notNull().default(true),
   // [KAN-594] Prevents migration 0017/0020 from overwriting admin customizations
   adminModified: boolean("admin_modified").notNull().default(false),
+  // [KAN-627] Stores Stripe product ID and other integration metadata
+  metadata: jsonb("metadata").$type<{
+    stripeProductId?: string;
+    [key: string]: any;
+  }>(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
