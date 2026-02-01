@@ -194,22 +194,22 @@ export function bookingConfirmationEmail(data: {
   const text = `
 Booking Confirmed!
 
-Hi ${data.customerName},
+Hi ${escapeHtml(data.customerName)},
 
-Your booking with ${data.shopName} has been confirmed!
+Your booking with ${escapeHtml(data.shopName)} has been confirmed!
 
-Booking Number: ${data.bookingNumber}
-Trip: ${data.tripName}
-Date: ${data.tripDate}
-Time: ${data.tripTime}
-Participants: ${data.participants}
-Total: ${data.total}
+Booking Number: ${escapeHtml(data.bookingNumber)}
+Trip: ${escapeHtml(data.tripName)}
+Date: ${escapeHtml(data.tripDate)}
+Time: ${escapeHtml(data.tripTime)}
+Participants: ${escapeHtml(data.participants.toString())}
+Total: ${escapeHtml(data.total)}
 
 Please arrive 15 minutes before the scheduled departure time.
 
 If you have any questions, please contact us.
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -274,13 +274,13 @@ export function bookingReminderEmail(data: {
   const text = `
 See You Tomorrow!
 
-Hi ${data.customerName},
+Hi ${escapeHtml(data.customerName)},
 
 This is a friendly reminder about your upcoming dive trip:
 
-${data.tripName}
-${data.tripDate} at ${data.tripTime}
-Booking: ${data.bookingNumber}
+${escapeHtml(data.tripName)}
+${escapeHtml(data.tripDate)} at ${escapeHtml(data.tripTime)}
+Booking: ${escapeHtml(data.bookingNumber)}
 
 What to bring:
 - Swimsuit and towel
@@ -290,7 +290,7 @@ What to bring:
 
 Please arrive 15 minutes before departure.
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -338,14 +338,14 @@ export function welcomeEmail(data: {
   `;
 
   const text = `
-Welcome to ${data.shopName}!
+Welcome to ${escapeHtml(data.shopName)}!
 
-Hi ${data.userName},
+Hi ${escapeHtml(data.userName)},
 
 Your account has been created. Access your dashboard at:
-${data.loginUrl}
+${escapeHtml(data.loginUrl)}
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -394,11 +394,11 @@ export function passwordResetEmail(data: {
   const text = `
 Password Reset
 
-Hi ${data.userName},
+Hi ${escapeHtml(data.userName)},
 
 We received a request to reset your password. Visit the link below to create a new password:
 
-${data.resetUrl}
+${escapeHtml(data.resetUrl)}
 
 This link will expire in 1 hour. If you didn't request this, you can ignore this email.
 
@@ -456,11 +456,11 @@ export function customerWelcomeEmail(data: {
   `;
 
   const text = `
-Welcome to ${data.shopName}!
+Welcome to ${escapeHtml(data.shopName)}!
 
-Hi ${data.customerName},
+Hi ${escapeHtml(data.customerName)},
 
-Thank you for creating an account with ${data.shopName}!
+Thank you for creating an account with ${escapeHtml(data.shopName)}!
 
 You can now:
 - Book dive trips and training courses
@@ -469,9 +469,9 @@ You can now:
 - Update your profile and certifications
 
 Sign in to your account at:
-${data.loginUrl}
+${escapeHtml(data.loginUrl)}
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -544,18 +544,18 @@ export function contactFormNotificationEmail(data: {
   const text = `
 New Contact Form Submission
 
-From: ${data.name} (${data.email})
-${data.phone ? `Phone: ${data.phone}` : ""}
-${data.subject ? `Subject: ${data.subject}` : ""}
-Submitted: ${data.submittedAt}
-${data.referrerPage ? `Page: ${data.referrerPage}` : ""}
+From: ${escapeHtml(data.name)} (${escapeHtml(data.email)})
+${data.phone ? `Phone: ${escapeHtml(data.phone)}` : ""}
+${data.subject ? `Subject: ${escapeHtml(data.subject)}` : ""}
+Submitted: ${escapeHtml(data.submittedAt)}
+${data.referrerPage ? `Page: ${escapeHtml(data.referrerPage)}` : ""}
 
 Message:
-${data.message}
+${escapeHtml(data.message)}
 
-Reply to: ${data.email}
+Reply to: ${escapeHtml(data.email)}
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -612,23 +612,23 @@ export function contactFormAutoReplyEmail(data: {
   `;
 
   const text = `
-Thank you for contacting ${data.shopName}
+Thank you for contacting ${escapeHtml(data.shopName)}
 
-Hi ${data.name},
+Hi ${escapeHtml(data.name)},
 
-Thank you for reaching out to ${data.shopName}. We've received your message and will get back to you as soon as possible.
+Thank you for reaching out to ${escapeHtml(data.shopName)}. We've received your message and will get back to you as soon as possible.
 
 We typically respond within 24 hours.
 
 In the meantime, if you need immediate assistance, please feel free to contact us directly:
 
-Email: ${data.contactEmail}
-${data.contactPhone ? `Phone: ${data.contactPhone}` : ""}
+Email: ${escapeHtml(data.contactEmail)}
+${data.contactPhone ? `Phone: ${escapeHtml(data.contactPhone)}` : ""}
 
 Best regards,
-${data.shopName} Team
+${escapeHtml(data.shopName)} Team
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
