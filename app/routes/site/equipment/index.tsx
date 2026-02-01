@@ -592,10 +592,12 @@ export default function SiteEquipmentPage() {
 function EquipmentCard({ equipment }: { equipment: EquipmentCard }) {
   const categoryInfo = EQUIPMENT_CATEGORIES.find(c => c.value === equipment.category);
   const conditionColor = equipment.condition === "excellent"
-    ? "bg-green-100 text-green-700"
+    ? "bg-success-muted text-success"
     : equipment.condition === "good"
-    ? "bg-blue-100 text-blue-700"
-    : "bg-yellow-100 text-yellow-700";
+    ? "bg-info-muted text-info"
+    : equipment.condition === "fair"
+    ? "bg-warning-muted text-warning"
+    : "bg-danger-muted text-danger";
 
   return (
     <Link

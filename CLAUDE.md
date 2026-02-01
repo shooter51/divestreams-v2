@@ -243,9 +243,18 @@ Set in `.env` files on each VPS (`/docker/divestreams-v2/.env` or `/docker/dives
 - **CI/CD**: GitHub Actions
 
 ## Multi-Tenant Architecture
-- Schema-per-tenant isolation (`tenant_<subdomain>`)
+- **PUBLIC schema with organization_id filtering** for data isolation
 - Tenant resolution via subdomain (`demo.divestreams.com`)
 - Central `public` schema for tenants table and subscription plans
+- Each table has `organization_id` column for query-level filtering
+- **Note:** `tenant_*` schemas exist but are not used in application queries
+
+### Database Migrations
+- All business tables belong in PUBLIC schema
+- Use `organization_id` for multi-tenant filtering
+- Never use `tenant_*` schemas in application code
+- See `getTenantDb()` in `lib/db/tenant.server.ts` for implementation details
+- Migrations run automatically on container startup via `scripts/docker-entrypoint.sh`
 
 ## Useful Commands
 

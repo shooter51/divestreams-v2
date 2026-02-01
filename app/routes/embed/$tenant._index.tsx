@@ -85,7 +85,7 @@ function TourCard({
       }`}
     >
       {/* Image */}
-      <div className={`bg-gray-100 relative ${isListLayout ? "w-48 flex-shrink-0" : "aspect-video"}`}>
+      <div className={`bg-surface-overlay relative ${isListLayout ? "w-48 flex-shrink-0" : "aspect-video"}`}>
         {tour.primaryImage ? (
           <img
             src={tour.thumbnailImage || tour.primaryImage}
@@ -93,7 +93,7 @@ function TourCard({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
+          <div className="w-full h-full flex items-center justify-center text-foreground-subtle">
             <svg
               className="w-12 h-12"
               fill="none"
@@ -121,13 +121,13 @@ function TourCard({
         <h3 className="font-semibold text-lg mb-1">{tour.name}</h3>
 
         {widgetSettings.showDescription && tour.description && (
-          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+          <p className="text-sm text-foreground-muted line-clamp-2 mb-3">
             {tour.description}
           </p>
         )}
 
         {/* Meta info */}
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+        <div className="flex items-center gap-4 text-sm text-foreground-muted mb-3">
           {tour.duration > 0 && (
             <span className="flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -162,7 +162,7 @@ function TourCard({
 
         {/* Requirements */}
         {(tour.minCertLevel || tour.minAge) && (
-          <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
+          <div className="flex flex-wrap gap-2 text-xs text-foreground-muted mb-3">
             {tour.minCertLevel && (
               <span>Certification: {tour.minCertLevel}+</span>
             )}
@@ -218,7 +218,7 @@ export default function EmbedToursPage() {
     return (
       <div className="text-center py-12">
         <svg
-          className="w-16 h-16 mx-auto text-gray-300 mb-4"
+          className="w-16 h-16 mx-auto text-foreground-subtle mb-4"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -230,10 +230,10 @@ export default function EmbedToursPage() {
             d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">
+        <h2 className="text-xl font-semibold text-foreground mb-2">
           No Tours Available
         </h2>
-        <p className="text-gray-500">
+        <p className="text-foreground-muted">
           Check back soon for upcoming experiences!
         </p>
       </div>

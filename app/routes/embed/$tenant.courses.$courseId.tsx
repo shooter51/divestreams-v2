@@ -91,7 +91,7 @@ export default function CourseDetailPage() {
       {/* Back link */}
       <Link
         to={`/embed/${tenantSlug}/courses`}
-        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+        className="inline-flex items-center text-sm text-foreground-muted hover:text-foreground mb-4"
       >
         <svg
           className="w-4 h-4 mr-1"
@@ -121,7 +121,7 @@ export default function CourseDetailPage() {
                 className="h-8 object-contain"
               />
             ) : (
-              <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded">
+              <span className="text-sm font-semibold text-foreground bg-surface-overlay px-3 py-1 rounded">
                 {course.agencyCode}
               </span>
             )}
@@ -133,24 +133,24 @@ export default function CourseDetailPage() {
           <h1 className="text-2xl font-bold mb-4">{course.name}</h1>
 
           {course.description && (
-            <div className="prose prose-sm max-w-none text-gray-600 mb-6">
+            <div className="prose prose-sm max-w-none text-foreground-muted mb-6">
               <p>{course.description}</p>
             </div>
           )}
 
           {/* Course Info Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">
+            <div className="bg-surface-inset rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-foreground">
                 {course.durationDays}
               </div>
-              <div className="text-sm text-gray-500">Days</div>
+              <div className="text-sm text-foreground-muted">Days</div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">
+            <div className="bg-surface-inset rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-foreground">
                 {course.maxStudents}
               </div>
-              <div className="text-sm text-gray-500">Max Students</div>
+              <div className="text-sm text-foreground-muted">Max Students</div>
             </div>
             {totalHours > 0 && (
               <div className="bg-info-muted rounded-lg p-4 text-center">
@@ -174,7 +174,7 @@ export default function CourseDetailPage() {
           <div className="mb-6">
             <h3 className="font-semibold text-lg mb-3">What You'll Learn</h3>
             <ul className="space-y-2">
-              <li className="flex items-start gap-2 text-gray-600">
+              <li className="flex items-start gap-2 text-foreground-muted">
                 <svg
                   className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
                   fill="currentColor"
@@ -189,7 +189,7 @@ export default function CourseDetailPage() {
                 Comprehensive dive theory and safety procedures
               </li>
               {course.classroomHours > 0 && (
-                <li className="flex items-start gap-2 text-gray-600">
+                <li className="flex items-start gap-2 text-foreground-muted">
                   <svg
                     className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
                     fill="currentColor"
@@ -205,7 +205,7 @@ export default function CourseDetailPage() {
                 </li>
               )}
               {course.poolHours > 0 && (
-                <li className="flex items-start gap-2 text-gray-600">
+                <li className="flex items-start gap-2 text-foreground-muted">
                   <svg
                     className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
                     fill="currentColor"
@@ -221,7 +221,7 @@ export default function CourseDetailPage() {
                 </li>
               )}
               {totalDives > 0 && (
-                <li className="flex items-start gap-2 text-gray-600">
+                <li className="flex items-start gap-2 text-foreground-muted">
                   <svg
                     className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
                     fill="currentColor"
@@ -236,7 +236,7 @@ export default function CourseDetailPage() {
                   {totalDives} open water training dive{totalDives !== 1 ? "s" : ""}
                 </li>
               )}
-              <li className="flex items-start gap-2 text-gray-600">
+              <li className="flex items-start gap-2 text-foreground-muted">
                 <svg
                   className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
                   fill="currentColor"
@@ -280,7 +280,7 @@ export default function CourseDetailPage() {
                     tabIndex={0}
                     aria-label={`Select session on ${formatDate(session.startDate)}`}
                     className={`flex items-center justify-between p-3 rounded-lg border-2 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                      isSelected ? 'bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'
+                      isSelected ? 'bg-blue-50' : 'bg-surface-inset hover:bg-surface-overlay'
                     }`}
                     style={{
                       borderColor: isSelected ? branding.primaryColor : "#e5e7eb",
@@ -294,7 +294,7 @@ export default function CourseDetailPage() {
                         {session.endDate && session.endDate !== session.startDate &&
                           ` - ${formatDate(session.endDate)}`}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-foreground-muted">
                         {session.startTime && formatTime(session.startTime)}
                         {session.location && ` | ${session.location}`}
                         {session.instructorName && ` | ${session.instructorName}`}
@@ -345,7 +345,7 @@ export default function CourseDetailPage() {
 
         {/* Right Column - Enrollment Card */}
         <div>
-          <div className="bg-gray-50 rounded-lg p-6 sticky top-4">
+          <div className="bg-surface-inset rounded-lg p-6 sticky top-4">
             <div className="flex items-baseline justify-between mb-2">
               <span
                 className="text-3xl font-bold"
@@ -356,7 +356,7 @@ export default function CourseDetailPage() {
             </div>
 
             {course.depositAmount && (
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-foreground-muted mb-4">
                 Deposit:{" "}
                 {formatPrice(course.depositAmount, course.currency)} due at
                 enrollment
@@ -365,7 +365,7 @@ export default function CourseDetailPage() {
 
             <div className="border-t pt-4 mb-4">
               <h4 className="font-medium mb-2">Course Includes:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
+              <ul className="text-sm text-foreground-muted space-y-1">
                 <li className="flex items-center gap-2">
                   <svg
                     className="w-4 h-4 text-green-500"

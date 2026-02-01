@@ -288,12 +288,23 @@ export default function TripDetailPage() {
           th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
           th { background: #f0f0f0; font-weight: bold; }
           .status { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
-          .status-paid { background: #d1fae5; color: #065f46; }
-          .status-pending { background: #fef3c7; color: #92400e; }
+          .status-paid {
+            background: var(--success-muted, #d1fae5);
+            color: var(--success, #065f46);
+          }
+          .status-pending {
+            background: var(--warning-muted, #fef3c7);
+            color: var(--warning, #92400e);
+          }
           .notes-section { margin-top: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
           .notes-section h3 { margin-top: 0; }
           .signature-line { margin-top: 50px; border-top: 1px solid #000; width: 200px; padding-top: 5px; }
-          @media print { body { padding: 0; } }
+          @media print {
+            body { padding: 0; }
+            /* Force light mode colors for print */
+            .status-paid { background: #d1fae5; color: #065f46; }
+            .status-pending { background: #fef3c7; color: #92400e; }
+          }
         </style>
       </head>
       <body>

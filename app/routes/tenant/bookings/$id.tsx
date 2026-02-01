@@ -176,9 +176,20 @@ export default function BookingDetailPage() {
           .item span { font-weight: bold; }
           .total { font-size: 20px; font-weight: bold; text-align: right; margin-top: 15px; }
           .status { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 14px; }
-          .status-confirmed { background: #d1fae5; color: #065f46; }
-          .status-pending { background: #fef3c7; color: #92400e; }
-          @media print { body { padding: 0; } }
+          .status-confirmed {
+            background: var(--success-muted, #d1fae5);
+            color: var(--success, #065f46);
+          }
+          .status-pending {
+            background: var(--warning-muted, #fef3c7);
+            color: var(--warning, #92400e);
+          }
+          @media print {
+            body { padding: 0; }
+            /* Force light mode colors for print */
+            .status-confirmed { background: #d1fae5; color: #065f46; }
+            .status-pending { background: #fef3c7; color: #92400e; }
+          }
         </style>
       </head>
       <body>
