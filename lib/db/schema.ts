@@ -29,6 +29,7 @@ export * from "./schema/public-site";
 export * from "./schema/training";
 export * from "./schema/gallery";
 export * from "./schema/team";
+export * from "./schema/password-audit";
 // Note: page-content.ts exports TeamMember interface which conflicts with schema/team.ts TeamMember type
 // We only need the table and types from team.ts, not the interface from page-content.ts
 export {
