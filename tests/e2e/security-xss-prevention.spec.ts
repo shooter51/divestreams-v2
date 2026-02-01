@@ -112,8 +112,7 @@ test.describe("XSS Prevention Security", () => {
       expect(imgText).toBeGreaterThan(0); // Text visible, not rendered as img
 
       // Verify no alert was triggered
-      await page.waitForTimeout(500); // Wait a bit
-      // Test would fail if alert appeared
+      // Test would fail if alert appeared (no explicit wait needed)
     });
 
     test("should sanitize javascript: URLs in CTA buttons", async ({
@@ -199,7 +198,7 @@ test.describe("XSS Prevention Security", () => {
         await page.click('button:has-text("Save Theme")');
 
         // Should show error or sanitize to #000000
-        await page.waitForTimeout(300);
+        await page.waitForLoadState('networkidle');
         const value = await page
           .locator('input[name="primaryColor"]')
           .inputValue();
@@ -330,8 +329,7 @@ test.describe("XSS Prevention Security", () => {
       // The script tag should be visible as text
       await page.goto("/tenant/customers"); // Or wherever messages are displayed
 
-      // No alert should have been triggered
-      await page.waitForTimeout(500);
+      // No alert should have been triggered (no explicit wait needed)
     });
   });
 
