@@ -16,7 +16,7 @@ BEGIN
     WHERE schema_name LIKE 'tenant_%'
   LOOP
     -- Create rentals table in this tenant schema
-    EXECUTE format('
+    EXECUTE format($fmt$
       CREATE TABLE IF NOT EXISTS %I.rentals (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
         organization_id text NOT NULL,
@@ -40,7 +40,7 @@ BEGIN
         CONSTRAINT %I FOREIGN KEY (transaction_id) REFERENCES %I.transactions(id) ON DELETE NO ACTION,
         CONSTRAINT %I FOREIGN KEY (customer_id) REFERENCES %I.customers(id) ON DELETE NO ACTION,
         CONSTRAINT %I FOREIGN KEY (equipment_id) REFERENCES %I.equipment(id) ON DELETE NO ACTION
-      )',
+      )$fmt$,
       tenant_schema,
       tenant_schema || '_rentals_org_fk',
       tenant_schema || '_rentals_trans_fk',
