@@ -1042,7 +1042,7 @@ export default function BookingPage() {
                 <button
                   type="button"
                   onClick={() => setParticipants(Math.max(1, participants - 1))}
-                  className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:bg-gray-50"
+                  className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:opacity-90"
                   style={{ borderColor: "var(--color-border)" }}
                   disabled={participants <= 1}
                 >
@@ -1070,7 +1070,7 @@ export default function BookingPage() {
                   onClick={() =>
                     setParticipants(Math.min(maxParticipants, participants + 1))
                   }
-                  className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:bg-gray-50"
+                  className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:opacity-90"
                   style={{ borderColor: "var(--color-border)" }}
                   disabled={participants >= maxParticipants}
                 >

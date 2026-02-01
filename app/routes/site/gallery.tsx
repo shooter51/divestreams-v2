@@ -258,7 +258,8 @@ export default function GalleryPage() {
                   <select
                     value={filters.category || ""}
                     onChange={(e) => updateFilter("category", e.target.value || null)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="block w-full rounded-md border-border shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}
                   >
                     <option value="">All Categories</option>
                     {categories.map((cat) => (
@@ -489,7 +490,7 @@ export default function GalleryPage() {
                   ))}
                 </div>
               )}
-              <div className="mt-4 text-xs text-gray-400">
+              <div className="mt-4 text-xs text-white/60">
                 {lightboxIndex + 1} / {images.length}
               </div>
             </div>

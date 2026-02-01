@@ -134,7 +134,7 @@ export default function SiteAboutPage() {
               exploring advanced technical diving, we're here to guide you every
               step of the way.
             </p>
-            <p className="mt-8 text-sm text-gray-500">
+            <p className="mt-8 text-sm opacity-50">
               To customize this page, go to Settings → Public Site → Content
             </p>
           </div>

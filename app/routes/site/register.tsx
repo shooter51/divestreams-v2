@@ -696,7 +696,7 @@ export default function SiteRegisterPage() {
                 <input
                   type="checkbox"
                   name="terms"
-                  className="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-2"
+                  className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-2"
                   style={{
                     // @ts-ignore
                     "--tw-ring-color": "var(--primary-color)",

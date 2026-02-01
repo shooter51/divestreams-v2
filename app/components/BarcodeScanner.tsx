@@ -207,7 +207,7 @@ export function BarcodeScanner({
       {/* Camera viewport */}
       <div ref={scannerRef} className="w-full aspect-[4/3]">
         {!isInitialized && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 dark:bg-black">
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2" />
               <p className="text-white text-sm">Starting camera...</p>

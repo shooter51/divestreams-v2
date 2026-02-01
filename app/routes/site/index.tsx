@@ -462,7 +462,7 @@ export default function SiteHomePage() {
 
       {/* Video Spotlight Section */}
       {settings?.heroVideoUrl && (
-        <section className="py-12 px-4 bg-gradient-to-b from-transparent to-gray-50">
+        <section className="py-12 px-4 bg-gradient-to-b from-transparent to-surface-inset">
           <div className="max-w-6xl mx-auto">
             <div className="relative rounded-xl overflow-hidden shadow-2xl">
               {isYouTubeUrl(settings.heroVideoUrl) ? (

@@ -622,7 +622,7 @@ function SessionsSection({
         </p>
         <Link
           to="/site/contact"
-          className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors hover:bg-gray-50"
+          className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors hover:opacity-90"
           style={{ borderColor: "var(--primary-color)", color: "var(--primary-color)" }}
         >
           Contact Us

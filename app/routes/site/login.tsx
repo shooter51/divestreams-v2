@@ -397,7 +397,7 @@ export default function SiteLoginPage() {
                 type="checkbox"
                 id="rememberMe"
                 name="rememberMe"
-                className="w-4 h-4 rounded border-gray-300 focus:ring-2"
+                className="w-4 h-4 rounded border-border focus:ring-2"
                 style={{
                   accentColor: "var(--primary-color)",
                 }}

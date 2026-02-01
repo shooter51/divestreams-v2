@@ -99,7 +99,7 @@ function OverlayPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps
   const message = getMessage(feature, currentCount, limit);
 
   return (
-    <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
+    <div className="absolute inset-0 bg-gray-900/60 dark:bg-black/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
       <div className="bg-surface-raised rounded-xl p-6 shadow-xl max-w-sm mx-4 text-center">
         <div className="w-12 h-12 bg-brand-muted rounded-full flex items-center justify-center mx-auto mb-4 text-brand">
           <CrownIcon />

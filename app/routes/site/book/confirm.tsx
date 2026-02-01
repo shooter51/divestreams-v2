@@ -371,7 +371,7 @@ export default function BookingConfirmationPage() {
           )}
           <Link
             to="/site"
-            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold border transition-colors hover:bg-gray-50"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold border transition-colors hover:opacity-90"
             style={{
               borderColor: "var(--color-border)",
               color: "var(--text-color)",

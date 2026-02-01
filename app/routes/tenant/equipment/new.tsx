@@ -175,7 +175,7 @@ export default function NewEquipmentPage() {
                   <button
                     type="button"
                     onClick={() => setShowBarcodeScanner(true)}
-                    className="px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+                    className="px-3 py-2 bg-surface text-foreground border border-border rounded-lg hover:bg-surface-raised"
                     title="Scan Barcode"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -345,7 +345,7 @@ export default function BookingDetail() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => navigate("/site/account/bookings")}
-          className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+          className="p-2 rounded-lg transition-colors hover:opacity-90"
           style={{ color: "var(--text-color)" }}
         >
           <BackIcon className="w-5 h-5" />

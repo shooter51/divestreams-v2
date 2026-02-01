@@ -606,7 +606,7 @@ export default function ReportsPage() {
                         }}
                       />
                       {/* Tooltip on hover */}
-                      <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                      <div className="absolute bottom-full mb-2 hidden group-hover:block bg-surface text-foreground border border-border text-xs rounded px-2 py-1 whitespace-nowrap z-10 shadow-lg">
                         <div>{data.period}</div>
                         <div>{formatCurrency(data.revenue)}</div>
                         <div>{data.bookings} bookings</div>
