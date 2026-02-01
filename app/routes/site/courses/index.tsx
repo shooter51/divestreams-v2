@@ -17,13 +17,13 @@ import { getPublicCourses } from "../../../../lib/db/public-site.server";
 // ============================================================================
 
 const CERTIFICATION_AGENCIES = [
-  { id: "padi", name: "PADI", color: "#003087" },
-  { id: "ssi", name: "SSI", color: "#00529b" },
-  { id: "naui", name: "NAUI", color: "#002855" },
-  { id: "sdi", name: "SDI/TDI", color: "#ff6600" },
-  { id: "raid", name: "RAID", color: "#e31937" },
-  { id: "gue", name: "GUE", color: "#1a1a1a" },
-  { id: "other", name: "Other", color: "#6b7280" },
+  { id: "padi", name: "PADI", lightColor: "#003087", darkColor: "#5b9bd5" },
+  { id: "ssi", name: "SSI", lightColor: "#00529b", darkColor: "#6cb4ee" },
+  { id: "naui", name: "NAUI", lightColor: "#002855", darkColor: "#4d7ac7" },
+  { id: "sdi", name: "SDI/TDI", lightColor: "#ff6600", darkColor: "#ff6600" },
+  { id: "raid", name: "RAID", lightColor: "#e31937", darkColor: "#e31937" },
+  { id: "gue", name: "GUE", lightColor: "#1a1a1a", darkColor: "#e5e7eb" },
+  { id: "other", name: "Other", lightColor: "#6b7280", darkColor: "#9ca3af" },
 ];
 
 const COURSE_LEVELS = [
@@ -190,7 +190,7 @@ function AgencyBadge({ agencyName }: { agencyName: string | null }) {
   return (
     <span
       className="inline-flex items-center px-2 py-1 text-xs font-semibold text-white rounded"
-      style={{ backgroundColor: agency?.color || "#6b7280" }}
+      style={{ backgroundColor: `var(--agency-${agency?.id || 'other'})` }}
     >
       {agencyName}
     </span>
@@ -522,8 +522,25 @@ export default function SiteCoursesPage() {
 
   const hasFilters = Boolean(filters.agency || filters.level);
 
+  // Generate CSS custom properties for agency colors
+  const agencyColorCSS = CERTIFICATION_AGENCIES
+    .map(({ id, lightColor, darkColor }) => `
+      :root {
+        --agency-${id}: ${lightColor};
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --agency-${id}: ${darkColor};
+        }
+      }
+    `)
+    .join('\n');
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Agency color CSS variables */}
+      <style dangerouslySetInnerHTML={{ __html: agencyColorCSS }} />
+
       {/* Page Header */}
       <div className="text-center mb-12">
         <h1

@@ -20,35 +20,41 @@ import { eq } from "drizzle-orm";
 // CERTIFICATION AGENCIES
 // ============================================================================
 
-const CERTIFICATION_AGENCIES: Record<string, { name: string; color: string; description: string }> = {
+const CERTIFICATION_AGENCIES: Record<string, { name: string; lightColor: string; darkColor: string; description: string }> = {
   padi: {
     name: "PADI",
-    color: "#003087",
+    lightColor: "#003087",
+    darkColor: "#5b9bd5",
     description: "Professional Association of Diving Instructors - World's largest diver training organization",
   },
   ssi: {
     name: "SSI",
-    color: "#00529b",
+    lightColor: "#00529b",
+    darkColor: "#6cb4ee",
     description: "Scuba Schools International - Globally recognized dive training",
   },
   naui: {
     name: "NAUI",
-    color: "#002855",
+    lightColor: "#002855",
+    darkColor: "#4d7ac7",
     description: "National Association of Underwater Instructors - Since 1959",
   },
   sdi: {
     name: "SDI/TDI",
-    color: "#ff6600",
+    lightColor: "#ff6600",
+    darkColor: "#ff6600",
     description: "Scuba Diving International / Technical Diving International",
   },
   raid: {
     name: "RAID",
-    color: "#e31937",
+    lightColor: "#e31937",
+    darkColor: "#e31937",
     description: "Rebreather Association of International Divers",
   },
   gue: {
     name: "GUE",
-    color: "#1a1a1a",
+    lightColor: "#1a1a1a",
+    darkColor: "#e5e7eb",
     description: "Global Underwater Explorers - Excellence in diving education",
   },
 };
@@ -132,18 +138,33 @@ function getSubdomainFromHost(host: string): string | null {
 }
 
 /**
- * Get agency color from name
+ * Get agency color CSS variable from name
  */
-function getAgencyColor(agencyName: string | null): string {
-  if (!agencyName) return "#6b7280";
+function getAgencyColorVar(agencyName: string | null): string {
+  if (!agencyName) return "var(--agency-default)";
 
   const nameLower = agencyName.toLowerCase();
   for (const [id, agency] of Object.entries(CERTIFICATION_AGENCIES)) {
     if (nameLower.includes(id) || nameLower.includes(agency.name.toLowerCase())) {
-      return agency.color;
+      return `var(--agency-${id})`;
     }
   }
-  return "#6b7280";
+  return "var(--agency-default)";
+}
+
+/**
+ * Get agency color object from name
+ */
+function getAgencyColorObj(agencyName: string | null): { light: string; dark: string } {
+  if (!agencyName) return { light: "#6b7280", dark: "#9ca3af" };
+
+  const nameLower = agencyName.toLowerCase();
+  for (const [id, agency] of Object.entries(CERTIFICATION_AGENCIES)) {
+    if (nameLower.includes(id) || nameLower.includes(agency.name.toLowerCase())) {
+      return { light: agency.lightColor, dark: agency.darkColor };
+    }
+  }
+  return { light: "#6b7280", dark: "#9ca3af" };
 }
 
 /**
@@ -267,12 +288,12 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 function AgencyCertificationCard({
   agency,
 }: {
-  agency: { id: string; name: string; color: string; description: string };
+  agency: { id: string; name: string; colorVar: string; colorObj: { light: string; dark: string }; description: string };
 }) {
   return (
     <div
       className="rounded-xl p-6 text-white"
-      style={{ backgroundColor: agency.color }}
+      style={{ backgroundColor: agency.colorVar }}
     >
       <div className="flex items-center gap-4 mb-3">
         <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -656,12 +677,37 @@ export default function SiteCourseDetailPage() {
   }, [sessions, selectedSessionId]);
 
   // Get agency info for styling
-  const agencyColor = getAgencyColor(course.agencyName);
+  const agencyColorVar = getAgencyColorVar(course.agencyName);
+  const agencyColorObj = getAgencyColorObj(course.agencyName);
   const agencyInfo = course.agencyName ? {
     name: course.agencyName,
-    color: agencyColor,
+    colorVar: agencyColorVar,
+    colorObj: agencyColorObj,
     description: CERTIFICATION_AGENCIES[course.agencyName.toLowerCase()]?.description || `${course.agencyName} certified course`,
   } : null;
+
+  // Generate CSS custom properties for agency colors
+  const agencyColorCSS = Object.entries(CERTIFICATION_AGENCIES)
+    .map(([id, agency]) => `
+      :root {
+        --agency-${id}: ${agency.lightColor};
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --agency-${id}: ${agency.darkColor};
+        }
+      }
+    `)
+    .join('\n') + `
+      :root {
+        --agency-default: #6b7280;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --agency-default: #9ca3af;
+        }
+      }
+    `;
 
   // Determine enrollment state
   const hasSessionsAvailable = sessions.length > 0;
@@ -669,6 +715,9 @@ export default function SiteCourseDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Agency color CSS variables */}
+      <style dangerouslySetInnerHTML={{ __html: agencyColorCSS }} />
+
       {/* Breadcrumb */}
       <nav className="mb-8">
         <ol className="flex items-center gap-2 text-sm">
@@ -727,7 +776,7 @@ export default function SiteCourseDetailPage() {
               {course.agencyName && (
                 <span
                   className="inline-flex items-center px-3 py-1 text-sm font-semibold text-white rounded-full"
-                  style={{ backgroundColor: agencyColor }}
+                  style={{ backgroundColor: agencyColorVar }}
                 >
                   {course.agencyName}
                 </span>

@@ -21,45 +21,47 @@ import { getCustomerBySession } from "../../../lib/auth/customer-auth.server";
 
 /**
  * Theme presets with CSS variable values
+ * NOTE: This is now derived from the main theme system in lib/themes/public-site-themes.ts
+ * which includes proper dark mode support via @media (prefers-color-scheme: dark)
  */
 const themePresets: Record<
   PublicSiteSettings["theme"],
   { primary: string; secondary: string; background: string; text: string; accent: string }
 > = {
   ocean: {
-    primary: "#0077b6",
-    secondary: "#00b4d8",
-    background: "#f0f9ff",
-    text: "#1e3a5f",
-    accent: "#90e0ef",
+    primary: "#0077B6",      // Deep ocean blue
+    secondary: "#00B4D8",    // Bright cyan
+    background: "#F0F9FF",   // Very light blue tint
+    text: "#1E3A5F",         // Dark navy text
+    accent: "#90E0EF",       // Light seafoam
   },
   tropical: {
-    primary: "#2d6a4f",
-    secondary: "#40916c",
-    background: "#f0fff4",
-    text: "#1b4332",
-    accent: "#95d5b2",
+    primary: "#20B2AA",      // Light sea green
+    secondary: "#3CB371",    // Medium sea green
+    background: "#F0FFF4",   // Mint cream background
+    text: "#1A4D2E",         // Dark forest text
+    accent: "#FFD700",       // Golden yellow (sun)
   },
   minimal: {
-    primary: "#374151",
-    secondary: "#6b7280",
-    background: "#f9fafb",
-    text: "#111827",
-    accent: "#d1d5db",
+    primary: "#374151",      // Gray-700
+    secondary: "#6B7280",    // Gray-500
+    background: "#FFFFFF",   // Pure white
+    text: "#1F2937",         // Gray-800 text
+    accent: "#3B82F6",       // Blue-500 accent
   },
   dark: {
-    primary: "#60a5fa",
-    secondary: "#818cf8",
-    background: "#0f172a",
-    text: "#e2e8f0",
-    accent: "#1e293b",
+    primary: "#60A5FA",      // Blue-400
+    secondary: "#818CF8",    // Indigo-400
+    background: "#0F172A",   // Slate-900
+    text: "#F1F5F9",         // Slate-100 text
+    accent: "#34D399",       // Emerald-400
   },
   classic: {
-    primary: "#1e40af",
-    secondary: "#3b82f6",
-    background: "#ffffff",
-    text: "#1f2937",
-    accent: "#dbeafe",
+    primary: "#1E3A5F",      // Navy blue
+    secondary: "#2C5282",    // Lighter navy
+    background: "#FFFBF0",   // Warm white background
+    text: "#1A202C",         // Near black text
+    accent: "#D4A942",       // Gold accent
   },
 };
 
@@ -117,14 +119,7 @@ export interface SiteLoaderData {
   };
   settings: PublicSiteSettings;
   themeVars: {
-    primaryColor: string;
-    secondaryColor: string;
-    backgroundColor: string;
-    textColor: string;
-    accentColor: string;
     fontFamily: string;
-    cardBg: string;
-    borderColor: string;
   };
   darkCSS: string;
   enabledPages: {
@@ -205,21 +200,14 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     throw redirect(`/site-disabled?org=${encodeURIComponent(org.name)}`);
   }
 
-  // Get theme preset and apply custom colors if specified
-  const themePreset = themePresets[settings.theme];
-  const isDark = settings.theme === "dark";
+  // Font family setting (only non-color variable needed in themeVars)
   const themeVars = {
-    primaryColor: settings.primaryColor || themePreset.primary,
-    secondaryColor: settings.secondaryColor || themePreset.secondary,
-    backgroundColor: themePreset.background,
-    textColor: themePreset.text,
-    accentColor: themePreset.accent,
     fontFamily: fontFamilies[settings.fontFamily],
-    cardBg: isDark ? "#1E293B" : "#FFFFFF",
-    borderColor: isDark ? "#334155" : "#E5E7EB",
   };
 
   // Generate light + dark mode CSS from the full theme system
+  // This includes @media (prefers-color-scheme: dark) overrides
+  // All color variables are set here and automatically adapt to system dark mode
   const fullTheme = getTheme(settings.theme as ThemeName);
   const darkCSS = getThemeStyleBlock(fullTheme, {
     primaryColor: settings.primaryColor || undefined,
