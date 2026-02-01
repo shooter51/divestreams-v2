@@ -6,19 +6,18 @@ import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Form } from "react-router";
 import { getTenantDb } from "../../../lib/db/tenant.server";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db/index";
 import { eq, and } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
+import { requireFeature } from "../../../lib/feature-guards.server";
+import { PLAN_FEATURES } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { requireOrgContext } = await import("../../../lib/auth/org-context.server");
-  const { requireFeature } = await import("../../../lib/feature-guards.server");
-  const { PLAN_FEATURES } = await import("../../../lib/plan-features");
-
   const ctx = await requireOrgContext(request);
 
   // Products are part of POS functionality - require POS feature
@@ -71,10 +70,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { requireOrgContext } = await import("../../../lib/auth/org-context.server");
-  const { requireFeature } = await import("../../../lib/feature-guards.server");
-  const { PLAN_FEATURES } = await import("../../../lib/plan-features");
-
   const ctx = await requireOrgContext(request);
 
   // Products are part of POS functionality - require POS feature
