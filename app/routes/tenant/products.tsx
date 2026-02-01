@@ -23,7 +23,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Products are part of POS functionality - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
 
-  const { tenant, organizationId } = ctx;
+  const organizationId = ctx.org.id;
   const { schema: tables } = getTenantDb(organizationId);
 
   try {
@@ -33,7 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(eq(tables.products.organizationId, organizationId))
       .orderBy(tables.products.category, tables.products.name);
 
-    return { tenant, products, migrationNeeded: false };
+    return { products, migrationNeeded: false };
   } catch (error) {
     // If sale_price columns don't exist yet, try without them
     console.error("Products query failed, trying basic query:", error);
@@ -61,10 +61,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
         .where(eq(tables.products.organizationId, organizationId))
         .orderBy(tables.products.category, tables.products.name);
 
-      return { tenant, products, migrationNeeded: true };
+      return { products, migrationNeeded: true };
     } catch (fallbackError) {
       console.error("Basic products query also failed:", fallbackError);
-      return { tenant, products: [], migrationNeeded: true };
+      return { products: [], migrationNeeded: true };
     }
   }
 }
@@ -75,7 +75,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Products are part of POS functionality - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
 
-  const { tenant, organizationId } = ctx;
+  const organizationId = ctx.org.id;
   const { schema: tables } = getTenantDb(organizationId);
 
   const formData = await request.formData();
@@ -445,26 +445,33 @@ const CATEGORIES = [
 ];
 
 // Helper to check if product is currently on sale
-function isOnSale(product: {
-  salePrice?: string | null;
-  saleStartDate?: Date | string | null;
-  saleEndDate?: Date | string | null;
-}): boolean {
+// Pass current time as parameter to avoid hydration mismatch (server vs client time)
+function isOnSale(
+  product: {
+    salePrice?: string | null;
+    saleStartDate?: Date | string | null;
+    saleEndDate?: Date | string | null;
+  },
+  now: Date
+): boolean {
   if (!product.salePrice) return false;
-  const now = new Date();
   if (product.saleStartDate && new Date(product.saleStartDate) > now) return false;
   if (product.saleEndDate && new Date(product.saleEndDate) < now) return false;
   return true;
 }
 
 // Helper to get the effective price (sale price if on sale, otherwise regular price)
-function getEffectivePrice(product: {
-  price: string;
-  salePrice?: string | null;
-  saleStartDate?: Date | string | null;
-  saleEndDate?: Date | string | null;
-}): number {
-  if (isOnSale(product)) {
+// Pass current time as parameter to avoid hydration mismatch
+function getEffectivePrice(
+  product: {
+    price: string;
+    salePrice?: string | null;
+    saleStartDate?: Date | string | null;
+    saleEndDate?: Date | string | null;
+  },
+  now: Date
+): number {
+  if (isOnSale(product, now)) {
     return Number(product.salePrice);
   }
   return Number(product.price);
@@ -519,12 +526,27 @@ export default function ProductsPage() {
   const [bulkUpdateType, setBulkUpdateType] = useState<"set" | "adjust">("adjust");
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState("");
+  // Track which products are on sale (client-side only to avoid hydration mismatch)
+  const [productsOnSale, setProductsOnSale] = useState<Set<string>>(new Set());
 
   // Show notifications from URL params
   useNotification();
 
   // Get toast context for showing success/error messages
   const { showToast } = useToast();
+
+  // Calculate which products are on sale (client-side only to avoid hydration errors)
+  useEffect(() => {
+    const now = new Date();
+    const onSaleSet = new Set<string>();
+    products.forEach((product) => {
+      const productWithSale = product as ProductWithSaleFields;
+      if (isOnSale(productWithSale, now)) {
+        onSaleSet.add(product.id);
+      }
+    });
+    setProductsOnSale(onSaleSet);
+  }, [products]);
 
   const isSubmitting = fetcher.state === "submitting";
 
@@ -789,9 +811,9 @@ export default function ProductsPage() {
               </thead>
               <tbody className="divide-y">
                 {categoryProducts.map((product) => {
-                  // Cast product to include optional sale fields for type checking
+                  // Check if product is on sale from client-side state (avoids hydration errors)
+                  const onSale = productsOnSale.has(product.id);
                   const productWithSale = product as typeof product & { salePrice?: string | null; saleStartDate?: Date | string | null; saleEndDate?: Date | string | null };
-                  const onSale = isOnSale(productWithSale);
                   return (
                   <tr key={product.id} className={!product.isActive ? "bg-surface-inset opacity-60" : ""}>
                     <td className="px-4 py-3">
