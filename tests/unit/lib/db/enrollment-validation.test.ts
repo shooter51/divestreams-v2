@@ -6,6 +6,7 @@ vi.mock("../../../../lib/db/index", () => ({
   db: {
     select: vi.fn().mockReturnThis(),
     from: vi.fn().mockReturnThis(),
+    leftJoin: vi.fn().mockReturnThis(), // Added for blocker #4 fix
     where: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),

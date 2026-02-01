@@ -54,8 +54,10 @@ describe('Payment Failed Email Template', () => {
 
     const { html, text } = getPaymentFailedEmail(data);
 
-    expect(html).toContain('https://example.com/billing');
+    // HTML version has escaped URLs for security (/ becomes &#x2F;)
+    expect(html).toContain('https:&#x2F;&#x2F;example.com&#x2F;billing');
     expect(html).toContain('Update Payment Method');
+    // Text version should have unescaped URL
     expect(text).toContain('https://example.com/billing');
   });
 

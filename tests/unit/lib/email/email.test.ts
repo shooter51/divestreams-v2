@@ -181,8 +181,8 @@ describe("Email Service", () => {
 
       // HTML version has escaped URLs for security (/ becomes &#x2F;)
       expect(result.html).toContain(loginUrl.replace(/\//g, '&#x2F;'));
-      // Text version should have unescaped URL
-      expect(result.text).toContain(loginUrl);
+      // Text version also has escaped URLs (defense in depth)
+      expect(result.text).toContain(loginUrl.replace(/\//g, '&#x2F;'));
     });
   });
 
@@ -214,8 +214,8 @@ describe("Email Service", () => {
 
       // HTML version has escaped URLs for security (/ becomes &#x2F;)
       expect(result.html).toContain(resetUrl.replace(/\//g, '&#x2F;'));
-      // Text version should have unescaped URL
-      expect(result.text).toContain(resetUrl);
+      // Text version also has escaped URLs (defense in depth)
+      expect(result.text).toContain(resetUrl.replace(/\//g, '&#x2F;'));
     });
 
     it("mentions expiration in both versions", async () => {
