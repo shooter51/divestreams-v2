@@ -35,7 +35,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-surface-inset">
       {/* Top bar */}
-      <header className="bg-gray-900 text-white">
+      <header className="bg-surface text-white">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <h1 className="font-bold text-lg">DiveStreams Admin</h1>
@@ -52,8 +52,8 @@ export default function AdminLayout() {
                     to={item.href}
                     className={`flex items-center gap-2 px-3 py-1 rounded transition-colors ${
                       isActive
-                        ? "bg-gray-700 text-white"
-                        : "text-gray-300 hover:text-white hover:bg-gray-800"
+                        ? "bg-surface-raised text-white"
+                        : "text-foreground-muted hover:text-white hover:bg-surface-overlay"
                     }`}
                   >
                     <span>{item.icon}</span>
@@ -65,7 +65,7 @@ export default function AdminLayout() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-sm">
-              <span className="text-gray-400">{user.email}</span>
+              <span className="text-foreground-subtle">{user.email}</span>
               {isOwner && (
                 <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-500/20 text-yellow-300 rounded">
                   Owner
@@ -75,7 +75,7 @@ export default function AdminLayout() {
             <form action="/logout" method="post">
               <button
                 type="submit"
-                className="text-gray-300 hover:text-white text-sm"
+                className="text-foreground-muted hover:text-white text-sm"
               >
                 Logout
               </button>

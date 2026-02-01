@@ -171,7 +171,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-surface-inset flex items-center justify-center">
       <div className="bg-surface-raised p-8 rounded-xl shadow-lg w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-surface rounded-xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white text-xl font-bold">DS</span>
           </div>
           <h1 className="text-2xl font-bold text-foreground">DiveStreams Admin</h1>
@@ -240,7 +240,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 disabled:bg-brand-disabled transition-colors"
+            className="w-full bg-surface text-white py-3 rounded-lg font-medium hover:bg-surface-overlay disabled:bg-brand-disabled transition-colors"
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
