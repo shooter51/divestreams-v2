@@ -28,7 +28,7 @@ BEGIN
         returned_at timestamp,
         daily_rate numeric(10, 2) NOT NULL,
         total_charge numeric(10, 2) NOT NULL,
-        status text DEFAULT ''active'' NOT NULL,
+        status text DEFAULT 'active' NOT NULL,
         agreement_number text NOT NULL,
         agreement_signed_at timestamp,
         agreement_signed_by text,
