@@ -36,6 +36,11 @@ vi.mock("../../../../lib/db/schema/password-audit", () => ({
   passwordChangeAudit: { id: "audit-mock" },
 }));
 
+// Mock session management
+vi.mock("../../../../lib/auth/session-management.server", () => ({
+  invalidateUserSessions: vi.fn().mockResolvedValue(2), // Mock: 2 sessions invalidated
+}));
+
 describe("Admin Password Reset Module", () => {
   let db: any;
 
