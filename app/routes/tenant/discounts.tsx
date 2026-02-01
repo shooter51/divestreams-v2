@@ -227,9 +227,8 @@ type DiscountCode = {
   createdAt: Date;
 };
 
-function getDiscountStatus(discount: DiscountCode): { label: string; color: string } {
-  const now = new Date();
-
+// Takes 'now' parameter to avoid hydration mismatch (don't call new Date() during render)
+function getDiscountStatus(discount: DiscountCode, now: Date): { label: string; color: string } {
   if (!discount.isActive) {
     return { label: "Inactive", color: "bg-surface-inset text-foreground-muted" };
   }
@@ -266,8 +265,21 @@ export default function DiscountsPage() {
   const [editingDiscount, setEditingDiscount] = useState<DiscountCode | null>(null);
   const [discountType, setDiscountType] = useState<string>("percentage");
 
+  // Track discount statuses (calculated client-side to avoid hydration mismatch)
+  const [discountStatuses, setDiscountStatuses] = useState<Map<string, { label: string; color: string }>>(new Map());
+
   const isSubmitting = fetcher.state === "submitting";
   const fetcherData = fetcher.data as { error?: string; success?: boolean; message?: string } | undefined;
+
+  // Calculate discount statuses after hydration (client-side only)
+  useEffect(() => {
+    const now = new Date();
+    const statusMap = new Map<string, { label: string; color: string }>();
+    discountCodes.forEach((discount) => {
+      statusMap.set(discount.id, getDiscountStatus(discount as DiscountCode, now));
+    });
+    setDiscountStatuses(statusMap);
+  }, [discountCodes]);
 
   // Close modal and show toast on successful create/update/delete
   useEffect(() => {
@@ -282,12 +294,12 @@ export default function DiscountsPage() {
 
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {
-    const status = getDiscountStatus(d as DiscountCode);
-    return status.label === "Active" || status.label === "Scheduled";
+    const status = discountStatuses.get(d.id);
+    return status && (status.label === "Active" || status.label === "Scheduled");
   });
   const inactiveDiscounts = discountCodes.filter((d) => {
-    const status = getDiscountStatus(d as DiscountCode);
-    return status.label !== "Active" && status.label !== "Scheduled";
+    const status = discountStatuses.get(d.id);
+    return !status || (status.label !== "Active" && status.label !== "Scheduled");
   });
 
   const formatDateForInput = (dateVal: Date | string | null): string => {
@@ -338,7 +350,7 @@ export default function DiscountsPage() {
               </thead>
               <tbody className="divide-y">
                 {activeDiscounts.map((discount) => {
-                  const status = getDiscountStatus(discount as DiscountCode);
+                  const status = discountStatuses.get(discount.id) || { label: "Active", color: "bg-success-muted text-success" };
                   return (
                     <tr key={discount.id}>
                       <td className="px-4 py-3">
@@ -444,7 +456,7 @@ export default function DiscountsPage() {
               </thead>
               <tbody className="divide-y">
                 {inactiveDiscounts.map((discount) => {
-                  const status = getDiscountStatus(discount as DiscountCode);
+                  const status = discountStatuses.get(discount.id) || { label: "Inactive", color: "bg-surface-inset text-foreground-muted" };
                   return (
                     <tr key={discount.id}>
                       <td className="px-4 py-3">
