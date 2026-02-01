@@ -41,23 +41,9 @@ export function sanitizeHtml(html: string, allowedTags?: string[]): string {
 /**
  * Sanitize and validate iframe embeds (e.g., Google Maps)
  * Only allows iframes from trusted domains
+ * Works in both browser and server environments
  */
 export function sanitizeIframeEmbed(html: string): string {
-  // Parse the HTML
-  const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = html;
-
-  // Get all iframes
-  const iframes = tempDiv.querySelectorAll("iframe");
-
-  // Must have exactly one iframe
-  if (iframes.length !== 1) {
-    return "";
-  }
-
-  const iframe = iframes[0];
-  const src = iframe.getAttribute("src") || "";
-
   // Whitelist of allowed iframe domains
   const allowedDomains = [
     "google.com/maps",
@@ -67,18 +53,36 @@ export function sanitizeIframeEmbed(html: string): string {
     "vimeo.com/video",
   ];
 
-  // Check if src matches any allowed domain
+  // First pass: sanitize with DOMPurify (allows only iframes)
+  const sanitized = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ["iframe"],
+    ALLOWED_ATTR: ["src", "width", "height", "frameborder", "allowfullscreen", "style", "loading"],
+  });
+
+  // Extract src attribute using regex (works in both server and browser)
+  const srcMatch = sanitized.match(/src=["']([^"']+)["']/);
+
+  if (!srcMatch) {
+    return ""; // No src attribute found
+  }
+
+  const src = srcMatch[1];
+
+  // Validate src is from an allowed domain
   const isAllowed = allowedDomains.some((domain) => src.includes(domain));
 
   if (!isAllowed) {
-    return "";
+    return ""; // Domain not in whitelist
   }
 
-  // Return sanitized iframe only (strip any other HTML)
-  return DOMPurify.sanitize(iframe.outerHTML, {
-    ALLOWED_TAGS: ["iframe"],
-    ALLOWED_ATTR: ["src", "width", "height", "frameborder", "allowfullscreen", "style"],
-  });
+  // Count iframes (must be exactly one)
+  const iframeCount = (sanitized.match(/<iframe/g) || []).length;
+
+  if (iframeCount !== 1) {
+    return ""; // Must have exactly one iframe
+  }
+
+  return sanitized;
 }
 
 /**

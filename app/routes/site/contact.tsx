@@ -14,6 +14,7 @@ import { organization } from "../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { sendEmail, contactFormNotificationEmail, contactFormAutoReplyEmail } from "../../../lib/email";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { sanitizeIframeEmbed } from "../../../lib/security/sanitize";
 
 /**
  * Extract subdomain from request host
@@ -757,7 +758,7 @@ export default function SiteContactPage() {
             >
               <div
                 className="aspect-video w-full [&>iframe]:w-full [&>iframe]:h-full"
-                dangerouslySetInnerHTML={{ __html: contactInfo.mapEmbed }}
+                dangerouslySetInnerHTML={{ __html: sanitizeIframeEmbed(contactInfo.mapEmbed) }}
               />
             </div>
           )}
