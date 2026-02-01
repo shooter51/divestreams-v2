@@ -12,6 +12,8 @@ import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
 import { ChangePasswordForm } from "../../../../app/components/settings/ChangePasswordForm";
 import { auth } from "../../../../lib/auth";
+import { resetUserPassword, type ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
+import { ResetPasswordModal } from "../../../../app/components/settings/ResetPasswordModal";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -265,6 +267,67 @@ export async function action({ request }: ActionFunctionArgs) {
     return { success: true, message: "Invitation resent" };
   }
 
+  if (intent === "reset-password") {
+    const userId = formData.get("userId") as string;
+    const method = formData.get("method") as ResetPasswordParams["method"];
+    const newPassword = formData.get("newPassword") as string | undefined;
+
+    // Check permissions
+    if (ctx.member.role !== "owner" && ctx.member.role !== "admin") {
+      return { error: "Only owners and admins can reset passwords" };
+    }
+
+    // Get target member to check role
+    const [targetMember] = await db
+      .select()
+      .from(member)
+      .where(
+        and(
+          eq(member.userId, userId),
+          eq(member.organizationId, ctx.org.id)
+        )
+      )
+      .limit(1);
+
+    if (!targetMember) {
+      return { error: "User not found" };
+    }
+
+    // Cannot reset owner passwords
+    if (targetMember.role === "owner") {
+      return { error: "Cannot reset password for owner accounts" };
+    }
+
+    // Prevent self-reset
+    if (userId === ctx.user.id) {
+      return { error: "Use profile settings to change your own password" };
+    }
+
+    // Execute reset
+    try {
+      const result = await resetUserPassword({
+        targetUserId: userId,
+        adminUserId: ctx.user.id,
+        organizationId: ctx.org.id,
+        method,
+        newPassword,
+        ipAddress: request.headers.get("x-forwarded-for") || undefined,
+        userAgent: request.headers.get("user-agent") || undefined,
+      });
+
+      return {
+        success: true,
+        temporaryPassword: result.temporaryPassword,
+        message: method === "auto_generated"
+          ? `Password reset successful. Temporary password: ${result.temporaryPassword}`
+          : "Password reset successful",
+      };
+    } catch (error) {
+      console.error("Password reset error:", error);
+      return { error: error instanceof Error ? error.message : "Failed to reset password" };
+    }
+  }
+
   if (intent === "change-password") {
     const userId = formData.get("userId") as string;
     const currentPassword = formData.get("currentPassword") as string;
@@ -318,6 +381,7 @@ export default function TeamPage() {
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [changePasswordUserId, setChangePasswordUserId] = useState<string | null>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; email: string } | null>(null);
 
   // Close modal only on successful invitation
   useEffect(() => {
@@ -325,6 +389,16 @@ export default function TeamPage() {
       setShowInviteModal(false);
     }
   }, [fetcher.data]);
+
+  // Close password reset modal and show alert on success
+  useEffect(() => {
+    if (fetcher.data?.success && resetPasswordUser) {
+      if (fetcher.data?.temporaryPassword) {
+        alert(`Password reset successful!\n\nTemporary password: ${fetcher.data.temporaryPassword}\n\nPlease copy this and share it securely with the user.`);
+      }
+      setResetPasswordUser(null);
+    }
+  }, [fetcher.data, resetPasswordUser]);
 
   const activeMembers = team.filter((m) => m.status === "active").length;
   const atLimit = planLimit !== -1 && activeMembers >= planLimit;
@@ -463,6 +537,18 @@ export default function TeamPage() {
                         <hr className="my-1" />
                         <button
                           type="button"
+                          onClick={() => setResetPasswordUser({
+                            id: member.id,
+                            name: member.name,
+                            email: member.email
+                          })}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset"
+                        >
+                          Reset Password
+                        </button>
+                        <hr className="my-1" />
+                        <button
+                          type="button"
                           onClick={() => setChangePasswordUserId(member.id)}
                           className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset"
                         >
@@ -570,6 +656,25 @@ export default function TeamPage() {
           ))}
         </div>
       </div>
+
+      {/* Reset Password Modal */}
+      {resetPasswordUser && (
+        <ResetPasswordModal
+          user={resetPasswordUser}
+          onClose={() => setResetPasswordUser(null)}
+          onSubmit={(data) => {
+            fetcher.submit(
+              {
+                intent: "reset-password",
+                userId: data.userId,
+                method: data.method,
+                ...(data.newPassword && { newPassword: data.newPassword }),
+              },
+              { method: "post" }
+            );
+          }}
+        />
+      )}
 
       {/* Change Password Modal */}
       {changePasswordUserId && (
