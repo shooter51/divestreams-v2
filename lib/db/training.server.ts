@@ -700,15 +700,21 @@ export async function createEnrollment(data: {
   paymentStatus?: string;
   notes?: string;
 }) {
-  // Validate session exists and get details
+  // Validate session exists and get details including pricing
   const [session] = await db
     .select({
       id: schema.trainingSessions.id,
       status: schema.trainingSessions.status,
       maxStudents: schema.trainingSessions.maxStudents,
       enrolledCount: schema.trainingSessions.enrolledCount,
+      priceOverride: schema.trainingSessions.priceOverride,
+      coursePrice: schema.trainingCourses.price,
     })
     .from(schema.trainingSessions)
+    .leftJoin(
+      schema.trainingCourses,
+      eq(schema.trainingSessions.courseId, schema.trainingCourses.id)
+    )
     .where(
       and(
         eq(schema.trainingSessions.organizationId, data.organizationId),
@@ -728,6 +734,23 @@ export async function createEnrollment(data: {
   // Check if session is full (allow enrollments for scheduled, in_progress, and completed sessions)
   if (session.maxStudents && session.enrolledCount >= session.maxStudents) {
     throw new Error(`Session is full (${session.enrolledCount}/${session.maxStudents} students enrolled)`);
+  }
+
+  // SECURITY: Validate payment amount doesn't exceed session price
+  if (data.amountPaid) {
+    const amountPaid = Number(data.amountPaid);
+    const sessionPrice = Number(session.priceOverride || session.coursePrice || 0);
+
+    if (amountPaid < 0) {
+      throw new Error("Payment amount cannot be negative");
+    }
+
+    // Allow overpayment by max 1 cent (for rounding)
+    if (amountPaid > sessionPrice + 0.01) {
+      throw new Error(
+        `Payment amount (${amountPaid.toFixed(2)}) exceeds session price (${sessionPrice.toFixed(2)})`
+      );
+    }
   }
 
   // Validate customer exists
