@@ -9,6 +9,7 @@
  */
 
 import DOMPurify from "isomorphic-dompurify";
+import { sanitizeUrl } from "../../lib/security/sanitize";
 import type {
   ContentBlock,
   HeadingBlock,
@@ -287,7 +288,7 @@ function CtaRenderer({ block }: { block: CtaBlock }) {
         </p>
       )}
       <a
-        href={block.buttonUrl}
+        href={sanitizeUrl(block.buttonUrl, true)}
         className="inline-block bg-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
         style={{ color: "var(--primary-color)" }}
       >

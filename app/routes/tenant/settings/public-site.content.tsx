@@ -3,6 +3,7 @@ import { useOutletContext, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
+import { sanitizeIframeEmbed } from "../../../../lib/security/sanitize";
 
 type OutletContextType = {
   settings: PublicSiteSettings;
@@ -290,13 +291,9 @@ export default function PublicSiteContentSettings() {
                   className="border rounded-lg overflow-hidden"
                   suppressHydrationWarning
                   dangerouslySetInnerHTML={{
-                    __html: settings.contactInfo.mapEmbed.replace(
-                      /width="[^"]*"/,
-                      'width="100%"'
-                    ).replace(
-                      /height="[^"]*"/,
-                      'height="200"'
-                    ),
+                    __html: sanitizeIframeEmbed(settings.contactInfo.mapEmbed || "")
+                      .replace(/width="[^"]*"/, 'width="100%"')
+                      .replace(/height="[^"]*"/, 'height="200"'),
                   }}
                 />
               </div>

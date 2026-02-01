@@ -272,6 +272,31 @@ export function getThemeStyleTag(
 }
 
 /**
+ * SECURITY: Sanitize CSS color values to prevent CSS injection attacks
+ * Only allows hex colors and safe named colors
+ */
+function sanitizeCSSColor(color: string): string {
+  // Allow hex colors: #RGB or #RRGGBB
+  const hexPattern = /^#([A-Fa-f0-9]{3}){1,2}$/;
+
+  // Whitelist of safe named CSS colors
+  const safeNamedColors = [
+    "red", "blue", "green", "black", "white", "gray", "grey",
+    "yellow", "orange", "purple", "pink", "brown", "cyan", "magenta",
+    "navy", "teal", "olive", "maroon", "lime", "aqua", "silver"
+  ];
+
+  const normalizedColor = color.trim().toLowerCase();
+
+  if (hexPattern.test(color) || safeNamedColors.includes(normalizedColor)) {
+    return color;
+  }
+
+  // Invalid color - return black as safe fallback
+  return "#000000";
+}
+
+/**
  * Generate complete CSS style block for a theme including dark mode overrides.
  * Uses `.site-theme` scoping class to avoid inline style specificity issues.
  * Returns both light and dark mode CSS for use in a <style> tag.
@@ -283,9 +308,10 @@ export function getThemeStyleBlock(
   const baseTheme = typeof theme === "string" ? getTheme(theme) : theme;
   const dark = baseTheme.dark;
 
-  const finalPrimary = overrides?.primaryColor ?? baseTheme.primaryColor;
-  const finalSecondary = overrides?.secondaryColor ?? baseTheme.secondaryColor;
-  const finalAccent = overrides?.accentColor ?? baseTheme.accentColor;
+  // SECURITY: Sanitize all color overrides to prevent CSS injection
+  const finalPrimary = sanitizeCSSColor(overrides?.primaryColor ?? baseTheme.primaryColor);
+  const finalSecondary = sanitizeCSSColor(overrides?.secondaryColor ?? baseTheme.secondaryColor);
+  const finalAccent = sanitizeCSSColor(overrides?.accentColor ?? baseTheme.accentColor);
   const darkFinal = baseTheme.name === "dark";
 
   return `.site-theme {
@@ -306,15 +332,15 @@ export function getThemeStyleBlock(
 }
 @media (prefers-color-scheme: dark) {
   .site-theme {
-    --primary-color: ${overrides?.primaryColor ?? dark.primaryColor};
-    --secondary-color: ${overrides?.secondaryColor ?? dark.secondaryColor};
-    --accent-color: ${overrides?.accentColor ?? dark.accentColor};
+    --primary-color: ${overrides?.primaryColor ? finalPrimary : dark.primaryColor};
+    --secondary-color: ${overrides?.secondaryColor ? finalSecondary : dark.secondaryColor};
+    --accent-color: ${overrides?.accentColor ? finalAccent : dark.accentColor};
     --background-color: ${dark.backgroundColor};
     --text-color: ${dark.textColor};
     --color-card-bg: ${dark.cardBg};
     --color-border: ${dark.borderColor};
-    --color-primary-hover: ${adjustBrightness(overrides?.primaryColor ?? dark.primaryColor, 15)};
-    --color-primary-text: ${getContrastColor(overrides?.primaryColor ?? dark.primaryColor)};
+    --color-primary-hover: ${adjustBrightness(overrides?.primaryColor ? finalPrimary : dark.primaryColor, 15)};
+    --color-primary-text: ${getContrastColor(overrides?.primaryColor ? finalPrimary : dark.primaryColor)};
     --danger-bg: #7F1D1D;
     --danger-text: #FCA5A5;
     --danger-border: #991B1B;
