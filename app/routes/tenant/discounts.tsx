@@ -7,18 +7,19 @@
 import { useState, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, redirect } from "react-router";
-import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { discountCodes } from "../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { redirectWithNotification, useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
-import { requireFeature } from "../../../lib/feature-guards.server";
-import { PLAN_FEATURES } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireOrgContext } = await import("../../../lib/auth/org-context.server");
+  const { requireFeature } = await import("../../../lib/feature-guards.server");
+  const { PLAN_FEATURES } = await import("../../../lib/plan-features");
+
   const ctx = await requireOrgContext(request);
 
   // Discount codes are used in POS - require POS feature
@@ -37,6 +38,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireOrgContext } = await import("../../../lib/auth/org-context.server");
+  const { requireFeature } = await import("../../../lib/feature-guards.server");
+  const { PLAN_FEATURES } = await import("../../../lib/plan-features");
+
   const ctx = await requireOrgContext(request);
 
   // Discount codes are used in POS - require POS feature
