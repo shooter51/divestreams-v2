@@ -421,7 +421,7 @@ describe("pos.server database functions", () => {
         ],
         customerId: "cust-1",
         userId: "user-1",
-        payments: [{ method: "cash" as const, amount: 100 }],
+        payments: [{ method: "cash" as const, amount: 110 }], // Must match total including tax
         subtotal: 100,
         tax: 10,
         total: 110,
@@ -456,7 +456,7 @@ describe("pos.server database functions", () => {
           },
         ],
         customerId: "cust-1",
-        payments: [{ method: "card" as const, amount: 300, stripePaymentIntentId: "pi_123" }],
+        payments: [{ method: "card" as const, amount: 330, stripePaymentIntentId: "pi_123" }], // Must match total including tax
         subtotal: 300,
         tax: 30,
         total: 330,
@@ -496,7 +496,7 @@ describe("pos.server database functions", () => {
           },
         ],
         customerId: "cust-1",
-        payments: [{ method: "cash" as const, amount: 60 }],
+        payments: [{ method: "cash" as const, amount: 66 }], // Must match total including tax
         subtotal: 60,
         tax: 6,
         total: 66,
@@ -527,8 +527,8 @@ describe("pos.server database functions", () => {
           },
         ],
         payments: [
-          { method: "cash" as const, amount: 50 },
-          { method: "card" as const, amount: 50, stripePaymentIntentId: "pi_123" },
+          { method: "cash" as const, amount: 55 }, // Split payment must total 110 with tax
+          { method: "card" as const, amount: 55, stripePaymentIntentId: "pi_123" },
         ],
         subtotal: 100,
         tax: 10,

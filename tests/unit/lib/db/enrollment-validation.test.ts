@@ -31,6 +31,11 @@ vi.mock("../../../../lib/db/schema", () => ({
     customerId: "customer_id",
     enrolledCount: "enrolled_count",
   },
+  trainingCourses: {
+    id: "id",
+    organizationId: "organization_id",
+    price: "price",
+  },
   customers: {
     id: "id",
     organizationId: "organization_id",

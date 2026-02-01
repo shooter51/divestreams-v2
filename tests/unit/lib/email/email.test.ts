@@ -179,7 +179,9 @@ describe("Email Service", () => {
         loginUrl,
       });
 
-      expect(result.html).toContain(loginUrl);
+      // HTML version has escaped URLs for security (/ becomes &#x2F;)
+      expect(result.html).toContain(loginUrl.replace(/\//g, '&#x2F;'));
+      // Text version should have unescaped URL
       expect(result.text).toContain(loginUrl);
     });
   });
@@ -210,7 +212,9 @@ describe("Email Service", () => {
         resetUrl,
       });
 
-      expect(result.html).toContain(resetUrl);
+      // HTML version has escaped URLs for security (/ becomes &#x2F;)
+      expect(result.html).toContain(resetUrl.replace(/\//g, '&#x2F;'));
+      // Text version should have unescaped URL
       expect(result.text).toContain(resetUrl);
     });
 
