@@ -2362,6 +2362,34 @@ export async function recordPayment(organizationId: string, data: {
 }) {
   const { bookingId, amount, paymentMethod, notes } = data;
 
+  // SECURITY: Validate payment amount doesn't exceed remaining balance
+  const [booking] = await db
+    .select({
+      total: schema.bookings.total,
+      paidAmount: schema.bookings.paidAmount,
+    })
+    .from(schema.bookings)
+    .where(eq(schema.bookings.id, bookingId));
+
+  if (!booking) {
+    throw new Error("Booking not found");
+  }
+
+  const totalDue = Number(booking.total);
+  const alreadyPaid = Number(booking.paidAmount || 0);
+  const remainingBalance = totalDue - alreadyPaid;
+
+  // Allow overpayment by max 1 cent (for rounding)
+  if (amount > remainingBalance + 0.01) {
+    throw new Error(
+      `Payment amount ($${amount.toFixed(2)}) exceeds remaining balance ($${remainingBalance.toFixed(2)})`
+    );
+  }
+
+  if (amount <= 0) {
+    throw new Error("Payment amount must be greater than zero");
+  }
+
   // Create the transaction record
   const [transaction] = await db
     .insert(schema.transactions)
@@ -2376,9 +2404,14 @@ export async function recordPayment(organizationId: string, data: {
     .returning();
 
   // Update the booking's paid amount
-  const [booking] = await db
-    .select({ paidAmount: schema.bookings.paidAmount })
-    .from(schema.bookings)
+  const updatedPaidAmount = alreadyPaid + amount;
+  await db
+    .update(schema.bookings)
+    .set({
+      paidAmount: String(updatedPaidAmount),
+      paymentStatus: updatedPaidAmount >= totalDue - 0.01 ? "paid" : "partial",
+      updatedAt: new Date(),
+    })
     .where(eq(schema.bookings.id, bookingId));
 
   if (booking) {
