@@ -1,6 +1,10 @@
 /**
  * Payment Failed Email Template
+ *
+ * SECURITY: All user-provided data is escaped to prevent XSS attacks
  */
+
+import { escapeHtml } from "../../security/sanitize";
 
 export interface PaymentFailedData {
   customerName: string;
@@ -20,10 +24,20 @@ export function getPaymentFailedEmail(data: PaymentFailedData): {
   html: string;
   text: string;
 } {
-  const subject = `Action Required: Payment Failed - ${data.amount} ${data.currency.toUpperCase()}`;
+  // SECURITY: Escape all user-provided data to prevent XSS
+  const customerName = escapeHtml(data.customerName);
+  const amount = escapeHtml(data.amount);
+  const currency = escapeHtml(data.currency.toUpperCase());
+  const attemptDate = escapeHtml(data.attemptDate);
+  const invoiceNumber = data.invoiceNumber ? escapeHtml(data.invoiceNumber) : null;
+  const organizationName = escapeHtml(data.organizationName);
+  const organizationEmail = data.organizationEmail ? escapeHtml(data.organizationEmail) : null;
+  const retryUrl = data.retryUrl ? escapeHtml(data.retryUrl) : null;
+
+  const subject = `Action Required: Payment Failed - ${amount} ${currency}`;
 
   // Map common Stripe decline codes to friendly messages
-  const friendlyReason = getFriendlyFailureReason(data.failureReason);
+  const friendlyReason = escapeHtml(getFriendlyFailureReason(data.failureReason));
 
   const html = `
 <!DOCTYPE html>
@@ -40,7 +54,7 @@ export function getPaymentFailedEmail(data: PaymentFailedData): {
 
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
     <p style="font-size: 16px; margin-bottom: 20px;">
-      Hi ${data.customerName},
+      Hi ${customerName},
     </p>
 
     <p style="margin-bottom: 20px;">
@@ -54,17 +68,17 @@ export function getPaymentFailedEmail(data: PaymentFailedData): {
         <tr>
           <td style="padding: 8px 0; color: #666;">Amount:</td>
           <td style="padding: 8px 0; text-align: right; font-weight: bold;">
-            ${data.amount} ${data.currency.toUpperCase()}
+            ${amount} ${currency}
           </td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #666;">Date:</td>
-          <td style="padding: 8px 0; text-align: right;">${data.attemptDate}</td>
+          <td style="padding: 8px 0; text-align: right;">${attemptDate}</td>
         </tr>
-        ${data.invoiceNumber ? `
+        ${invoiceNumber ? `
         <tr>
           <td style="padding: 8px 0; color: #666;">Invoice:</td>
-          <td style="padding: 8px 0; text-align: right;">${data.invoiceNumber}</td>
+          <td style="padding: 8px 0; text-align: right;">${invoiceNumber}</td>
         </tr>
         ` : ''}
         <tr>
@@ -84,9 +98,9 @@ export function getPaymentFailedEmail(data: PaymentFailedData): {
       </ul>
     </div>
 
-    ${data.retryUrl ? `
+    ${retryUrl ? `
     <div style="text-align: center; margin: 25px 0;">
-      <a href="${data.retryUrl}" style="display: inline-block; background: #0066cc; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+      <a href="${retryUrl}" style="display: inline-block; background: #0066cc; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 500;">
         Update Payment Method
       </a>
     </div>
@@ -94,14 +108,14 @@ export function getPaymentFailedEmail(data: PaymentFailedData): {
 
     <p style="color: #666; font-size: 14px; margin-top: 25px;">
       Need help? Contact us at
-      ${data.organizationEmail ? `<a href="mailto:${data.organizationEmail}" style="color: #0066cc;">${data.organizationEmail}</a>` : 'our support team'}
+      ${organizationEmail ? `<a href="mailto:${organizationEmail}" style="color: #0066cc;">${organizationEmail}</a>` : 'our support team'}
       and we'll be happy to assist.
     </p>
 
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
 
     <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
-      This email was sent by ${data.organizationName}
+      This email was sent by ${organizationName}
     </p>
   </div>
 </body>
@@ -111,14 +125,14 @@ export function getPaymentFailedEmail(data: PaymentFailedData): {
   const text = `
 Payment Failed - Action Required
 
-Hi ${data.customerName},
+Hi ${customerName},
 
 We were unable to process your payment. Don't worry - your service is still active, but please update your payment method to avoid any interruption.
 
 Payment Details:
-- Amount: ${data.amount} ${data.currency.toUpperCase()}
-- Date: ${data.attemptDate}
-${data.invoiceNumber ? `- Invoice: ${data.invoiceNumber}` : ''}
+- Amount: ${amount} ${currency}
+- Date: ${attemptDate}
+${invoiceNumber ? `- Invoice: ${invoiceNumber}` : ''}
 - Reason: ${friendlyReason}
 
 What you can do:
@@ -127,11 +141,11 @@ What you can do:
 - Contact your bank if the issue persists
 - Try a different payment method
 
-${data.retryUrl ? `Update your payment method: ${data.retryUrl}` : ''}
+${retryUrl ? `Update your payment method: ${retryUrl}` : ''}
 
 Need help? Contact us and we'll be happy to assist.
 
-${data.organizationName}
+${organizationName}
   `.trim();
 
   return { subject, html, text };
