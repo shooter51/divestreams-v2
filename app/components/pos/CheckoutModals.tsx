@@ -53,6 +53,7 @@ export function CardModal({
   const [cardElement, setCardElement] = useState<StripeCardElementType | null>(null);
   const [cardComplete, setCardComplete] = useState(false);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [pendingPayment, setPendingPayment] = useState<{ clientSecret: string; paymentIntentId: string } | null>(null);
 
   // Load Stripe.js when modal opens with manual entry
   useEffect(() => {
@@ -134,12 +135,23 @@ export function CardModal({
       if (data.error) {
         setError(data.error);
         setStep("error");
-      } else if (data.clientSecret && stripe && cardElement) {
-        // Confirm the payment
-        confirmPayment(data.clientSecret, data.paymentIntentId!);
+      } else if (data.clientSecret && data.paymentIntentId) {
+        // Store payment details - will be processed when Stripe is ready
+        setPendingPayment({
+          clientSecret: data.clientSecret,
+          paymentIntentId: data.paymentIntentId,
+        });
       }
     }
-  }, [fetcher.state, fetcher.data, stripe, cardElement]);
+  }, [fetcher.state, fetcher.data]);
+
+  // Process pending payment when Stripe and card element are ready
+  useEffect(() => {
+    if (pendingPayment && stripe && cardElement) {
+      confirmPayment(pendingPayment.clientSecret, pendingPayment.paymentIntentId);
+      setPendingPayment(null); // Clear pending payment
+    }
+  }, [pendingPayment, stripe, cardElement]);
 
   const confirmPayment = async (clientSecret: string, intentId: string) => {
     if (!stripe || !cardElement) return;
@@ -198,6 +210,7 @@ export function CardModal({
     setError(null);
     setCardComplete(false);
     setPaymentIntentId(null);
+    setPendingPayment(null);
     onClose();
   }, [onClose]);
 
