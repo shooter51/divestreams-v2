@@ -133,8 +133,8 @@ const tourTypes: Record<string, { label: string; color: string }> = {
   single_dive: { label: "Single Dive", color: "bg-brand-muted text-brand" },
   multi_dive: { label: "Multi-Dive", color: "bg-info-muted text-info" },
   course: { label: "Course", color: "bg-info-muted text-info" },
-  snorkel: { label: "Snorkel", color: "bg-cyan-100 text-cyan-700" },
-  night_dive: { label: "Night Dive", color: "bg-slate-100 text-slate-700" },
+  snorkel: { label: "Snorkel", color: "bg-info-muted text-info" },
+  night_dive: { label: "Night Dive", color: "bg-surface-overlay text-foreground-muted" },
   other: { label: "Other", color: "bg-surface-inset text-foreground" },
 };
 

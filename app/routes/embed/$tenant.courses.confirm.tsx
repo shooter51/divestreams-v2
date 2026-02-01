@@ -360,7 +360,7 @@ export default function EnrollmentConfirmationPage() {
       </div>
 
       {/* What's Next Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-6 mb-6">
+      <div className="rounded-lg p-6 mb-6" style={{ backgroundImage: 'linear-gradient(to bottom right, var(--brand-muted), var(--surface))' }}>
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <svg
             className="w-5 h-5 text-blue-600"

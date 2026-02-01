@@ -28,7 +28,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen" style={{ backgroundImage: 'linear-gradient(to bottom, var(--brand-muted), var(--surface))' }}>
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
         <div className="text-2xl font-bold text-brand">DiveStreams</div>

@@ -413,6 +413,7 @@ export default function SiteTripDetailPage() {
               </svg>
             </div>
           )}
+          {/* Intentional dark overlay for hero text readability - universal across themes */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
           {/* Image count badge */}

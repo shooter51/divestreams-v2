@@ -231,6 +231,7 @@ export default function GalleryPage() {
                       </div>
                     )}
                   </div>
+                  {/* Intentional dark overlay for image text readability - universal across themes */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end">
                     <div className="p-4 text-white text-left w-full">
                       <h3 className="text-lg font-semibold mb-1">{album.name}</h3>

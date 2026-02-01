@@ -178,7 +178,7 @@ export function RichTextEditor({
       <style>{`
         [contentEditable=true]:empty:before {
           content: attr(data-placeholder);
-          color: #9ca3af;
+          color: var(--foreground-subtle);
           pointer-events: none;
         }
         [contentEditable=true]:focus:before {
