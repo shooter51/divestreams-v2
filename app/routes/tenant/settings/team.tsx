@@ -273,7 +273,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const newPassword = formData.get("newPassword") as string | undefined;
 
     // Check permissions
-    if (ctx.member.role !== "owner" && ctx.member.role !== "admin") {
+    if (ctx.membership.role !== "owner" && ctx.membership.role !== "admin") {
       return { error: "Only owners and admins can reset passwords" };
     }
 
