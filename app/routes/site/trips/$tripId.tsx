@@ -719,7 +719,7 @@ export default function SiteTripDetailPage() {
                     className="h-2 rounded-full transition-all"
                     style={{
                       width: `${(trip.bookedCount / trip.maxParticipants) * 100}%`,
-                      backgroundColor: isFull ? "#ef4444" : "var(--primary-color)",
+                      backgroundColor: isFull ? "var(--danger)" : "var(--primary-color)",
                     }}
                   />
                 </div>
@@ -751,10 +751,10 @@ export default function SiteTripDetailPage() {
                 to={`/embed/${organizationSlug}/book?tripId=${trip.id}`}
                 className={`block w-full py-4 rounded-lg text-center font-semibold text-lg transition-opacity ${
                   isFull
-                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    ? "text-white cursor-not-allowed"
                     : "text-white hover:opacity-90"
                 }`}
-                style={isFull ? {} : { backgroundColor: "var(--primary-color)" }}
+                style={{ backgroundColor: isFull ? "var(--surface-overlay)" : "var(--primary-color)" }}
                 onClick={(e) => {
                   if (isFull) e.preventDefault();
                 }}

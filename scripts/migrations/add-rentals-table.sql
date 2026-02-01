@@ -37,7 +37,7 @@ BEGIN
                         daily_rate DECIMAL(10, 2) NOT NULL,
                         total_charge DECIMAL(10, 2) NOT NULL,
 
-                        status TEXT NOT NULL DEFAULT ''active'',
+                        status TEXT NOT NULL DEFAULT 'active',
 
                         agreement_number TEXT NOT NULL,
                         agreement_signed_at TIMESTAMP,

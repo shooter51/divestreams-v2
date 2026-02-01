@@ -634,7 +634,7 @@ function TripCard({ trip }: { trip: TripCard }) {
           </div>
           <span
             className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity group-hover:opacity-90"
-            style={{ backgroundColor: isFull ? "#9ca3af" : "var(--primary-color)" }}
+            style={{ backgroundColor: isFull ? "var(--surface-overlay)" : "var(--primary-color)" }}
           >
             {isFull ? "Join Waitlist" : "View Details"}
           </span>

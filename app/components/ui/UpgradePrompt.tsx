@@ -51,7 +51,7 @@ function BannerPrompt({ feature, currentCount, limit }: Omit<UpgradePromptProps,
   const message = getMessage(feature, currentCount, limit);
 
   return (
-    <div className="bg-gradient-to-r from-brand to-brand-hover rounded-lg px-4 py-3 text-white shadow-sm">
+    <div className="rounded-lg px-4 py-3 text-white shadow-sm" style={{ backgroundImage: 'linear-gradient(to right, var(--brand), var(--brand-hover))' }}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <CrownIcon />
