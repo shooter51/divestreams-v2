@@ -364,15 +364,8 @@ export default function AdminTeamPage() {
     }
   }, [fetcher.data, showInviteModal]);
 
-  // Close password reset modal and show alert on success
-  useEffect(() => {
-    if (fetcher.data?.success && resetPasswordUser) {
-      if (fetcher.data?.temporaryPassword) {
-        alert(`Password reset successful!\n\nTemporary password: ${fetcher.data.temporaryPassword}\n\nPlease copy this and share it securely with the user.`);
-      }
-      setResetPasswordUser(null);
-    }
-  }, [fetcher.data, resetPasswordUser]);
+  // Password reset result is passed to modal via fetcher.data
+  // Modal will display PasswordDisplayModal for auto-generated passwords
 
   return (
     <div className="space-y-6">
@@ -683,7 +676,13 @@ export default function AdminTeamPage() {
       {resetPasswordUser && (
         <ResetPasswordModal
           user={resetPasswordUser}
-          onClose={() => setResetPasswordUser(null)}
+          onClose={() => {
+            setResetPasswordUser(null);
+            // Clear fetcher data when closing modal
+            if (fetcher.state === "idle" && fetcher.data) {
+              fetcher.load(window.location.href);
+            }
+          }}
           onSubmit={(data) => {
             fetcher.submit(
               {
@@ -695,6 +694,7 @@ export default function AdminTeamPage() {
               { method: "post" }
             );
           }}
+          result={fetcher.data}
         />
       )}
     </div>

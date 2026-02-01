@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { PasswordDisplayModal } from "./PasswordDisplayModal";
 
 export type PasswordResetMethod = "auto_generated" | "manual_entry" | "email_reset";
 
@@ -16,12 +17,41 @@ interface ResetPasswordModalProps {
   };
   onClose: () => void;
   onSubmit: (data: ResetPasswordFormData) => void;
+  result?: {
+    success: boolean;
+    temporaryPassword?: string;
+    error?: string;
+  };
 }
 
-export function ResetPasswordModal({ user, onClose, onSubmit }: ResetPasswordModalProps) {
+export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPasswordModalProps) {
   const [method, setMethod] = useState<PasswordResetMethod>("auto_generated");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPasswordDisplay, setShowPasswordDisplay] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState("");
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Handle Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !showPasswordDisplay) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onClose, showPasswordDisplay]);
+
+  // Show PasswordDisplayModal when result contains temporaryPassword
+  useEffect(() => {
+    if (result?.success && result?.temporaryPassword) {
+      setGeneratedPassword(result.temporaryPassword);
+      setShowPasswordDisplay(true);
+      setIsSubmitting(false);
+    }
+  }, [result]);
 
   const handleSubmit = () => {
     if (method === "manual_entry" && !password) {
@@ -44,14 +74,36 @@ export function ResetPasswordModal({ user, onClose, onSubmit }: ResetPasswordMod
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-surface rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-        <h2 className="text-xl font-semibold mb-4">
-          Reset Password for {user.name}
-        </h2>
+    <>
+      {/* Password Display Modal (shown after auto-generate success) */}
+      {showPasswordDisplay && (
+        <PasswordDisplayModal
+          password={generatedPassword}
+          onClose={() => {
+            setShowPasswordDisplay(false);
+            onClose(); // Also close parent modal
+          }}
+        />
+      )}
 
-        {/* Method Selection */}
-        <div className="space-y-2 mb-6">
+      {/* Main Reset Password Modal */}
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reset-modal-title"
+      >
+        <div ref={modalRef} className="bg-surface rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+          <h2 id="reset-modal-title" className="text-xl font-semibold mb-4">
+            Reset Password for {user.name}
+          </h2>
+
+          {/* Method Selection */}
+          <div
+            role="tablist"
+            aria-label="Password reset methods"
+            className="space-y-2 mb-6"
+          >
           <label className="flex items-center p-3 border rounded cursor-pointer hover:bg-surface-overlay">
             <input
               type="radio"
@@ -60,6 +112,10 @@ export function ResetPasswordModal({ user, onClose, onSubmit }: ResetPasswordMod
               checked={method === "auto_generated"}
               onChange={(e) => setMethod(e.target.value as PasswordResetMethod)}
               className="mr-3"
+              role="tab"
+              aria-selected={method === "auto_generated"}
+              aria-controls="panel-auto-generated"
+              id="tab-auto-generated"
             />
             <div>
               <div className="font-medium">Auto-Generate Password</div>
@@ -77,6 +133,10 @@ export function ResetPasswordModal({ user, onClose, onSubmit }: ResetPasswordMod
               checked={method === "manual_entry"}
               onChange={(e) => setMethod(e.target.value as PasswordResetMethod)}
               className="mr-3"
+              role="tab"
+              aria-selected={method === "manual_entry"}
+              aria-controls="panel-manual-entry"
+              id="tab-manual-entry"
             />
             <div>
               <div className="font-medium">Manual Entry</div>
@@ -94,6 +154,10 @@ export function ResetPasswordModal({ user, onClose, onSubmit }: ResetPasswordMod
               checked={method === "email_reset"}
               onChange={(e) => setMethod(e.target.value as PasswordResetMethod)}
               className="mr-3"
+              role="tab"
+              aria-selected={method === "email_reset"}
+              aria-controls="panel-email-reset"
+              id="tab-email-reset"
             />
             <div>
               <div className="font-medium">Email Reset Link</div>
@@ -106,26 +170,38 @@ export function ResetPasswordModal({ user, onClose, onSubmit }: ResetPasswordMod
 
         {/* Method-specific content */}
         {method === "manual_entry" && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">
+          <div
+            role="tabpanel"
+            id="panel-manual-entry"
+            aria-labelledby="tab-manual-entry"
+            className="mb-6"
+          >
+            <label htmlFor="new-password-input" className="block text-sm font-medium mb-2">
               New Password
             </label>
             <input
+              id="new-password-input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-brand"
               placeholder="Enter new password"
               minLength={8}
+              aria-describedby="password-requirements"
             />
-            <p className="text-sm text-foreground-muted mt-1">
+            <p id="password-requirements" className="text-sm text-foreground-muted mt-1">
               Minimum 8 characters
             </p>
           </div>
         )}
 
         {method === "email_reset" && (
-          <div className="mb-6 p-3 bg-info-muted rounded">
+          <div
+            role="tabpanel"
+            id="panel-email-reset"
+            aria-labelledby="tab-email-reset"
+            className="mb-6 p-3 bg-info-muted rounded"
+          >
             <p className="text-sm">
               Password reset link will be sent to:{" "}
               <strong>{user.email}</strong>
@@ -140,6 +216,7 @@ export function ResetPasswordModal({ user, onClose, onSubmit }: ResetPasswordMod
             onClick={onClose}
             disabled={isSubmitting}
             className="px-4 py-2 text-foreground-muted hover:text-foreground"
+            aria-label="Cancel password reset"
           >
             Cancel
           </button>
@@ -148,11 +225,13 @@ export function ResetPasswordModal({ user, onClose, onSubmit }: ResetPasswordMod
             onClick={handleSubmit}
             disabled={isSubmitting}
             className="px-4 py-2 bg-brand text-white rounded hover:bg-brand-hover disabled:opacity-50"
+            aria-label={isSubmitting ? "Resetting password" : "Reset password"}
           >
             {isSubmitting ? "Resetting..." : "Reset Password"}
           </button>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -661,7 +661,13 @@ export default function TeamPage() {
       {resetPasswordUser && (
         <ResetPasswordModal
           user={resetPasswordUser}
-          onClose={() => setResetPasswordUser(null)}
+          onClose={() => {
+            setResetPasswordUser(null);
+            // Clear fetcher data when closing modal
+            if (fetcher.state === "idle" && fetcher.data) {
+              fetcher.load(window.location.href);
+            }
+          }}
           onSubmit={(data) => {
             fetcher.submit(
               {
@@ -673,6 +679,7 @@ export default function TeamPage() {
               { method: "post" }
             );
           }}
+          result={fetcher.data}
         />
       )}
 

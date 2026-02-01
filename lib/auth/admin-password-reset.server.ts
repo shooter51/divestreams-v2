@@ -15,6 +15,7 @@ import { passwordChangeAudit } from "../db/schema/password-audit";
 import { hashPassword, generateRandomPassword } from "./password.server";
 import { sendEmail } from "../email/email.server";
 import { getPasswordChangedByAdminEmail } from "../email/templates/password-changed-by-admin";
+import { invalidateUserSessions } from "./session-management.server";
 
 export interface ResetPasswordParams {
   targetUserId: string;
@@ -199,6 +200,15 @@ export async function resetUserPassword(
   });
 
   // ============================================================================
+  // INVALIDATE ALL USER SESSIONS (SECURITY: PREVENT SESSION FIXATION)
+  // ============================================================================
+
+  // After password change, invalidate all existing sessions to force re-login
+  // This prevents attackers with stolen sessions from remaining authenticated
+  const sessionsInvalidated = await invalidateUserSessions(targetUserId);
+  console.log(`Password reset: invalidated ${sessionsInvalidated} sessions for user ${targetUserId}`);
+
+  // ============================================================================
   // SEND EMAIL NOTIFICATION
   // ============================================================================
 
@@ -218,12 +228,19 @@ export async function resetUserPassword(
 
   const emailTemplate = getPasswordChangedByAdminEmail(emailData);
 
-  await sendEmail({
-    to: targetUser.email,
-    subject: emailTemplate.subject,
-    html: emailTemplate.html,
-    text: emailTemplate.text,
-  });
+  // Handle email send failures gracefully (don't crash password reset)
+  try {
+    await sendEmail({
+      to: targetUser.email,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    });
+  } catch (emailError) {
+    console.error("Failed to send password change notification email:", emailError);
+    // Continue - password was already changed successfully
+    // TODO: Queue email for retry via background job system
+  }
 
   // ============================================================================
   // RETURN RESULT

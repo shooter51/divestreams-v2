@@ -1,4 +1,4 @@
-import { escapeHtml } from "../../security/sanitize";
+import { escapeHtml, sanitizeUrl } from "../../security/sanitize";
 
 export interface PasswordChangedByAdminData {
   userName: string;
@@ -21,7 +21,8 @@ export function getPasswordChangedByAdminEmail(
   const adminName = escapeHtml(data.adminName);
   const organizationName = escapeHtml(data.organizationName);
   const changedAt = escapeHtml(data.changedAt);
-  const loginUrl = escapeHtml(data.loginUrl);
+  // SECURITY: Sanitize URL to prevent XSS/phishing attacks
+  const loginUrl = sanitizeUrl(data.loginUrl);
 
   const methodText =
     data.method === "auto_generated"
