@@ -12,7 +12,7 @@ import { eq, and } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
 import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
-import { requireFeature } from "../../../lib/feature-guards.server";
+import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];

@@ -13,7 +13,7 @@ import { discountCodes } from "../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { redirectWithNotification, useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
-import { requireFeature } from "../../../lib/feature-guards.server";
+import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
