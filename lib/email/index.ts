@@ -244,13 +244,13 @@ export function bookingReminderEmail(data: {
           <h1>See You Tomorrow! 🤿</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.customerName},</p>
+          <p>Hi ${escapeHtml(data.customerName)},</p>
           <p>This is a friendly reminder about your upcoming dive trip:</p>
 
           <div class="highlight">
-            <h2>${data.tripName}</h2>
-            <p><strong>${data.tripDate}</strong> at <strong>${data.tripTime}</strong></p>
-            <p>Booking: ${data.bookingNumber}</p>
+            <h2>${escapeHtml(data.tripName)}</h2>
+            <p><strong>${escapeHtml(data.tripDate)}</strong> at <strong>${escapeHtml(data.tripTime)}</strong></p>
+            <p>Booking: ${escapeHtml(data.bookingNumber)}</p>
           </div>
 
           <h3>What to bring:</h3>
@@ -322,11 +322,11 @@ export function welcomeEmail(data: {
           <h1>Welcome! 🎉</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.userName},</p>
-          <p>Welcome to <strong>${data.shopName}</strong>! Your account has been created.</p>
+          <p>Hi ${escapeHtml(data.userName)},</p>
+          <p>Welcome to <strong>${escapeHtml(data.shopName)}</strong>! Your account has been created.</p>
           <p>Click below to access your dashboard:</p>
           <p style="text-align: center;">
-            <a href="${data.loginUrl}" class="button">Go to Dashboard</a>
+            <a href="${escapeHtml(data.loginUrl)}" class="button">Go to Dashboard</a>
           </p>
         </div>
         <div class="footer">
@@ -376,10 +376,10 @@ export function passwordResetEmail(data: {
           <h1>Password Reset</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.userName},</p>
+          <p>Hi ${escapeHtml(data.userName)},</p>
           <p>We received a request to reset your password. Click the button below to create a new password:</p>
           <p style="text-align: center;">
-            <a href="${data.resetUrl}" class="button">Reset Password</a>
+            <a href="${escapeHtml(data.resetUrl)}" class="button">Reset Password</a>
           </p>
           <p><small>This link will expire in 1 hour. If you didn't request this, you can ignore this email.</small></p>
         </div>
@@ -434,8 +434,8 @@ export function customerWelcomeEmail(data: {
           <h1>Welcome! 🎉</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.customerName},</p>
-          <p>Thank you for creating an account with <strong>${data.shopName}</strong>!</p>
+          <p>Hi ${escapeHtml(data.customerName)},</p>
+          <p>Thank you for creating an account with <strong>${escapeHtml(data.shopName)}</strong>!</p>
           <p>You can now:</p>
           <ul>
             <li>Book dive trips and training courses</li>
@@ -444,7 +444,7 @@ export function customerWelcomeEmail(data: {
             <li>Update your profile and certifications</li>
           </ul>
           <p style="text-align: center;">
-            <a href="${data.loginUrl}" class="button">Sign In to Your Account</a>
+            <a href="${escapeHtml(data.loginUrl)}" class="button">Sign In to Your Account</a>
           </p>
         </div>
         <div class="footer">
@@ -588,8 +588,8 @@ export function contactFormAutoReplyEmail(data: {
           <h1>Message Received</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.name},</p>
-          <p>Thank you for reaching out to <strong>${data.shopName}</strong>. We've received your message and will get back to you as soon as possible.</p>
+          <p>Hi ${escapeHtml(data.name)},</p>
+          <p>Thank you for reaching out to <strong>${escapeHtml(data.shopName)}</strong>. We've received your message and will get back to you as soon as possible.</p>
 
           <div class="highlight">
             <p><strong>We typically respond within 24 hours.</strong></p>
@@ -597,11 +597,11 @@ export function contactFormAutoReplyEmail(data: {
 
           <p>In the meantime, if you need immediate assistance, please feel free to contact us directly:</p>
           <ul>
-            <li>Email: <a href="mailto:${data.contactEmail}">${data.contactEmail}</a></li>
-            ${data.contactPhone ? `<li>Phone: <a href="tel:${data.contactPhone}">${data.contactPhone}</a></li>` : ""}
+            <li>Email: <a href="mailto:${escapeHtml(data.contactEmail)}">${escapeHtml(data.contactEmail)}</a></li>
+            ${data.contactPhone ? `<li>Phone: <a href="tel:${escapeHtml(data.contactPhone)}">${escapeHtml(data.contactPhone)}</a></li>` : ""}
           </ul>
 
-          <p>Best regards,<br>${data.shopName} Team</p>
+          <p>Best regards,<br>${escapeHtml(data.shopName)} Team</p>
         </div>
         <div class="footer">
           <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
