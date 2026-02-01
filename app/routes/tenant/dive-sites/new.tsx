@@ -41,8 +41,8 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   const diveSiteName = formData.get("name") as string;
-  // Redirect to detail page where user can immediately add images via ImageManager
-  return redirect(redirectWithNotification(`/tenant/dive-sites/${newSite.id}`, `Dive Site "${diveSiteName}" created successfully! Add images below to complete your site listing.`, "success"));
+  // Redirect to edit page where user can immediately add images via ImageManager
+  return redirect(redirectWithNotification(`/tenant/dive-sites/${newSite.id}/edit`, `Dive Site "${diveSiteName}" created successfully! Add images below to complete your site listing.`, "success"));
 }
 
 export default function NewDiveSitePage() {

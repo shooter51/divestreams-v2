@@ -24,7 +24,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  await createEquipment(organizationId, {
+  const newEquipment = await createEquipment(organizationId, {
     category: formData.get("category") as string,
     name: formData.get("name") as string,
     brand: (formData.get("brand") as string) || undefined,
