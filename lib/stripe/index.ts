@@ -136,6 +136,56 @@ export async function createCheckoutSession(
     );
   }
 
+  // Check if customer already has an active subscription
+  if (sub?.stripeSubscriptionId && sub?.status === "active") {
+    try {
+      // Modify existing subscription instead of creating a new one
+      const currentSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+
+      if (currentSubscription.status === "active") {
+        // Get current plan details for comparison
+        const [currentPlan] = await db
+          .select()
+          .from(subscriptionPlans)
+          .where(eq(subscriptionPlans.name, sub.plan))
+          .limit(1);
+
+        const currentPrice = billingPeriod === "yearly"
+          ? (currentPlan?.yearlyPrice ? Number(currentPlan.yearlyPrice) : 0)
+          : (currentPlan?.monthlyPrice ? Number(currentPlan.monthlyPrice) : 0);
+
+        const newPrice = billingPeriod === "yearly"
+          ? (plan.yearlyPrice ? Number(plan.yearlyPrice) : 0)
+          : (plan.monthlyPrice ? Number(plan.monthlyPrice) : 0);
+
+        const isUpgrade = newPrice > currentPrice;
+
+        // Update the subscription
+        await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+          items: [{
+            id: currentSubscription.items.data[0].id,
+            price: priceId,
+          }],
+          // For upgrades: prorate immediately
+          // For downgrades: apply at end of billing period
+          proration_behavior: isUpgrade ? 'create_prorations' : 'none',
+          billing_cycle_anchor: isUpgrade ? 'now' : 'unchanged',
+          metadata: {
+            organizationId: org.id,
+            planName,
+          },
+        });
+
+        // Return success URL directly (subscription already updated)
+        return successUrl;
+      }
+    } catch (error) {
+      console.error("Failed to modify existing subscription:", error);
+      // Fall through to create new subscription if modification fails
+    }
+  }
+
+  // No existing subscription - create new checkout session
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
