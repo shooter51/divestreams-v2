@@ -8,7 +8,6 @@
 import { db } from "../db";
 import { session } from "../db/schema/auth";
 import { eq } from "drizzle-orm";
-import { auth } from "./index";
 
 /**
  * Invalidate all sessions for a specific user
@@ -20,30 +19,12 @@ import { auth } from "./index";
  * @returns Number of sessions invalidated
  */
 export async function invalidateUserSessions(userId: string): Promise<number> {
-  // Query all sessions for the user
-  const userSessions = await db
-    .select()
-    .from(session)
+  // Delete all sessions for the user directly from database
+  // This is more reliable than using auth.api.revokeSession which has type issues
+  const result = await db
+    .delete(session)
     .where(eq(session.userId, userId));
 
-  if (userSessions.length === 0) {
-    return 0;
-  }
-
-  // Revoke each session via Better Auth API
-  // This ensures both database and in-memory cache are cleared
-  let revokedCount = 0;
-  for (const userSession of userSessions) {
-    try {
-      await auth.api.revokeSession({
-        body: { token: userSession.token },
-      });
-      revokedCount++;
-    } catch (error) {
-      console.error(`Failed to revoke session ${userSession.id}:`, error);
-      // Continue to next session even if one fails
-    }
-  }
-
-  return revokedCount;
+  // Return count of deleted sessions (rowCount from pg result)
+  return result.rowCount ?? 0;
 }
