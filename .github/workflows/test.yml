@@ -46,6 +46,7 @@ jobs:
   integration:
     name: Integration Tests
     runs-on: [self-hosted, linux, divestreams]
+    container: node:20
     services:
       postgres:
         image: postgres:15
@@ -53,8 +54,6 @@ jobs:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
           POSTGRES_DB: testdb
-        ports:
-          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -64,24 +63,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
       - name: Setup database schema
         run: npm run db:push
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@postgres:5432/testdb
 
       - name: Run integration tests
         run: npm run test:integration
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@postgres:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
           APP_URL: http://localhost:5173
@@ -89,6 +82,9 @@ jobs:
   e2e:
     name: E2E Tests
     runs-on: [self-hosted, linux, divestreams]
+    container:
+      image: mcr.microsoft.com/playwright:v1.40.0-jammy
+      options: --user root
     # E2E tests are complex and may fail in CI - don't block the workflow
     continue-on-error: true
     services:
@@ -98,8 +94,6 @@ jobs:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
           POSTGRES_DB: testdb
-        ports:
-          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -107,8 +101,6 @@ jobs:
           --health-retries 5
       redis:
         image: redis:7-alpine
-        ports:
-          - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -122,40 +114,36 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
       - name: Configure hosts for subdomains
         run: |
-          echo "127.0.0.1 localhost" | sudo tee -a /etc/hosts
-          echo "127.0.0.1 admin.localhost" | sudo tee -a /etc/hosts
-          echo "127.0.0.1 e2etest.localhost" | sudo tee -a /etc/hosts
-          echo "127.0.0.1 demo.localhost" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 localhost" >> /etc/hosts
+          echo "127.0.0.1 admin.localhost" >> /etc/hosts
+          echo "127.0.0.1 e2etest.localhost" >> /etc/hosts
+          echo "127.0.0.1 demo.localhost" >> /etc/hosts
           cat /etc/hosts
 
       - name: Setup database schema
         run: npm run db:push
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@postgres:5432/testdb
 
       - name: Seed subscription plans
         run: npm run db:seed
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@postgres:5432/testdb
 
       # Note: No build step needed - playwright starts instrumented dev server
       - name: Run E2E tests with coverage
         run: npm run test:coverage:e2e
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@postgres:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
-          REDIS_URL: redis://localhost:6379
+          REDIS_URL: redis://redis:6379
           BASE_URL: http://e2etest.localhost:5173
           APP_URL: http://e2etest.localhost:5173
           E2E_COVERAGE: "true"
