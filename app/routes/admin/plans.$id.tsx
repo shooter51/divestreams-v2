@@ -137,8 +137,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
       );
       const needsStripeSetup = !existingPlan?.monthlyPriceId || !existingPlan?.yearlyPriceId;
 
+      // Define stripeResult outside the if block so it's accessible for metadata update
+      let stripeResult: Awaited<ReturnType<typeof updateStripeProductAndPrices>> | null = null;
+
       if (pricesChanged || needsStripeSetup) {
-        const stripeResult = await updateStripeProductAndPrices({
+        stripeResult = await updateStripeProductAndPrices({
           productId: existingPlan?.metadata?.stripeProductId as string | undefined,
           oldMonthlyPriceId: existingPlan?.monthlyPriceId || undefined,
           oldYearlyPriceId: existingPlan?.yearlyPriceId || undefined,
