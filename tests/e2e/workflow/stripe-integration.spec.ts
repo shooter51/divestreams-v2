@@ -19,7 +19,7 @@ function getTenantUrl(path: string) {
 
 async function loginToTenant(page: any) {
   await page.goto(getTenantUrl("/auth/login"));
-  await page.getByLabel(/email/i).fill(testData.user.email);
+  await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {

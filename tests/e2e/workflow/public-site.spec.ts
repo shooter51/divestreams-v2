@@ -54,7 +54,7 @@ test.beforeAll(async ({ browser }) => {
     });
 
     // Try to find and fill login form
-    const emailInput = page.getByLabel(/email/i);
+    const emailInput = page.getByRole("textbox", { name: /email/i });
     const hasEmailInput = await emailInput.isVisible({ timeout: 5000 }).catch(() => false);
 
     if (!hasEmailInput) {
@@ -215,7 +215,7 @@ const getPublicSiteUrl = (path: string = "") =>
  */
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
-  await page.getByLabel(/email/i).fill(testData.user.email);
+  await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
@@ -237,7 +237,7 @@ async function isAuthenticated(page: Page): Promise<boolean> {
  */
 async function loginCustomer(page: Page) {
   await page.goto(getPublicSiteUrl("/login"));
-  await page.getByLabel(/email/i).fill(publicSiteTestData.customer.email);
+  await page.getByRole("textbox", { name: /email/i }).fill(publicSiteTestData.customer.email);
   await page.getByLabel(/password/i).fill(publicSiteTestData.customer.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
@@ -422,7 +422,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     // Check for standard registration fields
     const hasFirstName = await page.getByLabel(/first name/i).isVisible().catch(() => false);
     const hasLastName = await page.getByLabel(/last name/i).isVisible().catch(() => false);
-    const hasEmail = await page.getByLabel(/email/i).isVisible().catch(() => false);
+    const hasEmail = await page.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
     const hasPassword = await page.locator("input[type='password']").first().isVisible().catch(() => false);
 
     expect(hasEmail && hasPassword).toBeTruthy();
@@ -437,7 +437,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     // Fill registration form
     const firstNameField = page.getByLabel(/first name/i);
     const lastNameField = page.getByLabel(/last name/i);
-    const emailField = page.getByLabel(/email/i);
+    const emailField = page.getByRole("textbox", { name: /email/i });
 
     if (await firstNameField.isVisible().catch(() => false)) {
       await firstNameField.fill(publicSiteTestData.customer.firstName);
@@ -495,7 +495,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     expect(page.url()).toContain("/login");
 
     // Should have login form
-    const hasEmail = await page.getByLabel(/email/i).isVisible().catch(() => false);
+    const hasEmail = await page.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
     const hasPassword = await page.getByLabel(/password/i).isVisible().catch(() => false);
     expect(hasEmail && hasPassword).toBeTruthy();
   });
@@ -512,7 +512,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     await page.goto(getPublicSiteUrl("/login"));
     await page.waitForTimeout(1000);
 
-    await page.getByLabel(/email/i).fill(publicSiteTestData.customer.email);
+    await page.getByRole("textbox", { name: /email/i }).fill(publicSiteTestData.customer.email);
     await page.getByLabel(/password/i).fill(publicSiteTestData.customer.password);
     await page.getByRole("button", { name: /sign in/i }).click();
 
@@ -534,7 +534,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     await page.goto(getPublicSiteUrl("/login"));
     await page.waitForTimeout(1000);
 
-    await page.getByLabel(/email/i).fill("wrong@example.com");
+    await page.getByRole("textbox", { name: /email/i }).fill("wrong@example.com");
     await page.getByLabel(/password/i).fill("wrongpassword");
     await page.getByRole("button", { name: /sign in/i }).click();
 
@@ -565,7 +565,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     await page.waitForTimeout(1000);
 
     // Only fill email
-    await page.getByLabel(/email/i).fill("test@example.com");
+    await page.getByRole("textbox", { name: /email/i }).fill("test@example.com");
     await page.getByRole("button", { name: /sign in/i }).click();
 
     await page.waitForTimeout(500);
@@ -681,7 +681,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
 
     // Check for editable form fields
     const hasNameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
-    const hasEmailField = await page.getByLabel(/email/i).isVisible().catch(() => false);
+    const hasEmailField = await page.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
     const hasPhoneField = await page.getByLabel(/phone/i).isVisible().catch(() => false);
 
     expect(hasNameField || hasEmailField || hasPhoneField).toBeTruthy();

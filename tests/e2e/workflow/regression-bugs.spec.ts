@@ -94,7 +94,7 @@ const getTenantUrl = (path: string = "/") =>
 // Helper to login to tenant
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
-  await page.getByLabel(/email/i).fill(testData.user.email);
+  await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
@@ -985,7 +985,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     await page.waitForTimeout(500);
 
     // Fill in email that is already a team member (owner's email)
-    const emailInput = page.getByLabel(/email/i);
+    const emailInput = page.getByRole("textbox", { name: /email/i });
     await emailInput.fill(testData.user.email); // Owner's email
 
     // Select a role
@@ -1026,7 +1026,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     await page.waitForTimeout(500);
 
     const testEmail = `pending-invite-${Date.now()}@example.com`;
-    const emailInput = page.getByLabel(/email/i);
+    const emailInput = page.getByRole("textbox", { name: /email/i });
     await emailInput.fill(testEmail);
 
     const roleSelect = page.locator("select[name='role']");

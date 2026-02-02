@@ -86,7 +86,7 @@ const getTenantUrl = (path: string = "/") =>
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
   // Use the dynamic user created for this test
-  await page.getByLabel(/email/i).fill(trainingTestData.user.email);
+  await page.getByRole("textbox", { name: /email/i }).fill(trainingTestData.user.email);
   await page.getByLabel(/password/i).fill(trainingTestData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {

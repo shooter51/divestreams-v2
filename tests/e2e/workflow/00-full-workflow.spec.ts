@@ -120,7 +120,7 @@ const getEmbedUrl = (path: string = "") =>
 // Helper to login to tenant
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
-  await page.getByLabel(/email/i).fill(testData.user.email);
+  await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
   await page.getByLabel(/password/i).fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   // Wait for login completion: either redirect to /tenant or stay on login with error
@@ -270,7 +270,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
 
   test("[KAN-59] 3.2 Tenant has login page", async ({ page }) => {
     await page.goto(getTenantUrl("/auth/login"));
-    await expect(page.getByLabel(/email/i)).toBeVisible();
+    await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
     await expect(page.getByLabel(/password/i)).toBeVisible();
   });
 
@@ -309,7 +309,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
 
   test("[KAN-62] 3.5 Login with tenant user @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/auth/login"));
-    await page.getByLabel(/email/i).fill(testData.user.email);
+    await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
     await page.getByLabel(/password/i).fill(testData.user.password);
     await page.getByRole("button", { name: /sign in/i }).click();
     // Wait for redirect to /tenant - login must succeed for remaining tests to work
@@ -332,7 +332,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
 
   test("[KAN-64] 3.7 Login validates required password", async ({ page }) => {
     await page.goto(getTenantUrl("/auth/login"));
-    await page.getByLabel(/email/i).fill("test@test.com");
+    await page.getByRole("textbox", { name: /email/i }).fill("test@test.com");
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForTimeout(500);
     expect(page.url().includes("/login")).toBeTruthy();
@@ -340,7 +340,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
 
   test("[KAN-65] 3.8 Login shows error for wrong credentials", async ({ page }) => {
     await page.goto(getTenantUrl("/auth/login"));
-    await page.getByLabel(/email/i).fill("wrong@test.com");
+    await page.getByRole("textbox", { name: /email/i }).fill("wrong@test.com");
     await page.getByLabel(/password/i).fill("wrongpassword");
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForTimeout(2000);
@@ -1066,7 +1066,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await page.goto(getTenantUrl("/tenant/customers/new"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
-    const emailLabel = await page.getByLabel(/email/i).isVisible().catch(() => false);
+    const emailLabel = await page.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
     const emailInput = await page.locator("input[type='email'], input[name*='email'], input[id*='email']").first().isVisible().catch(() => false);
     expect(emailLabel || emailInput).toBeTruthy();
   });
@@ -2071,7 +2071,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
     await page.goto(getTenantUrl("/tenant/settings"));
     await page.waitForTimeout(1500);
     if (!await isAuthenticated(page)) return;
-    const emailField = await page.getByLabel(/email/i).first().isVisible().catch(() => false);
+    const emailField = await page.getByRole("textbox", { name: /email/i }).first().isVisible().catch(() => false);
     expect(emailField || page.url().includes("/settings")).toBeTruthy();
   });
 

@@ -322,7 +322,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     // Check for required fields
     const hasFirstName = await page.getByLabel(/first name/i).isVisible().catch(() => false);
     const hasLastName = await page.getByLabel(/last name/i).isVisible().catch(() => false);
-    const hasEmail = await page.getByLabel(/email/i).isVisible().catch(() => false);
+    const hasEmail = await page.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
 
     expect(hasFirstName && hasLastName && hasEmail).toBeTruthy();
   });
@@ -395,7 +395,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     // Fill with invalid email
     await page.getByLabel(/first name/i).fill("Test");
     await page.getByLabel(/last name/i).fill("User");
-    await page.getByLabel(/email/i).fill("invalid-email");
+    await page.getByRole("textbox", { name: /email/i }).fill("invalid-email");
 
     const submitButton = page.getByRole("button", { name: /enroll/i });
     if (await submitButton.isVisible().catch(() => false)) {
@@ -422,7 +422,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     // Fill out enrollment form
     await page.getByLabel(/first name/i).fill(testData.enrollment.firstName);
     await page.getByLabel(/last name/i).fill(testData.enrollment.lastName);
-    await page.getByLabel(/email/i).fill(testData.enrollment.email);
+    await page.getByRole("textbox", { name: /email/i }).fill(testData.enrollment.email);
 
     // Fill optional fields if present
     const phoneField = page.getByLabel(/phone/i);
