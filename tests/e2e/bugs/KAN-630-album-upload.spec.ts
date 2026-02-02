@@ -47,7 +47,7 @@ test.describe('KAN-630: Album Image Upload', () => {
 
     // Navigate to gallery page using tenant subdomain
     await albumPage.goto('/gallery');
-    await expect(page.locator('h1')).toContainText('Gallery');
+    await expect(page.getByRole('heading', { level: 1, name: /gallery/i })).toBeVisible();
 
     // Find an existing album or create one
     const albumExists = await page.locator('a[href*="/tenant/gallery/"]').count() > 0;

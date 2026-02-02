@@ -27,8 +27,13 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     await page.goto(`http://${tenantSlug}.localhost:5173/tenant/products`);
     await page.waitForLoadState("networkidle");
 
-    // Wait for products table to render (critical for reliable tests)
+    // Wait for products table to render with checkboxes (critical for reliable tests)
     await page.waitForSelector('table tbody tr', { timeout: 10000 });
+    // Ensure checkbox is visible and interactable before continuing
+    await page.waitForSelector('table tbody tr input[type="checkbox"]', {
+      state: 'visible',
+      timeout: 5000
+    });
   });
 
   test('should reject "Adjust by amount" that would result in negative stock (QA test case)', async ({
@@ -198,8 +203,8 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     // Wait for adjustment modal
     await expect(page.locator(`h2:has-text("Adjust Stock:")`)).toBeVisible();
 
-    // Current stock should be visible
-    await expect(page.locator('div:has-text("Current Stock")')).toBeVisible();
+    // Current stock should be visible (use specific class to avoid matching multiple parent divs)
+    await expect(page.locator('.text-foreground-muted').filter({ hasText: 'Current Stock' })).toBeVisible();
 
     // Enter adjustment that would go negative
     const negativeAdjustment = -(currentStock + 10);
