@@ -17,7 +17,6 @@ jobs:
   test:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
     runs-on: [self-hosted, linux, divestreams]
-    container: node:20
     services:
       postgres:
         image: postgres:15
@@ -25,6 +24,8 @@ jobs:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
           POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -32,6 +33,11 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -47,13 +53,13 @@ jobs:
       - name: Setup database schema
         run: npm run db:push
         env:
-          DATABASE_URL: postgresql://test:test@postgres:5432/testdb
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
 
       - name: Run unit and integration tests
         run: npm test -- --run
         continue-on-error: true  # Allow deployment despite test failures
         env:
-          DATABASE_URL: postgresql://test:test@postgres:5432/testdb
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
 
@@ -63,9 +69,6 @@ jobs:
   e2e:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
     runs-on: [self-hosted, linux, divestreams]
-    container:
-      image: mcr.microsoft.com/playwright:v1.40.0-jammy
-      options: --user root
     continue-on-error: true  # Allow staging deployment even if E2E tests fail
     services:
       postgres:
@@ -74,6 +77,8 @@ jobs:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
           POSTGRES_DB: divestreams_test
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -81,35 +86,35 @@ jobs:
           --health-retries 5
       redis:
         image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        ports:
+          - 6379:6379
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Setup local hosts for subdomain testing
         run: |
-          echo "127.0.0.1 admin.localhost demo.localhost test.localhost e2etest.localhost" >> /etc/hosts
+          echo "127.0.0.1 admin.localhost demo.localhost test.localhost e2etest.localhost" | sudo tee -a /etc/hosts
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Setup database schema and run migrations
         run: node scripts/run-migrations.mjs
         env:
-          DATABASE_URL: postgresql://test:test@postgres:5432/divestreams_test
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
 
       - name: Seed subscription plans
         run: npm run db:seed
         env:
-          DATABASE_URL: postgresql://test:test@postgres:5432/divestreams_test
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
 
       # NOTE: No build step needed - Playwright config starts dev server automatically
       # See playwright.config.ts webServer configuration (line 60-85)
@@ -128,8 +133,8 @@ jobs:
           fi
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          DATABASE_URL: postgresql://test:test@postgres:5432/divestreams_test
-          REDIS_URL: redis://redis:6379
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+          REDIS_URL: redis://localhost:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:5173
           ADMIN_PASSWORD: DiveAdmin2026
@@ -297,9 +302,6 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/staging'
     runs-on: [self-hosted, linux, divestreams]
-    container:
-      image: mcr.microsoft.com/playwright:v1.40.0-jammy
-      options: --user root
     continue-on-error: true  # Don't block deployment if prod build tests fail
     services:
       postgres:
@@ -308,6 +310,8 @@ jobs:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
           POSTGRES_DB: divestreams_test
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -315,32 +319,32 @@ jobs:
           --health-retries 5
       redis:
         image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        ports:
+          - 6379:6379
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Setup database schema and run migrations
         run: node scripts/run-migrations.mjs
         env:
-          DATABASE_URL: postgresql://test:test@postgres:5432/divestreams_test
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
 
       - name: Build production version
         run: npm run build
         env:
-          DATABASE_URL: postgresql://test:test@postgres:5432/divestreams_test
-          REDIS_URL: redis://redis:6379
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+          REDIS_URL: redis://localhost:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:3000
 
@@ -350,8 +354,8 @@ jobs:
           echo $! > server.pid
           sleep 10
         env:
-          DATABASE_URL: postgresql://test:test@postgres:5432/divestreams_test
-          REDIS_URL: redis://redis:6379
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+          REDIS_URL: redis://localhost:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:3000
           ADMIN_PASSWORD: DiveAdmin2026
@@ -364,8 +368,8 @@ jobs:
         run: npx playwright test tests/e2e/ --grep "@smoke|@critical"
         env:
           BASE_URL: http://localhost:3000
-          DATABASE_URL: postgresql://test:test@postgres:5432/divestreams_test
-          REDIS_URL: redis://redis:6379
+          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+          REDIS_URL: redis://localhost:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:3000
           ADMIN_PASSWORD: DiveAdmin2026
@@ -394,19 +398,19 @@ jobs:
     needs: deploy-staging
     if: github.ref == 'refs/heads/staging'
     runs-on: [self-hosted, linux, divestreams]
-    container:
-      image: mcr.microsoft.com/playwright:v1.40.0-jammy
-      options: --user root
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
 
       - name: Run smoke tests against staging
         run: npm run test:e2e -- --grep "@smoke"
