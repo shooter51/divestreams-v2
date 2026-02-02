@@ -9,7 +9,7 @@ on:
 jobs:
   unit:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +45,7 @@ jobs:
 
   integration:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     services:
       postgres:
         image: postgres:15
@@ -88,7 +88,7 @@ jobs:
 
   e2e:
     name: E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     # E2E tests are complex and may fail in CI - don't block the workflow
     continue-on-error: true
     services:
@@ -205,7 +205,7 @@ jobs:
 
   coverage-report:
     name: Combined Coverage Report
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     needs: [unit, e2e]
     if: always()
     steps:

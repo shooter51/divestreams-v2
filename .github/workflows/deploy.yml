@@ -16,7 +16,7 @@ jobs:
   # ─────────────────────────────────────────────
   test:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     services:
       postgres:
         image: postgres:15
@@ -68,7 +68,7 @@ jobs:
   # ─────────────────────────────────────────────
   e2e:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     continue-on-error: true  # Allow staging deployment even if E2E tests fail
     services:
       postgres:
@@ -148,7 +148,7 @@ jobs:
       github.ref == 'refs/heads/staging' &&
       needs.test.result == 'success' &&
       (needs.e2e.result == 'success' || needs.e2e.result == 'failure')
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     permissions:
       contents: read
       packages: write
@@ -183,7 +183,7 @@ jobs:
   deploy-staging:
     needs: build
     if: github.ref == 'refs/heads/staging'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     environment: staging
     steps:
       - name: Setup SSH key for staging VPS
@@ -301,7 +301,7 @@ jobs:
   prod-build-smoke-test:
     needs: build
     if: github.ref == 'refs/heads/staging'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     continue-on-error: true  # Don't block deployment if prod build tests fail
     services:
       postgres:
@@ -397,7 +397,7 @@ jobs:
   smoke-test:
     needs: deploy-staging
     if: github.ref == 'refs/heads/staging'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     steps:
       - uses: actions/checkout@v4
 
@@ -432,7 +432,7 @@ jobs:
   # ─────────────────────────────────────────────
   promote-to-production:
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     environment: production
     permissions:
       contents: read
