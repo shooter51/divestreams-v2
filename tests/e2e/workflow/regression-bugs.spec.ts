@@ -100,7 +100,8 @@ async function loginToTenant(page: Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForTimeout(2000);
+    // Fallback: wait for page to stabilize if URL doesn't change
+    await page.waitForLoadState("networkidle").catch(() => {});
   }
 }
 
@@ -186,20 +187,20 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
 
     // Submit
     await page.getByRole("button", { name: /create|save|add/i }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
     await page.waitForLoadState("load");
 
     // Extract customer ID - navigate to list and wait for full load
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2500);
+    await page.waitForLoadState("networkidle").catch(() => {});
     let customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
 
     // Retry once if not found (race condition mitigation)
     if (!customerId) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("networkidle").catch(() => {});
       customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
     }
     if (customerId) testData.createdIds.customer = customerId;
@@ -216,7 +217,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     }
 
     await page.goto(getTenantUrl("/tenant/bookings/new"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Fill booking form (simplified - actual form may vary)
     const customerSelect = page.locator("select[name='customerId'], select[name='customer']").first();
@@ -237,12 +238,12 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     const submitBtn = page.getByRole("button", { name: /create|save|book/i });
     if (await submitBtn.isVisible().catch(() => false)) {
       await submitBtn.click();
-      await page.waitForTimeout(3000);
+      await page.waitForLoadState("networkidle").catch(() => {});
     }
 
     // Extract booking ID
     await page.goto(getTenantUrl("/tenant/bookings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     const bookingId = await extractEntityId(page, testData.customer.lastName, "/tenant/bookings");
     if (bookingId) testData.createdIds.booking = bookingId;
 
@@ -259,7 +260,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
 
     // Navigate to customer detail page
     await page.goto(getTenantUrl(`/tenant/customers/${testData.createdIds.customer}`));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Find and click delete button
     const deleteBtn = page.getByRole("button", { name: /delete/i });
@@ -270,7 +271,8 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
 
     // Click delete
     await deleteBtn.click();
-    await page.waitForTimeout(3000);
+    await page.waitForURL(/\/customers(?!.*\/)/, { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState("load");
 
     // Should redirect to list without 500 error
     expect(page.url()).toContain("/customers");
@@ -294,7 +296,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
 
     // Navigate to booking detail page
     await page.goto(getTenantUrl(`/tenant/bookings/${testData.createdIds.booking}`));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Find delete button
     const deleteBtn = page.getByRole("button", { name: /delete/i });
@@ -308,7 +310,8 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
 
     // Click delete
     await deleteBtn.click();
-    await page.waitForTimeout(3000);
+    await page.waitForURL(/\/bookings(?!.*\/)/, { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState("load");
 
     // Should redirect to list without 500 error
     expect(page.url()).toContain("/bookings");
@@ -322,13 +325,13 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/bookings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Search for the deleted customer's bookings
     const searchField = page.getByPlaceholder(/search/i).or(page.locator("input[type='search']")).first();
     if (await searchField.isVisible().catch(() => false)) {
       await searchField.fill(testData.customer.lastName);
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("networkidle").catch(() => {});
 
       // Should find no results
       const hasResults = await page
@@ -352,7 +355,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     expect(page.url()).toContain("/discounts");
   });
@@ -362,15 +365,15 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Click add button (use .first() to handle multiple matching buttons)
     const addBtn = page.getByRole("button", { name: /add|create|new/i }).first();
     await addBtn.click();
-    await page.waitForTimeout(1000);
 
     // Modal should be visible
     const modal = page.locator("[role='dialog'], .modal, [class*='Modal']").first();
+    await modal.waitFor({ state: "visible", timeout: 5000 });
     expect(await modal.isVisible()).toBeTruthy();
 
     // Fill form
@@ -385,7 +388,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
 
     // Submit
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // CRITICAL: Modal should close after successful creation
     const modalStillVisible = await modal.isVisible().catch(() => false);
@@ -401,7 +404,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     if (!testData.createdIds.discount) {
       console.log("No discount created - skipping update test");
@@ -420,10 +423,10 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     }
 
     await editBtn.click();
-    await page.waitForTimeout(1000);
 
     // Modal should be visible
     const modal = page.locator("[role='dialog'], .modal, [class*='Modal']").first();
+    await modal.waitFor({ state: "visible", timeout: 5000 });
     expect(await modal.isVisible()).toBeTruthy();
 
     // Change value
@@ -433,7 +436,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
 
     // Submit
     await page.getByRole("button", { name: /update|save/i }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // CRITICAL: Modal should close after successful update
     const modalStillVisible = await modal.isVisible().catch(() => false);
@@ -445,7 +448,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     if (!testData.createdIds.discount) {
       console.log("No discount created - skipping delete test");
@@ -464,10 +467,10 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
     }
 
     await editBtn.click();
-    await page.waitForTimeout(1000);
 
     // Modal should be visible
     const modal = page.locator("[role='dialog'], .modal, [class*='Modal']").first();
+    await modal.waitFor({ state: "visible", timeout: 5000 });
     expect(await modal.isVisible()).toBeTruthy();
 
     // Find delete button inside modal
@@ -479,7 +482,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
 
     // Click delete
     await deleteBtn.click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // CRITICAL: Modal should close after successful deletion
     const modalStillVisible = await modal.isVisible().catch(() => false);
@@ -506,15 +509,18 @@ test.describe.serial("Block C: Product Modal Issues", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/products"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Click add button (use .first() to handle multiple matching buttons)
     const addBtn = page.getByRole("button", { name: /add|create|new/i }).first();
     await addBtn.click();
-    await page.waitForTimeout(1000);
+
+    // Wait for form/modal to be ready
+    const nameField = page.getByLabel(/name/i);
+    await nameField.waitFor({ state: "visible", timeout: 5000 });
 
     // Fill form
-    await page.getByLabel(/name/i).fill(testData.product.name);
+    await nameField.fill(testData.product.name);
     await page.getByLabel(/price/i).fill(testData.product.price.toString());
 
     const skuField = page.getByLabel(/sku/i);
@@ -524,7 +530,7 @@ test.describe.serial("Block C: Product Modal Issues", () => {
 
     // Submit
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Extract product ID
     const productId = await extractEntityId(page, testData.product.name, "/tenant/products");
@@ -538,7 +544,7 @@ test.describe.serial("Block C: Product Modal Issues", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/products"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     if (!testData.createdIds.product) {
       console.log("No product created - skipping delete test");
@@ -557,10 +563,10 @@ test.describe.serial("Block C: Product Modal Issues", () => {
     }
 
     await editBtn.click();
-    await page.waitForTimeout(1000);
 
     // Modal should be visible
     const modal = page.locator("[role='dialog'], .modal, [class*='Modal']").first();
+    await modal.waitFor({ state: "visible", timeout: 5000 });
     expect(await modal.isVisible()).toBeTruthy();
 
     // Find delete button
@@ -572,7 +578,7 @@ test.describe.serial("Block C: Product Modal Issues", () => {
 
     // Click delete
     await deleteBtn.click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // CRITICAL: Modal should close after successful deletion
     const modalStillVisible = await modal.isVisible().catch(() => false);
@@ -600,7 +606,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
 
     // Create boat
     await page.goto(getTenantUrl("/tenant/boats/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     await page.getByLabel(/name/i).fill(testData.boat.name);
 
@@ -610,28 +616,29 @@ test.describe.serial("Block D: Entity Deletion", () => {
     }
 
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Extract boat ID
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     const boatId = await extractEntityId(page, testData.boat.name, "/tenant/boats");
     if (boatId) testData.createdIds.boat = boatId;
 
     // Delete boat
     await page.goto(getTenantUrl(`/tenant/boats/${boatId}`));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     const deleteBtn = page.getByRole("button", { name: /delete/i });
     expect(await deleteBtn.isVisible()).toBeTruthy();
 
     page.on('dialog', dialog => dialog.accept());
     await deleteBtn.click();
-    await page.waitForTimeout(3000);
+    await page.waitForURL(/\/boats(?!.*\/)/, { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState("load");
 
     // CRITICAL: Boat should be completely deleted, not just deactivated
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const boatStillExists = await page
       .getByText(testData.boat.name)
@@ -646,7 +653,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
 
     // Create dive site
     await page.goto(getTenantUrl("/tenant/dive-sites/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     await page.getByLabel(/name/i).fill(testData.diveSite.name);
 
@@ -656,28 +663,29 @@ test.describe.serial("Block D: Entity Deletion", () => {
     }
 
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Extract dive site ID
     await page.goto(getTenantUrl("/tenant/dive-sites"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     const diveSiteId = await extractEntityId(page, testData.diveSite.name, "/tenant/dive-sites");
     if (diveSiteId) testData.createdIds.diveSite = diveSiteId;
 
     // Delete dive site
     await page.goto(getTenantUrl(`/tenant/dive-sites/${diveSiteId}`));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     const deleteBtn = page.getByRole("button", { name: /delete/i });
     expect(await deleteBtn.isVisible()).toBeTruthy();
 
     page.on('dialog', dialog => dialog.accept());
     await deleteBtn.click();
-    await page.waitForTimeout(3000);
+    await page.waitForURL(/\/dive-sites(?!.*\/)/, { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState("load");
 
     // CRITICAL: Dive site should be completely deleted, not just deactivated
     await page.goto(getTenantUrl("/tenant/dive-sites"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const diveSiteStillExists = await page
       .getByText(testData.diveSite.name)
@@ -692,7 +700,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
 
     // Create tour
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     await page.getByLabel(/name|title/i).fill(testData.tour.name);
 
@@ -702,28 +710,29 @@ test.describe.serial("Block D: Entity Deletion", () => {
     }
 
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Extract tour ID
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     const tourId = await extractEntityId(page, testData.tour.name, "/tenant/tours");
     if (tourId) testData.createdIds.tour = tourId;
 
     // Delete tour
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     const deleteBtn = page.getByRole("button", { name: /delete/i });
     expect(await deleteBtn.isVisible()).toBeTruthy();
 
     page.on('dialog', dialog => dialog.accept());
     await deleteBtn.click();
-    await page.waitForTimeout(3000);
+    await page.waitForURL(/\/tours(?!.*\/)/, { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState("load");
 
     // CRITICAL: Tour should be completely deleted, not just deactivated
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const tourStillExists = await page
       .getByText(testData.tour.name)
@@ -745,7 +754,7 @@ test.describe.serial("Block E: Gallery Navigation", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/gallery"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should NOT get 404
     const has404 = await page.getByText(/not found|404/i).isVisible().catch(() => false);
@@ -760,7 +769,7 @@ test.describe.serial("Block E: Gallery Navigation", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/gallery"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should have gallery content or empty state
     const hasGalleryItems = await page.locator("[class*='gallery'], [class*='grid']").first().isVisible().catch(() => false);
@@ -774,7 +783,7 @@ test.describe.serial("Block E: Gallery Navigation", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/gallery/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should NOT get 404
     const has404 = await page.getByText(/not found|404/i).isVisible().catch(() => false);
@@ -789,7 +798,7 @@ test.describe.serial("Block E: Gallery Navigation", () => {
 
     // Try to access a random gallery ID - should not crash
     await page.goto(getTenantUrl("/tenant/gallery/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should either show not found or redirect, but not crash
     expect(page.url()).toContain("/tenant");
@@ -808,7 +817,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/settings/public-site/appearance"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     expect(page.url()).toContain("/public-site/appearance");
   });
@@ -818,7 +827,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/settings/public-site/appearance"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Find theme radio buttons
     const lightTheme = page.locator("input[name='theme'][value='light']");
@@ -835,12 +844,10 @@ test.describe.serial("Block F: Public Site Settings", () => {
     // Click the opposite theme
     if (initiallyLight) {
       await darkTheme.click();
-      await page.waitForTimeout(500);
-      expect(await darkTheme.isChecked()).toBeTruthy();
+      await expect(darkTheme).toBeChecked();
     } else {
       await lightTheme.click();
-      await page.waitForTimeout(500);
-      expect(await lightTheme.isChecked()).toBeTruthy();
+      await expect(lightTheme).toBeChecked();
     }
   });
 
@@ -849,7 +856,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/settings/public-site/appearance"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Find color picker
     const colorPicker = page.locator("input[type='color']#primaryColorPicker");
@@ -860,7 +867,6 @@ test.describe.serial("Block F: Public Site Settings", () => {
 
     // Change color
     await colorPicker.fill("#ff0000");
-    await page.waitForTimeout(500);
 
     // Preview should update
     const preview = page.locator("[class*='preview']").first();
@@ -876,7 +882,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/settings/public-site/appearance"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Find font radio buttons
     const fontButtons = page.locator("input[name='fontFamily']");
@@ -891,8 +897,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     if (count > 1) {
       const secondFont = fontButtons.nth(1);
       await secondFont.click();
-      await page.waitForTimeout(500);
-      expect(await secondFont.isChecked()).toBeTruthy();
+      await expect(secondFont).toBeChecked();
     }
   });
 
@@ -901,7 +906,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/settings/public-site/appearance"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Find preview link
     const previewLink = page.getByRole("link", { name: /preview|view.*site/i });
@@ -923,17 +928,17 @@ test.describe.serial("Block F: Public Site Settings", () => {
 
     // Save appearance settings first
     await page.goto(getTenantUrl("/tenant/settings/public-site/appearance"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     const saveBtn = page.getByRole("button", { name: /save|update/i });
     if (await saveBtn.isVisible().catch(() => false)) {
       await saveBtn.click();
-      await page.waitForTimeout(3000);
+      await page.waitForLoadState("networkidle").catch(() => {});
     }
 
     // Navigate to general settings - should not crash with undefined pages error
     await page.goto(getTenantUrl("/tenant/settings/public-site"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Should load without error
     const hasError = await page.getByText(/cannot read|undefined|error/i).isVisible().catch(() => false);
@@ -946,7 +951,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     if (!(await isAuthenticated(page))) return;
 
     await page.goto(getTenantUrl("/tenant/settings/public-site"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Find a page toggle (e.g., "home" page)
     const homePageCheckbox = page.locator("input[type='checkbox']").filter({ hasText: /home/i }).first();
@@ -973,7 +978,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
 
     // Navigate to team settings
     await page.goto(getTenantUrl("/tenant/settings/team"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Click "Invite Team Member" button to open modal
     const inviteButton = page.getByRole("button", { name: /invite.*team.*member/i });
@@ -982,7 +987,10 @@ test.describe.serial("Block F: Public Site Settings", () => {
       return;
     }
     await inviteButton.click();
-    await page.waitForTimeout(500);
+
+    // Wait for modal to be visible
+    const modal = page.locator("[role='dialog'], .modal, [class*='Modal']").first();
+    await modal.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
 
     // Fill in email that is already a team member (owner's email)
     const emailInput = page.getByRole("textbox", { name: /email/i });
@@ -997,7 +1005,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     // Submit the form
     const submitButton = page.getByRole("button", { name: /send.*invitation|invite/i });
     await submitButton.click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // CRITICAL: Error message should be displayed and visible
     const errorMessage = page.getByText(/this email is already a team member/i);
@@ -1014,7 +1022,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
 
     // Navigate to team settings
     await page.goto(getTenantUrl("/tenant/settings/team"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // First, create a pending invitation
     const inviteButton = page.getByRole("button", { name: /invite.*team.*member/i });
@@ -1023,7 +1031,10 @@ test.describe.serial("Block F: Public Site Settings", () => {
       return;
     }
     await inviteButton.click();
-    await page.waitForTimeout(500);
+
+    // Wait for modal to be visible
+    const modal = page.locator("[role='dialog'], .modal, [class*='Modal']").first();
+    await modal.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
 
     const testEmail = `pending-invite-${Date.now()}@example.com`;
     const emailInput = page.getByRole("textbox", { name: /email/i });
@@ -1036,11 +1047,11 @@ test.describe.serial("Block F: Public Site Settings", () => {
 
     const submitButton = page.getByRole("button", { name: /send.*invitation|invite/i });
     await submitButton.click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Now try to invite the same email again
     await inviteButton.click();
-    await page.waitForTimeout(500);
+    await modal.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
 
     await emailInput.fill(testEmail); // Same email
     if (await roleSelect.isVisible().catch(() => false)) {
@@ -1048,7 +1059,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     }
 
     await submitButton.click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // CRITICAL: Error message should be displayed and visible
     const errorMessage = page.getByText(/this email already has a pending invitation/i);
