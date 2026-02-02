@@ -1,6 +1,39 @@
-# Unified Peer Review Report
+# Unified Peer Review Report (Updated)
 **Date:** February 2, 2026
 **Reviewers:** 5 Independent Peer Reviewers
+**Issues Reviewed:** E2E Test Fixes (KAN-620, KAN-630, Email Selectors, Test Infrastructure)
+
+---
+
+## Latest Review Session (Evening)
+
+### Critical Blockers Found
+
+🔴 **CRITICAL ISSUES DISCOVERED:**
+
+1. **Password Mismatch Bug:** `test-fixtures.ts` uses `demo123` but seeded password is `demo1234`
+2. **loginToAdmin helper not fixed:** Line 58 in `test-fixtures.ts` still uses `getByLabel(/email/i)`
+3. **22 email selector instances unfixed:** Workflow tests still use broken pattern
+
+### Latest Verdicts
+
+| Issue | Fix Quality | Completeness | Verdict |
+|-------|-------------|--------------|---------|
+| **KAN-620** (Bulk Stock Selector) | ⭐⭐⭐⭐ | 100% | APPROVED |
+| **KAN-630** (h1 Selector) | ⭐⭐⭐⭐ | 11% | APPROVED WITH CONDITIONS |
+| **Email Selectors** | ⭐⭐⭐⭐ | 39% | APPROVED WITH CONDITIONS |
+| **Test Skips** | ⭐⭐⭐⭐ | 71% | APPROVED WITH CONDITIONS |
+| **E2E Infrastructure** | ⭐⭐⭐ | N/A | NEEDS CHANGES |
+
+### Immediate Actions Required
+
+1. Fix password in `test-fixtures.ts` line 12: `demo123` → `demo1234`
+2. Fix loginToAdmin in `test-fixtures.ts` line 58: `getByLabel` → `getByRole("textbox")`
+3. Fix password in `reports.page.ts` line 126: `demo123` → `demo1234`
+
+---
+
+# Earlier Review Session (Morning)
 **Issues Reviewed:** KAN-594, KAN-620, KAN-639, KAN-627
 
 ---

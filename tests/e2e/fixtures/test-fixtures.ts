@@ -9,7 +9,7 @@ export const testConfig = {
   tenantSubdomain: "demo",
   tenantCredentials: {
     email: "owner@demo.com",
-    password: "demo123",
+    password: "demo1234",
   },
   testUser: {
     email: `test${Date.now()}@example.com`,
@@ -54,8 +54,8 @@ export async function loginToAdmin(
 ): Promise<void> {
   await page.goto("http://admin.localhost:5173/login");
 
-  // Admin login requires BOTH email and password
-  await page.getByLabel(/email/i).fill(email);
+  // Admin login requires BOTH email and password (use getByRole for accessibility)
+  await page.getByRole("textbox", { name: /email/i }).fill(email);
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
 

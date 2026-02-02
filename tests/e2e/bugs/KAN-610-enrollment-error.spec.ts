@@ -156,7 +156,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
 
         // Should work as before
         await expect(page).toHaveURL(/sessionId=/);
-        await expect(page.locator("h1")).toContainText("Enroll Student");
+        await expect(page.getByRole("heading", { level: 1, name: /enroll student/i })).toBeVisible();
         await expect(page.locator('select[name="customerId"]')).toBeVisible();
       }
     }

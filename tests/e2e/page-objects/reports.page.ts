@@ -123,7 +123,7 @@ export class ReportsPage extends TenantBasePage {
     // Handle potential login redirect
     if (this.page.url().includes("/login")) {
       await this.page.getByRole("textbox", { name: /email/i }).fill("owner@demo.com");
-      await this.page.getByLabel(/password/i).fill("demo123");
+      await this.page.getByLabel(/password/i).fill("demo1234");
       await this.page.getByRole("button", { name: /sign in/i }).click();
       await this.page.waitForURL(/\/tenant\/reports/);
     }
