@@ -213,6 +213,12 @@ export async function createCheckoutSession(
 
           console.log(`✓ Created subscription ${newSubscription.id} with saved payment method`);
 
+          // Use type assertion for Stripe API response properties
+          const subData = newSubscription as unknown as {
+            current_period_start?: number;
+            current_period_end?: number;
+          };
+
           // Update local database immediately
           await db
             .update(subscription)
@@ -222,8 +228,8 @@ export async function createCheckoutSession(
               planId: plan.id,
               plan: planName,
               status: newSubscription.status as "trialing" | "active" | "past_due" | "canceled",
-              currentPeriodStart: new Date(newSubscription.current_period_start * 1000),
-              currentPeriodEnd: new Date(newSubscription.current_period_end * 1000),
+              currentPeriodStart: subData.current_period_start ? new Date(subData.current_period_start * 1000) : null,
+              currentPeriodEnd: subData.current_period_end ? new Date(subData.current_period_end * 1000) : null,
               updatedAt: new Date(),
             })
             .where(eq(subscription.organizationId, orgId));
