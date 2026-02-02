@@ -73,12 +73,13 @@ test.describe('KAN-630: Album Image Upload', () => {
     // Now on album detail page
     await expect(page.locator('h2:has-text("Images")')).toBeVisible();
 
-    // Find upload button
-    const uploadButton = page.locator('a:has-text("Upload Images"), button:has-text("Upload Images")').first();
-    await expect(uploadButton).toBeVisible();
+    // Find upload button (text is "+ Upload Images" in header or "Upload Images" in empty state)
+    const uploadButton = page.locator('a:has-text("Upload Images")').first();
+    await expect(uploadButton).toBeVisible({ timeout: 5000 });
 
     // Click upload button
     await uploadButton.click();
+    await page.waitForLoadState("load");
 
     // Should navigate to upload page or show upload modal
     // Wait for either upload form or file input
@@ -127,10 +128,10 @@ test.describe('KAN-630: Album Image Upload', () => {
       await albumLink.click();
       await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
 
-      // Find upload button
-      const uploadButton = page.locator('a:has-text("Upload"), button:has-text("Upload")').first();
+      // Find upload button (could be "Upload Images" or "+ Upload Images")
+      const uploadButton = page.locator('a:has-text("Upload")').first();
 
-      if (await uploadButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+      if (await uploadButton.isVisible({ timeout: 5000 }).catch(() => false)) {
         await uploadButton.click();
 
         // Try to upload invalid file type

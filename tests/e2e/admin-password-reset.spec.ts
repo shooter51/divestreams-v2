@@ -5,13 +5,12 @@ import { loginToAdmin, testConfig } from "./fixtures/test-fixtures";
 const getAdminUrl = (path: string) => `http://admin.localhost:5173${path}`;
 
 test.describe("Admin Password Reset", () => {
-  // Skip: These tests require a platform admin user to be seeded in E2E setup
-  // The current global-setup.ts only creates demo tenant, not platform admin
-  test.skip();
+  // Platform admin user is now seeded in global-setup.ts
 
   test.beforeEach(async ({ page }) => {
     // Login as admin using subdomain-based routing
-    await loginToAdmin(page, testConfig.adminPassword);
+    // loginToAdmin now takes (page, email, password)
+    await loginToAdmin(page, testConfig.adminEmail, testConfig.adminPassword);
   });
 
   test("should reset password with auto-generate method", async ({ page }) => {

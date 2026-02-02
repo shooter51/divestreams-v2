@@ -172,6 +172,133 @@ async function globalSetup(config: FullConfig) {
     console.log("  - Password: demo1234");
     console.log("  - Plan: ENTERPRISE (all features enabled)");
 
+    // =====================================================
+    // Create PLATFORM organization and admin for E2E tests
+    // This is required for admin-password-reset tests
+    // =====================================================
+    console.log("\nChecking for platform organization...");
+
+    const [existingPlatformOrg] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.slug, "platform"))
+      .limit(1);
+
+    let platformOrg = existingPlatformOrg;
+
+    if (!existingPlatformOrg) {
+      console.log("Creating platform organization for E2E tests...");
+      const platformOrgId = crypto.randomUUID();
+      await db.insert(organization).values({
+        id: platformOrgId,
+        name: "DiveStreams Platform",
+        slug: "platform",
+        logo: null,
+        metadata: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const [newPlatformOrg] = await db
+        .select()
+        .from(organization)
+        .where(eq(organization.slug, "platform"))
+        .limit(1);
+
+      if (!newPlatformOrg) {
+        throw new Error("Failed to create platform organization");
+      }
+
+      platformOrg = newPlatformOrg;
+      console.log("✓ Platform organization created");
+    } else {
+      console.log("✓ Platform organization already exists");
+    }
+
+    // Create platform admin user
+    const platformAdminEmail = "admin@divestreams.com";
+    const platformAdminPassword = process.env.ADMIN_PASSWORD || "DiveAdmin2026";
+
+    const [existingPlatformAdmin] = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, platformAdminEmail))
+      .limit(1);
+
+    let platformAdminUserId: string;
+
+    if (!existingPlatformAdmin) {
+      console.log("Creating platform admin user...");
+      try {
+        const adminResult = await auth.api.signUpEmail({
+          body: {
+            email: platformAdminEmail,
+            password: platformAdminPassword,
+            name: "Platform Admin",
+          },
+        });
+
+        if (!adminResult.user) {
+          throw new Error("Failed to create platform admin user");
+        }
+
+        platformAdminUserId = adminResult.user.id;
+        console.log("✓ Platform admin user created");
+      } catch (error) {
+        // Race condition handling
+        console.log("Admin user creation conflict detected, re-querying...");
+        const [newAdmin] = await db
+          .select()
+          .from(user)
+          .where(eq(user.email, platformAdminEmail))
+          .limit(1);
+
+        if (!newAdmin) {
+          throw new Error("Failed to create or find platform admin after conflict");
+        }
+        platformAdminUserId = newAdmin.id;
+        console.log("✓ Platform admin user exists (created by parallel worker)");
+      }
+    } else {
+      platformAdminUserId = existingPlatformAdmin.id;
+      console.log("✓ Platform admin user already exists");
+    }
+
+    // Create platform admin member relationship
+    const [existingPlatformMember] = await db
+      .select()
+      .from(member)
+      .where(and(
+        eq(member.userId, platformAdminUserId),
+        eq(member.organizationId, platformOrg.id)
+      ))
+      .limit(1);
+
+    if (!existingPlatformMember) {
+      console.log("Creating platform admin member relationship...");
+      try {
+        await db.insert(member).values({
+          id: crypto.randomUUID(),
+          organizationId: platformOrg.id,
+          userId: platformAdminUserId,
+          role: "owner",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        console.log("✓ Platform admin member relationship created");
+      } catch (error) {
+        console.error("❌ Failed to create platform admin membership:", error);
+        throw error;
+      }
+    } else {
+      console.log("✓ Platform admin member relationship already exists");
+    }
+
+    console.log("✓ Platform admin environment ready for E2E tests");
+    console.log("  - Admin URL: admin.localhost:5173");
+    console.log("  - Email: " + platformAdminEmail);
+    console.log("  - Password: " + platformAdminPassword);
+
     // Seed demo data (products, equipment, trips) for E2E tests
     console.log("\nSeeding demo tenant data (products, equipment, trips)...");
     try {

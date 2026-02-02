@@ -26,6 +26,9 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     // Navigate to products page
     await page.goto(`http://${tenantSlug}.localhost:5173/tenant/products`);
     await page.waitForLoadState("networkidle");
+
+    // Wait for products table to render (critical for reliable tests)
+    await page.waitForSelector('table tbody tr', { timeout: 10000 });
   });
 
   test('should reject "Adjust by amount" that would result in negative stock (QA test case)', async ({
