@@ -187,7 +187,7 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     await page.locator('input[value="set"]').check();
     await page.fill('input[name="value"]', originalStock?.trim() || "10");
     await page.click('button:has-text("Update Stock")');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("networkidle").catch(() => {});
   });
 
   test("single product adjustment should validate negative stock", async ({ page }) => {

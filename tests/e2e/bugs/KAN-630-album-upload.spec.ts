@@ -105,7 +105,7 @@ test.describe('KAN-630: Album Image Upload', () => {
     }
 
     // Wait for upload to complete
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Verify upload succeeded - should show image in album
     const imageGrid = page.locator('div[class*="grid"]').filter({ has: page.locator('img') });

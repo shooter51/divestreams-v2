@@ -112,7 +112,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
     });
 
     // Wait for dark mode to apply
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
 
     // Verify dark mode classes are present on form elements
     const firstNameInput = page.locator('input[name="firstName"]');
@@ -192,7 +192,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
     await page.evaluate(() => {
       document.documentElement.classList.add('dark');
     });
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
 
     // Verify dark mode classes on confirmation page elements
     const bookingCard = page.locator('.border').first();
@@ -315,7 +315,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
     await expect(page.locator('h1:has-text("Booking Confirmed")')).toBeVisible();
 
     // Wait a bit for email logs
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Verify email-related logs exist (email service logs to console in dev)
     const hasEmailLog = consoleLogs.some(log =>

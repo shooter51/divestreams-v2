@@ -35,7 +35,7 @@ test.describe('KAN-634: POS Split Payment', () => {
     // Add a product to cart (click first product)
     const firstProduct = page.locator('.grid button').first();
     await firstProduct.click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded");
 
     // Verify item in cart
     await expect(page.locator('.w-96').getByText(/cart is empty/i)).not.toBeVisible();
@@ -54,7 +54,7 @@ test.describe('KAN-634: POS Split Payment', () => {
     // Add a product to cart
     const firstProduct = page.locator('.grid button').first();
     await firstProduct.click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded");
 
     // Get total from cart
     const totalText = await page.locator('.w-96').locator('.font-bold').filter({ hasText: /total/i }).locator('..').locator('span').last().textContent();
@@ -81,7 +81,7 @@ test.describe('KAN-634: POS Split Payment', () => {
     // Add a product to cart
     const firstProduct = page.locator('.grid button').first();
     await firstProduct.click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded");
 
     // Get total from cart
     const totalText = await page.locator('.w-96').locator('.font-bold').filter({ hasText: /total/i }).locator('..').locator('span').last().textContent();
@@ -120,7 +120,7 @@ test.describe('KAN-634: POS Split Payment', () => {
     // Add a product to cart
     const firstProduct = page.locator('.grid button').first();
     await firstProduct.click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded");
 
     // Get total from cart to ensure payment doesn't exceed it
     const totalText = await page.locator('.w-96').locator('.font-bold').filter({ hasText: /total/i }).locator('..').locator('span').last().textContent();
@@ -150,7 +150,7 @@ test.describe('KAN-634: POS Split Payment', () => {
     // Add a product to cart
     const firstProduct = page.locator('.grid button').first();
     await firstProduct.click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState("domcontentloaded");
 
     // Get total from cart
     const totalText = await page.locator('.w-96').locator('.font-bold').filter({ hasText: /total/i }).locator('..').locator('span').last().textContent();
