@@ -244,7 +244,7 @@ jobs:
             "https://developers.hostinger.com/api/vps/v1/virtual-machines/1271895/docker/divestreams-staging/update" \
             -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --fail-with-body
+            --fail
 
       - name: Wait for deployment to stabilize
         run: sleep 45
@@ -458,7 +458,7 @@ jobs:
             "https://developers.hostinger.com/api/vps/v1/virtual-machines/1239852/docker/divestreams-v2/update" \
             -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --fail-with-body
+            --fail
 
       - name: Wait for deployment to stabilize
         run: sleep 45
