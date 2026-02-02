@@ -82,7 +82,7 @@ export default function BookingConfirmationPage() {
       {/* Back Navigation */}
       <div className="mb-6">
         <Link
-          to={`/embed/${tenantSlug}`}
+          to="/site/trips"
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -255,7 +255,7 @@ export default function BookingConfirmationPage() {
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Link
-          to={`/embed/${tenantSlug}`}
+          to="/site/trips"
           className="flex-1 text-center py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-gray-100"
         >
           Browse More Tours
