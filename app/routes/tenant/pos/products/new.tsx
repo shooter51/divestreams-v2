@@ -73,7 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
         const processed = await processImage(buffer);
 
         // Generate storage keys
-        const baseKey = getImageKey(tenant.subdomain, "equipment", product.id, file.name);
+        const baseKey = getImageKey(tenant.subdomain, "product", product.id, file.name);
         const originalKey = `${baseKey}.webp`;
         const thumbnailKey = `${baseKey}-thumb.webp`;
 
@@ -89,7 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
         // Save to database
         await db.insert(schema.images).values({
           organizationId,
-          entityType: "equipment",
+          entityType: "product",
           entityId: product.id,
           url: originalUpload.cdnUrl,
           thumbnailUrl: thumbnailUpload?.cdnUrl || originalUpload.cdnUrl,
