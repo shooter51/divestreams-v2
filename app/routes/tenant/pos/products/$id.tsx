@@ -34,8 +34,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "adjustStock") {
     const adjustment = parseInt(formData.get("adjustment") as string);
-    await adjustProductStock(organizationId, params.id!, adjustment);
-    return { success: true };
+    const result = await adjustProductStock(organizationId, params.id!, adjustment);
+    if (!result.success) {
+      return { error: result.error };
+    }
+    return { success: true, newQuantity: result.newQuantity };
   }
 
   return { error: "Invalid action" };

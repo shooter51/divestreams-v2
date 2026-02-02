@@ -118,10 +118,18 @@ describe("Subscription Plan Persistence (DIVE-166)", () => {
     testPlanId = plan.id;
     testPriceId = plan.monthlyPriceId!; // We know it exists from the query
 
-    // Create a test subscription (starting as free)
+    // Get free plan for initial subscription (required for NOT NULL constraint)
+    const [freePlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.name, "free"))
+      .limit(1);
+
+    // Create a test subscription (starting as free with proper planId)
     await db.insert(subscription).values({
       organizationId: testOrgId,
       plan: "free",
+      planId: freePlan?.id, // Required after migration 0035 adds NOT NULL constraint
       status: "active",
     });
   });

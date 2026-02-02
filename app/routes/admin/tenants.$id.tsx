@@ -10,6 +10,7 @@ import { requirePlatformContext } from "../../../lib/auth/platform-context.serve
 import { getBaseDomain, getTenantUrl } from "../../../lib/utils/url";
 import { hashPassword, generateRandomPassword } from "../../../lib/auth/password.server";
 import { auth } from "../../../lib/auth";
+import { invalidateSubscriptionCache } from "../../../lib/cache/subscription.server";
 
 export const meta: MetaFunction = () => [{ title: "Organization Details - DiveStreams Admin" }];
 
@@ -165,16 +166,24 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const planId = formData.get("planId") as string;
     const status = formData.get("status") as string;
 
-    // Get plan details for backwards compatibility (populate legacy 'plan' field)
+    // [KAN-594 FIX] Get plan details for backwards compatibility AND validation
     let planName = "free";
+    let selectedPlan = null;
+
     if (planId) {
-      const [selectedPlan] = await db
+      [selectedPlan] = await db
         .select()
         .from(subscriptionPlans)
         .where(eq(subscriptionPlans.id, planId))
         .limit(1);
+
       if (selectedPlan) {
         planName = selectedPlan.name;
+      } else {
+        return {
+          errors: { planId: "Invalid plan ID" },
+          success: false
+        };
       }
     }
 
@@ -186,6 +195,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       .limit(1);
 
     if (existingSub) {
+      // [KAN-594 FIX] Update BOTH planId (FK) and plan (legacy string)
       await db
         .update(subscription)
         .set({
@@ -196,6 +206,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         })
         .where(eq(subscription.id, existingSub.id));
     } else {
+      // [KAN-594 FIX] Create subscription with BOTH fields set
       await db.insert(subscription).values({
         id: crypto.randomUUID(),
         organizationId: org.id,
@@ -206,6 +217,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
         updatedAt: new Date(),
       });
     }
+
+    // [KAN-594 FIX PHASE 3] Invalidate cache after subscription change
+    // This ensures tenant immediately sees premium features without re-login
+    await invalidateSubscriptionCache(org.id);
+
     return { success: true };
   }
 

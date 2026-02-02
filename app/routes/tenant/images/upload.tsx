@@ -42,7 +42,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Validate allowed entity types
-    const allowedTypes = ["tour", "diveSite", "boat", "equipment", "staff", "course"];
+    const allowedTypes = ["tour", "diveSite", "boat", "equipment", "staff", "course", "product"];
     if (!allowedTypes.includes(entityType)) {
       return Response.json(
         { error: `Invalid entityType. Allowed: ${allowedTypes.join(", ")}` },

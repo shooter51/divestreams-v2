@@ -6,12 +6,23 @@ import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { Form, Link, useActionData, useNavigation, redirect } from "react-router";
 import { requireTenant } from "../../../../../lib/auth/org-context.server";
 import { createProduct } from "../../../../../lib/db/queries.server";
+import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType } from "../../../../../lib/storage";
+import { getTenantDb } from "../../../../../lib/db/tenant.server";
 
 export const meta: MetaFunction = () => [{ title: "New Product - DiveStreams" }];
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const { tenant, organizationId } = await requireTenant(request);
   const formData = await request.formData();
+
+  // Extract image files before processing other form data
+  const imageFiles: File[] = [];
+  const allImages = formData.getAll("images");
+  for (const item of allImages) {
+    if (item instanceof File && item.size > 0) {
+      imageFiles.push(item);
+    }
+  }
 
   const name = formData.get("name") as string;
   const category = formData.get("category") as string;
@@ -33,6 +44,73 @@ export async function action({ request }: ActionFunctionArgs) {
     stockQuantity: formData.get("stockQuantity") ? parseInt(formData.get("stockQuantity") as string) : undefined,
     lowStockThreshold: formData.get("lowStockThreshold") ? parseInt(formData.get("lowStockThreshold") as string) : undefined,
   });
+
+  // Process uploaded images if any
+  if (imageFiles.length > 0 && tenant) {
+    const { db, schema } = getTenantDb(tenant.subdomain);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+    let uploadedCount = 0;
+    for (let i = 0; i < Math.min(imageFiles.length, 5); i++) {
+      const file = imageFiles[i];
+
+      // Validate file type
+      if (!isValidImageType(file.type)) {
+        console.warn(`Skipping invalid image type: ${file.type}`);
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        console.warn(`Skipping oversized file: ${file.name} (${file.size} bytes)`);
+        continue;
+      }
+
+      try {
+        // Process image
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const processed = await processImage(buffer);
+
+        // Generate storage keys
+        const baseKey = getImageKey(tenant.subdomain, "product", product.id, file.name);
+        const originalKey = `${baseKey}.webp`;
+        const thumbnailKey = `${baseKey}-thumb.webp`;
+
+        // Upload to B2
+        const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+        if (!originalUpload) {
+          console.warn("Storage not configured, skipping image upload");
+          break;
+        }
+
+        const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+
+        // Save to database
+        await db.insert(schema.images).values({
+          organizationId,
+          entityType: "product",
+          entityId: product.id,
+          url: originalUpload.cdnUrl,
+          thumbnailUrl: thumbnailUpload?.cdnUrl || originalUpload.cdnUrl,
+          filename: file.name,
+          mimeType: getWebPMimeType(),
+          sizeBytes: processed.original.length,
+          width: processed.width,
+          height: processed.height,
+          alt: file.name,
+          sortOrder: i,
+          isPrimary: i === 0,
+        });
+
+        uploadedCount++;
+      } catch (error) {
+        console.error(`Failed to upload image ${file.name}:`, error);
+      }
+    }
+
+    console.log(`Product created with ${uploadedCount} images`);
+  }
 
   return redirect(`/tenant/pos/products/${product.id}`);
 }
@@ -67,7 +145,7 @@ export default function NewProductPage() {
         </div>
       )}
 
-      <Form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
+      <Form method="post" encType="multipart/form-data" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
         {/* Basic Info */}
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
@@ -235,6 +313,33 @@ export default function NewProductPage() {
                 />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Images */}
+        <div className="border-t pt-6">
+          <h3 className="font-medium mb-4">Product Images (Optional)</h3>
+          <div>
+            <label htmlFor="images" className="block text-sm font-medium mb-2">
+              Upload up to 5 images
+            </label>
+            <input
+              type="file"
+              id="images"
+              name="images"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              className="block w-full text-sm text-foreground-muted
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-lg file:border-0
+                file:text-sm file:font-medium
+                file:bg-brand file:text-white
+                hover:file:bg-brand-hover
+                file:cursor-pointer cursor-pointer"
+            />
+            <p className="mt-2 text-sm text-foreground-muted">
+              JPEG, PNG, WebP, or GIF. Max 10MB each.
+            </p>
           </div>
         </div>
 

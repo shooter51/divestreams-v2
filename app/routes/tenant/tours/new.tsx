@@ -6,6 +6,8 @@ import { createTour } from "../../../../lib/db/queries.server";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType } from "../../../../lib/storage";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -22,7 +24,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
   const organizationId = ctx.org.id;
+  const tenantSlug = ctx.org.slug;
   const formData = await request.formData();
+
+  // Extract image files before processing other form data
+  const imageFiles: File[] = [];
+  const allImages = formData.getAll("images");
+  for (const item of allImages) {
+    if (item instanceof File && item.size > 0) {
+      imageFiles.push(item);
+    }
+  }
 
   // Parse inclusions/exclusions from comma-separated strings
   const inclusionsStr = formData.get("inclusionsStr") as string;
@@ -102,6 +114,78 @@ export async function action({ request }: ActionFunctionArgs) {
     throw error;
   }
 
+  // Process uploaded images if any
+  if (imageFiles.length > 0 && tenantSlug) {
+    const { db, schema } = getTenantDb(tenantSlug);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+    let uploadedCount = 0;
+    for (let i = 0; i < Math.min(imageFiles.length, 5); i++) {
+      const file = imageFiles[i];
+
+      // Validate file type
+      if (!isValidImageType(file.type)) {
+        console.warn(`Skipping invalid image type: ${file.type}`);
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        console.warn(`Skipping oversized file: ${file.name} (${file.size} bytes)`);
+        continue;
+      }
+
+      try {
+        // Process image
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const processed = await processImage(buffer);
+
+        // Generate storage keys
+        const baseKey = getImageKey(tenantSlug, "tour", newTour.id, file.name);
+        const originalKey = `${baseKey}.webp`;
+        const thumbnailKey = `${baseKey}-thumb.webp`;
+
+        // Upload to B2
+        const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+        if (!originalUpload) {
+          console.warn("Storage not configured, skipping image upload");
+          break; // Stop trying if storage isn't configured
+        }
+
+        const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+
+        // Save to database
+        await db.insert(schema.images).values({
+          organizationId,
+          entityType: "tour",
+          entityId: newTour.id,
+          url: originalUpload.cdnUrl,
+          thumbnailUrl: thumbnailUpload?.cdnUrl || originalUpload.cdnUrl,
+          filename: file.name,
+          mimeType: getWebPMimeType(),
+          sizeBytes: processed.original.length,
+          width: processed.width,
+          height: processed.height,
+          alt: file.name,
+          sortOrder: i,
+          isPrimary: i === 0,
+        });
+
+        uploadedCount++;
+      } catch (error) {
+        console.error(`Failed to upload image ${file.name}:`, error);
+        // Continue with other images
+      }
+    }
+
+    const tourName = formData.get("name") as string;
+    const imageMessage = uploadedCount > 0
+      ? `Tour "${tourName}" created with ${uploadedCount} image${uploadedCount > 1 ? "s" : ""}!`
+      : `Tour "${tourName}" created successfully! Add images below to complete your tour listing.`;
+    return redirect(redirectWithNotification(`/tenant/tours/${newTour.id}`, imageMessage, "success"));
+  }
+
   const tourName = formData.get("name") as string;
   // Redirect to detail page where user can immediately add images via ImageManager
   return redirect(redirectWithNotification(`/tenant/tours/${newTour.id}`, `Tour "${tourName}" created successfully! Add images below to complete your tour listing.`, "success"));
@@ -129,7 +213,7 @@ export default function NewTourPage() {
         </p>
       </div>
 
-      <form method="post" className="space-y-6">
+      <form method="post" encType="multipart/form-data" className="space-y-6">
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
@@ -401,6 +485,35 @@ export default function NewTourPage() {
               defaultValue={actionData?.values?.requirementsStr}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
+          </div>
+        </div>
+
+        {/* Images */}
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Images (Optional)</h2>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="images" className="block text-sm font-medium mb-2">
+                Upload up to 5 images
+              </label>
+              <input
+                type="file"
+                id="images"
+                name="images"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                className="block w-full text-sm text-foreground-muted
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-medium
+                  file:bg-brand file:text-white
+                  hover:file:bg-brand-hover
+                  file:cursor-pointer cursor-pointer"
+              />
+              <p className="mt-2 text-sm text-foreground-muted">
+                JPEG, PNG, WebP, or GIF. Max 10MB each. You can add more images later.
+              </p>
+            </div>
           </div>
         </div>
 

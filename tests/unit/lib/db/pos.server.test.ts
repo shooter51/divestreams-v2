@@ -139,6 +139,7 @@ vi.mock("../../../../lib/db/schema", () => ({
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((col, val) => ({ col, val, op: "eq" })),
   and: vi.fn((...conditions) => ({ conditions, op: "and" })),
+  inArray: vi.fn((col, vals) => ({ col, vals, op: "inArray" })),
   sql: vi.fn((strings, ...values) => ({
     strings,
     values,

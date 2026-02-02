@@ -10,6 +10,7 @@ import { useLoaderData, useOutletContext, Form, useActionData, useNavigation, Li
 import { redirect } from "react-router";
 import { getOrganizationBySlug, getPublicTripById, type PublicTripDetail } from "../../../lib/db/queries.public";
 import { createWidgetBooking } from "../../../lib/db/mutations.public";
+import { triggerBookingConfirmation } from "../../../lib/email/triggers";
 import { useState } from "react";
 
 export const meta: MetaFunction = () => [{ title: "Complete Your Booking" }];
@@ -102,6 +103,25 @@ export async function action({ params, request }: ActionFunctionArgs) {
       specialRequests: specialRequests || undefined,
     });
 
+    // Send booking confirmation email
+    try {
+      await triggerBookingConfirmation({
+        customerEmail: email,
+        customerName: `${firstName} ${lastName}`,
+        tripName: trip!.tourName,
+        tripDate: trip!.date,
+        tripTime: trip!.startTime || "TBA",
+        participants,
+        totalCents: Math.round(parseFloat(booking.total) * 100),
+        bookingNumber: booking.bookingNumber,
+        shopName: org.name,
+        tenantId: org.id,
+      });
+    } catch (emailError) {
+      // Log email error but don't fail the booking
+      console.error("Failed to send booking confirmation email:", emailError);
+    }
+
     // For Phase 1: Redirect to confirmation page
     // Phase 2 will integrate Stripe Checkout here
     return redirect(`/embed/${subdomain}/confirm?bookingId=${booking.id}&bookingNumber=${booking.bookingNumber}`);
@@ -159,7 +179,7 @@ export default function BookingFormPage() {
       {/* Back link */}
       <Link
         to={`/embed/${tenantSlug}/tour/${trip.tourId}`}
-        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 mb-4"
       >
         <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -167,7 +187,7 @@ export default function BookingFormPage() {
         Back
       </Link>
 
-      <h1 className="text-2xl font-bold mb-6">Complete Your Booking</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Complete Your Booking</h1>
 
       <div className="grid md:grid-cols-3 gap-8">
         {/* Form */}
@@ -176,21 +196,21 @@ export default function BookingFormPage() {
             <input type="hidden" name="tripId" value={trip.id} />
 
             {actionData?.errors?.form && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded">
                 {actionData.errors.form}
               </div>
             )}
 
             {/* Participants */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Number of Participants
               </label>
               <select
                 name="participants"
                 value={participants}
                 onChange={(e) => setParticipants(parseInt(e.target.value, 10))}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {Array.from({ length: Math.min(trip.availableSpots, 10) }, (_, i) => i + 1).map(
                   (num) => (
@@ -201,70 +221,70 @@ export default function BookingFormPage() {
                 )}
               </select>
               {actionData?.errors?.participants && (
-                <p className="text-red-600 text-sm mt-1">{actionData.errors.participants}</p>
+                <p className="text-red-600 dark:text-red-400 text-sm mt-1">{actionData.errors.participants}</p>
               )}
             </div>
 
             {/* Contact Details */}
             <fieldset>
-              <legend className="text-lg font-semibold mb-4">Contact Details</legend>
+              <legend className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Contact Details</legend>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     First Name *
                   </label>
                   <input
                     type="text"
                     name="firstName"
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   {actionData?.errors?.firstName && (
-                    <p className="text-red-600 text-sm mt-1">{actionData.errors.firstName}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{actionData.errors.firstName}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Last Name *
                   </label>
                   <input
                     type="text"
                     name="lastName"
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   {actionData?.errors?.lastName && (
-                    <p className="text-red-600 text-sm mt-1">{actionData.errors.lastName}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{actionData.errors.lastName}</p>
                   )}
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Email Address *
                   </label>
                   <input
                     type="email"
                     name="email"
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   {actionData?.errors?.email && (
-                    <p className="text-red-600 text-sm mt-1">{actionData.errors.email}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{actionData.errors.email}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Phone Number
                   </label>
                   <input
                     type="tel"
                     name="phone"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -272,14 +292,14 @@ export default function BookingFormPage() {
 
             {/* Special Requests */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Special Requests or Notes
               </label>
               <textarea
                 name="specialRequests"
                 rows={3}
                 placeholder="Allergies, dietary requirements, accessibility needs, etc."
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
@@ -293,7 +313,7 @@ export default function BookingFormPage() {
               {isSubmitting ? "Processing..." : `Book Now - ${formatPrice(total, trip.currency)}`}
             </button>
 
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
               By booking, you agree to the cancellation policy and terms of service.
             </p>
           </Form>
@@ -301,8 +321,8 @@ export default function BookingFormPage() {
 
         {/* Order Summary */}
         <div>
-          <div className="bg-gray-50 rounded-lg p-6 sticky top-4">
-            <h3 className="font-semibold mb-4">Booking Summary</h3>
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 sticky top-4">
+            <h3 className="font-semibold mb-4 text-gray-900 dark:text-gray-100">Booking Summary</h3>
 
             {trip.primaryImage && (
               <img
@@ -312,9 +332,9 @@ export default function BookingFormPage() {
               />
             )}
 
-            <h4 className="font-medium">{trip.tourName}</h4>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100">{trip.tourName}</h4>
 
-            <div className="text-sm text-gray-600 mt-2 space-y-1">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
               <div className="flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -330,15 +350,15 @@ export default function BookingFormPage() {
               </div>
             </div>
 
-            <div className="border-t mt-4 pt-4 space-y-2">
-              <div className="flex justify-between text-sm">
+            <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4 space-y-2">
+              <div className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
                 <span>
                   {formatPrice(pricePerPerson, trip.currency)} × {participants}
                 </span>
                 <span>{formatPrice(total, trip.currency)}</span>
               </div>
               <div className="flex justify-between font-semibold text-lg">
-                <span>Total</span>
+                <span className="text-gray-900 dark:text-gray-100">Total</span>
                 <span style={{ color: branding.primaryColor }}>
                   {formatPrice(total, trip.currency)}
                 </span>
@@ -346,9 +366,9 @@ export default function BookingFormPage() {
             </div>
 
             {/* Whats included */}
-            <div className="border-t mt-4 pt-4">
-              <h4 className="text-sm font-medium mb-2">What's Included</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
+            <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
+              <h4 className="text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">What's Included</h4>
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                 {trip.includesEquipment && (
                   <li className="flex items-center gap-2">
                     <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">

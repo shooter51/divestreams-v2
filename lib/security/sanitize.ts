@@ -112,6 +112,10 @@ export function sanitizeUrl(url: string, allowDataUrls = false): string {
     // Decode URL encoding and normalize for dangerous protocol detection
     let normalized = trimmed.toLowerCase().replace(/\s/g, '');
 
+    // Remove literal escape sequences that could be used to obfuscate protocols
+    // e.g., "java\nscript:" or "java\tscript:" where \n and \t are literal characters
+    normalized = normalized.replace(/\\[nrtfvb0]/gi, '');
+
     // Decode common URL encodings that might be used to obfuscate protocols
     try {
       normalized = decodeURIComponent(normalized);
