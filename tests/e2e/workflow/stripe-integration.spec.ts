@@ -25,7 +25,7 @@ async function loginToTenant(page: any) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
   }
 }
 
@@ -85,7 +85,7 @@ test.describe("Stripe Integration", () => {
 
     // Wait for page to load
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Find the Stripe integration card by its unique structure
     const stripeCard = page.locator('div.bg-surface-raised.rounded-xl:has(h3:text-is("Stripe"))').first();
@@ -93,7 +93,7 @@ test.describe("Stripe Integration", () => {
     if (!(await stripeCard.isVisible().catch(() => false))) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("networkidle").catch(() => {});
     }
     await expect(stripeCard).toBeVisible({ timeout: 8000 });
 
