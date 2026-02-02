@@ -14,23 +14,11 @@ jobs:
   # ─────────────────────────────────────────────
   # Unit & Integration Tests (staging + PRs only)
   # ─────────────────────────────────────────────
+  # Persistent postgres and redis run on the self-hosted runner VPS
+  # No need for GHA services - connect via host.docker.internal
   test:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: testdb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    runs-on: [self-hosted, linux, divestreams]
     steps:
       - uses: actions/checkout@v4
 
@@ -53,13 +41,13 @@ jobs:
       - name: Setup database schema
         run: npm run db:push
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
 
       - name: Run unit and integration tests
         run: npm test -- --run
         continue-on-error: true  # Allow deployment despite test failures
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
 
@@ -68,26 +56,8 @@ jobs:
   # ─────────────────────────────────────────────
   e2e:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     continue-on-error: true  # Allow staging deployment even if E2E tests fail
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: divestreams_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
     steps:
       - uses: actions/checkout@v4
 
@@ -109,12 +79,12 @@ jobs:
       - name: Setup database schema and run migrations
         run: node scripts/run-migrations.mjs
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
 
       - name: Seed subscription plans
         run: npm run db:seed
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
 
       # NOTE: No build step needed - Playwright config starts dev server automatically
       # See playwright.config.ts webServer configuration (line 60-85)
@@ -133,8 +103,8 @@ jobs:
           fi
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
-          REDIS_URL: redis://localhost:6379
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          REDIS_URL: redis://host.docker.internal:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:5173
           ADMIN_PASSWORD: DiveAdmin2026
@@ -301,26 +271,8 @@ jobs:
   prod-build-smoke-test:
     needs: build
     if: github.ref == 'refs/heads/staging'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     continue-on-error: true  # Don't block deployment if prod build tests fail
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: divestreams_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
     steps:
       - uses: actions/checkout@v4
 
@@ -338,13 +290,13 @@ jobs:
       - name: Setup database schema and run migrations
         run: node scripts/run-migrations.mjs
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
 
       - name: Build production version
         run: npm run build
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
-          REDIS_URL: redis://localhost:6379
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          REDIS_URL: redis://host.docker.internal:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:3000
 
@@ -354,8 +306,8 @@ jobs:
           echo $! > server.pid
           sleep 10
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
-          REDIS_URL: redis://localhost:6379
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          REDIS_URL: redis://host.docker.internal:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:3000
           ADMIN_PASSWORD: DiveAdmin2026
@@ -368,8 +320,8 @@ jobs:
         run: npx playwright test tests/e2e/ --grep "@smoke|@critical"
         env:
           BASE_URL: http://localhost:3000
-          DATABASE_URL: postgresql://test:test@localhost:5432/divestreams_test
-          REDIS_URL: redis://localhost:6379
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          REDIS_URL: redis://host.docker.internal:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:3000
           ADMIN_PASSWORD: DiveAdmin2026

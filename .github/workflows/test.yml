@@ -6,10 +6,13 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Persistent postgres and redis run on the self-hosted runner VPS
+# No need for GHA services - connect via host.docker.internal
+
 jobs:
   unit:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +30,7 @@ jobs:
         env:
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
 
       - name: Upload unit coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -45,22 +48,7 @@ jobs:
 
   integration:
     name: Integration Tests
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: testdb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    runs-on: [self-hosted, linux, divestreams]
     steps:
       - uses: actions/checkout@v4
 
@@ -76,45 +64,21 @@ jobs:
       - name: Setup database schema
         run: npm run db:push
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
 
       - name: Run integration tests
         run: npm run test:integration
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
           APP_URL: http://localhost:5173
 
   e2e:
     name: E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     # E2E tests are complex and may fail in CI - don't block the workflow
     continue-on-error: true
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: testdb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -141,21 +105,21 @@ jobs:
       - name: Setup database schema
         run: npm run db:push
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
 
       - name: Seed subscription plans
         run: npm run db:seed
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
 
       # Note: No build step needed - playwright starts instrumented dev server
       - name: Run E2E tests with coverage
         run: npm run test:coverage:e2e
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
-          REDIS_URL: redis://localhost:6379
+          REDIS_URL: redis://host.docker.internal:6379
           BASE_URL: http://e2etest.localhost:5173
           APP_URL: http://e2etest.localhost:5173
           E2E_COVERAGE: "true"
@@ -205,7 +169,7 @@ jobs:
 
   coverage-report:
     name: Combined Coverage Report
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     needs: [unit, e2e]
     if: always()
     steps:
