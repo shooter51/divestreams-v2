@@ -84,7 +84,7 @@ test.beforeAll(async ({ browser }) => {
     // Navigate to public site settings
     await page.goto(`http://e2etest.localhost:5173/tenant/settings/public-site`, { timeout: 15000 });
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000); // Give time for form to hydrate
+    await page.waitForLoadState("load"); // Give time for form to hydrate
 
     // Verify we're on the settings page
     if (!page.url().includes('/settings/public-site')) {
@@ -100,7 +100,7 @@ test.beforeAll(async ({ browser }) => {
     if (checkboxCount === 0) {
       await page.reload();
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(3000);
+      await page.waitForLoadState("networkidle").catch(() => {});
       checkboxCount = await enabledCheckbox.count();
     }
 
@@ -132,7 +132,7 @@ test.beforeAll(async ({ browser }) => {
       await saveButton.click({ timeout: 5000 });
 
       // Wait for save to complete - look for success message or page reload
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
 
       // Verify the setting persisted by checking the checkbox again
       const finalCheckStatus = await enabledCheckbox.isChecked();
@@ -147,7 +147,7 @@ test.beforeAll(async ({ browser }) => {
 
     // Final verification: Try to access the public site
     await page.goto(`http://e2etest.localhost:5173/site/`, { timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     // Check if we got redirected to disabled page
     if (page.url().includes('site=disabled')) {
@@ -221,7 +221,7 @@ async function loginToTenant(page: Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
   }
 }
 
@@ -243,7 +243,7 @@ async function loginCustomer(page: Page) {
   try {
     await page.waitForURL(/\/site\/account/, { timeout: 10000 });
   } catch {
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
   }
 }
 
@@ -272,7 +272,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
   test("[KAN-491] A.2 Public site about page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/about"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     // Should load without error - might be disabled or have content
     const isAboutPage = page.url().includes("/about");
     const has404 = await page.getByText(/not found|404/i).isVisible().catch(() => false);
@@ -282,7 +282,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
   test("[KAN-492] A.3 Public site contact page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/contact"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     // Verify we're not redirected to disabled page
     if (page.url().includes("site=disabled")) {
@@ -301,7 +301,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
   test("[KAN-493] A.4 Public site trips page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     // Should show trips list or empty state
     const hasTripCards = await page.locator("[class*='card'], [class*='grid'] a").first().isVisible().catch(() => false);
     const hasEmptyState = await page.getByText(/no trips|coming soon|check back/i).isVisible().catch(() => false);
@@ -311,7 +311,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
   test("[KAN-494] A.5 Public site courses page loads", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     // Should show courses list or empty state
     const hasCourseCards = await page.locator("[class*='card'], [class*='grid'] a").first().isVisible().catch(() => false);
     const hasEmptyState = await page.getByText(/no courses|coming soon|check back/i).isVisible().catch(() => false);
@@ -323,7 +323,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
     // SKIPPED: Flaky test - intermittent failures in CI
     // First go to trips list to find a trip
     await page.goto(getPublicSiteUrl("/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Try to click on a trip card if available
     const tripLink = page.locator("a[href*='/site/trips/']").first();
@@ -331,12 +331,12 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
     if (hasTripLinks) {
       await tripLink.click();
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
       expect(page.url()).toMatch(/\/site\/trips\/[a-f0-9-]+/);
     } else {
       // No trips available - test a random ID to ensure 404 handling
       await page.goto(getPublicSiteUrl("/trips/00000000-0000-0000-0000-000000000000"));
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       // Should show not found or redirect, not crash
       expect(page.url()).toContain("/site");
     }
@@ -345,7 +345,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
   test("[KAN-496] A.7 Course detail page route works", async ({ page }) => {
     // First go to courses list to find a course
     await page.goto(getPublicSiteUrl("/courses"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Check if public site is enabled
     if (page.url().includes("site=disabled")) {
@@ -360,12 +360,12 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
     if (hasCourseLinks) {
       await courseLink.click();
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
       expect(page.url()).toMatch(/\/site\/courses\/[a-f0-9-]+/);
     } else {
       // No courses available - test a random ID to ensure 404 handling
       await page.goto(getPublicSiteUrl("/courses/00000000-0000-0000-0000-000000000000"));
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       // Should show not found or redirect, not crash
       expect(page.url()).toContain("/site");
     }
@@ -373,7 +373,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
   test("[KAN-497] A.8 Navigation between public pages works", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     // Try to find navigation links
     const tripsLink = page.getByRole("link", { name: /trips/i }).first();
@@ -381,7 +381,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
     if (hasTripsLink) {
       await tripsLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       expect(page.url()).toContain("/trips");
     }
 
@@ -391,7 +391,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 
     if (hasContactLink) {
       await contactLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       expect(page.url()).toContain("/contact");
     }
 
@@ -408,7 +408,7 @@ test.describe.serial("Block A: Public Site Navigation", () => {
 test.describe.serial("Block B: Customer Registration & Login", () => {
   test("[KAN-498] B.1 Registration page loads @smoke", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/register"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url()).toContain("/register");
     // Should have registration form elements
     const hasForm = await page.locator("form").isVisible().catch(() => false);
@@ -417,7 +417,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
   test("[KAN-499] B.2 Registration form has required fields", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/register"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     // Check for standard registration fields
     const hasFirstName = await page.getByLabel(/first name/i).isVisible().catch(() => false);
@@ -432,7 +432,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
   test("[KAN-500] B.3 Register a new customer account @critical", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/register"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     // Fill registration form
     const firstNameField = page.getByLabel(/first name/i);
@@ -470,7 +470,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
     // Submit
     await page.getByRole("button", { name: /create account|register|sign up/i }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Should redirect to account or show success
     const redirectedToAccount = page.url().includes("/account");
@@ -491,7 +491,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
   test("[KAN-501] B.4 Login page loads @smoke", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url()).toContain("/login");
 
     // Should have login form
@@ -502,7 +502,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
   test("[KAN-502] B.5 Login form has sign in button", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     const hasSignIn = await page.getByRole("button", { name: /sign in/i }).isVisible().catch(() => false);
     expect(hasSignIn).toBeTruthy();
@@ -510,7 +510,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
   test("[KAN-503] B.6 Login with registered credentials @critical", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     await page.getByRole("textbox", { name: /email/i }).fill(publicSiteTestData.customer.email);
     await page.getByLabel(/password/i).fill(publicSiteTestData.customer.password);
@@ -532,13 +532,13 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
   test("[KAN-504] B.7 Invalid login shows error", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     await page.getByRole("textbox", { name: /email/i }).fill("wrong@example.com");
     await page.getByLabel(/password/i).fill("wrongpassword");
     await page.getByRole("button", { name: /sign in/i }).click();
 
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Should show error or stay on login page
     const hasError = await page.locator("[class*='bg-red'], [class*='text-red'], [class*='error']").isVisible().catch(() => false);
@@ -549,33 +549,33 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
   test("[KAN-505] B.8 Login validates required email", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     // Only fill password
     await page.getByLabel(/password/i).fill("somepassword");
     await page.getByRole("button", { name: /sign in/i }).click();
 
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
     // Should stay on login page - form validation
     expect(page.url()).toContain("/login");
   });
 
   test("[KAN-506] B.9 Login validates required password", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/login"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     // Only fill email
     await page.getByRole("textbox", { name: /email/i }).fill("test@example.com");
     await page.getByRole("button", { name: /sign in/i }).click();
 
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
     // Should stay on login page - form validation
     expect(page.url()).toContain("/login");
   });
 
   test("[KAN-507] B.10 Registration form has password requirements", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/register"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     // Check for password requirements text or validation
     const hasPasswordReqs = await page.getByText(/character|uppercase|lowercase|number|password must/i).isVisible().catch(() => false);
@@ -595,7 +595,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 test.describe.serial("Block C: Customer Account Dashboard", () => {
   test("[KAN-508] C.1 Account dashboard requires authentication", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/account"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should redirect to login if not authenticated
     const redirectedToLogin = page.url().includes("/login");
@@ -620,7 +620,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
 
     // Wait for page to fully hydrate before checking content
     await page.waitForLoadState('load').catch(() => {});
-    await page.waitForTimeout(500); // Small delay for React hydration
+    await page.waitForLoadState("domcontentloaded"); // Small delay for React hydration
 
     // Should have dashboard content - check for "My Account" heading that's always present in layout
     // or "Upcoming Bookings" stat card that's in the dashboard
@@ -653,7 +653,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     }
 
     await page.goto(getPublicSiteUrl("/account/bookings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should show bookings list or empty state
     const hasBookings = await page.locator("[class*='card'], table, [class*='list']").first().isVisible().catch(() => false);
@@ -677,7 +677,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     }
 
     await page.goto(getPublicSiteUrl("/account/profile"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Check for editable form fields
     const hasNameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
@@ -697,7 +697,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
     }
 
     await page.goto(getPublicSiteUrl("/account/profile"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const hasSaveButton = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
     expect(hasSaveButton || page.url().includes("/profile")).toBeTruthy();
@@ -728,7 +728,7 @@ test.describe.serial("Block C: Customer Account Dashboard", () => {
       await page.goto(getPublicSiteUrl("/account/logout"));
     }
 
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Should redirect to login or homepage
     const redirectedToLogin = page.url().includes("/login");
@@ -747,14 +747,14 @@ test.describe.serial("Block D: Booking Flow", () => {
   test("[KAN-515] D.1 Booking route for trip exists", async ({ page }) => {
     // Go to trips page and find a trip to book
     await page.goto(getPublicSiteUrl("/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const tripLink = page.locator("a[href*='/site/trips/']").first();
     const hasTrips = await tripLink.isVisible().catch(() => false);
 
     if (hasTrips) {
       await tripLink.click();
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
 
       // Look for book button on trip detail
       const bookButton = page.getByRole("link", { name: /book/i }).first();
@@ -762,7 +762,7 @@ test.describe.serial("Block D: Booking Flow", () => {
 
       if (hasBookButton) {
         await bookButton.click();
-        await page.waitForTimeout(1500);
+        await page.waitForLoadState("load");
         // Should navigate to booking page
         expect(page.url()).toMatch(/\/(book|booking)/);
       } else {
@@ -778,14 +778,14 @@ test.describe.serial("Block D: Booking Flow", () => {
   test("[KAN-516] D.2 Booking route for course exists", async ({ page }) => {
     // Go to courses page and find a course to book
     await page.goto(getPublicSiteUrl("/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const courseLink = page.locator("a[href*='/site/courses/']").first();
     const hasCourses = await courseLink.isVisible().catch(() => false);
 
     if (hasCourses) {
       await courseLink.click();
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
 
       // Look for book/enroll button
       const bookButton = page.getByRole("link", { name: /book|enroll|sign up/i }).first();
@@ -793,7 +793,7 @@ test.describe.serial("Block D: Booking Flow", () => {
 
       if (hasBookButton) {
         await bookButton.click();
-        await page.waitForTimeout(1500);
+        await page.waitForLoadState("load");
         expect(page.url()).toMatch(/\/(book|booking)/);
       } else {
         expect(page.url()).toContain("/courses");
@@ -807,7 +807,7 @@ test.describe.serial("Block D: Booking Flow", () => {
   test("[KAN-517] D.3 Booking page requires authentication", async ({ page }) => {
     // Try to access booking directly without auth
     await page.goto(getPublicSiteUrl("/book/trip/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should redirect to login or show error
     const redirectedToLogin = page.url().includes("/login");
@@ -824,7 +824,7 @@ test.describe.serial("Block D: Booking Flow", () => {
 
     // Then try to book a trip
     await page.goto(getPublicSiteUrl("/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const tripLink = page.locator("a[href*='/site/trips/']").first();
     const hasTrips = await tripLink.isVisible().catch(() => false);
@@ -836,7 +836,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     }
 
     await tripLink.click();
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should be on trip detail page
     expect(page.url()).toMatch(/\/site\/trips\/[a-f0-9-]+/);
@@ -852,7 +852,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     await loginCustomer(page);
 
     await page.goto(getPublicSiteUrl("/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const tripLink = page.locator("a[href*='/site/trips/']").first();
     const hasTrips = await tripLink.isVisible().catch(() => false);
@@ -863,7 +863,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     }
 
     await tripLink.click();
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Look for book button and click
     const bookLink = page.getByRole("link", { name: /book/i }).first();
@@ -871,7 +871,7 @@ test.describe.serial("Block D: Booking Flow", () => {
 
     if (hasBookLink) {
       await bookLink.click();
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
 
       // Booking page should show trip info
       const hasPrice = await page.getByText(/\$|price|total/i).isVisible().catch(() => false);
@@ -885,7 +885,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     await loginCustomer(page);
 
     await page.goto(getPublicSiteUrl("/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const tripLink = page.locator("a[href*='/site/trips/']").first();
     const hasTrips = await tripLink.isVisible().catch(() => false);
@@ -896,12 +896,12 @@ test.describe.serial("Block D: Booking Flow", () => {
     }
 
     await tripLink.click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     const bookLink = page.getByRole("link", { name: /book/i }).first();
     if (await bookLink.isVisible().catch(() => false)) {
       await bookLink.click();
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
 
       // Check for participant selection
       const hasParticipants = await page.getByLabel(/participant|guest|diver/i).isVisible().catch(() => false)
@@ -914,7 +914,7 @@ test.describe.serial("Block D: Booking Flow", () => {
 
   test("[KAN-521] D.7 Confirm booking route exists", async ({ page }) => {
     await page.goto(getPublicSiteUrl("/book/confirm"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should either show confirmation page or redirect
     const isConfirmPage = page.url().includes("/confirm");
@@ -927,7 +927,7 @@ test.describe.serial("Block D: Booking Flow", () => {
     await loginCustomer(page);
 
     await page.goto(getPublicSiteUrl("/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     const tripLink = page.locator("a[href*='/site/trips/']").first();
     const hasTrips = await tripLink.isVisible().catch(() => false);
@@ -938,12 +938,12 @@ test.describe.serial("Block D: Booking Flow", () => {
     }
 
     await tripLink.click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
 
     const bookLink = page.getByRole("link", { name: /book/i }).first();
     if (await bookLink.isVisible().catch(() => false)) {
       await bookLink.click();
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
 
       // Check for price display
       const hasPrice = await page.getByText(/\$\d+|\d+\.\d{2}|total|subtotal/i).isVisible().catch(() => false);
@@ -960,7 +960,7 @@ test.describe.serial("Block D: Booking Flow", () => {
 test.describe.serial("Block E: Admin Public Site Settings", () => {
   test("[KAN-523] E.1 Public site settings requires staff auth", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/settings/public-site"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should redirect to login if not authenticated
     const redirectedToLogin = page.url().includes("/login");
@@ -978,7 +978,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     }
 
     await page.goto(getTenantUrl("/tenant/settings/public-site"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     expect(page.url()).toContain("/settings/public-site");
   });
@@ -999,13 +999,13 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
 
     // Navigate to content settings (may be tab or separate page)
     await page.goto(getTenantUrl("/tenant/settings/public-site"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Try to find content tab/link
     const contentLink = page.getByRole("link", { name: /content/i });
     if (await contentLink.isVisible().catch(() => false)) {
       await contentLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     }
 
     // Should have content editing fields
@@ -1024,7 +1024,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     }
 
     await page.goto(getTenantUrl("/tenant/settings/public-site/appearance"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should have appearance/theme settings
     const hasColorSettings = await page.getByText(/color|theme|appearance|style/i).isVisible().catch(() => false);
@@ -1040,7 +1040,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     }
 
     await page.goto(getTenantUrl("/tenant/settings/public-site/appearance"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Check for color picker or color inputs
     const hasColorInput = await page.locator("input[type='color']").isVisible().catch(() => false);
@@ -1059,7 +1059,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     }
 
     await page.goto(getTenantUrl("/tenant/settings/public-site/general"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Should have save/update button
     const hasSaveButton = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
@@ -1077,7 +1077,7 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     }
 
     await page.goto(getTenantUrl("/tenant/settings/public-site"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
 
     // Look for navigation tabs or links
     const generalLink = page.getByRole("link", { name: /general/i });
@@ -1091,15 +1091,15 @@ test.describe.serial("Block E: Admin Public Site Settings", () => {
     // Try navigating if links exist
     if (hasGeneral) {
       await generalLink.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded");
     }
     if (hasContent) {
       await contentLink.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded");
     }
     if (hasAppearance) {
       await appearanceLink.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded");
     }
 
     // At minimum, should stay on settings pages
