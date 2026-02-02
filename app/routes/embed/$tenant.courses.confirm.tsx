@@ -481,7 +481,7 @@ export default function EnrollmentConfirmationPage() {
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Link
-          to={`/embed/${tenantSlug}/courses`}
+          to="/site/courses"
           className="flex-1 text-center py-3 px-6 rounded-lg font-semibold transition-colors border-2"
           style={{
             borderColor: branding.primaryColor,

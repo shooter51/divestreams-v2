@@ -2,7 +2,7 @@
  * POS Database Queries
  */
 
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
 import type { CartItem, Payment } from "../validation/pos";
@@ -389,6 +389,45 @@ export async function processPOSCheckout(
 
   // Update product inventory
   const productItems = data.items.filter((item): item is CartItem & { type: "product" } => item.type === "product");
+
+  // [KAN-620 FIX] Pre-validate stock before decrementing to prevent negative inventory
+  if (productItems.length > 0) {
+    // Fetch current stock for all products in the cart
+    const productIds = productItems.map(p => p.productId);
+    const productsInCart = await db
+      .select({
+        id: tables.products.id,
+        name: tables.products.name,
+        stockQuantity: tables.products.stockQuantity,
+      })
+      .from(tables.products)
+      .where(
+        and(
+          eq(tables.products.organizationId, organizationId),
+          inArray(tables.products.id, productIds)
+        )
+      );
+
+    // Check if any product would go negative
+    const insufficientStock: { name: string; available: number; requested: number }[] = [];
+    for (const cartItem of productItems) {
+      const product = productsInCart.find(p => p.id === cartItem.productId);
+      if (product && product.stockQuantity < cartItem.quantity) {
+        insufficientStock.push({
+          name: product.name,
+          available: product.stockQuantity,
+          requested: cartItem.quantity,
+        });
+      }
+    }
+
+    if (insufficientStock.length > 0) {
+      const errorDetails = insufficientStock
+        .map(p => `${p.name} (available: ${p.available}, requested: ${p.requested})`)
+        .join(", ");
+      throw new Error(`Insufficient stock for: ${errorDetails}`);
+    }
+  }
 
   for (const product of productItems) {
     await db

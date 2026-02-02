@@ -2206,18 +2206,45 @@ export async function adjustProductStock(
   organizationId: string,
   productId: string,
   adjustment: number
-): Promise<boolean> {
+): Promise<{ success: boolean; error?: string; newQuantity?: number }> {
+  // [KAN-620 FIX] Pre-validate stock adjustment to prevent negative inventory
+  const [product] = await db
+    .select({
+      name: schema.products.name,
+      stockQuantity: schema.products.stockQuantity,
+    })
+    .from(schema.products)
+    .where(and(
+      eq(schema.products.organizationId, organizationId),
+      eq(schema.products.id, productId)
+    ))
+    .limit(1);
+
+  if (!product) {
+    return { success: false, error: "Product not found" };
+  }
+
+  const newQuantity = product.stockQuantity + adjustment;
+
+  if (newQuantity < 0) {
+    return {
+      success: false,
+      error: `Cannot adjust stock: adjustment of ${adjustment} would result in negative stock (${newQuantity}). Current stock is ${product.stockQuantity}.`,
+    };
+  }
+
   await db
     .update(schema.products)
     .set({
-      stockQuantity: sql`${schema.products.stockQuantity} + ${adjustment}`,
+      stockQuantity: newQuantity,
       updatedAt: new Date(),
     })
     .where(and(
       eq(schema.products.organizationId, organizationId),
       eq(schema.products.id, productId)
     ));
-  return true;
+
+  return { success: true, newQuantity };
 }
 
 // ============================================================================

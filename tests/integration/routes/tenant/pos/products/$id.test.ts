@@ -72,7 +72,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     });
 
     it("should adjust stock up", async () => {
-      vi.mocked(queries.adjustProductStock).mockResolvedValue(undefined);
+      vi.mocked(queries.adjustProductStock).mockResolvedValue({ success: true, newQuantity: 10 });
 
       const formData = new FormData();
       formData.append("intent", "adjustStock");
@@ -90,7 +90,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     });
 
     it("should adjust stock down", async () => {
-      vi.mocked(queries.adjustProductStock).mockResolvedValue(undefined);
+      vi.mocked(queries.adjustProductStock).mockResolvedValue({ success: true, newQuantity: 10 });
 
       const formData = new FormData();
       formData.append("intent", "adjustStock");
@@ -108,7 +108,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     });
 
     it("should handle invalid adjustment value", async () => {
-      vi.mocked(queries.adjustProductStock).mockResolvedValue(undefined);
+      vi.mocked(queries.adjustProductStock).mockResolvedValue({ success: true, newQuantity: 10 });
 
       const formData = new FormData();
       formData.append("intent", "adjustStock");
@@ -125,7 +125,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     });
 
     it("should handle zero adjustment", async () => {
-      vi.mocked(queries.adjustProductStock).mockResolvedValue(undefined);
+      vi.mocked(queries.adjustProductStock).mockResolvedValue({ success: true, newQuantity: 10 });
 
       const formData = new FormData();
       formData.append("intent", "adjustStock");
