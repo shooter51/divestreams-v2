@@ -510,7 +510,7 @@ export default function TeamPage() {
                 {member.role !== "owner" && (
                   <div className="relative group">
                     <button className="p-2 hover:bg-surface-overlay rounded-lg">⋮</button>
-                    <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg hidden group-hover:block z-10">
+                    <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg hidden group-hover:block z-50 max-h-96 overflow-y-auto">
                       <div className="py-1">
                         <fetcher.Form method="post">
                           <input type="hidden" name="intent" value="update-role" />

@@ -440,7 +440,7 @@ export default function AdminTeamPage() {
                       <button className="p-2 hover:bg-surface-overlay rounded-lg text-foreground-muted">
                         ...
                       </button>
-                      <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg hidden group-hover:block z-10">
+                      <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg hidden group-hover:block z-50 max-h-96 overflow-y-auto">
                         <div className="py-1">
                           {m.role !== "owner" && (
                             <>
