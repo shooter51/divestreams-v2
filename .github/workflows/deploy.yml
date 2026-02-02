@@ -16,7 +16,7 @@ jobs:
   # ─────────────────────────────────────────────
   test:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
-    runs-on: [self-hosted, linux, divestreams]
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:15
@@ -68,7 +68,7 @@ jobs:
   # ─────────────────────────────────────────────
   e2e:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
-    runs-on: [self-hosted, linux, divestreams]
+    runs-on: ubuntu-latest
     continue-on-error: true  # Allow staging deployment even if E2E tests fail
     services:
       postgres:
@@ -301,7 +301,7 @@ jobs:
   prod-build-smoke-test:
     needs: build
     if: github.ref == 'refs/heads/staging'
-    runs-on: [self-hosted, linux, divestreams]
+    runs-on: ubuntu-latest
     continue-on-error: true  # Don't block deployment if prod build tests fail
     services:
       postgres:
