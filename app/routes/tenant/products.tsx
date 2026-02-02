@@ -211,7 +211,15 @@ export async function action({ request }: ActionFunctionArgs) {
       ));
 
     if (product) {
-      const newQuantity = Math.max(0, product.stockQuantity + adjustment);
+      const newQuantity = product.stockQuantity + adjustment;
+
+      // Validate that stock won't go negative
+      if (newQuantity < 0) {
+        return {
+          error: `Cannot adjust stock: adjustment of ${adjustment} would result in negative stock (${newQuantity}). Current stock is ${product.stockQuantity}.`
+        };
+      }
+
       await db
         .update(tables.products)
         .set({ stockQuantity: newQuantity, updatedAt: new Date() })
@@ -250,21 +258,65 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "No products selected" };
     }
 
+    // Validation: Check for negative values in "set" mode
+    if (updateType === "set" && value < 0) {
+      return { error: "Cannot set stock to negative value" };
+    }
+
+    // Validation: For "adjust" mode, check if any product would go negative
+    if (updateType === "adjust") {
+      // First, fetch all products to validate
+      const productsToUpdate = await db
+        .select({
+          id: tables.products.id,
+          name: tables.products.name,
+          stockQuantity: tables.products.stockQuantity,
+        })
+        .from(tables.products)
+        .where(
+          and(
+            eq(tables.products.organizationId, organizationId),
+            // Filter by productIds using OR conditions
+          )
+        );
+
+      // Filter to only selected products (since Drizzle doesn't have a simple IN operator)
+      const selectedProductsData = productsToUpdate.filter(p => productIds.includes(p.id));
+
+      // Check if any product would go negative
+      const invalidProducts = selectedProductsData
+        .filter(p => p.stockQuantity + value < 0)
+        .map(p => ({
+          name: p.name,
+          current: p.stockQuantity,
+          result: p.stockQuantity + value,
+        }));
+
+      if (invalidProducts.length > 0) {
+        const errorDetails = invalidProducts
+          .map(p => `${p.name} (current: ${p.current}, would be: ${p.result})`)
+          .join(", ");
+        return {
+          error: `Cannot adjust stock: ${invalidProducts.length} product${invalidProducts.length !== 1 ? 's' : ''} would have negative stock. ${errorDetails}`,
+        };
+      }
+    }
+
     let updatedCount = 0;
 
     for (const productId of productIds) {
       if (updateType === "set") {
-        // Set stock to specific value
+        // Set stock to specific value (already validated as non-negative)
         await db
           .update(tables.products)
-          .set({ stockQuantity: Math.max(0, value), updatedAt: new Date() })
+          .set({ stockQuantity: value, updatedAt: new Date() })
           .where(and(
             eq(tables.products.organizationId, organizationId),
             eq(tables.products.id, productId)
           ));
         updatedCount++;
       } else {
-        // Adjust by value
+        // Adjust by value (already validated no products will go negative)
         const [product] = await db
           .select()
           .from(tables.products)
@@ -274,7 +326,7 @@ export async function action({ request }: ActionFunctionArgs) {
           ));
 
         if (product) {
-          const newQuantity = Math.max(0, product.stockQuantity + value);
+          const newQuantity = product.stockQuantity + value;
           await db
             .update(tables.products)
             .set({ stockQuantity: newQuantity, updatedAt: new Date() })
@@ -1190,7 +1242,7 @@ export default function ProductsPage() {
                   placeholder="e.g., 10 or -5"
                 />
                 <p className="text-xs text-foreground-muted mt-1">
-                  Note: Stock cannot go below 0. Negative adjustments will be clamped.
+                  Note: Stock cannot go below 0. Adjustments that would result in negative stock will be rejected.
                 </p>
               </div>
 
