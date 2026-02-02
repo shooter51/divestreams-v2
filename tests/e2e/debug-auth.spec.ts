@@ -21,8 +21,11 @@ test.describe('Debug Authentication', () => {
     // Click sign in
     await page.getByRole('button', { name: /sign in/i }).click();
 
-    // Wait a bit for any error messages or redirects
-    await page.waitForTimeout(3000);
+    // Wait for login to complete (redirect or error)
+    await page.waitForURL(/\/tenant|\/auth\/login/, { timeout: 10000 }).catch(() => {
+      // URL may not change if there's an error
+    });
+    await page.waitForLoadState('load');
     await page.screenshot({ path: 'test-results/03-after-click.png' });
 
     // Check current URL

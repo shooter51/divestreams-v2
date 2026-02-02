@@ -35,7 +35,7 @@ export class POSPage extends TenantBasePage {
   async selectTab(tab: "retail" | "rentals" | "trips"): Promise<void> {
     await this.page.getByRole("button", { name: new RegExp(`^${tab}$`, "i") }).click();
     // Wait for tab content to load
-    await this.page.waitForTimeout(300);
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   async expectTabActive(tab: "retail" | "rentals" | "trips"): Promise<void> {
@@ -68,8 +68,8 @@ export class POSPage extends TenantBasePage {
 
   async searchProducts(query: string): Promise<void> {
     await this.page.getByPlaceholder(/search/i).fill(query);
-    // Wait for filter to apply
-    await this.page.waitForTimeout(300);
+    // Wait for filter to apply (debounced input)
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   async clearProductSearch(): Promise<void> {
@@ -99,8 +99,8 @@ export class POSPage extends TenantBasePage {
     // Click "Add Rental" button
     await rentalCard.getByRole("button", { name: /add rental/i }).click();
 
-    // Wait for days selector to appear
-    await this.page.waitForTimeout(200);
+    // Wait for days selector to appear (the Add $X.XX button)
+    await rentalCard.getByRole("button", { name: /add \$/i }).waitFor({ state: "visible" });
 
     // Adjust days if needed (default is 1)
     if (days > 1) {
@@ -133,8 +133,8 @@ export class POSPage extends TenantBasePage {
     // Click "Book Now" button
     await tripCard.getByRole("button", { name: /book now/i }).click();
 
-    // Wait for participant selector to appear
-    await this.page.waitForTimeout(200);
+    // Wait for participant selector to appear (the Add $X.XX button)
+    await tripCard.getByRole("button", { name: /add \$/i }).waitFor({ state: "visible" });
 
     // Adjust participants if needed (default is 1)
     if (participants > 1) {
@@ -228,12 +228,14 @@ export class POSPage extends TenantBasePage {
     if (quantity > currentQty) {
       for (let i = currentQty; i < quantity; i++) {
         await cartItem.locator("button").filter({ hasText: "+" }).click();
-        await this.page.waitForTimeout(100);
+        // Wait for quantity display to update
+        await expect(cartItem.locator(".w-6.text-center")).toContainText(String(i + 1));
       }
     } else if (quantity < currentQty) {
       for (let i = currentQty; i > quantity; i--) {
         await cartItem.locator("button").filter({ hasText: "-" }).click();
-        await this.page.waitForTimeout(100);
+        // Wait for quantity display to update
+        await expect(cartItem.locator(".w-6.text-center")).toContainText(String(i - 1));
       }
     }
   }
@@ -291,9 +293,9 @@ export class POSPage extends TenantBasePage {
 
   async searchCustomer(query: string): Promise<void> {
     await this.page.getByPlaceholder(/search customer/i).fill(query);
-    // Trigger search with Enter or wait for debounce
+    // Trigger search with Enter and wait for results
     await this.page.keyboard.press("Enter");
-    await this.page.waitForTimeout(500);
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   async selectCustomer(customerName: string): Promise<void> {
@@ -442,7 +444,11 @@ export class POSPage extends TenantBasePage {
   // ============================================
 
   async waitForCartUpdate(): Promise<void> {
-    await this.page.waitForTimeout(300);
+    // Wait for any pending network requests to complete
+    await this.page.waitForLoadState("networkidle").catch(() => {
+      // Network idle may not be reached in some cases, fall back to domcontentloaded
+    });
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   async expectNoProducts(): Promise<void> {
