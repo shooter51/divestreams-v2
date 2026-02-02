@@ -51,7 +51,7 @@ test.describe('KAN-638: Course Booking Flow', () => {
 
     // Wait for course detail page to load
     await page.waitForLoadState('load');
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
     // Find the sidebar "Enroll Now" button (it's a button, not a link)
     const enrollButton = page.getByRole('button', { name: /enroll now/i });

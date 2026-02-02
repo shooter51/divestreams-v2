@@ -64,7 +64,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
     await page.waitForLoadState('load');
 
     // Verify no 404 error
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     expect(page.url()).not.toContain('404');
 
     // Verify "Book Now" button exists
@@ -201,7 +201,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
     expect(cardClass).toContain('dark:border-gray-700');
 
     // Verify heading has dark mode text
-    const heading = page.locator('h1');
+    const heading = page.getByRole('heading', { level: 1 });
     const headingClass = await heading.getAttribute('class');
     expect(headingClass).toContain('dark:text-gray-100');
   });
@@ -243,7 +243,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
     expect(page.url()).not.toContain('/embed/');
 
     // Verify we're back on trips listing
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     const tripLinks = page.locator('a[href*="/site/trips/"]');
     await expect(tripLinks.first()).toBeVisible();
   });
@@ -281,7 +281,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
 
     // Verify we're back on trips listing
     expect(page.url()).toContain('/site/trips');
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 
   test('booking should trigger confirmation email (check console logs)', async ({ page }) => {
@@ -331,7 +331,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
 
   test('complete end-to-end booking journey', async ({ page }) => {
     // 1. Start from trips listing
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
     // 2. Navigate to trip detail
     const firstTripLink = page.locator('a[href*="/site/trips/"]').first();
@@ -369,7 +369,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
     // 8. Verify we're back on trips listing (not embed page)
     expect(page.url()).toContain('/site/trips');
     expect(page.url()).not.toContain('/embed/');
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
     // ✅ SUCCESS: Complete booking flow works without 404, with correct redirect
   });
