@@ -16,6 +16,10 @@ class AlbumPage extends TenantBasePage {
   async gotoLogin(): Promise<void> {
     await this.gotoAuth('/login');
   }
+
+  async goto(path: string): Promise<void> {
+    await this.gotoApp(path);
+  }
 }
 
 test.describe('KAN-630: Album Image Upload', () => {
@@ -41,8 +45,8 @@ test.describe('KAN-630: Album Image Upload', () => {
     // Set longer timeout for image upload processing
     test.setTimeout(30000);
 
-    // Navigate to gallery page
-    await page.goto('/tenant/gallery');
+    // Navigate to gallery page using tenant subdomain
+    await albumPage.goto('/gallery');
     await expect(page.locator('h1')).toContainText('Gallery');
 
     // Find an existing album or create one
@@ -51,7 +55,7 @@ test.describe('KAN-630: Album Image Upload', () => {
     let albumId: string;
     if (!albumExists) {
       // Create a test album if none exists
-      await page.goto('/tenant/gallery');
+      await albumPage.goto('/gallery');
       // Assuming there's a way to create albums - this might need adjustment
       await page.click('button:has-text("New Album")');
       await page.fill('input[name="name"]', 'Test Album for Upload');
@@ -115,8 +119,8 @@ test.describe('KAN-630: Album Image Upload', () => {
   });
 
   test('should handle upload errors gracefully', async ({ page }) => {
-    // Navigate to an album
-    await page.goto('/tenant/gallery');
+    // Navigate to an album using tenant subdomain
+    await albumPage.goto('/gallery');
     const albumLink = page.locator('a[href*="/tenant/gallery/"]').first();
 
     if (await albumLink.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -144,8 +148,8 @@ test.describe('KAN-630: Album Image Upload', () => {
   });
 
   test('should display uploaded images in album', async ({ page }) => {
-    // Navigate to gallery
-    await page.goto('/tenant/gallery');
+    // Navigate to gallery using tenant subdomain
+    await albumPage.goto('/gallery');
 
     // Navigate to first album
     const albumLink = page.locator('a[href*="/tenant/gallery/"]').first();

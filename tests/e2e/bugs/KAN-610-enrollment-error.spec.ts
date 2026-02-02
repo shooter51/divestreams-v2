@@ -26,7 +26,11 @@ class TrainingPage extends TenantBasePage {
   }
 
   async gotoTraining(): Promise<void> {
-    await this.goto("/training");
+    await this.gotoApp("/training");
+  }
+
+  async goto(path: string): Promise<void> {
+    await this.gotoApp(path);
   }
 }
 

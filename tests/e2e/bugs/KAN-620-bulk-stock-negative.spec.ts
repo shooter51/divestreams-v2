@@ -24,7 +24,7 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     await loginPage.login("owner@demo.com", "demo1234");
 
     // Navigate to products page
-    await page.goto(`https://${tenantSlug}.localhost:3000/tenant/products`);
+    await page.goto(`http://${tenantSlug}.localhost:5173/tenant/products`);
     await page.waitForLoadState("networkidle");
   });
 
