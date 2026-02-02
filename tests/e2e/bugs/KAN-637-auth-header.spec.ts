@@ -66,7 +66,7 @@ test.describe("KAN-637: Auth header state after login @bug", () => {
       if (errorText?.includes("already")) {
         // Email exists, try to login instead
         await sitePage.gotoSiteLogin();
-        await page.getByLabel(/email/i).fill(email);
+        await page.getByRole("textbox", { name: /email/i }).fill(email);
         await page.getByLabel(/password/i).fill(password);
         await page.getByRole("button", { name: /sign in|log in/i }).click();
         await page.waitForURL(/\/site\/account/, { timeout: 10000 });

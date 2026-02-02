@@ -10,7 +10,8 @@ export class LoginPage extends TenantBasePage {
   }
 
   async login(email: string, password: string): Promise<void> {
-    await this.fillByLabel(/email/i, email);
+    // Email field requires getByRole for accessibility matching
+    await this.page.getByRole("textbox", { name: /email/i }).fill(email);
     await this.fillByLabel(/password/i, password);
     // Click and wait for navigation after successful login
     await this.clickButton(/sign in/i);

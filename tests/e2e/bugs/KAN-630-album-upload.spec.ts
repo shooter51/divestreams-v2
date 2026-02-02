@@ -33,7 +33,7 @@ test.describe('KAN-630: Album Image Upload', () => {
     await page.waitForLoadState("load");
 
     // Fill in login credentials using accessibility-based selectors
-    await page.getByLabel(/email/i).fill("owner@demo.com");
+    await page.getByRole("textbox", { name: /email/i }).fill("owner@demo.com");
     await page.getByLabel(/password/i).fill("demo1234");
     await page.getByRole("button", { name: /sign in/i }).click();
 

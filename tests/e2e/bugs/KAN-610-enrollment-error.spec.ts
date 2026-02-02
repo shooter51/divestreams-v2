@@ -44,8 +44,8 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
     await trainingPage.gotoLogin();
     await page.waitForLoadState("load");
 
-    // Fill in login credentials
-    await page.getByLabel(/email/i).fill("owner@demo.com");
+    // Fill in login credentials using accessibility-based selectors
+    await page.getByRole("textbox", { name: /email/i }).fill("owner@demo.com");
     await page.getByLabel(/password/i).fill("demo1234");
     await page.getByRole("button", { name: /sign in/i }).click();
 
