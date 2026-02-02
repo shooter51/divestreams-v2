@@ -129,7 +129,7 @@ async function loginToTenant(page: Page) {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     // Login may have failed or been slow - continue anyway, isAuthenticated will catch it
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
   }
 }
 
@@ -193,14 +193,14 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
 
   test("[KAN-52] 1.4 Marketing pricing section exists", async ({ page }) => {
     await page.goto(getMarketingUrl("/pricing"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     const pricing = await page.getByText(/pricing|plan/i).first().isVisible().catch(() => false);
     expect(pricing || page.url().includes("/pricing")).toBeTruthy();
   });
 
   test("[KAN-53] 1.5 Marketing pages accessible", async ({ page }) => {
     await page.goto(getMarketingUrl("/"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url()).toBeTruthy();
   });
 
@@ -226,7 +226,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.locator("#password").fill(testData.user.password);
     await page.locator("#confirmPassword").fill(testData.user.password);
     await page.getByRole("button", { name: "Start Free Trial" }).click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState("networkidle").catch(() => {});
     const alreadyTaken = await page.locator("text=already taken").isVisible().catch(() => false);
     if (alreadyTaken) {
       console.log("Tenant already exists from previous run - this is OK");
@@ -247,7 +247,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.locator("#password").fill("TestPass123!");
     await page.locator("#confirmPassword").fill("TestPass123!");
     await page.getByRole("button", { name: "Start Free Trial" }).click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/signup")).toBeTruthy();
   });
 
@@ -259,7 +259,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.locator("#password").fill("TestPass123!");
     await page.locator("#confirmPassword").fill("TestPass123!");
     await page.getByRole("button", { name: "Start Free Trial" }).click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/signup")).toBeTruthy();
   });
 
@@ -326,7 +326,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.goto(getTenantUrl("/auth/login"));
     await page.getByLabel(/password/i).fill("somepassword");
     await page.getByRole("button", { name: /sign in/i }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/login")).toBeTruthy();
   });
 
@@ -334,7 +334,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.goto(getTenantUrl("/auth/login"));
     await page.getByRole("textbox", { name: /email/i }).fill("test@test.com");
     await page.getByRole("button", { name: /sign in/i }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/login")).toBeTruthy();
   });
 
@@ -343,7 +343,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     await page.getByRole("textbox", { name: /email/i }).fill("wrong@test.com");
     await page.getByLabel(/password/i).fill("wrongpassword");
     await page.getByRole("button", { name: /sign in/i }).click();
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     const hasError = await page.locator('[class*="bg-red"], [class*="text-red"]').isVisible().catch(() => false);
     expect(hasError || page.url().includes("/login")).toBeTruthy();
   });
@@ -368,7 +368,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
     expect(response.ok()).toBeTruthy();
 
     // Wait a moment for the data to be committed
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
 
     // Verify by checking that agencies exist by navigating to training import
     await page.goto(getTenantUrl("/tenant/training/import"));
@@ -406,31 +406,31 @@ test.describe.serial("Block B: Admin Panel - Unauthenticated", () => {
 
   test("[KAN-69] 5.3 Admin dashboard requires auth", async ({ page }) => {
     await page.goto(getAdminUrl("/dashboard"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-70] 5.4 Admin plans page requires auth", async ({ page }) => {
     await page.goto(getAdminUrl("/plans"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-71] 5.5 Admin tenant detail page requires auth", async ({ page }) => {
     await page.goto(getAdminUrl(`/tenants/${testData.tenant.subdomain}`));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-72] 5.6 Admin tenants/new requires auth", async ({ page }) => {
     await page.goto(getAdminUrl("/tenants/new"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-73] 5.7 Admin root requires auth", async ({ page }) => {
     await page.goto(getAdminUrl("/"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/login")).toBeTruthy();
   });
 
@@ -438,7 +438,7 @@ test.describe.serial("Block B: Admin Panel - Unauthenticated", () => {
     await page.goto(getAdminUrl("/login"));
     await page.getByLabel(/password/i).fill("wrongpassword");
     await page.getByRole("button", { name: /sign in/i }).click();
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     const hasError = await page.locator('[class*="bg-red"], [class*="text-red"]').isVisible().catch(() => false);
     expect(hasError || page.url().includes("/login")).toBeTruthy();
   });
@@ -452,61 +452,61 @@ test.describe.serial("Block B: Admin Panel - Unauthenticated", () => {
 test.describe.serial("Block C: Tenant Routes Existence", () => {
   test("[KAN-10] 4.1 Tenant dashboard navigation exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/tenant") || page.url().includes("/auth/login")).toBeTruthy();
   });
 
   test("[KAN-75] 4.2 Customers page route exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/customers") || page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-76] 4.3 Trips page route exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/trips") || page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-77] 4.4 Bookings page route exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/bookings"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/bookings") || page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-78] 4.5 Equipment page route exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/equipment"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/equipment") || page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-79] 4.6 Boats page route exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/boats") || page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-80] 4.7 Tours page route exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/tours") || page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-81] 4.8 Dive sites page route exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/dive-sites"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/dive-sites") || page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-82] 4.9 POS page route exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/pos") || page.url().includes("/login")).toBeTruthy();
   });
 
   test("[KAN-83] 4.10 Reports page route exists", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/reports") || page.url().includes("/login")).toBeTruthy();
   });
 });
@@ -569,7 +569,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-84] 6.1 Navigate to boats list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /boat|vessel/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/boats")).toBeTruthy();
@@ -579,14 +579,14 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats"));
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const addLink = page.getByRole("link", { name: /add boat/i });
     // Retry with reload if not found (Vite dep optimization can cause page reloads)
     if (!(await addLink.isVisible().catch(() => false))) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
     }
     await expect(addLink).toBeVisible({ timeout: 8000 });
   });
@@ -594,7 +594,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-86] 6.3 Navigate to new boat form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /add boat/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/boats")).toBeTruthy();
@@ -603,7 +603,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-87] 6.4 New boat form has name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/boat name/i).isVisible().catch(() => false);
     expect(nameField).toBeTruthy();
@@ -612,7 +612,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-88] 6.5 New boat form has type field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const typeField = await page.getByLabel(/boat type/i).isVisible().catch(() => false);
     expect(typeField).toBeTruthy();
@@ -621,7 +621,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-89] 6.6 New boat form has capacity field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const capacityField = await page.getByLabel(/capacity/i).isVisible().catch(() => false);
     expect(capacityField).toBeTruthy();
@@ -630,7 +630,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-90] 6.7 New boat form has registration field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const regField = await page.getByLabel(/registration/i).isVisible().catch(() => false);
     expect(regField).toBeTruthy();
@@ -639,7 +639,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-91] 6.8 Create new boat @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/boat name/i).isVisible().catch(() => false);
     if (nameField) {
@@ -650,7 +650,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       if (capacityField) await page.getByLabel(/capacity/i).fill(String(testData.boat.capacity));
       await Promise.all([
         page.getByRole("button", { name: /add boat|save|create/i }).click(),
-        page.waitForTimeout(3000)
+        page.waitForLoadState("networkidle").catch(() => {})
       ]).catch(() => null);
       const redirectedToList = page.url().includes("/tenant/boats") && !page.url().includes("/new");
       const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
@@ -663,7 +663,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-92] 6.9 Boats list shows created boat", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasBoats = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no boats|empty|nothing/i).isVisible().catch(() => false);
@@ -675,7 +675,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-93] 6.10 Boats page has search functionality", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     expect(searchInput).toBeTruthy();
@@ -684,7 +684,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-94] 6.11 Boats page has stats cards", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasStats = await page.getByText(/total|active|capacity/i).first().isVisible().catch(() => false);
     expect(hasStats).toBeTruthy();
@@ -695,12 +695,12 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     const boatId = testData.createdIds.boat;
     if (!boatId) {
       await page.goto(getTenantUrl("/tenant/boats"));
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
       expect(page.url().includes("/boats")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/boats/${boatId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/boats")).toBeTruthy();
   });
 
@@ -709,12 +709,12 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     const boatId = testData.createdIds.boat;
     if (!boatId) {
       await page.goto(getTenantUrl("/tenant/boats"));
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
       expect(page.url().includes("/boats")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/boats/${boatId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/boats")).toBeTruthy();
   });
 
@@ -727,7 +727,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/boats/${boatId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
     expect(saveBtn || page.url().includes("/boats")).toBeTruthy();
@@ -736,7 +736,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-98] 6.15 Boats handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/boats/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/boats")).toBeTruthy();
   });
 
@@ -744,7 +744,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-99] 7.1 Navigate to tours list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /tour/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/tours")).toBeTruthy();
@@ -753,7 +753,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-100] 7.2 Tours page has Create Tour button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const createButton = await page.getByRole("link", { name: /create tour/i }).isVisible().catch(() => false);
     expect(createButton).toBeTruthy();
@@ -762,7 +762,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-101] 7.3 Navigate to new tour form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /new tour|create tour/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/tours")).toBeTruthy();
@@ -771,7 +771,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-102] 7.4 New tour form has name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
     expect(nameField).toBeTruthy();
@@ -780,7 +780,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-103] 7.5 New tour form has price field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const priceField = await page.getByLabel(/price/i).isVisible().catch(() => false);
     expect(priceField).toBeTruthy();
@@ -789,7 +789,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-104] 7.6 New tour form has duration field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const durationField = await page.getByLabel(/duration/i).isVisible().catch(() => false);
     expect(durationField).toBeTruthy();
@@ -798,7 +798,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-105] 7.7 New tour form has max participants field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const maxPaxField = await page.getByLabel(/max.*participant/i).isVisible().catch(() => false);
     expect(maxPaxField).toBeTruthy();
@@ -807,7 +807,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-106] 7.8 Create new tour @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
     if (nameField) {
@@ -816,7 +816,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       if (priceField) await page.getByLabel(/price/i).fill(String(testData.tour.price));
       await Promise.all([
         page.getByRole("button", { name: /create|save/i }).click(),
-        page.waitForTimeout(3000)
+        page.waitForLoadState("networkidle").catch(() => {})
       ]).catch(() => null);
       const redirectedToList = page.url().includes("/tenant/tours") && !page.url().includes("/new");
       const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
@@ -829,7 +829,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-107] 7.9 Tours list shows created tour", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasTours = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no tours|empty|nothing/i).isVisible().catch(() => false);
@@ -841,7 +841,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-108] 7.10 Tours page has search functionality", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     expect(searchInput).toBeTruthy();
@@ -850,7 +850,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-109] 7.11 Tours page has type filter", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const typeFilter = await page.locator("select").first().isVisible().catch(() => false);
     expect(typeFilter).toBeTruthy();
@@ -865,7 +865,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/tours")).toBeTruthy();
   });
 
@@ -878,7 +878,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/tours")).toBeTruthy();
   });
 
@@ -891,7 +891,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
     expect(saveBtn || page.url().includes("/tours")).toBeTruthy();
@@ -900,7 +900,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-113] 7.15 Tours handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/tours")).toBeTruthy();
   });
 
@@ -908,7 +908,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-114] 8.1 Navigate to dive sites list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/dive-sites"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /dive site/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/dive-sites")).toBeTruthy();
@@ -917,7 +917,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-115] 8.2 Dive sites page has Add button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/dive-sites"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const addLink = await page.getByRole("link", { name: /add|create|new/i }).isVisible().catch(() => false);
     const addButton = await page.getByRole("button", { name: /add|create|new/i }).isVisible().catch(() => false);
@@ -928,14 +928,14 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-116] 8.3 Navigate to new dive site form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/dive-sites/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
 
   test("[KAN-117] 8.4 New dive site form has name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/dive-sites/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
     expect(nameField).toBeTruthy();
@@ -944,7 +944,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-118] 8.5 New dive site form has depth field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/dive-sites/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const depthField = await page.getByLabel(/depth/i).isVisible().catch(() => false);
     expect(depthField).toBeTruthy();
@@ -953,14 +953,14 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-119] 8.6 Create new dive site", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/dive-sites/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
     if (nameField) {
       await page.getByLabel(/name/i).first().fill(testData.diveSite.name);
       await Promise.all([
         page.getByRole("button", { name: /add|create|save/i }).click(),
-        page.waitForTimeout(3000)
+        page.waitForLoadState("networkidle").catch(() => {})
       ]).catch(() => null);
       const redirectedToList = page.url().includes("/tenant/dive-sites") && !page.url().includes("/new");
       const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
@@ -973,7 +973,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-120] 8.7 Dive sites list shows sites", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/dive-sites"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasSites = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no dive sites|no sites|empty|nothing/i).isVisible().catch(() => false);
@@ -991,7 +991,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/dive-sites/${diveSiteId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
 
@@ -1004,14 +1004,14 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/dive-sites/${diveSiteId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
 
   test("[KAN-123] 8.10 Dive sites handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/dive-sites/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/dive-sites")).toBeTruthy();
   });
 
@@ -1019,7 +1019,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-124] 9.1 Navigate to customers list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /customer/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/customers")).toBeTruthy();
@@ -1028,7 +1028,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-125] 9.2 Customers page has Add Customer button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const addButton = await page.getByRole("link", { name: /add customer/i }).isVisible().catch(() => false);
     expect(addButton).toBeTruthy();
@@ -1037,14 +1037,14 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-126] 9.3 Navigate to new customer form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/customers")).toBeTruthy();
   });
 
   test("[KAN-127] 9.4 New customer form has first name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const firstNameLabel = await page.getByLabel(/first name/i).isVisible().catch(() => false);
     const firstNameId = await page.locator("input#firstName, input[name='firstName']").first().isVisible().catch(() => false);
@@ -1054,7 +1054,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-128] 9.5 New customer form has last name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const lastNameLabel = await page.getByLabel(/last name/i).isVisible().catch(() => false);
     const lastNameId = await page.locator("input#lastName, input[name='lastName']").first().isVisible().catch(() => false);
@@ -1064,7 +1064,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-129] 9.6 New customer form has email field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const emailLabel = await page.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
     const emailInput = await page.locator("input[type='email'], input[name*='email'], input[id*='email']").first().isVisible().catch(() => false);
@@ -1074,7 +1074,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-130] 9.7 New customer form has phone field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const phoneLabel = await page.getByLabel(/phone/i).isVisible().catch(() => false);
     const phoneId = await page.locator("input#phone, input[name='phone'], input[type='tel']").first().isVisible().catch(() => false);
@@ -1098,7 +1098,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       await Promise.race([
         page.waitForURL(/\/tenant\/customers(?!\/new)/, { timeout: 10000 }),
         page.waitForSelector('.text-red-500', { state: "visible", timeout: 10000 }),
-        page.waitForTimeout(5000)
+        page.waitForLoadState("networkidle").catch(() => {})
       ]).catch(() => null);
       const redirectedToList = page.url().includes("/tenant/customers") && !page.url().includes("/new");
       expect(redirectedToList || page.url().includes("/customers")).toBeTruthy();
@@ -1110,7 +1110,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-131] 9.9 Customers list shows customers", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasCustomers = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no customers|empty|nothing/i).isVisible().catch(() => false);
@@ -1122,7 +1122,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-132] 9.10 Customers page has search functionality", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     expect(searchInput).toBeTruthy();
@@ -1131,7 +1131,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-133] 9.11 Customers page has table headers", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const nameHeader = await page.getByText(/^name$/i).isVisible().catch(() => false);
     expect(nameHeader).toBeTruthy();
@@ -1146,7 +1146,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/customers")).toBeTruthy();
   });
 
@@ -1159,7 +1159,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/customers")).toBeTruthy();
   });
 
@@ -1172,7 +1172,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasInfo = await page.getByText(/email|phone|name/i).first().isVisible().catch(() => false);
     expect(hasInfo || page.url().includes("/customers")).toBeTruthy();
@@ -1181,7 +1181,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-137] 9.15 Customers handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/customers")).toBeTruthy();
   });
 
@@ -1189,7 +1189,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-138] 10.1 Navigate to equipment list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /equipment/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/equipment")).toBeTruthy();
@@ -1198,7 +1198,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-139] 10.2 Equipment page has Add button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     // The "Add Equipment" is a Link styled as a button
     const addEquipmentLink = await page.getByRole("link", { name: /add equipment/i }).isVisible().catch(() => false);
@@ -1210,14 +1210,14 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-140] 10.3 Navigate to new equipment form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
   test("[KAN-141] 10.4 New equipment form has name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const nameLabel = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
     const nameId = await page.locator("input#name, input[name='name']").first().isVisible().catch(() => false);
@@ -1227,7 +1227,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-142] 10.5 New equipment form has category field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const categoryLabel = await page.getByLabel(/category/i).isVisible().catch(() => false);
     const categoryId = await page.locator("select#category, select[name='category'], input#category, input[name='category']").first().isVisible().catch(() => false);
@@ -1237,7 +1237,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-143] 10.6 New equipment form has size field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     // Equipment form has: category, name, brand, model, serialNumber, barcode, size, status, condition, rentalPrice
     const sizeLabel = await page.getByLabel(/size/i).isVisible().catch(() => false);
@@ -1248,7 +1248,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-144] 10.7 New equipment form has price field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     // Equipment form uses rentalPrice and purchasePrice fields
     const rentalPriceLabel = await page.getByLabel(/rental price/i).isVisible().catch(() => false);
@@ -1261,14 +1261,14 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-145] 10.8 Create new equipment @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
     if (nameField) {
       await page.getByLabel(/name/i).first().fill(testData.equipment.name);
       await Promise.all([
         page.getByRole("button", { name: /add|create|save/i }).click(),
-        page.waitForTimeout(3000)
+        page.waitForLoadState("networkidle").catch(() => {})
       ]).catch(() => null);
       const redirectedToList = page.url().includes("/tenant/equipment") && !page.url().includes("/new");
       const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
@@ -1281,7 +1281,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-146] 10.9 Equipment list shows items", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasEquipment = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no equipment|empty|nothing/i).isVisible().catch(() => false);
@@ -1293,7 +1293,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-147] 10.10 Equipment page has category filter", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const categoryFilter = await page.locator("select").first().isVisible().catch(() => false);
     expect(categoryFilter).toBeTruthy();
@@ -1302,7 +1302,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-148] 10.11 Equipment page has search", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     expect(searchInput).toBeTruthy();
@@ -1317,7 +1317,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/equipment/${equipmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
@@ -1330,7 +1330,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await page.goto(getTenantUrl(`/tenant/equipment/${equipmentId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
@@ -1347,7 +1347,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-152] 10.15 Equipment handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/equipment")).toBeTruthy();
   });
 
@@ -1355,7 +1355,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-153] 13.1 Navigate to discounts page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/discounts") || page.url().includes("/settings")).toBeTruthy();
   });
@@ -1363,7 +1363,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-154] 13.2 Discounts page has heading", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     // Page has h1 "Discount Codes"
     const heading = await page.getByRole("heading", { name: /discount/i }).isVisible().catch(() => false);
@@ -1374,13 +1374,13 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-155] 13.3 Open new discount modal form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const createButton = page.getByRole("button", { name: /create discount|new discount|\+ create/i });
     const hasCreateButton = await createButton.isVisible().catch(() => false);
     if (hasCreateButton) {
       await createButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded");
     }
     expect(page.url().includes("/discounts")).toBeTruthy();
   });
@@ -1388,12 +1388,12 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-156] 13.4 New discount modal has code field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const createButton = page.getByRole("button", { name: /create discount|new discount|\+ create/i });
     if (await createButton.isVisible().catch(() => false)) {
       await createButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded");
     }
     const codeLabel = await page.getByLabel(/code/i).isVisible().catch(() => false);
     const codeId = await page.locator("input#code, input[name='code']").first().isVisible().catch(() => false);
@@ -1403,12 +1403,12 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-157] 13.5 New discount modal has discount value field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const createButton = page.getByRole("button", { name: /create discount|new discount|\+ create/i });
     if (await createButton.isVisible().catch(() => false)) {
       await createButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded");
     }
     const valueLabel = await page.getByLabel(/percent|amount|value|discount/i).isVisible().catch(() => false);
     const valueId = await page.locator("input#percentage, input[name='percentage'], input#amount, input[name='amount'], input#value, input[name='value'], input[name='discountValue']").first().isVisible().catch(() => false);
@@ -1418,7 +1418,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-158] 13.6 Create new discount via modal", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const createButton = page.getByRole("button", { name: /create discount|new discount|\+ create/i });
     if (!await createButton.isVisible().catch(() => false)) {
@@ -1426,7 +1426,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       return;
     }
     await createButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("domcontentloaded");
     const hasForm = await page.getByRole("button", { name: /^create$|^save$/i }).isVisible().catch(() => false);
     if (hasForm) {
       const codeField = page.locator("input[name='code']").first();
@@ -1434,7 +1434,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       const valueField = page.locator("input[name='discountValue']").first();
       if (await valueField.isVisible().catch(() => false)) await valueField.fill(String(testData.discount.percentage));
       await page.getByRole("button", { name: /^create$|^save$/i }).click().catch(() => null);
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
     }
     expect(page.url().includes("/discounts")).toBeTruthy();
   });
@@ -1442,7 +1442,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-159] 13.7 Discounts list shows discount codes", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasDiscounts = await page.locator("table, [class*='grid']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no discount/i).isVisible().catch(() => false);
@@ -1454,7 +1454,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-160] 13.8 View discount details via table row", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasTable = await page.locator("table").first().isVisible().catch(() => false);
     const hasDiscountCode = await page.locator("td .font-mono, .font-mono").first().isVisible().catch(() => false);
@@ -1465,12 +1465,12 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-161] 13.9 Edit discount via Edit button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const editButton = page.getByRole("button", { name: /^edit$/i }).first();
     if (await editButton.isVisible().catch(() => false)) {
       await editButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState("domcontentloaded");
       const hasModal = await page.locator("[class*='modal'], [class*='fixed']").first().isVisible().catch(() => false);
       expect(hasModal || page.url().includes("/discounts")).toBeTruthy();
     } else {
@@ -1481,7 +1481,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-162] 13.10 Discounts page handles being the only route", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/discounts"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /discount/i }).isVisible().catch(() => false);
     const createButton = await page.getByRole("button", { name: /create|new|\+/i }).isVisible().catch(() => false);
@@ -1499,7 +1499,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-163] 11.1 Navigate to trips list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /trip/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/trips")).toBeTruthy();
@@ -1509,14 +1509,14 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const scheduleLink = page.getByRole("link", { name: /schedule trip/i });
     // Retry with reload if not found (Vite dep optimization can cause page reloads)
     if (!(await scheduleLink.isVisible().catch(() => false))) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
     }
     await expect(scheduleLink).toBeVisible({ timeout: 8000 });
   });
@@ -1524,7 +1524,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-165] 11.3 Navigate to new trip form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/trips")).toBeTruthy();
   });
@@ -1532,7 +1532,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-166] 11.4 New trip form has date field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const dateField = await page.getByLabel(/date/i).isVisible().catch(() => false);
     expect(dateField).toBeTruthy();
@@ -1541,7 +1541,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-167] 11.5 New trip form has tour selector", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const tourSelector = await page.getByLabel(/tour/i).isVisible().catch(() => false);
     expect(tourSelector).toBeTruthy();
@@ -1550,7 +1550,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-168] 11.6 New trip form has boat selector", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const boatSelector = await page.getByLabel(/boat/i).isVisible().catch(() => false);
     expect(boatSelector).toBeTruthy();
@@ -1559,7 +1559,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-169] 11.7 Create new trip @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const dateField = await page.getByLabel(/date/i).isVisible().catch(() => false);
     if (dateField) {
@@ -1570,7 +1570,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       if (boatSelect) await page.getByLabel(/boat/i).selectOption({ index: 1 }).catch(() => null);
       await Promise.all([
         page.getByRole("button", { name: /schedule|create|save/i }).click(),
-        page.waitForTimeout(3000)
+        page.waitForLoadState("networkidle").catch(() => {})
       ]).catch(() => null);
       const redirectedToList = page.url().includes("/tenant/trips") && !page.url().includes("/new");
       const hasSuccessMessage = await page.getByText(/success|created|scheduled/i).isVisible().catch(() => false);
@@ -1583,7 +1583,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-170] 11.8 Trips list shows trips", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasTrips = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no trips|empty|nothing|schedule|upcoming/i).isVisible().catch(() => false);
@@ -1597,7 +1597,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-171] 11.9 Trips page has date filter", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const dateFilter = await page.locator("input[type='date']").first().isVisible().catch(() => false);
     // Fallback: check for any filter controls (date picker, calendar icon, or filter section)
@@ -1610,7 +1610,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-172] 11.10 Trips page has status filter", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const statusFilter = await page.locator("select").first().isVisible().catch(() => false);
     // Fallback: any filter controls or page content loaded
@@ -1625,13 +1625,13 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     const tripId = testData.createdIds.trip;
     if (!tripId) {
       await page.goto(getTenantUrl("/tenant/trips"));
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
       if (!await isAuthenticated(page)) return;
       expect(page.url().includes("/trips")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/trips")).toBeTruthy();
   });
@@ -1642,13 +1642,13 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     const tripId = testData.createdIds.trip;
     if (!tripId) {
       await page.goto(getTenantUrl("/tenant/trips"));
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState("load");
       if (!await isAuthenticated(page)) return;
       expect(page.url().includes("/trips")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/trips")).toBeTruthy();
   });
@@ -1662,7 +1662,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/trips/${tripId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasManifest = await page.getByText(/manifest|passenger|participant/i).first().isVisible().catch(() => false);
     expect(hasManifest || page.url().includes("/trips")).toBeTruthy();
@@ -1677,7 +1677,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/trips/${tripId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
     expect(saveBtn || page.url().includes("/trips")).toBeTruthy();
@@ -1686,7 +1686,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-177] 11.15 Trips handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/trips/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/trips")).toBeTruthy();
   });
 
@@ -1694,7 +1694,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-178] 12.1 Navigate to bookings list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /booking/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/bookings")).toBeTruthy();
@@ -1703,7 +1703,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-179] 12.2 Bookings page has New Booking button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const newButton = await page.getByRole("link", { name: /new booking/i }).isVisible().catch(() => false);
     expect(newButton).toBeTruthy();
@@ -1712,14 +1712,14 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-180] 12.3 Navigate to new booking form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
 
   test("[KAN-181] 12.4 New booking form has trip selector", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const tripSelector = await page.getByLabel(/trip/i).isVisible().catch(() => false);
     expect(tripSelector).toBeTruthy();
@@ -1728,7 +1728,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-182] 12.5 New booking form has customer selector", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const customerSelector = await page.getByLabel(/customer/i).isVisible().catch(() => false);
     expect(customerSelector).toBeTruthy();
@@ -1737,7 +1737,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-183] 12.6 New booking form has participants field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const participantsField = await page.getByLabel(/participant|guest/i).isVisible().catch(() => false);
     expect(participantsField).toBeTruthy();
@@ -1746,7 +1746,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-184] 12.7 Create new booking @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const tripSelector = await page.getByLabel(/trip/i).isVisible().catch(() => false);
     if (tripSelector) {
@@ -1755,7 +1755,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       if (customerSelect) await page.getByLabel(/customer/i).selectOption({ index: 1 }).catch(() => null);
       await Promise.all([
         page.getByRole("button", { name: /create|save|book/i }).click(),
-        page.waitForTimeout(3000)
+        page.waitForLoadState("networkidle").catch(() => {})
       ]).catch(() => null);
       const redirectedToList = page.url().includes("/tenant/bookings") && !page.url().includes("/new");
       const hasSuccessMessage = await page.getByText(/success|created|booked/i).isVisible().catch(() => false);
@@ -1768,7 +1768,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-185] 12.8 Bookings list shows bookings", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasBookings = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no bookings|empty|nothing/i).isVisible().catch(() => false);
@@ -1780,7 +1780,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-186] 12.9 Bookings page has search", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     expect(searchInput).toBeTruthy();
@@ -1789,7 +1789,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-187] 12.10 Bookings page has status filter", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const statusFilter = await page.locator("select").first().isVisible().catch(() => false);
     expect(statusFilter).toBeTruthy();
@@ -1804,7 +1804,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
 
@@ -1817,7 +1817,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
 
@@ -1830,7 +1830,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasPaymentInfo = await page.getByText(/payment|total|amount/i).first().isVisible().catch(() => false);
     expect(hasPaymentInfo || page.url().includes("/bookings")).toBeTruthy();
@@ -1845,7 +1845,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
     expect(saveBtn || page.url().includes("/bookings")).toBeTruthy();
@@ -1854,7 +1854,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
   test("[KAN-192] 12.15 Bookings handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/bookings/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
 });
@@ -1869,7 +1869,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-193] 14.1 Navigate to POS page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /point of sale|pos/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/pos")).toBeTruthy();
@@ -1878,7 +1878,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-194] 14.2 POS page has product/service list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const productList = await page.locator("[class*='grid'], [class*='card'], [class*='product']").first().isVisible().catch(() => false);
     expect(productList || page.url().includes("/pos")).toBeTruthy();
@@ -1887,7 +1887,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-195] 14.3 POS page has cart section", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const cartSection = await page.getByText(/cart|order|total/i).first().isVisible().catch(() => false);
     expect(cartSection || page.url().includes("/pos")).toBeTruthy();
@@ -1896,7 +1896,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-196] 14.4 POS page has customer selector", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const customerSelector = await page.getByText(/customer|select customer/i).first().isVisible().catch(() => false);
     expect(customerSelector || page.url().includes("/pos")).toBeTruthy();
@@ -1905,7 +1905,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-197] 14.5 POS page has payment button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const paymentButton = await page.getByRole("button", { name: /pay|checkout|complete/i }).isVisible().catch(() => false);
     expect(paymentButton || page.url().includes("/pos")).toBeTruthy();
@@ -1914,7 +1914,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-198] 14.6 POS category tabs exist", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const categoryTabs = await page.getByRole("button", { name: /tour|equipment|rental|all/i }).first().isVisible().catch(() => false);
     expect(categoryTabs || page.url().includes("/pos")).toBeTruthy();
@@ -1923,7 +1923,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-199] 14.7 POS search functionality", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     expect(searchInput || page.url().includes("/pos")).toBeTruthy();
@@ -1932,7 +1932,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-200] 14.8 POS handles empty cart", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const emptyCart = await page.getByText(/empty|no items|add items/i).isVisible().catch(() => false);
     expect(emptyCart || page.url().includes("/pos")).toBeTruthy();
@@ -1941,7 +1941,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-201] 14.9 POS discount code field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const discountField = await page.getByPlaceholder(/discount|promo|code/i).isVisible().catch(() => false);
     expect(discountField || page.url().includes("/pos")).toBeTruthy();
@@ -1950,7 +1950,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-202] 14.10 POS subtotal display", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/pos"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const subtotal = await page.getByText(/subtotal|total/i).first().isVisible().catch(() => false);
     expect(subtotal || page.url().includes("/pos")).toBeTruthy();
@@ -1960,7 +1960,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-203] 15.1 Navigate to reports page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /report/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/reports")).toBeTruthy();
@@ -1969,7 +1969,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-204] 15.2 Reports page has date range selector", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const dateRange = await page.locator("input[type='date']").first().isVisible().catch(() => false);
     expect(dateRange || page.url().includes("/reports")).toBeTruthy();
@@ -1978,7 +1978,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-205] 15.3 Reports page has revenue section", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const revenueSection = await page.getByText(/revenue|income|sales/i).first().isVisible().catch(() => false);
     expect(revenueSection || page.url().includes("/reports")).toBeTruthy();
@@ -1987,7 +1987,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-206] 15.4 Reports page has bookings stats", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const bookingsStats = await page.getByText(/booking|reservation/i).first().isVisible().catch(() => false);
     expect(bookingsStats || page.url().includes("/reports")).toBeTruthy();
@@ -1996,7 +1996,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-207] 15.5 Reports page has export button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const exportButton = await page.getByRole("button", { name: /export|download|csv/i }).isVisible().catch(() => false);
     expect(exportButton || page.url().includes("/reports")).toBeTruthy();
@@ -2005,7 +2005,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-208] 15.6 Reports page has customer stats", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const customerStats = await page.getByText(/customer|guest/i).first().isVisible().catch(() => false);
     expect(customerStats || page.url().includes("/reports")).toBeTruthy();
@@ -2014,7 +2014,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-209] 15.7 Reports page has charts", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const charts = await page.locator("canvas, svg, [class*='chart']").first().isVisible().catch(() => false);
     expect(charts || page.url().includes("/reports")).toBeTruthy();
@@ -2023,7 +2023,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-210] 15.8 Reports handles empty data", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasContent = await page.getByText(/no data|$0|0 booking/i).isVisible().catch(() => false);
     expect(hasContent || page.url().includes("/reports")).toBeTruthy();
@@ -2032,7 +2032,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-211] 15.9 Reports page has trip stats", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const tripStats = await page.getByText(/trip|dive/i).first().isVisible().catch(() => false);
     expect(tripStats || page.url().includes("/reports")).toBeTruthy();
@@ -2041,7 +2041,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-212] 15.10 Reports quick date presets", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/reports"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const presets = await page.getByRole("button", { name: /today|week|month|year/i }).first().isVisible().catch(() => false);
     expect(presets || page.url().includes("/reports")).toBeTruthy();
@@ -2051,7 +2051,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-213] 16.1 Navigate to settings page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /setting/i }).isVisible().catch(() => false);
     expect(heading || page.url().includes("/settings")).toBeTruthy();
@@ -2060,7 +2060,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-214] 16.2 Settings has shop name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const shopNameField = await page.getByLabel(/shop name|business name/i).isVisible().catch(() => false);
     expect(shopNameField || page.url().includes("/settings")).toBeTruthy();
@@ -2069,7 +2069,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-215] 16.3 Settings has email field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const emailField = await page.getByRole("textbox", { name: /email/i }).first().isVisible().catch(() => false);
     expect(emailField || page.url().includes("/settings")).toBeTruthy();
@@ -2078,7 +2078,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-216] 16.4 Settings has phone field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const phoneField = await page.getByLabel(/phone/i).isVisible().catch(() => false);
     expect(phoneField || page.url().includes("/settings")).toBeTruthy();
@@ -2087,7 +2087,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-217] 16.5 Settings has currency selector", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const currencySelector = await page.getByLabel(/currency/i).isVisible().catch(() => false);
     expect(currencySelector || page.url().includes("/settings")).toBeTruthy();
@@ -2096,7 +2096,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-218] 16.6 Settings has timezone selector", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const timezoneSelector = await page.getByLabel(/timezone|time zone/i).isVisible().catch(() => false);
     expect(timezoneSelector || page.url().includes("/settings")).toBeTruthy();
@@ -2105,7 +2105,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-219] 16.7 Settings has save button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const saveButton = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
     expect(saveButton || page.url().includes("/settings")).toBeTruthy();
@@ -2114,7 +2114,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-220] 16.8 Settings has address field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const addressField = await page.getByLabel(/address/i).isVisible().catch(() => false);
     expect(addressField || page.url().includes("/settings")).toBeTruthy();
@@ -2123,7 +2123,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-221] 16.9 Settings has website field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const websiteField = await page.getByLabel(/website|url/i).isVisible().catch(() => false);
     expect(websiteField || page.url().includes("/settings")).toBeTruthy();
@@ -2132,7 +2132,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-222] 16.10 Settings has logo upload", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const logoUpload = await page.locator("input[type='file']").first().isVisible().catch(() => false);
     expect(logoUpload || page.url().includes("/settings")).toBeTruthy();
@@ -2141,7 +2141,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-223] 16.11 Settings has description field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const descriptionField = await page.getByLabel(/description|about/i).isVisible().catch(() => false);
     expect(descriptionField || page.url().includes("/settings")).toBeTruthy();
@@ -2150,7 +2150,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-224] 16.12 Settings navigation tabs exist", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const tabs = await page.getByRole("tab").first().isVisible().catch(() => false);
     expect(tabs || page.url().includes("/settings")).toBeTruthy();
@@ -2159,7 +2159,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-225] 16.13 Settings profile section", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const profileSection = await page.getByText(/profile|general|business/i).first().isVisible().catch(() => false);
     expect(profileSection || page.url().includes("/settings")).toBeTruthy();
@@ -2168,7 +2168,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-226] 16.14 Settings booking options", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const bookingOptions = await page.getByText(/booking|reservation|scheduling/i).first().isVisible().catch(() => false);
     expect(bookingOptions || page.url().includes("/settings")).toBeTruthy();
@@ -2177,7 +2177,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-227] 16.15 Settings payment configuration", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/settings"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const paymentConfig = await page.getByText(/payment|stripe|billing/i).first().isVisible().catch(() => false);
     expect(paymentConfig || page.url().includes("/settings")).toBeTruthy();
@@ -2187,7 +2187,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-228] 17.1 Navigate to calendar page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/calendar"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const calendar = await page.locator("[class*='calendar'], [class*='fc'], [role='grid']").first().isVisible().catch(() => false);
     expect(calendar || page.url().includes("/calendar")).toBeTruthy();
@@ -2196,7 +2196,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-229] 17.2 Calendar has month navigation", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/calendar"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const monthNav = await page.getByRole("button", { name: /prev|next|<|>/i }).first().isVisible().catch(() => false);
     expect(monthNav || page.url().includes("/calendar")).toBeTruthy();
@@ -2205,7 +2205,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-230] 17.3 Calendar has today button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/calendar"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const todayButton = await page.getByRole("button", { name: /today/i }).isVisible().catch(() => false);
     expect(todayButton || page.url().includes("/calendar")).toBeTruthy();
@@ -2214,7 +2214,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-231] 17.4 Calendar has view toggles", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/calendar"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const viewToggle = await page.getByRole("button", { name: /month|week|day/i }).first().isVisible().catch(() => false);
     expect(viewToggle || page.url().includes("/calendar")).toBeTruthy();
@@ -2223,7 +2223,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-232] 17.5 Calendar shows trips", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/calendar"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasTrips = await page.locator("[class*='event'], [class*='trip']").first().isVisible().catch(() => false);
     expect(hasTrips || page.url().includes("/calendar")).toBeTruthy();
@@ -2232,7 +2232,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-233] 17.6 Calendar date cells are clickable", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/calendar"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const dateCell = await page.locator("[class*='day'], [class*='date'], td").first().isVisible().catch(() => false);
     expect(dateCell || page.url().includes("/calendar")).toBeTruthy();
@@ -2241,7 +2241,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-234] 17.7 Calendar shows current month name", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/calendar"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const currentDate = new Date();
     const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
@@ -2253,7 +2253,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-235] 17.8 Calendar handles empty state", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/calendar"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const calendarLoads = await page.locator("[class*='calendar'], [class*='fc']").first().isVisible().catch(() => false);
     expect(calendarLoads || page.url().includes("/calendar")).toBeTruthy();
@@ -2264,13 +2264,13 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   test("[KAN-236] 18.1 Embed widget page loads", async ({ page }) => {
     // Use the embed index page (tour listing)
     await page.goto(getEmbedUrl(""));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/embed")).toBeTruthy();
   });
 
   test("[KAN-237] 18.2 Embed widget shows tour selection", async ({ page }) => {
     await page.goto(getEmbedUrl(""));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     // Skip if route error (embed routes may not be configured in some environments)
     const hasRouteError = await page.getByText(/no route matches|not found|error|404/i).first().isVisible().catch(() => false);
     const pageContent = await page.content();
@@ -2286,7 +2286,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
 
   test("[KAN-238] 18.3 Embed widget shows tour duration", async ({ page }) => {
     await page.goto(getEmbedUrl(""));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     // Skip if route error (embed routes may not be configured in some environments)
     const hasRouteError = await page.getByText(/no route matches|not found|error|404/i).first().isVisible().catch(() => false);
     const pageContent = await page.content();
@@ -2302,7 +2302,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
 
   test("[KAN-239] 18.4 Embed widget shows tour availability", async ({ page }) => {
     await page.goto(getEmbedUrl(""));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     // Skip if route error
     const hasRouteError = await page.getByText(/no route matches|not found|error|404/i).first().isVisible().catch(() => false);
     const pageContent = await page.content();
@@ -2317,7 +2317,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
 
   test("[KAN-240] 18.5 Embed widget has book/view button", async ({ page }) => {
     await page.goto(getEmbedUrl(""));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     // Skip if route error or 404
     const hasRouteError = await page.getByText(/no route matches|not found|error/i).first().isVisible().catch(() => false);
     const pageContent = await page.content();
@@ -2332,7 +2332,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
 
   test("[KAN-241] 18.6 Embed widget displays pricing", async ({ page }) => {
     await page.goto(getEmbedUrl(""));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     // Skip if route error or 404
     const hasRouteError = await page.getByText(/no route matches|not found|error/i).first().isVisible().catch(() => false);
     const pageContent = await page.content();
@@ -2347,7 +2347,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
 
   test("[KAN-242] 18.7 Embed widget shows tour type", async ({ page }) => {
     await page.goto(getEmbedUrl(""));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     // Skip if route error or 404
     const hasRouteError = await page.getByText(/no route matches|not found|error/i).first().isVisible().catch(() => false);
     const pageContent = await page.content();
@@ -2362,7 +2362,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
 
   test("[KAN-243] 18.8 Embed widget handles missing tenant", async ({ page }) => {
     await page.goto("http://localhost:5173/embed/nonexistent");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     // Should show 404 or error for non-existent tenant
     const notFoundText = await page.getByText(/not found|404|error|shop not found/i).first().isVisible().catch(() => false);
     const is404Response = page.url().includes("nonexistent");
@@ -2385,7 +2385,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     try {
       await page.waitForURL(/\/dashboard/, { timeout: 10000 });
     } catch {
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
     }
   }
 
@@ -2399,7 +2399,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await page.goto(getAdminUrl("/login"));
     await page.getByLabel(/password/i).fill(testData.admin.password);
     await page.getByRole("button", { name: /sign in/i }).click();
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     const currentUrl = page.url();
     expect(currentUrl.includes("/dashboard") || currentUrl.includes("/login")).toBeTruthy();
   });
@@ -2407,7 +2407,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
   test("[KAN-245] 19.2 Admin dashboard loads after login", async ({ page }) => {
     await loginToAdmin(page);
     await page.goto(getAdminUrl("/dashboard"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     const dashboard = await page.getByRole("heading", { name: /dashboard|admin/i }).isVisible().catch(() => false);
     expect(dashboard || page.url().includes("/dashboard")).toBeTruthy();
   });
@@ -2416,7 +2416,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     // Organizations list is the admin dashboard (index page)
     await page.goto(getAdminUrl("/dashboard"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     const orgList = await page.getByRole("heading", { name: /organization/i }).isVisible().catch(() => false);
     const hasTable = await page.locator("table").isVisible().catch(() => false);
@@ -2426,7 +2426,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
   test("[KAN-247] 19.4 Admin plans list loads", async ({ page }) => {
     await loginToAdmin(page);
     await page.goto(getAdminUrl("/plans"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     const plansList = await page.getByRole("heading", { name: /plan/i }).isVisible().catch(() => false);
     const plansTable = await page.locator("table").isVisible().catch(() => false);
@@ -2437,7 +2437,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     if (!await isAdminAuthenticated(page)) return;
     await page.goto(getAdminUrl(`/tenants/${testData.tenant.subdomain}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     // Route exists at /admin/tenants/:slug
     const currentUrl = page.url();
@@ -2448,7 +2448,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     // Organizations list with search is on the dashboard
     await page.goto(getAdminUrl("/dashboard"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     expect(searchInput).toBeTruthy();
@@ -2458,7 +2458,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     // Organizations list with filter is on the dashboard
     await page.goto(getAdminUrl("/dashboard"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     const statusFilter = await page.locator("select").first().isVisible().catch(() => false);
     expect(statusFilter).toBeTruthy();
@@ -2468,7 +2468,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     if (!await isAdminAuthenticated(page)) return;
     await page.goto(getAdminUrl("/plans"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     const createButton = await page.getByRole("link", { name: /create|new|add/i }).isVisible().catch(() => false);
     const createLink = await page.locator("a[href*='new']").first().isVisible().catch(() => false);
@@ -2479,7 +2479,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     if (!await isAdminAuthenticated(page)) return;
     await page.goto(getAdminUrl("/plans/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     expect(page.url().includes("/plans") || page.url().includes("/admin")).toBeTruthy();
   });
@@ -2488,7 +2488,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     if (!await isAdminAuthenticated(page)) return;
     await page.goto(getAdminUrl("/plans"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     // Find first plan link and navigate
     const planLink = page.locator("a[href*='/plans/']").first();
@@ -2496,7 +2496,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
       const href = await planLink.getAttribute("href");
       if (href && !href.includes("/new")) {
         await page.goto(getAdminUrl(href.replace(/^.*\/admin/, "")));
-        await page.waitForTimeout(1500);
+        await page.waitForLoadState("load");
       }
     }
     expect(page.url().includes("/plans") || page.url().includes("/admin")).toBeTruthy();
@@ -2506,7 +2506,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     if (!await isAdminAuthenticated(page)) return;
     await page.goto(getAdminUrl("/dashboard"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     const statsCards = await page.getByText(/total|active|tenant/i).first().isVisible().catch(() => false);
     expect(statsCards || page.url().includes("/dashboard") || page.url().includes("/admin")).toBeTruthy();
@@ -2516,7 +2516,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     if (!await isAdminAuthenticated(page)) return;
     await page.goto(getAdminUrl("/dashboard"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     const recentActivity = await page.getByText(/recent|activity|latest/i).first().isVisible().catch(() => false);
     expect(recentActivity || page.url().includes("/dashboard") || page.url().includes("/admin")).toBeTruthy();
@@ -2526,7 +2526,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     if (!await isAdminAuthenticated(page)) return;
     await page.goto(getAdminUrl("/dashboard"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     const logoutButton = await page.getByRole("button", { name: /logout|sign out/i }).isVisible().catch(() => false);
     expect(logoutButton || page.url().includes("/dashboard") || page.url().includes("/admin")).toBeTruthy();
@@ -2536,7 +2536,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
     await loginToAdmin(page);
     // Organizations table is on the dashboard
     await page.goto(getAdminUrl("/dashboard"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAdminAuthenticated(page)) return;
     const hasTable = await page.locator("table").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no organization/i).isVisible().catch(() => false);
@@ -2546,7 +2546,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
   test("[KAN-258] 19.15 Admin handles invalid routes", async ({ page }) => {
     await loginToAdmin(page);
     await page.goto(getAdminUrl("/nonexistent-page-12345"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/admin")).toBeTruthy();
   });
 });
@@ -2560,7 +2560,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-259] 20.1 Dashboard loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const dashboard = await page.getByRole("heading", { name: /dashboard|welcome/i }).isVisible().catch(() => false);
     expect(dashboard || page.url().includes("/tenant")).toBeTruthy();
@@ -2569,7 +2569,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-260] 20.2 Dashboard has stats cards", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const statsCards = await page.locator("[class*='card'], [class*='stat']").first().isVisible().catch(() => false);
     expect(statsCards || page.url().includes("/tenant")).toBeTruthy();
@@ -2578,7 +2578,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-261] 20.3 Dashboard shows upcoming trips", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const upcomingTrips = await page.getByText(/upcoming|next|scheduled/i).first().isVisible().catch(() => false);
     expect(upcomingTrips || page.url().includes("/tenant")).toBeTruthy();
@@ -2587,7 +2587,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-262] 20.4 Dashboard shows recent bookings", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const recentBookings = await page.getByText(/recent|booking|reservation/i).first().isVisible().catch(() => false);
     expect(recentBookings || page.url().includes("/tenant")).toBeTruthy();
@@ -2596,7 +2596,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-263] 20.5 Dashboard has navigation sidebar", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const sidebar = await page.locator("nav, [class*='sidebar'], [class*='navigation']").first().isVisible().catch(() => false);
     expect(sidebar || page.url().includes("/tenant")).toBeTruthy();
@@ -2605,7 +2605,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-264] 20.6 Dashboard sidebar has dashboard link", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const dashboardLink = await page.getByRole("link", { name: /dashboard/i }).isVisible().catch(() => false);
     expect(dashboardLink || page.url().includes("/tenant")).toBeTruthy();
@@ -2614,7 +2614,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-265] 20.7 Dashboard sidebar has customers link", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const customersLink = await page.getByRole("link", { name: /customer/i }).isVisible().catch(() => false);
     expect(customersLink || page.url().includes("/tenant")).toBeTruthy();
@@ -2623,7 +2623,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-266] 20.8 Dashboard sidebar has trips link", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const tripsLink = await page.getByRole("link", { name: /trip/i }).isVisible().catch(() => false);
     expect(tripsLink || page.url().includes("/tenant")).toBeTruthy();
@@ -2632,7 +2632,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-267] 20.9 Dashboard sidebar has bookings link", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const bookingsLink = await page.getByRole("link", { name: /booking/i }).isVisible().catch(() => false);
     expect(bookingsLink || page.url().includes("/tenant")).toBeTruthy();
@@ -2641,7 +2641,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-268] 20.10 Dashboard sidebar has settings link", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const settingsLink = await page.getByRole("link", { name: /setting/i }).isVisible().catch(() => false);
     expect(settingsLink || page.url().includes("/tenant")).toBeTruthy();
@@ -2650,7 +2650,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-269] 20.11 Dashboard has user profile menu", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const profileMenu = await page.locator("[class*='avatar'], [class*='profile'], [class*='user']").first().isVisible().catch(() => false);
     expect(profileMenu || page.url().includes("/tenant")).toBeTruthy();
@@ -2659,7 +2659,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-270] 20.12 Dashboard has logout option", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const logoutButton = await page.getByRole("button", { name: /logout|sign out/i }).isVisible().catch(() => false);
     expect(logoutButton || page.url().includes("/tenant")).toBeTruthy();
@@ -2668,7 +2668,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-271] 20.13 Dashboard shows revenue stats", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const revenueStats = await page.getByText(/revenue|\$|earnings/i).first().isVisible().catch(() => false);
     expect(revenueStats || page.url().includes("/tenant")).toBeTruthy();
@@ -2677,7 +2677,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-272] 20.14 Dashboard shows customer count", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const customerCount = await page.getByText(/customer|guest/i).first().isVisible().catch(() => false);
     expect(customerCount || page.url().includes("/tenant")).toBeTruthy();
@@ -2686,7 +2686,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-273] 20.15 Dashboard quick actions exist", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const quickActions = await page.getByRole("button", { name: /new|add|create|quick/i }).first().isVisible().catch(() => false);
     expect(quickActions || page.url().includes("/tenant")).toBeTruthy();
@@ -2695,7 +2695,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-274] 20.16 Dashboard handles empty state gracefully", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const hasContent = await page.locator("[class*='card'], [class*='stat'], [class*='empty']").first().isVisible().catch(() => false);
     expect(hasContent || page.url().includes("/tenant")).toBeTruthy();
@@ -2705,7 +2705,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
     await loginToTenant(page);
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const mobileMenuButton = await page.locator("[class*='hamburger'], [class*='menu-toggle'], button[aria-label*='menu']").first().isVisible().catch(() => false);
     expect(mobileMenuButton || page.url().includes("/tenant")).toBeTruthy();
@@ -2714,7 +2714,7 @@ test.describe.serial("Block H: Tenant Dashboard Coverage", () => {
   test("[KAN-276] 20.18 Dashboard charts load", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const charts = await page.locator("canvas, svg, [class*='chart']").first().isVisible().catch(() => false);
     expect(charts || page.url().includes("/tenant")).toBeTruthy();
