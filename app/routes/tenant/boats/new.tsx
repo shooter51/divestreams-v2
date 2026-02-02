@@ -5,6 +5,8 @@ import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createBoat } from "../../../../lib/db/queries.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
+import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType } from "../../../../lib/storage";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 export const meta: MetaFunction = () => [{ title: "Add Boat - DiveStreams" }];
 
@@ -14,8 +16,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const { tenant, organizationId } = await requireTenant(request);
   const formData = await request.formData();
+
+  // Extract image files before processing other form data
+  const imageFiles: File[] = [];
+  const allImages = formData.getAll("images");
+  for (const item of allImages) {
+    if (item instanceof File && item.size > 0) {
+      imageFiles.push(item);
+    }
+  }
 
   // Convert amenities array
   const amenitiesRaw = formData.get("amenities") as string;
@@ -42,6 +53,77 @@ export async function action({ request }: ActionFunctionArgs) {
     amenities,
     isActive: formData.get("isActive") === "true",
   });
+
+  // Process uploaded images if any
+  if (imageFiles.length > 0 && tenant) {
+    const { db, schema } = getTenantDb(tenant.subdomain);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+    let uploadedCount = 0;
+    for (let i = 0; i < Math.min(imageFiles.length, 5); i++) {
+      const file = imageFiles[i];
+
+      // Validate file type
+      if (!isValidImageType(file.type)) {
+        console.warn(`Skipping invalid image type: ${file.type}`);
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        console.warn(`Skipping oversized file: ${file.name} (${file.size} bytes)`);
+        continue;
+      }
+
+      try {
+        // Process image
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const processed = await processImage(buffer);
+
+        // Generate storage keys
+        const baseKey = getImageKey(tenant.subdomain, "boat", newBoat.id, file.name);
+        const originalKey = `${baseKey}.webp`;
+        const thumbnailKey = `${baseKey}-thumb.webp`;
+
+        // Upload to B2
+        const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+        if (!originalUpload) {
+          console.warn("Storage not configured, skipping image upload");
+          break;
+        }
+
+        const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+
+        // Save to database
+        await db.insert(schema.images).values({
+          organizationId,
+          entityType: "boat",
+          entityId: newBoat.id,
+          url: originalUpload.cdnUrl,
+          thumbnailUrl: thumbnailUpload?.cdnUrl || originalUpload.cdnUrl,
+          filename: file.name,
+          mimeType: getWebPMimeType(),
+          sizeBytes: processed.original.length,
+          width: processed.width,
+          height: processed.height,
+          alt: file.name,
+          sortOrder: i,
+          isPrimary: i === 0,
+        });
+
+        uploadedCount++;
+      } catch (error) {
+        console.error(`Failed to upload image ${file.name}:`, error);
+      }
+    }
+
+    const boatName = formData.get("name") as string;
+    const imageMessage = uploadedCount > 0
+      ? `Boat "${boatName}" created with ${uploadedCount} image${uploadedCount > 1 ? "s" : ""}!`
+      : `Boat "${boatName}" created successfully! Add images below to complete your boat listing.`;
+    return redirect(redirectWithNotification(`/tenant/boats/${newBoat.id}/edit`, imageMessage, "success"));
+  }
 
   const boatName = formData.get("name") as string;
   // Redirect to edit page where user can immediately add images via ImageManager
@@ -94,7 +176,7 @@ export default function NewBoatPage() {
         <h1 className="text-2xl font-bold mt-2">Add Boat</h1>
       </div>
 
-      <form method="post" className="space-y-6">
+      <form method="post" encType="multipart/form-data" className="space-y-6">
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
@@ -251,6 +333,35 @@ export default function NewBoatPage() {
                   All common amenities added! You can remove any by clicking the × button above.
                 </p>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Images */}
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Images (Optional)</h2>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="images" className="block text-sm font-medium mb-2">
+                Upload up to 5 images
+              </label>
+              <input
+                type="file"
+                id="images"
+                name="images"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                className="block w-full text-sm text-foreground-muted
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-medium
+                  file:bg-brand file:text-white
+                  hover:file:bg-brand-hover
+                  file:cursor-pointer cursor-pointer"
+              />
+              <p className="mt-2 text-sm text-foreground-muted">
+                JPEG, PNG, WebP, or GIF. Max 10MB each. You can add more images later.
+              </p>
             </div>
           </div>
         </div>
