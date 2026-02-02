@@ -17,14 +17,25 @@ const CDN_URL = process.env.CDN_URL;
 let s3Client: S3Client | null = null;
 
 export function getS3Client(): S3Client | null {
-  if (!B2_ENDPOINT || !B2_KEY_ID || !B2_APP_KEY) {
-    console.error("B2 storage not configured - image uploads disabled. Missing:", {
+  // Validate storage is configured with AWS S3 credentials
+  if (!B2_KEY_ID || !B2_APP_KEY) {
+    console.error("S3 storage not configured - image uploads disabled. Missing:", {
       B2_ENDPOINT: !!B2_ENDPOINT,
       B2_KEY_ID: !!B2_KEY_ID,
       B2_APP_KEY: !!B2_APP_KEY,
       CDN_URL: !!CDN_URL
     });
     return null;
+  }
+
+  // SECURITY: Prevent accidental switch to Backblaze B2
+  // This project uses AWS S3 only. Backblaze is not supported.
+  if (B2_ENDPOINT && B2_ENDPOINT.includes('backblazeb2.com')) {
+    console.error('❌ ERROR: Backblaze B2 detected in B2_ENDPOINT');
+    console.error('❌ This project uses AWS S3 only.');
+    console.error('❌ Please remove B2_ENDPOINT or set it to AWS S3 endpoint.');
+    console.error('❌ Current value:', B2_ENDPOINT);
+    throw new Error('Backblaze B2 is not supported. Use AWS S3 only.');
   }
 
   if (!s3Client) {
