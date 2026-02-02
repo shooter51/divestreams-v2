@@ -136,6 +136,113 @@ export async function createCheckoutSession(
     );
   }
 
+  // KAN-627 FIX: Check for saved payment method before redirecting to Checkout
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (!customer.deleted) {
+      const defaultPaymentMethodId = (customer as Stripe.Customer).invoice_settings?.default_payment_method;
+
+      // If customer has a saved payment method, use it directly
+      if (defaultPaymentMethodId && typeof defaultPaymentMethodId === "string") {
+        console.log(`✓ Using saved payment method for org ${orgId}: ${defaultPaymentMethodId}`);
+
+        // Check if customer already has an active subscription
+        if (sub?.stripeSubscriptionId && sub?.status === "active") {
+          try {
+            // Modify existing subscription
+            const currentSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+
+            if (currentSubscription.status === "active") {
+              // SECURITY: Fetch prices from Stripe API to prevent manipulation
+              const currentPriceId = currentSubscription.items.data[0].price.id;
+              const currentStripePrice = await stripe.prices.retrieve(currentPriceId);
+              const currentPriceAmount = currentStripePrice.unit_amount || 0;
+
+              const newStripePrice = await stripe.prices.retrieve(priceId);
+              const newPriceAmount = newStripePrice.unit_amount || 0;
+
+              const isUpgrade = newPriceAmount > currentPriceAmount;
+
+              // Update the subscription
+              await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+                items: [{
+                  id: currentSubscription.items.data[0].id,
+                  price: priceId,
+                }],
+                proration_behavior: isUpgrade ? 'create_prorations' : 'none',
+                billing_cycle_anchor: isUpgrade ? 'now' : 'unchanged',
+                default_payment_method: defaultPaymentMethodId,
+                metadata: {
+                  organizationId: org.id,
+                  planName,
+                },
+              });
+
+              console.log(`✓ Updated subscription ${sub.stripeSubscriptionId} to ${planName}`);
+
+              // Update local database immediately
+              await db
+                .update(subscription)
+                .set({
+                  planId: plan.id,
+                  plan: planName,
+                  stripePriceId: priceId,
+                  updatedAt: new Date(),
+                })
+                .where(eq(subscription.organizationId, orgId));
+
+              return successUrl;
+            }
+          } catch (error) {
+            console.error("Failed to modify existing subscription:", error);
+            // Fall through to create new subscription
+          }
+        }
+
+        // No existing subscription - create new one with saved payment method
+        try {
+          const newSubscription = await stripe.subscriptions.create({
+            customer: customerId,
+            items: [{ price: priceId }],
+            default_payment_method: defaultPaymentMethodId,
+            metadata: {
+              organizationId: org.id,
+              planName,
+            },
+          });
+
+          console.log(`✓ Created subscription ${newSubscription.id} with saved payment method`);
+
+          // Update local database immediately
+          await db
+            .update(subscription)
+            .set({
+              stripeSubscriptionId: newSubscription.id,
+              stripePriceId: priceId,
+              planId: plan.id,
+              plan: planName,
+              status: newSubscription.status as "trialing" | "active" | "past_due" | "canceled",
+              currentPeriodStart: new Date(newSubscription.current_period_start * 1000),
+              currentPeriodEnd: new Date(newSubscription.current_period_end * 1000),
+              updatedAt: new Date(),
+            })
+            .where(eq(subscription.organizationId, orgId));
+
+          return successUrl;
+        } catch (error) {
+          console.error("Failed to create subscription with saved payment method:", error);
+          // Fall through to Checkout session
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error checking for saved payment method:", error);
+    // Fall through to Checkout session
+  }
+
+  // No saved payment method OR modification failed - redirect to Checkout
+  console.log(`→ Redirecting to Checkout for org ${orgId} (no saved payment method)`);
+
   // Check if customer already has an active subscription
   if (sub?.stripeSubscriptionId && sub?.status === "active") {
     try {
@@ -144,16 +251,13 @@ export async function createCheckoutSession(
 
       if (currentSubscription.status === "active") {
         // SECURITY: Fetch prices from Stripe API to prevent manipulation
-        // Get current price from Stripe (not database)
         const currentPriceId = currentSubscription.items.data[0].price.id;
         const currentStripePrice = await stripe.prices.retrieve(currentPriceId);
         const currentPriceAmount = currentStripePrice.unit_amount || 0;
 
-        // Get new price from Stripe (not database)
         const newStripePrice = await stripe.prices.retrieve(priceId);
         const newPriceAmount = newStripePrice.unit_amount || 0;
 
-        // Determine if this is an upgrade or downgrade based on Stripe prices
         const isUpgrade = newPriceAmount > currentPriceAmount;
 
         // Update the subscription
@@ -162,8 +266,6 @@ export async function createCheckoutSession(
             id: currentSubscription.items.data[0].id,
             price: priceId,
           }],
-          // For upgrades: prorate immediately
-          // For downgrades: apply at end of billing period
           proration_behavior: isUpgrade ? 'create_prorations' : 'none',
           billing_cycle_anchor: isUpgrade ? 'now' : 'unchanged',
           metadata: {
@@ -181,7 +283,7 @@ export async function createCheckoutSession(
     }
   }
 
-  // No existing subscription - create new checkout session
+  // Create new checkout session
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
@@ -282,11 +384,15 @@ export async function createSetupSession(
 export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subscription) {
   const orgId = stripeSubscription.metadata.organizationId || stripeSubscription.metadata.tenantId;
   if (!orgId) {
-    console.error("No organizationId in subscription metadata");
+    console.error("❌ No organizationId in subscription metadata:", stripeSubscription.id);
     return;
   }
 
-  let status: string;
+  console.log(`📥 Processing subscription update for org ${orgId}: ${stripeSubscription.id}`);
+  console.log(`   Status: ${stripeSubscription.status}`);
+
+  // KAN-627 FIX: Map Stripe subscription status correctly
+  let status: "active" | "trialing" | "past_due" | "canceled";
   switch (stripeSubscription.status) {
     case "active":
       status = "active";
@@ -299,19 +405,31 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
       break;
     case "canceled":
     case "unpaid":
+    case "incomplete_expired":
       status = "canceled";
       break;
+    case "incomplete":
+      // Keep as trialing if incomplete (waiting for payment)
+      status = "trialing";
+      break;
     default:
-      status = stripeSubscription.status;
+      console.warn(`⚠️ Unknown subscription status: ${stripeSubscription.status}`);
+      status = "trialing";
   }
 
   // Use type assertion for Stripe API response properties
-  const sub = stripeSubscription as unknown as { current_period_end?: number };
+  const sub = stripeSubscription as unknown as {
+    current_period_end?: number;
+    current_period_start?: number;
+  };
   const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
+  const periodStart = sub.current_period_start ? new Date(sub.current_period_start * 1000) : null;
 
   // Get the price ID from the subscription
   const item = stripeSubscription.items.data[0];
   const priceId = item?.price?.id;
+
+  console.log(`   Price ID: ${priceId}`);
 
   // Look up the plan by matching the price ID (monthly or yearly)
   let planId: string | null = null;
@@ -332,22 +450,33 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
     if (matchedPlan) {
       planId = matchedPlan.id;
       planName = matchedPlan.name;
+      console.log(`   ✓ Matched plan: ${planName} (${planId})`);
+    } else {
+      console.warn(`   ⚠️ No plan found for price ID: ${priceId}`);
     }
   }
 
   // Update subscription with plan reference
-  await db
-    .update(subscription)
-    .set({
-      stripeSubscriptionId: stripeSubscription.id,
-      stripePriceId: priceId || null,
-      planId: planId,
-      plan: planName,
-      status: status,
-      currentPeriodEnd: periodEnd,
-      updatedAt: new Date(),
-    })
-    .where(eq(subscription.organizationId, orgId));
+  try {
+    const result = await db
+      .update(subscription)
+      .set({
+        stripeSubscriptionId: stripeSubscription.id,
+        stripePriceId: priceId || null,
+        planId: planId,
+        plan: planName,
+        status: status,
+        currentPeriodStart: periodStart,
+        currentPeriodEnd: periodEnd,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscription.organizationId, orgId));
+
+    console.log(`   ✅ Updated subscription in database: status=${status}, plan=${planName}`);
+  } catch (error) {
+    console.error(`   ❌ Failed to update subscription in database:`, error);
+    throw error;
+  }
 }
 
 // Handle subscription deleted (from webhook)
