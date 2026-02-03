@@ -24,11 +24,18 @@ vi.mock("../../../../lib/db/schema", () => ({
     yearlyPrice: "yearlyPrice",
     isActive: "isActive",
   },
+  subscription: {
+    planId: "planId",
+  },
+  tenants: {
+    planId: "planId",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
   desc: vi.fn((a) => ({ type: "desc", field: a })),
+  count: vi.fn(() => "count"),
 }));
 
 import { db } from "../../../../lib/db";
@@ -144,7 +151,18 @@ describe("admin/plans route", () => {
     });
 
     it("deletes a plan", async () => {
-      (db.where as Mock).mockResolvedValue({ rowCount: 1 });
+      // Mock the count queries to return 0 (no usage)
+      // First call: subscription count, Second call: tenants count, Third call: delete
+      let callCount = 0;
+      (db.where as Mock).mockImplementation(() => {
+        callCount++;
+        if (callCount <= 2) {
+          // Return count of 0 for both subscription and tenants queries
+          return Promise.resolve([{ count: 0 }]);
+        }
+        // Return success for delete
+        return Promise.resolve({ rowCount: 1 });
+      });
 
       const formData = new FormData();
       formData.append("intent", "delete");
