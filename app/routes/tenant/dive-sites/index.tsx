@@ -3,7 +3,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { diveSites as diveSitesTable } from "../../../../lib/db/schema";
-import { eq, ilike, and } from "drizzle-orm";
+import { eq, ilike, and, inArray, or } from "drizzle-orm";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { useNotification } from "../../../../lib/use-notification";
 
@@ -46,7 +46,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .where(
       and(
         eq(tenantSchema.images.organizationId, ctx.org.id),
-        eq(tenantSchema.images.entityType, "dive-site"),
+        // Query for both old ("diveSite") and new ("dive-site") entity types for backwards compatibility
+        or(
+          eq(tenantSchema.images.entityType, "diveSite"),
+          eq(tenantSchema.images.entityType, "dive-site")
+        ),
         eq(tenantSchema.images.isPrimary, true)
       )
     ) : [];

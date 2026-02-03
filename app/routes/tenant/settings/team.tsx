@@ -450,7 +450,7 @@ export default function TeamPage() {
             <div key={member.id} className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-brand-muted text-brand rounded-full flex items-center justify-center font-medium">
-                  {member.name
+                  {(member.name || "U")
                     .split(" ")
                     .map((n: string) => n[0])
                     .join("")}
