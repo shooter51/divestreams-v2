@@ -93,14 +93,14 @@ export default function EmbedLayout() {
 
   return (
     <div
-      className="min-h-screen bg-white"
+      className="min-h-screen bg-surface text-foreground"
       style={{
         "--primary-color": branding.primaryColor,
         "--secondary-color": branding.secondaryColor,
       } as React.CSSProperties}
     >
       {/* Header */}
-      <header className="border-b px-4 py-3">
+      <header className="border-b border-border px-4 py-3 bg-surface-raised">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           {branding.logo ? (
             <img
@@ -109,7 +109,7 @@ export default function EmbedLayout() {
               className="h-8 object-contain"
             />
           ) : (
-            <h1 className="text-lg font-semibold">{organization.name}</h1>
+            <h1 className="text-lg font-semibold text-foreground">{organization.name}</h1>
           )}
         </div>
       </header>
@@ -120,7 +120,7 @@ export default function EmbedLayout() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t px-4 py-3 text-center text-sm text-gray-500">
+      <footer className="border-t border-border px-4 py-3 text-center text-sm text-foreground-muted bg-surface-raised">
         <p>Powered by DiveStreams</p>
       </footer>
     </div>
@@ -132,12 +132,12 @@ export function ErrorBoundary() {
 
   if (isRouteErrorResponse(error)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             {error.status === 404 ? "Shop Not Found" : "Error"}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-foreground-muted">
             {error.status === 404
               ? "This booking widget is not available."
               : "Something went wrong."}
@@ -148,10 +148,10 @@ export function ErrorBoundary() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-surface">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Error</h1>
-        <p className="text-gray-600">Something went wrong loading this page.</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Error</h1>
+        <p className="text-foreground-muted">Something went wrong loading this page.</p>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { useEffect } from "react";
 import { db } from "../../../lib/db";
-import { subscriptionPlans, subscription } from "../../../lib/db/schema";
+import { subscriptionPlans, subscription, tenants } from "../../../lib/db/schema";
 import { eq, desc, count } from "drizzle-orm";
 import { useToast } from "../../../lib/toast-context";
 
@@ -32,24 +32,48 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "delete" && planId) {
-    // Check if any subscriptions are using this plan
-    const [usageCount] = await db
-      .select({ count: count() })
-      .from(subscription)
-      .where(eq(subscription.planId, planId));
+    try {
+      // Check if any subscriptions are using this plan
+      const [subscriptionCount] = await db
+        .select({ count: count() })
+        .from(subscription)
+        .where(eq(subscription.planId, planId));
 
-    if (usageCount && usageCount.count > 0) {
+      // Also check if any tenants are using this plan (legacy table)
+      const [tenantCount] = await db
+        .select({ count: count() })
+        .from(tenants)
+        .where(eq(tenants.planId, planId));
+
+      const totalUsage = (subscriptionCount?.count || 0) + (tenantCount?.count || 0);
+
+      if (totalUsage > 0) {
+        return {
+          success: false,
+          error: `Cannot delete this plan. ${totalUsage} organization(s) are currently using it. Deactivate the plan instead to prevent new subscriptions.`
+        };
+      }
+
+      // Safe to delete - no subscriptions or tenants using this plan
+      await db
+        .delete(subscriptionPlans)
+        .where(eq(subscriptionPlans.id, planId));
+      return { success: true, deleted: true };
+    } catch (error) {
+      console.error("Failed to delete plan:", error);
+      // Check if it's a foreign key constraint violation
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("foreign key constraint") || errorMessage.includes("is still referenced")) {
+        return {
+          success: false,
+          error: "Cannot delete this plan. It is still being used by one or more organizations. Deactivate the plan instead."
+        };
+      }
       return {
         success: false,
-        error: `Cannot delete this plan. ${usageCount.count} organization(s) are currently using it. Deactivate the plan instead to prevent new subscriptions.`
+        error: "Failed to delete plan. Please try again."
       };
     }
-
-    // Safe to delete - no subscriptions using this plan
-    await db
-      .delete(subscriptionPlans)
-      .where(eq(subscriptionPlans.id, planId));
-    return { success: true, deleted: true };
   }
 
   return null;
