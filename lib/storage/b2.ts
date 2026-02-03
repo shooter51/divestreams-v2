@@ -38,6 +38,19 @@ export function getS3Client(): S3Client | null {
     throw new Error('Backblaze B2 is not supported. Use AWS S3 only.');
   }
 
+  // CRITICAL: Detect CDN_URL mismatch with storage backend
+  // If using AWS S3, CDN_URL must not point to Backblaze
+  const isAwsS3 = !B2_ENDPOINT || B2_ENDPOINT.includes('amazonaws.com');
+  if (isAwsS3 && CDN_URL && CDN_URL.includes('backblazeb2.com')) {
+    console.error('❌ ERROR: CDN_URL mismatch detected!');
+    console.error('❌ Storage is configured for AWS S3, but CDN_URL points to Backblaze B2');
+    console.error('❌ B2_ENDPOINT:', B2_ENDPOINT || '(default AWS)');
+    console.error('❌ CDN_URL:', CDN_URL);
+    console.error('❌ Images will be uploaded to S3 but URLs will point to B2 (which won\'t have the files)');
+    console.error('❌ Fix: Set CDN_URL to a CloudFront distribution or direct S3 URL');
+    throw new Error('CDN_URL mismatch: Using AWS S3 but CDN points to Backblaze B2. Update CDN_URL.');
+  }
+
   if (!s3Client) {
     // For AWS S3, don't set endpoint - SDK uses default AWS endpoints
     // For B2/R2, set endpoint to their S3-compatible API

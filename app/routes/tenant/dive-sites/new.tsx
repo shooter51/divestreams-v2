@@ -4,7 +4,7 @@ import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createDiveSite } from "../../../../lib/db/queries.server";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
-import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType } from "../../../../lib/storage";
+import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
@@ -53,22 +53,36 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Process uploaded images if any
   if (imageFiles.length > 0 && tenant) {
+    // Check if storage is configured BEFORE attempting uploads
+    const s3Client = getS3Client();
+    if (!s3Client) {
+      const diveSiteName = formData.get("name") as string;
+      return redirect(redirectWithNotification(
+        `/tenant/dive-sites/${newSite.id}/edit`,
+        `Dive Site "${diveSiteName}" created, but image storage is not configured. Contact support to enable image uploads.`,
+        "warning"
+      ));
+    }
+
     const { db, schema } = getTenantDb(tenant.subdomain);
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
     let uploadedCount = 0;
+    const skippedFiles: string[] = [];
+    const failedFiles: string[] = [];
+
     for (let i = 0; i < Math.min(imageFiles.length, 5); i++) {
       const file = imageFiles[i];
 
       // Validate file type
       if (!isValidImageType(file.type)) {
-        console.warn(`Skipping invalid image type: ${file.type}`);
+        skippedFiles.push(`${file.name} (invalid type: ${file.type})`);
         continue;
       }
 
       // Validate file size
       if (file.size > MAX_FILE_SIZE) {
-        console.warn(`Skipping oversized file: ${file.name} (${file.size} bytes)`);
+        skippedFiles.push(`${file.name} (exceeds 10MB limit)`);
         continue;
       }
 
@@ -83,11 +97,11 @@ export async function action({ request }: ActionFunctionArgs) {
         const originalKey = `${baseKey}.webp`;
         const thumbnailKey = `${baseKey}-thumb.webp`;
 
-        // Upload to B2
+        // Upload to S3/B2
         const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
         if (!originalUpload) {
-          console.warn("Storage not configured, skipping image upload");
-          break;
+          failedFiles.push(`${file.name} (storage error)`);
+          continue;
         }
 
         const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
@@ -112,14 +126,31 @@ export async function action({ request }: ActionFunctionArgs) {
         uploadedCount++;
       } catch (error) {
         console.error(`Failed to upload image ${file.name}:`, error);
+        failedFiles.push(`${file.name} (upload failed)`);
       }
     }
 
     const diveSiteName = formData.get("name") as string;
-    const imageMessage = uploadedCount > 0
-      ? `Dive Site "${diveSiteName}" created with ${uploadedCount} image${uploadedCount > 1 ? "s" : ""}!`
-      : `Dive Site "${diveSiteName}" created successfully! Add images below to complete your site listing.`;
-    return redirect(redirectWithNotification(`/tenant/dive-sites/${newSite.id}/edit`, imageMessage, "success"));
+
+    // Build detailed message based on results
+    let message: string;
+    let messageType: "success" | "warning" | "error" = "success";
+
+    if (uploadedCount === imageFiles.length) {
+      message = `Dive Site "${diveSiteName}" created with ${uploadedCount} image${uploadedCount > 1 ? "s" : ""}!`;
+    } else if (uploadedCount > 0) {
+      message = `Dive Site "${diveSiteName}" created with ${uploadedCount} of ${imageFiles.length} images.`;
+      if (skippedFiles.length > 0) message += ` Skipped: ${skippedFiles.join(", ")}`;
+      if (failedFiles.length > 0) message += ` Failed: ${failedFiles.join(", ")}`;
+      messageType = "warning";
+    } else {
+      message = `Dive Site "${diveSiteName}" created, but all ${imageFiles.length} image(s) failed to upload.`;
+      if (skippedFiles.length > 0) message += ` Skipped: ${skippedFiles.join(", ")}`;
+      if (failedFiles.length > 0) message += ` Failed: ${failedFiles.join(", ")}`;
+      messageType = "error";
+    }
+
+    return redirect(redirectWithNotification(`/tenant/dive-sites/${newSite.id}/edit`, message, messageType));
   }
 
   const diveSiteName = formData.get("name") as string;
