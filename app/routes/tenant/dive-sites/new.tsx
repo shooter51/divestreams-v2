@@ -111,7 +111,7 @@ export async function action({ request }: ActionFunctionArgs) {
         // Save to database
         await db.insert(schema.images).values({
           organizationId,
-          entityType: "diveSite",
+          entityType: "dive-site",
           entityId: newSite.id,
           url: originalUpload.cdnUrl,
           thumbnailUrl: thumbnailUpload?.cdnUrl || originalUpload.cdnUrl,
