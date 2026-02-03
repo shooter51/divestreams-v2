@@ -21,6 +21,22 @@ export default [
   // Better Auth API (catch-all for /api/auth/*)
   route("api/auth/*", "routes/api/auth.$.tsx"),
 
+  // Zapier API routes
+  route("api/zapier/subscribe", "routes/api/zapier/subscribe.tsx"),
+  route("api/zapier/triggers", "routes/api/zapier/triggers.tsx"),
+  route("api/zapier/test", "routes/api/zapier/test.tsx"),
+  route("api/zapier/actions/create-booking", "routes/api/zapier/actions/create-booking.tsx"),
+  route("api/zapier/actions/update-customer", "routes/api/zapier/actions/update-customer.tsx"),
+
+  // Integration OAuth callback routes
+  route("api/integrations/google/connect", "routes/api/integrations/google/connect.tsx"),
+  route("api/integrations/google/callback", "routes/api/integrations/google/callback.tsx"),
+  route("api/integrations/google/sync", "routes/api/integrations/google/sync.tsx"),
+  route("api/integrations/quickbooks/connect", "routes/api/integrations/quickbooks/connect.tsx"),
+  route("api/integrations/quickbooks/callback", "routes/api/integrations/quickbooks/callback.tsx"),
+  route("api/integrations/xero/callback", "routes/api/integrations/xero/callback.tsx"),
+  route("api/integrations/mailchimp/callback", "routes/api/integrations/mailchimp/callback.tsx"),
+
   // Site disabled page (shown when public site is disabled)
   route("site-disabled", "routes/site-disabled.tsx"),
 
