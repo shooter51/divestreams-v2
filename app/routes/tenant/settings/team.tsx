@@ -452,10 +452,10 @@ export default function TeamPage() {
       </div>
 
       {/* Team List */}
-      <div className="bg-surface-raised rounded-xl shadow-sm mb-6">
-        <div className="divide-y">
+      <div className="bg-surface-raised rounded-xl shadow-sm mb-6 overflow-visible">
+        <div className="divide-y overflow-visible">
           {team.map((member) => (
-            <div key={member.id} className="p-4 flex items-center justify-between">
+            <div key={member.id} className="p-4 flex items-center justify-between overflow-visible">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-brand-muted text-brand rounded-full flex items-center justify-center font-medium">
                   {(member.name || "U")
