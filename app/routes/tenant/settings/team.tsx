@@ -10,7 +10,6 @@ import { sendEmail } from "../../../../lib/email";
 import { getAppUrl } from "../../../../lib/utils/url";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
-import { auth } from "../../../../lib/auth";
 import { resetUserPassword, type ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
 import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
 
