@@ -412,7 +412,9 @@ export default function TeamPage() {
         </Link>
         <h1 className="text-2xl font-bold mt-2">Team Members</h1>
         <p className="text-foreground-muted">
-          {activeMembers} of {planLimit} team members used
+          {planLimit === -1
+            ? `${activeMembers} team members (Unlimited)`
+            : `${activeMembers} of ${planLimit} team members used`}
         </p>
       </div>
 
@@ -472,7 +474,7 @@ export default function TeamPage() {
       </div>
 
       {/* Team List */}
-      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden mb-6">
+      <div className="bg-surface-raised rounded-xl shadow-sm mb-6">
         <div className="divide-y">
           {team.map((member) => (
             <div key={member.id} className="p-4 flex items-center justify-between">
