@@ -35,6 +35,8 @@ export async function action({ request }: ActionFunctionArgs) {
       imageFiles.push(item);
     }
   }
+  // Remove images from formData before validation (schema expects strings, not File objects)
+  formData.delete("images");
 
   // Parse inclusions/exclusions from comma-separated strings
   const inclusionsStr = formData.get("inclusionsStr") as string;

@@ -26,6 +26,8 @@ export async function action({ request }: ActionFunctionArgs) {
       imageFiles.push(item);
     }
   }
+  // Remove images from formData before validation (schema expects strings, not File objects)
+  formData.delete("images");
 
   // Convert highlights array
   const highlightsRaw = formData.get("highlights") as string;
