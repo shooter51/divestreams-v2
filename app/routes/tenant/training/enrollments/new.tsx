@@ -75,7 +75,15 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (Object.keys(errors).length > 0) {
-    return { errors };
+    return {
+      errors,
+      values: {
+        sessionId,
+        customerId,
+        paymentStatus,
+        amountPaid,
+      }
+    };
   }
 
   try {
@@ -95,23 +103,25 @@ export async function action({ request }: ActionFunctionArgs) {
     const errorMessage = error instanceof Error ? error.message : "Failed to create enrollment";
 
     // Handle specific error cases
+    const values = { sessionId, customerId, paymentStatus, amountPaid };
+
     if (errorMessage.includes("already enrolled")) {
-      return { errors: { form: "This customer is already enrolled in this session" } };
+      return { errors: { form: "This customer is already enrolled in this session" }, values };
     }
     if (errorMessage.includes("Session not found")) {
-      return { errors: { form: "Training session not found" } };
+      return { errors: { form: "Training session not found" }, values };
     }
     if (errorMessage.includes("Customer not found")) {
-      return { errors: { customerId: "Selected customer not found" } };
+      return { errors: { customerId: "Selected customer not found" }, values };
     }
     if (errorMessage.includes("cancelled")) {
-      return { errors: { form: "Cannot enroll in a cancelled session" } };
+      return { errors: { form: "Cannot enroll in a cancelled session" }, values };
     }
     if (errorMessage.includes("full")) {
-      return { errors: { form: errorMessage } };
+      return { errors: { form: errorMessage }, values };
     }
 
-    return { errors: { form: errorMessage } };
+    return { errors: { form: errorMessage }, values };
   }
 }
 
@@ -160,6 +170,7 @@ export default function NewEnrollmentPage() {
             <select
               id="sessionId"
               name="sessionId"
+              defaultValue={actionData?.values?.sessionId || ""}
               className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               required
             >
@@ -190,6 +201,7 @@ export default function NewEnrollmentPage() {
           <select
             id="customerId"
             name="customerId"
+            defaultValue={actionData?.values?.customerId || ""}
             className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             required
           >
@@ -212,7 +224,7 @@ export default function NewEnrollmentPage() {
           <select
             id="paymentStatus"
             name="paymentStatus"
-            defaultValue="pending"
+            defaultValue={actionData?.values?.paymentStatus || "pending"}
             className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           >
             <option value="pending">Pending</option>
@@ -231,7 +243,7 @@ export default function NewEnrollmentPage() {
             name="amountPaid"
             step="0.01"
             min="0"
-            defaultValue={actionData?.errors?.amountPaid ? "" : "0"}
+            defaultValue={actionData?.values?.amountPaid || "0"}
             className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           />
           {actionData?.errors?.amountPaid && (
