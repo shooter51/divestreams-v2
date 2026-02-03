@@ -156,6 +156,99 @@ jobs:
     runs-on: [self-hosted, linux, divestreams]
     environment: staging
     steps:
+      - name: Validate required secrets
+        env:
+          B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+          B2_REGION: ${{ secrets.B2_REGION }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          CDN_URL: ${{ secrets.CDN_URL }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          STAGING_VPS_SSH_KEY: ${{ secrets.STAGING_VPS_SSH_KEY }}
+          HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+        run: |
+          echo "🔍 Validating GitHub Secrets..."
+          ERRORS=0
+
+          # Check required secrets are not empty
+          check_secret() {
+            local name=$1
+            local value=$2
+            local hint=$3
+            if [ -z "$value" ]; then
+              echo "❌ ERROR: $name is not set"
+              [ -n "$hint" ] && echo "   Hint: $hint"
+              ERRORS=$((ERRORS + 1))
+            else
+              echo "✅ $name is set"
+            fi
+          }
+
+          # Validate all required secrets
+          check_secret "B2_ENDPOINT" "$B2_ENDPOINT" "Set to AWS S3 endpoint (e.g., https://s3.us-east-2.amazonaws.com)"
+          check_secret "B2_REGION" "$B2_REGION" "AWS region (e.g., us-east-2)"
+          check_secret "B2_BUCKET" "$B2_BUCKET" "S3 bucket name"
+          check_secret "B2_KEY_ID" "$B2_KEY_ID" "AWS Access Key ID"
+          check_secret "B2_APP_KEY" "$B2_APP_KEY" "AWS Secret Access Key"
+          check_secret "CDN_URL" "$CDN_URL" "S3 bucket URL (e.g., https://bucket.s3.region.amazonaws.com)"
+          check_secret "STRIPE_WEBHOOK_SECRET" "$STRIPE_WEBHOOK_SECRET" "Get from Stripe Dashboard → Webhooks → Signing secret"
+          check_secret "STAGING_VPS_SSH_KEY" "$STAGING_VPS_SSH_KEY" "SSH private key for staging VPS"
+          check_secret "HOSTINGER_API_TOKEN" "$HOSTINGER_API_TOKEN" "Hostinger API token"
+
+          echo ""
+          echo "🔍 Validating secret formats..."
+
+          # Validate STRIPE_WEBHOOK_SECRET format
+          if [ -n "$STRIPE_WEBHOOK_SECRET" ]; then
+            if [[ "$STRIPE_WEBHOOK_SECRET" != whsec_* ]]; then
+              echo "❌ ERROR: STRIPE_WEBHOOK_SECRET must start with 'whsec_'"
+              echo "   Current value starts with: ${STRIPE_WEBHOOK_SECRET:0:10}..."
+              ERRORS=$((ERRORS + 1))
+            else
+              echo "✅ STRIPE_WEBHOOK_SECRET format is valid"
+            fi
+          fi
+
+          # Validate CDN_URL matches storage backend (prevent Backblaze CDN with AWS S3)
+          if [ -n "$B2_ENDPOINT" ] && [ -n "$CDN_URL" ]; then
+            IS_AWS_S3=false
+            if [[ "$B2_ENDPOINT" == *"amazonaws.com"* ]]; then
+              IS_AWS_S3=true
+            fi
+
+            if [ "$IS_AWS_S3" = true ] && [[ "$CDN_URL" == *"backblazeb2.com"* ]]; then
+              echo "❌ ERROR: CDN_URL mismatch detected!"
+              echo "   B2_ENDPOINT is AWS S3: $B2_ENDPOINT"
+              echo "   CDN_URL points to Backblaze: $CDN_URL"
+              echo "   Images will upload to S3 but URLs will point to Backblaze (broken images)"
+              echo "   Fix: Set CDN_URL to your S3 bucket URL (e.g., https://bucket.s3.region.amazonaws.com)"
+              ERRORS=$((ERRORS + 1))
+            else
+              echo "✅ CDN_URL matches storage backend"
+            fi
+          fi
+
+          # Validate B2_KEY_ID format for AWS
+          if [ -n "$B2_ENDPOINT" ] && [ -n "$B2_KEY_ID" ]; then
+            if [[ "$B2_ENDPOINT" == *"amazonaws.com"* ]] && [[ "$B2_KEY_ID" != AKI* ]]; then
+              echo "⚠️  WARNING: B2_KEY_ID doesn't look like an AWS Access Key ID (should start with 'AKI')"
+              echo "   Current value starts with: ${B2_KEY_ID:0:4}..."
+            fi
+          fi
+
+          echo ""
+          if [ $ERRORS -gt 0 ]; then
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "❌ DEPLOYMENT BLOCKED: $ERRORS secret(s) missing or invalid"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            echo "Fix the secrets at: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+
+          echo "✅ All secrets validated successfully"
+
       - name: Setup SSH key for staging VPS
         run: |
           mkdir -p ~/.ssh
