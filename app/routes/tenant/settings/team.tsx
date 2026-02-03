@@ -1,16 +1,8 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import type { ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { useState, useEffect } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
-import { db } from "../../../../lib/db";
-import { member, user, invitation } from "../../../../lib/db/schema";
-import { eq, and } from "drizzle-orm";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
-import { sendEmail } from "../../../../lib/email";
-import { getAppUrl } from "../../../../lib/utils/url";
-import { requireLimit } from "../../../../lib/require-feature.server";
-import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
-import { resetUserPassword, type ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
 import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
@@ -37,6 +29,14 @@ const roles = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Import server-only modules inline to prevent client bundle leakage
+  const { requireOrgContext } = await import("../../../../lib/auth/org-context.server");
+  const { db } = await import("../../../../lib/db");
+  const { member, user, invitation } = await import("../../../../lib/db/schema");
+  const { eq, and } = await import("drizzle-orm");
+  const { requireLimit } = await import("../../../../lib/require-feature.server");
+  const { DEFAULT_PLAN_LIMITS } = await import("../../../../lib/plan-features");
+
   const ctx = await requireOrgContext(request);
 
   // Check users limit - this will redirect if limit exceeded
@@ -100,6 +100,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Import server-only modules inline to prevent client bundle leakage
+  const { requireOrgContext } = await import("../../../../lib/auth/org-context.server");
+  const { db } = await import("../../../../lib/db");
+  const { member, user, invitation } = await import("../../../../lib/db/schema");
+  const { eq, and } = await import("drizzle-orm");
+  const { sendEmail } = await import("../../../../lib/email");
+  const { getAppUrl } = await import("../../../../lib/utils/url");
+  const { resetUserPassword } = await import("../../../../lib/auth/admin-password-reset.server");
+
   const ctx = await requireOrgContext(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -184,7 +193,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "update-role") {
-    const memberId = formData.get("userId") as string;
+    const userId = formData.get("userId") as string;
     const role = formData.get("role") as string;
 
     await db
@@ -192,7 +201,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .set({ role })
       .where(
         and(
-          eq(member.id, memberId),
+          eq(member.userId, userId),
           eq(member.organizationId, ctx.org.id)
         )
       );
@@ -201,11 +210,11 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "remove") {
-    const memberId = formData.get("userId") as string;
+    const userId = formData.get("userId") as string;
 
     await db.delete(member).where(
       and(
-        eq(member.id, memberId),
+        eq(member.userId, userId),
         eq(member.organizationId, ctx.org.id)
       )
     );
