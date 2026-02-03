@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation, redirect, useLoaderData } from "react-router
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { isAdminSubdomain } from "../../../lib/auth/org-context.server";
 import { getAppUrl } from "../../../lib/utils/url";
+import { ToastProvider } from "../../../lib/toast-context";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Only allow access on admin subdomain
@@ -33,61 +34,63 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-surface-inset">
-      {/* Top bar */}
-      <header className="bg-surface text-white">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h1 className="font-bold text-lg">DiveStreams Admin</h1>
-            <nav className="flex gap-4">
-              {navItems.map((item) => {
-                const isActive =
-                  item.href === "/"
-                    ? location.pathname === "/"
-                    : location.pathname.startsWith(item.href);
+    <ToastProvider>
+      <div className="min-h-screen bg-surface-inset">
+        {/* Top bar */}
+        <header className="bg-surface text-white">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <h1 className="font-bold text-lg">DiveStreams Admin</h1>
+              <nav className="flex gap-4">
+                {navItems.map((item) => {
+                  const isActive =
+                    item.href === "/"
+                      ? location.pathname === "/"
+                      : location.pathname.startsWith(item.href);
 
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={`flex items-center gap-2 px-3 py-1 rounded transition-colors ${
-                      isActive
-                        ? "bg-surface-raised text-white"
-                        : "text-foreground-muted hover:text-white hover:bg-surface-overlay"
-                    }`}
-                  >
-                    <span>{item.icon}</span>
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-sm">
-              <span className="text-foreground-subtle">{user.email}</span>
-              {isOwner && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-500/20 text-yellow-300 rounded">
-                  Owner
-                </span>
-              )}
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={`flex items-center gap-2 px-3 py-1 rounded transition-colors ${
+                        isActive
+                          ? "bg-surface-raised text-white"
+                          : "text-foreground-muted hover:text-white hover:bg-surface-overlay"
+                      }`}
+                    >
+                      <span>{item.icon}</span>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
             </div>
-            <form action="/logout" method="post">
-              <button
-                type="submit"
-                className="text-foreground-muted hover:text-white text-sm"
-              >
-                Logout
-              </button>
-            </form>
+            <div className="flex items-center gap-4">
+              <div className="text-sm">
+                <span className="text-foreground-subtle">{user.email}</span>
+                {isOwner && (
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-500/20 text-yellow-300 rounded">
+                    Owner
+                  </span>
+                )}
+              </div>
+              <form action="/logout" method="post">
+                <button
+                  type="submit"
+                  className="text-foreground-muted hover:text-white text-sm"
+                >
+                  Logout
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <Outlet />
-      </main>
-    </div>
+        {/* Main content */}
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          <Outlet />
+        </main>
+      </div>
+    </ToastProvider>
   );
 }
