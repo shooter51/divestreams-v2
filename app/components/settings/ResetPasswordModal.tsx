@@ -50,6 +50,9 @@ export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPas
       setGeneratedPassword(result.temporaryPassword);
       setShowPasswordDisplay(true);
       setIsSubmitting(false);
+    } else if (result?.success || result?.error) {
+      // Reset submitting state for any result (success without password or error)
+      setIsSubmitting(false);
     }
   }, [result]);
 
@@ -97,6 +100,20 @@ export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPas
           <h2 id="reset-modal-title" className="text-xl font-semibold mb-4">
             Reset Password for {user.name}
           </h2>
+
+          {/* Error Message */}
+          {result?.error && (
+            <div className="mb-4 p-3 bg-danger-muted text-danger border border-danger rounded">
+              {result.error}
+            </div>
+          )}
+
+          {/* Success Message (for email_reset and manual_entry) */}
+          {result?.success && !result?.temporaryPassword && (
+            <div className="mb-4 p-3 bg-success-muted text-success border border-success rounded">
+              {result.message || "Password reset successful"}
+            </div>
+          )}
 
           {/* Method Selection */}
           <div
