@@ -5,14 +5,14 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { member, user, invitation } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
-import { PremiumGate } from "../../../../app/components/ui/UpgradePrompt";
+import { PremiumGate } from "../../../components/ui/UpgradePrompt";
 import { sendEmail } from "../../../../lib/email";
 import { getAppUrl } from "../../../../lib/utils/url";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
 import { auth } from "../../../../lib/auth";
 import { resetUserPassword, type ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
-import { ResetPasswordModal } from "../../../../app/components/settings/ResetPasswordModal";
+import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
