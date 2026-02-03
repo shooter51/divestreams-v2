@@ -196,26 +196,26 @@ export default function AdminOrganizationsPage() {
           name="q"
           placeholder="Search by slug or name..."
           defaultValue={search}
-          className="w-full max-w-md px-4 py-2 border border-border bg-surface rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
+          className="w-full max-w-md px-4 py-2 border-2 border-border-strong bg-surface rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
         />
       </form>
 
       {/* Table */}
-      <div className="bg-surface-raised rounded-xl shadow-sm border border-border overflow-hidden">
+      <div className="bg-white rounded-xl shadow-md border-2 border-border-strong overflow-hidden">
         <table className="w-full">
-          <thead className="bg-surface-inset border-b border-border">
+          <thead className="bg-gray-50 border-b-2 border-border-strong">
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Slug</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Name</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Owner</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Members</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Plan</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Status</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Created</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-foreground-muted">Actions</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Slug</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Name</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Owner</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Members</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Plan</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Status</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Created</th>
+              <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-gray-200 bg-white">
             {organizations.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-foreground-muted">
