@@ -16,8 +16,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  console.log("[boats/new] Action started");
   const { tenant, organizationId } = await requireTenant(request);
+  console.log("[boats/new] Tenant:", tenant?.subdomain, "OrgId:", organizationId);
   const formData = await request.formData();
+  console.log("[boats/new] Form data - name:", formData.get("name"), "capacity:", formData.get("capacity"));
 
   // Extract image files before processing other form data
   const imageFiles: File[] = [];
@@ -35,8 +38,10 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const validation = validateFormData(formData, boatSchema);
+  console.log("[boats/new] Validation result:", validation.success, validation.success ? "" : JSON.stringify((validation as any).errors));
 
   if (!validation.success) {
+    console.log("[boats/new] Validation failed, returning errors");
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
@@ -44,6 +49,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const amenitiesStr = formData.get("amenities") as string;
   const amenities = amenitiesStr ? JSON.parse(amenitiesStr) as string[] : undefined;
 
+  console.log("[boats/new] Creating boat...");
   const newBoat = await createBoat(organizationId, {
     name: formData.get("name") as string,
     description: (formData.get("description") as string) || undefined,
@@ -53,6 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
     amenities,
     isActive: formData.get("isActive") === "true",
   });
+  console.log("[boats/new] Boat created with ID:", newBoat.id);
 
   // Process uploaded images if any
   if (imageFiles.length > 0 && tenant) {
