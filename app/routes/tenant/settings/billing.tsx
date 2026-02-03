@@ -340,8 +340,8 @@ export default function BillingPage() {
   useEffect(() => {
     if (searchParams.get("success") === "true") {
       setNotification({
-        type: "success",
-        message: "Payment successful! Your subscription has been updated.",
+        type: "info",
+        message: "Payment successful! Your subscription is being updated. This may take a few moments. Please refresh the page in 30 seconds.",
       });
       setSearchParams({}, { replace: true });
     } else if (searchParams.get("payment_added") === "true") {
