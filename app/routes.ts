@@ -10,7 +10,7 @@ export default [
   route("privacy", "routes/marketing/privacy.tsx"),
 
   // Stripe webhook
-  route("api/stripe/webhook", "routes/api/stripe-webhook.tsx"),
+  route("api/stripe-webhook", "routes/api/stripe-webhook.tsx"),
 
   // Health check
   route("api/health", "routes/api/health.tsx"),
