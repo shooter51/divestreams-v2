@@ -111,7 +111,7 @@ export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPas
           {/* Success Message (for email_reset and manual_entry) */}
           {result?.success && !result?.temporaryPassword && (
             <div className="mb-4 p-3 bg-success-muted text-success border border-success rounded">
-              {result.message || "Password reset successful"}
+              Password reset successful
             </div>
           )}
 
