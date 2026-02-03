@@ -36,7 +36,7 @@ jobs:
         env:
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
-          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
 
       - name: Upload unit coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -76,12 +76,12 @@ jobs:
       - name: Setup database schema
         run: npm run db:push
         env:
-          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
 
       - name: Run integration tests
         run: npm run test:integration
         env:
-          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
           APP_URL: http://localhost:5173
@@ -126,21 +126,21 @@ jobs:
       - name: Setup database schema
         run: npm run db:push
         env:
-          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
 
       - name: Seed subscription plans
         run: npm run db:seed
         env:
-          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
 
       # Note: No build step needed - playwright starts instrumented dev server
       - name: Run E2E tests with coverage
         run: npm run test:coverage:e2e
         env:
-          DATABASE_URL: postgresql://test:test@host.docker.internal:5432/testdb
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
-          REDIS_URL: redis://host.docker.internal:6379
+          REDIS_URL: redis://127.0.0.1:6379
           BASE_URL: http://e2etest.localhost:5173
           APP_URL: http://e2etest.localhost:5173
           E2E_COVERAGE: "true"
