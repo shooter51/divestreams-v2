@@ -492,7 +492,7 @@ export default function TeamPage() {
                       <div className="py-1">
                         <fetcher.Form method="post">
                           <input type="hidden" name="intent" value="update-role" />
-                          <input type="hidden" name="userId" value={member.id} />
+                          <input type="hidden" name="userId" value={member.userId} />
                           <div className="px-3 py-2 text-xs text-foreground-muted font-medium">
                             Change Role
                           </div>
@@ -538,7 +538,7 @@ export default function TeamPage() {
                           }}
                         >
                           <input type="hidden" name="intent" value="remove" />
-                          <input type="hidden" name="userId" value={member.id} />
+                          <input type="hidden" name="userId" value={member.userId} />
                           <button
                             type="submit"
                             className="w-full text-left px-3 py-2 text-sm text-danger hover:bg-danger-muted"
