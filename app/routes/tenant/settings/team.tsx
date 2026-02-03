@@ -382,6 +382,7 @@ export default function TeamPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [changePasswordUserId, setChangePasswordUserId] = useState<string | null>(null);
   const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   // Close modal only on successful invitation
   useEffect(() => {
@@ -389,6 +390,21 @@ export default function TeamPage() {
       setShowInviteModal(false);
     }
   }, [fetcher.data]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (openDropdownId && !target.closest('.relative')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    if (openDropdownId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdownId]);
 
   // Close password reset modal and show alert on success
   useEffect(() => {
@@ -510,9 +526,15 @@ export default function TeamPage() {
                 </div>
 
                 {member.role !== "owner" && (
-                  <div className="relative group">
-                    <button className="p-2 hover:bg-surface-overlay rounded-lg">⋮</button>
-                    <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg hidden group-hover:block z-50 max-h-96 overflow-y-auto">
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenDropdownId(openDropdownId === member.id ? null : member.id)}
+                      className="p-2 hover:bg-surface-overlay rounded-lg"
+                    >
+                      ⋮
+                    </button>
+                    {openDropdownId === member.id && (
+                      <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
                       <div className="py-1">
                         <fetcher.Form method="post">
                           <input type="hidden" name="intent" value="update-role" />
@@ -580,6 +602,7 @@ export default function TeamPage() {
                         </fetcher.Form>
                       </div>
                     </div>
+                    )}
                   </div>
                 )}
               </div>
