@@ -59,6 +59,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const team = membersRaw.map(m => ({
     id: m.id,
+    userId: m.userId,  // Include user ID for password reset
     name: m.userName || "Unknown",
     email: m.userEmail,
     role: m.role,
@@ -515,7 +516,7 @@ export default function TeamPage() {
                         <button
                           type="button"
                           onClick={() => setResetPasswordUser({
-                            id: member.id,
+                            id: member.userId,  // Use userId, not member.id
                             name: member.name,
                             email: member.email
                           })}
