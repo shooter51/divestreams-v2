@@ -46,7 +46,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .where(
       and(
         eq(tenantSchema.images.organizationId, ctx.org.id),
-        eq(tenantSchema.images.entityType, "diveSite"),
+        eq(tenantSchema.images.entityType, "dive-site"),
         eq(tenantSchema.images.isPrimary, true)
       )
     ) : [];
