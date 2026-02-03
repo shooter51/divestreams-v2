@@ -1,8 +1,10 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
+import { useEffect } from "react";
 import { db } from "../../../lib/db";
-import { subscriptionPlans } from "../../../lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { subscriptionPlans, subscription } from "../../../lib/db/schema";
+import { eq, desc, count } from "drizzle-orm";
+import { useToast } from "../../../lib/toast-context";
 
 export const meta: MetaFunction = () => [{ title: "Plans - DiveStreams Admin" }];
 
@@ -30,7 +32,20 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "delete" && planId) {
-    // Delete the plan
+    // Check if any subscriptions are using this plan
+    const [usageCount] = await db
+      .select({ count: count() })
+      .from(subscription)
+      .where(eq(subscription.planId, planId));
+
+    if (usageCount && usageCount.count > 0) {
+      return {
+        success: false,
+        error: `Cannot delete this plan. ${usageCount.count} organization(s) are currently using it. Deactivate the plan instead to prevent new subscriptions.`
+      };
+    }
+
+    // Safe to delete - no subscriptions using this plan
     await db
       .delete(subscriptionPlans)
       .where(eq(subscriptionPlans.id, planId));
@@ -42,7 +57,19 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function AdminPlansPage() {
   const { plans } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<{ success: boolean; error?: string; deleted?: boolean }>();
+  const { showToast } = useToast();
+
+  // Handle fetcher responses
+  useEffect(() => {
+    if (fetcher.data) {
+      if (fetcher.data.error) {
+        showToast(fetcher.data.error, "error");
+      } else if (fetcher.data.deleted) {
+        showToast("Plan deleted successfully", "success");
+      }
+    }
+  }, [fetcher.data, showToast]);
 
   const handleToggleActive = (id: string, isActive: boolean) => {
     fetcher.submit(
