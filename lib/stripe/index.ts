@@ -508,6 +508,9 @@ export async function handleSubscriptionDeleted(stripeSubscription: Stripe.Subsc
       updatedAt: new Date(),
     })
     .where(eq(subscription.organizationId, orgId));
+
+  // Invalidate cache so canceled status is immediately visible
+  await invalidateSubscriptionCache(orgId);
 }
 
 // Get subscription status
@@ -559,6 +562,9 @@ export async function cancelSubscription(orgId: string): Promise<boolean> {
         updatedAt: new Date(),
       })
       .where(eq(subscription.organizationId, orgId));
+
+    // Invalidate cache so canceled status is immediately visible
+    await invalidateSubscriptionCache(orgId);
     return true;
   }
 
@@ -574,6 +580,9 @@ export async function cancelSubscription(orgId: string): Promise<boolean> {
       updatedAt: new Date(),
     })
     .where(eq(subscription.organizationId, orgId));
+
+  // Invalidate cache so canceled status is immediately visible
+  await invalidateSubscriptionCache(orgId);
 
   return true;
 }
