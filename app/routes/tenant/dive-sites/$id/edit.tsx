@@ -294,7 +294,7 @@ export default function EditDiveSitePage() {
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Site Images</h2>
           <ImageManager
-            entityType="diveSite"
+            entityType="dive-site"
             entityId={site.id}
             images={images}
             maxImages={5}

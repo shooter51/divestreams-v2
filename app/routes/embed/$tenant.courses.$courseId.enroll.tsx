@@ -97,7 +97,18 @@ export async function action({ params, request }: ActionFunctionArgs) {
   if (!sessionId) errors.form = "No training session selected";
 
   if (Object.keys(errors).length > 0) {
-    return { errors };
+    return {
+      errors,
+      values: {
+        sessionId,
+        firstName,
+        lastName,
+        email,
+        phone,
+        dateOfBirth,
+        notes,
+      }
+    };
   }
 
   try {
@@ -124,6 +135,15 @@ export async function action({ params, request }: ActionFunctionArgs) {
         : "Failed to create enrollment. Please try again.";
     return {
       errors: { form: message },
+      values: {
+        sessionId,
+        firstName,
+        lastName,
+        email,
+        phone,
+        dateOfBirth,
+        notes,
+      }
     };
   }
 }
@@ -210,6 +230,7 @@ export default function EnrollmentFormPage() {
                   <input
                     type="text"
                     name="firstName"
+                    defaultValue={actionData?.values?.firstName || ""}
                     required
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -227,6 +248,7 @@ export default function EnrollmentFormPage() {
                   <input
                     type="text"
                     name="lastName"
+                    defaultValue={actionData?.values?.lastName || ""}
                     required
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -246,6 +268,7 @@ export default function EnrollmentFormPage() {
                   <input
                     type="email"
                     name="email"
+                    defaultValue={actionData?.values?.email || ""}
                     required
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -263,6 +286,7 @@ export default function EnrollmentFormPage() {
                   <input
                     type="tel"
                     name="phone"
+                    defaultValue={actionData?.values?.phone || ""}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -275,6 +299,7 @@ export default function EnrollmentFormPage() {
                 <input
                   type="date"
                   name="dateOfBirth"
+                  defaultValue={actionData?.values?.dateOfBirth || ""}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -291,6 +316,7 @@ export default function EnrollmentFormPage() {
               <textarea
                 name="notes"
                 rows={3}
+                defaultValue={actionData?.values?.notes || ""}
                 placeholder="Prior diving experience, scheduling preferences, medical conditions, etc."
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
