@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { db } from "../db";
 import { organization, subscription, subscriptionPlans } from "../db/schema";
 import { eq, or } from "drizzle-orm";
+import { invalidateSubscriptionCache } from "../cache/subscription.server";
 
 // Initialize Stripe
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -191,6 +192,9 @@ export async function createCheckoutSession(
                 })
                 .where(eq(subscription.organizationId, orgId));
 
+              // Invalidate cache so user sees updated subscription immediately
+              await invalidateSubscriptionCache(orgId);
+
               return successUrl;
             }
           } catch (error) {
@@ -233,6 +237,9 @@ export async function createCheckoutSession(
               updatedAt: new Date(),
             })
             .where(eq(subscription.organizationId, orgId));
+
+          // Invalidate cache so user sees updated subscription immediately
+          await invalidateSubscriptionCache(orgId);
 
           return successUrl;
         } catch (error) {
@@ -479,6 +486,10 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
       .where(eq(subscription.organizationId, orgId));
 
     console.log(`   ✅ Updated subscription in database: status=${status}, plan=${planName}`);
+
+    // Invalidate cache so changes are immediately visible
+    await invalidateSubscriptionCache(orgId);
+    console.log(`   ✅ Invalidated subscription cache for org ${orgId}`);
   } catch (error) {
     console.error(`   ❌ Failed to update subscription in database:`, error);
     throw error;
