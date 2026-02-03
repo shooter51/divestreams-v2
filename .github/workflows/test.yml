@@ -92,7 +92,9 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: |
+          # Try with deps first, fallback to without deps if sudo fails
+          npx playwright install --with-deps chromium || npx playwright install chromium
 
       - name: Configure hosts for subdomains
         run: |
