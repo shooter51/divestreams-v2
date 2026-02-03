@@ -201,21 +201,21 @@ export default function AdminOrganizationsPage() {
       </form>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-md border-2 border-border-strong overflow-hidden">
+      <div className="bg-white rounded-xl shadow-lg border-2 border-gray-300 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b-2 border-border-strong">
+          <thead className="bg-gray-100 border-b-2 border-gray-300">
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Slug</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Name</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Owner</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Members</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Plan</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Status</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Created</th>
-              <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">Actions</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Slug</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Name</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Owner</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Members</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Plan</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Status</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Created</th>
+              <th className="text-right px-4 py-3 text-sm font-semibold text-gray-800">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
+          <tbody className="divide-y divide-gray-300 bg-white">
             {organizations.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-foreground-muted">
