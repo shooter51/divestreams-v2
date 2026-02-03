@@ -96,11 +96,14 @@ jobs:
 
       - name: Configure hosts for subdomains
         run: |
-          echo "127.0.0.1 localhost" | sudo tee -a /etc/hosts
-          echo "127.0.0.1 admin.localhost" | sudo tee -a /etc/hosts
-          echo "127.0.0.1 e2etest.localhost" | sudo tee -a /etc/hosts
-          echo "127.0.0.1 demo.localhost" | sudo tee -a /etc/hosts
-          cat /etc/hosts
+          # Check if entries already exist to avoid duplicates
+          if ! grep -q "admin.localhost" /etc/hosts 2>/dev/null; then
+            echo "127.0.0.1 localhost" | sudo tee -a /etc/hosts || true
+            echo "127.0.0.1 admin.localhost" | sudo tee -a /etc/hosts || true
+            echo "127.0.0.1 e2etest.localhost" | sudo tee -a /etc/hosts || true
+            echo "127.0.0.1 demo.localhost" | sudo tee -a /etc/hosts || true
+          fi
+          cat /etc/hosts || true
 
       - name: Setup database schema
         run: npm run db:push

@@ -68,7 +68,10 @@ jobs:
 
       - name: Setup local hosts for subdomain testing
         run: |
-          echo "127.0.0.1 admin.localhost demo.localhost test.localhost e2etest.localhost" | sudo tee -a /etc/hosts
+          # Check if entries already exist to avoid duplicates
+          if ! grep -q "admin.localhost" /etc/hosts 2>/dev/null; then
+            echo "127.0.0.1 admin.localhost demo.localhost test.localhost e2etest.localhost" | sudo tee -a /etc/hosts || true
+          fi
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -299,9 +302,8 @@ jobs:
           sed -i "s|PLACEHOLDER_CDN_URL|$CDN_URL|g" /tmp/update-env.sh
           sed -i "s|PLACEHOLDER_STRIPE_WEBHOOK_SECRET|$STRIPE_WEBHOOK_SECRET|g" /tmp/update-env.sh
 
-          # Copy script to VPS and execute
-          scp -i ~/.ssh/staging_key -o StrictHostKeyChecking=no /tmp/update-env.sh root@76.13.28.28:/tmp/
-          ssh -i ~/.ssh/staging_key -o StrictHostKeyChecking=no root@76.13.28.28 'bash /tmp/update-env.sh && rm /tmp/update-env.sh'
+          # Execute script directly via SSH stdin (avoid /tmp permission issues)
+          cat /tmp/update-env.sh | ssh -i ~/.ssh/staging_key -o StrictHostKeyChecking=no root@76.13.28.28 'bash -s'
 
           echo "✅ Environment secrets updated"
 
