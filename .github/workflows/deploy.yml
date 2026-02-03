@@ -27,6 +27,12 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Setup host.docker.internal for Linux runner
+        run: |
+          if ! grep -q "host.docker.internal" /etc/hosts 2>/dev/null; then
+            echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts || true
+          fi
+
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
@@ -68,7 +74,11 @@ jobs:
 
       - name: Setup local hosts for subdomain testing
         run: |
-          # Check if entries already exist to avoid duplicates
+          # Add host.docker.internal for database/redis access on Linux
+          if ! grep -q "host.docker.internal" /etc/hosts 2>/dev/null; then
+            echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts || true
+          fi
+          # Add subdomain entries
           if ! grep -q "admin.localhost" /etc/hosts 2>/dev/null; then
             echo "127.0.0.1 admin.localhost demo.localhost test.localhost e2etest.localhost" | sudo tee -a /etc/hosts || true
           fi
