@@ -108,6 +108,12 @@ jobs:
       # NOTE: No build step needed - Playwright config starts dev server automatically
       # See playwright.config.ts webServer configuration (line 60-85)
 
+      - name: Clean up any lingering processes on port 5173
+        run: |
+          # Kill any process using port 5173 from previous runs
+          lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+          sleep 2
+
       - name: Run E2E tests (all 230 workflow tests)
         run: |
           # Check first line of commit message for [e2e:failing] flag
