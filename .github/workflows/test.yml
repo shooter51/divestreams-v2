@@ -133,6 +133,12 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
 
+      - name: Clean up any lingering processes on port 5173
+        run: |
+          # Kill any process using port 5173 from previous runs
+          lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+          sleep 2
+
       # Note: No build step needed - playwright starts instrumented dev server
       - name: Run E2E tests with coverage
         run: npm run test:coverage:e2e

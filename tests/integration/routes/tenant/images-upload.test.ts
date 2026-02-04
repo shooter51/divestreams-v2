@@ -191,7 +191,7 @@ describe("tenant/images/upload route", () => {
     });
 
     it("accepts valid entity types", async () => {
-      const validTypes = ["tour", "diveSite", "boat", "equipment", "staff"];
+      const validTypes = ["tour", "dive-site", "boat", "equipment", "staff"];
 
       for (const entityType of validTypes) {
         vi.clearAllMocks();
