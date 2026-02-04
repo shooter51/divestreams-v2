@@ -86,10 +86,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Install system dependencies for Playwright
+        run: sudo npx playwright install-deps chromium
+
       - name: Install Playwright browsers
-        run: |
-          # Try with deps first, fallback to without deps if sudo fails
-          npx playwright install --with-deps chromium || npx playwright install chromium
+        run: npx playwright install chromium
 
       - name: Setup database schema and run migrations
         run: node scripts/run-migrations.mjs
@@ -394,8 +395,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Install system dependencies for Playwright
+        run: sudo npx playwright install-deps chromium
+
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Run smoke tests against staging
         run: npm run test:e2e -- --grep "@smoke"
