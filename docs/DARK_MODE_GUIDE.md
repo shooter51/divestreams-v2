@@ -144,12 +144,18 @@ import { StatusBadge, type BadgeStatus } from "../../components/ui";
 - From `app/routes/tenant/`: `../../components/ui`
 - From `app/routes/site/account/`: `../../../components/ui`
 
-**Supported Statuses:**
-- Bookings: `pending`, `confirmed`, `checked_in`, `completed`, `cancelled`, `no_show`
+**Supported Statuses** (37 total):
+- Bookings: `pending`, `confirmed`, `checked_in`, `completed`, `cancelled`, `canceled`, `no_show`
+- Trips: `scheduled`, `in_progress`, `open`, `full`
 - Availability: `available`, `unavailable`
 - Equipment: `rented`, `maintenance`, `retired`
-- Active/Inactive: `active`, `inactive`
-- Payment: `paid`, `unpaid`, `refunded`, `partial`, `failed`
+- Rentals: `overdue`, `returned`
+- Active/Inactive: `active`, `inactive`, `archived`
+- Payment: `paid`, `unpaid`, `refunded`, `partial`, `failed`, `succeeded`
+- Training: `enrolled`, `dropped`
+- Content/Messages: `new`, `read`, `replied`, `draft`, `published`, `spam`
+- Subscription: `trialing`, `past_due`
+- Integration: `success`
 
 ### FormInput
 

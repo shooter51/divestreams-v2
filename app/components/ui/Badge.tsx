@@ -1,5 +1,13 @@
 import type { ReactNode } from "react";
 
+/**
+ * Badge variant types that determine the color scheme.
+ * - default: Neutral gray badge
+ * - success: Green badge for positive states
+ * - warning: Yellow/orange badge for warnings
+ * - error: Red badge for errors
+ * - info: Blue brand color badge for informational content
+ */
 type BadgeVariant = "default" | "success" | "warning" | "error" | "info";
 
 const variantClasses: Record<BadgeVariant, string> = {
@@ -17,6 +25,16 @@ interface BadgeProps {
   className?: string;
 }
 
+/**
+ * Generic badge component for displaying labels, tags, and status indicators.
+ * Uses semantic color tokens for automatic dark mode support.
+ *
+ * @example
+ * ```tsx
+ * <Badge variant="success">Active</Badge>
+ * <Badge variant="warning" size="md">Pending</Badge>
+ * ```
+ */
 export function Badge({ children, variant = "default", size = "sm", className = "" }: BadgeProps) {
   const sizeClasses = size === "sm" ? "text-xs px-2 py-1" : "text-sm px-3 py-1";
 
@@ -27,7 +45,14 @@ export function Badge({ children, variant = "default", size = "sm", className = 
   );
 }
 
-// Enhanced status badge with proper typing and human-readable labels
+/**
+ * Comprehensive status type covering all system entities.
+ * Supports 37 different status values across bookings, trips, equipment,
+ * payments, training, and other domain objects.
+ *
+ * Each status maps to a semantic variant (success/warning/error/info/default)
+ * and a human-readable label for consistent display across the application.
+ */
 export type BadgeStatus =
   // Booking statuses
   | "pending"
@@ -136,6 +161,25 @@ const STATUS_MAP: Record<BadgeStatus, StatusConfig> = {
   success: { variant: "success", label: "Success" },
 };
 
+/**
+ * Status badge component with pre-configured variants and labels.
+ * Automatically maps status values to appropriate colors and readable labels.
+ *
+ * @example
+ * ```tsx
+ * // Booking statuses
+ * <StatusBadge status="pending" />      // Yellow "Pending"
+ * <StatusBadge status="confirmed" />    // Green "Confirmed"
+ * <StatusBadge status="cancelled" />    // Red "Cancelled"
+ *
+ * // Payment statuses
+ * <StatusBadge status="paid" />         // Green "Paid"
+ * <StatusBadge status="refunded" />     // Gray "Refunded"
+ *
+ * // With size
+ * <StatusBadge status="in_progress" size="md" />
+ * ```
+ */
 export function StatusBadge({
   status,
   size = "sm",
@@ -154,6 +198,16 @@ export function StatusBadge({
   );
 }
 
+/**
+ * Badge for displaying equipment condition.
+ * Maps condition values (excellent, good, fair, poor) to semantic colors.
+ *
+ * @example
+ * ```tsx
+ * <ConditionBadge condition="excellent" />  // Green
+ * <ConditionBadge condition="fair" />       // Yellow
+ * ```
+ */
 export function ConditionBadge({ condition }: { condition: string }) {
   const conditionVariants: Record<string, BadgeVariant> = {
     excellent: "success",
@@ -165,6 +219,17 @@ export function ConditionBadge({ condition }: { condition: string }) {
   return <Badge variant={conditionVariants[condition] || "default"}>{condition}</Badge>;
 }
 
+/**
+ * Badge for displaying dive/course difficulty level.
+ * Maps difficulty values (beginner, intermediate, advanced, expert) to semantic colors.
+ *
+ * @example
+ * ```tsx
+ * <DifficultyBadge difficulty="beginner" />     // Green
+ * <DifficultyBadge difficulty="advanced" />     // Yellow
+ * <DifficultyBadge difficulty="expert" />       // Red
+ * ```
+ */
 export function DifficultyBadge({ difficulty }: { difficulty: string }) {
   const difficultyVariants: Record<string, BadgeVariant> = {
     beginner: "success",

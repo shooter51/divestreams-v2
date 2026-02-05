@@ -15,6 +15,7 @@ import { eq } from "drizzle-orm";
 import { sendEmail, contactFormNotificationEmail, contactFormAutoReplyEmail } from "../../../lib/email";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { sanitizeIframeEmbed } from "../../../lib/security/sanitize";
+import { FormInput, FormTextarea } from "../../../components/ui";
 
 /**
  * Extract subdomain from request host
@@ -451,158 +452,43 @@ export default function SiteContactPage() {
               </div>
 
               {/* Name Field */}
-              <div>
-                <label
-                  htmlFor="contact-name"
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--text-color)" }}
-                >
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="contact-name"
-                  name="name"
-                  required
-                  autoComplete="name"
-                  className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
-                  style={{
-                    borderColor: actionData?.errors?.name
-                      ? "#ef4444"
-                      : "var(--accent-color)",
-                    // @ts-ignore
-                    "--tw-ring-color": "var(--primary-color)",
-                  }}
-                  aria-invalid={actionData?.errors?.name ? "true" : undefined}
-                  aria-describedby={
-                    actionData?.errors?.name ? "name-error" : undefined
-                  }
-                />
-                {actionData?.errors?.name && (
-                  <p
-                    id="name-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
-                  >
-                    <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.name}
-                  </p>
-                )}
-              </div>
+              <FormInput
+                label="Name"
+                name="name"
+                type="text"
+                required
+                autoComplete="name"
+                error={actionData?.errors?.name}
+              />
 
               {/* Email Field */}
-              <div>
-                <label
-                  htmlFor="contact-email"
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--text-color)" }}
-                >
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  id="contact-email"
-                  name="email"
-                  required
-                  autoComplete="email"
-                  className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
-                  style={{
-                    borderColor: actionData?.errors?.email
-                      ? "#ef4444"
-                      : "var(--accent-color)",
-                    // @ts-ignore
-                    "--tw-ring-color": "var(--primary-color)",
-                  }}
-                  aria-invalid={actionData?.errors?.email ? "true" : undefined}
-                  aria-describedby={
-                    actionData?.errors?.email ? "email-error" : undefined
-                  }
-                />
-                {actionData?.errors?.email && (
-                  <p
-                    id="email-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
-                  >
-                    <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.email}
-                  </p>
-                )}
-              </div>
+              <FormInput
+                label="Email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                error={actionData?.errors?.email}
+              />
 
               {/* Phone Field (Optional) */}
-              <div>
-                <label
-                  htmlFor="contact-phone"
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--text-color)" }}
-                >
-                  Phone <span className="text-sm opacity-50">(optional)</span>
-                </label>
-                <input
-                  type="tel"
-                  id="contact-phone"
-                  name="phone"
-                  autoComplete="tel"
-                  className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
-                  style={{
-                    borderColor: actionData?.errors?.phone
-                      ? "#ef4444"
-                      : "var(--accent-color)",
-                    // @ts-ignore
-                    "--tw-ring-color": "var(--primary-color)",
-                  }}
-                  aria-invalid={actionData?.errors?.phone ? "true" : undefined}
-                  aria-describedby={
-                    actionData?.errors?.phone ? "phone-error" : undefined
-                  }
-                />
-                {actionData?.errors?.phone && (
-                  <p
-                    id="phone-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
-                  >
-                    <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.phone}
-                  </p>
-                )}
-              </div>
+              <FormInput
+                label="Phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                error={actionData?.errors?.phone}
+                helperText="(optional)"
+              />
 
               {/* Message Field */}
-              <div>
-                <label
-                  htmlFor="contact-message"
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--text-color)" }}
-                >
-                  Message <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  id="contact-message"
-                  name="message"
-                  required
-                  rows={5}
-                  className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 resize-y"
-                  style={{
-                    borderColor: actionData?.errors?.message
-                      ? "#ef4444"
-                      : "var(--accent-color)",
-                    // @ts-ignore
-                    "--tw-ring-color": "var(--primary-color)",
-                  }}
-                  aria-invalid={actionData?.errors?.message ? "true" : undefined}
-                  aria-describedby={
-                    actionData?.errors?.message ? "message-error" : undefined
-                  }
-                />
-                {actionData?.errors?.message && (
-                  <p
-                    id="message-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
-                  >
-                    <ExclamationCircleIcon className="w-4 h-4" />
-                    {actionData.errors.message}
-                  </p>
-                )}
-              </div>
+              <FormTextarea
+                label="Message"
+                name="message"
+                required
+                rows={5}
+                error={actionData?.errors?.message}
+              />
 
               {/* General Error */}
               {actionData?.error && (
