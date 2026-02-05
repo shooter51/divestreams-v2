@@ -1,8 +1,8 @@
 -- Fix subscription plans pricing and add missing starter plan
 -- This migration corrects the enterprise pricing and adds the missing starter plan
+-- Note: Transaction control removed - postgres.js migration runner handles transactions
 
-BEGIN;
-
+--> statement-breakpoint
 -- Update enterprise pricing to correct values
 UPDATE subscription_plans
 SET
@@ -11,6 +11,7 @@ SET
   updated_at = NOW()
 WHERE name = 'enterprise';
 
+--> statement-breakpoint
 -- Insert starter plan if it doesn't exist
 INSERT INTO subscription_plans (
   name,
@@ -39,16 +40,3 @@ SELECT
 WHERE NOT EXISTS (
   SELECT 1 FROM subscription_plans WHERE name = 'starter'
 );
-
--- Verify the changes
-SELECT
-  name,
-  display_name,
-  monthly_price / 100.0 AS monthly_price_usd,
-  yearly_price / 100.0 AS yearly_price_usd,
-  monthly_price_id,
-  yearly_price_id
-FROM subscription_plans
-ORDER BY monthly_price;
-
-COMMIT;
