@@ -12,7 +12,8 @@ export class LoginPage extends TenantBasePage {
   async login(email: string, password: string): Promise<void> {
     // Email field requires getByRole for accessibility matching
     await this.page.getByRole("textbox", { name: /email/i }).fill(email);
-    await this.fillByLabel(/password/i, password);
+    // Use specific selector for password field to avoid strict mode violation with show/hide button
+    await this.page.locator('input[type="password"]').first().fill(password);
     // Click and wait for navigation after successful login
     await this.clickButton(/sign in/i);
     // Wait for redirect to tenant dashboard (URL change is more reliable than networkidle)

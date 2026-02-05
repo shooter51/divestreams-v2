@@ -10,7 +10,8 @@ export class AdminLoginPage extends AdminBasePage {
   }
 
   async login(password: string): Promise<void> {
-    await this.fillByLabel(/password/i, password);
+    // Use specific selector for password field to avoid strict mode violation with show/hide button
+    await this.page.locator('input[type="password"]').first().fill(password);
     await this.clickButton(/sign in/i);
   }
 
