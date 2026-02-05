@@ -34,6 +34,7 @@ vi.mock("../../../../../lib/storage", () => ({
     })
   ),
   isValidImageType: vi.fn((type: string) => type.startsWith("image/")),
+  getS3Client: vi.fn(() => ({ config: {} })), // Mock S3Client as configured
 }));
 
 vi.mock("../../../../../lib/db/gallery.server", () => ({
@@ -52,7 +53,7 @@ describe("Gallery Upload Route", () => {
     vi.clearAllMocks();
 
     // Reset mock implementations that may have been changed by previous tests
-    const { isValidImageType, uploadToB2 } = await import("../../../../../lib/storage");
+    const { isValidImageType, uploadToB2, getS3Client } = await import("../../../../../lib/storage");
     vi.mocked(isValidImageType).mockImplementation((type: string) => type.startsWith("image/"));
     vi.mocked(uploadToB2).mockImplementation((key: string, buffer: Buffer, mimeType: string) =>
       Promise.resolve({
@@ -60,6 +61,7 @@ describe("Gallery Upload Route", () => {
         key,
       })
     );
+    vi.mocked(getS3Client).mockReturnValue({ config: {} } as any);
   });
 
   it("should upload gallery image successfully", async () => {
@@ -80,12 +82,11 @@ describe("Gallery Upload Route", () => {
     });
 
     const response = await action({ request, params: {}, context: {} } as any);
-    const result = await response.json();
 
-    expect(result.success).toBe(true);
-    expect(result.image).toBeDefined();
-    expect(result.image.id).toBe("test-image-id");
-    expect(result.image.title).toBe("Test Image");
+    expect(response.status).toBe(302);
+    const location = response.headers.get("Location");
+    expect(location).toContain("/tenant/gallery/test-album-id");
+    expect(location).toContain("success=Successfully+uploaded+1+image");
   });
 
   it("should reject request without file", async () => {
@@ -98,10 +99,11 @@ describe("Gallery Upload Route", () => {
     });
 
     const response = await action({ request, params: {}, context: {} } as any);
-    const result = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(result.error).toBe("No file provided");
+    expect(response.status).toBe(302);
+    const location = response.headers.get("Location");
+    expect(location).toContain("/tenant/gallery/test-album-id");
+    expect(location).toContain("error=No+files+selected");
   });
 
   it("should reject invalid file type", async () => {
@@ -121,15 +123,16 @@ describe("Gallery Upload Route", () => {
     });
 
     const response = await action({ request, params: {}, context: {} } as any);
-    const result = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(result.error).toContain("Invalid file type");
+    expect(response.status).toBe(302);
+    const location = response.headers.get("Location");
+    expect(location).toContain("/tenant/gallery/test-album-id");
+    expect(location).toContain("error=All");
   });
 
   it("should handle missing B2 configuration", async () => {
-    const { uploadToB2 } = await import("../../../../../lib/storage");
-    vi.mocked(uploadToB2).mockResolvedValueOnce(null);
+    const { getS3Client } = await import("../../../../../lib/storage");
+    vi.mocked(getS3Client).mockReturnValueOnce(null);
 
     const formData = new FormData();
     // Create file with realistic size
@@ -146,10 +149,11 @@ describe("Gallery Upload Route", () => {
     });
 
     const response = await action({ request, params: {}, context: {} } as any);
-    const result = await response.json();
 
-    expect(response.status).toBe(503);
-    expect(result.error).toContain("storage is not configured");
+    expect(response.status).toBe(302); // Redirect
+    const location = response.headers.get("Location");
+    expect(location).toContain("/tenant/gallery/test-album-id");
+    expect(location).toContain("error=Image+storage+is+not+configured");
   });
 
   it("should parse tags correctly", async () => {
@@ -195,9 +199,12 @@ describe("Gallery Upload Route", () => {
     });
 
     const response = await action({ request, params: {}, context: {} } as any);
-    const result = await response.json();
 
-    expect(result.success).toBe(true);
+    expect(response.status).toBe(302);
+    const location = response.headers.get("Location");
+    expect(location).toContain("/tenant/gallery");
+    expect(location).toContain("success=Successfully+uploaded");
+
     expect(createGalleryImage).toHaveBeenCalledWith(
       "test-org-id",
       expect.objectContaining({
