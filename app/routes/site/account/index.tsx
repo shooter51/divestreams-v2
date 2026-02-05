@@ -14,6 +14,7 @@ import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and, gte, desc, sql } from "drizzle-orm";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 
 // ============================================================================
 // TYPES
@@ -254,7 +255,7 @@ export default function AccountDashboard() {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <StatusBadge status={nextBooking.status} />
+                <StatusBadge status={mapBookingStatusToBadgeStatus(nextBooking.status)} />
                 <Link
                   to={`/site/account/bookings`}
                   className="text-sm font-medium transition-opacity hover:opacity-80"
@@ -388,26 +389,22 @@ function QuickLinkCard({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Pending" },
-    confirmed: { bg: "var(--success-muted)", text: "var(--success)", label: "Confirmed" },
-    checked_in: { bg: "var(--brand-muted)", text: "var(--brand)", label: "Checked In" },
-    completed: { bg: "var(--surface-overlay)", text: "var(--foreground-muted)", label: "Completed" },
-    canceled: { bg: "var(--danger-muted)", text: "var(--danger)", label: "Canceled" },
-    no_show: { bg: "var(--accent-muted)", text: "var(--accent)", label: "No Show" },
+/**
+ * Maps booking status strings to BadgeStatus types
+ * Handles database values like 'canceled' and 'no_show' that don't directly match BadgeStatus
+ */
+function mapBookingStatusToBadgeStatus(status: string): BadgeStatus {
+  // Map database status to BadgeStatus type
+  const statusMap: Record<string, BadgeStatus> = {
+    pending: "pending",
+    confirmed: "confirmed",
+    checked_in: "checked_in",
+    completed: "completed",
+    canceled: "cancelled", // Map to 'cancelled' (UK spelling used in BadgeStatus)
+    no_show: "cancelled", // Map no_show to cancelled as closest match
   };
 
-  const style = statusStyles[status] || statusStyles.pending;
-
-  return (
-    <span
-      className="px-3 py-1 rounded-full text-xs font-medium"
-      style={{ backgroundColor: style.bg, color: style.text }}
-    >
-      {style.label}
-    </span>
-  );
+  return statusMap[status] || "pending";
 }
 
 // ============================================================================

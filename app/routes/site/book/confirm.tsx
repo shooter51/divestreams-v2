@@ -18,6 +18,7 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { getBookingDetails, type BookingDetails } from "../../../../lib/db/mutations.public";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { StatusBadge, type BadgeStatus, Badge } from "../../../components/ui";
 
 // ============================================================================
 // TYPES
@@ -180,7 +181,7 @@ export default function BookingConfirmationPage() {
 
           {/* Booking Status */}
           <div className="flex items-center justify-center gap-4 mb-6">
-            <StatusBadge status={booking.status} />
+            <StatusBadge status={booking.status as BadgeStatus} size="md" />
             <PaymentBadge status={booking.paymentStatus} />
           </div>
 
@@ -402,46 +403,21 @@ export default function BookingConfirmationPage() {
 // HELPER COMPONENTS
 // ============================================================================
 
-function StatusBadge({ status }: { status: string }) {
-  const statusConfig: Record<string, { label: string; bgColor: string; textColor: string }> = {
-    pending: { label: "Pending", bgColor: "var(--warning-muted)", textColor: "var(--warning)" },
-    confirmed: { label: "Confirmed", bgColor: "var(--success-muted)", textColor: "var(--success)" },
-    checked_in: { label: "Checked In", bgColor: "var(--brand-muted)", textColor: "var(--brand)" },
-    completed: { label: "Completed", bgColor: "var(--surface-overlay)", textColor: "var(--foreground-muted)" },
-    canceled: { label: "Canceled", bgColor: "var(--danger-muted)", textColor: "var(--danger)" },
-    no_show: { label: "No Show", bgColor: "var(--accent-muted)", textColor: "var(--accent)" },
-  };
-
-  const config = statusConfig[status] || statusConfig.pending;
-
-  return (
-    <span
-      className="px-3 py-1 rounded-full text-sm font-medium"
-      style={{ backgroundColor: config.bgColor, color: config.textColor }}
-    >
-      {config.label}
-    </span>
-  );
-}
-
 function PaymentBadge({ status }: { status: string }) {
-  const statusConfig: Record<string, { label: string; bgColor: string; textColor: string }> = {
-    pending: { label: "Payment Pending", bgColor: "var(--warning-muted)", textColor: "var(--warning)" },
-    partial: { label: "Partial Payment", bgColor: "var(--warning-muted)", textColor: "var(--warning)" },
-    paid: { label: "Paid", bgColor: "var(--success-muted)", textColor: "var(--success)" },
-    refunded: { label: "Refunded", bgColor: "var(--surface-overlay)", textColor: "var(--foreground-muted)" },
-    failed: { label: "Payment Failed", bgColor: "var(--danger-muted)", textColor: "var(--danger)" },
+  const paymentConfig: Record<string, { variant: "default" | "success" | "warning" | "error" | "info"; label: string }> = {
+    pending: { variant: "warning", label: "Payment Pending" },
+    partial: { variant: "warning", label: "Partial Payment" },
+    paid: { variant: "success", label: "Paid" },
+    refunded: { variant: "default", label: "Refunded" },
+    failed: { variant: "error", label: "Payment Failed" },
   };
 
-  const config = statusConfig[status] || statusConfig.pending;
+  const config = paymentConfig[status] || paymentConfig.pending;
 
   return (
-    <span
-      className="px-3 py-1 rounded-full text-sm font-medium"
-      style={{ backgroundColor: config.bgColor, color: config.textColor }}
-    >
+    <Badge variant={config.variant} size="md">
       {config.label}
-    </span>
+    </Badge>
   );
 }
 

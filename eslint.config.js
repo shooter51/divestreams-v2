@@ -96,6 +96,30 @@ export default tseslint.config(
       "no-console": "off",
       "prefer-const": "warn",
       "no-var": "error",
+
+      // Dark mode regression prevention
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Literal[value=/#[0-9a-fA-F]{3,8}$/]",
+          message:
+            "❌ Hardcoded hex colors are prohibited. Use semantic tokens instead:\n" +
+            "  ✅ backgroundColor: 'var(--surface)'\n" +
+            "  ✅ color: 'var(--foreground)'\n" +
+            "  ✅ borderColor: 'var(--border)'\n" +
+            "  ✅ import { semanticColors } from 'lib/utils/semantic-colors'\n" +
+            "Allowed exceptions: 'transparent', 'currentColor', 'inherit'\n" +
+            "See: docs/DARK_MODE_GUIDE.md",
+        },
+        {
+          selector: "Literal[value=/^(rgb|rgba|hsl|hsla)\\(/]",
+          message:
+            "❌ Hardcoded RGB/HSL colors are prohibited. Use semantic tokens instead:\n" +
+            "  ✅ backgroundColor: 'var(--surface)'\n" +
+            "  ✅ color: 'var(--foreground)'\n" +
+            "See: docs/DARK_MODE_GUIDE.md",
+        },
+      ],
     },
   },
   // Playwright E2E test-specific rules

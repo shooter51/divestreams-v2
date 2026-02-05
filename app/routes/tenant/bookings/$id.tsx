@@ -5,6 +5,7 @@ import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus, recordPayment } from "../../../../lib/db/queries.server";
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Booking Details - DiveStreams" }];
 
@@ -127,14 +128,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
-const statusColors: Record<string, string> = {
-  pending: "bg-warning-muted text-warning",
-  confirmed: "bg-success-muted text-success",
-  completed: "bg-surface-inset text-foreground-muted",
-  cancelled: "bg-danger-muted text-danger",
-  no_show: "bg-accent-muted text-accent",
-};
-
 export default function BookingDetailPage() {
   useNotification();
 
@@ -255,13 +248,7 @@ export default function BookingDetailPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{booking.bookingNumber}</h1>
-            <span
-              className={`text-sm px-3 py-1 rounded-full ${
-                statusColors[booking.status] || "bg-surface-inset text-foreground"
-              }`}
-            >
-              {booking.status}
-            </span>
+            <StatusBadge status={booking.status as BadgeStatus} size="md" />
           </div>
           <p className="text-foreground-muted">Created {booking.createdAt}</p>
         </div>

@@ -19,6 +19,7 @@ import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { syncBookingCancellationToCalendar } from "../../../../lib/integrations/google-calendar-bookings.server";
+import { StatusBadge, type BadgeStatus } from "../../../../components/ui";
 
 // ============================================================================
 // TYPES
@@ -357,8 +358,8 @@ export default function BookingDetail() {
           <p className="mt-1 opacity-75">Booking Reference: {booking.bookingNumber}</p>
         </div>
         <div className="flex items-center gap-2">
-          <StatusBadge status={booking.status} />
-          <PaymentBadge status={booking.paymentStatus} />
+          <StatusBadge status={getBookingStatus(booking.status)} size="md" />
+          <StatusBadge status={getPaymentStatus(booking.paymentStatus)} size="md" />
         </div>
       </div>
 
@@ -588,46 +589,24 @@ export default function BookingDetail() {
 // SUBCOMPONENTS
 // ============================================================================
 
-function StatusBadge({ status }: { status: string }) {
-  const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Pending" },
-    confirmed: { bg: "var(--success-muted)", text: "var(--success)", label: "Confirmed" },
-    checked_in: { bg: "var(--brand-muted)", text: "var(--brand)", label: "Checked In" },
-    completed: { bg: "var(--surface-overlay)", text: "var(--foreground-muted)", label: "Completed" },
-    canceled: { bg: "var(--danger-muted)", text: "var(--danger)", label: "CANCELLED" },
-    no_show: { bg: "var(--accent-muted)", text: "var(--accent)", label: "No Show" },
-  };
-
-  const style = statusStyles[status] || statusStyles.pending;
-
-  return (
-    <span
-      className="px-3 py-1.5 rounded-full text-sm font-medium"
-      style={{ backgroundColor: style.bg, color: style.text }}
-    >
-      {style.label}
-    </span>
-  );
+// Helper to map booking status to BadgeStatus type
+function getBookingStatus(status: string): BadgeStatus {
+  // Map cancelled/canceled to cancelled
+  if (status === "canceled" || status === "cancelled") return "cancelled";
+  // Map payment status strings to badge types
+  if (status === "pending" || status === "confirmed" || status === "checked_in" || status === "completed") {
+    return status as BadgeStatus;
+  }
+  return "pending"; // fallback
 }
 
-function PaymentBadge({ status }: { status: string }) {
-  const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Unpaid" },
-    partial: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Partial" },
-    paid: { bg: "var(--success-muted)", text: "var(--success)", label: "Paid" },
-    refunded: { bg: "var(--surface-overlay)", text: "var(--foreground-muted)", label: "Refunded" },
-  };
-
-  const style = statusStyles[status] || statusStyles.pending;
-
-  return (
-    <span
-      className="px-3 py-1.5 rounded-full text-sm font-medium"
-      style={{ backgroundColor: style.bg, color: style.text }}
-    >
-      {style.label}
-    </span>
-  );
+// Helper to map payment status to BadgeStatus type
+function getPaymentStatus(status: string): BadgeStatus {
+  if (status === "pending") return "unpaid";
+  if (status === "paid" || status === "partial" || status === "refunded") {
+    return status as BadgeStatus;
+  }
+  return "unpaid"; // fallback
 }
 
 // ============================================================================

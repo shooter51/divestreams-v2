@@ -16,54 +16,8 @@ import { getTheme, getThemeStyleBlock, type ThemeName } from "../../../lib/theme
 import { getCustomerBySession } from "../../../lib/auth/customer-auth.server";
 
 // ============================================================================
-// THEME CSS VARIABLES
+// FONT FAMILIES
 // ============================================================================
-
-/**
- * Theme presets with CSS variable values
- * NOTE: This is now derived from the main theme system in lib/themes/public-site-themes.ts
- * which includes proper dark mode support via @media (prefers-color-scheme: dark)
- */
-const themePresets: Record<
-  PublicSiteSettings["theme"],
-  { primary: string; secondary: string; background: string; text: string; accent: string }
-> = {
-  ocean: {
-    primary: "#0077B6",      // Deep ocean blue
-    secondary: "#00B4D8",    // Bright cyan
-    background: "#F0F9FF",   // Very light blue tint
-    text: "#1E3A5F",         // Dark navy text
-    accent: "#90E0EF",       // Light seafoam
-  },
-  tropical: {
-    primary: "#20B2AA",      // Light sea green
-    secondary: "#3CB371",    // Medium sea green
-    background: "#F0FFF4",   // Mint cream background
-    text: "#1A4D2E",         // Dark forest text
-    accent: "#FFD700",       // Golden yellow (sun)
-  },
-  minimal: {
-    primary: "#374151",      // Gray-700
-    secondary: "#6B7280",    // Gray-500
-    background: "#FFFFFF",   // Pure white
-    text: "#1F2937",         // Gray-800 text
-    accent: "#3B82F6",       // Blue-500 accent
-  },
-  dark: {
-    primary: "#60A5FA",      // Blue-400
-    secondary: "#818CF8",    // Indigo-400
-    background: "#0F172A",   // Slate-900
-    text: "#F1F5F9",         // Slate-100 text
-    accent: "#34D399",       // Emerald-400
-  },
-  classic: {
-    primary: "#1E3A5F",      // Navy blue
-    secondary: "#2C5282",    // Lighter navy
-    background: "#FFFBF0",   // Warm white background
-    text: "#1A202C",         // Near black text
-    accent: "#D4A942",       // Gold accent
-  },
-};
 
 /**
  * Font family CSS values

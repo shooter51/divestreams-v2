@@ -17,6 +17,7 @@ import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and, gte, lt, desc, sql } from "drizzle-orm";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui/Badge";
 
 // ============================================================================
 // TYPES
@@ -287,8 +288,8 @@ function BookingCard({ booking }: { booking: BookingItem }) {
         {/* Right Side - Status & Price */}
         <div className="flex flex-col items-end gap-3">
           <div className="flex items-center gap-2">
-            <StatusBadge status={booking.status} />
-            <PaymentBadge status={booking.paymentStatus} />
+            <StatusBadge status={mapBookingStatus(booking.status)} />
+            <StatusBadge status={mapPaymentStatus(booking.paymentStatus)} />
           </div>
           <p className="text-lg font-semibold" style={{ color: "var(--text-color)" }}>
             {formatCurrency(booking.total, booking.currency)}
@@ -354,46 +355,28 @@ function EmptyState({ filter }: { filter: string }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Pending" },
-    confirmed: { bg: "var(--success-muted)", text: "var(--success)", label: "Confirmed" },
-    checked_in: { bg: "var(--brand-muted)", text: "var(--brand)", label: "Checked In" },
-    completed: { bg: "var(--surface-overlay)", text: "var(--foreground-muted)", label: "Completed" },
-    canceled: { bg: "var(--danger-muted)", text: "var(--danger)", label: "Cancelled" },
-    no_show: { bg: "var(--accent-muted)", text: "var(--accent)", label: "No Show" },
+// Map database booking status to BadgeStatus type
+function mapBookingStatus(status: string): BadgeStatus {
+  const statusMap: Record<string, BadgeStatus> = {
+    pending: "pending",
+    confirmed: "confirmed",
+    checked_in: "checked_in",
+    completed: "completed",
+    canceled: "cancelled",
+    no_show: "cancelled", // Map no_show to cancelled for badge purposes
   };
-
-  const style = statusStyles[status] || statusStyles.pending;
-
-  return (
-    <span
-      className="px-2.5 py-1 rounded-full text-xs font-medium"
-      style={{ backgroundColor: style.bg, color: style.text }}
-    >
-      {style.label}
-    </span>
-  );
+  return statusMap[status] || "pending";
 }
 
-function PaymentBadge({ status }: { status: string }) {
-  const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Unpaid" },
-    partial: { bg: "var(--warning-muted)", text: "var(--warning)", label: "Partial" },
-    paid: { bg: "var(--success-muted)", text: "var(--success)", label: "Paid" },
-    refunded: { bg: "var(--surface-overlay)", text: "var(--foreground-muted)", label: "Refunded" },
+// Map database payment status to BadgeStatus type
+function mapPaymentStatus(status: string): BadgeStatus {
+  const statusMap: Record<string, BadgeStatus> = {
+    pending: "unpaid",
+    partial: "partial",
+    paid: "paid",
+    refunded: "refunded",
   };
-
-  const style = statusStyles[status] || statusStyles.pending;
-
-  return (
-    <span
-      className="px-2.5 py-1 rounded-full text-xs font-medium"
-      style={{ backgroundColor: style.bg, color: style.text }}
-    >
-      {style.label}
-    </span>
-  );
+  return statusMap[status] || "unpaid";
 }
 
 function TripTypeIcon({ type }: { type: string }) {

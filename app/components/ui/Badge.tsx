@@ -27,30 +27,74 @@ export function Badge({ children, variant = "default", size = "sm", className = 
   );
 }
 
-// Pre-built status badges for common use cases
-export function StatusBadge({ status }: { status: string }) {
-  const statusVariants: Record<string, BadgeVariant> = {
-    // Booking statuses
-    confirmed: "success",
-    pending: "warning",
-    cancelled: "error",
-    completed: "info",
-    // Equipment statuses
-    available: "success",
-    rented: "info",
-    maintenance: "warning",
-    retired: "default",
-    // Boat/general active status
-    active: "success",
-    inactive: "default",
-    // Payment statuses
-    paid: "success",
-    unpaid: "warning",
-    refunded: "error",
-    partial: "warning",
-  };
+// Enhanced status badge with proper typing and human-readable labels
+export type BadgeStatus =
+  | "pending"
+  | "confirmed"
+  | "checked_in"
+  | "completed"
+  | "cancelled"
+  | "no_show"
+  | "available"
+  | "unavailable"
+  | "rented"
+  | "maintenance"
+  | "retired"
+  | "active"
+  | "inactive"
+  | "paid"
+  | "unpaid"
+  | "refunded"
+  | "partial"
+  | "failed";
 
-  return <Badge variant={statusVariants[status] || "default"}>{status}</Badge>;
+interface StatusConfig {
+  variant: BadgeVariant;
+  label: string;
+}
+
+const STATUS_MAP: Record<BadgeStatus, StatusConfig> = {
+  // Booking statuses
+  pending: { variant: "warning", label: "Pending" },
+  confirmed: { variant: "success", label: "Confirmed" },
+  checked_in: { variant: "info", label: "Checked In" },
+  completed: { variant: "default", label: "Completed" },
+  cancelled: { variant: "error", label: "Cancelled" },
+  no_show: { variant: "info", label: "No Show" },
+  // Availability statuses
+  available: { variant: "success", label: "Available" },
+  unavailable: { variant: "error", label: "Unavailable" },
+  // Equipment statuses
+  rented: { variant: "info", label: "Rented" },
+  maintenance: { variant: "warning", label: "Maintenance" },
+  retired: { variant: "default", label: "Retired" },
+  // Active/Inactive
+  active: { variant: "success", label: "Active" },
+  inactive: { variant: "default", label: "Inactive" },
+  // Payment statuses
+  paid: { variant: "success", label: "Paid" },
+  unpaid: { variant: "warning", label: "Unpaid" },
+  refunded: { variant: "default", label: "Refunded" },
+  partial: { variant: "warning", label: "Partial" },
+  failed: { variant: "error", label: "Failed" },
+};
+
+export function StatusBadge({
+  status,
+  size = "sm",
+  className,
+}: {
+  status: BadgeStatus;
+  size?: "sm" | "md";
+  className?: string;
+}) {
+  const config = STATUS_MAP[status];
+
+  return (
+    <Badge variant={config.variant} size={size} className={className}>
+      {config.label}
+    </Badge>
+  );
 }
 
 export function ConditionBadge({ condition }: { condition: string }) {

@@ -18,6 +18,7 @@ import {
 } from "../../../../lib/trips/recurring.server";
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
 
@@ -178,13 +179,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
-const statusColors: Record<string, string> = {
-  open: "bg-brand-muted text-brand",
-  confirmed: "bg-success-muted text-success",
-  full: "bg-info-muted text-info",
-  completed: "bg-surface-inset text-foreground-muted",
-  cancelled: "bg-danger-muted text-danger",
-};
+// Map trip status strings to BadgeStatus types
+function mapTripStatusToBadgeStatus(status: string): BadgeStatus {
+  const statusMap: Record<string, BadgeStatus> = {
+    open: "pending",
+    confirmed: "confirmed",
+    full: "confirmed",
+    completed: "completed",
+    cancelled: "cancelled",
+  };
+  return statusMap[status] || "pending";
+}
 
 // Quick message templates for common scenarios
 const messageTemplates = [
@@ -391,13 +396,7 @@ export default function TripDetailPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{trip.tour.name}</h1>
-            <span
-              className={`text-sm px-3 py-1 rounded-full ${
-                statusColors[trip.status] || "bg-surface-inset text-foreground"
-              }`}
-            >
-              {trip.status}
-            </span>
+            <StatusBadge status={mapTripStatusToBadgeStatus(trip.status)} size="md" />
             {recurringInfo?.isRecurring && (
               <span
                 className="text-sm px-3 py-1 rounded-full bg-info-muted text-info flex items-center gap-1 cursor-pointer"
@@ -774,14 +773,12 @@ export default function TripDetailPage() {
                         </p>
                         <p className="text-sm text-foreground-muted">{instance.startTime}</p>
                       </div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          statusColors[instance.status] || "bg-surface-inset"
-                        }`}
-                      >
-                        {instance.status}
-                        {instance.id === trip.id && " (current)"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={mapTripStatusToBadgeStatus(instance.status)} />
+                        {instance.id === trip.id && (
+                          <span className="text-xs text-foreground-muted">(current)</span>
+                        )}
+                      </div>
                     </Link>
                   ))
                 )}
