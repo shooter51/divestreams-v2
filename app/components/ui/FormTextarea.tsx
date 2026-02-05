@@ -70,6 +70,8 @@ export function FormTextarea({
         defaultValue={defaultValue}
         disabled={disabled}
         maxLength={maxLength}
+        aria-invalid={hasError ? "true" : undefined}
+        aria-describedby={hasError ? `${name}-error` : undefined}
         className={`w-full px-4 py-2 rounded-lg transition-colors resize-y focus:outline-none focus:ring-2 ${
           !hasError
             ? "bg-[var(--surface-raised)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:ring-[var(--brand)] focus:border-[var(--brand)]"
@@ -79,7 +81,7 @@ export function FormTextarea({
 
       {/* Error Message */}
       {error && (
-        <p className="text-sm text-[var(--danger)] mt-1" role="alert">
+        <p id={`${name}-error`} className="text-sm text-[var(--danger)] mt-1" role="alert">
           {error}
         </p>
       )}
