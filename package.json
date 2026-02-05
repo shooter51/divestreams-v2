@@ -38,6 +38,8 @@
     "email:verify": "tsx scripts/verify-email-config.ts",
     "worker": "tsx lib/jobs/worker.ts",
     "worker:zapier": "tsx lib/jobs/zapier-webhook-worker.ts",
+    "stripe:setup": "tsx scripts/create-stripe-prices.ts",
+    "stripe:verify": "tsx scripts/verify-stripe-prices.ts",
     "stripe:sync-prices": "tsx scripts/sync-stripe-prices.ts",
     "stripe:verify-webhooks": "tsx scripts/verify-stripe-webhooks.ts",
     "stripe:test-upgrade": "tsx scripts/test-subscription-upgrade.ts"
