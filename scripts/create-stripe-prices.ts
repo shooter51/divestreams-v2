@@ -101,9 +101,6 @@ async function main() {
       .set({
         monthlyPriceId: monthlyPrice.id,
         yearlyPriceId: yearlyPrice.id,
-        metadata: {
-          stripeProductId: product.id,
-        },
         updatedAt: new Date(),
       })
       .where(eq(subscriptionPlans.name, plan.name));
