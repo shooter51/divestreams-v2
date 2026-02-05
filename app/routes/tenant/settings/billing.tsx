@@ -93,8 +93,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     {
       id: "enterprise",
       name: "Enterprise",
-      price: 99,
-      yearlyPrice: 950,
+      price: 199,
+      yearlyPrice: 1910,
       features: ["Everything in Pro", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options"],
       limits: { bookings: -1, team: -1 },
       isFree: false,
