@@ -15,7 +15,8 @@ import { eq } from "drizzle-orm";
 import { sendEmail, contactFormNotificationEmail, contactFormAutoReplyEmail } from "../../../lib/email";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { sanitizeIframeEmbed } from "../../../lib/security/sanitize";
-import { FormInput, FormTextarea } from "../../../components/ui";
+import { FormInput } from "../../../components/ui/FormInput";
+import { FormTextarea } from "../../../components/ui/FormTextarea";
 
 /**
  * Extract subdomain from request host
