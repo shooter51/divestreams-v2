@@ -393,6 +393,13 @@ describe("tenant/settings/team route", () => {
           limit: vi.fn().mockResolvedValue([]), // No existing member
         };
 
+        const mockUserCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]), // No existing user
+        };
+
         const mockInviteCheckQuery = {
           select: vi.fn().mockReturnThis(),
           from: vi.fn().mockReturnThis(),
@@ -409,6 +416,7 @@ describe("tenant/settings/team route", () => {
         (db.select as Mock).mockImplementation(() => {
           selectCallCount++;
           if (selectCallCount === 1) return mockMemberCheckQuery;
+          if (selectCallCount === 2) return mockUserCheckQuery;
           return mockInviteCheckQuery;
         });
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
@@ -428,7 +436,7 @@ describe("tenant/settings/team route", () => {
         expect(db.insert).toHaveBeenCalled();
         expect(result).toMatchObject({
           success: true,
-          message: "Invitation sent to newuser@example.com",
+          message: "Invitation sent to newuser@example.com (new user)",
         });
       });
 
@@ -492,7 +500,15 @@ describe("tenant/settings/team route", () => {
           limit: vi.fn().mockResolvedValue([]), // No existing member
         };
 
-        // Mock second select query to return pending invitation
+        // Mock second select query to return no existing user
+        const mockUserCheckQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]), // No existing user
+        };
+
+        // Mock third select query to return pending invitation
         const mockInviteCheckQuery = {
           select: vi.fn().mockReturnThis(),
           from: vi.fn().mockReturnThis(),
@@ -508,6 +524,7 @@ describe("tenant/settings/team route", () => {
         (db.select as Mock).mockImplementation(() => {
           selectCallCount++;
           if (selectCallCount === 1) return mockMemberCheckQuery;
+          if (selectCallCount === 2) return mockUserCheckQuery;
           return mockInviteCheckQuery;
         });
 
