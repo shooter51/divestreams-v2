@@ -271,7 +271,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
   test("[KAN-59] 3.2 Tenant has login page", async ({ page }) => {
     await page.goto(getTenantUrl("/auth/login"));
     await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
-    await expect(page.getByLabel(/password/i)).toBeVisible();
+    await expect(page.locator('input[type="password"]').first()).toBeVisible();
   });
 
   test("[KAN-60] 3.3 Tenant signup page loads", async ({ page }) => {
@@ -400,7 +400,7 @@ test.describe.serial("Block B: Admin Panel - Unauthenticated", () => {
 
   test("[KAN-68] 5.2 Admin login form works", async ({ page }) => {
     await page.goto(getAdminUrl("/login"));
-    await expect(page.getByLabel(/password/i)).toBeVisible();
+    await expect(page.locator('input[type="password"]').first()).toBeVisible();
     await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
   });
 

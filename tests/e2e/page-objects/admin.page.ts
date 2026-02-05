@@ -16,7 +16,7 @@ export class AdminLoginPage extends AdminBasePage {
 
   async expectLoginForm(): Promise<void> {
     await expect(this.page.getByRole("heading", { name: /admin/i })).toBeVisible();
-    await expect(this.page.getByLabel(/password/i)).toBeVisible();
+    await expect(this.page.locator('input[type="password"]').first()).toBeVisible();
     await expect(this.page.getByRole("button", { name: /sign in/i })).toBeVisible();
   }
 

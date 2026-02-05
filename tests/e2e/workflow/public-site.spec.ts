@@ -496,7 +496,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
     // Should have login form
     const hasEmail = await page.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
-    const hasPassword = await page.getByLabel(/password/i).isVisible().catch(() => false);
+    const hasPassword = await page.locator('input[type="password"]').first().isVisible().catch(() => false);
     expect(hasEmail && hasPassword).toBeTruthy();
   });
 

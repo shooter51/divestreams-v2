@@ -21,7 +21,7 @@ export class LoginPage extends TenantBasePage {
 
   async expectLoginForm(): Promise<void> {
     await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
-    await expect(this.page.getByLabel(/password/i)).toBeVisible();
+    await expect(this.page.locator('input[type="password"]').first()).toBeVisible();
     await expect(this.page.getByRole("button", { name: /sign in/i })).toBeVisible();
   }
 
@@ -124,7 +124,7 @@ export class SignupPage {
     await expect(this.page.getByLabel(/subdomain/i)).toBeVisible();
     await expect(this.page.getByLabel(/business name/i)).toBeVisible();
     await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
-    await expect(this.page.getByLabel(/password/i)).toBeVisible();
+    await expect(this.page.locator('input[type="password"]').first()).toBeVisible();
   }
 
   async expectSubdomainPreview(subdomain: string): Promise<void> {
