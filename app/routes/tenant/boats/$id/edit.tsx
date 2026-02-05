@@ -7,7 +7,7 @@ import { getBoatById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../../app/components/ui";
-import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Boat - DiveStreams" }];
 
@@ -125,6 +125,9 @@ export default function EditBoatPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
 
   // Parse initial amenities from actionData or boat data
   const initialAmenities = actionData?.values?.amenities

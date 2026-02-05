@@ -9,6 +9,7 @@ import {
   updateGalleryImage,
   deleteGalleryImage,
 } from "../../../../lib/db/gallery.server";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Album - DiveStreams" }];
 
@@ -97,6 +98,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function AlbumDetailPage() {
   const { album, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDeleteAlbum = () => {
     if (
