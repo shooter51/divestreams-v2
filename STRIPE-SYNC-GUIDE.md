@@ -1,5 +1,9 @@
 # Stripe Price Synchronization Guide
 
+> **Note:** If you manage plans via the **Admin UI** (`/admin/plans`), Stripe sync is **automatic**. See [PLAN-MANAGEMENT-GUIDE.md](./PLAN-MANAGEMENT-GUIDE.md) for the recommended workflow.
+>
+> This guide covers the **technical details** and **alternative approaches** for advanced use cases.
+
 ## Problem
 Database subscription plans can get out of sync with Stripe prices, causing:
 - Incorrect pricing displayed to users
@@ -12,7 +16,21 @@ Database subscription plans can get out of sync with Stripe prices, causing:
 3. **No validation** - No checks that database matches Stripe
 4. **Environment differences** - Different prices in test vs production
 
-## Solution: Single Source of Truth
+## Recommended Solution: Admin UI
+
+**Primary Method:** Use `/admin/plans` to manage subscription plans.
+
+- ✅ Automatic Stripe product creation
+- ✅ Automatic Stripe price creation/updates
+- ✅ Automatic price archiving when changed
+- ✅ Database automatically synced
+- ✅ No manual scripts needed
+
+See [PLAN-MANAGEMENT-GUIDE.md](./PLAN-MANAGEMENT-GUIDE.md) for full details.
+
+## Alternative Solution: Centralized Configuration (Advanced)
+
+> **Warning:** Only use this if you DON'T use the Admin UI. For most users, the Admin UI is simpler and handles everything automatically.
 
 ### 1. Centralized Price Configuration
 
