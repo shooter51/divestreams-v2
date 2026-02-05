@@ -113,7 +113,7 @@ export class SignupPage {
     await this.page.getByLabel(/subdomain/i).fill(data.subdomain);
     await this.page.getByLabel(/business name/i).fill(data.businessName);
     await this.page.getByRole("textbox", { name: /email/i }).fill(data.email);
-    await this.page.getByLabel(/password/i).fill(data.password);
+    await this.page.locator('input[type="password"]').first().fill(data.password);
   }
 
   async submit(): Promise<void> {

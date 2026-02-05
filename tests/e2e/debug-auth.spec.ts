@@ -15,7 +15,7 @@ test.describe('Debug Authentication', () => {
 
     // Fill in credentials
     await page.getByRole("textbox", { name: /email/i }).fill('owner@demo.com');
-    await page.getByLabel(/password/i).fill('demo1234');
+    await page.locator('input[type="password"]').first().fill('demo1234');
     await page.screenshot({ path: 'test-results/02-filled-form.png' });
 
     // Click sign in

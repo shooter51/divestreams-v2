@@ -36,7 +36,7 @@ export async function loginToTenant(
   }
 
   await page.getByRole("textbox", { name: /email/i }).fill(email);
-  await page.getByLabel(/password/i).fill(password);
+  await page.locator('input[type="password"]').first().fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
 
   // Wait for redirect to app
@@ -56,7 +56,7 @@ export async function loginToAdmin(
 
   // Admin login requires BOTH email and password (use getByRole for accessibility)
   await page.getByRole("textbox", { name: /email/i }).fill(email);
-  await page.getByLabel(/password/i).fill(password);
+  await page.locator('input[type="password"]').first().fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
 
   // Wait for redirect to dashboard

@@ -121,7 +121,7 @@ const getEmbedUrl = (path: string = "") =>
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
   await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
-  await page.getByLabel(/password/i).fill(testData.user.password);
+  await page.locator('input[type="password"]').first().fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   // Wait for login completion: either redirect to /tenant or stay on login with error
   // Using URL change detection instead of fixed timeout for reliability
@@ -310,7 +310,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
   test("[KAN-62] 3.5 Login with tenant user @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/auth/login"));
     await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
-    await page.getByLabel(/password/i).fill(testData.user.password);
+    await page.locator('input[type="password"]').first().fill(testData.user.password);
     await page.getByRole("button", { name: /sign in/i }).click();
     // Wait for redirect to /tenant - login must succeed for remaining tests to work
     try {
@@ -324,7 +324,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
 
   test("[KAN-63] 3.6 Login validates required email", async ({ page }) => {
     await page.goto(getTenantUrl("/auth/login"));
-    await page.getByLabel(/password/i).fill("somepassword");
+    await page.locator('input[type="password"]').first().fill("somepassword");
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForLoadState("domcontentloaded");
     expect(page.url().includes("/login")).toBeTruthy();
@@ -341,7 +341,7 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
   test("[KAN-65] 3.8 Login shows error for wrong credentials", async ({ page }) => {
     await page.goto(getTenantUrl("/auth/login"));
     await page.getByRole("textbox", { name: /email/i }).fill("wrong@test.com");
-    await page.getByLabel(/password/i).fill("wrongpassword");
+    await page.locator('input[type="password"]').first().fill("wrongpassword");
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForLoadState("load");
     const hasError = await page.locator('[class*="bg-red"], [class*="text-red"]').isVisible().catch(() => false);
@@ -436,7 +436,7 @@ test.describe.serial("Block B: Admin Panel - Unauthenticated", () => {
 
   test("[KAN-74] 5.8 Admin shows error for wrong password", async ({ page }) => {
     await page.goto(getAdminUrl("/login"));
-    await page.getByLabel(/password/i).fill("wrongpassword");
+    await page.locator('input[type="password"]').first().fill("wrongpassword");
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForLoadState("load");
     const hasError = await page.locator('[class*="bg-red"], [class*="text-red"]').isVisible().catch(() => false);
@@ -2379,7 +2379,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
   // Helper to login to admin
   async function loginToAdmin(page: Page) {
     await page.goto(getAdminUrl("/login"));
-    await page.getByLabel(/password/i).fill(testData.admin.password);
+    await page.locator('input[type="password"]').first().fill(testData.admin.password);
     await page.getByRole("button", { name: /sign in/i }).click();
     // Wait for login completion - redirect to dashboard or stay on login
     try {
@@ -2397,7 +2397,7 @@ test.describe.serial("Block G: Admin Panel - Authenticated", () => {
 
   test("[KAN-244] 19.1 Admin login with correct password", async ({ page }) => {
     await page.goto(getAdminUrl("/login"));
-    await page.getByLabel(/password/i).fill(testData.admin.password);
+    await page.locator('input[type="password"]').first().fill(testData.admin.password);
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForLoadState("load");
     const currentUrl = page.url();

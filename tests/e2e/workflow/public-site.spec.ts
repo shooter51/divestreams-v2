@@ -66,7 +66,7 @@ test.beforeAll(async ({ browser }) => {
 
     // Use the shared test user
     await emailInput.fill(testData.user.email);
-    await page.getByLabel(/password/i).fill(testData.user.password);
+    await page.locator('input[type="password"]').first().fill(testData.user.password);
     await page.getByRole("button", { name: /sign in/i }).click();
 
     // Wait for login to complete with proper error handling
@@ -216,7 +216,7 @@ const getPublicSiteUrl = (path: string = "") =>
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
   await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
-  await page.getByLabel(/password/i).fill(testData.user.password);
+  await page.locator('input[type="password"]').first().fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
@@ -238,7 +238,7 @@ async function isAuthenticated(page: Page): Promise<boolean> {
 async function loginCustomer(page: Page) {
   await page.goto(getPublicSiteUrl("/login"));
   await page.getByRole("textbox", { name: /email/i }).fill(publicSiteTestData.customer.email);
-  await page.getByLabel(/password/i).fill(publicSiteTestData.customer.password);
+  await page.locator('input[type="password"]').first().fill(publicSiteTestData.customer.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
     await page.waitForURL(/\/site\/account/, { timeout: 10000 });
@@ -513,7 +513,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     await page.waitForLoadState("domcontentloaded");
 
     await page.getByRole("textbox", { name: /email/i }).fill(publicSiteTestData.customer.email);
-    await page.getByLabel(/password/i).fill(publicSiteTestData.customer.password);
+    await page.locator('input[type="password"]').first().fill(publicSiteTestData.customer.password);
     await page.getByRole("button", { name: /sign in/i }).click();
 
     try {
@@ -535,7 +535,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     await page.waitForLoadState("domcontentloaded");
 
     await page.getByRole("textbox", { name: /email/i }).fill("wrong@example.com");
-    await page.getByLabel(/password/i).fill("wrongpassword");
+    await page.locator('input[type="password"]').first().fill("wrongpassword");
     await page.getByRole("button", { name: /sign in/i }).click();
 
     await page.waitForLoadState("load");
@@ -552,7 +552,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     await page.waitForLoadState("domcontentloaded");
 
     // Only fill password
-    await page.getByLabel(/password/i).fill("somepassword");
+    await page.locator('input[type="password"]').first().fill("somepassword");
     await page.getByRole("button", { name: /sign in/i }).click();
 
     await page.waitForLoadState("domcontentloaded");

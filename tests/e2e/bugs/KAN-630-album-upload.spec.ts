@@ -34,7 +34,7 @@ test.describe('KAN-630: Album Image Upload', () => {
 
     // Fill in login credentials using accessibility-based selectors
     await page.getByRole("textbox", { name: /email/i }).fill("owner@demo.com");
-    await page.getByLabel(/password/i).fill("demo1234");
+    await page.locator('input[type="password"]').first().fill("demo1234");
     await page.getByRole("button", { name: /sign in/i }).click();
 
     // Wait for redirect to tenant dashboard after successful login
