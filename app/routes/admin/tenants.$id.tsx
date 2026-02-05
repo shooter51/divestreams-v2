@@ -458,7 +458,7 @@ export default function OrganizationDetailsPage() {
       </div>
 
       {actionData?.success && (
-        <div className="mb-6 bg-success-muted text-success p-3 rounded-lg text-sm">
+        <div className="mb-6 bg-success-muted text-success p-3 rounded-lg text-sm max-w-4xl break-words">
           Changes saved successfully
         </div>
       )}
@@ -787,13 +787,13 @@ export default function OrganizationDetailsPage() {
             </h3>
 
             {fetcher.data?.error && (
-              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm max-w-4xl break-words">
                 {fetcher.data.error}
               </div>
             )}
 
             {fetcher.data?.success && !generatedPassword && (
-              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm max-w-4xl break-words">
                 {fetcher.data.message}
               </div>
             )}
@@ -902,13 +902,13 @@ export default function OrganizationDetailsPage() {
             </h3>
 
             {fetcher.data?.error && (
-              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm max-w-4xl break-words">
                 {fetcher.data.error}
               </div>
             )}
 
             {fetcher.data?.success && (
-              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm max-w-4xl break-words">
                 {fetcher.data.message}
               </div>
             )}

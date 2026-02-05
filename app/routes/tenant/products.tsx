@@ -381,6 +381,7 @@ export async function action({ request }: ActionFunctionArgs) {
     let skippedCount = 0;
     const errors: string[] = [];
     const warnings: string[] = [];
+    const processedSkus = new Set<string>(); // Track SKUs within this CSV file
 
     // Process each data row
     for (let i = 1; i < lines.length; i++) {
@@ -414,7 +415,14 @@ export async function action({ request }: ActionFunctionArgs) {
         continue;
       }
 
-      // Check for duplicate SKU or name
+      // Check for duplicate SKU within this CSV file
+      if (processedSkus.has(row.sku)) {
+        errors.push(`Row ${i + 1}: Duplicate SKU "${row.sku}" found in CSV file. Each SKU must be unique.`);
+        errorCount++;
+        continue;
+      }
+
+      // Check for duplicate SKU in database
       const [existingProduct] = await db
         .select({ id: tables.products.id, name: tables.products.name })
         .from(tables.products)
@@ -450,6 +458,7 @@ export async function action({ request }: ActionFunctionArgs) {
           isActive: row.isactive?.toLowerCase() !== "false",
           trackInventory: true,
         });
+        processedSkus.add(row.sku); // Track successfully imported SKU
         successCount++;
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : "Unknown error";

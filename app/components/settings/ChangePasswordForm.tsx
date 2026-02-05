@@ -72,13 +72,13 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
         <h2 className="text-lg font-semibold mb-4">Change Password</h2>
 
         {fetcher.data?.error && (
-          <div className="bg-danger-muted text-danger border border-danger rounded-lg p-3 mb-4 text-sm">
+          <div className="bg-danger-muted text-danger border border-danger rounded-lg p-3 mb-4 text-sm max-w-4xl break-words">
             {fetcher.data.error}
           </div>
         )}
 
         {validationError && (
-          <div className="bg-danger-muted text-danger border border-danger rounded-lg p-3 mb-4 text-sm">
+          <div className="bg-danger-muted text-danger border border-danger rounded-lg p-3 mb-4 text-sm max-w-4xl break-words">
             {validationError}
           </div>
         )}

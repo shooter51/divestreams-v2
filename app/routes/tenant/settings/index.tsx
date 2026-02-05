@@ -263,7 +263,8 @@ export async function action({ request }: ActionFunctionArgs) {
       const adminEmail = process.env.ADMIN_EMAIL || "support@divestreams.com";
       const deletionDate = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours from now
 
-      await sendEmail({
+      try {
+        await sendEmail({
         to: adminEmail,
         subject: `[ACTION REQUIRED] Account Deletion Request - ${ctx.org.name}`,
         html: `
@@ -305,7 +306,19 @@ Next Steps:
 2. Wait 48 hours for any cancellation requests
 3. Delete the tenant from the admin portal
         `
-      });
+        });
+      } catch (emailError) {
+        // Log critical email failure but don't block deactivation
+        console.error("CRITICAL: Deletion notification email failed to send", {
+          error: emailError,
+          tenant: ctx.org.name,
+          subdomain: ctx.tenant.subdomain,
+          tenantId: tenant.id,
+          ownerId: ctx.user.id,
+          ownerEmail: ctx.user.email
+        });
+        // TODO: Add to admin notification queue or alert system
+      }
 
       return {
         success: true,

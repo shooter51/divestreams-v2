@@ -311,7 +311,7 @@ export default function LoginPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         {/* Access Denied Warning - shown when user is logged in but doesn't have access to this org */}
         {noAccessError && mainSiteUrl && (
-          <div className="mb-6 bg-warning-muted border border-warning text-warning p-4 rounded-xl">
+          <div className="mb-6 bg-warning-muted border border-warning text-warning p-4 rounded-xl max-w-4xl break-words">
             <div className="font-semibold mb-2">🔒 Access Denied</div>
             <p className="text-sm">{noAccessError}</p>
             <div className="mt-4 flex gap-2">

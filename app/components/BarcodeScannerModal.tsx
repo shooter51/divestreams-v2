@@ -78,7 +78,7 @@ export function BarcodeScannerModal({
           {scannedCode ? (
             <div className="space-y-4">
               {/* Scanned code display */}
-              <div className="bg-success-muted border border-success rounded-lg p-4">
+              <div className="bg-success-muted border border-success rounded-lg p-4 max-w-4xl break-words">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-success-muted rounded-full flex items-center justify-center flex-shrink-0">
                     <svg className="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -693,9 +693,15 @@ export function SplitModal({
     if (!stripe || !cardElement) return;
 
     try {
-      const result = await stripe.confirmCardPayment(payment.clientSecret, {
-        payment_method: { card: cardElement },
-      });
+      // Add 30-second timeout protection (matches CardModal pattern)
+      const result = await Promise.race([
+        stripe.confirmCardPayment(payment.clientSecret, {
+          payment_method: { card: cardElement },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Payment timeout - please try again")), 30000)
+        ),
+      ]);
 
       if (result.error) {
         setError(result.error.message || "Payment failed");

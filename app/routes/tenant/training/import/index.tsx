@@ -84,6 +84,30 @@ export async function action({ request }: ActionFunctionArgs) {
             });
           }
 
+          // Check for duplicate course before creating
+          const { db } = await import("../../../../../lib/db/index");
+          const { getTenantDb } = await import("../../../../../lib/db/tenant.server");
+          const { eq, and } = await import("drizzle-orm");
+          const { schema: tables } = getTenantDb(orgContext.org.id);
+
+          const [existingCourse] = await db
+            .select()
+            .from(tables.courses)
+            .where(and(
+              eq(tables.courses.organizationId, orgContext.org.id),
+              eq(tables.courses.agencyId, agency.id),
+              eq(tables.courses.code, courseCode || "")
+            ))
+            .limit(1);
+
+          if (existingCourse) {
+            errors.push({
+              course: courseName,
+              reason: "This course already exists in your catalog. Skipped."
+            });
+            continue;
+          }
+
           // Create course
           await createCourse({
             organizationId: orgContext.org.id,
@@ -410,7 +434,7 @@ export default function TrainingImportPage() {
 
       {/* Error Display */}
       {actionData?.error && (
-        <div className="mb-6 bg-danger-muted border border-danger rounded-lg p-4">
+        <div className="mb-6 bg-danger-muted border border-danger rounded-lg p-4 max-w-4xl break-words">
           <div className="flex items-start gap-2">
             <span className="text-danger font-bold text-xl">⚠</span>
             <div className="flex-1">
