@@ -269,6 +269,7 @@ export default function SiteLoginPage() {
   const isSubmitting = navigation.state === "submitting";
   const organization = layoutData?.organization;
   const redirectTo = searchParams.get("redirect");
+  const message = searchParams.get("message");
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
@@ -280,6 +281,35 @@ export default function SiteLoginPage() {
             Sign in to your {organization?.name || "account"}
           </p>
         </div>
+
+        {/* Success Message - Password Set */}
+        {message === "password-set" && (
+          <div
+            className="mb-6 p-4 rounded-lg text-sm max-w-4xl break-words"
+            style={{
+              backgroundColor: "var(--success-bg, #d1fae5)",
+              color: "var(--success-text, #065f46)",
+              border: "1px solid var(--success-border, #34d399)",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="font-medium">
+                Password set successfully! You can now sign in with your new password.
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Login Card */}
         <div
