@@ -323,6 +323,7 @@ export default function BillingPage() {
     type: "success" | "error" | "info";
     message: string;
   } | null>(null);
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("yearly");
 
   // Find current plan data for features display
   const currentPlanData = plans.find((p) => p.id === billing.currentPlan);
@@ -510,7 +511,39 @@ export default function BillingPage() {
 
       {/* Available Plans */}
       <div className="mb-6">
-        <h2 className="font-semibold mb-4">Available Plans</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-semibold">Available Plans</h2>
+
+          {/* Billing Period Toggle */}
+          <div className="flex items-center gap-2 bg-surface-inset rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setBillingPeriod("monthly")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                billingPeriod === "monthly"
+                  ? "bg-surface-raised text-foreground shadow-sm"
+                  : "text-foreground-muted hover:text-foreground"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingPeriod("yearly")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                billingPeriod === "yearly"
+                  ? "bg-surface-raised text-foreground shadow-sm"
+                  : "text-foreground-muted hover:text-foreground"
+              }`}
+            >
+              Yearly
+              <span className="ml-1.5 text-xs text-success font-semibold">
+                Save {plans[1] ? Math.round(((plans[1].price * 12 - plans[1].yearlyPrice) / (plans[1].price * 12)) * 100) : 20}%
+              </span>
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-3 gap-4">
           {plans.map((plan) => {
             const isCurrent = plan.id === billing.currentPlan;
@@ -528,13 +561,29 @@ export default function BillingPage() {
                 )}
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold">${plan.price}</span>
-                  <span className="text-foreground-muted">/month</span>
+                  {billingPeriod === "monthly" ? (
+                    <>
+                      <span className="text-3xl font-bold">${plan.price}</span>
+                      <span className="text-foreground-muted">/month</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-3xl font-bold">${plan.yearlyPrice}</span>
+                      <span className="text-foreground-muted">/year</span>
+                    </>
+                  )}
                 </div>
                 <p className="text-sm text-foreground-muted mt-1">
-                  or ${plan.yearlyPrice}/year (save{" "}
-                  {Math.round(((plan.price * 12 - plan.yearlyPrice) / (plan.price * 12)) * 100)}
-                  %)
+                  {billingPeriod === "monthly" ? (
+                    <>
+                      ${plan.yearlyPrice}/year saves{" "}
+                      {Math.round(((plan.price * 12 - plan.yearlyPrice) / (plan.price * 12)) * 100)}%
+                    </>
+                  ) : (
+                    <>
+                      ${(plan.yearlyPrice / 12).toFixed(2)}/month billed annually
+                    </>
+                  )}
                 </p>
                 <ul className="mt-4 space-y-2 text-sm">
                   {plan.features.map((feature) => (
@@ -556,6 +605,7 @@ export default function BillingPage() {
                     <fetcher.Form method="post">
                       <input type="hidden" name="intent" value="upgrade" />
                       <input type="hidden" name="planId" value={plan.id} />
+                      <input type="hidden" name="billingPeriod" value={billingPeriod} />
                       <button
                         type="submit"
                         disabled={isSubmitting}
