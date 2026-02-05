@@ -5,11 +5,11 @@
  * Form page for uploading images to albums
  */
 
-import { useState, useRef } from "react";
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigate, useSearchParams, Link } from "react-router";
+import { useLoaderData, useNavigation, useSearchParams, Link, Form } from "react-router";
 import { requireTenant } from "../../../../lib/auth/org-context.server";
 import { getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Upload Gallery Images - DiveStreams" }];
 
@@ -24,77 +24,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function GalleryUploadPage() {
   const { albums } = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const [searchParams] = useSearchParams();
   const preselectedAlbumId = searchParams.get("albumId") || "";
 
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [uploadedCount, setUploadedCount] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isSubmitting = navigation.state === "submitting";
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const files = fileInputRef.current?.files;
-
-    if (!files || files.length === 0) {
-      setError("Please select at least one image");
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-    setUploadedCount(0);
-
-    const albumId = formData.get("albumId") as string;
-    const title = formData.get("title") as string;
-    const description = formData.get("description") as string;
-    const category = formData.get("category") as string;
-    const location = formData.get("location") as string;
-    const photographer = formData.get("photographer") as string;
-    const tags = formData.get("tags") as string;
-
-    try {
-      // Upload each file
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", file);
-        if (albumId) uploadFormData.append("albumId", albumId);
-        uploadFormData.append("title", title || file.name);
-        if (description) uploadFormData.append("description", description);
-        if (category) uploadFormData.append("category", category);
-        if (location) uploadFormData.append("location", location);
-        if (photographer) uploadFormData.append("photographer", photographer);
-        if (tags) uploadFormData.append("tags", tags);
-
-        const response = await fetch("/tenant/gallery/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.error || `Failed to upload ${file.name}`);
-        }
-
-        setUploadedCount(i + 1);
-      }
-
-      // Success - navigate back
-      if (albumId) {
-        navigate(`/tenant/gallery/${albumId}`);
-      } else {
-        navigate("/tenant/gallery");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  };
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -110,7 +47,7 @@ export default function GalleryUploadPage() {
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
         <h1 className="text-2xl font-bold mb-6">Upload Gallery Images</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <Form method="post" action="/tenant/gallery/upload" encType="multipart/form-data" className="space-y-6">
           {/* Album Selection */}
           <div>
             <label htmlFor="albumId" className="block text-sm font-medium mb-2">
@@ -140,14 +77,19 @@ export default function GalleryUploadPage() {
               Images *
             </label>
             <input
-              ref={fileInputRef}
               type="file"
               id="file"
               name="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
               multiple
               required
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="block w-full text-sm text-foreground-muted
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-lg file:border-0
+                file:text-sm file:font-medium
+                file:bg-brand file:text-white
+                hover:file:bg-brand-hover
+                file:cursor-pointer cursor-pointer"
             />
             <p className="text-xs text-foreground-muted mt-1">
               Select one or more images (JPEG, PNG, WebP, GIF). Max 10MB per file.
@@ -249,28 +191,14 @@ export default function GalleryUploadPage() {
             </p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-danger-muted text-danger px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          {/* Upload Progress */}
-          {uploading && uploadedCount > 0 && (
-            <div className="bg-success-muted text-success px-4 py-3 rounded-lg">
-              Uploaded {uploadedCount} image{uploadedCount !== 1 ? "s" : ""}...
-            </div>
-          )}
-
           {/* Actions */}
           <div className="flex gap-3">
             <button
               type="submit"
-              disabled={uploading}
-              className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
+              className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
             >
-              {uploading ? "Uploading..." : "Upload Images"}
+              {isSubmitting ? "Uploading..." : "Upload Images"}
             </button>
             <Link
               to={preselectedAlbumId ? `/tenant/gallery/${preselectedAlbumId}` : "/tenant/gallery"}
@@ -279,7 +207,7 @@ export default function GalleryUploadPage() {
               Cancel
             </Link>
           </div>
-        </form>
+        </Form>
       </div>
     </div>
   );
