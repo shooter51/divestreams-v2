@@ -30,6 +30,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   if (!org) throw new Response("Not found", { status: 404 });
 
+  // Get tenant record to check isActive status
+  const { tenants } = await import("../../../lib/db/schema");
+  const [tenant] = await db
+    .select()
+    .from(tenants)
+    .where(eq(tenants.subdomain, org.slug))
+    .limit(1);
+
   // Get members with user info
   const members = await db
     .select({
@@ -92,6 +100,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     },
     tenantUrl,
     baseDomain,
+    isActive: tenant?.isActive ?? true,
     members: members.map((m) => ({
       ...m,
       createdAt: m.createdAt.toISOString().split("T")[0],
@@ -148,6 +157,29 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // Delete the organization (cascades via FK)
     await db.delete(organization).where(eq(organization.id, org.id));
     return redirect("/dashboard");
+  }
+
+  if (intent === "deactivate") {
+    // Find the tenant record by organization slug
+    const { tenants } = await import("../../../lib/db/schema");
+    const [tenant] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.subdomain, org.slug))
+      .limit(1);
+
+    if (tenant) {
+      // Toggle isActive status
+      await db
+        .update(tenants)
+        .set({
+          isActive: !tenant.isActive,
+          updatedAt: new Date()
+        })
+        .where(eq(tenants.id, tenant.id));
+    }
+
+    return { success: true, message: tenant?.isActive ? "Tenant deactivated" : "Tenant activated" };
   }
 
   if (intent === "updateName") {
@@ -358,7 +390,7 @@ type ModalState = {
 };
 
 export default function OrganizationDetailsPage() {
-  const { organization: org, members, subscription: sub, usage, plans, tenantUrl, baseDomain } = useLoaderData<typeof loader>();
+  const { organization: org, members, subscription: sub, usage, plans, tenantUrl, baseDomain, isActive } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const fetcher = useFetcher<typeof action>();
@@ -673,10 +705,27 @@ export default function OrganizationDetailsPage() {
                 href={tenantUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full text-center py-2 px-4 border rounded-lg hover:bg-surface-inset text-sm"
+                className={`block w-full text-center py-2 px-4 border rounded-lg text-sm ${
+                  isActive
+                    ? "hover:bg-surface-inset"
+                    : "opacity-50 cursor-not-allowed"
+                }`}
               >
-                Open Dashboard
+                Open Dashboard {!isActive && "(Deactivated)"}
               </a>
+              <form method="post" className="w-full">
+                <input type="hidden" name="intent" value="deactivate" />
+                <button
+                  type="submit"
+                  className={`w-full py-2 px-4 border rounded-lg text-sm ${
+                    isActive
+                      ? "border-warning text-warning hover:bg-warning-muted"
+                      : "border-success text-success hover:bg-success-muted"
+                  }`}
+                >
+                  {isActive ? "Deactivate Tenant" : "Reactivate Tenant"}
+                </button>
+              </form>
               <button
                 onClick={handleDelete}
                 className="w-full py-2 px-4 border border-danger text-danger rounded-lg hover:bg-danger-muted text-sm"
@@ -691,6 +740,18 @@ export default function OrganizationDetailsPage() {
             <h2 className="font-semibold mb-4">Current Status</h2>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
+                <span className="text-sm text-foreground-muted">Tenant:</span>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    isActive
+                      ? "bg-success-muted text-success"
+                      : "bg-danger-muted text-danger"
+                  }`}
+                >
+                  {isActive ? "Active" : "Deactivated"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
                 <span className="text-sm text-foreground-muted">Plan:</span>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
@@ -703,7 +764,7 @@ export default function OrganizationDetailsPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-foreground-muted">Status:</span>
+                <span className="text-sm text-foreground-muted">Subscription:</span>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
                     statusColors[sub?.status || "active"] || "bg-surface-inset"

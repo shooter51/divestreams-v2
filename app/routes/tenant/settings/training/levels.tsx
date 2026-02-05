@@ -160,19 +160,19 @@ export default function LevelsPage() {
 
       {/* Success/Error Messages */}
       {actionData?.success && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {actionData.message}
         </div>
       )}
       {actionData?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {actionData.error}
         </div>
       )}
 
       {/* No Agencies Warning */}
       {agencies.length === 0 && (
-        <div className="bg-warning-muted border border-warning text-warning px-4 py-3 rounded-lg mb-6">
+        <div className="bg-warning-muted border border-warning text-warning px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           <p className="font-medium">No certification agencies configured</p>
           <p className="text-sm">
             <Link to="/tenant/settings/training/agencies" className="underline">

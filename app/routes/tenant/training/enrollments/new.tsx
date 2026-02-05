@@ -156,7 +156,7 @@ export default function NewEnrollmentPage() {
 
       <form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
         {actionData?.errors?.form && (
-          <div className="bg-danger-muted text-danger p-3 rounded-lg text-sm">
+          <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words text-sm">
             {actionData.errors.form}
           </div>
         )}

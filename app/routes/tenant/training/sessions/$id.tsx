@@ -201,7 +201,7 @@ export default function SessionDetailPage() {
 
       {/* Error Messages */}
       {fetcher.data?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {fetcher.data.error}
         </div>
       )}

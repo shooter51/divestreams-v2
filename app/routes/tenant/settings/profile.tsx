@@ -194,7 +194,7 @@ export default function ProfileSettingsPage() {
       </div>
 
       {actionData?.success && (
-        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {actionData.message}
         </div>
       )}

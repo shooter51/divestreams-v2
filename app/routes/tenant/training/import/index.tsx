@@ -773,7 +773,7 @@ function CompleteStep({
       </p>
 
       {detailedErrors && detailedErrors.length > 0 && (
-        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-6 text-left">
+        <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-4 mb-6 text-left">
           <div className="flex items-start gap-2 mb-3">
             <span className="text-warning">⚠</span>
             <h3 className="font-medium text-warning">Some courses couldn't be imported:</h3>

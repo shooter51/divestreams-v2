@@ -529,7 +529,7 @@ export default function DiscountsPage() {
 
                 {/* Show all error messages inside the modal */}
                 {fetcherData?.error && (
-                  <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg">
+                  <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-full break-words">
                     {fetcherData.error}
                   </div>
                 )}

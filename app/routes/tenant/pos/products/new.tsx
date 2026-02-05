@@ -173,7 +173,7 @@ export default function NewProductPage() {
       </div>
 
       {actionData?.error && (
-        <div className="bg-danger-muted text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted text-danger px-4 py-3 rounded-lg mb-6 max-w-4xl break-words">
           {actionData.error}
         </div>
       )}

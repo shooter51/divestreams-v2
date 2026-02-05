@@ -221,12 +221,12 @@ export default function CustomerDetailPage() {
 
       {/* Success/Error Messages */}
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6 max-w-4xl break-words">
           {fetcher.data.message}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6 max-w-4xl break-words">
           {fetcher.data.error}
         </div>
       )}
@@ -463,7 +463,7 @@ export default function CustomerDetailPage() {
                 />
               </div>
 
-              <div className="bg-warning-muted border border-warning rounded-lg p-3">
+              <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-3">
                 <p className="text-sm text-warning">
                   Note: Email delivery requires SMTP configuration in settings.
                   This message will be logged to communication history.

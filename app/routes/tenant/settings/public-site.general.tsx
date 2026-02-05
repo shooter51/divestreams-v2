@@ -64,7 +64,7 @@ export default function PublicSiteGeneralSettings() {
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words">
           {fetcher.data.message}
         </div>
       )}

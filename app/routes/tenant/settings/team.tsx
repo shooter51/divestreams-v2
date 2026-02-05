@@ -449,7 +449,7 @@ export default function TeamPage() {
 
       {/* Plan limit warning */}
       {canInviteTeamMembers && atLimit && (
-        <div className="bg-warning-muted border border-warning-muted text-warning px-4 py-3 rounded-lg mb-6">
+        <div className="bg-warning-muted border border-warning-muted text-warning px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           <p className="font-medium">Team limit reached</p>
           <p className="text-sm">
             Your current plan allows {planLimit} team members.{" "}

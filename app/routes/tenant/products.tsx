@@ -378,7 +378,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
     let successCount = 0;
     let errorCount = 0;
+    let skippedCount = 0;
     const errors: string[] = [];
+    const warnings: string[] = [];
 
     // Process each data row
     for (let i = 1; i < lines.length; i++) {
@@ -409,6 +411,22 @@ export async function action({ request }: ActionFunctionArgs) {
       if (row.stockquantity === "" || isNaN(parseInt(row.stockquantity))) {
         errors.push(`Row ${i + 1}: "${row.name}" needs a valid stock quantity (e.g., 10). Please enter a number.`);
         errorCount++;
+        continue;
+      }
+
+      // Check for duplicate SKU or name
+      const [existingProduct] = await db
+        .select({ id: tables.products.id, name: tables.products.name })
+        .from(tables.products)
+        .where(and(
+          eq(tables.products.organizationId, organizationId),
+          eq(tables.products.sku, row.sku)
+        ))
+        .limit(1);
+
+      if (existingProduct) {
+        warnings.push(`Row ${i + 1}: Product with SKU "${row.sku}" already exists (${existingProduct.name}). Skipped.`);
+        skippedCount++;
         continue;
       }
 
@@ -447,10 +465,20 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     }
 
+    let message = `Imported ${successCount} product${successCount !== 1 ? 's' : ''}`;
+    if (skippedCount > 0) message += `, ${skippedCount} skipped (duplicates)`;
+    if (errorCount > 0) message += `, ${errorCount} error${errorCount !== 1 ? 's' : ''}`;
+
     return {
       success: true,
-      message: `Imported ${successCount} products${errorCount > 0 ? `, ${errorCount} errors` : ""}`,
-      importResult: { successCount, errorCount, errors: errors.slice(0, 10) },
+      message,
+      importResult: {
+        successCount,
+        errorCount,
+        skippedCount,
+        errors: errors.slice(0, 10),
+        warnings: warnings.slice(0, 10)
+      },
     };
   }
 
@@ -570,7 +598,9 @@ export default function ProductsPage() {
   const [importResult, setImportResult] = useState<{
     successCount: number;
     errorCount: number;
+    skippedCount: number;
     errors: string[];
+    warnings: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
@@ -580,6 +610,7 @@ export default function ProductsPage() {
   const [barcodeValue, setBarcodeValue] = useState("");
   // Track which products are on sale (client-side only to avoid hydration mismatch)
   const [productsOnSale, setProductsOnSale] = useState<Set<string>>(new Set());
+  const [dismissedMessage, setDismissedMessage] = useState(false);
 
   // Show notifications from URL params
   useNotification();
@@ -606,8 +637,21 @@ export default function ProductsPage() {
     success?: boolean;
     message?: string;
     error?: string;
-    importResult?: { successCount: number; errorCount: number; errors: string[] };
+    importResult?: {
+      successCount: number;
+      errorCount: number;
+      skippedCount: number;
+      errors: string[];
+      warnings: string[];
+    };
   } | undefined;
+
+  // Reset dismissed flag when new fetcher data arrives
+  useEffect(() => {
+    if (fetcherData) {
+      setDismissedMessage(false);
+    }
+  }, [fetcherData]);
 
   // Close modal and show toast on successful create/update/delete
   useEffect(() => {
@@ -723,9 +767,11 @@ export default function ProductsPage() {
   };
 
   // Update import result when fetcher completes
-  if (fetcherData?.importResult && fetcherData.importResult !== importResult) {
-    setImportResult(fetcherData.importResult);
-  }
+  useEffect(() => {
+    if (fetcherData?.importResult) {
+      setImportResult(fetcherData.importResult);
+    }
+  }, [fetcherData?.importResult]);
 
   // Group products by category
   const productsByCategory = products.reduce((acc, product) => {
@@ -783,7 +829,7 @@ export default function ProductsPage() {
 
       {/* Low Stock Alert */}
       {lowStockProducts.length > 0 && (
-        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-6">
+        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-6 max-w-4xl break-words">
           <h3 className="font-semibold text-warning mb-2">Low Stock Alert</h3>
           <div className="flex flex-wrap gap-2">
             {lowStockProducts.map((p) => (
@@ -799,32 +845,71 @@ export default function ProductsPage() {
       )}
 
       {/* Success Message */}
-      {fetcherData?.success && (
-        <div className="bg-success-muted border border-success text-success p-3 rounded-lg mb-4">
-          {fetcherData.message}
+      {fetcherData?.success && !dismissedMessage && (
+        <div className="bg-success-muted border border-success text-success p-3 rounded-lg mb-4 max-w-4xl break-words">
+          <div className="flex items-center justify-between">
+            <span>{fetcherData.message}</span>
+            <button
+              onClick={() => setDismissedMessage(true)}
+              className="text-success hover:text-success-hover text-sm ml-4 flex-shrink-0"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
       {/* Error Message */}
-      {fetcherData?.error && (
-        <div className="bg-danger-muted border border-danger text-danger p-3 rounded-lg mb-4">
-          {fetcherData.error}
+      {fetcherData?.error && !dismissedMessage && (
+        <div className="bg-danger-muted border border-danger text-danger p-3 rounded-lg mb-4 max-w-4xl break-words">
+          <div className="flex items-center justify-between">
+            <span>{fetcherData.error}</span>
+            <button
+              onClick={() => setDismissedMessage(true)}
+              className="text-danger hover:text-danger-hover text-sm ml-4 flex-shrink-0"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Import Results */}
-      {importResult && importResult.errors.length > 0 && (
-        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-4">
+      {/* Import Results - Warnings (Skipped Duplicates) */}
+      {importResult && importResult.warnings && importResult.warnings.length > 0 && (
+        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-4 max-w-4xl break-words">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold text-warning">Import Errors</h3>
+            <h3 className="font-semibold text-warning">Skipped Products (Duplicates)</h3>
             <button
               onClick={() => setImportResult(null)}
-              className="text-warning hover:text-warning text-sm"
+              className="text-warning hover:text-warning-hover text-sm"
             >
               Dismiss
             </button>
           </div>
           <ul className="text-sm text-warning space-y-1">
+            {importResult.warnings.map((warning, idx) => (
+              <li key={idx}>{warning}</li>
+            ))}
+            {importResult.skippedCount > 10 && (
+              <li className="italic">...and {importResult.skippedCount - 10} more skipped</li>
+            )}
+          </ul>
+        </div>
+      )}
+
+      {/* Import Results - Errors */}
+      {importResult && importResult.errors && importResult.errors.length > 0 && (
+        <div className="bg-danger-muted border border-danger rounded-lg p-4 mb-4 max-w-4xl break-words">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-danger">Import Errors</h3>
+            <button
+              onClick={() => setImportResult(null)}
+              className="text-danger hover:text-danger-hover text-sm"
+            >
+              Dismiss
+            </button>
+          </div>
+          <ul className="text-sm text-danger space-y-1">
             {importResult.errors.map((error, idx) => (
               <li key={idx}>{error}</li>
             ))}

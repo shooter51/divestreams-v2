@@ -100,7 +100,7 @@ export default function TermsPage() {
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">5. Diving Safety and Liability</h2>
-            <div className="bg-warning-muted border-l-4 border-warning p-4 mb-4">
+            <div className="bg-warning-muted border-l-4 border-warning p-4 mb-4 max-w-4xl break-words">
               <p className="font-semibold text-warning">IMPORTANT SAFETY NOTICE</p>
               <p>
                 Scuba diving and water activities carry inherent risks. You acknowledge that you participate

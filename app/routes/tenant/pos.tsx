@@ -692,6 +692,9 @@ export default function POSPage() {
         onClose={() => setCheckoutMethod(null)}
         total={total}
         onComplete={completeCheckout}
+        stripeConnected={stripeConnected}
+        stripePublishableKey={stripePublishableKey}
+        customerId={customer?.id}
       />
 
       <RentalAgreementModal

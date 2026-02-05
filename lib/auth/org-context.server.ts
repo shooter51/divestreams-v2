@@ -443,11 +443,53 @@ export async function getOrgContext(
  * @throws Redirect to login page if not authenticated
  */
 export async function requireOrgContext(request: Request): Promise<OrgContext> {
+  const subdomain = getSubdomainFromRequest(request);
+
+  // Check if tenant is deactivated BEFORE trying to get context
+  if (subdomain && subdomain !== "admin") {
+    const { tenants } = await import("../db/schema");
+    const [tenant] = await db
+      .select({ isActive: tenants.isActive })
+      .from(tenants)
+      .where(eq(tenants.subdomain, subdomain))
+      .limit(1);
+
+    if (tenant && !tenant.isActive) {
+      // Tenant is deactivated - show error page
+      throw new Response(
+        `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Account Deactivated</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 600px; margin: 100px auto; padding: 20px; text-align: center; }
+              h1 { color: #dc2626; }
+              p { color: #666; line-height: 1.6; }
+              .box { background: #fee; border: 1px solid #fcc; border-radius: 8px; padding: 20px; margin: 20px 0; }
+            </style>
+          </head>
+          <body>
+            <h1>Account Deactivated</h1>
+            <div class="box">
+              <p><strong>This account has been deactivated and is no longer accessible.</strong></p>
+              <p>If you believe this is an error, please contact support at <a href="mailto:support@divestreams.com">support@divestreams.com</a>.</p>
+            </div>
+          </body>
+        </html>
+        `,
+        {
+          status: 403,
+          headers: { "Content-Type": "text/html" }
+        }
+      );
+    }
+  }
+
   const context = await getOrgContext(request);
 
   if (!context) {
     // Get the subdomain for the redirect
-    const subdomain = getSubdomainFromRequest(request);
     const url = new URL(request.url);
 
     // If we have a subdomain, redirect to tenant login at /auth/login

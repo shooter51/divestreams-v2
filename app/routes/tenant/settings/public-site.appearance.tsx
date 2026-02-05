@@ -128,13 +128,13 @@ export default function PublicSiteAppearanceSettings() {
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg max-w-4xl break-words">
           {fetcher.data.message}
         </div>
       )}
 
       {fetcher.data?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words">
           {fetcher.data.error}
         </div>
       )}

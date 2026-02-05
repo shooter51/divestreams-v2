@@ -2141,7 +2141,7 @@ export default function IntegrationsPage() {
               </div>
             </div>
 
-            <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-4">
+            <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-4 mb-4">
               <div className="flex items-start gap-2">
                 <Icons.AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-warning">
@@ -2583,7 +2583,7 @@ export default function IntegrationsPage() {
                 </>
               )}
 
-              <div className="bg-warning-muted border border-warning rounded-lg p-3">
+              <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-3">
                 <p className="text-sm text-warning">
                   <strong>Important:</strong> WhatsApp Business has a 24-hour messaging window.
                   You can only send freeform messages to customers who have messaged you in the last 24 hours.
@@ -2652,7 +2652,7 @@ export default function IntegrationsPage() {
                 </p>
               </div>
 
-              <div className="bg-warning-muted border border-warning rounded-lg p-3">
+              <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-3">
                 <p className="text-sm text-warning">
                   <strong>Note:</strong> The recipient must have sent a message to your WhatsApp
                   Business number in the last 24 hours to receive freeform messages.

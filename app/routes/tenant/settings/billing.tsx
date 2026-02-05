@@ -758,7 +758,7 @@ export default function BillingPage() {
 
       {/* Canceled Notice */}
       {billing.subscriptionStatus === "canceled" && (
-        <div className="bg-warning-muted border border-warning-muted rounded-xl p-6">
+        <div className="bg-warning-muted border border-warning-muted rounded-xl max-w-4xl break-words p-6">
           <h2 className="font-semibold mb-2 text-warning">Subscription Canceled</h2>
           <p className="text-warning text-sm mb-4">
             Your subscription has been canceled. You will retain access until{" "}
