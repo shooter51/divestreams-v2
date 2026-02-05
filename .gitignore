@@ -44,3 +44,6 @@ temp/
 # Git worktrees
 .worktrees/
 .mcp.json
+
+# 1Password import files
+github-secrets-1password*.csv

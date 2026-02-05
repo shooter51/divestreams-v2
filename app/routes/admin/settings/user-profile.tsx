@@ -109,13 +109,13 @@ export default function AdminUserProfilePage() {
         <h2 className="font-semibold mb-4">Personal Information</h2>
 
         {actionData?.type === "profile" && actionData?.success && (
-          <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg mb-6">
+          <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
             {actionData.message}
           </div>
         )}
 
         {actionData?.type === "profile" && actionData?.error && !actionData?.field && (
-          <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+          <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
             {actionData.error}
           </div>
         )}
@@ -196,13 +196,13 @@ export default function AdminUserProfilePage() {
         <h2 className="font-semibold mb-4">Change Password</h2>
 
         {actionData?.type === "password" && actionData?.success && (
-          <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg mb-6">
+          <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
             {actionData.message}
           </div>
         )}
 
         {actionData?.type === "password" && actionData?.error && !actionData?.field && (
-          <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+          <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
             {actionData.error}
           </div>
         )}

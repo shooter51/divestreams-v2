@@ -78,7 +78,7 @@ export async function action({ request }: ActionFunctionArgs) {
     : undefined;
 
   try {
-    await createCustomer(organizationId, {
+    const customer = await createCustomer(organizationId, {
       email,
       firstName,
       lastName,
@@ -98,7 +98,41 @@ export async function action({ request }: ActionFunctionArgs) {
       notes: formData.get("notes") as string || undefined,
     });
 
-    return redirect(redirectWithNotification("/tenant/customers", `Customer "${firstName} ${lastName}" has been successfully created`, "success"));
+    // Create initial credentials and send password setup email
+    try {
+      const { createInitialCredentials } = await import("../../../../lib/auth/customer-auth.server");
+      const { triggerCustomerSetPassword } = await import("../../../../lib/email/triggers");
+
+      const { resetToken } = await createInitialCredentials(
+        organizationId,
+        customer.id,
+        email
+      );
+
+      // Send password setup email
+      await triggerCustomerSetPassword({
+        customerEmail: email,
+        customerName: `${firstName} ${lastName}`,
+        shopName: ctx.org.name,
+        subdomain: ctx.tenant.subdomain,
+        resetToken,
+        tenantId: ctx.tenant.id,
+      });
+
+      return redirect(redirectWithNotification(
+        "/tenant/customers",
+        `Customer "${firstName} ${lastName}" has been created. An email has been sent to ${email} with instructions to set their password.`,
+        "success"
+      ));
+    } catch (emailError) {
+      console.error("Failed to send password setup email:", emailError);
+      // Customer was created successfully, just email failed
+      return redirect(redirectWithNotification(
+        "/tenant/customers",
+        `Customer "${firstName} ${lastName}" has been created, but the password setup email could not be sent. Please contact support.`,
+        "warning"
+      ));
+    }
   } catch (error) {
     console.error("Failed to create customer:", error);
     const values: Record<string, string> = {};
@@ -131,6 +165,21 @@ export default function NewCustomerPage() {
           ← Back to Customers
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Customer</h1>
+      </div>
+
+      {/* Password Setup Info */}
+      <div className="bg-brand-muted border border-brand rounded-lg p-4 mb-6 max-w-4xl break-words">
+        <div className="flex items-start gap-3">
+          <svg className="w-5 h-5 text-brand mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 className="font-semibold text-brand mb-1">Password Setup Email</h3>
+            <p className="text-sm text-brand-hover">
+              After creating this customer, an email will be automatically sent to their email address with a secure link to set up their password. This allows them to log in to the customer portal, view bookings, and manage their profile.
+            </p>
+          </div>
+        </div>
       </div>
 
       <form method="post" className="space-y-6">

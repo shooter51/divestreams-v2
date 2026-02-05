@@ -220,7 +220,7 @@ export default function SignupPage() {
 
           <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
             {actionData?.errors?.form && (
-              <div className="bg-danger-muted text-danger p-3 rounded-lg mb-6">
+              <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words mb-6">
                 {actionData.errors.form}
               </div>
             )}

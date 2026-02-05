@@ -182,7 +182,7 @@ export default function AdminLoginPage() {
           <input type="hidden" name="redirectTo" value={redirectTo} />
 
           {actionData?.error && (
-            <div className="bg-danger-muted text-danger p-3 rounded-lg text-sm">
+            <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words text-sm">
               {actionData.error}
             </div>
           )}

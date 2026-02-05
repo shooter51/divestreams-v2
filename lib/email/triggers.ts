@@ -110,3 +110,25 @@ export async function triggerCustomerWelcomeEmail(params: {
     loginUrl,
   });
 }
+
+/**
+ * Trigger a set password email for staff-created customers
+ */
+export async function triggerCustomerSetPassword(params: {
+  customerEmail: string;
+  customerName: string;
+  shopName: string;
+  subdomain: string;
+  resetToken: string;
+  tenantId: string;
+}): Promise<void> {
+  const setPasswordUrl = getTenantUrl(params.subdomain, `/site/set-password?token=${params.resetToken}`);
+
+  await sendEmail("customer-set-password", {
+    to: params.customerEmail,
+    tenantId: params.tenantId,
+    customerName: params.customerName,
+    shopName: params.shopName,
+    setPasswordUrl,
+  });
+}
