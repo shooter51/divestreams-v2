@@ -87,14 +87,14 @@ export function CardModal({
   useEffect(() => {
     if (!stripe || step !== "manual-entry") return;
 
-    // Detect dark mode from system preference
-    const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-    // Get colors from CSS variables (fallback to computed values)
+    // Get colors from CSS variables
     const computedStyle = getComputedStyle(document.documentElement);
-    const foreground = computedStyle.getPropertyValue("--foreground").trim() || (isDarkMode ? "#f3f4f6" : "#111827");
-    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() || (isDarkMode ? "#9ca3af" : "#6b7280");
-    const danger = computedStyle.getPropertyValue("--danger").trim() || (isDarkMode ? "#ef4444" : "#dc2626");
+    const foreground = computedStyle.getPropertyValue("--foreground").trim() ||
+      computedStyle.getPropertyValue("color") || "#1F2937";  // Fallback to body color or default
+    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() ||
+      "#6B7280";  // Gray-500 fallback
+    const danger = computedStyle.getPropertyValue("--danger").trim() ||
+      "#DC2626";  // Red-600 fallback
 
     const elements = stripe.elements();
     const card = elements.create("card", {
@@ -618,11 +618,13 @@ export function SplitModal({
   useEffect(() => {
     if (!stripe || currentMethod !== "card") return;
 
-    const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const computedStyle = getComputedStyle(document.documentElement);
-    const foreground = computedStyle.getPropertyValue("--foreground").trim() || (isDarkMode ? "#f3f4f6" : "#111827");
-    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() || (isDarkMode ? "#9ca3af" : "#6b7280");
-    const danger = computedStyle.getPropertyValue("--danger").trim() || (isDarkMode ? "#ef4444" : "#dc2626");
+    const foreground = computedStyle.getPropertyValue("--foreground").trim() ||
+      computedStyle.getPropertyValue("color") || "#1F2937";  // Fallback to body color or default
+    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() ||
+      "#6B7280";  // Gray-500 fallback
+    const danger = computedStyle.getPropertyValue("--danger").trim() ||
+      "#DC2626";  // Red-600 fallback
 
     const elements = stripe.elements();
     const card = elements.create("card", {

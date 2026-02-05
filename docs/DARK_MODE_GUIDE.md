@@ -131,12 +131,18 @@ import { semanticColors } from "lib/utils/semantic-colors";
 Use for all status indicators (booking status, payment status, availability, etc.)
 
 ```tsx
-import { StatusBadge, type BadgeStatus } from "app/components/ui";
+// Import using relative path (adjust ../.. levels based on file location)
+import { StatusBadge, type BadgeStatus } from "../../components/ui";
 
 <StatusBadge status="pending" />
 <StatusBadge status="confirmed" size="md" />
 <StatusBadge status="cancelled" />
 ```
+
+**Import Paths:**
+- From `app/routes/site/`: `../../components/ui`
+- From `app/routes/tenant/`: `../../components/ui`
+- From `app/routes/site/account/`: `../../../components/ui`
 
 **Supported Statuses:**
 - Bookings: `pending`, `confirmed`, `checked_in`, `completed`, `cancelled`, `no_show`
@@ -150,7 +156,7 @@ import { StatusBadge, type BadgeStatus } from "app/components/ui";
 Use for all text input fields.
 
 ```tsx
-import { FormInput } from "app/components/ui";
+import { FormInput } from "../../components/ui";  // Adjust path based on file location
 
 <FormInput
   label="Email Address"
@@ -173,7 +179,7 @@ import { FormInput } from "app/components/ui";
 Use for all dropdown select fields.
 
 ```tsx
-import { FormSelect } from "app/components/ui";
+import { FormSelect } from "../../components/ui";  // Adjust path based on file location
 
 <FormSelect
   label="Country"
@@ -192,7 +198,7 @@ import { FormSelect } from "app/components/ui";
 Use for all multi-line text input.
 
 ```tsx
-import { FormTextarea } from "app/components/ui";
+import { FormTextarea } from "../../components/ui";  // Adjust path based on file location
 
 <FormTextarea
   label="Description"
@@ -208,7 +214,7 @@ import { FormTextarea } from "app/components/ui";
 Use for consistent error message display.
 
 ```tsx
-import { ErrorMessage } from "app/components/ui";
+import { ErrorMessage } from "../../components/ui";  // Adjust path based on file location
 
 <ErrorMessage error={actionData?.errors?.form} />
 ```
@@ -340,6 +346,23 @@ The project includes an ESLint rule that prevents hardcoded colors:
 - `transparent`
 - `currentColor`
 - `inherit`
+
+**Known Limitations:**
+
+⚠️ **ESLint Blind Spots:**
+The rule only catches colors in simple string literals. It will **miss**:
+- Template literals with inline CSS: `` const html = `<style>.title { color: #666; }</style>` ``
+- Function calls: `color = rgb(0, 0, 0)` (not string literals)
+
+**Workaround:** Use CSS modules or separate `.css` files for complex styling. Code reviews will catch these cases.
+
+**File Exemptions:**
+The following files are exempt from the color rule due to legitimate use cases:
+- `app/routes/tenant/settings/public-site*.tsx` - User theming interface (users must enter hex colors)
+- `app/routes/tenant/reports/export.pdf.tsx` - PDF generation library requires rgb() functions
+- `app/routes/**/print-*.tsx` - Print templates
+- `app/routes/tenant/bookings/$id.tsx` - HTML email templates (email clients need inline styles)
+- `app/routes/tenant/dive-sites/$id.tsx` - HTML embed templates
 
 ## Migration Checklist
 

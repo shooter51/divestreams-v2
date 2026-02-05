@@ -122,6 +122,19 @@ export default tseslint.config(
       ],
     },
   },
+  // Exempt files with legitimate hardcoded color use cases
+  {
+    files: [
+      "app/routes/tenant/settings/public-site*.tsx",  // User theming interface
+      "app/routes/tenant/reports/export.pdf.tsx",     // PDF generation library
+      "app/routes/**/print-*.tsx",                     // Print templates
+      "app/routes/tenant/bookings/$id.tsx",           // HTML email templates
+      "app/routes/tenant/dive-sites/$id.tsx",         // HTML embed templates
+    ],
+    rules: {
+      "no-restricted-syntax": "off",  // Allow hardcoded colors in these specific files
+    },
+  },
   // Playwright E2E test-specific rules
   {
     files: ["tests/e2e/**/*.{ts,tsx,js,jsx}", "tests/e2e/**/*.page.{ts,tsx}"],
