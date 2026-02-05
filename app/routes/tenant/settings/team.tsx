@@ -122,7 +122,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const email = formData.get("email") as string;
     const role = formData.get("role") as string;
 
-    // Check if email is already a team member
+    // Check if email is already a team member of THIS organization
     const [existingMember] = await db
       .select({
         email: user.email,
@@ -139,6 +139,43 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (existingMember) {
       return { error: "This email is already a team member" };
+    }
+
+    // Check if user exists globally (in any organization)
+    const [existingUser] = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, email))
+      .limit(1);
+
+    if (existingUser) {
+      // User exists - add them directly as a member (no invitation needed)
+      const memberId = crypto.randomUUID();
+      await db.insert(member).values({
+        id: memberId,
+        userId: existingUser.id,
+        organizationId: ctx.org.id,
+        role,
+      });
+
+      // Send notification email that they've been added
+      try {
+        await sendEmail({
+          to: email,
+          subject: `You've been added to ${ctx.org.name} on DiveStreams`,
+          html: `
+            <p>Hi${existingUser.name ? ` ${existingUser.name}` : ''},</p>
+            <p>${ctx.user.name || 'A team member'} has added you to <strong>${ctx.org.name}</strong> on DiveStreams as a ${role}.</p>
+            <p><a href="${getAppUrl()}">Click here to access your account</a></p>
+            <p>You can now switch between organizations from your dashboard.</p>
+          `,
+        });
+      } catch (error) {
+        console.error("Failed to send notification email:", error);
+        // Continue even if email fails - member was added
+      }
+
+      return { success: true, message: `${email} has been added to the team (existing user)` };
     }
 
     // Check if email already has a pending invitation
@@ -158,7 +195,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "This email already has a pending invitation" };
     }
 
-    // Create invitation with generated ID
+    // User doesn't exist - create invitation for new user
     const inviteId = crypto.randomUUID();
     await db.insert(invitation).values({
       id: inviteId,
@@ -189,7 +226,7 @@ export async function action({ request }: ActionFunctionArgs) {
       // Continue even if email fails - invitation was created
     }
 
-    return { success: true, message: `Invitation sent to ${email}` };
+    return { success: true, message: `Invitation sent to ${email} (new user)` };
   }
 
   if (intent === "update-role") {
