@@ -18,7 +18,7 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM:-noreply@divestreams.com}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-DiveAdmin2024!}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD?error}
     depends_on:
       postgres:
         condition: service_healthy

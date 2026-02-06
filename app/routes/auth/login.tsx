@@ -6,6 +6,7 @@ import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
+import { getSafeRedirectUrl } from "../../../lib/utils/safe-redirect";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Login - DiveStreams" }];
@@ -96,9 +97,9 @@ export async function action({ request }: ActionFunctionArgs) {
       return { errors: { form: userData?.message || "Invalid email or password" } };
     }
 
-    // Get redirect URL from query params
+    // Get redirect URL from query params (validated to prevent open redirect)
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/tenant";
+    const redirectTo = getSafeRedirectUrl(url.searchParams.get("redirect"), "/tenant");
 
     // Redirect to app WITH the session cookies
     return redirect(redirectTo, {

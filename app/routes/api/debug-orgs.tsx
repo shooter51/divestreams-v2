@@ -1,8 +1,25 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
+import { requireAdminAuth } from "../../../lib/auth/admin";
 
+/**
+ * Debug endpoint to list organizations.
+ * SECURITY: Requires admin authentication and only available in development.
+ */
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Only allow in development
+  if (process.env.NODE_ENV === "production") {
+    return Response.json({ error: "Not available in production" }, { status: 404 });
+  }
+
+  // Require admin authentication
+  try {
+    await requireAdminAuth(request);
+  } catch {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const orgs = await db
       .select({
@@ -29,8 +46,4 @@ export async function loader({ request }: LoaderFunctionArgs) {
       error: String(error),
     }, { status: 500 });
   }
-}
-
-export default function DebugOrgs() {
-  return null;
 }
