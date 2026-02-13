@@ -62,6 +62,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     name: plan.displayName, // Display name for UI
     price: plan.monthlyPrice / 100, // cents to dollars
     yearlyPrice: plan.yearlyPrice / 100,
+    monthlyPriceId: plan.monthlyPriceId, // Stripe price ID for monthly
+    yearlyPriceId: plan.yearlyPriceId,   // Stripe price ID for yearly
     features: getDisplayFeatures(plan.features),
     limits: {
       bookings: (plan.limits as { toursPerMonth?: number })?.toursPerMonth ?? -1,
@@ -76,6 +78,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       name: "Free",
       price: 0,
       yearlyPrice: 0,
+      monthlyPriceId: null,
+      yearlyPriceId: null,
       features: ["Up to 25 tours/month", "50 customers", "1 team member", "Basic features"],
       limits: { bookings: 25, team: 1 },
       isFree: true,
@@ -85,6 +89,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       name: "Professional",
       price: 49,
       yearlyPrice: 470,
+      monthlyPriceId: null,
+      yearlyPriceId: null,
       features: ["Unlimited tours", "Unlimited customers", "10 team members", "Advanced reporting", "POS system", "API access"],
       limits: { bookings: -1, team: 10 },
       popular: true,
@@ -95,6 +101,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       name: "Enterprise",
       price: 199,
       yearlyPrice: 1910,
+      monthlyPriceId: null,
+      yearlyPriceId: null,
       features: ["Everything in Pro", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options"],
       limits: { bookings: -1, team: -1 },
       isFree: false,
@@ -222,12 +230,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
 
+  // KAN-674 FIX: Determine billing cycle from Stripe price ID
+  // Compare subscription's stripePriceId with plan's monthly/yearly price IDs
+  const currentStripePriceId = ctx.subscription?.stripePriceId;
+  const determinedBillingCycle = (() => {
+    if (!currentStripePriceId || !currentPlanData) return "monthly" as const;
+    // Check if the current price ID matches the yearly price
+    if (currentPlanData.yearlyPriceId && currentStripePriceId === currentPlanData.yearlyPriceId) {
+      return "yearly" as const;
+    }
+    // Default to monthly (also handles monthlyPriceId match)
+    return "monthly" as const;
+  })();
+
   const billing = {
     currentPlan,
     currentPlanName: currentPlanData?.name || "Free",
-    billingCycle: "monthly" as const,
+    billingCycle: determinedBillingCycle,
     nextBillingDate,
-    amount: currentPlanData?.price || 0,
+    // KAN-674: Show yearly amount if on yearly billing
+    amount: determinedBillingCycle === "yearly" 
+      ? (currentPlanData?.yearlyPrice || 0) 
+      : (currentPlanData?.price || 0),
     subscriptionStatus: ctx.subscription?.status || "active",
     trialEndsAt: trialEndsAt?.toISOString(),
     trialDaysLeft,
