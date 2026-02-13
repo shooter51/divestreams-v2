@@ -88,12 +88,16 @@ export default tseslint.config(
       },
     },
     rules: {
-      // Disable overly strict rules
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "off",
+      // Type safety rules - warn for gradual migration to error
+      "@typescript-eslint/no-unused-vars": ["warn", { 
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_"
+      }],
+      "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/ban-ts-comment": "off",
-      "no-console": "off",
+      "no-console": "off",  // TODO: Enable and use structured logging
       "prefer-const": "warn",
       "no-var": "error",
 
