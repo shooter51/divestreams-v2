@@ -8,6 +8,56 @@
 
 import { redirect } from "react-router";
 import { eq, and, count, gte } from "drizzle-orm";
+
+// ============================================================================
+// ORG CONTEXT CACHE
+// ============================================================================
+
+/**
+ * Simple in-memory cache for org context to reduce database queries.
+ * TTL: 60 seconds - short enough to reflect changes quickly, long enough to help.
+ * Key: userId:subdomain
+ */
+interface CachedContext {
+  context: OrgContext;
+  expiresAt: number;
+}
+
+const ORG_CONTEXT_CACHE = new Map<string, CachedContext>();
+const ORG_CONTEXT_CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
+// Clean up expired entries every 5 minutes
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    const keysToDelete: string[] = [];
+    ORG_CONTEXT_CACHE.forEach((entry, key) => {
+      if (entry.expiresAt < now) {
+        keysToDelete.push(key);
+      }
+    });
+    keysToDelete.forEach((key) => ORG_CONTEXT_CACHE.delete(key));
+  }, 5 * 60 * 1000);
+}
+
+/**
+ * Invalidate cached context for a user/org combination.
+ * Call this when membership, subscription, or org settings change.
+ */
+export function invalidateOrgContextCache(userId: string, subdomain?: string): void {
+  if (subdomain) {
+    ORG_CONTEXT_CACHE.delete(`${userId}:${subdomain}`);
+  } else {
+    // Invalidate all entries for this user
+    const keysToDelete: string[] = [];
+    ORG_CONTEXT_CACHE.forEach((_, key) => {
+      if (key.startsWith(`${userId}:`)) {
+        keysToDelete.push(key);
+      }
+    });
+    keysToDelete.forEach((key) => ORG_CONTEXT_CACHE.delete(key));
+  }
+}
 import { auth } from "./index";
 import { db } from "../db";
 import {
@@ -248,6 +298,13 @@ export async function getOrgContext(
     return null;
   }
 
+  // Check cache first (reduces 7+ DB queries to 0 for cache hits)
+  const cacheKey = `${sessionData.user.id}:${subdomain}`;
+  const cached = ORG_CONTEXT_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.context;
+  }
+
   // Find organization by slug (subdomain)
   const [org] = await db
     .select()
@@ -416,7 +473,7 @@ export async function getOrgContext(
       }
     : null;
 
-  return {
+  const context: OrgContext = {
     user: sessionData.user as User,
     session: sessionData.session as Session,
     org,
@@ -429,6 +486,14 @@ export async function getOrgContext(
     canAddBooking,
     isPremium,
   };
+
+  // Cache the context for 60 seconds to reduce DB queries
+  ORG_CONTEXT_CACHE.set(cacheKey, {
+    context,
+    expiresAt: Date.now() + ORG_CONTEXT_CACHE_TTL_MS,
+  });
+
+  return context;
 }
 
 // ============================================================================

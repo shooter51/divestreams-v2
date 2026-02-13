@@ -34,15 +34,15 @@
 **Issue:** Creates 20 unused tables per new tenant (dual system)  
 **Fix:** Remove `tenants` table, drop `createTenantTables()`, clean up unused schemas
 
-### 6. Optimize OrgContext Queries ❌
-**Location:** `getOrgContext()`  
+### 6. Optimize OrgContext Queries ✅ DONE
+**Location:** `getOrgContext()` in `lib/auth/org-context.server.ts`  
 **Issue:** 7 sequential DB queries per authenticated request  
-**Fix:** Combine into single JOIN query or add 60s caching
+**Fix:** Added 60-second in-memory cache with `invalidateOrgContextCache()` helper
 
-### 7. Add Connection Pooling ❌
-**Location:** `lib/db/index.server.ts`  
+### 7. Add Connection Pooling ✅ DONE
+**Location:** `lib/db/index.ts`  
 **Issue:** Single connection, no pooling config  
-**Fix:** Add `max: 20, idle_timeout: 30, connect_timeout: 10`
+**Fix:** Added `max: 20, idle_timeout: 30, connect_timeout: 10, max_lifetime: 1800`
 
 ---
 
@@ -127,10 +127,10 @@ CREATE INDEX integrations_org_active_idx ON integrations(organization_id, is_act
 | Category | Total | Done | Remaining |
 |----------|-------|------|-----------|
 | 🔴 Critical (P0) | 3 | 3 | 0 |
-| 🟠 High (P1) | 4 | 0 | 4 |
+| 🟠 High (P1) | 4 | 2 | 2 |
 | 🟡 Medium (P2) | 8 | 1 | 7 |
 | 🟢 Low (P3) | 9 | 0 | 9 |
-| **Total** | **24** | **4** | **20** |
+| **Total** | **24** | **6** | **18** |
 
 ---
 
