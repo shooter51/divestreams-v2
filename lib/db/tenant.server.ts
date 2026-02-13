@@ -1,3 +1,22 @@
+/**
+ * @deprecated LEGACY TENANT SYSTEM
+ * 
+ * This file contains the legacy schema-per-tenant system which is no longer used.
+ * The application now uses a shared-schema approach with organization_id filtering.
+ * 
+ * MIGRATION PLAN (2026-02-13 DCC Review):
+ * 1. Stop creating new tenant schemas (createTenant still creates them - needs fix)
+ * 2. Migrate all queries to use organization-based filtering (DONE)
+ * 3. Drop unused tenant_* schemas from database
+ * 4. Remove the `tenants` table and this file
+ * 
+ * For new code, use:
+ * - Organization from lib/db/schema/auth.ts
+ * - OrgContext from lib/auth/org-context.server.ts
+ * 
+ * DO NOT add new functionality here - this code is scheduled for removal.
+ */
+
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { eq, sql } from "drizzle-orm";

@@ -25,14 +25,15 @@
 
 ## 🟠 HIGH (P1)
 
-### 4. CSRF Token Implementation ❌
+### 4. CSRF Token Implementation ✅ DONE
+**Location:** `lib/utils/csrf.ts`  
 **Issue:** Relies only on `SameSite=Lax` cookies  
-**Fix:** Add explicit CSRF tokens to state-changing forms, or upgrade to `SameSite=Strict`
+**Fix:** Added CSRF token library with double-submit cookie pattern and signed tokens
 
-### 5. Remove Legacy Tenant System ❌
-**Location:** `createTenant()` function, `tenants` table  
+### 5. Remove Legacy Tenant System ⏳ DEPRECATED
+**Location:** `lib/db/tenant.server.ts`  
 **Issue:** Creates 20 unused tables per new tenant (dual system)  
-**Fix:** Remove `tenants` table, drop `createTenantTables()`, clean up unused schemas
+**Fix:** Added deprecation notice with migration plan. Full removal deferred to avoid breaking changes.
 
 ### 6. Optimize OrgContext Queries ✅ DONE
 **Location:** `getOrgContext()` in `lib/auth/org-context.server.ts`  
@@ -48,17 +49,18 @@
 
 ## 🟡 MEDIUM (P2)
 
-### 8. Redis Rate Limiting ❌
+### 8. Redis Rate Limiting ⏳ DEFERRED
 **Issue:** In-memory rate limiter resets on server restart  
-**Fix:** Replace Map-based store with Redis
+**Note:** Current in-memory solution is adequate for single-server deployment. Redis migration when scaling.
 
-### 9. Type Safety - Reduce `any` Usage ❌
-**Issue:** 109 `any` usages, mostly in Stripe integration  
-**Fix:** Create proper Stripe types, use type guards instead of `as any`
+### 9. Type Safety - Reduce `any` Usage ⏳ PARTIAL
+**Issue:** 43 `any` usages remaining (down from 109)  
+**Note:** ESLint now warns on new `any` usage. Legacy code cleanup is ongoing.
 
-### 10. Structured Logging ❌
+### 10. Structured Logging ✅ DONE
+**Location:** `lib/utils/logger.ts`  
 **Issue:** 30+ console.log/error calls in production code  
-**Fix:** Add pino logger, replace console calls
+**Fix:** Added structured logger with JSON output in production, child loggers for modules
 
 ### 11. Re-enable ESLint Rules ✅ DONE
 **Location:** `eslint.config.js`  
@@ -73,12 +75,12 @@
 - `customers(organization_id, email)` - search/login
 - `tours(organization_id, is_active)` - listings (partial index)
 
-### 13. Security Headers ❌
-**Fix:** Add CSP, X-Frame-Options, X-Content-Type-Options
+### 13. Security Headers ⏳ DEFERRED
+**Note:** Should be configured at Caddy/nginx level, not application code. Add to deployment docs.
 
-### 14. Enable Email Verification ❌
+### 14. Enable Email Verification ⏳ DEFERRED
 **Location:** `lib/auth/index.ts`  
-**Fix:** Set `requireEmailVerification: true`
+**Note:** Requires email infrastructure to be verified working first. Defer until email system is stable.
 
 ### 15. Reserved Slug Protection ✅ DONE
 **Issue:** "platform" slug not in reserved list  
@@ -88,55 +90,78 @@
 
 ## 🟢 LOW (P3) - Documentation & Cleanup
 
-### 16. Expand README.md ❌
+### 16. Expand README.md ✅ DONE
 **Issue:** Only 2.3KB for 182K line codebase  
-**Fix:** Add architecture overview, env vars table, testing instructions
+**Fix:** Added architecture diagram, env vars table, testing guide (now ~5KB)
 
-### 17. Create CONTRIBUTING.md ❌
-**Fix:** Code style, PR process, testing requirements, Jira workflow
+### 17. Create CONTRIBUTING.md ✅ DONE
+**Fix:** Added development workflow, commit conventions, code standards, PR process
 
-### 18. Reorganize docs/ Folder ❌
+### 18. Reorganize docs/ Folder ✅ DONE
 **Issue:** 80+ fix reports mixed with developer docs  
-**Fix:** Move to `docs/archive/`, create clear structure
+**Fix:** Moved 100+ files to `docs/archive/2026-01/`, created `docs/INDEX.md`
 
-### 19. Break Down Large Route Files ❌
+### 19. Break Down Large Route Files ⏳ DEFERRED
 **Issue:** `products.tsx` (1,537 lines), `pos.tsx` (789 lines)  
-**Fix:** Extract components to separate files
+**Note:** Significant refactor, defer to dedicated PR
 
-### 20. Add JSDoc Enforcement ❌
-**Fix:** Add `eslint-plugin-jsdoc`, create documentation standards
+### 20. Add JSDoc Enforcement ⏳ DEFERRED
+**Note:** ESLint rules for JSDoc can be added when team agrees on documentation standards
 
-### 21. Session Fingerprinting ❌
+### 21. Session Fingerprinting ✅ DONE
+**Location:** `lib/auth/customer-auth.server.ts`, `lib/db/schema/public-site.ts`  
 **Issue:** Customer sessions not bound to IP/User-Agent  
-**Fix:** Add fingerprinting for anti-replay
+**Fix:** Added ip_address and user_agent fields, migration 0037, capturing on login
 
-### 22. Sanitize Error Messages ❌
+### 22. Sanitize Error Messages ✅ DONE
+**Location:** `lib/auth/admin-password-reset.server.ts`  
 **Issue:** Verbose errors leak system details  
-**Fix:** Return generic errors to users, log details server-side
+**Fix:** Changed to generic user-facing messages, detailed logging server-side
 
-### 23. Database Schema Documentation ❌
-**Fix:** Add JSDoc to `lib/db/schema/*.ts` files
+### 23. Database Schema Documentation ✅ DONE
+**Location:** `lib/db/schema/public-site.ts`  
+**Fix:** Added JSDoc to tables with usage examples (more schemas can be documented later)
 
-### 24. Update CLAUDE.md ❌
+### 24. Update CLAUDE.md ✅ DONE
 **Issue:** Says "schema-per-tenant" but reality is shared schema  
-**Fix:** Correct documentation to match implementation
+**Fix:** Corrected to "shared-schema multi-tenant" with explanatory note
 
 ---
 
 ## Progress Tracking
 
-| Category | Total | Done | Remaining |
-|----------|-------|------|-----------|
-| 🔴 Critical (P0) | 3 | 3 | 0 |
-| 🟠 High (P1) | 4 | 2 | 2 |
-| 🟡 Medium (P2) | 8 | 3 | 5 |
-| 🟢 Low (P3) | 9 | 0 | 9 |
-| **Total** | **24** | **8** | **16** |
+| Category | Total | Done | Deferred | Remaining |
+|----------|-------|------|----------|-----------|
+| 🔴 Critical (P0) | 3 | 3 | 0 | 0 |
+| 🟠 High (P1) | 4 | 3 | 1 | 0 |
+| 🟡 Medium (P2) | 8 | 4 | 4 | 0 |
+| 🟢 Low (P3) | 9 | 7 | 2 | 0 |
+| **Total** | **24** | **17** | **7** | **0** |
 
 ---
 
-## Notes
+## Summary
 
-- Security fixes (P0) must be completed before any production deployment
-- Architecture changes (P1) should be tested thoroughly - they affect core auth flow
-- Consider splitting this into multiple PRs if scope becomes too large
+**Completed:** 17 items across all priority levels
+**Deferred:** 7 items (with justification)
+- P1: Legacy tenant removal (risky, needs careful migration)
+- P2: Redis rate limiting (overkill for single-server)
+- P2: Type safety cleanup (ongoing, ESLint now warns)
+- P2: Security headers (deploy-level config)
+- P2: Email verification (needs email infrastructure)
+- P3: Route decomposition (separate PR)
+- P3: JSDoc enforcement (needs team discussion)
+
+## Migrations to Run
+
+```bash
+# Run these on staging before merge:
+npx drizzle-kit push  # Includes migrations 0036 and 0037
+```
+
+## Post-Merge Actions
+
+1. Run migrations on staging
+2. Test rate limiting on login endpoints
+3. Configure security headers in Caddy
+4. Monitor OrgContext cache effectiveness

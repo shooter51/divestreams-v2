@@ -1,3 +1,12 @@
+/**
+ * Public Site Database Schema
+ * 
+ * Tables for customer-facing authentication and sessions.
+ * Separate from staff/admin authentication (Better Auth).
+ * 
+ * Multi-tenant: All tables filter by organization_id
+ */
+
 import {
   pgTable,
   text,
@@ -15,6 +24,20 @@ import { customers } from "../schema";
 // CUSTOMER CREDENTIALS (for public site login)
 // ============================================================================
 
+/**
+ * Customer login credentials for the public site.
+ * 
+ * One credential record per customer per organization.
+ * Handles email/password auth, verification, and password reset.
+ * 
+ * @example
+ * // Find customer by email
+ * db.select().from(customerCredentials)
+ *   .where(and(
+ *     eq(customerCredentials.organizationId, orgId),
+ *     eq(customerCredentials.email, email)
+ *   ))
+ */
 export const customerCredentials = pgTable(
   "customer_credentials",
   {
@@ -47,6 +70,19 @@ export const customerCredentials = pgTable(
 // CUSTOMER SESSIONS (for public site auth)
 // ============================================================================
 
+/**
+ * Customer session tokens for authenticated access.
+ * 
+ * Sessions are created on login and include fingerprinting
+ * data (IP, user agent) for security monitoring.
+ * 
+ * Default expiry: 30 days (configurable via SESSION_DURATION_DAYS)
+ * 
+ * @example
+ * // Verify session
+ * db.select().from(customerSessions)
+ *   .where(eq(customerSessions.token, token))
+ */
 export const customerSessions = pgTable(
   "customer_sessions",
   {
