@@ -1,7 +1,9 @@
 # DiveStreams v2 - Claude Code Configuration
 
 ## Project Overview
-Multi-tenant SaaS platform for dive shop and dive tour management. Built with React Router v7, PostgreSQL (multi-tenant with schema-per-tenant), Redis, and Caddy.
+Multi-tenant SaaS platform for dive shop and dive tour management. Built with React Router v7, PostgreSQL (shared-schema multi-tenant with organization_id filtering), Redis, and Caddy.
+
+> **Note:** Despite legacy code references to "schema-per-tenant", the actual implementation uses a shared schema with `organization_id` column filtering for tenant isolation. This is the recommended approach for simpler migrations and better connection pooling.
 
 ## Atlassian Jira Integration
 

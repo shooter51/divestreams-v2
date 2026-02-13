@@ -60,6 +60,9 @@ export const customerSessions = pgTable(
     token: text("token").notNull().unique(),
     expiresAt: timestamp("expires_at").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+    // Session fingerprinting for anti-replay protection
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
   },
   (table) => [
     index("customer_sessions_org_idx").on(table.organizationId),

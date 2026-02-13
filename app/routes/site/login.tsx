@@ -195,8 +195,11 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    // Attempt login
-    const session = await loginCustomer(org.id, email, password);
+    // Attempt login with fingerprinting
+    const session = await loginCustomer(org.id, email, password, {
+      ipAddress: getClientIp(request),
+      userAgent: request.headers.get("user-agent") || undefined,
+    });
 
     // Get redirect URL and validate to prevent open redirect attacks
     const rawRedirect = url.searchParams.get("redirect") || "/site/account";

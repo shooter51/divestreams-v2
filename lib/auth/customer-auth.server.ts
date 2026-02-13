@@ -126,7 +126,11 @@ export async function registerCustomer(
 export async function loginCustomer(
   organizationId: string,
   email: string,
-  password: string
+  password: string,
+  options?: {
+    ipAddress?: string;
+    userAgent?: string;
+  }
 ) {
   const normalizedEmail = email.toLowerCase().trim();
 
@@ -160,6 +164,9 @@ export async function loginCustomer(
     customerId: creds.customerId,
     token,
     expiresAt,
+    // Session fingerprinting for anti-replay protection
+    ipAddress: options?.ipAddress || null,
+    userAgent: options?.userAgent ? options.userAgent.slice(0, 500) : null, // Limit length
   });
 
   // Update last login

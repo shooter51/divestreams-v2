@@ -76,7 +76,8 @@ export async function resetUserPassword(
     .limit(1);
 
   if (!targetUser) {
-    throw new Error("Target user not found");
+    console.error(`[admin-password-reset] Target user not found: ${targetUserId}`);
+    throw new Error("Unable to reset password. Please try again.");
   }
 
   // Fetch admin user
@@ -87,7 +88,8 @@ export async function resetUserPassword(
     .limit(1);
 
   if (!adminUser) {
-    throw new Error("Admin user not found");
+    console.error(`[admin-password-reset] Admin user not found: ${adminUserId}`);
+    throw new Error("Unable to reset password. Please try again.");
   }
 
   // Fetch organization
@@ -98,7 +100,8 @@ export async function resetUserPassword(
     .limit(1);
 
   if (!org) {
-    throw new Error("Organization not found");
+    console.error(`[admin-password-reset] Organization not found: ${organizationId}`);
+    throw new Error("Unable to reset password. Please try again.");
   }
 
   // ============================================================================
@@ -118,7 +121,8 @@ export async function resetUserPassword(
     .limit(1);
 
   if (!adminMembership) {
-    throw new Error("Admin user does not belong to the specified organization");
+    console.error(`[admin-password-reset] Admin ${adminUserId} not member of org ${organizationId}`);
+    throw new Error("You don't have permission to perform this action.");
   }
 
   // Verify target user belongs to the specified organization
@@ -134,7 +138,8 @@ export async function resetUserPassword(
     .limit(1);
 
   if (!targetMembership) {
-    throw new Error("Target user does not belong to the specified organization");
+    console.error(`[admin-password-reset] Target ${targetUserId} not member of org ${organizationId}`);
+    throw new Error("Unable to reset password for this user.");
   }
 
   // Fetch user's account (needed for password update)
@@ -145,7 +150,8 @@ export async function resetUserPassword(
     .limit(1);
 
   if (!userAccount) {
-    throw new Error("User account not found");
+    console.error(`[admin-password-reset] Account not found for user: ${targetUserId}`);
+    throw new Error("Unable to reset password. Please try again.");
   }
 
   // ============================================================================
