@@ -7,6 +7,7 @@ import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Login - DiveStreams" }];
@@ -75,6 +76,19 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+
+  // Rate limiting - prevent brute force attacks
+  const ip = getClientIp(request);
+  const rateLimitKey = `login:${ip}:${email?.toLowerCase() || "unknown"}`;
+  const rateLimit = checkRateLimit(rateLimitKey, { maxAttempts: 5, windowMs: 15 * 60 * 1000 });
+  
+  if (!rateLimit.allowed) {
+    const minutesRemaining = Math.ceil((rateLimit.resetAt - Date.now()) / 60000);
+    return { 
+      errors: { form: `Too many login attempts. Please try again in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}.` }, 
+      email: email || "" 
+    };
+  }
 
   const errors: Record<string, string> = {};
 

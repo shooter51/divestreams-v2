@@ -29,6 +29,7 @@ import {
   loginCustomer,
   getCustomerBySession,
 } from "../../../lib/auth/customer-auth.server";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -162,6 +163,19 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const rememberMe = formData.get("rememberMe") === "on";
+
+  // Rate limiting - prevent brute force attacks
+  const ip = getClientIp(request);
+  const rateLimitKey = `customer-login:${ip}:${email?.toLowerCase() || "unknown"}`;
+  const rateLimit = checkRateLimit(rateLimitKey, { maxAttempts: 5, windowMs: 15 * 60 * 1000 });
+  
+  if (!rateLimit.allowed) {
+    const minutesRemaining = Math.ceil((rateLimit.resetAt - Date.now()) / 60000);
+    return { 
+      errors: { form: `Too many login attempts. Please try again in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}.` }, 
+      email: email || "" 
+    };
+  }
 
   // Validation
   const errors: ActionErrors = {};

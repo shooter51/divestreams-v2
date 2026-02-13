@@ -6,6 +6,7 @@ import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Forgot Password - DiveStreams" }];
@@ -43,6 +44,16 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!subdomain) {
     return redirect(getAppUrl());
+  }
+
+  // Rate limiting - prevent password reset spam (3 requests per 15 minutes)
+  const ip = getClientIp(request);
+  const rateLimitKey = `forgot-password:${ip}`;
+  const rateLimit = checkRateLimit(rateLimitKey, { maxAttempts: 3, windowMs: 15 * 60 * 1000 });
+  
+  if (!rateLimit.allowed) {
+    const minutesRemaining = Math.ceil((rateLimit.resetAt - Date.now()) / 60000);
+    return { error: `Too many requests. Please try again in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}.` };
   }
 
   const formData = await request.formData();

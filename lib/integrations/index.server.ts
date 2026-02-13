@@ -25,11 +25,21 @@ import {
 // ============================================================================
 
 /**
- * Get encryption key from environment or generate a default
- * In production, INTEGRATION_ENCRYPTION_KEY should be set
+ * Get encryption key from environment
+ * INTEGRATION_ENCRYPTION_KEY or AUTH_SECRET must be set in production
  */
 function getEncryptionKey(): Buffer {
-  const secret = process.env.INTEGRATION_ENCRYPTION_KEY || process.env.AUTH_SECRET || "divestreams-default-key";
+  const secret = process.env.INTEGRATION_ENCRYPTION_KEY || process.env.AUTH_SECRET;
+  
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("INTEGRATION_ENCRYPTION_KEY or AUTH_SECRET must be set in production");
+    }
+    // Development fallback only - never use in production
+    console.warn("⚠️ Using development-only encryption key. Set INTEGRATION_ENCRYPTION_KEY in production.");
+    return scryptSync("dev-only-insecure-key", "divestreams-salt", 32);
+  }
+  
   // Use scrypt to derive a 32-byte key from the secret
   return scryptSync(secret, "divestreams-salt", 32);
 }

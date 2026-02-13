@@ -63,6 +63,7 @@ const RESERVED_SUBDOMAINS = new Set([
   "support",
   "status",
   "blog",
+  "platform",  // Reserved for platform-level operations
 ]);
 
 // ============================================================================

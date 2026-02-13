@@ -8,6 +8,7 @@ import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { getAppUrl } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 
 export const meta: MetaFunction = () => [{ title: "Admin Login - DiveStreams" }];
@@ -31,6 +32,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Rate limiting for admin login - stricter limits (3 attempts per 15 min)
+  const ip = getClientIp(request);
+  const rateLimitKey = `admin-login:${ip}`;
+  const rateLimit = checkRateLimit(rateLimitKey, { maxAttempts: 3, windowMs: 15 * 60 * 1000 });
+  
+  if (!rateLimit.allowed) {
+    const minutesRemaining = Math.ceil((rateLimit.resetAt - Date.now()) / 60000);
+    return { error: `Too many login attempts. Please try again in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}.`, email: "" };
+  }
+
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");

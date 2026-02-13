@@ -40,7 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
     if (!subdomainRegex.test(subdomain.toLowerCase())) {
       errors.subdomain = "Only lowercase letters, numbers, and hyphens allowed";
     } else {
-      const reserved = ["www", "api", "admin", "app", "mail", "smtp", "ftp", "blog", "help", "support", "status"];
+      const reserved = ["www", "api", "admin", "app", "mail", "smtp", "ftp", "blog", "help", "support", "status", "platform", "dashboard", "staging", "dev", "cdn", "assets", "static", "docs"];
       if (reserved.includes(subdomain.toLowerCase())) {
         errors.subdomain = "This subdomain is reserved";
       } else {
