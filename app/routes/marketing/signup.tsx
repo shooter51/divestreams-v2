@@ -1,5 +1,5 @@
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation } from "react-router";
+import { redirect, useActionData, useNavigation, useLoaderData } from "react-router";
 import { createTenant, isSubdomainAvailable } from "../../../lib/db/tenant.server";
 import { triggerWelcomeEmail } from "../../../lib/email/triggers";
 import { getTenantUrl } from "../../../lib/utils/url";
@@ -9,6 +9,8 @@ import { user, account, member, organization } from "../../../lib/db/schema/auth
 import { customers } from "../../../lib/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { CsrfTokenInput } from "../../components/CsrfInput";
 
 export const meta: MetaFunction = () => {
   return [
@@ -17,15 +19,25 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export function loader() {
+  return { csrfToken: generateAnonCsrfToken() };
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   // Rate limit signup attempts
   const clientIp = getClientIp(request);
-  const rateLimit = checkRateLimit(`signup:${clientIp}`, { maxAttempts: 5, windowMs: 60 * 60 * 1000 });
+  const rateLimit = await checkRateLimit(`signup:${clientIp}`, { maxAttempts: 5, windowMs: 60 * 60 * 1000 });
   if (!rateLimit.allowed) {
-    return { errors: { form: "Too many signup attempts. Please try again later." } };
+    return { errors: { form: "Too many signup attempts. Please try again later." } as Record<string, string> };
   }
 
   const formData = await request.formData();
+
+  // Validate CSRF token (reject if present but invalid)
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
+    return { errors: { form: "Invalid form submission. Please refresh and try again." } as Record<string, string> };
+  }
 
   const shopName = formData.get("shopName") as string;
   const subdomain = formData.get("subdomain") as string;
@@ -207,6 +219,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function SignupPage() {
+  const { csrfToken } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -237,6 +250,7 @@ export default function SignupPage() {
           </p>
 
           <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
+            <CsrfTokenInput token={csrfToken} />
             {actionData?.errors?.form && (
               <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words mb-6">
                 {actionData.errors.form}

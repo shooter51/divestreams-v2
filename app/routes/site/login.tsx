@@ -29,6 +29,7 @@ import {
   loginCustomer,
   getCustomerBySession,
 } from "../../../lib/auth/customer-auth.server";
+import { getSubdomainFromHost } from "../../../lib/utils/url";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -210,30 +211,6 @@ export async function action({ request }: ActionFunctionArgs) {
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
-
-/**
- * Extract subdomain from request host
- */
-function getSubdomainFromHost(host: string): string | null {
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
 
 /**
  * Parse a specific cookie from cookie header string

@@ -28,7 +28,7 @@ export default defineConfig(({ isSsrBuild }) => ({
   },
   ssr: {
     noExternal: [],
-    external: ["postgres", "better-auth", "bullmq", "ioredis"],
+    external: ["postgres", "better-auth", "bullmq", "ioredis", "pino"],
   },
   resolve: isSsrBuild
     ? {}
@@ -39,7 +39,7 @@ export default defineConfig(({ isSsrBuild }) => ({
         },
       },
   optimizeDeps: {
-    exclude: ["postgres", "better-auth", "bullmq", "ioredis"],
+    exclude: ["postgres", "better-auth", "bullmq", "ioredis", "pino"],
     // Pre-optimize dependencies that Vite lazily discovers during dev/E2E.
     // Without this, Vite triggers "optimized dependencies changed. reloading"
     // mid-test, causing page reloads that break E2E assertions.

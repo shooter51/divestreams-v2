@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc, desc } from "drizzle-orm";
-import { requireTenant, requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
   getBoatById,
   getBoatRecentTrips,
@@ -18,7 +18,8 @@ import { redirectWithNotification, useNotification } from "../../../../lib/use-n
 export const meta: MetaFunction = () => [{ title: "Boat Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const boatId = params.id;
 
   if (!boatId) {

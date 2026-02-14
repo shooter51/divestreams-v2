@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getEquipmentById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
@@ -13,7 +13,8 @@ import { redirectWithNotification } from "../../../../../lib/use-notification";
 export const meta: MetaFunction = () => [{ title: "Edit Equipment - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const equipmentId = params.id;
 
   if (!equipmentId) {
@@ -91,7 +92,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const equipmentId = params.id;
 
   if (!equipmentId) {
@@ -325,7 +327,7 @@ export default function EditEquipmentPage() {
                 id="condition"
                 name="condition"
                 required
-                defaultValue={actionData?.values?.condition || equipment.condition}
+                defaultValue={actionData?.values?.condition || equipment.condition || ""}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="excellent">Excellent</option>
@@ -396,7 +398,7 @@ export default function EditEquipmentPage() {
                 type="date"
                 id="lastServiceDate"
                 name="lastServiceDate"
-                defaultValue={actionData?.values?.lastServiceDate || equipment.lastServiceDate}
+                defaultValue={actionData?.values?.lastServiceDate || (equipment.lastServiceDate ? String(equipment.lastServiceDate) : "")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
@@ -409,7 +411,7 @@ export default function EditEquipmentPage() {
                 type="date"
                 id="nextServiceDate"
                 name="nextServiceDate"
-                defaultValue={actionData?.values?.nextServiceDate || equipment.nextServiceDate}
+                defaultValue={actionData?.values?.nextServiceDate || (equipment.nextServiceDate ? String(equipment.nextServiceDate) : "")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>

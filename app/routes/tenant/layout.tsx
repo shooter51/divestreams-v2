@@ -8,6 +8,7 @@ import { UpgradeModal } from "../../components/upgrade-modal";
 import type { PlanFeatureKey, PlanFeaturesObject, PlanLimits } from "../../../lib/plan-features";
 import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../../lib/plan-features";
 import { ToastProvider } from "../../../lib/toast-context";
+import { generateCsrfToken } from "../../../lib/security/csrf.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -40,6 +41,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // which is unavailable in the browser and would crash client-side hydration.
   const baseDomain = getBaseDomain();
 
+  // Generate a CSRF token tied to the user's session for form protection
+  const csrfToken = generateCsrfToken(ctx.session.id);
+
   return {
     tenant: {
       name: ctx.org.name,
@@ -58,6 +62,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     features,
     limits,
     planName,
+    csrfToken,
   };
 }
 

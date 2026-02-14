@@ -6,6 +6,7 @@ import { eq, and, sql, inArray } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
 import type { CartItem, Payment } from "../validation/pos";
+import { dbLogger } from "../logger";
 
 // Type for the tables object that getTenantDb returns
 // This provides the same interface as the old createTenantSchema
@@ -52,7 +53,7 @@ export async function getPOSProducts(tables: TenantTables, organizationId: strin
       .orderBy(tables.products.category, tables.products.name);
   } catch (error) {
     // Fallback if sale_price columns don't exist yet
-    console.error("POS products query failed, trying without sale fields:", error);
+    dbLogger.error({ err: error, organizationId }, "POS products query failed, trying without sale fields");
     const basicProducts = await db
       .select({
         id: tables.products.id,

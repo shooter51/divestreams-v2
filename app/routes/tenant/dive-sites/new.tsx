@@ -1,6 +1,6 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createDiveSite } from "../../../../lib/db/queries.server";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
@@ -10,12 +10,13 @@ import { getTenantDb } from "../../../../lib/db/tenant.server";
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireTenant(request);
+  await requireOrgContext(request);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
 
   // Extract image files before processing other form data
@@ -54,7 +55,7 @@ export async function action({ request }: ActionFunctionArgs) {
   });
 
   // Process uploaded images if any
-  if (imageFiles.length > 0 && tenant) {
+  if (imageFiles.length > 0) {
     // Check if storage is configured BEFORE attempting uploads
     const s3Client = getS3Client();
     if (!s3Client) {
@@ -66,7 +67,7 @@ export async function action({ request }: ActionFunctionArgs) {
       ));
     }
 
-    const { db, schema } = getTenantDb(tenant.subdomain);
+    const { db, schema } = getTenantDb(ctx.org.slug);
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
     let uploadedCount = 0;
@@ -95,7 +96,7 @@ export async function action({ request }: ActionFunctionArgs) {
         const processed = await processImage(buffer);
 
         // Generate storage keys
-        const baseKey = getImageKey(tenant.subdomain, "diveSite", newSite.id, file.name);
+        const baseKey = getImageKey(ctx.org.slug, "diveSite", newSite.id, file.name);
         const originalKey = `${baseKey}.webp`;
         const thumbnailKey = `${baseKey}-thumb.webp`;
 

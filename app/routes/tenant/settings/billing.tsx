@@ -16,6 +16,7 @@ import {
   fetchInvoicesFromStripe,
 } from "../../../../lib/stripe/stripe-billing.server";
 import { FEATURE_LABELS, type PlanFeaturesObject } from "../../../../lib/plan-features";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
@@ -446,6 +447,7 @@ export default function BillingPage() {
           </div>
           <div className="flex gap-2">
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
@@ -603,6 +605,7 @@ export default function BillingPage() {
                     </button>
                   ) : (
                     <fetcher.Form method="post">
+                      <CsrfInput />
                       <input type="hidden" name="intent" value="upgrade" />
                       <input type="hidden" name="planId" value={plan.id} />
                       <input type="hidden" name="billingPeriod" value={billingPeriod} />
@@ -651,6 +654,7 @@ export default function BillingPage() {
               </div>
             </div>
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
@@ -665,6 +669,7 @@ export default function BillingPage() {
           <div className="text-center py-4">
             <p className="text-foreground-muted mb-3">No payment method on file</p>
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
@@ -744,6 +749,7 @@ export default function BillingPage() {
               }
             }}
           >
+            <CsrfInput />
             <input type="hidden" name="intent" value="cancel" />
             <button
               type="submit"

@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, count } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { uploadToB2, getImageKey, getWebPMimeType } from "../../../../lib/storage";
 import { processImage, isValidImageType } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
@@ -21,7 +21,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const { tenant, organizationId } = await requireTenant(request);
+    const ctx = await requireOrgContext(request);
+    const organizationId = ctx.org.id;
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -67,7 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Check image count limit
-    const { db, schema } = getTenantDb(tenant.subdomain);
+    const { db, schema } = getTenantDb(ctx.org.slug);
 
     const [countResult] = await db
       .select({ count: count() })
@@ -92,7 +93,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const processed = await processImage(buffer);
 
     // Generate storage keys
-    const baseKey = getImageKey(tenant.subdomain, entityType, entityId, file.name);
+    const baseKey = getImageKey(ctx.org.slug, entityType, entityId, file.name);
     const originalKey = `${baseKey}.webp`;
     const thumbnailKey = `${baseKey}-thumb.webp`;
 

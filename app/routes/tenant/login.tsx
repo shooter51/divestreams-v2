@@ -8,6 +8,8 @@ import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { getAppUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { CsrfTokenInput } from "../../components/CsrfInput";
 
 type ActionData = {
   error?: string;
@@ -26,6 +28,7 @@ type LoaderData = {
   subdomain: string | null;
   noAccessError?: string | null;
   mainSiteUrl?: string;
+  csrfToken: string;
 };
 
 export const meta: MetaFunction = () => [{ title: "Login - DiveStreams" }];
@@ -62,6 +65,9 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
     headers: request.headers,
   });
 
+  // Generate CSRF token for the login/join forms (no session required)
+  const csrfToken = generateAnonCsrfToken();
+
   if (sessionData && sessionData.user) {
     // User is logged in but doesn't have access to this organization
     return {
@@ -69,11 +75,12 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
       orgId,
       subdomain,
       mainSiteUrl: getAppUrl(),
-      noAccessError: `You are logged in as ${sessionData.user.email}, but you don't have access to this organization. Please contact the organization owner to request access, or log out and sign in with a different account.`
+      noAccessError: `You are logged in as ${sessionData.user.email}, but you don't have access to this organization. Please contact the organization owner to request access, or log out and sign in with a different account.`,
+      csrfToken,
     };
   }
 
-  return { orgName, orgId, subdomain };
+  return { orgName, orgId, subdomain, csrfToken };
 }
 
 // Email validation regex
@@ -84,11 +91,17 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const redirectTo = formData.get("redirectTo");
 
+  // Validate CSRF token (log warning if missing, reject if present but invalid)
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
+    return { error: "Invalid form submission. Please refresh and try again." };
+  }
+
   // Rate limit login attempts
   const clientIp = getClientIp(request);
   const loginEmail = formData.get("email") as string;
   if (intent !== "join" && loginEmail) {
-    const rateLimit = checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
+    const rateLimit = await checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
     if (!rateLimit.allowed) {
       return { error: "Too many login attempts. Please try again later." };
     }
@@ -235,7 +248,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function LoginPage() {
-  const { orgName, noAccessError, mainSiteUrl } = useLoaderData<typeof loader>();
+  const { orgName, noAccessError, mainSiteUrl, csrfToken } = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
@@ -270,6 +283,7 @@ export default function LoginPage() {
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-surface-raised py-8 px-4 shadow-sm rounded-xl sm:px-10">
             <Form method="post" className="space-y-4">
+              <CsrfTokenInput token={csrfToken} />
               <input type="hidden" name="intent" value="join" />
               <input type="hidden" name="userId" value={userId} />
               <input type="hidden" name="orgId" value={orgId} />
@@ -357,6 +371,7 @@ export default function LoginPage() {
           )}
 
           <Form method="post" className="space-y-6">
+            <CsrfTokenInput token={csrfToken} />
             <input type="hidden" name="redirectTo" value={redirectTo} />
 
             {/* Email Field */}

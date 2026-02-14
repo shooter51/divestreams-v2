@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { deleteFromB2 } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
@@ -17,7 +17,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const { tenant } = await requireTenant(request);
+    const ctx = await requireOrgContext(request);
 
     const formData = await request.formData();
     const imageId = formData.get("imageId") as string;
@@ -26,7 +26,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "imageId is required" }, { status: 400 });
     }
 
-    const { db, schema } = getTenantDb(tenant.subdomain);
+    const { db, schema } = getTenantDb(ctx.org.slug);
 
     // Find the image
     const [image] = await db

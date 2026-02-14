@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, inArray } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 interface ReorderItem {
@@ -22,7 +22,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const { tenant } = await requireTenant(request);
+    const ctx = await requireOrgContext(request);
 
     const body = await request.json();
     const { entityType, entityId, images } = body as {
@@ -38,7 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    const { db, schema } = getTenantDb(tenant.subdomain);
+    const { db, schema } = getTenantDb(ctx.org.slug);
 
     // Verify all images belong to this entity
     const imageIds = images.map((img) => img.id);

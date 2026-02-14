@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { useState } from "react";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
   getTripWithFullDetails,
   getTripBookings,
@@ -23,7 +23,8 @@ import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const tripId = params.id;
 
   if (!tripId) {
@@ -105,7 +106,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const tripId = params.id!;
@@ -225,7 +227,7 @@ export default function TripDetailPage() {
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
 
-  const spotsAvailable = trip.maxParticipants - trip.bookedParticipants;
+  const spotsAvailable = (trip.maxParticipants ?? 0) - trip.bookedParticipants;
 
   // Get unique customers from bookings
   const customers = bookings.map((b) => ({
@@ -605,7 +607,7 @@ export default function TripDetailPage() {
                   >
                     <div>
                       <p className="font-medium">
-                        {booking.customer.firstName} {booking.customer.lastName}
+                        {String(booking.customer.firstName)} {String(booking.customer.lastName)}
                       </p>
                       <p className="text-sm text-foreground-muted">
                         {booking.bookingNumber} • {booking.participants} pax
@@ -711,7 +713,7 @@ export default function TripDetailPage() {
                 <div
                   className="bg-brand rounded-full h-2"
                   style={{
-                    width: `${(trip.bookedParticipants / trip.maxParticipants) * 100}%`,
+                    width: `${(trip.bookedParticipants / (trip.maxParticipants ?? 1)) * 100}%`,
                   }}
                 />
               </div>
@@ -848,7 +850,7 @@ export default function TripDetailPage() {
                       key={customer.id}
                       className="text-xs bg-brand-muted text-brand px-2 py-1 rounded"
                     >
-                      {customer.firstName} {customer.lastName}
+                      {String(customer.firstName)} {String(customer.lastName)}
                     </span>
                   ))}
                 </div>

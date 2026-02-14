@@ -5,7 +5,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, Link, useNavigation, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../../lib/auth/org-context.server";
 import { getProductById, updateProduct } from "../../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../../../app/components/ui";
@@ -15,7 +15,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => [
 ];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const productId = params.id!;
 
   // Get tenant database for images query
@@ -67,7 +68,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
 
   const name = formData.get("name") as string;

@@ -58,7 +58,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
   // Rate limit signup attempts
   const clientIp = getClientIp(request);
-  const rateLimit = checkRateLimit(`signup:${clientIp}`, { maxAttempts: 5, windowMs: 60 * 60 * 1000 });
+  const rateLimit = await checkRateLimit(`signup:${clientIp}`, { maxAttempts: 5, windowMs: 60 * 60 * 1000 });
   if (!rateLimit.allowed) {
     return { errors: { form: "Too many signup attempts. Please try again later." } };
   }

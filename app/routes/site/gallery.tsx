@@ -23,6 +23,7 @@ import {
   type GalleryImageWithAlbum,
   type GalleryAlbumWithImages,
 } from "../../../lib/db/gallery.server";
+import { getSubdomainFromHost } from "../../../lib/utils/url";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -95,28 +96,6 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<GalleryLo
     tags: allTags,
     filters: { albumId, category, tags },
   };
-}
-
-// Helper function to extract subdomain
-function getSubdomainFromHost(host: string): string | null {
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
 }
 
 // ============================================================================

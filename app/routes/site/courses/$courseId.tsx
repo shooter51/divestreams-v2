@@ -15,6 +15,7 @@ import {
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
+import { getSubdomainFromHost } from "../../../../lib/utils/url";
 
 // ============================================================================
 // CERTIFICATION AGENCIES
@@ -109,33 +110,6 @@ interface LoaderData {
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
-
-/**
- * Extract subdomain from request host
- */
-function getSubdomainFromHost(host: string): string | null {
-  // Handle localhost development: subdomain.localhost:5173
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  // Handle production: subdomain.divestreams.com
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    // Ignore www and admin as they're not tenant subdomains
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
 
 /**
  * Get agency color CSS variable from name

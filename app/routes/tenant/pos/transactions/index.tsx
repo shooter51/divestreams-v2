@@ -7,7 +7,7 @@
 import { useState, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams, useFetcher } from "react-router";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getPOSSummary } from "../../../../../lib/db/queries.server";
 import { db } from "../../../../../lib/db";
 import * as schema from "../../../../../lib/db/schema";
@@ -89,7 +89,8 @@ async function getPOSTransactions(
 export const meta: MetaFunction = () => [{ title: "Transactions - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const url = new URL(request.url);
   const type = url.searchParams.get("type") || undefined;
   const dateFrom = url.searchParams.get("dateFrom") || undefined;
@@ -125,7 +126,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
 

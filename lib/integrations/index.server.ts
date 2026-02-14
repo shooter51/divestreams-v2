@@ -11,6 +11,7 @@
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "crypto";
 import { eq, and } from "drizzle-orm";
 import { db } from "../db";
+import { integrationLogger } from "../logger";
 import {
   integrations,
   integrationSyncLog,
@@ -259,7 +260,7 @@ export async function getIntegrationWithTokens(
       refreshToken,
     };
   } catch (error) {
-    console.error(`Failed to decrypt tokens for ${provider}:`, error);
+    integrationLogger.error({ err: error, provider, organizationId: orgId }, "Failed to decrypt tokens");
     return null;
   }
 }

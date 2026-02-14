@@ -2,7 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { useState } from "react";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getBoatById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
@@ -12,7 +12,8 @@ import { redirectWithNotification, useNotification } from "../../../../../lib/us
 export const meta: MetaFunction = () => [{ title: "Edit Boat - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const boatId = params.id;
 
   if (!boatId) {
@@ -79,7 +80,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const boatId = params.id;
 
   if (!boatId) {

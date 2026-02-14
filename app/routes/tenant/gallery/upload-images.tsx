@@ -7,17 +7,17 @@
 
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigation, useSearchParams, Link, Form } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
 import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Upload Gallery Images - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
 
   // Get all albums for selection
-  const albums = await getAllGalleryAlbums(organizationId);
+  const albums = await getAllGalleryAlbums(ctx.org.id);
 
   return { albums };
 }

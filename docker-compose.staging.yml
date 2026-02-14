@@ -72,6 +72,12 @@ services:
       - B2_KEY_ID=${B2_KEY_ID}
       - B2_APP_KEY=${B2_APP_KEY}
       - CDN_URL=${CDN_URL}
+    healthcheck:
+      test: ["CMD", "node", "-e", "const r=require('ioredis');const c=new r(process.env.REDIS_URL);c.ping().then(()=>{c.disconnect();process.exit(0)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     depends_on:
       db:
         condition: service_healthy
@@ -79,6 +85,39 @@ services:
         condition: service_healthy
     networks:
       - divestreams-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+  zapier-worker:
+    image: ghcr.io/shooter51/divestreams-app:staging
+    container_name: divestreams-staging-zapier-worker
+    restart: unless-stopped
+    command: npm run worker:zapier
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_staging}@db:5432/divestreams
+      - REDIS_URL=redis://redis:6379
+    healthcheck:
+      test: ["CMD", "node", "-e", "const r=require('ioredis');const c=new r(process.env.REDIS_URL);c.ping().then(()=>{c.disconnect();process.exit(0)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - divestreams-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
 
   db:
     image: postgres:16-alpine

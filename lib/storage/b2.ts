@@ -5,6 +5,7 @@
  */
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { storageLogger } from "../logger";
 
 // B2 configuration from environment
 const B2_ENDPOINT = process.env.B2_ENDPOINT;
@@ -19,22 +20,19 @@ let s3Client: S3Client | null = null;
 export function getS3Client(): S3Client | null {
   // Validate storage is configured with AWS S3 credentials
   if (!B2_KEY_ID || !B2_APP_KEY) {
-    console.error("S3 storage not configured - image uploads disabled. Missing:", {
-      B2_ENDPOINT: !!B2_ENDPOINT,
-      B2_KEY_ID: !!B2_KEY_ID,
-      B2_APP_KEY: !!B2_APP_KEY,
-      CDN_URL: !!CDN_URL
-    });
+    storageLogger.error({
+      hasEndpoint: !!B2_ENDPOINT,
+      hasKeyId: !!B2_KEY_ID,
+      hasAppKey: !!B2_APP_KEY,
+      hasCdnUrl: !!CDN_URL,
+    }, "S3 storage not configured - image uploads disabled");
     return null;
   }
 
   // SECURITY: Prevent accidental switch to Backblaze B2
   // This project uses AWS S3 only. Backblaze is not supported.
   if (B2_ENDPOINT && B2_ENDPOINT.includes('backblazeb2.com')) {
-    console.error('❌ ERROR: Backblaze B2 detected in B2_ENDPOINT');
-    console.error('❌ This project uses AWS S3 only.');
-    console.error('❌ Please remove B2_ENDPOINT or set it to AWS S3 endpoint.');
-    console.error('❌ Current value:', B2_ENDPOINT);
+    storageLogger.error({ endpoint: B2_ENDPOINT }, "Backblaze B2 detected in B2_ENDPOINT. This project uses AWS S3 only. Please remove B2_ENDPOINT or set it to AWS S3 endpoint.");
     throw new Error('Backblaze B2 is not supported. Use AWS S3 only.');
   }
 
@@ -42,12 +40,10 @@ export function getS3Client(): S3Client | null {
   // If using AWS S3, CDN_URL must not point to Backblaze
   const isAwsS3 = !B2_ENDPOINT || B2_ENDPOINT.includes('amazonaws.com');
   if (isAwsS3 && CDN_URL && CDN_URL.includes('backblazeb2.com')) {
-    console.error('❌ ERROR: CDN_URL mismatch detected!');
-    console.error('❌ Storage is configured for AWS S3, but CDN_URL points to Backblaze B2');
-    console.error('❌ B2_ENDPOINT:', B2_ENDPOINT || '(default AWS)');
-    console.error('❌ CDN_URL:', CDN_URL);
-    console.error('❌ Images will be uploaded to S3 but URLs will point to B2 (which won\'t have the files)');
-    console.error('❌ Fix: Set CDN_URL to a CloudFront distribution or direct S3 URL');
+    storageLogger.error({
+      endpoint: B2_ENDPOINT || '(default AWS)',
+      cdnUrl: CDN_URL,
+    }, "CDN_URL mismatch: Storage is configured for AWS S3, but CDN_URL points to Backblaze B2. Fix: Set CDN_URL to a CloudFront distribution or direct S3 URL");
     throw new Error('CDN_URL mismatch: Using AWS S3 but CDN points to Backblaze B2. Update CDN_URL.');
   }
 
@@ -96,7 +92,7 @@ export async function uploadToB2(
     throw new Error("Empty buffer provided for upload");
   }
 
-  console.log(`Uploading to S3: key=${key}, size=${body.length} bytes`);
+  storageLogger.info({ key, size: body.length }, "Uploading to S3");
 
   try {
     // Use Buffer directly (tested and confirmed working with AWS S3)
@@ -110,17 +106,15 @@ export async function uploadToB2(
 
     await client.send(command);
 
-    console.log(`✅ S3 upload SUCCESS!`);
-
     // Construct S3 URL
     const url = `https://${B2_BUCKET}.s3.${B2_REGION}.amazonaws.com/${key}`;
     const cdnUrl = CDN_URL ? `${CDN_URL}/${key}` : url;
 
-    console.log(`S3 upload successful: ${cdnUrl}`);
+    storageLogger.info({ key, cdnUrl }, "S3 upload successful");
 
     return { key, url, cdnUrl };
   } catch (error) {
-    console.error(`❌ S3 upload failed:`, error);
+    storageLogger.error({ err: error, key }, "S3 upload failed");
     throw error;
   }
 }
@@ -136,7 +130,7 @@ export async function deleteFromB2(key: string): Promise<boolean> {
     }));
     return true;
   } catch (error) {
-    console.error("Failed to delete from B2:", error);
+    storageLogger.error({ err: error, key }, "Failed to delete from S3");
     return false;
   }
 }

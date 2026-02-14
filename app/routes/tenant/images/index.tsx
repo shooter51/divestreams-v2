@@ -7,11 +7,11 @@
 
 import type { LoaderFunctionArgs } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
 
   const url = new URL(request.url);
   const entityType = url.searchParams.get("entityType");
@@ -24,7 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     );
   }
 
-  const { db, schema } = getTenantDb(tenant.subdomain);
+  const { db, schema } = getTenantDb(ctx.org.slug);
 
   const images = await db
     .select({

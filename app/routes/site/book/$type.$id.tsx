@@ -42,6 +42,7 @@ import {
   trainingSessions,
 } from "../../../../lib/db/schema";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { nanoid } from "nanoid";
 
 // ============================================================================
@@ -139,27 +140,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
-
-function getSubdomainFromHost(host: string): string | null {
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
 
 function generateBookingNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();

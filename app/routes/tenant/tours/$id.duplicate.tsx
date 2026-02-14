@@ -1,5 +1,5 @@
 import { redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { duplicateTour } from "../../../../lib/db/queries.server";
 
 // Support both GET (Link) and POST (Form) for duplication
@@ -10,7 +10,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   }
 
   try {
-    const { organizationId } = await requireTenant(request);
+    const ctx = await requireOrgContext(request);
+    const organizationId = ctx.org.id;
     const newTour = await duplicateTour(organizationId, id);
     return redirect(`/tenant/tours/${newTour.id}`);
   } catch (error) {
@@ -33,7 +34,8 @@ export async function action({ params, request }: ActionFunctionArgs) {
   }
 
   try {
-    const { organizationId } = await requireTenant(request);
+    const ctx = await requireOrgContext(request);
+    const organizationId = ctx.org.id;
 
     const newTour = await duplicateTour(organizationId, id);
     return redirect(`/tenant/tours/${newTour.id}`);

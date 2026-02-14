@@ -1,9 +1,10 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import type { ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
-import { useLoaderData, useFetcher, Link } from "react-router";
+import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { useState, useEffect } from "react";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
 import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -415,6 +416,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function TeamPage() {
   const { team, pendingInvites, roles, planLimit, limitRemaining, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
+  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
+  const csrfToken = layoutData?.csrfToken;
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; email: string } | null>(null);
@@ -573,6 +576,7 @@ export default function TeamPage() {
                       <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
                       <div className="py-1">
                         <fetcher.Form method="post">
+                          <CsrfInput />
                           <input type="hidden" name="intent" value="update-role" />
                           <input type="hidden" name="userId" value={member.userId} />
                           <div className="px-3 py-2 text-xs text-foreground-muted font-medium">
@@ -619,6 +623,7 @@ export default function TeamPage() {
                             }
                           }}
                         >
+                          <CsrfInput />
                           <input type="hidden" name="intent" value="remove" />
                           <input type="hidden" name="userId" value={member.userId} />
                           <button
@@ -657,6 +662,7 @@ export default function TeamPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <fetcher.Form method="post">
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="resend-invite" />
                     <input type="hidden" name="inviteId" value={invite.id} />
                     <button
@@ -667,6 +673,7 @@ export default function TeamPage() {
                     </button>
                   </fetcher.Form>
                   <fetcher.Form method="post">
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="cancel-invite" />
                     <input type="hidden" name="inviteId" value={invite.id} />
                     <button
@@ -728,6 +735,7 @@ export default function TeamPage() {
                 userId: data.userId,
                 method: data.method,
                 ...(data.newPassword && { newPassword: data.newPassword }),
+                ...(csrfToken && { _csrf: csrfToken }),
               },
               { method: "post" }
             );
@@ -744,6 +752,7 @@ export default function TeamPage() {
             <fetcher.Form
               method="post"
             >
+              <CsrfInput />
               <input type="hidden" name="intent" value="invite" />
 
               {fetcher.data?.error && (

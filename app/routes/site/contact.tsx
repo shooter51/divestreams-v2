@@ -15,33 +15,7 @@ import { eq } from "drizzle-orm";
 import { sendEmail, contactFormNotificationEmail, contactFormAutoReplyEmail } from "../../../lib/email";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { sanitizeIframeEmbed } from "../../../lib/security/sanitize";
-
-/**
- * Extract subdomain from request host
- */
-function getSubdomainFromHost(host: string): string | null {
-  // Handle localhost development: subdomain.localhost:5173
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  // Handle production: subdomain.divestreams.com
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    // Ignore www and admin as they're not tenant subdomains
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
+import { getSubdomainFromHost } from "../../../lib/utils/url";
 
 // ============================================================================
 // ICONS
@@ -208,7 +182,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 
   // Rate limiting - 5 submissions per 15 minutes per IP
   const clientIp = getClientIp(request);
-  const rateLimitResult = checkRateLimit(`contact-form:${clientIp}`, {
+  const rateLimitResult = await checkRateLimit(`contact-form:${clientIp}`, {
     maxAttempts: 5,
     windowMs: 15 * 60 * 1000,
   });

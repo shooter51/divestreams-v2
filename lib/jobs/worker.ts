@@ -25,6 +25,7 @@ import { db } from "../db";
 import { organization } from "../db/schema/auth";
 import { bookings, trips, tours, customers } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
+import { jobLogger } from "../logger";
 
 // Redis connection
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
@@ -93,7 +94,7 @@ interface CustomerWelcomeJobData {
 
 // Job handlers
 async function processEmailJob(job: { name: string; data: unknown }) {
-  console.log(`Processing email job: ${job.name}`, job.data);
+  jobLogger.info({ jobName: job.name, jobData: job.data }, "Processing email job");
 
   switch (job.name) {
     case "booking-confirmation": {
@@ -154,12 +155,12 @@ async function processEmailJob(job: { name: string; data: unknown }) {
       break;
     }
     default:
-      console.warn(`Unknown email job: ${job.name}`);
+      jobLogger.warn({ jobName: job.name }, "Unknown email job");
   }
 }
 
 async function processBookingJob(job: { name: string; data: unknown }) {
-  console.log(`Processing booking job: ${job.name}`, job.data);
+  jobLogger.info({ jobName: job.name, jobData: job.data }, "Processing booking job");
   switch (job.name) {
     case "send-reminders": {
       // Calculate tomorrow's date
@@ -172,8 +173,7 @@ async function processBookingJob(job: { name: string; data: unknown }) {
 
       const tomorrowDateStr = tomorrow.toISOString().split("T")[0];
 
-      console.log(`[send-reminders] Processing booking reminders for ${tomorrowDateStr}`);
-      console.log(`[send-reminders] Date range: ${tomorrow.toISOString()} to ${tomorrowEnd.toISOString()}`);
+      jobLogger.info({ date: tomorrowDateStr, rangeStart: tomorrow.toISOString(), rangeEnd: tomorrowEnd.toISOString() }, "Processing booking reminders");
 
       // Multi-tenant implementation: Query all active organizations and their bookings for tomorrow
       let totalRemindersQueued = 0;
@@ -189,7 +189,7 @@ async function processBookingJob(job: { name: string; data: unknown }) {
           })
           .from(organization);
 
-        console.log(`[send-reminders] Found ${organizations.length} organizations to process`);
+        jobLogger.info({ organizationCount: organizations.length }, "Found organizations to process for reminders");
 
         // 2. For each organization, query confirmed bookings with trips scheduled for tomorrow
         for (const org of organizations) {
@@ -218,7 +218,7 @@ async function processBookingJob(job: { name: string; data: unknown }) {
                 )
               );
 
-            console.log(`[send-reminders] Organization "${org.name}" (${org.slug}): found ${tomorrowBookings.length} bookings for tomorrow`);
+            jobLogger.info({ organizationName: org.name, slug: org.slug, bookingCount: tomorrowBookings.length }, "Organization bookings for tomorrow");
 
             // 3. For each booking, queue a "booking-reminder" email job
             for (const booking of tomorrowBookings) {
@@ -235,19 +235,19 @@ async function processBookingJob(job: { name: string; data: unknown }) {
               });
 
               totalRemindersQueued++;
-              console.log(`[send-reminders] Queued reminder for booking ${booking.bookingNumber} to ${booking.customerEmail}`);
+              jobLogger.info({ bookingNumber: booking.bookingNumber, to: booking.customerEmail }, "Queued booking reminder");
             }
 
             organizationsProcessed++;
           } catch (orgError) {
-            console.error(`[send-reminders] Error processing organization ${org.slug}:`, orgError);
+            jobLogger.error({ err: orgError, slug: org.slug }, "Error processing organization for reminders");
             // Continue to next organization even if one fails
           }
         }
 
-        console.log(`[send-reminders] Complete: Processed ${organizationsProcessed} organizations, queued ${totalRemindersQueued} reminder emails`);
+        jobLogger.info({ organizationsProcessed, totalRemindersQueued }, "Send reminders complete");
       } catch (error) {
-        console.error(`[send-reminders] Fatal error querying organizations:`, error);
+        jobLogger.error({ err: error }, "Fatal error querying organizations for reminders");
         throw error;
       }
       break;
@@ -259,12 +259,12 @@ async function processBookingJob(job: { name: string; data: unknown }) {
       // Update customer dive counts and spending
       break;
     default:
-      console.warn(`Unknown booking job: ${job.name}`);
+      jobLogger.warn({ jobName: job.name }, "Unknown booking job");
   }
 }
 
 async function processReportJob(job: { name: string; data: unknown }) {
-  console.log(`Processing report job: ${job.name}`, job.data);
+  jobLogger.info({ jobName: job.name, jobData: job.data }, "Processing report job");
   switch (job.name) {
     case "generate-daily":
       // Generate daily summary report
@@ -276,12 +276,12 @@ async function processReportJob(job: { name: string; data: unknown }) {
       // Generate monthly report
       break;
     default:
-      console.warn(`Unknown report job: ${job.name}`);
+      jobLogger.warn({ jobName: job.name }, "Unknown report job");
   }
 }
 
 async function processMaintenanceJob(job: { name: string; data: unknown }) {
-  console.log(`Processing maintenance job: ${job.name}`, job.data);
+  jobLogger.info({ jobName: job.name, jobData: job.data }, "Processing maintenance job");
   switch (job.name) {
     case "check-equipment-service":
       // Check for equipment needing service
@@ -295,17 +295,17 @@ async function processMaintenanceJob(job: { name: string; data: unknown }) {
     case "cleanup-stale-tenants": {
       // Clean up inactive free-tier organizations
       const results = await cleanupStaleTenants();
-      console.log(`[cleanup-stale-tenants] Results:`, results);
+      jobLogger.info({ results }, "Stale tenant cleanup complete");
       break;
     }
     default:
-      console.warn(`Unknown maintenance job: ${job.name}`);
+      jobLogger.warn({ jobName: job.name }, "Unknown maintenance job");
   }
 }
 
 // Start workers
 function startWorkers() {
-  console.log("Starting background workers...");
+  jobLogger.info("Starting background workers...");
 
   // Email worker
   const emailWorker = new Worker(
@@ -317,11 +317,11 @@ function startWorkers() {
   );
 
   emailWorker.on("completed", (job) => {
-    console.log(`Email job ${job.id} completed`);
+    jobLogger.info({ jobId: job.id, queue: "email" }, "Job completed");
   });
 
   emailWorker.on("failed", (job, err) => {
-    console.error(`Email job ${job?.id} failed:`, err);
+    jobLogger.error({ err, jobId: job?.id, queue: "email" }, "Job failed");
   });
 
   // Booking worker
@@ -334,11 +334,11 @@ function startWorkers() {
   );
 
   bookingWorker.on("completed", (job) => {
-    console.log(`Booking job ${job.id} completed`);
+    jobLogger.info({ jobId: job.id, queue: "booking" }, "Job completed");
   });
 
   bookingWorker.on("failed", (job, err) => {
-    console.error(`Booking job ${job?.id} failed:`, err);
+    jobLogger.error({ err, jobId: job?.id, queue: "booking" }, "Job failed");
   });
 
   // Report worker
@@ -351,11 +351,11 @@ function startWorkers() {
   );
 
   reportWorker.on("completed", (job) => {
-    console.log(`Report job ${job.id} completed`);
+    jobLogger.info({ jobId: job.id, queue: "report" }, "Job completed");
   });
 
   reportWorker.on("failed", (job, err) => {
-    console.error(`Report job ${job?.id} failed:`, err);
+    jobLogger.error({ err, jobId: job?.id, queue: "report" }, "Job failed");
   });
 
   // Maintenance worker
@@ -368,21 +368,21 @@ function startWorkers() {
   );
 
   maintenanceWorker.on("completed", (job) => {
-    console.log(`Maintenance job ${job.id} completed`);
+    jobLogger.info({ jobId: job.id, queue: "maintenance" }, "Job completed");
   });
 
   maintenanceWorker.on("failed", (job, err) => {
-    console.error(`Maintenance job ${job?.id} failed:`, err);
+    jobLogger.error({ err, jobId: job?.id, queue: "maintenance" }, "Job failed");
   });
 
   // QuickBooks sync worker
   const quickbooksWorker = startQuickBooksSyncWorker();
 
-  console.log("Workers started. Waiting for jobs...");
+  jobLogger.info("Workers started. Waiting for jobs...");
 
   // Graceful shutdown
   const shutdown = async () => {
-    console.log("Shutting down workers...");
+    jobLogger.info("Shutting down workers...");
     await emailWorker.close();
     await bookingWorker.close();
     await reportWorker.close();

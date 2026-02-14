@@ -41,10 +41,10 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json({ error: "Invalid API key" }, { status: 401 });
   }
 
-  // Check plan booking limits before creating
+  // Check plan booking limits before creating (DB-driven, single source of truth)
   try {
     const { subscription, subscriptionPlans } = await import("../../../../../lib/db/schema.js");
-    const { FREE_TIER_LIMITS } = await import("../../../../../lib/auth/org-context.server.js");
+    const { DEFAULT_PLAN_LIMITS } = await import("../../../../../lib/plan-features.js");
 
     const [sub] = await db
       .select()
@@ -87,7 +87,9 @@ export async function action({ request }: ActionFunctionArgs) {
         );
 
       const currentCount = bookingCount?.count ?? 0;
-      const limit = FREE_TIER_LIMITS.bookingsPerMonth;
+      // Use DB plan limits as source of truth, fall back to plan-features defaults
+      const dbLimits = planDetails?.limits as { toursPerMonth?: number } | undefined;
+      const limit = dbLimits?.toursPerMonth ?? DEFAULT_PLAN_LIMITS.free.toursPerMonth;
 
       if (currentCount >= limit) {
         return Response.json(

@@ -108,3 +108,89 @@ export function getBaseDomain(): string {
 export function getRootDomain(): string {
   return "divestreams.com";
 }
+
+// ============================================================================
+// SUBDOMAIN EXTRACTION
+// ============================================================================
+
+/**
+ * Extract subdomain from a host string.
+ *
+ * Handles all deployment environments:
+ * - localhost dev: `{tenant}.localhost:5173`
+ * - Production:    `{tenant}.divestreams.com`
+ * - Staging:       `{tenant}.staging.divestreams.com`
+ *
+ * Returns null when the host does not contain a subdomain, including:
+ * - Plain localhost (no subdomain)
+ * - Base domain without subdomain (divestreams.com, staging.divestreams.com)
+ * - The `www` subdomain (not a real subdomain)
+ * - The `staging` label in production position (staging.divestreams.com)
+ *
+ * Note: This function returns `"admin"` for admin.divestreams.com and similar.
+ * Callers that only want tenant subdomains should additionally filter out
+ * `"admin"` and any other non-tenant subdomains.
+ *
+ * @param host - The host string (e.g. from `url.host`), may include a port
+ * @returns The subdomain in lowercase, or null
+ */
+export function getSubdomainFromHost(host: string): string | null {
+  // Handle localhost development
+  // Format: subdomain.localhost:5173
+  if (host.includes("localhost")) {
+    const parts = host.split(".");
+    if (parts.length >= 2 && parts[0] !== "localhost") {
+      return parts[0].toLowerCase();
+    }
+    return null;
+  }
+
+  // Handle production and staging
+  const parts = host.split(".");
+
+  // Check if this is the staging environment
+  // Format: staging.divestreams.com (base) or {tenant}.staging.divestreams.com (tenant)
+  if (parts.length >= 3 && parts[parts.length - 3] === "staging") {
+    // This is staging environment
+    if (parts.length === 3) {
+      // staging.divestreams.com - base staging site, no tenant
+      return null;
+    }
+    if (parts.length >= 4) {
+      // {tenant}.staging.divestreams.com
+      const subdomain = parts[0].toLowerCase();
+      // Ignore www as it's not a real subdomain
+      if (subdomain === "www") {
+        return null;
+      }
+      return subdomain;
+    }
+  }
+
+  // Handle production
+  // Format: subdomain.divestreams.com
+  if (parts.length >= 3) {
+    const subdomain = parts[0].toLowerCase();
+    // Ignore www and staging as they're not tenant subdomains
+    if (subdomain === "www" || subdomain === "staging") {
+      return null;
+    }
+    return subdomain;
+  }
+
+  return null;
+}
+
+/**
+ * Extract subdomain (tenant slug) from a Request object.
+ *
+ * Convenience wrapper around `getSubdomainFromHost` that extracts the host
+ * from the request URL automatically.
+ *
+ * @param request - The incoming Request
+ * @returns The tenant subdomain in lowercase, or null
+ */
+export function getSubdomainFromRequest(request: Request): string | null {
+  const url = new URL(request.url);
+  return getSubdomainFromHost(url.host);
+}

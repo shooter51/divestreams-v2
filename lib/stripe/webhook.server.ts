@@ -5,6 +5,7 @@ import {
   syncInvoiceToDatabase,
   syncPaymentToDatabase,
 } from "./stripe-billing.server";
+import { stripeLogger } from "../logger";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -23,7 +24,7 @@ export async function handleStripeWebhook(
     event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("Webhook signature verification failed:", message);
+    stripeLogger.error({ message }, "Webhook signature verification failed");
     return { success: false, message: `Webhook error: ${message}` };
   }
 
@@ -37,7 +38,7 @@ export async function handleStripeWebhook(
         await handleSubscriptionUpdated(subscription);
         // Sync to new comprehensive subscription tracking
         await syncSubscriptionToDatabase(subscription);
-        console.log("Subscription updated:", subscription.id);
+        stripeLogger.info({ subscriptionId: subscription.id }, "Subscription updated");
         break;
       }
 
@@ -47,7 +48,7 @@ export async function handleStripeWebhook(
         await handleSubscriptionDeleted(subscription);
         // Sync to new comprehensive subscription tracking
         await syncSubscriptionToDatabase(subscription);
-        console.log("Subscription deleted:", subscription.id);
+        stripeLogger.info({ subscriptionId: subscription.id }, "Subscription deleted");
         break;
       }
 
@@ -56,21 +57,21 @@ export async function handleStripeWebhook(
       case "invoice.finalized": {
         const invoice = event.data.object as Stripe.Invoice;
         await syncInvoiceToDatabase(invoice);
-        console.log("Invoice synced:", invoice.id);
+        stripeLogger.info({ invoiceId: invoice.id }, "Invoice synced");
         break;
       }
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         await syncInvoiceToDatabase(invoice);
-        console.log("Payment succeeded for invoice:", invoice.id);
+        stripeLogger.info({ invoiceId: invoice.id }, "Payment succeeded for invoice");
 
         // Send confirmation email
         try {
           const { sendPaymentSuccessEmail } = await import('./email-notifications.server');
           await sendPaymentSuccessEmail(invoice);
         } catch (emailError) {
-          console.error("Failed to send payment success email:", emailError);
+          stripeLogger.error({ err: emailError, invoiceId: invoice.id }, "Failed to send payment success email");
           // Don't fail the webhook - email is best-effort
         }
         break;
@@ -79,14 +80,14 @@ export async function handleStripeWebhook(
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         await syncInvoiceToDatabase(invoice);
-        console.log("Payment failed for invoice:", invoice.id);
+        stripeLogger.info({ invoiceId: invoice.id }, "Payment failed for invoice");
 
         // Send failed payment notification email
         try {
           const { sendPaymentFailedEmail } = await import('./email-notifications.server');
           await sendPaymentFailedEmail(invoice);
         } catch (emailError) {
-          console.error("Failed to send payment failed email:", emailError);
+          stripeLogger.error({ err: emailError, invoiceId: invoice.id }, "Failed to send payment failed email");
           // Don't fail the webhook - email is best-effort
         }
         break;
@@ -95,27 +96,27 @@ export async function handleStripeWebhook(
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await syncPaymentToDatabase(paymentIntent);
-        console.log("Payment intent succeeded:", paymentIntent.id);
+        stripeLogger.info({ paymentIntentId: paymentIntent.id }, "Payment intent succeeded");
         break;
       }
 
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await syncPaymentToDatabase(paymentIntent);
-        console.log("Payment intent failed:", paymentIntent.id);
+        stripeLogger.info({ paymentIntentId: paymentIntent.id }, "Payment intent failed");
         break;
       }
 
       case "payment_intent.canceled": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await syncPaymentToDatabase(paymentIntent);
-        console.log("Payment intent canceled:", paymentIntent.id);
+        stripeLogger.info({ paymentIntentId: paymentIntent.id }, "Payment intent canceled");
         break;
       }
 
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        console.log("Checkout completed:", session.id);
+        stripeLogger.info({ sessionId: session.id }, "Checkout completed");
 
         // Handle setup mode checkout (payment method added)
         if (session.mode === "setup" && session.setup_intent && session.customer) {
@@ -129,10 +130,10 @@ export async function handleStripeWebhook(
                 ? session.customer
                 : session.customer.id;
               await setDefaultPaymentMethod(customerId, setupIntent.payment_method);
-              console.log("Set default payment method for customer:", customerId);
+              stripeLogger.info({ customerId }, "Set default payment method for customer");
             }
           } catch (error) {
-            console.error("Error setting default payment method:", error);
+            stripeLogger.error({ err: error }, "Error setting default payment method");
           }
         }
 
@@ -143,18 +144,18 @@ export async function handleStripeWebhook(
             : session.subscription.id;
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
           await syncSubscriptionToDatabase(subscription);
-          console.log("Subscription created from checkout:", subscription.id);
+          stripeLogger.info({ subscriptionId: subscription.id }, "Subscription created from checkout");
         }
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        stripeLogger.debug({ eventType: event.type }, "Unhandled event type");
     }
 
     return { success: true, message: "Webhook handled successfully" };
   } catch (error) {
-    console.error("Error handling webhook event:", error);
+    stripeLogger.error({ err: error, eventType: event.type }, "Error handling webhook event");
     return {
       success: false,
       message: error instanceof Error ? error.message : "Error processing webhook",

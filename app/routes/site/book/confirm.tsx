@@ -18,6 +18,7 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { getBookingDetails, type BookingDetails } from "../../../../lib/db/mutations.public";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { StatusBadge, type BadgeStatus, Badge } from "../../../components/ui";
 
 // ============================================================================
@@ -42,31 +43,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { name: "description", content: `Your booking ${data.booking.bookingNumber} has been confirmed` },
   ];
 };
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-function getSubdomainFromHost(host: string): string | null {
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
 
 // ============================================================================
 // LOADER

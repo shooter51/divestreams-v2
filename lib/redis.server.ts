@@ -7,6 +7,7 @@
 
 import IORedis from "ioredis";
 import type { ConnectionOptions } from "bullmq";
+import { redisLogger } from "./logger";
 
 let redisClient: IORedis | null = null;
 
@@ -27,11 +28,11 @@ export function getRedisConnection(): IORedis {
     });
 
     redisClient.on("error", (error) => {
-      console.error("Redis connection error:", error);
+      redisLogger.error({ err: error }, "Redis connection error");
     });
 
     redisClient.on("connect", () => {
-      console.log("Redis connected");
+      redisLogger.info("Redis connected");
     });
   }
 

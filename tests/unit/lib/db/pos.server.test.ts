@@ -33,6 +33,10 @@ const { dbMock, mockReturning, mockLimit, mockOffset, mockGroupBy, resetMocks } 
   chain.offset = vi.fn((...args) => { mockOffset(...args); lastMethod = 'offset'; return chain; });
   chain.groupBy = vi.fn(() => { mockGroupBy(); lastMethod = 'other'; return chain; });
   chain.returning = vi.fn((...args) => { mockReturning(...args); lastMethod = 'returning'; return chain; });
+  // Mock transaction method - takes a callback and executes it with the chain (acting as tx)
+  chain.transaction = vi.fn(async (callback) => {
+    return await callback(chain);
+  });
   // Thenable - use appropriate mock based on last method called
   chain.then = (resolve: (value: unknown[]) => void, reject?: (error: unknown) => void) => {
     // Call the appropriate mock based on which method was called last

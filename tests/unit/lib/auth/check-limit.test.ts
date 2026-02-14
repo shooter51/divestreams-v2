@@ -1,7 +1,9 @@
 /**
  * Check Limit Tests
  *
- * Tests for the checkLimit function in org-context.server
+ * Tests for the checkLimit function in org-context.server.
+ * FREE_TIER_LIMITS and PREMIUM_LIMITS are now derived from DEFAULT_PLAN_LIMITS
+ * in plan-features.ts (the single source of truth for plan configuration).
  */
 
 import { describe, it, expect } from "vitest";
@@ -117,7 +119,7 @@ describe("checkLimit", () => {
     it("returns allowed=true when under booking limit", () => {
       const context = createMockContext({
         canAddBooking: true,
-        usage: { customers: 0, tours: 0, bookingsThisMonth: 5 },
+        usage: { customers: 0, tours: 0, bookingsThisMonth: 2 },
       });
 
       const result = checkLimit(context, "booking");

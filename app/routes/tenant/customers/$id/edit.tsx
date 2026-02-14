@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getCustomerById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { customerSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
@@ -10,7 +10,8 @@ import { redirectWithNotification, useNotification } from "../../../../../lib/us
 export const meta: MetaFunction = () => [{ title: "Edit Customer - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const customerId = params.id;
 
   if (!customerId) {
@@ -58,7 +59,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const customerId = params.id;
 
   if (!customerId) {
@@ -397,7 +399,7 @@ export default function EditCustomerPage() {
                 type="checkbox"
                 name="marketingOptIn"
                 value="true"
-                defaultChecked={actionData?.values?.marketingOptIn !== "false" && customer.marketingOptIn}
+                defaultChecked={actionData?.values?.marketingOptIn !== "false" && !!customer.marketingOptIn}
                 className="rounded"
               />
               <span className="text-sm">Opt in to marketing emails</span>

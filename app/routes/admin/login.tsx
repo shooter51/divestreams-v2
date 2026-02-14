@@ -40,7 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Rate limit admin login attempts
   const clientIp = getClientIp(request);
   if (typeof email === "string" && email) {
-    const rateLimit = checkRateLimit(`admin-login:${clientIp}:${email}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
+    const rateLimit = await checkRateLimit(`admin-login:${clientIp}:${email}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
     if (!rateLimit.allowed) {
       return { error: "Too many login attempts. Please try again later." };
     }

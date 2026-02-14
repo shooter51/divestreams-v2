@@ -10,7 +10,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { uploadToB2, getImageKey, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { createGalleryImage } from "../../../../lib/db/gallery.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
@@ -22,7 +22,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const formData = await request.formData();
 
   const albumId = formData.get("albumId") as string | null;
@@ -86,7 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
       // Generate storage keys for gallery images
       const timestamp = Date.now();
       const safeFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-      const baseKey = `${tenant.subdomain}/gallery/${albumId || "uncategorized"}/${timestamp}-${safeFilename}`;
+      const baseKey = `${ctx.org.slug}/gallery/${albumId || "uncategorized"}/${timestamp}-${safeFilename}`;
       const originalKey = `${baseKey}.webp`;
       const thumbnailKey = `${baseKey}-thumb.webp`;
 
@@ -100,7 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
       const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
 
       // Save to gallery_images table
-      await createGalleryImage(organizationId, {
+      await createGalleryImage(ctx.org.id, {
         albumId: albumId || null,
         title: title || file.name,
         description: description || null,

@@ -162,7 +162,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours).mockResolvedValue([{ count: 0 }]);
+      (db.orderBy as any).mockResolvedValueOnce(mockTours);
+      (db.groupBy as any).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId);
 
@@ -184,7 +185,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours).mockResolvedValue([{ count: 0 }]);
+      (db.orderBy as any).mockResolvedValueOnce(mockTours);
+      (db.groupBy as any).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId, { activeOnly: true });
 
@@ -205,7 +207,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours).mockResolvedValue([{ count: 0 }]);
+      (db.orderBy as any).mockResolvedValueOnce(mockTours);
+      (db.groupBy as any).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId, { type: "shore" });
 
@@ -226,7 +229,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours).mockResolvedValue([{ count: 0 }]);
+      (db.orderBy as any).mockResolvedValueOnce(mockTours);
+      (db.groupBy as any).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId, { search: "Night" });
 

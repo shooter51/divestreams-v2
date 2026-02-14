@@ -18,6 +18,7 @@ import {
 import { organization } from "../db/schema/auth";
 import { eq, desc, and } from "drizzle-orm";
 import { stripe } from "./index";
+import { stripeLogger } from "../logger";
 
 // ============================================================================
 // CUSTOMER MANAGEMENT
@@ -30,7 +31,7 @@ export async function getOrCreateStripeCustomer(
   orgId: string
 ): Promise<string | null> {
   if (!stripe) {
-    console.error("Stripe not initialized");
+    stripeLogger.error("Stripe not initialized");
     return null;
   }
 
@@ -53,7 +54,7 @@ export async function getOrCreateStripeCustomer(
     .limit(1);
 
   if (org.length === 0) {
-    console.error(`Organization ${orgId} not found`);
+    stripeLogger.error({ organizationId: orgId }, "Organization not found");
     return null;
   }
 
@@ -92,7 +93,7 @@ export async function syncSubscriptionToDatabase(
 ): Promise<void> {
   const orgId = subscription.metadata.organizationId;
   if (!orgId) {
-    console.error("No organizationId in subscription metadata");
+    stripeLogger.error({ subscriptionId: subscription.id }, "No organizationId in subscription metadata");
     return;
   }
 
@@ -173,7 +174,7 @@ export async function syncInvoiceToDatabase(
     .limit(1);
 
   if (customer.length === 0) {
-    console.error(`Customer ${customerId} not found in database`);
+    stripeLogger.error({ customerId }, "Customer not found in database");
     return;
   }
 
@@ -256,7 +257,7 @@ export async function syncPaymentToDatabase(
     .limit(1);
 
   if (customer.length === 0) {
-    console.error(`Customer ${customerId} not found in database`);
+    stripeLogger.error({ customerId }, "Customer not found in database");
     return;
   }
 
@@ -408,7 +409,7 @@ export async function createStripeProductAndPrices(params: {
   yearlyPriceId: string;
 } | null> {
   if (!stripe) {
-    console.error("Stripe not initialized - cannot create product/prices");
+    stripeLogger.error("Stripe not initialized - cannot create product/prices");
     return null;
   }
 
@@ -427,7 +428,7 @@ export async function createStripeProductAndPrices(params: {
       marketing_features: features.map(feature => ({ name: feature })),
     });
 
-    console.log(`Created Stripe product: ${product.id} for plan "${planName}"`);
+    stripeLogger.info({ productId: product.id, planName }, "Created Stripe product");
 
     // Create Monthly Price
     const monthlyPrice = await stripe.prices.create({
@@ -444,7 +445,7 @@ export async function createStripeProductAndPrices(params: {
       },
     });
 
-    console.log(`Created monthly price: ${monthlyPrice.id} ($${monthlyPriceInCents / 100}/month)`);
+    stripeLogger.info({ priceId: monthlyPrice.id, amount: monthlyPriceInCents / 100, interval: "month" }, "Created monthly price");
 
     // Create Yearly Price
     const yearlyPrice = await stripe.prices.create({
@@ -461,7 +462,7 @@ export async function createStripeProductAndPrices(params: {
       },
     });
 
-    console.log(`Created yearly price: ${yearlyPrice.id} ($${yearlyPriceInCents / 100}/year)`);
+    stripeLogger.info({ priceId: yearlyPrice.id, amount: yearlyPriceInCents / 100, interval: "year" }, "Created yearly price");
 
     return {
       productId: product.id,
@@ -469,7 +470,7 @@ export async function createStripeProductAndPrices(params: {
       yearlyPriceId: yearlyPrice.id,
     };
   } catch (error) {
-    console.error("Failed to create Stripe product/prices:", error);
+    stripeLogger.error({ err: error, planName }, "Failed to create Stripe product/prices");
     return null;
   }
 }
@@ -493,7 +494,7 @@ export async function updateStripeProductAndPrices(params: {
   yearlyPriceId: string;
 } | null> {
   if (!stripe) {
-    console.error("Stripe not initialized - cannot update product/prices");
+    stripeLogger.error("Stripe not initialized - cannot update product/prices");
     return null;
   }
 
@@ -523,7 +524,7 @@ export async function updateStripeProductAndPrices(params: {
         marketing_features: features.map(feature => ({ name: feature })),
       });
       finalProductId = product.id;
-      console.log(`Created new Stripe product: ${finalProductId}`);
+      stripeLogger.info({ productId: finalProductId }, "Created new Stripe product");
     } else {
       // Update existing product name and features
       await stripe.products.update(finalProductId, {
@@ -531,17 +532,17 @@ export async function updateStripeProductAndPrices(params: {
         description: `${displayName} subscription plan for DiveStreams`,
         marketing_features: features.map(feature => ({ name: feature })),
       });
-      console.log(`Updated Stripe product: ${finalProductId}`);
+      stripeLogger.info({ productId: finalProductId }, "Updated Stripe product");
     }
 
     // Archive old prices if they exist
     if (oldMonthlyPriceId) {
       await stripe.prices.update(oldMonthlyPriceId, { active: false });
-      console.log(`Archived old monthly price: ${oldMonthlyPriceId}`);
+      stripeLogger.info({ priceId: oldMonthlyPriceId }, "Archived old monthly price");
     }
     if (oldYearlyPriceId) {
       await stripe.prices.update(oldYearlyPriceId, { active: false });
-      console.log(`Archived old yearly price: ${oldYearlyPriceId}`);
+      stripeLogger.info({ priceId: oldYearlyPriceId }, "Archived old yearly price");
     }
 
     // Create new prices
@@ -573,7 +574,7 @@ export async function updateStripeProductAndPrices(params: {
       },
     });
 
-    console.log(`Created new prices: ${monthlyPrice.id} (monthly), ${yearlyPrice.id} (yearly)`);
+    stripeLogger.info({ monthlyPriceId: monthlyPrice.id, yearlyPriceId: yearlyPrice.id }, "Created new prices");
 
     return {
       productId: finalProductId,
@@ -581,7 +582,7 @@ export async function updateStripeProductAndPrices(params: {
       yearlyPriceId: yearlyPrice.id,
     };
   } catch (error) {
-    console.error("Failed to update Stripe product/prices:", error);
+    stripeLogger.error({ err: error, planName }, "Failed to update Stripe product/prices");
     return null;
   }
 }

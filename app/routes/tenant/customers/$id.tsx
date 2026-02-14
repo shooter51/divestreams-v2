@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { useState } from "react";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
 import { customerCommunications } from "../../../../lib/db/schema";
@@ -12,7 +12,8 @@ import { redirectWithNotification, useNotification } from "../../../../lib/use-n
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const customerId = params.id;
 
   if (!customerId) {
@@ -81,7 +82,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const customerId = params.id;
@@ -245,7 +247,7 @@ export default function CustomerDetailPage() {
               <p className="text-foreground-muted text-sm">Total Spent</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{customer.lastDiveAt || "Never"}</p>
+              <p className="text-2xl font-bold">{customer.lastDiveAt ? String(customer.lastDiveAt) : "Never"}</p>
               <p className="text-foreground-muted text-sm">Last Dive</p>
             </div>
           </div>
