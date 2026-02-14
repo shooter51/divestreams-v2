@@ -109,7 +109,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const customer = await getCustomerBySession(sessionToken);
     if (customer) {
       // Already logged in - redirect to account
-      const redirectTo = url.searchParams.get("redirect") || "/site/account";
+      const rawRedirect = url.searchParams.get("redirect") || "/site/account";
+      const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/site/account";
       return redirect(redirectTo);
     }
   }
@@ -180,8 +181,9 @@ export async function action({ request }: ActionFunctionArgs) {
     // Attempt login
     const session = await loginCustomer(org.id, email, password);
 
-    // Get redirect URL
-    const redirectTo = url.searchParams.get("redirect") || "/site/account";
+    // Get redirect URL (validated to prevent open redirect)
+    const rawRedirect = url.searchParams.get("redirect") || "/site/account";
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/site/account";
 
     // Set session cookie and redirect
     const cookieValue = `${CUSTOMER_SESSION_COOKIE}=${session.token}; ${getCookieOptions(rememberMe)}`;

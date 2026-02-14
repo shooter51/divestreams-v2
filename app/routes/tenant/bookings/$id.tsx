@@ -61,24 +61,28 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const bookingId = params.id!;
 
-  if (intent === "cancel") {
-    await updateBookingStatus(organizationId, bookingId, "cancelled");
-    return { cancelled: true };
-  }
-
-  if (intent === "confirm") {
-    await updateBookingStatus(organizationId, bookingId, "confirmed");
-    return { confirmed: true };
-  }
-
-  if (intent === "complete") {
-    await updateBookingStatus(organizationId, bookingId, "completed");
-    return { completed: true };
-  }
-
-  if (intent === "no-show") {
-    await updateBookingStatus(organizationId, bookingId, "no_show");
-    return { noShow: true };
+  if (intent === "cancel" || intent === "confirm" || intent === "complete" || intent === "no-show") {
+    const statusMap: Record<string, string> = {
+      cancel: "cancelled",
+      confirm: "confirmed",
+      complete: "completed",
+      "no-show": "no_show",
+    };
+    const resultKeyMap: Record<string, string> = {
+      cancel: "cancelled",
+      confirm: "confirmed",
+      complete: "completed",
+      "no-show": "noShow",
+    };
+    try {
+      await updateBookingStatus(organizationId, bookingId, statusMap[intent]);
+      return { [resultKeyMap[intent]]: true };
+    } catch (error) {
+      if (error instanceof Error) {
+        return { error: error.message };
+      }
+      return { error: "Failed to update booking status" };
+    }
   }
 
   if (intent === "add-payment") {

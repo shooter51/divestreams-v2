@@ -5,7 +5,7 @@
  * Handles tenant resolution, theme application, and site navigation.
  */
 
-import { Outlet, Link, useLoaderData, useLocation } from "react-router";
+import { Outlet, Link, useLoaderData, useLocation, useRouteError, isRouteErrorResponse } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { eq, or } from "drizzle-orm";
@@ -497,6 +497,32 @@ export default function SiteLayout() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const isResponse = isRouteErrorResponse(error);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white p-8 rounded-xl shadow-lg max-w-md text-center">
+        <h1 className="text-2xl font-bold mb-2">
+          {isResponse ? `${error.status} - ${error.statusText}` : "Something went wrong"}
+        </h1>
+        <p className="text-gray-600 mb-6">
+          {isResponse
+            ? "The page you're looking for could not be found."
+            : "An unexpected error occurred. Please try again."}
+        </p>
+        <a
+          href="/site"
+          className="inline-block bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800"
+        >
+          Back to Home
+        </a>
+      </div>
     </div>
   );
 }

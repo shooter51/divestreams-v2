@@ -107,8 +107,21 @@ export async function action({ request }: ActionFunctionArgs) {
   let userId: string;
 
   if (existingUserId) {
-    // User already exists, just add them as a member
-    userId = existingUserId;
+    // Verify the existingUserId actually matches the invitation email
+    const [verifiedUser] = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(and(
+        eq(user.id, existingUserId),
+        eq(user.email, invite.email)
+      ))
+      .limit(1);
+
+    if (!verifiedUser) {
+      return { error: "Invalid user for this invitation" };
+    }
+
+    userId = verifiedUser.id;
   } else {
     // Create new user
     if (!name || !password) {

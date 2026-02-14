@@ -8,6 +8,7 @@ import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { getAppUrl } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 type ActionData = {
   error?: string;
@@ -42,8 +43,20 @@ export async function action({ request }: ActionFunctionArgs) {
   const password = formData.get("password");
   const redirectTo = formData.get("redirectTo");
 
-  // Validate redirectTo and default to /dashboard
-  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/dashboard";
+  // Validate redirectTo - prevent open redirect by ensuring it's a safe relative path
+  const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/dashboard";
+  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/dashboard";
+
+  // Rate limit login attempts
+  const clientIp = getClientIp(request);
+  const rateLimitResult = checkRateLimit(`admin-login:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { error: "Too many login attempts. Please try again later." };
+  }
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {

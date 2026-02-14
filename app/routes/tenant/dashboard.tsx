@@ -23,42 +23,74 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 7);
 
-  // Get dashboard stats
-  const [todayBookingsResult] = await db
-    .select({ count: count() })
-    .from(bookings)
-    .where(
-      and(
-        eq(bookings.organizationId, ctx.org.id),
-        gte(bookings.createdAt, today)
-      )
-    );
+  // Helper to format dates as strings
+  const formatDate = (date: Date | string | null | undefined): string | null => {
+    if (!date) return null;
+    if (date instanceof Date) {
+      return date.toISOString().split("T")[0];
+    }
+    return String(date);
+  };
 
-  const [totalCustomersResult] = await db
-    .select({ count: count() })
-    .from(customers)
-    .where(eq(customers.organizationId, ctx.org.id));
-
-  const [activeTripsResult] = await db
-    .select({ count: count() })
-    .from(trips)
-    .where(
-      and(
-        eq(trips.organizationId, ctx.org.id),
-        eq(trips.status, "scheduled")
-      )
-    );
-
-  // Get week revenue (sum of bookings this week)
-  const [weekRevenueResult] = await db
-    .select({ total: sql<number>`COALESCE(SUM(${bookings.total}), 0)` })
-    .from(bookings)
-    .where(
-      and(
-        eq(bookings.organizationId, ctx.org.id),
-        gte(bookings.createdAt, startOfWeek)
-      )
-    );
+  // Run all independent queries in parallel for ~50% latency reduction
+  const [
+    [todayBookingsResult],
+    [totalCustomersResult],
+    [activeTripsResult],
+    [weekRevenueResult],
+    upcomingTripsRaw,
+    recentBookingsRaw,
+    usage,
+  ] = await Promise.all([
+    db
+      .select({ count: count() })
+      .from(bookings)
+      .where(and(eq(bookings.organizationId, ctx.org.id), gte(bookings.createdAt, today))),
+    db
+      .select({ count: count() })
+      .from(customers)
+      .where(eq(customers.organizationId, ctx.org.id)),
+    db
+      .select({ count: count() })
+      .from(trips)
+      .where(and(eq(trips.organizationId, ctx.org.id), eq(trips.status, "scheduled"))),
+    db
+      .select({ total: sql<number>`COALESCE(SUM(${bookings.total}), 0)` })
+      .from(bookings)
+      .where(and(eq(bookings.organizationId, ctx.org.id), gte(bookings.createdAt, startOfWeek))),
+    db
+      .select({
+        id: trips.id,
+        date: trips.date,
+        startTime: trips.startTime,
+        maxParticipants: trips.maxParticipants,
+        tourName: tours.name,
+      })
+      .from(trips)
+      .innerJoin(tours, eq(trips.tourId, tours.id))
+      .where(and(eq(trips.organizationId, ctx.org.id), gte(trips.date, today.toISOString().split("T")[0])))
+      .orderBy(trips.date, trips.startTime)
+      .limit(5),
+    db
+      .select({
+        id: bookings.id,
+        total: bookings.total,
+        status: bookings.status,
+        createdAt: bookings.createdAt,
+        customerFirstName: customers.firstName,
+        customerLastName: customers.lastName,
+        tourName: tours.name,
+        tripDate: trips.date,
+      })
+      .from(bookings)
+      .innerJoin(customers, eq(bookings.customerId, customers.id))
+      .innerJoin(trips, eq(bookings.tripId, trips.id))
+      .innerJoin(tours, eq(trips.tourId, tours.id))
+      .where(eq(bookings.organizationId, ctx.org.id))
+      .orderBy(desc(bookings.createdAt))
+      .limit(5),
+    getUsage(ctx.org.id),
+  ]);
 
   const stats = {
     todayBookings: todayBookingsResult?.count || 0,
@@ -67,27 +99,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     totalCustomers: totalCustomersResult?.count || 0,
   };
 
-  // Get upcoming trips with tour info
-  const upcomingTripsRaw = await db
-    .select({
-      id: trips.id,
-      date: trips.date,
-      startTime: trips.startTime,
-      maxParticipants: trips.maxParticipants,
-      tourName: tours.name,
-    })
-    .from(trips)
-    .innerJoin(tours, eq(trips.tourId, tours.id))
-    .where(
-      and(
-        eq(trips.organizationId, ctx.org.id),
-        gte(trips.date, today.toISOString().split("T")[0])
-      )
-    )
-    .orderBy(trips.date, trips.startTime)
-    .limit(5);
-
-  // Get booking counts for each trip
+  // Get booking counts for upcoming trips (depends on upcomingTripsRaw)
   const tripIds = upcomingTripsRaw.map(t => t.id);
   const bookingCounts = tripIds.length > 0 ? await db
     .select({
@@ -100,66 +112,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const bookingCountMap = new Map(bookingCounts.map(b => [b.tripId, Number(b.count) || 0]));
 
-  const upcomingTrips = upcomingTripsRaw.map(trip => ({
+  const formattedTrips = upcomingTripsRaw.map(trip => ({
     id: trip.id,
     name: trip.tourName,
-    date: trip.date,
+    date: formatDate(trip.date),
     time: trip.startTime,
     participants: bookingCountMap.get(trip.id) || 0,
     maxParticipants: trip.maxParticipants || 0,
   }));
 
-  // Get recent bookings with customer and trip info
-  const recentBookingsRaw = await db
-    .select({
-      id: bookings.id,
-      total: bookings.total,
-      status: bookings.status,
-      createdAt: bookings.createdAt,
-      customerFirstName: customers.firstName,
-      customerLastName: customers.lastName,
-      tourName: tours.name,
-      tripDate: trips.date,
-    })
-    .from(bookings)
-    .innerJoin(customers, eq(bookings.customerId, customers.id))
-    .innerJoin(trips, eq(bookings.tripId, trips.id))
-    .innerJoin(tours, eq(trips.tourId, tours.id))
-    .where(eq(bookings.organizationId, ctx.org.id))
-    .orderBy(desc(bookings.createdAt))
-    .limit(5);
-
-  const recentBookings = recentBookingsRaw.map(b => ({
+  const formattedBookings = recentBookingsRaw.map(b => ({
     id: b.id,
     customer: `${b.customerFirstName} ${b.customerLastName}`,
     trip: b.tourName,
     amount: Number(b.total || 0).toFixed(2),
     status: b.status,
-    date: b.tripDate,
+    date: formatDate(b.tripDate),
   }));
-
-  // Helper to format dates as strings
-  const formatDate = (date: Date | string | null | undefined): string | null => {
-    if (!date) return null;
-    if (date instanceof Date) {
-      return date.toISOString().split("T")[0];
-    }
-    return String(date);
-  };
-
-  // Format dates in trips and bookings
-  const formattedTrips = upcomingTrips.map((trip) => ({
-    ...trip,
-    date: formatDate(trip.date),
-  }));
-
-  const formattedBookings = recentBookings.map((booking) => ({
-    ...booking,
-    date: formatDate(booking.date),
-  }));
-
-  // Get usage stats using centralized function
-  const usage = await getUsage(ctx.org.id);
 
   // Get plan limits from subscription plan details or use defaults
   const planLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;

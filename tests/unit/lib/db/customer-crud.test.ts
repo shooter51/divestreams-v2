@@ -504,19 +504,36 @@ describe("Customer CRUD Business Logic", () => {
 
   describe("deleteCustomer", () => {
     it("should delete customer successfully", async () => {
+      // deleteCustomer now checks for active bookings and transactions before deleting
+      // Flow: select(bookings).where → select(transactions).where → delete.where
+      let whereCallCount = 0;
+      (db.where as any) = vi.fn(() => {
+        whereCallCount++;
+        if (whereCallCount <= 2) {
+          // First two calls: booking check and transaction check - return empty (no records)
+          return Promise.resolve([{ count: 0 }]);
+        }
+        // Subsequent calls: delete operations
+        return Promise.resolve();
+      });
       (db.delete as any) = vi.fn(() => db);
-      (db.where as any) = vi.fn(() => Promise.resolve());
 
       const result = await deleteCustomer(testOrgId, "cust-123");
 
       expect(result).toBe(true);
       expect((db.delete as any)).toHaveBeenCalled();
-      expect((db.where as any)).toHaveBeenCalled();
     });
 
     it("should filter by organization ID when deleting", async () => {
+      let whereCallCount = 0;
+      (db.where as any) = vi.fn(() => {
+        whereCallCount++;
+        if (whereCallCount <= 2) {
+          return Promise.resolve([{ count: 0 }]);
+        }
+        return Promise.resolve();
+      });
       (db.delete as any) = vi.fn(() => db);
-      (db.where as any) = vi.fn(() => Promise.resolve());
 
       await deleteCustomer(testOrgId, "cust-123");
 

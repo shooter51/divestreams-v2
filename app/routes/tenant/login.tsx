@@ -6,6 +6,7 @@ import { getSubdomainFromRequest } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 type ActionData = {
   error?: string;
@@ -28,7 +29,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (sessionData?.user) {
     // Already logged in, redirect to app
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/tenant";
+    const rawRedirect = url.searchParams.get("redirect") || "/tenant";
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/tenant";
     throw redirect(redirectTo);
   }
 
@@ -61,17 +63,40 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const redirectTo = formData.get("redirectTo");
 
-  // Validate redirectTo and default to /app
-  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/tenant";
+  // Validate redirectTo - prevent open redirect by ensuring it's a safe relative path
+  const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/tenant";
+  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/tenant";
 
   // Handle "join" intent - user wants to join org as customer
   if (intent === "join") {
-    const userId = formData.get("userId");
+    // Get authenticated session - userId MUST come from session, not form data
+    const sessionData = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!sessionData?.user) {
+      return { error: "You must be logged in to join an organization" };
+    }
+
+    const userId = sessionData.user.id;
     const orgId = formData.get("orgId");
 
-    // Null check before using
-    if (typeof userId !== "string" || typeof orgId !== "string" || !userId || !orgId) {
-      return { error: "Missing user or organization information" };
+    if (typeof orgId !== "string" || !orgId) {
+      return { error: "Missing organization information" };
+    }
+
+    // Verify orgId matches the current subdomain's organization
+    const subdomain = getSubdomainFromRequest(request);
+    if (subdomain) {
+      const [org] = await db
+        .select({ id: organization.id })
+        .from(organization)
+        .where(eq(organization.slug, subdomain))
+        .limit(1);
+
+      if (!org || org.id !== orgId) {
+        return { error: "Invalid organization" };
+      }
     }
 
     try {
@@ -109,6 +134,17 @@ export async function action({ request }: ActionFunctionArgs) {
   // Handle normal login
   const email = formData.get("email");
   const password = formData.get("password");
+
+  // Rate limit login attempts
+  const clientIp = getClientIp(request);
+  const rateLimitResult = checkRateLimit(`tenant-login:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { error: "Too many login attempts. Please try again later." };
+  }
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {

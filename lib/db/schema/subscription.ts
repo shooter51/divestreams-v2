@@ -11,6 +11,7 @@ import {
   timestamp,
   integer,
   index,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { organization } from "./auth";
@@ -49,7 +50,7 @@ export const subscription = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => [
-    index("subscription_org_idx").on(table.organizationId),
+    uniqueIndex("subscription_org_idx").on(table.organizationId),
     index("subscription_stripe_customer_idx").on(table.stripeCustomerId),
     index("subscription_stripe_subscription_idx").on(table.stripeSubscriptionId),
     index("subscription_plan_id_idx").on(table.planId),

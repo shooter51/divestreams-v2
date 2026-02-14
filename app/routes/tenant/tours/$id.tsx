@@ -139,8 +139,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
-    await deleteTour(organizationId, tourId);
-    return { deleted: true };
+    try {
+      await deleteTour(organizationId, tourId);
+      return { deleted: true };
+    } catch (error) {
+      if (error instanceof Error) {
+        return { error: error.message };
+      }
+      return { error: "Failed to delete tour" };
+    }
   }
 
   return null;

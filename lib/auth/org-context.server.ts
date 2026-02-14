@@ -311,9 +311,10 @@ export async function getOrgContext(
       .limit(1);
   }
 
-  // Determine if premium (any paid plan with active status)
+  // Determine if premium (any paid plan with active or cancel_pending status)
+  // cancel_pending means user cancelled but still has access until billing period ends
   const isPremium =
-    planName !== "free" && sub?.status === "active";
+    planName !== "free" && (sub?.status === "active" || sub?.status === "cancel_pending");
 
   // Set limits based on subscription plan from database
   // Fall back to free tier limits if plan not found

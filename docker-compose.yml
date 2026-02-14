@@ -8,7 +8,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_prod}@postgres:5432/divestreams
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD}@postgres:5432/divestreams
       - REDIS_URL=redis://redis:6379
       - AUTH_SECRET=${AUTH_SECRET}
       - AUTH_URL=${AUTH_URL:-https://divestreams.com}
@@ -20,7 +20,7 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM:-noreply@divestreams.com}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-DiveAdmin2024!}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,7 +38,7 @@ services:
     command: ["node", "--import", "tsx", "lib/jobs/worker.ts"]
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_prod}@postgres:5432/divestreams
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD}@postgres:5432/divestreams
       - REDIS_URL=redis://redis:6379
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT:-587}
@@ -59,7 +59,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: divestreams
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-divestreams_prod}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: divestreams
     volumes:
       - postgres_data:/var/lib/postgresql/data

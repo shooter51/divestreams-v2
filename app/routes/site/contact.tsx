@@ -42,6 +42,19 @@ function getSubdomainFromHost(host: string): string | null {
   return null;
 }
 
+/**
+ * Sanitize map embed HTML to only allow iframes from trusted map providers.
+ * Strips all other HTML to prevent XSS.
+ */
+function sanitizeMapEmbed(html: string): string {
+  const iframeMatch = html.match(/<iframe\s[^>]*src="(https:\/\/(?:www\.google\.com\/maps|maps\.google\.com|www\.openstreetmap\.org)[^"]*)"[^>]*><\/iframe>/i);
+  if (!iframeMatch) {
+    return ""; // Not a recognized map embed, strip entirely
+  }
+  const src = iframeMatch[1];
+  return `<iframe src="${src}" width="100%" height="100%" style="border:0" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+}
+
 // ============================================================================
 // ICONS
 // ============================================================================
@@ -736,7 +749,9 @@ export default function SiteContactPage() {
             >
               <div
                 className="aspect-video w-full [&>iframe]:w-full [&>iframe]:h-full"
-                dangerouslySetInnerHTML={{ __html: contactInfo.mapEmbed }}
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeMapEmbed(contactInfo.mapEmbed),
+                }}
               />
             </div>
           )}

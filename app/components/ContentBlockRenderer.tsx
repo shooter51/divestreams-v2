@@ -82,11 +82,26 @@ function HeadingRenderer({ block }: { block: HeadingBlock }) {
   );
 }
 
+/** Sanitize HTML to prevent XSS - allow only safe tags for rich text */
+function sanitizeHtml(html: string): string {
+  // Strip script tags and event handlers
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/javascript\s*:/gi, "")
+    .replace(/<iframe\b[^>]*>/gi, "")
+    .replace(/<\/iframe>/gi, "")
+    .replace(/<object\b[^>]*>/gi, "")
+    .replace(/<\/object>/gi, "")
+    .replace(/<embed\b[^>]*>/gi, "")
+    .replace(/<\/embed>/gi, "");
+}
+
 function ParagraphRenderer({ block }: { block: ParagraphBlock }) {
   return (
     <div
       className="prose prose-lg max-w-none mb-6"
-      dangerouslySetInnerHTML={{ __html: block.content }}
+      dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.content) }}
     />
   );
 }
@@ -95,7 +110,7 @@ function HtmlRenderer({ block }: { block: HtmlBlock }) {
   return (
     <div
       className="mb-6"
-      dangerouslySetInnerHTML={{ __html: block.content }}
+      dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.content) }}
     />
   );
 }

@@ -13,6 +13,7 @@ import {
   uuid,
   jsonb,
   index,
+  uniqueIndex,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { organization } from "./auth";
@@ -117,7 +118,7 @@ export const integrations = pgTable(
   },
   (table) => [
     // Each org can only have one integration per provider
-    index("integrations_org_provider_idx").on(table.organizationId, table.provider),
+    uniqueIndex("integrations_org_provider_idx").on(table.organizationId, table.provider),
     index("integrations_org_idx").on(table.organizationId),
     index("integrations_provider_idx").on(table.provider),
     index("integrations_active_idx").on(table.organizationId, table.isActive),

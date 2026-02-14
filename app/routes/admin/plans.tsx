@@ -2,11 +2,14 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
+import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { eq, desc } from "drizzle-orm";
 
 export const meta: MetaFunction = () => [{ title: "Plans - DiveStreams Admin" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  await requirePlatformContext(request);
+
   const plans = await db
     .select()
     .from(subscriptionPlans)
@@ -16,6 +19,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  await requirePlatformContext(request);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
   const planId = formData.get("planId") as string;

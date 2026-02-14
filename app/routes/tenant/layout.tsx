@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, Link, useLoaderData, useLocation } from "react-router";
+import { Outlet, Link, useLoaderData, useLocation, useNavigation, useRouteError, isRouteErrorResponse } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { getBaseDomain } from "../../../lib/utils/url";
@@ -56,7 +56,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function TenantLayout() {
   const { tenant, features, limits, planName } = useLoaderData<typeof loader>();
   const location = useLocation();
+  const navigation = useNavigation();
+  const isNavigating = navigation.state === "loading";
   const [upgradeFeature, setUpgradeFeature] = useState<PlanFeatureKey | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isTrialing = tenant.subscriptionStatus === "trialing";
   // Use server-calculated trialDaysLeft for accurate countdown
@@ -88,6 +91,13 @@ export default function TenantLayout() {
 
   return (
       <div className="min-h-screen bg-surface-inset">
+        {/* Navigation Loading Bar */}
+        {isNavigating && (
+          <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-brand/20">
+            <div className="h-full bg-brand animate-pulse" style={{ width: "90%", transition: "width 0.5s ease-out" }} />
+          </div>
+        )}
+
         {/* Trial Banner */}
         {isTrialing && trialDaysLeft > 0 && (
           <div className="bg-brand text-white text-center py-2 text-sm">
@@ -99,8 +109,27 @@ export default function TenantLayout() {
         )}
 
         <div className="flex">
+          {/* Mobile Header */}
+          <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-surface border-b border-border flex items-center h-14 px-4">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-lg hover:bg-surface-inset text-foreground-muted"
+              aria-label="Toggle navigation"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+              </svg>
+            </button>
+            <h1 className="ml-3 text-lg font-bold text-brand truncate">{tenant.name}</h1>
+          </div>
+
+          {/* Sidebar Overlay (mobile) */}
+          {sidebarOpen && (
+            <div className="lg:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          )}
+
           {/* Sidebar */}
-          <aside className="w-64 bg-surface h-screen border-r border-border fixed flex flex-col">
+          <aside className={`w-64 bg-surface h-screen border-r border-border fixed flex flex-col z-50 transition-transform duration-200 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}>
             <div className="p-4 border-b border-border flex-shrink-0">
               <h1 className="text-xl font-bold text-brand">{tenant.name}</h1>
               <p className="text-sm text-foreground-muted">{tenant.subdomain}.{tenant.baseDomain}</p>
@@ -122,6 +151,7 @@ export default function TenantLayout() {
                       <li key={item.href}>
                         <Link
                           to={item.href}
+                          onClick={() => setSidebarOpen(false)}
                           className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                             isActive
                               ? "bg-brand-muted text-brand"
@@ -182,7 +212,7 @@ export default function TenantLayout() {
 
           {/* Main Content */}
           <FeaturesContext.Provider value={{ features, limits, planName }}>
-            <main className="flex-1 ml-64 p-8">
+            <main className="flex-1 lg:ml-64 p-4 lg:p-8 pt-18 lg:pt-8">
               <Outlet />
             </main>
           </FeaturesContext.Provider>
@@ -196,5 +226,36 @@ export default function TenantLayout() {
         )}
 
       </div>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const isResponse = isRouteErrorResponse(error);
+
+  return (
+    <div className="min-h-screen bg-surface-inset flex items-center justify-center">
+      <div className="bg-surface-raised p-8 rounded-xl shadow-lg max-w-md text-center">
+        <div className="w-16 h-16 bg-danger-muted rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h1 className="text-2xl font-bold text-foreground mb-2">
+          {isResponse ? `${error.status} - ${error.statusText}` : "Something went wrong"}
+        </h1>
+        <p className="text-foreground-muted mb-6">
+          {isResponse
+            ? "The page you're looking for could not be found."
+            : "An unexpected error occurred. Please try again."}
+        </p>
+        <Link
+          to="/tenant"
+          className="inline-block bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover"
+        >
+          Back to Dashboard
+        </Link>
+      </div>
+    </div>
   );
 }

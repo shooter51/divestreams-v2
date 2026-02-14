@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { Outlet, Link, useLocation, redirect, useLoaderData } from "react-router";
+import { Outlet, Link, useLocation, redirect, useLoaderData, useRouteError, isRouteErrorResponse } from "react-router";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { isAdminSubdomain } from "../../../lib/auth/org-context.server";
 import { getAppUrl } from "../../../lib/utils/url";
@@ -88,6 +88,32 @@ export default function AdminLayout() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <Outlet />
       </main>
+    </div>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const isResponse = isRouteErrorResponse(error);
+
+  return (
+    <div className="min-h-screen bg-surface-inset flex items-center justify-center">
+      <div className="bg-surface-raised p-8 rounded-xl shadow-lg max-w-md text-center">
+        <h1 className="text-2xl font-bold text-foreground mb-2">
+          {isResponse ? `${error.status} - ${error.statusText}` : "Something went wrong"}
+        </h1>
+        <p className="text-foreground-muted mb-6">
+          {isResponse
+            ? "The page you're looking for could not be found."
+            : "An unexpected error occurred. Please try again."}
+        </p>
+        <a
+          href="/dashboard"
+          className="inline-block bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800"
+        >
+          Back to Dashboard
+        </a>
+      </div>
     </div>
   );
 }

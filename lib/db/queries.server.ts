@@ -8,7 +8,7 @@
  * multi-tenancy. All queries now filter by organization_id in the public schema.
  */
 
-import { desc, eq, gte, lte, count, sum, and, sql, asc } from "drizzle-orm";
+import { desc, eq, gte, lte, count, sum, and, sql, asc, inArray } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
 
@@ -102,28 +102,36 @@ export async function getUpcomingTrips(organizationId: string, limit = 5) {
     .orderBy(schema.trips.date, schema.trips.startTime)
     .limit(limit);
 
-  // Get participant counts separately
-  const result = [];
-  for (const trip of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+  // Get all participant counts in a single query
+  const tripIds = trips.map(t => t.id);
+  const participantCounts: Record<string, number> = {};
+
+  if (tripIds.length > 0) {
+    const counts = await db
+      .select({
+        tripId: schema.bookings.tripId,
+        total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+      })
       .from(schema.bookings)
       .where(and(
-        eq(schema.bookings.tripId, trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+        inArray(schema.bookings.tripId, tripIds),
+        sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
+      ))
+      .groupBy(schema.bookings.tripId);
 
-    result.push({
-      id: trip.id,
-      name: trip.name,
-      date: formatRelativeDate(trip.date),
-      time: formatTime(trip.startTime),
-      participants: Number(participantsResult[0]?.total || 0),
-      maxParticipants: Number(trip.maxParticipants || 0),
-    });
+    for (const row of counts) {
+      participantCounts[row.tripId] = Number(row.total);
+    }
   }
 
-  return result;
+  return trips.map(trip => ({
+    id: trip.id,
+    name: trip.name,
+    date: formatRelativeDate(trip.date),
+    time: formatTime(trip.startTime),
+    participants: participantCounts[trip.id] || 0,
+    maxParticipants: Number(trip.maxParticipants || 0),
+  }));
 }
 
 export async function getRecentBookings(organizationId: string, limit = 5) {
@@ -318,6 +326,34 @@ export async function updateCustomer(organizationId: string, id: string, data: P
 }
 
 export async function deleteCustomer(organizationId: string, id: string) {
+  // Check for non-cancelled bookings to prevent destroying financial records
+  const [activeBookings] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(schema.bookings)
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      eq(schema.bookings.customerId, id),
+      sql`${schema.bookings.status} NOT IN ('canceled')`
+    ));
+
+  if (Number(activeBookings?.count || 0) > 0) {
+    throw new Error("Cannot delete customer with active bookings. Cancel all bookings first to preserve financial records.");
+  }
+
+  // Check for transactions
+  const [existingTransactions] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(schema.transactions)
+    .where(and(
+      eq(schema.transactions.organizationId, organizationId),
+      eq(schema.transactions.customerId, id)
+    ));
+
+  if (Number(existingTransactions?.count || 0) > 0) {
+    throw new Error("Cannot delete customer with transaction history. This would destroy financial records.");
+  }
+
+  // Safe to delete - no active financial records
   // Delete related records first to avoid foreign key constraint violations
   // Note: customerCommunications has onDelete: cascade, so it will be deleted automatically
 
@@ -329,15 +365,7 @@ export async function deleteCustomer(organizationId: string, id: string) {
       eq(schema.rentals.customerId, id)
     ));
 
-  // Delete transactions
-  await db
-    .delete(schema.transactions)
-    .where(and(
-      eq(schema.transactions.organizationId, organizationId),
-      eq(schema.transactions.customerId, id)
-    ));
-
-  // Delete bookings
+  // Delete cancelled bookings (safe since all active ones are checked above)
   await db
     .delete(schema.bookings)
     .where(and(
@@ -516,6 +544,35 @@ export async function updateTourActiveStatus(organizationId: string, id: string,
 }
 
 export async function deleteTour(organizationId: string, id: string) {
+  // Check if any trips for this tour have active bookings
+  // First get trip IDs for this tour, then check bookings
+  const tourTrips = await db
+    .select({ id: schema.trips.id })
+    .from(schema.trips)
+    .where(and(
+      eq(schema.trips.organizationId, organizationId),
+      eq(schema.trips.tourId, id)
+    ));
+
+  const tourTripIds = tourTrips.map(t => t.id);
+  let activeBookingCount = 0;
+
+  if (tourTripIds.length > 0) {
+    const [bookingResult] = await db
+      .select({ count: sql<number>`CAST(COUNT(*) AS INTEGER)` })
+      .from(schema.bookings)
+      .where(and(
+        inArray(schema.bookings.tripId, tourTripIds),
+        sql`${schema.bookings.status} NOT IN ('cancelled')`
+      ));
+    activeBookingCount = Number(bookingResult?.count || 0);
+  }
+
+  if (activeBookingCount > 0) {
+    throw new Error("Cannot delete tour with active bookings. Cancel all bookings first to preserve financial records.");
+  }
+
+  // Safe to delete - no active bookings
   // Delete related trips first to avoid foreign key constraint violations
   await db
     .delete(schema.trips)
@@ -559,27 +616,35 @@ export async function getTrips(
     .orderBy(schema.trips.date, schema.trips.startTime)
     .limit(limit);
 
-  // Get booked participants for each trip
-  const result = [];
-  for (const row of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+  // Get all participant counts in a single batch query
+  const tripIds = trips.map(r => r.trip.id);
+  const participantCounts: Record<string, number> = {};
+
+  if (tripIds.length > 0) {
+    const counts = await db
+      .select({
+        tripId: schema.bookings.tripId,
+        total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+      })
       .from(schema.bookings)
       .where(and(
-        eq(schema.bookings.tripId, row.trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+        inArray(schema.bookings.tripId, tripIds),
+        sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
+      ))
+      .groupBy(schema.bookings.tripId);
 
-    result.push(mapTrip({
-      ...row.trip,
-      tour_name: row.tourName,
-      tour_type: row.tourType,
-      boat_name: row.boatName,
-      booked_participants: participantsResult[0]?.total || 0,
-    }));
+    for (const row of counts) {
+      participantCounts[row.tripId] = Number(row.total);
+    }
   }
 
-  return result;
+  return trips.map(row => mapTrip({
+    ...row.trip,
+    tour_name: row.tourName,
+    tour_type: row.tourType,
+    boat_name: row.boatName,
+    booked_participants: participantCounts[row.trip.id] || 0,
+  }));
 }
 
 export async function getTripById(organizationId: string, id: string) {
@@ -660,33 +725,41 @@ export async function getCalendarTrips(
     ))
     .orderBy(schema.trips.date, schema.trips.startTime);
 
-  // Get booked participants for each trip
-  const result: CalendarTrip[] = [];
-  for (const trip of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+  // Get all participant counts in a single batch query
+  const tripIds = trips.map(t => t.id);
+  const participantCounts: Record<string, number> = {};
+
+  if (tripIds.length > 0) {
+    const counts = await db
+      .select({
+        tripId: schema.bookings.tripId,
+        total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+      })
       .from(schema.bookings)
       .where(and(
-        eq(schema.bookings.tripId, trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+        inArray(schema.bookings.tripId, tripIds),
+        sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
+      ))
+      .groupBy(schema.bookings.tripId);
 
-    result.push({
-      id: trip.id,
-      tourId: trip.tourId,
-      tourName: trip.tourName,
-      tourType: trip.tourType,
-      date: formatDateString(trip.date),
-      startTime: formatTimeString(trip.startTime),
-      endTime: trip.endTime ? formatTimeString(trip.endTime) : null,
-      boatName: trip.boatName,
-      maxParticipants: Number(trip.maxParticipants || 0),
-      bookedParticipants: Number(participantsResult[0]?.total || 0),
-      status: trip.status,
-    });
+    for (const row of counts) {
+      participantCounts[row.tripId] = Number(row.total);
+    }
   }
 
-  return result;
+  return trips.map(trip => ({
+    id: trip.id,
+    tourId: trip.tourId,
+    tourName: trip.tourName,
+    tourType: trip.tourType,
+    date: formatDateString(trip.date),
+    startTime: formatTimeString(trip.startTime),
+    endTime: trip.endTime ? formatTimeString(trip.endTime) : null,
+    boatName: trip.boatName,
+    maxParticipants: Number(trip.maxParticipants || 0),
+    bookedParticipants: participantCounts[trip.id] || 0,
+    status: trip.status,
+  }));
 }
 
 export async function createTrip(organizationId: string, data: {
@@ -700,6 +773,28 @@ export async function createTrip(organizationId: string, data: {
   notes?: string;
   isPublic?: boolean;
 }) {
+  // Check for boat scheduling conflicts
+  if (data.boatId) {
+    const [conflict] = await db
+      .select({ id: schema.trips.id })
+      .from(schema.trips)
+      .where(and(
+        eq(schema.trips.organizationId, organizationId),
+        eq(schema.trips.boatId, data.boatId),
+        eq(schema.trips.date, data.date),
+        sql`${schema.trips.status} != 'cancelled'`,
+        sql`COALESCE(${schema.trips.endTime}, '23:59:59') > ${data.startTime}`,
+        data.endTime
+          ? sql`${schema.trips.startTime} < ${data.endTime}`
+          : sql`1=1`
+      ))
+      .limit(1);
+
+    if (conflict) {
+      throw new Error(`Boat is already scheduled for another trip on ${data.date} at an overlapping time.`);
+    }
+  }
+
   const [trip] = await db
     .insert(schema.trips)
     .values({
@@ -865,27 +960,68 @@ export async function createBooking(organizationId: string, data: {
   source?: string;
 }) {
   const bookingNumber = `BK${Date.now().toString(36).toUpperCase()}`;
+  const participants = data.participants || 1;
 
-  const [booking] = await db
-    .insert(schema.bookings)
-    .values({
-      organizationId,
-      bookingNumber,
-      tripId: data.tripId,
-      customerId: data.customerId,
-      participants: data.participants || 1,
-      subtotal: String(data.subtotal),
-      discount: String(data.discount || 0),
-      tax: String(data.tax || 0),
-      total: String(data.total),
-      currency: data.currency || "USD",
-      specialRequests: data.specialRequests || null,
-      source: data.source || "direct",
-    })
-    .returning();
+  // Use a transaction with row locking to prevent overbooking (TOCTOU race condition)
+  const booking = await db.transaction(async (tx) => {
+    // Lock the trip row to prevent concurrent bookings from overbooking
+    await tx.execute(sql`SELECT 1 FROM ${schema.trips} WHERE ${schema.trips.id} = ${data.tripId} FOR UPDATE`);
+
+    // Get trip capacity
+    const [tripRow] = await tx
+      .select({
+        maxParticipants: sql<number>`COALESCE(${schema.trips.maxParticipants}, (
+          SELECT ${schema.tours.maxParticipants} FROM ${schema.tours} WHERE ${schema.tours.id} = ${schema.trips.tourId}
+        ))`,
+      })
+      .from(schema.trips)
+      .where(eq(schema.trips.id, data.tripId));
+
+    if (!tripRow) {
+      throw new Error("Trip not found");
+    }
+
+    // Count current booked participants within the locked transaction
+    const [participantsResult] = await tx
+      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.tripId, data.tripId),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      ));
+
+    const currentBooked = Number(participantsResult?.total || 0);
+    const maxParticipants = Number(tripRow.maxParticipants || 0);
+
+    if (maxParticipants > 0 && currentBooked + participants > maxParticipants) {
+      const spotsLeft = Math.max(0, maxParticipants - currentBooked);
+      throw new Error(`Not enough spots available. Only ${spotsLeft} spot(s) remaining.`);
+    }
+
+    // Create the booking within the transaction
+    const [newBooking] = await tx
+      .insert(schema.bookings)
+      .values({
+        organizationId,
+        bookingNumber,
+        tripId: data.tripId,
+        customerId: data.customerId,
+        participants,
+        subtotal: String(data.subtotal),
+        discount: String(data.discount || 0),
+        tax: String(data.tax || 0),
+        total: String(data.total),
+        currency: data.currency || "USD",
+        specialRequests: data.specialRequests || null,
+        source: data.source || "direct",
+      })
+      .returning();
+
+    return newBooking;
+  });
 
   // Sync booking to Google Calendar if integration is active
-  // Run async to not block booking creation
+  // Run async to not block booking creation (outside transaction)
   import("../integrations/google-calendar-bookings.server")
     .then(({ syncBookingToCalendar }) => {
       const org = getOrganizationById(organizationId);
@@ -901,7 +1037,42 @@ export async function createBooking(organizationId: string, data: {
   return booking;
 }
 
+const VALID_BOOKING_STATUSES = ["pending", "confirmed", "checked_in", "completed", "cancelled", "no_show"] as const;
+
+const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
+  pending: ["confirmed", "cancelled", "no_show"],
+  confirmed: ["checked_in", "completed", "cancelled", "no_show"],
+  checked_in: ["completed", "no_show"],
+  completed: [], // Terminal state
+  cancelled: [], // Terminal state
+  no_show: [], // Terminal state
+};
+
 export async function updateBookingStatus(organizationId: string, id: string, status: string) {
+  // Validate status value
+  if (!VALID_BOOKING_STATUSES.includes(status as any)) {
+    throw new Error(`Invalid booking status: ${status}`);
+  }
+
+  // Get current booking to validate transition
+  const [current] = await db
+    .select({ status: schema.bookings.status })
+    .from(schema.bookings)
+    .where(and(
+      eq(schema.bookings.organizationId, organizationId),
+      eq(schema.bookings.id, id)
+    ))
+    .limit(1);
+
+  if (!current) {
+    throw new Error("Booking not found");
+  }
+
+  const validTransitions = VALID_STATUS_TRANSITIONS[current.status] || [];
+  if (!validTransitions.includes(status)) {
+    throw new Error(`Cannot transition booking from "${current.status}" to "${status}"`);
+  }
+
   const [booking] = await db
     .update(schema.bookings)
     .set({ status, updatedAt: new Date() })

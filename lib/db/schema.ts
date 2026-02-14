@@ -218,7 +218,7 @@ export const customers = pgTable("customers", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => [
   index("customers_org_idx").on(table.organizationId),
-  index("customers_org_email_idx").on(table.organizationId, table.email),
+  uniqueIndex("customers_org_email_idx").on(table.organizationId, table.email),
   index("customers_org_name_idx").on(table.organizationId, table.lastName, table.firstName),
 ]);
 

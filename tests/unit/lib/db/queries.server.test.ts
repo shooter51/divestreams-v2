@@ -28,6 +28,22 @@ const { dbMock, mockReturning, mockLimit, mockOffset, mockGroupBy, resetMocks } 
   chain.delete = vi.fn(() => { lastMethod = 'other'; return chain; });
   chain.innerJoin = vi.fn(() => { lastMethod = 'other'; return chain; });
   chain.leftJoin = vi.fn(() => { lastMethod = 'other'; return chain; });
+  chain.transaction = vi.fn(async (fn: (tx: any) => Promise<any>) => {
+    // The transaction callback receives a tx object that has the same chain interface
+    const txChain: Record<string, ReturnType<typeof vi.fn>> = {};
+    txChain.execute = vi.fn().mockResolvedValue(undefined);
+    txChain.select = vi.fn(() => txChain);
+    txChain.from = vi.fn(() => txChain);
+    txChain.where = vi.fn(() => txChain);
+    txChain.insert = vi.fn(() => txChain);
+    txChain.values = vi.fn(() => txChain);
+    txChain.limit = vi.fn(() => txChain);
+    txChain.returning = vi.fn().mockResolvedValue([{ id: "book-1", bookingNumber: "BK123" }]);
+    txChain.then = (resolve: (value: unknown[]) => void) => {
+      return Promise.resolve([{ maxParticipants: 10, total: 0 }]).then(resolve);
+    };
+    return fn(txChain);
+  });
   chain.orderBy = vi.fn(() => { lastMethod = 'other'; return chain; });
   chain.limit = vi.fn((...args) => { mockLimit(...args); lastMethod = 'limit'; return chain; });
   chain.offset = vi.fn((...args) => { mockOffset(...args); lastMethod = 'offset'; return chain; });
@@ -150,6 +166,7 @@ vi.mock("drizzle-orm", () => ({
   gte: vi.fn((col, val) => ({ col, val, op: "gte" })),
   lte: vi.fn((col, val) => ({ col, val, op: "lte" })),
   desc: vi.fn((col) => ({ col, op: "desc" })),
+  asc: vi.fn((col) => ({ col, op: "asc" })),
   sql: vi.fn((strings, ...values) => ({
     strings,
     values,
@@ -158,6 +175,7 @@ vi.mock("drizzle-orm", () => ({
   })),
   count: vi.fn(() => ({ op: "count" })),
   sum: vi.fn(() => ({ op: "sum" })),
+  inArray: vi.fn((col, vals) => ({ col, vals, op: "inArray" })),
 }));
 
 describe("queries.server database functions", () => {
@@ -554,9 +572,7 @@ describe("queries.server database functions", () => {
   });
 
   describe("createBooking", () => {
-    it("should create new booking", async () => {
-      mockReturning.mockResolvedValueOnce([{ id: "book-1" }]);
-
+    it("should create new booking via transaction", async () => {
       const { createBooking } = await import("../../../../lib/db/queries.server");
 
       const data = {
@@ -568,16 +584,21 @@ describe("queries.server database functions", () => {
         total: 220,
       };
 
-      await createBooking("org-1", data);
+      const result = await createBooking("org-1", data);
 
-      expect(dbMock.insert).toHaveBeenCalled();
-      expect(dbMock.values).toHaveBeenCalled();
-      expect(mockReturning).toHaveBeenCalled();
+      // createBooking now uses db.transaction
+      expect(dbMock.transaction).toHaveBeenCalled();
+      expect(result).toBeDefined();
     });
   });
 
   describe("updateBookingStatus", () => {
     it("should update booking status", async () => {
+      // First query: lookup current booking status (select -> limit)
+      // mockLimit is called twice: once from chain.limit(1) and once from thenable.then
+      mockLimit.mockResolvedValueOnce([{ status: "pending" }]); // consumed by chain.limit(1)
+      mockLimit.mockResolvedValueOnce([{ status: "pending" }]); // consumed by thenable.then
+      // Second query: update booking (update -> returning)
       mockReturning.mockResolvedValueOnce([{ id: "book-1", status: "confirmed" }]);
 
       const { updateBookingStatus } = await import("../../../../lib/db/queries.server");

@@ -15,9 +15,6 @@ export default [
   // Health check
   route("api/health", "routes/api/health.tsx"),
 
-  // Debug endpoint (temporary)
-  route("api/debug-orgs", "routes/api/debug-orgs.tsx"),
-
   // Better Auth API (catch-all for /api/auth/*)
   route("api/auth/*", "routes/api/auth.$.tsx"),
 

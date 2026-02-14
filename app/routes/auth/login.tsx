@@ -6,6 +6,7 @@ import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Login - DiveStreams" }];
@@ -63,6 +64,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const errors: Record<string, string> = {};
 
+  // Rate limit login attempts
+  const clientIp = getClientIp(request);
+  const rateLimitResult = checkRateLimit(`login:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { errors: { form: "Too many login attempts. Please try again later." } };
+  }
+
   if (!email) {
     errors.email = "Email is required";
   }
@@ -96,9 +108,10 @@ export async function action({ request }: ActionFunctionArgs) {
       return { errors: { form: userData?.message || "Invalid email or password" } };
     }
 
-    // Get redirect URL from query params
+    // Get redirect URL from query params (validated to prevent open redirect)
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/tenant";
+    const rawRedirect = url.searchParams.get("redirect") || "/tenant";
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/tenant";
 
     // Redirect to app WITH the session cookies
     return redirect(redirectTo, {

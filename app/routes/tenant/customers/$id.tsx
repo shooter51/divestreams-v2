@@ -89,8 +89,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
-    await deleteCustomer(organizationId, customerId);
-    return redirect("/tenant/customers");
+    try {
+      await deleteCustomer(organizationId, customerId);
+      return redirect("/tenant/customers");
+    } catch (error) {
+      if (error instanceof Error) {
+        return { error: error.message };
+      }
+      return { error: "Failed to delete customer" };
+    }
   }
 
   if (intent === "send-email") {

@@ -468,8 +468,21 @@ describe("Tour and Trip Management Logic", () => {
 
   describe("deleteTour", () => {
     it("should delete tour and related trips", async () => {
+      // First select().from().where() returns tour trip IDs (empty = no trips)
+      // Then delete().where() runs twice (trips, then tour)
+      let selectCallCount = 0;
+      (db.select as any) = vi.fn(() => db);
+      (db.from as any) = vi.fn(() => db);
+      (db.where as any) = vi.fn(() => {
+        selectCallCount++;
+        if (selectCallCount === 1) {
+          // First call: select trip IDs for this tour - return empty (no trips)
+          return Promise.resolve([]);
+        }
+        // Subsequent calls: delete operations
+        return Promise.resolve();
+      });
       (db.delete as any) = vi.fn(() => db);
-      (db.where as any) = vi.fn(() => Promise.resolve());
 
       const result = await deleteTour(testOrgId, "tour-123");
 

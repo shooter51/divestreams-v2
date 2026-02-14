@@ -31,6 +31,11 @@ vi.mock("drizzle-orm", () => ({
   desc: vi.fn((a) => ({ type: "desc", field: a })),
 }));
 
+// Mock auth - plans routes now require platform context
+vi.mock("../../../../lib/auth/platform-context.server", () => ({
+  requirePlatformContext: vi.fn().mockResolvedValue({ user: { id: "admin-1" } }),
+}));
+
 import { db } from "../../../../lib/db";
 
 describe("admin/plans route", () => {
