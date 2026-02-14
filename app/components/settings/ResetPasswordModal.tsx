@@ -28,6 +28,7 @@ export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPas
   const [method, setMethod] = useState<PasswordResetMethod>("auto_generated");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [showPasswordDisplay, setShowPasswordDisplay] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
@@ -57,13 +58,15 @@ export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPas
   }, [result]);
 
   const handleSubmit = () => {
+    setValidationError(null);
+
     if (method === "manual_entry" && !password) {
-      alert("Please enter a password");
+      setValidationError("Please enter a password");
       return;
     }
 
     if (method === "manual_entry" && password.length < 8) {
-      alert("Password must be at least 8 characters");
+      setValidationError("Password must be at least 8 characters");
       return;
     }
 
@@ -100,6 +103,13 @@ export function ResetPasswordModal({ user, onClose, onSubmit, result }: ResetPas
           <h2 id="reset-modal-title" className="text-xl font-semibold mb-4">
             Reset Password for {user.name}
           </h2>
+
+          {/* Validation Error Message */}
+          {validationError && (
+            <div className="mb-4 p-3 bg-danger-muted text-danger border border-danger rounded">
+              {validationError}
+            </div>
+          )}
 
           {/* Error Message */}
           {result?.error && (

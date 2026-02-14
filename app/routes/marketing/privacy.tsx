@@ -11,6 +11,10 @@ export const meta: MetaFunction = () => [
   { name: "description", content: "DiveStreams privacy policy and data protection practices" },
 ];
 
+export const headers = () => ({
+  "Cache-Control": "public, max-age=3600, s-maxage=86400",
+});
+
 export default function PrivacyPage() {
   const lastUpdated = "January 31, 2026";
 

@@ -1,5 +1,5 @@
 import { useFetcher } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ChangePasswordFormProps {
   userId: string;
@@ -47,13 +47,15 @@ export function ChangePasswordForm({ userId, onSuccess }: ChangePasswordFormProp
   };
 
   // Reset form and close on success
-  if (fetcher.data?.success && showForm) {
-    setShowForm(false);
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    if (onSuccess) onSuccess();
-  }
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      setShowForm(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      if (onSuccess) onSuccess();
+    }
+  }, [fetcher.data]);
 
   if (!showForm) {
     return (

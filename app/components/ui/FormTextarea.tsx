@@ -14,6 +14,8 @@
  *   />
  */
 
+import { useState } from "react";
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -47,6 +49,7 @@ export function FormTextarea({
   className,
   maxLength,
 }: FormTextareaProps) {
+  const [charCount, setCharCount] = useState(defaultValue?.length || 0);
   const hasError = Boolean(error);
 
   return (
@@ -70,6 +73,7 @@ export function FormTextarea({
         defaultValue={defaultValue}
         disabled={disabled}
         maxLength={maxLength}
+        onInput={(e) => setCharCount((e.target as HTMLTextAreaElement).value.length)}
         aria-invalid={hasError ? "true" : undefined}
         aria-describedby={hasError ? `${name}-error` : undefined}
         className={`w-full px-4 py-2 rounded-lg transition-colors resize-y focus:outline-none focus:ring-2 ${
@@ -89,7 +93,7 @@ export function FormTextarea({
       {/* Character Count (if maxLength specified) */}
       {maxLength && (
         <p className="text-xs text-[var(--foreground-subtle)] text-right">
-          {defaultValue?.length || 0} / {maxLength}
+          {charCount} / {maxLength}
         </p>
       )}
     </div>

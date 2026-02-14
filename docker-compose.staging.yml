@@ -19,7 +19,7 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM:-noreply@divestreams.com}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-DiveAdmin2026!}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set}
       - PLATFORM_ADMIN_EMAIL=${PLATFORM_ADMIN_EMAIL}
       - PLATFORM_ADMIN_PASSWORD=${PLATFORM_ADMIN_PASSWORD}
       - PLATFORM_ADMIN_NAME=${PLATFORM_ADMIN_NAME:-Platform Admin}
@@ -29,6 +29,17 @@ services:
       - B2_KEY_ID=${B2_KEY_ID}
       - B2_APP_KEY=${B2_APP_KEY}
       - CDN_URL=${CDN_URL}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
     depends_on:
       db:
         condition: service_healthy
@@ -75,7 +86,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: divestreams
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-divestreams_staging}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
       POSTGRES_DB: divestreams
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -91,7 +102,7 @@ services:
     image: redis:7-alpine
     container_name: divestreams-staging-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme}
     volumes:
       - redis_data:/data
     healthcheck:

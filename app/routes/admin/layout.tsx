@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { Outlet, Link, useLocation, redirect, useLoaderData } from "react-router";
+import { Outlet, Link, useLocation, redirect, useLoaderData, isRouteErrorResponse, useRouteError } from "react-router";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { isAdminSubdomain } from "../../../lib/auth/org-context.server";
 import { getAppUrl } from "../../../lib/utils/url";
@@ -37,7 +37,7 @@ export default function AdminLayout() {
     <ToastProvider>
       <div className="min-h-screen bg-surface-inset">
         {/* Top bar */}
-        <header className="bg-surface text-white">
+        <header className="bg-gray-900 text-white">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-6">
               <h1 className="font-bold text-lg">DiveStreams Admin</h1>
@@ -92,5 +92,39 @@ export default function AdminLayout() {
         </main>
       </div>
     </ToastProvider>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const isRouteError = isRouteErrorResponse(error);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-surface p-4">
+      <div className="max-w-md w-full text-center">
+        <h1 className="text-4xl font-bold text-foreground mb-4">
+          {isRouteError ? error.status : "Error"}
+        </h1>
+        <p className="text-foreground-muted mb-6">
+          {isRouteError
+            ? error.statusText || "Something went wrong."
+            : "An unexpected error occurred."}
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Link
+            to="/dashboard"
+            className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
+          >
+            Go to Dashboard
+          </Link>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-surface-raised text-foreground rounded-lg border border-border hover:bg-surface-inset"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

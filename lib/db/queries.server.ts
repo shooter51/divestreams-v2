@@ -8,7 +8,7 @@
  * multi-tenancy. All queries now filter by organization_id in the public schema.
  */
 
-import { desc, eq, gte, lte, count, sum, and, sql, asc } from "drizzle-orm";
+import { desc, eq, gte, lte, count, sum, and, sql, asc, inArray } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
 
@@ -37,41 +37,42 @@ export async function getDashboardStats(organizationId: string) {
   const today = new Date().toISOString().split("T")[0];
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-  // Today's bookings count
-  const todayBookingsResult = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.bookings)
-    .where(and(
-      eq(schema.bookings.organizationId, organizationId),
-      sql`DATE(${schema.bookings.createdAt}) = ${today}`
-    ));
-
-  // This week's revenue (sum of paid transactions)
-  const weekRevenueResult = await db
-    .select({ total: sql<number>`COALESCE(SUM(${schema.transactions.amount}), 0)` })
-    .from(schema.transactions)
-    .where(and(
-      eq(schema.transactions.organizationId, organizationId),
-      eq(schema.transactions.type, "sale"),
-      gte(schema.transactions.createdAt, new Date(weekAgo))
-    ));
-
-  // Active trips (scheduled trips today or tomorrow)
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-  const activeTripsResult = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.trips)
-    .where(and(
-      eq(schema.trips.organizationId, organizationId),
-      sql`${schema.trips.status} IN ('scheduled', 'in_progress')`,
-      lte(schema.trips.date, tomorrow)
-    ));
 
-  // Total customers
-  const totalCustomersResult = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.customers)
-    .where(eq(schema.customers.organizationId, organizationId));
+  // Run all 4 independent count queries in parallel
+  const [todayBookingsResult, weekRevenueResult, activeTripsResult, totalCustomersResult] = await Promise.all([
+    // Today's bookings count
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.bookings)
+      .where(and(
+        eq(schema.bookings.organizationId, organizationId),
+        sql`DATE(${schema.bookings.createdAt}) = ${today}`
+      )),
+    // This week's revenue (sum of paid transactions)
+    db
+      .select({ total: sql<number>`COALESCE(SUM(${schema.transactions.amount}), 0)` })
+      .from(schema.transactions)
+      .where(and(
+        eq(schema.transactions.organizationId, organizationId),
+        eq(schema.transactions.type, "sale"),
+        gte(schema.transactions.createdAt, new Date(weekAgo))
+      )),
+    // Active trips (scheduled trips today or tomorrow)
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.trips)
+      .where(and(
+        eq(schema.trips.organizationId, organizationId),
+        sql`${schema.trips.status} IN ('scheduled', 'in_progress')`,
+        lte(schema.trips.date, tomorrow)
+      )),
+    // Total customers
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.customers)
+      .where(eq(schema.customers.organizationId, organizationId)),
+  ]);
 
   return {
     todayBookings: Number(todayBookingsResult[0]?.count || 0),
@@ -102,28 +103,32 @@ export async function getUpcomingTrips(organizationId: string, limit = 5) {
     .orderBy(schema.trips.date, schema.trips.startTime)
     .limit(limit);
 
-  // Get participant counts separately
-  const result = [];
-  for (const trip of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
-      .from(schema.bookings)
-      .where(and(
-        eq(schema.bookings.tripId, trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+  // Get participant counts in a single batch query
+  if (trips.length === 0) return [];
 
-    result.push({
-      id: trip.id,
-      name: trip.name,
-      date: formatRelativeDate(trip.date),
-      time: formatTime(trip.startTime),
-      participants: Number(participantsResult[0]?.total || 0),
-      maxParticipants: Number(trip.maxParticipants || 0),
-    });
-  }
+  const tripIds = trips.map(t => t.id);
+  const participantCounts = await db
+    .select({
+      tripId: schema.bookings.tripId,
+      total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+    })
+    .from(schema.bookings)
+    .where(and(
+      inArray(schema.bookings.tripId, tripIds),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ))
+    .groupBy(schema.bookings.tripId);
 
-  return result;
+  const countMap = new Map(participantCounts.map(p => [p.tripId, Number(p.total)]));
+
+  return trips.map(trip => ({
+    id: trip.id,
+    name: trip.name,
+    date: formatRelativeDate(trip.date),
+    time: formatTime(trip.startTime),
+    participants: countMap.get(trip.id) || 0,
+    maxParticipants: Number(trip.maxParticipants || 0),
+  }));
 }
 
 export async function getRecentBookings(organizationId: string, limit = 5) {
@@ -379,21 +384,25 @@ export async function getTours(
     .where(and(...whereConditions))
     .orderBy(schema.tours.name);
 
-  // Get trip counts
-  const result = [];
-  for (const tour of tours) {
-    const tripCountResult = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(schema.trips)
-      .where(eq(schema.trips.tourId, tour.id));
+  // Get trip counts in a single batch query
+  if (tours.length === 0) return [];
 
-    result.push({
-      ...mapTour(tour),
-      tripCount: Number(tripCountResult[0]?.count || 0),
-    });
-  }
+  const tourIds = tours.map(t => t.id);
+  const tripCounts = await db
+    .select({
+      tourId: schema.trips.tourId,
+      count: sql<number>`count(*)`,
+    })
+    .from(schema.trips)
+    .where(inArray(schema.trips.tourId, tourIds))
+    .groupBy(schema.trips.tourId);
 
-  return result;
+  const tripCountMap = new Map(tripCounts.map(tc => [tc.tourId, Number(tc.count)]));
+
+  return tours.map(tour => ({
+    ...mapTour(tour),
+    tripCount: tripCountMap.get(tour.id) || 0,
+  }));
 }
 
 export async function getAllTours(organizationId: string) {
@@ -604,27 +613,31 @@ export async function getTrips(
     .orderBy(schema.trips.date, schema.trips.startTime)
     .limit(limit);
 
-  // Get booked participants for each trip
-  const result = [];
-  for (const row of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
-      .from(schema.bookings)
-      .where(and(
-        eq(schema.bookings.tripId, row.trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+  // Get booked participants in a single batch query
+  if (trips.length === 0) return [];
 
-    result.push(mapTrip({
-      ...row.trip,
-      tour_name: row.tourName,
-      tour_type: row.tourType,
-      boat_name: row.boatName,
-      booked_participants: participantsResult[0]?.total || 0,
-    }));
-  }
+  const tripIds = trips.map(r => r.trip.id);
+  const participantCounts = await db
+    .select({
+      tripId: schema.bookings.tripId,
+      total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+    })
+    .from(schema.bookings)
+    .where(and(
+      inArray(schema.bookings.tripId, tripIds),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ))
+    .groupBy(schema.bookings.tripId);
 
-  return result;
+  const countMap = new Map(participantCounts.map(p => [p.tripId, Number(p.total)]));
+
+  return trips.map(row => mapTrip({
+    ...row.trip,
+    tour_name: row.tourName,
+    tour_type: row.tourType,
+    boat_name: row.boatName,
+    booked_participants: countMap.get(row.trip.id) || 0,
+  }));
 }
 
 export async function getTripById(organizationId: string, id: string) {
@@ -705,33 +718,37 @@ export async function getCalendarTrips(
     ))
     .orderBy(schema.trips.date, schema.trips.startTime);
 
-  // Get booked participants for each trip
-  const result: CalendarTrip[] = [];
-  for (const trip of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
-      .from(schema.bookings)
-      .where(and(
-        eq(schema.bookings.tripId, trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+  // Get booked participants in a single batch query
+  if (trips.length === 0) return [];
 
-    result.push({
-      id: trip.id,
-      tourId: trip.tourId,
-      tourName: trip.tourName,
-      tourType: trip.tourType,
-      date: formatDateString(trip.date),
-      startTime: formatTimeString(trip.startTime),
-      endTime: trip.endTime ? formatTimeString(trip.endTime) : null,
-      boatName: trip.boatName,
-      maxParticipants: Number(trip.maxParticipants || 0),
-      bookedParticipants: Number(participantsResult[0]?.total || 0),
-      status: trip.status,
-    });
-  }
+  const tripIds = trips.map(t => t.id);
+  const participantCounts = await db
+    .select({
+      tripId: schema.bookings.tripId,
+      total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+    })
+    .from(schema.bookings)
+    .where(and(
+      inArray(schema.bookings.tripId, tripIds),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ))
+    .groupBy(schema.bookings.tripId);
 
-  return result;
+  const countMap = new Map(participantCounts.map(p => [p.tripId, Number(p.total)]));
+
+  return trips.map(trip => ({
+    id: trip.id,
+    tourId: trip.tourId,
+    tourName: trip.tourName,
+    tourType: trip.tourType,
+    date: formatDateString(trip.date),
+    startTime: formatTimeString(trip.startTime),
+    endTime: trip.endTime ? formatTimeString(trip.endTime) : null,
+    boatName: trip.boatName,
+    maxParticipants: Number(trip.maxParticipants || 0),
+    bookedParticipants: countMap.get(trip.id) || 0,
+    status: trip.status,
+  }));
 }
 
 export async function createTrip(organizationId: string, data: {
@@ -1217,7 +1234,7 @@ export async function getTourStats(organizationId: string, tourId: string) {
   const tripCountResult = await db
     .select({ count: sql<number>`count(*)` })
     .from(schema.trips)
-    .where(eq(schema.trips.tourId, tourId));
+    .where(and(eq(schema.trips.tourId, tourId), eq(schema.trips.organizationId, organizationId)));
 
   // Get total revenue from bookings on trips for this tour
   const revenueResult = await db
@@ -1226,6 +1243,7 @@ export async function getTourStats(organizationId: string, tourId: string) {
     .innerJoin(schema.trips, eq(schema.bookings.tripId, schema.trips.id))
     .where(and(
       eq(schema.trips.tourId, tourId),
+      eq(schema.trips.organizationId, organizationId),
       sql`${schema.bookings.status} NOT IN ('canceled', 'refunded')`
     ));
 
@@ -1258,27 +1276,32 @@ export async function getUpcomingTripsForTour(organizationId: string, tourId: st
     .orderBy(schema.trips.date, schema.trips.startTime)
     .limit(limit);
 
-  const result = [];
-  for (const trip of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
-      .from(schema.bookings)
-      .where(and(
-        eq(schema.bookings.tripId, trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+  // Get booked participants in a single batch query
+  if (trips.length === 0) return [];
 
-    result.push({
-      id: trip.id,
-      date: formatDateString(trip.date),
-      time: formatTimeString(trip.startTime),
-      boatName: trip.boatName,
-      bookedParticipants: Number(participantsResult[0]?.total || 0),
-      maxParticipants: Number(trip.maxParticipants || 0),
-    });
-  }
+  const tripIds = trips.map(t => t.id);
+  const participantCounts = await db
+    .select({
+      tripId: schema.bookings.tripId,
+      total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+    })
+    .from(schema.bookings)
+    .where(and(
+      inArray(schema.bookings.tripId, tripIds),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ))
+    .groupBy(schema.bookings.tripId);
 
-  return result;
+  const countMap = new Map(participantCounts.map(p => [p.tripId, Number(p.total)]));
+
+  return trips.map(trip => ({
+    id: trip.id,
+    date: formatDateString(trip.date),
+    time: formatTimeString(trip.startTime),
+    boatName: trip.boatName,
+    bookedParticipants: countMap.get(trip.id) || 0,
+    maxParticipants: Number(trip.maxParticipants || 0),
+  }));
 }
 
 // ============================================================================

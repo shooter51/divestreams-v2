@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router";
 import { useToast } from "./toast-context";
 import type { ToastType } from "../app/components/ui/Toast";
@@ -16,10 +16,24 @@ import type { ToastType } from "../app/components/ui/Toast";
 export function useNotification() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();
+  const processedRef = useRef<string | null>(null);
 
   useEffect(() => {
     const types: ToastType[] = ["success", "error", "info", "warning"];
     let hasNotification = false;
+
+    // Build a key from current notification params to detect duplicates
+    const notificationKey = types
+      .map((type) => searchParams.get(type))
+      .filter(Boolean)
+      .join("|");
+
+    // Skip if we already processed these exact notifications
+    if (!notificationKey || processedRef.current === notificationKey) {
+      return;
+    }
+
+    processedRef.current = notificationKey;
 
     for (const type of types) {
       const message = searchParams.get(type);

@@ -35,7 +35,11 @@ export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
     // On server side, lazily initialize real database connection
     if (!_db) {
       const connectionString = getConnectionString();
-      const queryClient = postgres(connectionString);
+      const queryClient = postgres(connectionString, {
+        max: 20,
+        idle_timeout: 20,
+        connect_timeout: 10,
+      });
       _db = drizzle(queryClient, { schema });
     }
     return (_db as any)[prop];

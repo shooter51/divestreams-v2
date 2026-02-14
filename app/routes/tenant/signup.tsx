@@ -6,6 +6,7 @@ import { getSubdomainFromRequest } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,6 +56,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Rate limit signup attempts
+  const clientIp = getClientIp(request);
+  const rateLimit = checkRateLimit(`signup:${clientIp}`, { maxAttempts: 5, windowMs: 60 * 60 * 1000 });
+  if (!rateLimit.allowed) {
+    return { errors: { form: "Too many signup attempts. Please try again later." } };
+  }
+
   const formData = await request.formData();
   const name = formData.get("name");
   const email = formData.get("email");

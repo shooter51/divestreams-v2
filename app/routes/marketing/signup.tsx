@@ -8,6 +8,7 @@ import { db } from "../../../lib/db";
 import { user, account, member, organization } from "../../../lib/db/schema/auth";
 import { customers } from "../../../lib/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => {
   return [
@@ -17,6 +18,13 @@ export const meta: MetaFunction = () => {
 };
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Rate limit signup attempts
+  const clientIp = getClientIp(request);
+  const rateLimit = checkRateLimit(`signup:${clientIp}`, { maxAttempts: 5, windowMs: 60 * 60 * 1000 });
+  if (!rateLimit.allowed) {
+    return { errors: { form: "Too many signup attempts. Please try again later." } };
+  }
+
   const formData = await request.formData();
 
   const shopName = formData.get("shopName") as string;
@@ -74,9 +82,13 @@ export async function action({ request }: ActionFunctionArgs) {
         // User has an active organization - can't sign up again
         errors.email = "An account with this email already exists";
       } else {
-        // Orphaned user with no organization - delete it so signup can proceed
-        await db.delete(user).where(eq(user.id, existingUser.id));
-        await db.delete(account).where(eq(account.userId, existingUser.id));
+        // Instead of deleting the user, suggest they recover their account
+        return {
+          errors: {
+            form: "An account with this email already exists. Please try logging in or resetting your password.",
+          } as Record<string, string>,
+          values: { shopName, subdomain, email, phone },
+        };
       }
     } else {
       // Check if email exists as a customer
@@ -93,6 +105,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!password || password.length < 8) {
     errors.password = "Password must be at least 8 characters";
+  } else if (!/[A-Z]/.test(password)) {
+    errors.password = "Password must contain at least one uppercase letter";
+  } else if (!/[a-z]/.test(password)) {
+    errors.password = "Password must contain at least one lowercase letter";
+  } else if (!/[0-9]/.test(password)) {
+    errors.password = "Password must contain at least one number";
   } else if (password !== confirmPassword) {
     errors.confirmPassword = "Passwords do not match";
   }

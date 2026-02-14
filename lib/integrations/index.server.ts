@@ -29,7 +29,10 @@ import {
  * In production, INTEGRATION_ENCRYPTION_KEY should be set
  */
 function getEncryptionKey(): Buffer {
-  const secret = process.env.INTEGRATION_ENCRYPTION_KEY || process.env.AUTH_SECRET || "divestreams-default-key";
+  const secret = process.env.INTEGRATION_ENCRYPTION_KEY || process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error("INTEGRATION_ENCRYPTION_KEY or AUTH_SECRET environment variable must be set");
+  }
   // Use scrypt to derive a 32-byte key from the secret
   return scryptSync(secret, "divestreams-salt", 32);
 }

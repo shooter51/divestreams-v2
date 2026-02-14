@@ -20,9 +20,6 @@ import { relations } from "drizzle-orm";
 
 export * from "./schema/auth";
 export * from "./schema/subscription";
-// API keys and webhooks removed - DIVE-031
-// export * from "./schema/api-keys";
-// export * from "./schema/webhooks";
 export * from "./schema/integrations";
 export * from "./schema/quickbooks";
 export * from "./schema/public-site";
@@ -61,7 +58,7 @@ export * from "./schema/zapier";
 export * from "./schema/onboarding";
 
 // Import organization for foreign key references
-import { organization } from "./schema/auth";
+import { organization, user } from "./schema/auth";
 
 // ============================================================================
 // PUBLIC SCHEMA - Shared across all tenants (LEGACY - to be removed)
@@ -730,7 +727,7 @@ export const maintenanceLogs = pgTable("maintenance_logs", {
   nextMaintenanceType: text("next_maintenance_type"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  createdBy: text("created_by").references(() => organization.id), // User who logged it
+  createdBy: text("created_by").references(() => user.id), // User who logged it
 }, (table) => [
   index("maintenance_logs_org_idx").on(table.organizationId),
   index("maintenance_logs_boat_idx").on(table.boatId),
@@ -763,7 +760,7 @@ export const serviceRecords = pgTable("service_records", {
   nextServiceType: text("next_service_type"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  createdBy: text("created_by").references(() => organization.id), // User who logged it
+  createdBy: text("created_by").references(() => user.id), // User who logged it
 }, (table) => [
   index("service_records_org_idx").on(table.organizationId),
   index("service_records_equipment_idx").on(table.equipmentId),

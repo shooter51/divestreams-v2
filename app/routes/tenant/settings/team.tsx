@@ -114,6 +114,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
 
   if (intent === "invite") {
+    // Only owners and admins can invite team members
+    if (ctx.membership.role !== "owner" && ctx.membership.role !== "admin") {
+      return { error: "Only owners and admins can manage team members" };
+    }
+
     // Only premium users can invite team members
     if (!ctx.isPremium) {
       return { error: "Team invitations require a premium subscription" };
@@ -121,6 +126,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
     const email = formData.get("email") as string;
     const role = formData.get("role") as string;
+
+    // Validate role against allowed values
+    const allowedRoles = ["admin", "member", "staff"];
+    if (!allowedRoles.includes(role)) {
+      return { error: "Invalid role" };
+    }
 
     // Check if email is already a team member of THIS organization
     const [existingMember] = await db
@@ -230,8 +241,24 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "update-role") {
+    // Only owners and admins can update roles
+    if (ctx.membership.role !== "owner" && ctx.membership.role !== "admin") {
+      return { error: "Only owners and admins can manage team members" };
+    }
+
     const userId = formData.get("userId") as string;
     const role = formData.get("role") as string;
+
+    // Prevent users from modifying their own role
+    if (userId === ctx.user.id) {
+      return { error: "You cannot modify your own role" };
+    }
+
+    // Validate role against allowed values
+    const allowedRoles = ["admin", "member", "staff"];
+    if (!allowedRoles.includes(role)) {
+      return { error: "Invalid role" };
+    }
 
     await db
       .update(member)
@@ -247,7 +274,17 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "remove") {
+    // Only owners and admins can remove team members
+    if (ctx.membership.role !== "owner" && ctx.membership.role !== "admin") {
+      return { error: "Only owners and admins can manage team members" };
+    }
+
     const userId = formData.get("userId") as string;
+
+    // Prevent users from removing themselves
+    if (userId === ctx.user.id) {
+      return { error: "You cannot modify your own role" };
+    }
 
     await db.delete(member).where(
       and(
@@ -405,13 +442,13 @@ export default function TeamPage() {
     }
   }, [openDropdownId]);
 
-  // Close password reset modal and show alert on success
+  // Close password reset modal on success (password display is handled by ResetPasswordModal)
   useEffect(() => {
     if (fetcher.data?.success && resetPasswordUser) {
-      if (fetcher.data?.temporaryPassword) {
-        alert(`Password reset successful!\n\nTemporary password: ${fetcher.data.temporaryPassword}\n\nPlease copy this and share it securely with the user.`);
+      if (!fetcher.data?.temporaryPassword) {
+        // Only auto-close if there's no temporary password to display
+        setResetPasswordUser(null);
       }
-      setResetPasswordUser(null);
     }
   }, [fetcher.data, resetPasswordUser]);
 

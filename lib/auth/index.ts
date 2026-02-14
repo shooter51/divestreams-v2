@@ -30,7 +30,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Can enable later
+    requireEmailVerification: false, // TODO: Enable before production launch - currently disabled for development
     sendResetPassword: async ({ user, url }) => {
       await sendEmail({
         to: user.email,

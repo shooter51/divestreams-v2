@@ -5,7 +5,7 @@
  * Handles tenant resolution, theme application, and site navigation.
  */
 
-import { Outlet, Link, useLoaderData, useLocation, Form } from "react-router";
+import { Outlet, Link, useLoaderData, useLocation, Form, isRouteErrorResponse, useRouteError } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { eq, or } from "drizzle-orm";
@@ -486,6 +486,50 @@ export default function SiteLayout() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const isRouteError = isRouteErrorResponse(error);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "#f8fafc", color: "#1e293b" }}>
+      <div className="max-w-md w-full text-center">
+        <h1 className="text-6xl font-bold mb-4" style={{ color: "#0369a1" }}>
+          {isRouteError ? error.status : "Oops"}
+        </h1>
+        <h2 className="text-2xl font-semibold mb-2">
+          {isRouteError
+            ? error.status === 404
+              ? "Page Not Found"
+              : "Something Went Wrong"
+            : "Unexpected Error"}
+        </h2>
+        <p className="text-gray-600 mb-8">
+          {isRouteError
+            ? error.status === 404
+              ? "The page you're looking for doesn't exist or has been moved."
+              : error.statusText || "We encountered an issue processing your request."
+            : "An unexpected error occurred. Please try again later."}
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Link
+            to="/site"
+            className="px-6 py-3 text-white rounded-lg font-medium transition-colors"
+            style={{ backgroundColor: "#0369a1" }}
+          >
+            Back to Home
+          </Link>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-white text-gray-700 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -321,8 +321,8 @@ async function globalSetup(config: FullConfig) {
     }
 
   } catch (error) {
-    console.error("Failed to setup demo environment:", error);
-    // Don't fail the test run - tests will handle missing org gracefully
+    console.error("Global setup failed:", error);
+    throw error; // Fail fast instead of silently swallowing
   }
 }
 

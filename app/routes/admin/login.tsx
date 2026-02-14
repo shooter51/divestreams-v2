@@ -8,6 +8,7 @@ import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { getAppUrl } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 
 export const meta: MetaFunction = () => [{ title: "Admin Login - DiveStreams" }];
@@ -35,6 +36,15 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email");
   const password = formData.get("password");
   const redirectTo = formData.get("redirectTo");
+
+  // Rate limit admin login attempts
+  const clientIp = getClientIp(request);
+  if (typeof email === "string" && email) {
+    const rateLimit = checkRateLimit(`admin-login:${clientIp}:${email}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return { error: "Too many login attempts. Please try again later." };
+    }
+  }
 
   // Validate redirectTo to prevent open redirect attacks
   const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/dashboard";

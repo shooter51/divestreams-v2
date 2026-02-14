@@ -89,8 +89,6 @@ jobs:
   e2e:
     name: E2E Tests
     runs-on: [self-hosted, linux, divestreams]
-    # E2E tests are complex and may fail in CI - don't block the workflow
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 

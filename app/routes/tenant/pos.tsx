@@ -4,7 +4,7 @@
  * Full-featured POS for retail, rentals, and quick bookings.
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { z } from "zod";
@@ -34,7 +34,7 @@ import {
   listTerminalReaders,
   createStripeRefund,
 } from "../../../lib/integrations/stripe.server";
-import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
+const BarcodeScannerModal = lazy(() => import("../../components/BarcodeScannerModal").then(m => ({ default: m.BarcodeScannerModal || m.default })));
 import { Cart } from "../../components/pos/Cart";
 import { ProductGrid } from "../../components/pos/ProductGrid";
 import {
@@ -49,6 +49,7 @@ import {
   RefundConfirmationModal,
 } from "../../components/pos/RefundModals";
 import type { CartItem } from "../../../lib/validation/pos";
+import { useToast } from "../../../lib/toast-context";
 
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
@@ -315,6 +316,7 @@ export default function POSPage() {
     hasTerminalReaders,
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const { showToast } = useToast();
 
   // State
   const [tab, setTab] = useState<"retail" | "rentals" | "trips">("retail");
@@ -360,8 +362,6 @@ export default function POSPage() {
       email: string;
     } | null;
   } | null>(null);
-  const [refundSuccess, setRefundSuccess] = useState<{ amount: number } | null>(null);
-
   // Cart calculations
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
   const tax = subtotal * (taxRate / 100);
@@ -532,6 +532,7 @@ export default function POSPage() {
       barcodeNotFound?: boolean;
       scannedBarcode?: string;
       success?: boolean;
+      receiptNumber?: string;
       refundId?: string;
       amount?: number;
     } | undefined;
@@ -552,15 +553,18 @@ export default function POSPage() {
       setTimeout(() => setBarcodeError(null), 3000);
     }
 
+    // Handle sale success
+    if (fetcherData?.success && fetcherData?.receiptNumber && !fetcherData?.refundId) {
+      showToast(`Sale complete! Receipt #${fetcherData.receiptNumber}`, "success");
+    }
+
     // Handle refund success
     if (fetcherData?.success && fetcherData?.refundId && fetcherData?.amount) {
-      setRefundSuccess({ amount: fetcherData.amount });
+      showToast(`Refund processed successfully! $${fetcherData.amount.toFixed(2)} refunded to customer.`, "success");
       setShowRefundConfirmation(false);
       setSelectedTransaction(null);
-      // Clear success message after 5 seconds
-      setTimeout(() => setRefundSuccess(null), 5000);
     }
-  }, [fetcher.data, addProduct]);
+  }, [fetcher.data, addProduct, showToast]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
@@ -734,13 +738,15 @@ export default function POSPage() {
         isSearching={fetcher.state === "submitting"}
       />
 
-      <BarcodeScannerModal
-        isOpen={showBarcodeScanner}
-        onClose={() => setShowBarcodeScanner(false)}
-        onScan={handleBarcodeScan}
-        title="Scan Product Barcode"
-        showConfirmation={false}
-      />
+      <Suspense fallback={null}>
+        <BarcodeScannerModal
+          isOpen={showBarcodeScanner}
+          onClose={() => setShowBarcodeScanner(false)}
+          onScan={handleBarcodeScan}
+          title="Scan Product Barcode"
+          showConfirmation={false}
+        />
+      </Suspense>
 
       {/* Refund Modals */}
       <TransactionLookupModal
@@ -771,19 +777,7 @@ export default function POSPage() {
         </div>
       )}
 
-      {/* Success Toast */}
-      {(fetcher.data as { success?: boolean; receiptNumber?: string } | undefined)?.success && (
-        <div className="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg">
-          Sale complete! Receipt #{(fetcher.data as { receiptNumber: string }).receiptNumber}
-        </div>
-      )}
-
-      {/* Refund Success Toast */}
-      {refundSuccess && (
-        <div className="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg">
-          Refund processed successfully! ${refundSuccess.amount.toFixed(2)} refunded to customer.
-        </div>
-      )}
+      {/* Sale and Refund success toasts are now handled via useToast in the useEffect above */}
     </div>
   );
 }

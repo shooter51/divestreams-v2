@@ -38,11 +38,9 @@ jobs:
 
       - name: Run lint
         run: npm run lint
-        continue-on-error: true  # Pre-existing waitForTimeout warnings, don't block CI
 
       - name: Run typecheck
         run: npm run typecheck
-        continue-on-error: true  # Pre-existing TS issues, don't block CI
 
       - name: Setup database schema
         run: npm run db:push
@@ -51,7 +49,6 @@ jobs:
 
       - name: Run unit and integration tests
         run: npm test -- --run
-        continue-on-error: true  # Allow deployment despite test failures
         env:
           DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
@@ -63,7 +60,6 @@ jobs:
   e2e:
     if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
     runs-on: [self-hosted, linux, divestreams]
-    continue-on-error: true  # Allow staging deployment even if E2E tests fail
     steps:
       - uses: actions/checkout@v4
 
@@ -142,7 +138,7 @@ jobs:
     if: |
       github.ref == 'refs/heads/staging' &&
       needs.test.result == 'success' &&
-      (needs.e2e.result == 'success' || needs.e2e.result == 'failure')
+      needs.e2e.result == 'success'
     runs-on: [self-hosted, linux, divestreams]
     permissions:
       contents: read
@@ -279,6 +275,10 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.STAGING_VPS_SSH_KEY }}" > ~/.ssh/staging_key
           chmod 600 ~/.ssh/staging_key
+          # TODO: Replace ssh-keyscan with a pre-verified host key stored as a
+          # GitHub secret (e.g. STAGING_VPS_HOST_KEY). Using ssh-keyscan at
+          # runtime is vulnerable to MITM attacks on first connection.
+          # Example: echo "${{ secrets.STAGING_VPS_HOST_KEY }}" >> ~/.ssh/known_hosts
           ssh-keyscan -H 76.13.28.28 >> ~/.ssh/known_hosts
 
       - name: Update environment secrets on staging VPS
@@ -325,6 +325,10 @@ jobs:
           sed -i "s|PLACEHOLDER_STRIPE_WEBHOOK_SECRET|$STRIPE_WEBHOOK_SECRET|g" /tmp/update-env.sh
 
           # Execute script directly via SSH stdin (avoid /tmp permission issues)
+          # TODO: Remove StrictHostKeyChecking=no once the staging VPS host key
+          # is stored as STAGING_VPS_HOST_KEY and written to known_hosts above.
+          # StrictHostKeyChecking=no bypasses host key verification and is
+          # vulnerable to MITM attacks.
           cat /tmp/update-env.sh | ssh -i ~/.ssh/staging_key -o StrictHostKeyChecking=no root@76.13.28.28 'bash -s'
 
           echo "✅ Environment secrets updated"
@@ -417,7 +421,11 @@ jobs:
         run: npm run test:e2e -- --grep "@smoke"
         env:
           BASE_URL: https://staging.divestreams.com
-        continue-on-error: true  # Don't fail deploy if smoke tests have issues initially
+        # Smoke tests run against the live staging environment after deployment.
+        # Transient network issues, DNS propagation, or container startup timing
+        # can cause legitimate failures that do not indicate a code problem.
+        # Keeping continue-on-error here so smoke flakes do not block production promotion.
+        continue-on-error: true
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

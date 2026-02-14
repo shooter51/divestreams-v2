@@ -341,40 +341,34 @@ export async function getOrgContext(
       }
     : FREE_TIER_LIMITS;
 
-  // Get usage statistics from database
-  let customerCount = 0;
-  let tourCount = 0;
-  let bookingsThisMonthCount = 0;
+  // Get usage statistics from database (run all 3 queries in parallel)
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-  try {
+  const [customerCount, tourCount, bookingsThisMonthCount] = await Promise.all([
     // Count customers for this organization
-    const [customerResult] = await db
+    db
       .select({ count: count() })
       .from(customers)
-      .where(eq(customers.organizationId, org.id));
-    customerCount = customerResult?.count ?? 0;
-  } catch (error) {
-    console.error("Failed to count customers:", error);
-  }
-
-  try {
+      .where(eq(customers.organizationId, org.id))
+      .then(([result]) => result?.count ?? 0)
+      .catch((error) => {
+        console.error("Failed to count customers:", error);
+        return 0;
+      }),
     // Count tours for this organization
-    const [tourResult] = await db
+    db
       .select({ count: count() })
       .from(tours)
-      .where(eq(tours.organizationId, org.id));
-    tourCount = tourResult?.count ?? 0;
-  } catch (error) {
-    console.error("Failed to count tours:", error);
-  }
-
-  try {
+      .where(eq(tours.organizationId, org.id))
+      .then(([result]) => result?.count ?? 0)
+      .catch((error) => {
+        console.error("Failed to count tours:", error);
+        return 0;
+      }),
     // Count bookings created this month for this organization
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const [bookingsResult] = await db
+    db
       .select({ count: count() })
       .from(bookings)
       .where(
@@ -382,11 +376,13 @@ export async function getOrgContext(
           eq(bookings.organizationId, org.id),
           gte(bookings.createdAt, startOfMonth)
         )
-      );
-    bookingsThisMonthCount = bookingsResult?.count ?? 0;
-  } catch (error) {
-    console.error("Failed to count bookings:", error);
-  }
+      )
+      .then(([result]) => result?.count ?? 0)
+      .catch((error) => {
+        console.error("Failed to count bookings:", error);
+        return 0;
+      }),
+  ]);
 
   const usage: OrgUsage = {
     customers: customerCount,

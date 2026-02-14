@@ -13,6 +13,20 @@ import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
 import { eq, gte, and, sql, count, desc } from "drizzle-orm";
 
+/**
+ * Escape a CSV field to prevent formula injection and handle special characters.
+ * Prefixes fields starting with =, +, -, @, tab, or carriage return with a single quote.
+ * Wraps fields containing commas, double quotes, or newlines in double quotes.
+ */
+function escapeCsvField(value: string): string {
+  if (/^[=+\-@\t\r]/.test(value)) {
+    return "'" + value;
+  }
+  return value.includes(",") || value.includes('"') || value.includes("\n")
+    ? '"' + value.replace(/"/g, '""') + '"'
+    : value;
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
 
@@ -151,7 +165,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Header section
   csvLines.push("DiveStreams Reports Export");
-  csvLines.push(`Organization,${ctx.org.name || ctx.org.slug}`);
+  csvLines.push(`Organization,${escapeCsvField(ctx.org.name || ctx.org.slug)}`);
   csvLines.push(`Date Range,${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`);
   csvLines.push(`Generated,${new Date().toLocaleString()}`);
   csvLines.push("");
@@ -180,10 +194,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   csvLines.push("Booking ID,Customer Name,Tour Name,Total,Status,Date");
 
   for (const booking of recentBookings) {
-    const customerName = ([booking.customerFirstName, booking.customerLastName].filter(Boolean).join(" ") || "N/A").replace(/,/g, ";");
-    const tourName = (booking.tourName || "N/A").replace(/,/g, ";");
+    const customerName = escapeCsvField([booking.customerFirstName, booking.customerLastName].filter(Boolean).join(" ") || "N/A");
+    const tourName = escapeCsvField(booking.tourName || "N/A");
     const total = booking.total ? `$${Number(booking.total).toLocaleString()}` : "$0";
-    const status = booking.status || "N/A";
+    const status = escapeCsvField(booking.status || "N/A");
     const date = booking.createdAt ? booking.createdAt.toLocaleDateString() : "N/A";
 
     csvLines.push(`${booking.id},${customerName},${tourName},${total},${status},${date}`);

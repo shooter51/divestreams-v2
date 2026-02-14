@@ -10,7 +10,7 @@ import type { ActionFunctionArgs } from "react-router";
 import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enhanced.server.js";
 import { db } from "../../../../../lib/db/index.js";
 import { bookings, customers, trips } from "../../../../../lib/db/schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count, gte } from "drizzle-orm";
 
 interface CreateBookingInput {
   trip_id: string;
@@ -39,6 +39,66 @@ export async function action({ request }: ActionFunctionArgs) {
   const orgId = await validateZapierApiKey(apiKey);
   if (!orgId) {
     return Response.json({ error: "Invalid API key" }, { status: 401 });
+  }
+
+  // Check plan booking limits before creating
+  try {
+    const { subscription, subscriptionPlans } = await import("../../../../../lib/db/schema.js");
+    const { FREE_TIER_LIMITS } = await import("../../../../../lib/auth/org-context.server.js");
+
+    const [sub] = await db
+      .select()
+      .from(subscription)
+      .where(eq(subscription.organizationId, orgId))
+      .limit(1);
+
+    const planName = sub?.plan || "free";
+    let planDetails;
+    if (sub?.planId) {
+      [planDetails] = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(and(eq(subscriptionPlans.id, sub.planId), eq(subscriptionPlans.isActive, true)))
+        .limit(1);
+    }
+    if (!planDetails) {
+      [planDetails] = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(and(eq(subscriptionPlans.name, planName), eq(subscriptionPlans.isActive, true)))
+        .limit(1);
+    }
+
+    const isPremium = planDetails && planDetails.monthlyPrice > 0 && sub?.status === "active";
+
+    if (!isPremium) {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const [bookingCount] = await db
+        .select({ count: count() })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.organizationId, orgId),
+            gte(bookings.createdAt, startOfMonth)
+          )
+        );
+
+      const currentCount = bookingCount?.count ?? 0;
+      const limit = FREE_TIER_LIMITS.bookingsPerMonth;
+
+      if (currentCount >= limit) {
+        return Response.json(
+          { error: `Booking limit reached: ${currentCount}/${limit}. Upgrade to premium for unlimited bookings.` },
+          { status: 403 }
+        );
+      }
+    }
+  } catch (limitError) {
+    console.error("Failed to check booking limits:", limitError);
+    // Allow the booking to proceed if limit check fails to avoid blocking legitimate requests
   }
 
   try {

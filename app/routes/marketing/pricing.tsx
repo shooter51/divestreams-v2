@@ -94,6 +94,10 @@ const DEFAULT_PLANS: Array<{
   },
 ];
 
+export const headers = () => ({
+  "Cache-Control": "public, max-age=3600, s-maxage=86400",
+});
+
 export async function loader() {
   try {
     const plans = await db

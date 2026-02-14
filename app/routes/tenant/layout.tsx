@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, Link, useLoaderData, useLocation } from "react-router";
+import { Outlet, Link, NavLink, useLoaderData, useLocation, isRouteErrorResponse, useRouteError } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { getBaseDomain } from "../../../lib/utils/url";
@@ -48,6 +48,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
       trialDaysLeft,
       baseDomain,
     },
+    user: {
+      name: ctx.user.name,
+      email: ctx.user.email,
+    },
+    membership: {
+      role: ctx.membership.role,
+    },
     features,
     limits,
     planName,
@@ -55,8 +62,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function TenantLayout() {
-  const { tenant, features, limits, planName } = useLoaderData<typeof loader>();
+  const { tenant, user, membership, features, limits, planName } = useLoaderData<typeof loader>();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState<PlanFeatureKey | null>(null);
 
   const isTrialing = tenant.subscriptionStatus === "trialing";
@@ -101,14 +109,32 @@ export default function TenantLayout() {
         )}
 
         <div className="flex">
+          {/* Mobile header */}
+          <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-surface border-b border-border px-4 py-3 flex items-center justify-between">
+            <span className="font-semibold text-foreground">{tenant?.name || "DiveStreams"}</span>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 text-foreground-muted hover:text-foreground"
+              aria-label="Toggle navigation menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {sidebarOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+
           {/* Sidebar */}
-          <aside className="w-64 bg-surface h-screen border-r border-border fixed flex flex-col">
+          <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transform transition-transform duration-200 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="p-4 border-b border-border flex-shrink-0">
               <h1 className="text-xl font-bold text-brand">{tenant.name}</h1>
               <p className="text-sm text-foreground-muted">{tenant.subdomain}.{tenant.baseDomain}</p>
             </div>
 
-            <nav className="p-4 flex-1 overflow-y-auto">
+            <nav className="p-4 flex-1 overflow-y-auto" aria-label="Main navigation">
               <ul className="space-y-1">
                 {navItems.map((item) => {
                   const isActive =
@@ -122,8 +148,10 @@ export default function TenantLayout() {
                   if (hasAccess) {
                     return (
                       <li key={item.href}>
-                        <Link
+                        <NavLink
                           to={item.href}
+                          prefetch="intent"
+                          onClick={() => setSidebarOpen(false)}
                           className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                             isActive
                               ? "bg-brand-muted text-brand"
@@ -132,7 +160,7 @@ export default function TenantLayout() {
                         >
                           <span>{item.icon}</span>
                           {item.label}
-                        </Link>
+                        </NavLink>
                       </li>
                     );
                   } else {
@@ -165,8 +193,8 @@ export default function TenantLayout() {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">Staff User</p>
-                  <p className="text-xs text-foreground-muted">Manager</p>
+                  <p className="text-sm font-medium text-foreground truncate">{user?.name || "User"}</p>
+                  <p className="text-xs text-foreground-muted">{membership?.role || "Member"}</p>
                 </div>
                 <form method="post" action="/auth/logout">
                   <button
@@ -184,9 +212,16 @@ export default function TenantLayout() {
             </div>
           </aside>
 
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 z-30 bg-black/50 md:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
           {/* Main Content */}
           <FeaturesContext.Provider value={{ features, limits, planName }}>
-            <main className="flex-1 ml-64 p-8">
+            <main className="flex-1 md:ml-64 mt-14 md:mt-0 p-8">
               <Outlet />
             </main>
           </FeaturesContext.Provider>
@@ -201,5 +236,41 @@ export default function TenantLayout() {
 
       </div>
     </ToastProvider>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const isRouteError = isRouteErrorResponse(error);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-surface p-4">
+      <div className="max-w-md w-full text-center">
+        <h1 className="text-4xl font-bold text-foreground mb-4">
+          {isRouteError ? error.status : "Error"}
+        </h1>
+        <p className="text-foreground-muted mb-6">
+          {isRouteError
+            ? error.status === 404
+              ? "The page you're looking for doesn't exist."
+              : error.statusText || "Something went wrong."
+            : "An unexpected error occurred. Please try again."}
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Link
+            to="/tenant/dashboard"
+            className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
+          >
+            Go to Dashboard
+          </Link>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-surface-raised text-foreground rounded-lg border border-border hover:bg-surface-inset"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

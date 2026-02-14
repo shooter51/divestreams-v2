@@ -8,7 +8,7 @@
  */
 
 import { db } from "./index";
-import { eq, and, asc, gte, sql } from "drizzle-orm";
+import { eq, and, asc, gte, sql, inArray } from "drizzle-orm";
 import * as schema from "./schema";
 import { organization } from "./schema/auth";
 
@@ -80,59 +80,70 @@ export async function getPublicTours(organizationId: string): Promise<PublicTour
     )
     .orderBy(schema.tours.name);
 
-  // Get images for each tour
-  const toursWithImages = await Promise.all(
-    tours.map(async (tour) => {
-      const images = await db
-        .select({
-          url: schema.images.url,
-          thumbnailUrl: schema.images.thumbnailUrl,
-        })
-        .from(schema.images)
-        .where(
-          and(
-            eq(schema.images.organizationId, organizationId),
-            eq(schema.images.entityType, "tour"),
-            eq(schema.images.entityId, tour.id),
-            eq(schema.images.isPrimary, true)
-          )
-        )
-        .limit(1);
+  // Get images for all tours in batch queries
+  if (tours.length === 0) return [];
 
-      const imageCount = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(schema.images)
-        .where(
-          and(
-            eq(schema.images.organizationId, organizationId),
-            eq(schema.images.entityType, "tour"),
-            eq(schema.images.entityId, tour.id)
-          )
-        );
+  const tourIds = tours.map(t => t.id);
 
-      return {
-        id: tour.id,
-        name: tour.name,
-        description: tour.description,
-        type: tour.type,
-        duration: Number(tour.duration || 0),
-        maxParticipants: Number(tour.maxParticipants),
-        price: tour.price,
-        currency: tour.currency,
-        includesEquipment: tour.includesEquipment || false,
-        includesMeals: tour.includesMeals || false,
-        includesTransport: tour.includesTransport || false,
-        inclusions: tour.inclusions || [],
-        minCertLevel: tour.minCertLevel,
-        minAge: tour.minAge ? Number(tour.minAge) : null,
-        primaryImage: images[0]?.url || null,
-        thumbnailImage: images[0]?.thumbnailUrl || null,
-        imageCount: Number(imageCount[0]?.count || 0),
-      };
+  // Batch query: primary images for all tours
+  const primaryImages = await db
+    .select({
+      entityId: schema.images.entityId,
+      url: schema.images.url,
+      thumbnailUrl: schema.images.thumbnailUrl,
     })
-  );
+    .from(schema.images)
+    .where(
+      and(
+        eq(schema.images.organizationId, organizationId),
+        eq(schema.images.entityType, "tour"),
+        inArray(schema.images.entityId, tourIds),
+        eq(schema.images.isPrimary, true)
+      )
+    );
 
-  return toursWithImages;
+  const primaryImageMap = new Map(primaryImages.map(img => [img.entityId, img]));
+
+  // Batch query: image counts for all tours
+  const imageCounts = await db
+    .select({
+      entityId: schema.images.entityId,
+      count: sql<number>`count(*)`,
+    })
+    .from(schema.images)
+    .where(
+      and(
+        eq(schema.images.organizationId, organizationId),
+        eq(schema.images.entityType, "tour"),
+        inArray(schema.images.entityId, tourIds)
+      )
+    )
+    .groupBy(schema.images.entityId);
+
+  const imageCountMap = new Map(imageCounts.map(ic => [ic.entityId, Number(ic.count)]));
+
+  return tours.map(tour => {
+    const primaryImg = primaryImageMap.get(tour.id);
+    return {
+      id: tour.id,
+      name: tour.name,
+      description: tour.description,
+      type: tour.type,
+      duration: Number(tour.duration || 0),
+      maxParticipants: Number(tour.maxParticipants),
+      price: tour.price,
+      currency: tour.currency,
+      includesEquipment: tour.includesEquipment || false,
+      includesMeals: tour.includesMeals || false,
+      includesTransport: tour.includesTransport || false,
+      inclusions: tour.inclusions || [],
+      minCertLevel: tour.minCertLevel,
+      minAge: tour.minAge ? Number(tour.minAge) : null,
+      primaryImage: primaryImg?.url || null,
+      thumbnailImage: primaryImg?.thumbnailUrl || null,
+      imageCount: imageCountMap.get(tour.id) || 0,
+    };
+  });
 }
 
 // ============================================================================
@@ -200,39 +211,44 @@ export async function getPublicTrips(
     .orderBy(asc(schema.trips.date), asc(schema.trips.startTime))
     .limit(limit);
 
-  // Get booking counts for each trip
-  const tripsWithAvailability = await Promise.all(
-    trips.map(async (trip) => {
-      const bookingCount = await db
-        .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
-        .from(schema.bookings)
-        .where(
-          and(
-            eq(schema.bookings.tripId, trip.id),
-            sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-          )
-        );
+  // Get booking counts in a single batch query
+  if (trips.length === 0) return [];
 
-      const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
-      const bookedParticipants = Number(bookingCount[0]?.total || 0);
-
-      return {
-        id: trip.id,
-        tourId: trip.tourId,
-        tourName: trip.tourName,
-        date: trip.date,
-        startTime: trip.startTime,
-        endTime: trip.endTime,
-        maxParticipants,
-        availableSpots: Math.max(0, maxParticipants - bookedParticipants),
-        price: trip.tripPrice || trip.tourPrice,
-        currency: trip.currency,
-        status: bookedParticipants >= maxParticipants ? "full" : trip.status,
-      };
+  const tripIds = trips.map(t => t.id);
+  const bookingCounts = await db
+    .select({
+      tripId: schema.bookings.tripId,
+      total: sql<number>`COALESCE(SUM(participants), 0)`,
     })
-  );
+    .from(schema.bookings)
+    .where(
+      and(
+        inArray(schema.bookings.tripId, tripIds),
+        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      )
+    )
+    .groupBy(schema.bookings.tripId);
 
-  return tripsWithAvailability;
+  const countMap = new Map(bookingCounts.map(bc => [bc.tripId, Number(bc.total)]));
+
+  return trips.map(trip => {
+    const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
+    const bookedParticipants = countMap.get(trip.id) || 0;
+
+    return {
+      id: trip.id,
+      tourId: trip.tourId,
+      tourName: trip.tourName,
+      date: trip.date,
+      startTime: trip.startTime,
+      endTime: trip.endTime,
+      maxParticipants,
+      availableSpots: Math.max(0, maxParticipants - bookedParticipants),
+      price: trip.tripPrice || trip.tourPrice,
+      currency: trip.currency,
+      status: bookedParticipants >= maxParticipants ? "full" : trip.status,
+    };
+  });
 }
 
 // ============================================================================

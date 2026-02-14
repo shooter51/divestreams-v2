@@ -15,6 +15,7 @@ export interface RichTextEditorProps {
   minHeight?: number;
   id?: string;
   name?: string;
+  label?: string;
 }
 
 export function RichTextEditor({
@@ -24,6 +25,7 @@ export function RichTextEditor({
   minHeight = 200,
   id,
   name,
+  label,
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -84,8 +86,10 @@ export function RichTextEditor({
       className: "text-xs",
       onClick: () => {
         const url = prompt("Enter URL:");
-        if (url) {
+        if (url && /^https?:\/\//i.test(url)) {
           execCommand("createLink", url);
+        } else if (url) {
+          alert("Please enter a valid URL starting with http:// or https://");
         }
       },
     },
@@ -160,6 +164,9 @@ export function RichTextEditor({
       <div
         ref={editorRef}
         contentEditable
+        role="textbox"
+        aria-label={label || "Rich text editor"}
+        aria-multiline="true"
         onInput={handleInput}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}

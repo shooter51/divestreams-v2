@@ -7,6 +7,7 @@ import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { getAppUrl } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 type ActionData = {
   error?: string;
@@ -83,6 +84,16 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const redirectTo = formData.get("redirectTo");
 
+  // Rate limit login attempts
+  const clientIp = getClientIp(request);
+  const loginEmail = formData.get("email") as string;
+  if (intent !== "join" && loginEmail) {
+    const rateLimit = checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return { error: "Too many login attempts. Please try again later." };
+    }
+  }
+
   // Validate redirectTo to prevent open redirects (only allow relative URLs)
   let validatedRedirectTo = "/tenant"; // default
   if (typeof redirectTo === "string" && redirectTo.startsWith("/") && !redirectTo.includes("://")) {
@@ -97,6 +108,12 @@ export async function action({ request }: ActionFunctionArgs) {
     // Null check before using
     if (typeof userId !== "string" || typeof orgId !== "string" || !userId || !orgId) {
       return { error: "Missing user or organization information", email: "" };
+    }
+
+    // Verify session matches the userId to prevent unauthorized joins
+    const sessionData = await auth.api.getSession({ headers: request.headers });
+    if (!sessionData?.user || sessionData.user.id !== userId) {
+      return { error: "Unauthorized: session mismatch" };
     }
 
     try {

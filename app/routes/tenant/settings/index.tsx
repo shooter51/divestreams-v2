@@ -522,10 +522,15 @@ export default function SettingsPage() {
               </p>
             </div>
             <button
-              onClick={() => alert("Data export feature coming soon. Contact support@divestreams.com for immediate data export needs.")}
-              className="px-4 py-2 text-sm border border-danger-muted rounded-lg hover:bg-danger-muted text-danger"
+              onClick={() => {
+                console.error("Data export feature not yet implemented.");
+                // TODO: Implement data export feature
+              }}
+              disabled
+              title="Data export feature coming soon. Contact support@divestreams.com for immediate data export needs."
+              className="px-4 py-2 text-sm border border-danger-muted rounded-lg hover:bg-danger-muted text-danger disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Export Data
+              Export Data (Coming Soon)
             </button>
           </div>
           <hr className="border-danger-muted" />

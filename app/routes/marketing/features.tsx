@@ -7,6 +7,10 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const headers = () => ({
+  "Cache-Control": "public, max-age=3600, s-maxage=86400",
+});
+
 export default function FeaturesPage() {
   return (
     <div className="min-h-screen bg-surface-raised">

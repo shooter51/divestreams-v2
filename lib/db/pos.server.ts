@@ -313,131 +313,136 @@ export async function processPOSCheckout(
     }
   });
 
-  // Create transaction
-  const [transaction] = await db
-    .insert(tables.transactions)
-    .values({
-      organizationId,
-      type: "sale",
-      bookingId: null,
-      customerId: data.customerId || null,
-      userId: data.userId,
-      amount: data.total.toString(),
-      currency: "USD",
-      paymentMethod,
-      stripePaymentId,
-      items: transactionItems,
-      notes: data.notes,
-    })
-    .returning();
-
-  // Process rentals - create rental records and update equipment status
-  const rentalItems = data.items.filter((item): item is CartItem & { type: "rental" } => item.type === "rental");
-
-  if (rentalItems.length > 0 && data.customerId) {
-    const agreementNumber = await generateAgreementNumber(tables, organizationId);
-
-    for (const rental of rentalItems) {
-      const dueAt = new Date();
-      dueAt.setDate(dueAt.getDate() + rental.days);
-
-      // Create rental record
-      await db.insert(tables.rentals).values({
+  // Wrap all mutations in a database transaction for atomicity
+  const transaction = await db.transaction(async (tx) => {
+    // Create transaction
+    const [txnRecord] = await tx
+      .insert(tables.transactions)
+      .values({
         organizationId,
-        transactionId: transaction.id,
-        customerId: data.customerId,
-        equipmentId: rental.equipmentId,
-        dueAt,
-        dailyRate: rental.dailyRate.toString(),
-        totalCharge: rental.total.toString(),
-        status: "active",
-        agreementNumber,
-      });
-
-      // Update equipment status
-      await db
-        .update(tables.equipment)
-        .set({ status: "rented", updatedAt: new Date() })
-        .where(eq(tables.equipment.id, rental.equipmentId));
-    }
-  }
-
-  // Process bookings - create booking records
-  const bookingItems = data.items.filter((item): item is CartItem & { type: "booking" } => item.type === "booking");
-
-  for (const booking of bookingItems) {
-    if (!data.customerId) continue;
-
-    // Generate booking number
-    const bookingNumber = `BK-${Date.now().toString(36).toUpperCase()}`;
-
-    await db.insert(tables.bookings).values({
-      organizationId,
-      bookingNumber,
-      tripId: booking.tripId,
-      customerId: data.customerId,
-      participants: booking.participants,
-      status: "confirmed",
-      subtotal: booking.total.toString(),
-      total: booking.total.toString(),
-      currency: "USD",
-      paymentStatus: "paid",
-      paidAmount: booking.total.toString(),
-      source: "pos",
-    });
-  }
-
-  // Update product inventory
-  const productItems = data.items.filter((item): item is CartItem & { type: "product" } => item.type === "product");
-
-  // [KAN-620 FIX] Pre-validate stock before decrementing to prevent negative inventory
-  if (productItems.length > 0) {
-    // Fetch current stock for all products in the cart
-    const productIds = productItems.map(p => p.productId);
-    const productsInCart = await db
-      .select({
-        id: tables.products.id,
-        name: tables.products.name,
-        stockQuantity: tables.products.stockQuantity,
+        type: "sale",
+        bookingId: null,
+        customerId: data.customerId || null,
+        userId: data.userId,
+        amount: data.total.toString(),
+        currency: "USD",
+        paymentMethod,
+        stripePaymentId,
+        items: transactionItems,
+        notes: data.notes,
       })
-      .from(tables.products)
-      .where(
-        and(
-          eq(tables.products.organizationId, organizationId),
-          inArray(tables.products.id, productIds)
-        )
-      );
+      .returning();
 
-    // Check if any product would go negative
-    const insufficientStock: { name: string; available: number; requested: number }[] = [];
-    for (const cartItem of productItems) {
-      const product = productsInCart.find(p => p.id === cartItem.productId);
-      if (product && product.stockQuantity < cartItem.quantity) {
-        insufficientStock.push({
-          name: product.name,
-          available: product.stockQuantity,
-          requested: cartItem.quantity,
+    // Process rentals - create rental records and update equipment status
+    const rentalItems = data.items.filter((item): item is CartItem & { type: "rental" } => item.type === "rental");
+
+    if (rentalItems.length > 0 && data.customerId) {
+      const agreementNumber = await generateAgreementNumber(tables, organizationId);
+
+      for (const rental of rentalItems) {
+        const dueAt = new Date();
+        dueAt.setDate(dueAt.getDate() + rental.days);
+
+        // Create rental record
+        await tx.insert(tables.rentals).values({
+          organizationId,
+          transactionId: txnRecord.id,
+          customerId: data.customerId,
+          equipmentId: rental.equipmentId,
+          dueAt,
+          dailyRate: rental.dailyRate.toString(),
+          totalCharge: rental.total.toString(),
+          status: "active",
+          agreementNumber,
         });
+
+        // Update equipment status
+        await tx
+          .update(tables.equipment)
+          .set({ status: "rented", updatedAt: new Date() })
+          .where(eq(tables.equipment.id, rental.equipmentId));
       }
     }
 
-    if (insufficientStock.length > 0) {
-      const errorDetails = insufficientStock
-        .map(p => `${p.name} (available: ${p.available}, requested: ${p.requested})`)
-        .join(", ");
-      throw new Error(`Insufficient stock for: ${errorDetails}`);
-    }
-  }
+    // Process bookings - create booking records
+    const bookingItems = data.items.filter((item): item is CartItem & { type: "booking" } => item.type === "booking");
 
-  for (const product of productItems) {
-    await db
-      .update(tables.products)
-      .set({
-        stockQuantity: sql`${tables.products.stockQuantity} - ${product.quantity}`,
-        updatedAt: new Date(),
-      })
-      .where(eq(tables.products.id, product.productId));
-  }
+    for (const booking of bookingItems) {
+      if (!data.customerId) continue;
+
+      // Generate booking number
+      const bookingNumber = `BK-${Date.now().toString(36).toUpperCase()}`;
+
+      await tx.insert(tables.bookings).values({
+        organizationId,
+        bookingNumber,
+        tripId: booking.tripId,
+        customerId: data.customerId,
+        participants: booking.participants,
+        status: "confirmed",
+        subtotal: booking.total.toString(),
+        total: booking.total.toString(),
+        currency: "USD",
+        paymentStatus: "paid",
+        paidAmount: booking.total.toString(),
+        source: "pos",
+      });
+    }
+
+    // Update product inventory
+    const productItems = data.items.filter((item): item is CartItem & { type: "product" } => item.type === "product");
+
+    // [KAN-620 FIX] Pre-validate stock before decrementing to prevent negative inventory
+    if (productItems.length > 0) {
+      // Fetch current stock for all products in the cart
+      const productIds = productItems.map(p => p.productId);
+      const productsInCart = await tx
+        .select({
+          id: tables.products.id,
+          name: tables.products.name,
+          stockQuantity: tables.products.stockQuantity,
+        })
+        .from(tables.products)
+        .where(
+          and(
+            eq(tables.products.organizationId, organizationId),
+            inArray(tables.products.id, productIds)
+          )
+        );
+
+      // Check if any product would go negative
+      const insufficientStock: { name: string; available: number; requested: number }[] = [];
+      for (const cartItem of productItems) {
+        const product = productsInCart.find(p => p.id === cartItem.productId);
+        if (product && product.stockQuantity < cartItem.quantity) {
+          insufficientStock.push({
+            name: product.name,
+            available: product.stockQuantity,
+            requested: cartItem.quantity,
+          });
+        }
+      }
+
+      if (insufficientStock.length > 0) {
+        const errorDetails = insufficientStock
+          .map(p => `${p.name} (available: ${p.available}, requested: ${p.requested})`)
+          .join(", ");
+        throw new Error(`Insufficient stock for: ${errorDetails}`);
+      }
+    }
+
+    for (const product of productItems) {
+      await tx
+        .update(tables.products)
+        .set({
+          stockQuantity: sql`${tables.products.stockQuantity} - ${product.quantity}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(tables.products.id, product.productId));
+    }
+
+    return txnRecord;
+  });
 
   return {
     transaction,

@@ -48,7 +48,15 @@ interface ClickableCardProps {
 export function ClickableCard({ children, onClick, className = "", selected = false }: ClickableCardProps) {
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
       className={`bg-surface-raised rounded-xl shadow-sm p-4 cursor-pointer hover:ring-2 hover:ring-brand transition-all ${
         selected ? "ring-2 ring-brand" : ""
       } ${className}`}

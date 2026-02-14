@@ -11,6 +11,10 @@ export const meta: MetaFunction = () => [
   { name: "description", content: "DiveStreams terms of service and user agreement" },
 ];
 
+export const headers = () => ({
+  "Cache-Control": "public, max-age=3600, s-maxage=86400",
+});
+
 export default function TermsPage() {
   const lastUpdated = "January 31, 2026";
 

@@ -16,7 +16,7 @@ export default defineConfig({
   testIgnore: process.env.CI ? ["**/*-dev*.spec.ts"] : [],
   fullyParallel: false, // Sequential for coverage collection
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  retries: process.env.CI ? 1 : 0,
   workers: 1, // Single worker for coverage
   reporter: [
     ["html", { open: "never" }],
