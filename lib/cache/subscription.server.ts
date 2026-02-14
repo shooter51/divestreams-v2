@@ -8,6 +8,7 @@
  */
 
 import { getRedisConnection } from "../redis.server";
+import { redisLogger } from "../logger";
 
 /**
  * Invalidate all subscription-related cache for an organization
@@ -29,10 +30,10 @@ export async function invalidateSubscriptionCache(organizationId: string): Promi
 
     await redis.del(...cacheKeys);
 
-    console.log(`[KAN-594] Invalidated subscription cache for org ${organizationId}`);
+    redisLogger.info({ organizationId }, "Invalidated subscription cache");
   } catch (error) {
     // Don't throw - cache invalidation failure shouldn't break the subscription update
-    console.error(`[KAN-594] Failed to invalidate cache for org ${organizationId}:`, error);
+    redisLogger.error({ err: error, organizationId }, "Failed to invalidate subscription cache");
   }
 }
 
@@ -61,8 +62,8 @@ export async function invalidateSubscriptionCacheBulk(organizationIds: string[])
       await redis.del(...allKeys);
     }
 
-    console.log(`[KAN-594] Bulk invalidated subscription cache for ${organizationIds.length} orgs`);
+    redisLogger.info({ count: organizationIds.length }, "Bulk invalidated subscription cache");
   } catch (error) {
-    console.error(`[KAN-594] Failed to bulk invalidate cache:`, error);
+    redisLogger.error({ err: error, count: organizationIds.length }, "Failed to bulk invalidate subscription cache");
   }
 }

@@ -114,9 +114,9 @@ export async function action({ request }: ActionFunctionArgs) {
         customerEmail: email,
         customerName: `${firstName} ${lastName}`,
         shopName: ctx.org.name,
-        subdomain: ctx.tenant.subdomain,
+        subdomain: ctx.org.slug,
         resetToken,
-        tenantId: ctx.tenant.id,
+        tenantId: ctx.org.id,
       });
 
       return redirect(redirectWithNotification(

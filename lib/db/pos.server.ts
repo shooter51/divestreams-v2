@@ -236,30 +236,121 @@ export async function processPOSCheckout(
     notes?: string;
   }
 ) {
-  // SECURITY: Validate payment amounts match calculated totals
-  // Recalculate subtotal from items to prevent manipulation
-  const calculatedSubtotal = data.items.reduce((sum, item) => sum + item.total, 0);
+  // SECURITY: Look up actual prices from the database instead of trusting
+  // client-submitted unitPrice values. This prevents price manipulation attacks.
+  const productItems = data.items.filter((item): item is CartItem & { type: "product" } => item.type === "product");
+  const bookingItems = data.items.filter((item): item is CartItem & { type: "booking" } => item.type === "booking");
+  const rentalItems = data.items.filter((item): item is CartItem & { type: "rental" } => item.type === "rental");
 
-  // Verify client-provided subtotal matches calculated subtotal
-  if (Math.abs(calculatedSubtotal - data.subtotal) > 0.01) {
-    throw new Error(
-      `Payment validation failed: Subtotal mismatch. Expected ${calculatedSubtotal.toFixed(2)}, received ${data.subtotal.toFixed(2)}`
-    );
+  // Fetch actual product prices from database
+  let serverSubtotal = 0;
+
+  if (productItems.length > 0) {
+    const productIds = productItems.map(p => p.productId);
+    const dbProducts = await db
+      .select({
+        id: tables.products.id,
+        price: tables.products.price,
+        salePrice: tables.products.salePrice,
+        saleStartDate: tables.products.saleStartDate,
+        saleEndDate: tables.products.saleEndDate,
+      })
+      .from(tables.products)
+      .where(
+        and(
+          eq(tables.products.organizationId, organizationId),
+          inArray(tables.products.id, productIds)
+        )
+      );
+
+    const productPriceMap = new Map(dbProducts.map(p => {
+      // Use sale price if currently active, otherwise regular price
+      const now = new Date();
+      const isSaleActive = p.salePrice &&
+        (!p.saleStartDate || p.saleStartDate <= now) &&
+        (!p.saleEndDate || p.saleEndDate >= now);
+      const effectivePrice = isSaleActive ? Number(p.salePrice) : Number(p.price);
+      return [p.id, effectivePrice];
+    }));
+
+    for (const item of productItems) {
+      const dbPrice = productPriceMap.get(item.productId);
+      if (dbPrice === undefined) {
+        throw new Error(`Product not found: ${item.productId}`);
+      }
+      // Override client-submitted prices with server-verified prices
+      item.unitPrice = dbPrice;
+      item.total = dbPrice * item.quantity;
+      serverSubtotal += item.total;
+    }
   }
 
-  // Verify total = subtotal + tax (allowing 1 cent rounding difference)
-  const calculatedTotal = data.subtotal + data.tax;
-  if (Math.abs(calculatedTotal - data.total) > 0.01) {
-    throw new Error(
-      `Payment validation failed: Total mismatch. Expected ${calculatedTotal.toFixed(2)}, received ${data.total.toFixed(2)}`
-    );
+  // Fetch actual trip prices for booking items
+  if (bookingItems.length > 0) {
+    for (const item of bookingItems) {
+      const [tripRow] = await db
+        .select({
+          tripPrice: tables.trips.price,
+          tourPrice: tables.tours.price,
+        })
+        .from(tables.trips)
+        .innerJoin(tables.tours, eq(tables.trips.tourId, tables.tours.id))
+        .where(
+          and(
+            eq(tables.trips.organizationId, organizationId),
+            eq(tables.trips.id, item.tripId)
+          )
+        )
+        .limit(1);
+
+      if (!tripRow) {
+        throw new Error(`Trip not found: ${item.tripId}`);
+      }
+
+      const dbPrice = Number(tripRow.tripPrice || tripRow.tourPrice);
+      item.unitPrice = dbPrice;
+      item.total = dbPrice * item.participants;
+      serverSubtotal += item.total;
+    }
   }
 
-  // Verify payment amounts sum to transaction total
+  // Fetch actual rental prices for equipment items
+  if (rentalItems.length > 0) {
+    for (const item of rentalItems) {
+      const [equipRow] = await db
+        .select({ rentalPrice: tables.equipment.rentalPrice })
+        .from(tables.equipment)
+        .where(
+          and(
+            eq(tables.equipment.organizationId, organizationId),
+            eq(tables.equipment.id, item.equipmentId)
+          )
+        )
+        .limit(1);
+
+      if (!equipRow || !equipRow.rentalPrice) {
+        throw new Error(`Equipment not found or not rentable: ${item.equipmentId}`);
+      }
+
+      const dbDailyRate = Number(equipRow.rentalPrice);
+      item.dailyRate = dbDailyRate;
+      item.total = dbDailyRate * item.days;
+      serverSubtotal += item.total;
+    }
+  }
+
+  // Recalculate totals using server-verified prices
+  const calculatedTotal = serverSubtotal + data.tax;
+
+  // Override client-submitted totals with server-calculated values
+  data.subtotal = serverSubtotal;
+  data.total = calculatedTotal;
+
+  // Verify payment amounts sum to server-calculated total
   const paymentTotal = data.payments.reduce((sum, p) => sum + p.amount, 0);
   if (Math.abs(paymentTotal - data.total) > 0.01) {
     throw new Error(
-      `Payment validation failed: Payment amounts (${paymentTotal.toFixed(2)}) do not match transaction total (${data.total.toFixed(2)})`
+      `Payment validation failed: Payment amounts (${paymentTotal.toFixed(2)}) do not match server-calculated total (${data.total.toFixed(2)})`
     );
   }
 

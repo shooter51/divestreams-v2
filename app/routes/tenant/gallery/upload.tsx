@@ -14,6 +14,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { uploadToB2, getImageKey, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { createGalleryImage } from "../../../../lib/db/gallery.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
+import { storageLogger } from "../../../../lib/logger";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -119,7 +120,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
       uploadedCount++;
     } catch (error) {
-      console.error(`Failed to upload gallery image ${file.name}:`, error);
+      storageLogger.error({ err: error, filename: file.name }, "Failed to upload gallery image");
       failedFiles.push(`${file.name} (upload failed)`);
     }
   }

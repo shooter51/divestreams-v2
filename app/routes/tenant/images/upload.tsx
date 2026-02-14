@@ -11,6 +11,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { uploadToB2, getImageKey, getWebPMimeType } from "../../../../lib/storage";
 import { processImage, isValidImageType } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { storageLogger } from "../../../../lib/logger";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_IMAGES_PER_ENTITY = 5;
@@ -100,7 +101,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Upload to B2
     const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
     if (!originalUpload) {
-      console.error("B2 storage not configured. Missing environment variables: B2_ENDPOINT, B2_KEY_ID, B2_APP_KEY");
+      storageLogger.error("B2 storage not configured - missing environment variables");
       return Response.json(
         { error: "Image storage is not configured. Please contact support." },
         { status: 503 }
@@ -155,7 +156,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     );
   } catch (error) {
-    console.error("Image upload error:", error);
+    storageLogger.error({ err: error }, "Image upload error");
 
     // Provide more specific error message in development
     const errorMessage = process.env.NODE_ENV === "development" && error instanceof Error

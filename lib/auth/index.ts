@@ -30,8 +30,20 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // TODO: Enable before production launch - currently disabled for development
-    sendResetPassword: async ({ user, url }) => {
+    requireEmailVerification: true,
+    sendVerificationEmail: async ({ user, url }: { user: { email: string; name: string | null }; url: string }) => {
+      await sendEmail({
+        to: user.email,
+        subject: "Verify your DiveStreams email",
+        html: `
+          <p>Hi ${user.name || "there"},</p>
+          <p>Please verify your email address by clicking the link below:</p>
+          <p><a href="${url}">Verify Email</a></p>
+          <p>This link expires in 24 hours.</p>
+        `,
+      });
+    },
+    sendResetPassword: async ({ user, url }: { user: { email: string; name: string | null }; url: string }) => {
       await sendEmail({
         to: user.email,
         subject: "Reset your DiveStreams password",

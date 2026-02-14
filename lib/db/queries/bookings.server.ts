@@ -318,84 +318,73 @@ export async function recordPayment(organizationId: string, data: {
 }) {
   const { bookingId, amount, paymentMethod, notes } = data;
 
-  // SECURITY: Validate payment amount doesn't exceed remaining balance
-  const [booking] = await db
-    .select({
-      total: schema.bookings.total,
-      paidAmount: schema.bookings.paidAmount,
-    })
-    .from(schema.bookings)
-    .where(eq(schema.bookings.id, bookingId));
-
-  if (!booking) {
-    throw new Error("Booking not found");
-  }
-
-  const totalDue = Number(booking.total);
-  const alreadyPaid = Number(booking.paidAmount || 0);
-  const remainingBalance = totalDue - alreadyPaid;
-
-  // Allow overpayment by max 1 cent (for rounding)
-  if (amount > remainingBalance + 0.01) {
-    throw new Error(
-      `Payment amount ($${amount.toFixed(2)}) exceeds remaining balance ($${remainingBalance.toFixed(2)})`
-    );
-  }
-
   if (amount <= 0) {
     throw new Error("Payment amount must be greater than zero");
   }
 
-  // Create the transaction record
-  const [transaction] = await db
-    .insert(schema.transactions)
-    .values({
-      organizationId,
-      bookingId,
-      type: "payment",
-      amount: String(amount),
-      paymentMethod,
-      notes,
-    })
-    .returning();
+  // Wrap the entire payment recording in a transaction for atomicity.
+  // This prevents race conditions where two payments could be recorded
+  // simultaneously and both pass the balance check.
+  return await db.transaction(async (tx) => {
+    // Lock the booking row and validate payment amount
+    const [booking] = await tx
+      .select({
+        total: schema.bookings.total,
+        paidAmount: schema.bookings.paidAmount,
+      })
+      .from(schema.bookings)
+      .where(
+        and(
+          eq(schema.bookings.id, bookingId),
+          eq(schema.bookings.organizationId, organizationId)
+        )
+      )
+      .for("update");
 
-  // Update the booking's paid amount
-  const updatedPaidAmount = alreadyPaid + amount;
-  await db
-    .update(schema.bookings)
-    .set({
-      paidAmount: String(updatedPaidAmount),
-      paymentStatus: updatedPaidAmount >= totalDue - 0.01 ? "paid" : "partial",
-      updatedAt: new Date(),
-    })
-    .where(eq(schema.bookings.id, bookingId));
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
 
-  if (booking) {
-    const newPaidAmount = Number(booking.paidAmount || 0) + amount;
-    await db
+    const totalDue = Number(booking.total);
+    const alreadyPaid = Number(booking.paidAmount || 0);
+    const remainingBalance = totalDue - alreadyPaid;
+
+    // Allow overpayment by max 1 cent (for rounding)
+    if (amount > remainingBalance + 0.01) {
+      throw new Error(
+        `Payment amount ($${amount.toFixed(2)}) exceeds remaining balance ($${remainingBalance.toFixed(2)})`
+      );
+    }
+
+    // Create the transaction record
+    const [transaction] = await tx
+      .insert(schema.transactions)
+      .values({
+        organizationId,
+        bookingId,
+        type: "payment",
+        amount: String(amount),
+        paymentMethod,
+        notes,
+      })
+      .returning();
+
+    // Atomically update paidAmount using a single SQL expression that adds
+    // to the current value, and determine paymentStatus in the same UPDATE.
+    const newPaidAmount = alreadyPaid + amount;
+    const newPaymentStatus = newPaidAmount >= totalDue - 0.01 ? "paid" : "partial";
+
+    await tx
       .update(schema.bookings)
       .set({
         paidAmount: String(newPaidAmount),
-        paymentStatus: "partial", // Will be updated to "paid" if full
+        paymentStatus: newPaymentStatus,
         updatedAt: new Date(),
       })
       .where(eq(schema.bookings.id, bookingId));
 
-    // Check if fully paid and update status
-    const [updatedBooking] = await db
-      .select({ total: schema.bookings.total, paidAmount: schema.bookings.paidAmount })
-      .from(schema.bookings)
-      .where(eq(schema.bookings.id, bookingId));
-
-    if (updatedBooking && Number(updatedBooking.paidAmount) >= Number(updatedBooking.total)) {
-      await db
-        .update(schema.bookings)
-        .set({ paymentStatus: "paid" })
-        .where(eq(schema.bookings.id, bookingId));
-    }
-  }
-
-  return transaction;
+    return transaction;
+  });
 }
 
 // ============================================================================

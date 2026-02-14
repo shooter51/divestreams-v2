@@ -5,7 +5,7 @@
  * and tour associations.
  */
 
-import { desc, eq, and, sql, asc } from "drizzle-orm";
+import { desc, eq, and, sql, asc, inArray } from "drizzle-orm";
 import { db } from "../index";
 import * as schema from "../schema";
 import { mapDiveSite } from "./mappers";
@@ -170,26 +170,31 @@ export async function getRecentTripsForDiveSite(organizationId: string, siteId: 
     .orderBy(desc(schema.trips.date))
     .limit(limit);
 
-  const result = [];
-  for (const trip of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
-      .from(schema.bookings)
-      .where(and(
-        eq(schema.bookings.tripId, trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+  // Batch query: get participants for all trips at once
+  if (trips.length === 0) return [];
 
-    result.push({
-      id: trip.id,
-      date: trip.date,
-      tourName: trip.tourName,
-      participants: Number(participantsResult[0]?.total || 0),
-      conditions: trip.conditions,
-    });
-  }
+  const tripIds = trips.map(t => t.id);
+  const participantCounts = await db
+    .select({
+      tripId: schema.bookings.tripId,
+      total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+    })
+    .from(schema.bookings)
+    .where(and(
+      inArray(schema.bookings.tripId, tripIds),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ))
+    .groupBy(schema.bookings.tripId);
 
-  return result;
+  const countMap = new Map(participantCounts.map(p => [p.tripId, Number(p.total)]));
+
+  return trips.map(trip => ({
+    id: trip.id,
+    date: trip.date,
+    tourName: trip.tourName,
+    participants: countMap.get(trip.id) || 0,
+    conditions: trip.conditions,
+  }));
 }
 
 export async function getToursUsingDiveSite(organizationId: string, siteId: string, limit = 5) {

@@ -4,7 +4,7 @@
  * All boat-related database operations including CRUD, stats, and trip history.
  */
 
-import { desc, eq, gte, and, sql } from "drizzle-orm";
+import { desc, eq, gte, and, sql, inArray } from "drizzle-orm";
 import { db } from "../index";
 import * as schema from "../schema";
 import { mapBoat } from "./mappers";
@@ -112,30 +112,36 @@ export async function getBoatRecentTrips(organizationId: string, boatId: string,
     .orderBy(desc(schema.trips.date))
     .limit(limit);
 
-  const result = [];
-  for (const trip of trips) {
-    const bookingsResult = await db
-      .select({
-        total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
-        revenue: sql<number>`COALESCE(SUM(CAST(${schema.bookings.total} AS NUMERIC)), 0)`
-      })
-      .from(schema.bookings)
-      .where(and(
-        eq(schema.bookings.tripId, trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+  // Batch query: get participants and revenue for all trips at once
+  if (trips.length === 0) return [];
 
-    result.push({
+  const tripIds = trips.map(t => t.id);
+  const bookingsResults = await db
+    .select({
+      tripId: schema.bookings.tripId,
+      total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+      revenue: sql<number>`COALESCE(SUM(CAST(${schema.bookings.total} AS NUMERIC)), 0)`,
+    })
+    .from(schema.bookings)
+    .where(and(
+      inArray(schema.bookings.tripId, tripIds),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ))
+    .groupBy(schema.bookings.tripId);
+
+  const bookingsMap = new Map(bookingsResults.map(b => [b.tripId, { total: Number(b.total), revenue: Number(b.revenue) }]));
+
+  return trips.map(trip => {
+    const stats = bookingsMap.get(trip.id) || { total: 0, revenue: 0 };
+    return {
       id: trip.id,
       date: formatDateString(trip.date),
       tourName: trip.tourName,
-      participants: Number(bookingsResult[0]?.total || 0),
-      revenue: `$${Number(bookingsResult[0]?.revenue || 0).toFixed(2)}`,
+      participants: stats.total,
+      revenue: `$${stats.revenue.toFixed(2)}`,
       status: trip.status,
-    });
-  }
-
-  return result;
+    };
+  });
 }
 
 export async function getBoatUpcomingTrips(organizationId: string, boatId: string, limit = 5) {
@@ -160,27 +166,32 @@ export async function getBoatUpcomingTrips(organizationId: string, boatId: strin
     .orderBy(schema.trips.date, schema.trips.startTime)
     .limit(limit);
 
-  const result = [];
-  for (const trip of trips) {
-    const participantsResult = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)` })
-      .from(schema.bookings)
-      .where(and(
-        eq(schema.bookings.tripId, trip.id),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      ));
+  // Batch query: get booked participants for all trips at once
+  if (trips.length === 0) return [];
 
-    result.push({
-      id: trip.id,
-      date: formatDateString(trip.date),
-      time: formatTimeString(trip.startTime),
-      tourName: trip.tourName,
-      bookedParticipants: Number(participantsResult[0]?.total || 0),
-      maxParticipants: Number(trip.maxParticipants || 0),
-    });
-  }
+  const tripIds = trips.map(t => t.id);
+  const participantCounts = await db
+    .select({
+      tripId: schema.bookings.tripId,
+      total: sql<number>`COALESCE(SUM(${schema.bookings.participants}), 0)`,
+    })
+    .from(schema.bookings)
+    .where(and(
+      inArray(schema.bookings.tripId, tripIds),
+      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+    ))
+    .groupBy(schema.bookings.tripId);
 
-  return result;
+  const countMap = new Map(participantCounts.map(p => [p.tripId, Number(p.total)]));
+
+  return trips.map(trip => ({
+    id: trip.id,
+    date: formatDateString(trip.date),
+    time: formatTimeString(trip.startTime),
+    tourName: trip.tourName,
+    bookedParticipants: countMap.get(trip.id) || 0,
+    maxParticipants: Number(trip.maxParticipants || 0),
+  }));
 }
 
 export async function getBoatStats(organizationId: string, boatId: string) {

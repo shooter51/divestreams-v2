@@ -6,6 +6,7 @@
  */
 
 import { getRedisConnection } from "../redis.server";
+import { redisLogger } from "../logger";
 
 export interface RateLimitConfig {
   maxAttempts: number;
@@ -60,7 +61,7 @@ export async function checkRateLimit(
 
     if (!results || results.length < 2) {
       // Unexpected Redis response - fail open
-      console.warn("Rate limiter: unexpected Redis MULTI/EXEC response, allowing request");
+      redisLogger.warn("Rate limiter: unexpected Redis MULTI/EXEC response, allowing request");
       return failOpen(config);
     }
 
@@ -69,7 +70,7 @@ export async function checkRateLimit(
     const [pttlErr, pttl] = results[1] as [Error | null, number];
 
     if (incrErr || pttlErr) {
-      console.warn("Rate limiter: Redis command error, allowing request", incrErr || pttlErr);
+      redisLogger.warn({ err: incrErr || pttlErr }, "Rate limiter: Redis command error, allowing request");
       return failOpen(config);
     }
 
@@ -91,7 +92,7 @@ export async function checkRateLimit(
     return { allowed, remaining, resetAt };
   } catch (error) {
     // Redis unavailable - fail open
-    console.warn("Rate limiter: Redis unavailable, allowing request:", error);
+    redisLogger.warn({ err: error }, "Rate limiter: Redis unavailable, allowing request");
     return failOpen(config);
   }
 }

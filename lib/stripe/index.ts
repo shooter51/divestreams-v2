@@ -3,11 +3,12 @@ import { db } from "../db";
 import { organization, subscription, subscriptionPlans } from "../db/schema";
 import { eq, or } from "drizzle-orm";
 import { invalidateSubscriptionCache } from "../cache/subscription.server";
+import { stripeLogger } from "../logger";
 
 // Initialize Stripe
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 if (!stripeSecretKey) {
-  console.warn("STRIPE_SECRET_KEY not set - Stripe functionality disabled");
+  stripeLogger.warn("STRIPE_SECRET_KEY not set - Stripe functionality disabled");
 }
 
 export const stripe = stripeSecretKey
@@ -145,7 +146,7 @@ export async function createCheckoutSession(
 
       // If customer has a saved payment method, use it directly
       if (defaultPaymentMethodId && typeof defaultPaymentMethodId === "string") {
-        console.log(`✓ Using saved payment method for org ${orgId}: ${defaultPaymentMethodId}`);
+        stripeLogger.info({ organizationId: orgId, paymentMethodId: defaultPaymentMethodId }, "Using saved payment method");
 
         // Check if customer already has an active subscription
         if (sub?.stripeSubscriptionId && sub?.status === "active") {
@@ -179,7 +180,7 @@ export async function createCheckoutSession(
                 },
               });
 
-              console.log(`✓ Updated subscription ${sub.stripeSubscriptionId} to ${planName}`);
+              stripeLogger.info({ subscriptionId: sub.stripeSubscriptionId, planName }, "Updated existing subscription");
 
               // Update local database immediately
               await db
@@ -198,7 +199,7 @@ export async function createCheckoutSession(
               return successUrl;
             }
           } catch (error) {
-            console.error("Failed to modify existing subscription:", error);
+            stripeLogger.error({ err: error, organizationId: orgId }, "Failed to modify existing subscription");
             // Fall through to create new subscription
           }
         }
@@ -215,7 +216,7 @@ export async function createCheckoutSession(
             },
           });
 
-          console.log(`✓ Created subscription ${newSubscription.id} with saved payment method`);
+          stripeLogger.info({ subscriptionId: newSubscription.id, organizationId: orgId }, "Created subscription with saved payment method");
 
           // Use type assertion for Stripe API response properties
           const subData = newSubscription as unknown as {
@@ -243,18 +244,18 @@ export async function createCheckoutSession(
 
           return successUrl;
         } catch (error) {
-          console.error("Failed to create subscription with saved payment method:", error);
+          stripeLogger.error({ err: error, organizationId: orgId }, "Failed to create subscription with saved payment method");
           // Fall through to Checkout session
         }
       }
     }
   } catch (error) {
-    console.error("Error checking for saved payment method:", error);
+    stripeLogger.error({ err: error, organizationId: orgId }, "Error checking for saved payment method");
     // Fall through to Checkout session
   }
 
   // No saved payment method OR modification failed - redirect to Checkout
-  console.log(`→ Redirecting to Checkout for org ${orgId} (no saved payment method)`);
+  stripeLogger.info({ organizationId: orgId }, "Redirecting to Checkout (no saved payment method)");
 
   // Check if customer already has an active subscription
   if (sub?.stripeSubscriptionId && sub?.status === "active") {
@@ -291,7 +292,7 @@ export async function createCheckoutSession(
         return successUrl;
       }
     } catch (error) {
-      console.error("Failed to modify existing subscription:", error);
+      stripeLogger.error({ err: error, organizationId: orgId }, "Failed to modify existing subscription via Checkout path");
       // Fall through to create new subscription if modification fails
     }
   }
@@ -397,12 +398,11 @@ export async function createSetupSession(
 export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subscription) {
   const orgId = stripeSubscription.metadata.organizationId || stripeSubscription.metadata.tenantId;
   if (!orgId) {
-    console.error("❌ No organizationId in subscription metadata:", stripeSubscription.id);
+    stripeLogger.error({ subscriptionId: stripeSubscription.id }, "No organizationId in subscription metadata");
     return;
   }
 
-  console.log(`📥 Processing subscription update for org ${orgId}: ${stripeSubscription.id}`);
-  console.log(`   Status: ${stripeSubscription.status}`);
+  stripeLogger.info({ organizationId: orgId, subscriptionId: stripeSubscription.id, status: stripeSubscription.status }, "Processing subscription update");
 
   // KAN-627 FIX: Map Stripe subscription status correctly
   let status: "active" | "trialing" | "past_due" | "canceled";
@@ -426,7 +426,7 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
       status = "trialing";
       break;
     default:
-      console.warn(`⚠️ Unknown subscription status: ${stripeSubscription.status}`);
+      stripeLogger.warn({ status: stripeSubscription.status }, "Unknown subscription status");
       status = "trialing";
   }
 
@@ -442,7 +442,7 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
   const item = stripeSubscription.items.data[0];
   const priceId = item?.price?.id;
 
-  console.log(`   Price ID: ${priceId}`);
+  stripeLogger.info({ priceId }, "Subscription price ID");
 
   // Look up the plan by matching the price ID (monthly or yearly)
   let planId: string | null = null;
@@ -463,9 +463,9 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
     if (matchedPlan) {
       planId = matchedPlan.id;
       planName = matchedPlan.name;
-      console.log(`   ✓ Matched plan: ${planName} (${planId})`);
+      stripeLogger.info({ planName, planId }, "Matched plan from price ID");
     } else {
-      console.warn(`   ⚠️ No plan found for price ID: ${priceId}`);
+      stripeLogger.warn({ priceId }, "No plan found for price ID");
     }
   }
 
@@ -485,13 +485,13 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
       })
       .where(eq(subscription.organizationId, orgId));
 
-    console.log(`   ✅ Updated subscription in database: status=${status}, plan=${planName}`);
+    stripeLogger.info({ organizationId: orgId, status, planName }, "Updated subscription in database");
 
     // Invalidate cache so changes are immediately visible
     await invalidateSubscriptionCache(orgId);
-    console.log(`   ✅ Invalidated subscription cache for org ${orgId}`);
+    stripeLogger.info({ organizationId: orgId }, "Invalidated subscription cache");
   } catch (error) {
-    console.error(`   ❌ Failed to update subscription in database:`, error);
+    stripeLogger.error({ err: error, organizationId: orgId }, "Failed to update subscription in database");
     throw error;
   }
 }
@@ -683,7 +683,7 @@ export async function getPaymentMethod(orgId: string): Promise<{
 
     return null;
   } catch (error) {
-    console.error("Error fetching payment method:", error);
+    stripeLogger.error({ err: error, organizationId: orgId }, "Error fetching payment method");
     return null;
   }
 }

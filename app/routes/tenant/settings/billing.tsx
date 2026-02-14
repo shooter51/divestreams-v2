@@ -247,7 +247,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireRole } = await import("../../../../lib/auth/org-context.server");
   const ctx = await requireOrgContext(request);
+
+  // Billing actions (upgrade, cancel, payment changes) require owner role only
+  requireRole(ctx, ["owner"]);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
 

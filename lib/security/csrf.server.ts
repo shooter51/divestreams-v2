@@ -192,15 +192,11 @@ export async function requireCsrf(
     return;
   }
 
-  // Validate the token - currently optional (log warning only)
-  // Once all forms include the CSRF input, change this to throw 403
   if (!token) {
-    // Token missing - log for monitoring but don't block yet
-    // This allows gradual rollout without breaking existing forms
-    console.warn(
-      `[CSRF] Missing token for ${request.method} ${url.pathname} (session: ${sessionId.substring(0, 8)}...)`
-    );
-    return;
+    throw new Response("Forbidden: Missing CSRF token", {
+      status: 403,
+      statusText: "Forbidden",
+    });
   }
 
   if (!validateCsrfToken(sessionId, token)) {

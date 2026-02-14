@@ -19,7 +19,7 @@ import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { syncBookingCancellationToCalendar } from "../../../../lib/integrations/google-calendar-bookings.server";
-import { StatusBadge, type BadgeStatus } from "../../../../components/ui";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 
 // ============================================================================
 // TYPES

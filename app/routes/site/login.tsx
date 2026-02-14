@@ -30,6 +30,7 @@ import {
   getCustomerBySession,
 } from "../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -159,6 +160,21 @@ export async function action({ request }: ActionFunctionArgs) {
     throw new Response("Organization not found", { status: 404 });
   }
 
+  // Rate limiting - 10 login attempts per 15 minutes per IP
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`site-login:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    const minutesUntilReset = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
+    const rateLimitErrors: ActionErrors = {
+      form: `Too many login attempts. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+    };
+    return { errors: rateLimitErrors, email: "" };
+  }
+
   const formData = await request.formData();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -201,8 +217,9 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     // Login failed
+    const loginErrors: ActionErrors = { form: "Invalid email or password" };
     return {
-      errors: { form: "Invalid email or password" },
+      errors: loginErrors,
       email,
     };
   }

@@ -102,7 +102,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   // Import server-only modules inline to prevent client bundle leakage
-  const { requireOrgContext } = await import("../../../../lib/auth/org-context.server");
+  const { requireOrgContext, requireRole } = await import("../../../../lib/auth/org-context.server");
   const { db } = await import("../../../../lib/db");
   const { member, user, invitation } = await import("../../../../lib/db/schema");
   const { eq, and } = await import("drizzle-orm");
@@ -111,6 +111,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const { resetUserPassword } = await import("../../../../lib/auth/admin-password-reset.server");
 
   const ctx = await requireOrgContext(request);
+
+  // Team management actions require owner or admin role
+  requireRole(ctx, ["owner", "admin"]);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
 

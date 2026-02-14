@@ -70,7 +70,7 @@ export function getMaintenanceQueue() {
 // Helper functions to add jobs
 
 export async function sendEmail(
-  type: "booking-confirmation" | "booking-reminder" | "password-reset" | "welcome" | "customer-welcome",
+  type: "booking-confirmation" | "booking-reminder" | "password-reset" | "welcome" | "customer-welcome" | "customer-set-password",
   data: {
     to: string;
     tenantId: string;

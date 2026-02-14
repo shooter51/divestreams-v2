@@ -234,7 +234,7 @@ export default function EquipmentDetailPage() {
               {equipment.status}
             </span>
             <span
-              className={`text-sm px-3 py-1 rounded-full ${conditionColors[equipment.condition]}`}
+              className={`text-sm px-3 py-1 rounded-full ${conditionColors[equipment.condition ?? "good"]}`}
             >
               {equipment.condition}
             </span>

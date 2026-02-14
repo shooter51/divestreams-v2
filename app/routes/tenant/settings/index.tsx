@@ -181,7 +181,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireRole } = await import("../../../../lib/auth/org-context.server");
   const ctx = await requireOrgContext(request);
+
+  // Settings actions (seed data, account deletion) require owner or admin role
+  requireRole(ctx, ["owner", "admin"]);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
 
@@ -235,7 +240,7 @@ export async function action({ request }: ActionFunctionArgs) {
       const [tenant] = await db
         .select()
         .from(tenants)
-        .where(eq(tenants.subdomain, ctx.tenant.subdomain))
+        .where(eq(tenants.subdomain, ctx.org.slug))
         .limit(1);
 
       if (!tenant) {
@@ -272,7 +277,7 @@ export async function action({ request }: ActionFunctionArgs) {
           <p>A tenant has requested account deletion:</p>
           <ul>
             <li><strong>Organization:</strong> ${ctx.org.name}</li>
-            <li><strong>Subdomain:</strong> ${ctx.tenant.subdomain}.divestreams.com</li>
+            <li><strong>Subdomain:</strong> ${ctx.org.slug}.divestreams.com</li>
             <li><strong>Owner Email:</strong> ${ctx.user.email}</li>
             <li><strong>Organization ID:</strong> ${ctx.org.id}</li>
             <li><strong>Tenant ID:</strong> ${tenant.id}</li>
@@ -291,7 +296,7 @@ export async function action({ request }: ActionFunctionArgs) {
 Account Deletion Request
 
 Organization: ${ctx.org.name}
-Subdomain: ${ctx.tenant.subdomain}.divestreams.com
+Subdomain: ${ctx.org.slug}.divestreams.com
 Owner Email: ${ctx.user.email}
 Organization ID: ${ctx.org.id}
 Tenant ID: ${tenant.id}
@@ -312,7 +317,7 @@ Next Steps:
         console.error("CRITICAL: Deletion notification email failed to send", {
           error: emailError,
           tenant: ctx.org.name,
-          subdomain: ctx.tenant.subdomain,
+          subdomain: ctx.org.slug,
           tenantId: tenant.id,
           ownerId: ctx.user.id,
           ownerEmail: ctx.user.email

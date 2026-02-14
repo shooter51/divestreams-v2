@@ -154,6 +154,8 @@ export default [
       route("settings/integrations/zapier", "routes/tenant/settings/integrations/zapier.tsx"),
       route("settings/notifications", "routes/tenant/settings/notifications.tsx"),
       route("settings/booking-widget", "routes/tenant/settings/booking-widget.tsx"),
+      route("settings/password", "routes/tenant/settings/password.tsx"),
+      route("settings/user-profile", "routes/tenant/settings/user-profile.tsx"),
 
       // Public Site Settings (with nested routes for tabs)
       layout("routes/tenant/settings/public-site.tsx", [
@@ -211,11 +213,13 @@ export default [
       route("login", "routes/site/login.tsx"),
       route("register", "routes/site/register.tsx"),
       route("book/:type/:id", "routes/site/book/$type.$id.tsx"),
+      route("book/confirm", "routes/site/book/confirm.tsx"),
 
       // Account routes (protected by layout auth guard)
       layout("routes/site/account/_layout.tsx", [
         route("account", "routes/site/account/index.tsx"),
         route("account/bookings", "routes/site/account/bookings.tsx"),
+        route("account/bookings/:bookingId", "routes/site/account/bookings.$bookingId.tsx"),
         route("account/profile", "routes/site/account/profile.tsx"),
         route("account/logout", "routes/site/account/logout.tsx"),
       ]),

@@ -92,11 +92,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
           const [existingCourse] = await db
             .select()
-            .from(tables.courses)
+            .from(tables.trainingCourses)
             .where(and(
-              eq(tables.courses.organizationId, orgContext.org.id),
-              eq(tables.courses.agencyId, agency.id),
-              eq(tables.courses.code, courseCode || "")
+              eq(tables.trainingCourses.organizationId, orgContext.org.id),
+              eq(tables.trainingCourses.agencyId, agency.id),
+              eq(tables.trainingCourses.code, courseCode || "")
             ))
             .limit(1);
 

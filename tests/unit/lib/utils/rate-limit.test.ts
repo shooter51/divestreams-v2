@@ -19,6 +19,16 @@ let redisThrowOnMulti = false;
 const mockPexpire = vi.fn();
 const mockDel = vi.fn();
 
+// Mock the logger module to avoid pino initialization issues with fake timers
+vi.mock("../../../../lib/logger", () => ({
+  redisLogger: {
+    warn: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 // Mock the Redis module before importing rate-limit
 vi.mock("../../../../lib/redis.server", () => ({
   getRedisConnection: () => ({
@@ -265,16 +275,15 @@ describe("Rate Limit Module", () => {
     it("should allow request when Redis throws an error", async () => {
       redisThrowOnMulti = true;
 
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const { redisLogger } = await import("../../../../lib/logger");
 
       const result = await checkRateLimit("fail-open-test", { maxAttempts: 5, windowMs: 60000 });
       expect(result.allowed).toBe(true);
       expect(result.remaining).toBe(4);
-      expect(warnSpy).toHaveBeenCalled();
+      expect(redisLogger.warn).toHaveBeenCalled();
 
       // Restore
       redisThrowOnMulti = false;
-      warnSpy.mockRestore();
     });
   });
 

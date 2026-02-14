@@ -11,6 +11,7 @@ import { organization } from "../db/schema/auth";
 import { eq, sql } from "drizzle-orm";
 import type { PublicSiteSettings } from "../db/schema/auth";
 import { getBaseDomain } from "../utils/url";
+import { logger } from "../logger";
 
 // ============================================================================
 // TYPES
@@ -127,7 +128,7 @@ export async function resolveBySubdomain(
 
     return result[0] ?? null;
   } catch (error) {
-    console.error("Error resolving organization by subdomain:", error);
+    logger.error({ err: error }, "Error resolving organization by subdomain");
     return null;
   }
 }
@@ -160,7 +161,7 @@ export async function resolveByCustomDomain(
 
     return result[0] ?? null;
   } catch (error) {
-    console.error("Error resolving organization by custom domain:", error);
+    logger.error({ err: error, domain }, "Error resolving organization by custom domain");
     return null;
   }
 }

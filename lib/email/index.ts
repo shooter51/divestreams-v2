@@ -7,6 +7,7 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { escapeHtml } from "../security/sanitize";
+import { emailLogger } from "../logger";
 
 // Lazy transporter initialization
 let transporter: Transporter | null = null;
@@ -19,8 +20,7 @@ function getTransporter() {
     const pass = process.env.SMTP_PASS;
 
     if (!host || !user || !pass) {
-      console.warn("[Email] SMTP not fully configured - missing required credentials");
-      console.warn(`[Email] Configuration status: host=${!!host}, user=${!!user}, pass=${!!pass}`);
+      emailLogger.warn({ hasHost: !!host, hasUser: !!user, hasPass: !!pass }, "SMTP not fully configured - missing required credentials");
       return null;
     }
 
@@ -69,11 +69,11 @@ export async function verifyEmailConnection(): Promise<{ success: boolean; error
 
   try {
     await transport.verify();
-    console.log("[Email] ✅ SMTP connection verified successfully");
+    emailLogger.info("SMTP connection verified successfully");
     return { success: true };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("[Email] ❌ SMTP connection verification failed:", errorMessage);
+    emailLogger.error({ err: error }, "SMTP connection verification failed");
     return { success: false, error: errorMessage };
   }
 }
@@ -85,11 +85,11 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     // SMTP not configured - log for development but return false in production
     const isDevelopment = process.env.NODE_ENV !== "production";
 
-    console.error("[Email] Cannot send email - SMTP not configured");
-    console.log("📧 Email (not sent):");
-    console.log(`   To: ${options.to}`);
-    console.log(`   Subject: ${options.subject}`);
-    console.log(`   Body: ${options.text || options.html.substring(0, 100)}...`);
+    emailLogger.warn({
+      to: options.to,
+      subject: options.subject,
+      preview: (options.text || options.html.substring(0, 100)) + "...",
+    }, "Cannot send email - SMTP not configured");
 
     // In development, pretend it worked for testing
     // In production, return false so calling code knows email failed
@@ -104,11 +104,10 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       html: options.html,
       text: options.text,
     });
-    console.log(`[Email] ✅ Sent to ${options.to}: ${options.subject}`);
+    emailLogger.info({ to: options.to, subject: options.subject }, "Email sent");
     return true;
   } catch (error) {
-    console.error("[Email] ❌ Failed to send:", error);
-    console.error(`[Email] Details: to=${options.to}, subject=${options.subject}`);
+    emailLogger.error({ err: error, to: options.to, subject: options.subject }, "Failed to send email");
     return false;
   }
 }

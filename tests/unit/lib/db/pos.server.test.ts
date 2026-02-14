@@ -99,6 +99,7 @@ vi.mock("../../../../lib/db/schema", () => ({
     category: "category",
     name: "name",
     isRentable: "isRentable",
+    rentalPrice: "rentalPrice",
     status: "status",
     barcode: "barcode",
   },
@@ -108,11 +109,13 @@ vi.mock("../../../../lib/db/schema", () => ({
     tourId: "tourId",
     date: "date",
     startTime: "startTime",
+    price: "price",
     maxParticipants: "maxParticipants",
     status: "status",
   },
   tours: {
     id: "id",
+    price: "price",
     maxParticipants: "maxParticipants",
   },
   bookings: {
@@ -403,6 +406,8 @@ describe("pos.server database functions", () => {
   // ============================================================================
   describe("processPOSCheckout", () => {
     it("should create transaction for product sale", async () => {
+      // Product price lookup query (new server-side validation)
+      mockLimit.mockResolvedValueOnce([{ id: "prod-1", price: "50.00", salePrice: null, saleStartDate: null, saleEndDate: null }]);
       // Query with .limit() - wrapper + thenable consumption
       mockLimit.mockResolvedValueOnce([]); // Consumed by wrapper (ignored)
       mockLimit.mockResolvedValueOnce([{ count: 0 }]); // Consumed by thenable (used)
@@ -442,6 +447,8 @@ describe("pos.server database functions", () => {
     });
 
     it("should process booking items", async () => {
+      // Trip price lookup query (new server-side validation)
+      mockLimit.mockResolvedValueOnce([{ tripPrice: "100.00", tourPrice: "100.00" }]);
       mockLimit.mockResolvedValueOnce([{ count: 0 }]);
       mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]);
       mockReturning.mockResolvedValueOnce([]);
@@ -473,6 +480,9 @@ describe("pos.server database functions", () => {
     });
 
     it("should process rental items", async () => {
+      // Equipment price lookup query (new server-side validation) - uses .limit(1) so needs wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // Consumed by limit() wrapper call
+      mockLimit.mockResolvedValueOnce([{ rentalPrice: "20.00" }]); // Consumed by thenable
       // Two queries with .limit() - wrapper calls consume first values, thenable uses second
       mockLimit
         .mockResolvedValueOnce([]) // Consumed by 1st wrapper (ignored)
@@ -514,6 +524,8 @@ describe("pos.server database functions", () => {
     });
 
     it("should handle split payment", async () => {
+      // Product price lookup query (new server-side validation)
+      mockLimit.mockResolvedValueOnce([{ id: "prod-1", price: "100.00", salePrice: null, saleStartDate: null, saleEndDate: null }]);
       mockLimit.mockResolvedValueOnce([{ count: 0 }]);
       mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]);
 

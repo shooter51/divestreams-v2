@@ -592,69 +592,8 @@ export async function action({
   // Determine the trip ID to book
   const tripId = type === "trip" ? id! : sessionId;
 
-  // Get trip/session details for pricing
-  const [tripData] = await db
-    .select({
-      id: trips.id,
-      tourId: trips.tourId,
-      tripPrice: trips.price,
-      tourPrice: tours.price,
-      currency: tours.currency,
-      tripMaxParticipants: trips.maxParticipants,
-      tourMaxParticipants: tours.maxParticipants,
-      status: trips.status,
-      date: trips.date,
-    })
-    .from(trips)
-    .innerJoin(tours, eq(trips.tourId, tours.id))
-    .where(
-      and(
-        eq(trips.organizationId, org.id),
-        eq(trips.id, tripId),
-        eq(trips.status, "scheduled")
-      )
-    )
-    .limit(1);
-
-  if (!tripData) {
-    return { errors: { _form: "Session not found or no longer available" } };
-  }
-
-  // Check availability
-  const [bookingCount] = await db
-    .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
-    .from(bookings)
-    .where(
-      and(
-        eq(bookings.tripId, tripId),
-        sql`${bookings.status} NOT IN ('canceled', 'no_show')`
-      )
-    );
-
-  const maxParticipants = Number(
-    tripData.tripMaxParticipants || tripData.tourMaxParticipants
-  );
-  const bookedParticipants = Number(bookingCount?.total || 0);
-  const availableSpots = maxParticipants - bookedParticipants;
-
-  if (participants > availableSpots) {
-    return {
-      errors: {
-        participants: `Only ${availableSpots} spots available`,
-      },
-    };
-  }
-
-  // Check trip is in the future
-  const tripDate = new Date(tripData.date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  if (tripDate < today) {
-    return { errors: { _form: "Cannot book past trips" } };
-  }
-
-  // Find or create customer
+  // Find or create customer (outside the booking transaction to avoid
+  // holding the trip row lock longer than necessary)
   let finalCustomerId = customerId;
 
   if (!customerId) {
@@ -697,70 +636,195 @@ export async function action({
     }
   }
 
-  // Calculate pricing
-  const pricePerPerson = parseFloat(tripData.tripPrice || tripData.tourPrice);
-  let subtotal = pricePerPerson * participants;
-
-  // Add equipment rental costs
-  const equipmentRental: Array<{ item: string; price: number }> = [];
-
-  if (selectedEquipment.length > 0) {
-    const equipmentData = await db
-      .select({
-        id: equipment.id,
-        name: equipment.name,
-        rentalPrice: equipment.rentalPrice,
-      })
-      .from(equipment)
-      .where(
-        and(
-          eq(equipment.organizationId, org.id),
-          sql`${equipment.id} IN (${sql.join(
-            selectedEquipment.map((id) => sql`${id}`),
-            sql`, `
-          )})`
+  // Wrap availability check + booking insert in a transaction with
+  // SELECT ... FOR UPDATE to prevent double-booking race conditions.
+  let newBooking: {
+    id: string;
+    bookingNumber: string;
+    tripDate: string;
+    tripStartTime: string | null;
+    tourName: string;
+    total: string;
+  };
+  try {
+    newBooking = await db.transaction(async (tx) => {
+      // Lock the trip row to prevent concurrent bookings
+      const [tripData] = await tx
+        .select({
+          id: trips.id,
+          tourId: trips.tourId,
+          tourName: tours.name,
+          tripPrice: trips.price,
+          tourPrice: tours.price,
+          currency: tours.currency,
+          tripMaxParticipants: trips.maxParticipants,
+          tourMaxParticipants: tours.maxParticipants,
+          status: trips.status,
+          date: trips.date,
+          startTime: trips.startTime,
+        })
+        .from(trips)
+        .innerJoin(tours, eq(trips.tourId, tours.id))
+        .where(
+          and(
+            eq(trips.organizationId, org.id),
+            eq(trips.id, tripId),
+            eq(trips.status, "scheduled")
+          )
         )
-      );
+        .for("update")
+        .limit(1);
 
-    for (const eq of equipmentData) {
-      if (eq.rentalPrice) {
-        const price = parseFloat(eq.rentalPrice) * participants; // Per person per rental
-        subtotal += price;
-        equipmentRental.push({ item: eq.name, price });
+      if (!tripData) {
+        throw new Error("SESSION_NOT_FOUND");
       }
+
+      // Check trip is in the future
+      const tripDate = new Date(tripData.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (tripDate < today) {
+        throw new Error("TRIP_IN_PAST");
+      }
+
+      // Check availability inside the transaction (while trip row is locked)
+      const [bookingCount] = await tx
+        .select({ total: sql<number>`COALESCE(SUM(${bookings.participants}), 0)` })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.tripId, tripId),
+            sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+          )
+        );
+
+      const maxParticipants = Number(
+        tripData.tripMaxParticipants || tripData.tourMaxParticipants
+      );
+      const bookedParticipants = Number(bookingCount?.total || 0);
+      const availableSpots = maxParticipants - bookedParticipants;
+
+      if (participants > availableSpots) {
+        throw new Error(`INSUFFICIENT_SPOTS:${availableSpots}`);
+      }
+
+      // Calculate pricing
+      const pricePerPerson = parseFloat(tripData.tripPrice || tripData.tourPrice);
+      let subtotal = pricePerPerson * participants;
+
+      // Add equipment rental costs
+      const equipmentRental: Array<{ item: string; price: number }> = [];
+
+      if (selectedEquipment.length > 0) {
+        const equipmentData = await tx
+          .select({
+            id: equipment.id,
+            name: equipment.name,
+            rentalPrice: equipment.rentalPrice,
+          })
+          .from(equipment)
+          .where(
+            and(
+              eq(equipment.organizationId, org.id),
+              sql`${equipment.id} IN (${sql.join(
+                selectedEquipment.map((id) => sql`${id}`),
+                sql`, `
+              )})`
+            )
+          );
+
+        for (const eq of equipmentData) {
+          if (eq.rentalPrice) {
+            const price = parseFloat(eq.rentalPrice) * participants; // Per person per rental
+            subtotal += price;
+            equipmentRental.push({ item: eq.name, price });
+          }
+        }
+      }
+
+      const tax = 0; // Tax calculation can be added later
+      const total = subtotal + tax;
+
+      // Generate booking number
+      const bookingNumber = generateBookingNumber();
+
+      // Insert booking within the same transaction
+      const [booking] = await tx
+        .insert(bookings)
+        .values({
+          organizationId: org.id,
+          bookingNumber,
+          tripId,
+          customerId: finalCustomerId,
+          participants,
+          status: "pending",
+          subtotal: subtotal.toFixed(2),
+          tax: tax.toFixed(2),
+          total: total.toFixed(2),
+          currency: tripData.currency || "USD",
+          paymentStatus: "pending",
+          specialRequests: specialRequests || null,
+          equipmentRental:
+            equipmentRental.length > 0 ? (equipmentRental as any) : null,
+          source: "website",
+        })
+        .returning({
+          id: bookings.id,
+          bookingNumber: bookings.bookingNumber,
+        });
+
+      return {
+        id: booking.id,
+        bookingNumber: booking.bookingNumber,
+        tripDate: tripData.date,
+        tripStartTime: tripData.startTime,
+        tourName: tripData.tourName,
+        total: total.toFixed(2),
+      };
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message === "SESSION_NOT_FOUND") {
+      return { errors: { _form: "Session not found or no longer available" } };
     }
+    if (message === "TRIP_IN_PAST") {
+      return { errors: { _form: "Cannot book past trips" } };
+    }
+    if (message.startsWith("INSUFFICIENT_SPOTS:")) {
+      const spots = message.split(":")[1];
+      return {
+        errors: {
+          participants: `Only ${spots} spots available`,
+        },
+      };
+    }
+    throw error;
   }
 
-  const tax = 0; // Tax calculation can be added later
-  const total = subtotal + tax;
-
-  // Generate booking number
-  const bookingNumber = generateBookingNumber();
-
-  // Create booking with pending_payment status
-  const [newBooking] = await db
-    .insert(bookings)
-    .values({
-      organizationId: org.id,
-      bookingNumber,
-      tripId,
-      customerId: finalCustomerId,
+  // Queue booking confirmation email (fire-and-forget, do not block redirect)
+  try {
+    const { getEmailQueue } = await import("../../../../lib/jobs");
+    const emailQueue = getEmailQueue();
+    await emailQueue.add("booking-confirmation", {
+      to: email || "",
+      customerName: `${firstName || ""} ${lastName || ""}`.trim(),
+      tripName: newBooking.tourName,
+      tripDate: newBooking.tripDate,
+      tripTime: newBooking.tripStartTime || "",
       participants,
-      status: "pending",
-      subtotal: subtotal.toFixed(2),
-      tax: tax.toFixed(2),
-      total: total.toFixed(2),
-      currency: tripData.currency || "USD",
-      paymentStatus: "pending",
-      specialRequests: specialRequests || null,
-      equipmentRental:
-        equipmentRental.length > 0 ? (equipmentRental as any) : null,
-      source: "website",
-    })
-    .returning({
-      id: bookings.id,
-      bookingNumber: bookings.bookingNumber,
+      total: newBooking.total,
+      bookingNumber: newBooking.bookingNumber,
+      shopName: org.name,
+      tenantId: org.id,
+    }, {
+      attempts: 3,
+      backoff: { type: "exponential", delay: 1000 },
     });
+  } catch (emailError) {
+    // Log but do not block the booking flow
+    console.error("Failed to queue booking confirmation email:", emailError);
+  }
 
   // Redirect to confirmation page with booking details
   return redirect(

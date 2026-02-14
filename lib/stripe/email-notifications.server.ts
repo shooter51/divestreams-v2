@@ -7,6 +7,7 @@
 import type Stripe from 'stripe';
 import { sendEmail } from '../email/email.server';
 import { getPaymentSuccessEmail, getPaymentFailedEmail } from '../email/templates';
+import { stripeLogger } from '../logger';
 
 /**
  * Send payment success email from invoice
@@ -23,7 +24,7 @@ export async function sendPaymentSuccessEmail(
     'Valued Customer';
 
   if (!customerEmail) {
-    console.warn('[Stripe Email] No customer email on invoice:', invoice.id);
+    stripeLogger.warn({ invoiceId: invoice.id }, "No customer email on invoice for payment success email");
     return;
   }
 
@@ -54,7 +55,7 @@ export async function sendPaymentSuccessEmail(
   });
 
   if (!result.success) {
-    console.error('[Stripe Email] Failed to send payment success email:', result.error);
+    stripeLogger.error({ error: result.error, invoiceId: invoice.id }, "Failed to send payment success email");
   }
 }
 
@@ -74,7 +75,7 @@ export async function sendPaymentFailedEmail(
     'Valued Customer';
 
   if (!customerEmail) {
-    console.warn('[Stripe Email] No customer email on invoice:', invoice.id);
+    stripeLogger.warn({ invoiceId: invoice.id }, "No customer email on invoice for payment failed email");
     return;
   }
 
@@ -112,7 +113,7 @@ export async function sendPaymentFailedEmail(
   });
 
   if (!result.success) {
-    console.error('[Stripe Email] Failed to send payment failed email:', result.error);
+    stripeLogger.error({ error: result.error, invoiceId: invoice.id }, "Failed to send payment failed email");
   }
 }
 
