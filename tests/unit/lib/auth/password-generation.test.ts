@@ -104,7 +104,7 @@ describe("generateRandomPassword", () => {
     it("should not contain special characters", () => {
       const passwords = Array.from({ length: 50 }, () => generateRandomPassword(100));
       passwords.forEach(password => {
-        expect(password).not.toMatch(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/);
+        expect(password).not.toMatch(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/);
       });
     });
 
