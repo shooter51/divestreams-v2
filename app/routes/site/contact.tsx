@@ -431,7 +431,7 @@ export default function SiteContactPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Name <span className="text-red-500">*</span>
+                  Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -455,7 +455,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.name && (
                   <p
                     id="name-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.name}
@@ -470,7 +470,7 @@ export default function SiteContactPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Email <span className="text-red-500">*</span>
+                  Email <span className="text-danger">*</span>
                 </label>
                 <input
                   type="email"
@@ -494,7 +494,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.email && (
                   <p
                     id="email-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.email}
@@ -532,7 +532,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.phone && (
                   <p
                     id="phone-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.phone}
@@ -547,7 +547,7 @@ export default function SiteContactPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Message <span className="text-red-500">*</span>
+                  Message <span className="text-danger">*</span>
                 </label>
                 <textarea
                   id="contact-message"
@@ -570,7 +570,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.message && (
                   <p
                     id="message-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.message}

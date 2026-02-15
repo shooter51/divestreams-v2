@@ -118,7 +118,7 @@ export default function HomePage() {
       <section className="bg-brand text-white py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Streamline Your Operations?</h2>
-          <p className="text-xl mb-8 text-blue-100">
+          <p className="text-xl mb-8 text-white/80">
             Join dive shops worldwide who trust DiveStreams to run their business.
           </p>
           <div className="flex flex-col items-center gap-3">
@@ -128,7 +128,7 @@ export default function HomePage() {
             >
               Start Your 14-Day Free Trial
             </a>
-            <p className="text-sm text-blue-100">No credit card required • Cancel anytime</p>
+            <p className="text-sm text-white/80">No credit card required • Cancel anytime</p>
           </div>
         </div>
       </section>

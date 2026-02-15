@@ -152,7 +152,7 @@ function TourCard({
             {inclusions.map((inc) => (
               <span
                 key={inc}
-                className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded"
+                className="text-xs bg-success-muted text-success px-2 py-0.5 rounded"
               >
                 {inc} included
               </span>

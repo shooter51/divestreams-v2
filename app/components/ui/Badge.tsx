@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
  * - error: Red badge for errors
  * - info: Blue brand color badge for informational content
  */
-type BadgeVariant = "default" | "success" | "warning" | "error" | "info";
+type BadgeVariant = "default" | "success" | "warning" | "error" | "info" | "accent";
 
 const variantClasses: Record<BadgeVariant, string> = {
   default: "bg-surface-overlay text-foreground",
@@ -16,6 +16,7 @@ const variantClasses: Record<BadgeVariant, string> = {
   warning: "bg-warning-muted text-warning",
   error: "bg-danger-muted text-danger",
   info: "bg-brand-muted text-brand",
+  accent: "bg-accent-muted text-accent",
 };
 
 interface BadgeProps {

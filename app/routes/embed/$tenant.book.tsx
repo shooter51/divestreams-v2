@@ -207,7 +207,7 @@ export default function BookingFormPage() {
         Back
       </Link>
 
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Complete Your Booking</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Complete Your Booking</h1>
 
       <div className="grid md:grid-cols-3 gap-8">
         {/* Form */}
@@ -216,7 +216,7 @@ export default function BookingFormPage() {
             <input type="hidden" name="tripId" value={trip.id} />
 
             {actionData?.errors?.form && (
-              <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded">
+              <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded">
                 {actionData.errors.form}
               </div>
             )}
@@ -230,7 +230,7 @@ export default function BookingFormPage() {
                 name="participants"
                 value={participants}
                 onChange={(e) => setParticipants(parseInt(e.target.value, 10))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 {Array.from({ length: Math.min(trip.availableSpots, 10) }, (_, i) => i + 1).map(
                   (num) => (
@@ -241,13 +241,13 @@ export default function BookingFormPage() {
                 )}
               </select>
               {actionData?.errors?.participants && (
-                <p className="text-red-600 dark:text-red-400 text-sm mt-1">{actionData.errors.participants}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.participants}</p>
               )}
             </div>
 
             {/* Contact Details */}
             <fieldset>
-              <legend className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Contact Details</legend>
+              <legend className="text-lg font-semibold mb-4 text-foreground">Contact Details</legend>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -259,10 +259,10 @@ export default function BookingFormPage() {
                     name="firstName"
                     defaultValue={actionData?.values?.firstName || ""}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   {actionData?.errors?.firstName && (
-                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{actionData.errors.firstName}</p>
+                    <p className="text-danger text-sm mt-1">{actionData.errors.firstName}</p>
                   )}
                 </div>
 
@@ -275,10 +275,10 @@ export default function BookingFormPage() {
                     name="lastName"
                     defaultValue={actionData?.values?.lastName || ""}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   {actionData?.errors?.lastName && (
-                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{actionData.errors.lastName}</p>
+                    <p className="text-danger text-sm mt-1">{actionData.errors.lastName}</p>
                   )}
                 </div>
               </div>
@@ -293,10 +293,10 @@ export default function BookingFormPage() {
                     name="email"
                     defaultValue={actionData?.values?.email || ""}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   {actionData?.errors?.email && (
-                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{actionData.errors.email}</p>
+                    <p className="text-danger text-sm mt-1">{actionData.errors.email}</p>
                   )}
                 </div>
 
@@ -308,7 +308,7 @@ export default function BookingFormPage() {
                     type="tel"
                     name="phone"
                     defaultValue={actionData?.values?.phone || ""}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
               </div>
@@ -324,7 +324,7 @@ export default function BookingFormPage() {
                 rows={3}
                 defaultValue={actionData?.values?.specialRequests || ""}
                 placeholder="Allergies, dietary requirements, accessibility needs, etc."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg bg-surface-raised text-foreground placeholder-foreground-subtle focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -347,7 +347,7 @@ export default function BookingFormPage() {
         {/* Order Summary */}
         <div>
           <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 sticky top-4">
-            <h3 className="font-semibold mb-4 text-gray-900 dark:text-gray-100">Booking Summary</h3>
+            <h3 className="font-semibold mb-4 text-foreground">Booking Summary</h3>
 
             {trip.primaryImage && (
               <img
@@ -357,7 +357,7 @@ export default function BookingFormPage() {
               />
             )}
 
-            <h4 className="font-medium text-gray-900 dark:text-gray-100">{trip.tourName}</h4>
+            <h4 className="font-medium text-foreground">{trip.tourName}</h4>
 
             <div className="text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
               <div className="flex items-center gap-2">
@@ -376,14 +376,14 @@ export default function BookingFormPage() {
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4 space-y-2">
-              <div className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
+              <div className="flex justify-between text-sm text-foreground">
                 <span>
                   {formatPrice(pricePerPerson, trip.currency)} × {participants}
                 </span>
                 <span>{formatPrice(total, trip.currency)}</span>
               </div>
               <div className="flex justify-between font-semibold text-lg">
-                <span className="text-gray-900 dark:text-gray-100">Total</span>
+                <span className="text-foreground">Total</span>
                 <span style={{ color: branding.primaryColor }}>
                   {formatPrice(total, trip.currency)}
                 </span>
@@ -392,11 +392,11 @@ export default function BookingFormPage() {
 
             {/* Whats included */}
             <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
-              <h4 className="text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">What's Included</h4>
+              <h4 className="text-sm font-medium mb-2 text-foreground">What's Included</h4>
               <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                 {trip.includesEquipment && (
                   <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     Equipment
@@ -404,7 +404,7 @@ export default function BookingFormPage() {
                 )}
                 {trip.includesMeals && (
                   <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     Meals
@@ -412,7 +412,7 @@ export default function BookingFormPage() {
                 )}
                 {trip.includesTransport && (
                   <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     Transport

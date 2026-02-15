@@ -1057,7 +1057,7 @@ export default function BookingPage() {
                       </p>
                     )}
                     {actionData?.errors?.sessionId && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-danger text-sm mt-1">
                         {actionData.errors.sessionId}
                       </p>
                     )}
@@ -1125,7 +1125,7 @@ export default function BookingPage() {
                 </span>
               </div>
               {actionData?.errors?.participants && (
-                <p className="text-red-500 text-sm mt-2">
+                <p className="text-danger text-sm mt-2">
                   {actionData.errors.participants}
                 </p>
               )}
@@ -1283,7 +1283,7 @@ export default function BookingPage() {
                         required
                       />
                       {actionData?.errors?.firstName && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-danger text-sm mt-1">
                           {actionData.errors.firstName}
                         </p>
                       )}
@@ -1309,7 +1309,7 @@ export default function BookingPage() {
                         required
                       />
                       {actionData?.errors?.lastName && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-danger text-sm mt-1">
                           {actionData.errors.lastName}
                         </p>
                       )}
@@ -1337,7 +1337,7 @@ export default function BookingPage() {
                       required
                     />
                     {actionData?.errors?.email && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-danger text-sm mt-1">
                         {actionData.errors.email}
                       </p>
                     )}
@@ -1389,8 +1389,8 @@ export default function BookingPage() {
 
             {/* Form Error */}
             {actionData?.errors?._form && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600">{actionData.errors._form}</p>
+              <div className="p-4 bg-danger-muted border border-danger rounded-lg">
+                <p className="text-danger">{actionData.errors._form}</p>
               </div>
             )}
           </div>

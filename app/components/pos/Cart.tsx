@@ -149,7 +149,7 @@ export function Cart({
           <button
             onClick={() => onCheckout("cash")}
             disabled={!canCheckout}
-            className="py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
+            className="py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Cash
           </button>
