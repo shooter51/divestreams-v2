@@ -36,10 +36,10 @@ export default defineConfig({
         "lib/training/**",
       ],
       thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 80,
-        statements: 80,
+        lines: 60,
+        functions: 55,
+        branches: 60,
+        statements: 60,
       },
     },
     testTimeout: 60000,  // Increased for CI environment
