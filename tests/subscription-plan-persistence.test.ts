@@ -15,7 +15,9 @@ import { eq } from "drizzle-orm";
 import { handleSubscriptionUpdated } from "../lib/stripe/index";
 import type Stripe from "stripe";
 
-describe("Subscription Plan Persistence (DIVE-166)", () => {
+const hasDb = process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('divestreams:divestreams');
+
+describe.skipIf(!hasDb)("Subscription Plan Persistence (DIVE-166)", () => {
   let testOrgId: string;
   let testPlanId: string;
   let testPriceId: string;

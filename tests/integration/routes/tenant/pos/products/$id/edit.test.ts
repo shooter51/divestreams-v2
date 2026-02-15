@@ -3,10 +3,12 @@ import { getRedirectPathname } from "../../../../../../helpers/redirect";
 import { loader, action } from "../../../../../../../app/routes/tenant/pos/products/$id/edit";
 import * as orgContext from "../../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../../lib/db/queries.server";
+import * as tenantServer from "../../../../../../../lib/db/tenant.server";
 
 // Mock dependencies
 vi.mock("../../../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../../../lib/db/queries.server");
+vi.mock("../../../../../../../lib/db/tenant.server");
 
 describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
   const mockOrganizationId = "123e4567-e89b-12d3-a456-426614174000";
@@ -24,9 +26,38 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
+    } as any);
+
+    // Mock getTenantDb for loader (which fetches product images)
+    const mockSelectBuilder = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockResolvedValue([]),
+    };
+    vi.mocked(tenantServer.getTenantDb).mockReturnValue({
+      db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
+      schema: {
+        images: {
+          id: "id",
+          url: "url",
+          thumbnailUrl: "thumbnail_url",
+          filename: "filename",
+          width: "width",
+          height: "height",
+          alt: "alt",
+          sortOrder: "sort_order",
+          isPrimary: "is_primary",
+          organizationId: "organization_id",
+          entityType: "entity_type",
+          entityId: "entity_id",
+        },
+      },
     } as any);
   });
 

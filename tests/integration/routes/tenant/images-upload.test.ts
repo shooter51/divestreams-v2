@@ -4,7 +4,7 @@ import { getRedirectPathname } from "../../../helpers/redirect";
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
-  requireTenant: vi.fn(),
+  requireOrgContext: vi.fn(),
 }));
 
 vi.mock("../../../../lib/storage", () => ({
@@ -28,21 +28,17 @@ vi.mock("drizzle-orm", () => ({
 }));
 
 import { action } from "../../../../app/routes/tenant/images/upload";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { uploadToB2, processImage, isValidImageType } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 describe("tenant/images/upload route", () => {
-  const mockTenantContext = {
-    tenant: {
-      id: "tenant-1",
-      subdomain: "demo",
-      schemaName: "tenant_demo",
-      name: "Demo Dive Shop",
-      subscriptionStatus: "active",
-      trialEndsAt: null,
-    },
-    organizationId: "org-uuid-123",
+  const mockOrgContext = {
+    org: { id: "org-uuid-123", name: "Demo Dive Shop", subdomain: "demo" },
+    canAddCustomer: true,
+    usage: { customers: 0 },
+    limits: { customers: 100 },
+    isPremium: false,
   };
 
   const mockDb = {
@@ -65,7 +61,7 @@ describe("tenant/images/upload route", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (requireTenant as Mock).mockResolvedValue(mockTenantContext);
+    (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
     (getTenantDb as Mock).mockReturnValue({ db: mockDb, schema: mockSchema });
     (isValidImageType as Mock).mockReturnValue(true);
     (processImage as Mock).mockResolvedValue({
@@ -118,7 +114,7 @@ describe("tenant/images/upload route", () => {
 
       await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(requireTenant).toHaveBeenCalled();
+      expect(requireOrgContext).toHaveBeenCalled();
     });
 
     it("returns error when no file provided", async () => {
@@ -195,7 +191,7 @@ describe("tenant/images/upload route", () => {
 
       for (const entityType of validTypes) {
         vi.clearAllMocks();
-        (requireTenant as Mock).mockResolvedValue(mockTenantContext);
+        (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
         (getTenantDb as Mock).mockReturnValue({ db: mockDb, schema: mockSchema });
         (isValidImageType as Mock).mockReturnValue(true);
         (processImage as Mock).mockResolvedValue({

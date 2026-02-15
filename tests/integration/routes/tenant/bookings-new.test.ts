@@ -24,7 +24,7 @@ vi.mock("react-router", async () => {
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
-  requireTenant: vi.fn(),
+  requireOrgContext: vi.fn(),
 }));
 
 vi.mock("../../../../lib/validation", () => ({
@@ -55,7 +55,7 @@ vi.mock("../../../../lib/email/triggers", () => ({
 }));
 
 import { loader, action } from "../../../../app/routes/tenant/bookings/new";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { validateFormData, getFormValues } from "../../../../lib/validation";
 import {
   getCustomers,
@@ -68,16 +68,13 @@ import {
 import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
 
 describe("tenant/bookings/new route", () => {
-  const mockTenantContext = {
-    tenant: {
-      id: "tenant-1",
-      subdomain: "demo",
-      schemaName: "tenant_demo",
-      name: "Demo Dive Shop",
-      subscriptionStatus: "active",
-      trialEndsAt: null,
-    },
-    organizationId: "org-uuid-123",
+  const mockOrganizationId = "org-uuid-123";
+  const mockOrgContext = {
+    org: { id: mockOrganizationId, name: "Demo Dive Shop", subdomain: "demo" },
+    canAddCustomer: true,
+    usage: { customers: 0 },
+    limits: { customers: 100 },
+    isPremium: false,
   };
 
   const mockCustomers = [
@@ -114,7 +111,7 @@ describe("tenant/bookings/new route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRedirect.mockClear();
-    (requireTenant as Mock).mockResolvedValue(mockTenantContext);
+    (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
     (getCustomers as Mock).mockResolvedValue({ customers: mockCustomers });
     (getTrips as Mock).mockResolvedValue(mockTrips);
     (getEquipment as Mock).mockResolvedValue(mockEquipment);
@@ -126,7 +123,7 @@ describe("tenant/bookings/new route", () => {
 
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(requireTenant).toHaveBeenCalledWith(request);
+      expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("fetches customers, trips, and equipment", async () => {
@@ -256,7 +253,7 @@ describe("tenant/bookings/new route", () => {
 
       await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(requireTenant).toHaveBeenCalled();
+      expect(requireOrgContext).toHaveBeenCalled();
     });
 
     it("returns validation errors when invalid", async () => {

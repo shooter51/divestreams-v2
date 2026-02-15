@@ -17,9 +17,13 @@ vi.mock("../../../../../lib/require-feature.server", () => ({
   requireFeature: vi.fn(),
 }));
 
-vi.mock("../../../../../lib/plan-features", () => ({
-  PLAN_FEATURES: { HAS_EQUIPMENT_BOATS: "has_equipment_boats" },
-}));
+vi.mock("../../../../../lib/plan-features", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    PLAN_FEATURES: { HAS_EQUIPMENT_BOATS: "has_equipment_boats" },
+  };
+});
 
 describe("app/routes/tenant/boats/index.tsx", () => {
   const mockOrganizationId = "org-123";

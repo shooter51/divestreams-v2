@@ -183,9 +183,9 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
       const result = await loader({ request, params: {}, context: {} });
 
       const csvContent = await result.text();
-      // Commas should be replaced with semicolons
-      expect(csvContent).toContain("John Doe; Jr.");
-      expect(csvContent).toContain("Reef Dive; Advanced");
+      // Commas in field values should be properly CSV-escaped with double quotes
+      expect(csvContent).toContain('"John Doe, Jr."');
+      expect(csvContent).toContain('"Reef Dive, Advanced"');
     });
 
     it("should include change percentage in CSV", async () => {

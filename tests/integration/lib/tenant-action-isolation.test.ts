@@ -14,7 +14,6 @@ import type { Mock } from "vitest";
 // Mock the organization context
 vi.mock("../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
-  requireTenant: vi.fn(),
 }));
 
 // Mock database
@@ -37,7 +36,7 @@ vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
-import { requireOrgContext, requireTenant } from "../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { eq, and } from "drizzle-orm";
 
@@ -80,7 +79,7 @@ describe("Tenant Action Isolation", () => {
 
   describe("Customer Creation Isolation", () => {
     it("creates customer with correct organization ID", () => {
-      (requireTenant as Mock).mockResolvedValue(mockTenantContextA);
+      (requireOrgContext as Mock).mockResolvedValue(tenantA);
 
       const customerData = {
         organizationId: mockTenantContextA.organizationId,

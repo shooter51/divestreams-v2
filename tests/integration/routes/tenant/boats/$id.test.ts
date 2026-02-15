@@ -16,10 +16,6 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
-    } as any);
     vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
       org: { id: mockOrganizationId, name: "Test Org", subdomain: "test" },
       user: { id: "user-123", email: "test@example.com" },
