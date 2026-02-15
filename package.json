@@ -42,7 +42,12 @@
     "stripe:verify": "tsx scripts/verify-stripe-prices.ts",
     "stripe:sync-prices": "tsx scripts/sync-stripe-prices.ts",
     "stripe:verify-webhooks": "tsx scripts/verify-stripe-webhooks.ts",
-    "stripe:test-upgrade": "tsx scripts/test-subscription-upgrade.ts"
+    "stripe:test-upgrade": "tsx scripts/test-subscription-upgrade.ts",
+    "pact:consumer": "vitest run tests/pact/consumer",
+    "pact:provider": "vitest run tests/pact/provider",
+    "pact:publish": "node scripts/publish-pacts.mjs",
+    "pact:verify": "npm run pact:provider",
+    "pact:can-deploy": "npx pact-broker can-i-deploy --pacticipant DiveStreamsAPI --version ${GITHUB_SHA:-dev}"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
