@@ -3,7 +3,9 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { diveSites as diveSitesTable } from "../../../../lib/db/schema";
-import { eq, ilike, and } from "drizzle-orm";
+import { eq, ilike, and, inArray, or } from "drizzle-orm";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Dive Sites - DiveStreams" }];
 
@@ -29,6 +31,32 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .from(diveSitesTable)
     .where(and(...conditions));
 
+  // Get tenant database for images query
+  const { db: tenantDb, schema: tenantSchema } = getTenantDb(ctx.org.id);
+
+  // Query primary images for all dive sites
+  const siteIds = rawSites.map(s => s.id);
+  const siteImages = siteIds.length > 0 ? await tenantDb
+    .select({
+      entityId: tenantSchema.images.entityId,
+      thumbnailUrl: tenantSchema.images.thumbnailUrl,
+      url: tenantSchema.images.url,
+    })
+    .from(tenantSchema.images)
+    .where(
+      and(
+        eq(tenantSchema.images.organizationId, ctx.org.id),
+        // Query for both old ("diveSite") and new ("dive-site") entity types for backwards compatibility
+        or(
+          eq(tenantSchema.images.entityType, "diveSite"),
+          eq(tenantSchema.images.entityType, "dive-site")
+        ),
+        eq(tenantSchema.images.isPrimary, true)
+      )
+    ) : [];
+
+  const imageMap = new Map(siteImages.map(img => [img.entityId, img.thumbnailUrl || img.url]));
+
   // Transform to UI format
   const diveSites = rawSites.map((s) => ({
     id: s.id,
@@ -41,6 +69,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     conditions: s.currentStrength || "",
     highlights: s.highlights || [],
     isActive: s.isActive ?? true,
+    imageUrl: imageMap.get(s.id),
   }));
 
   return {
@@ -62,6 +91,9 @@ const difficultyColors: Record<string, string> = {
 export default function DiveSitesPage() {
   const { diveSites, total, search, difficulty } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -136,23 +168,41 @@ export default function DiveSitesPage() {
             <Link
               key={site.id}
               to={`/tenant/dive-sites/${site.id}`}
-              className={`bg-surface-raised rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow ${
+              className={`bg-surface-raised rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow ${
                 !site.isActive ? "opacity-60" : ""
               }`}
             >
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="font-semibold text-lg">{site.name}</h3>
-                  <p className="text-foreground-muted text-sm">{site.location}</p>
+              {/* Dive Site Image */}
+              {site.imageUrl ? (
+                <div className="w-full h-48 overflow-hidden">
+                  <img
+                    src={site.imageUrl}
+                    alt={site.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    difficultyColors[site.difficulty]
-                  }`}
-                >
-                  {site.difficulty}
-                </span>
-              </div>
+              ) : (
+                <div className="w-full h-48 bg-surface-inset flex items-center justify-center">
+                  <svg className="w-16 h-16 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+
+              <div className="p-5">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="font-semibold text-lg">{site.name}</h3>
+                    <p className="text-foreground-muted text-sm">{site.location}</p>
+                  </div>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      difficultyColors[site.difficulty]
+                    }`}
+                  >
+                    {site.difficulty}
+                  </span>
+                </div>
 
               <p className="text-sm text-foreground-muted mb-3 line-clamp-2">
                 {site.description}
@@ -178,6 +228,7 @@ export default function DiveSitesPage() {
               {!site.isActive && (
                 <div className="mt-2 text-xs text-accent">Inactive</div>
               )}
+              </div>
             </Link>
           ))}
         </div>

@@ -51,23 +51,6 @@ const createChainMock = () => {
   chain.offset = vi.fn(() => createThenable([]));
   chain.returning = mockReturning;
 
-  // Transaction support - creates a tx object with the same chain interface
-  chain.transaction = vi.fn(async (fn: (tx: any) => Promise<any>) => {
-    const txChain: Record<string, ReturnType<typeof vi.fn>> = {};
-    txChain.execute = vi.fn().mockResolvedValue(undefined);
-    txChain.select = vi.fn(() => txChain);
-    txChain.from = vi.fn(() => txChain);
-    txChain.where = vi.fn(() => txChain);
-    txChain.insert = vi.fn(() => txChain);
-    txChain.values = vi.fn(() => txChain);
-    txChain.limit = vi.fn(() => txChain);
-    txChain.returning = vi.fn().mockResolvedValue([{ id: "book-1", bookingNumber: "BK123" }]);
-    txChain.then = (resolve: (value: unknown[]) => void) => {
-      return Promise.resolve([{ maxParticipants: 10, total: 0 }]).then(resolve);
-    };
-    return fn(txChain);
-  });
-
   return chain;
 };
 
@@ -187,6 +170,13 @@ vi.mock("../../../../lib/db/schema", () => ({
     difficulty: "difficulty",
     isActive: "isActive",
   },
+  tourDiveSites: {
+    id: "id",
+    organizationId: "organizationId",
+    tourId: "tourId",
+    diveSiteId: "diveSiteId",
+    createdAt: "createdAt",
+  },
   rentals: {
     id: "id",
     organizationId: "organizationId",
@@ -204,8 +194,24 @@ vi.mock("../../../../lib/db/schema", () => ({
 describe("Server Queries Module", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    const mockOffset = vi.fn(() => Promise.resolve([]));
+    const mockLimitWithOffset = vi.fn(() => ({
+      offset: mockOffset,
+      then: (resolve: any) => resolve([]),
+    }));
     mockLimit.mockResolvedValue([]);
     mockReturning.mockResolvedValue([{ id: "item-1" }]);
+    // Reset where to return mockable chain by default
+    const mockOrderBy = vi.fn(() => ({
+      limit: mockLimitWithOffset,
+      then: (resolve: any) => resolve([]),
+    }));
+    dbMock.where = vi.fn(() => ({
+      limit: mockLimit,
+      orderBy: mockOrderBy,
+      returning: mockReturning,
+      then: (resolve: any) => resolve([]), // For direct await on where()
+    }));
   });
 
   describe("Module exports", () => {
@@ -830,14 +836,6 @@ describe("Server Queries Module", () => {
 
   describe("deleteCustomer", () => {
     it("deletes customer and returns true", async () => {
-      // deleteCustomer checks for active bookings and transactions before deleting
-      // Use mockReturnValueOnce to sequence responses without reassigning dbMock.where
-      dbMock.where
-        .mockReturnValueOnce(createThenable([{ count: 0 }]))  // booking check
-        .mockReturnValueOnce(createThenable([{ count: 0 }]))  // transaction check
-        .mockReturnValueOnce(createThenable([]))               // delete operation
-        .mockReturnValueOnce(createThenable([]));              // delete operation
-
       const { deleteCustomer } = await import("../../../../lib/db/queries.server");
       const result = await deleteCustomer("org-1", "cust-1");
 
@@ -957,13 +955,18 @@ describe("Server Queries Module", () => {
   });
 
   describe("deleteTour", () => {
-    it("deletes tour and related trips when no active bookings", async () => {
-      // deleteTour checks for trip IDs, then deletes trips and tour
-      // Use mockReturnValueOnce to avoid reassigning dbMock.where
-      dbMock.where
-        .mockReturnValueOnce(createThenable([]))  // get trip IDs (empty = no trips)
-        .mockReturnValueOnce(createThenable([]))  // delete trips
-        .mockReturnValueOnce(createThenable([])); // delete tour
+    it("soft deletes tour by setting isActive to false", async () => {
+      // Mock the count query to return 0 trips (allow deletion)
+      const mockOrderBy = vi.fn(() => ({
+        limit: mockLimit,
+        then: (resolve: any) => resolve([]),
+      }));
+      dbMock.where = vi.fn(() => ({
+        limit: mockLimit,
+        orderBy: mockOrderBy,
+        returning: mockReturning,
+        then: (resolve: any) => resolve([{ count: 0 }]),
+      }));
 
       const { deleteTour } = await import("../../../../lib/db/queries.server");
       const result = await deleteTour("org-1", "tour-1");

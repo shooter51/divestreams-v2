@@ -37,7 +37,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const subdomain = getSubdomainFromRequest(request);
     const url = new URL(request.url);
     const baseUrl = `${url.protocol}//${url.host}`;
-    const redirectTo = `${baseUrl}/reset-password`;
+    const redirectTo = `${baseUrl}/auth/reset-password`;
 
     // Call Better Auth password reset API
     await auth.api.requestPasswordReset({

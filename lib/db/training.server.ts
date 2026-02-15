@@ -200,12 +200,13 @@ export async function getCourses(
     isPublic?: boolean;
   }
 ) {
-  let query = db
+  const query = db
     .select({
       id: schema.trainingCourses.id,
       name: schema.trainingCourses.name,
       code: schema.trainingCourses.code,
       description: schema.trainingCourses.description,
+      images: schema.trainingCourses.images,
       durationDays: schema.trainingCourses.durationDays,
       price: schema.trainingCourses.price,
       currency: schema.trainingCourses.currency,
@@ -699,6 +700,90 @@ export async function createEnrollment(data: {
   paymentStatus?: string;
   notes?: string;
 }) {
+  // Validate session exists and get details including pricing
+  const [session] = await db
+    .select({
+      id: schema.trainingSessions.id,
+      status: schema.trainingSessions.status,
+      maxStudents: schema.trainingSessions.maxStudents,
+      enrolledCount: schema.trainingSessions.enrolledCount,
+      priceOverride: schema.trainingSessions.priceOverride,
+      coursePrice: schema.trainingCourses.price,
+    })
+    .from(schema.trainingSessions)
+    .leftJoin(
+      schema.trainingCourses,
+      eq(schema.trainingSessions.courseId, schema.trainingCourses.id)
+    )
+    .where(
+      and(
+        eq(schema.trainingSessions.organizationId, data.organizationId),
+        eq(schema.trainingSessions.id, data.sessionId)
+      )
+    );
+
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  // Check if session is cancelled
+  if (session.status === "cancelled") {
+    throw new Error("Cannot enroll in a cancelled session");
+  }
+
+  // Check if session is full (allow enrollments for scheduled, in_progress, and completed sessions)
+  if (session.maxStudents && session.enrolledCount >= session.maxStudents) {
+    throw new Error(`Session is full (${session.enrolledCount}/${session.maxStudents} students enrolled)`);
+  }
+
+  // SECURITY: Validate payment amount doesn't exceed session price
+  if (data.amountPaid) {
+    const amountPaid = Number(data.amountPaid);
+    const sessionPrice = Number(session.priceOverride || session.coursePrice || 0);
+
+    if (amountPaid < 0) {
+      throw new Error("Payment amount cannot be negative");
+    }
+
+    // Allow overpayment by max 1 cent (for rounding)
+    if (amountPaid > sessionPrice + 0.01) {
+      throw new Error(
+        `Payment amount (${amountPaid.toFixed(2)}) exceeds session price (${sessionPrice.toFixed(2)})`
+      );
+    }
+  }
+
+  // Validate customer exists
+  const [customer] = await db
+    .select({ id: schema.customers.id })
+    .from(schema.customers)
+    .where(
+      and(
+        eq(schema.customers.organizationId, data.organizationId),
+        eq(schema.customers.id, data.customerId)
+      )
+    );
+
+  if (!customer) {
+    throw new Error("Customer not found");
+  }
+
+  // Check if customer is already enrolled in this session
+  const [existingEnrollment] = await db
+    .select({ id: schema.trainingEnrollments.id })
+    .from(schema.trainingEnrollments)
+    .where(
+      and(
+        eq(schema.trainingEnrollments.sessionId, data.sessionId),
+        eq(schema.trainingEnrollments.customerId, data.customerId)
+      )
+    );
+
+  if (existingEnrollment) {
+    throw new Error("Customer is already enrolled in this session");
+  }
+
+  // Create enrollment
   const [enrollment] = await db
     .insert(schema.trainingEnrollments)
     .values(data)

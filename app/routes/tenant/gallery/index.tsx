@@ -1,18 +1,22 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Gallery - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
-  const albums = await getAllGalleryAlbums(organizationId);
+  const ctx = await requireOrgContext(request);
+  const albums = await getAllGalleryAlbums(ctx.org.id);
   return { albums };
 }
 
 export default function GalleryIndexPage() {
   const { albums } = useLoaderData<typeof loader>();
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div>

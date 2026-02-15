@@ -23,6 +23,7 @@ import {
   type GalleryImageWithAlbum,
   type GalleryAlbumWithImages,
 } from "../../../lib/db/gallery.server";
+import { getSubdomainFromHost } from "../../../lib/utils/url";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -97,28 +98,6 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<GalleryLo
   };
 }
 
-// Helper function to extract subdomain
-function getSubdomainFromHost(host: string): string | null {
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
-
 // ============================================================================
 // Component
 // ============================================================================
@@ -185,12 +164,12 @@ export default function GalleryPage() {
   const hasFilters = filters.albumId || filters.category || (filters.tags && filters.tags.length > 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--background-color)" }}>
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-16">
+      <div className="text-white py-16" style={{ background: "linear-gradient(135deg, var(--primary-color), var(--secondary-color))" }}>
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Photo Gallery</h1>
-          <p className="text-xl text-blue-100">
+          <p className="text-xl text-white/80">
             Explore our underwater adventures and dive experiences
           </p>
         </div>
@@ -200,17 +179,17 @@ export default function GalleryPage() {
         {/* Albums Section */}
         {albums.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Albums</h2>
+            <h2 className="text-2xl font-bold mb-6" style={{ color: "var(--text-color)" }}>Albums</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {albums.map((album) => (
                 <button
                   key={album.id}
                   onClick={() => updateFilter("album", album.id)}
                   className={`group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ${
-                    filters.albumId === album.id ? "ring-4 ring-blue-500" : ""
+                    filters.albumId === album.id ? "ring-4 ring-brand" : ""
                   }`}
                 >
-                  <div className="aspect-w-16 aspect-h-9 bg-gray-200">
+                  <div className="aspect-w-16 aspect-h-9" style={{ backgroundColor: "var(--color-card-bg)", opacity: 0.5 }}>
                     {album.coverImageUrl ? (
                       <img
                         src={album.coverImageUrl}
@@ -224,17 +203,18 @@ export default function GalleryPage() {
                         className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-48 bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center">
+                      <div className="w-full h-48 flex items-center justify-center" style={{ backgroundImage: 'linear-gradient(to bottom right, var(--brand), var(--brand-hover))' }}>
                         <svg className="w-16 h-16 text-white opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                     )}
                   </div>
+                  {/* Intentional dark overlay for image text readability - universal across themes */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end">
                     <div className="p-4 text-white text-left w-full">
                       <h3 className="text-lg font-semibold mb-1">{album.name}</h3>
-                      <p className="text-sm text-gray-200">
+                      <p className="text-sm" style={{ color: "rgba(255, 255, 255, 0.8)" }}>
                         {album.imageCount} {album.imageCount === 1 ? "photo" : "photos"}
                       </p>
                     </div>
@@ -246,19 +226,20 @@ export default function GalleryPage() {
         )}
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="rounded-lg shadow-md p-6 mb-8" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)", borderWidth: "1px" }}>
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex flex-wrap gap-4">
               {/* Category Filter */}
               {categories.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-color)" }}>
                     Category
                   </label>
                   <select
                     value={filters.category || ""}
                     onChange={(e) => updateFilter("category", e.target.value || null)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="block w-full rounded-md border-border shadow-sm focus:border-brand focus:ring-brand"
+                    style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}
                   >
                     <option value="">All Categories</option>
                     {categories.map((cat) => (
@@ -273,7 +254,7 @@ export default function GalleryPage() {
               {/* Tag Filter */}
               {tags.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-color)" }}>
                     Tags
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -287,11 +268,13 @@ export default function GalleryPage() {
                             : [...currentTags, tag];
                           updateFilter("tags", newTags.length > 0 ? newTags.join(",") : null);
                         }}
-                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                          filters.tags?.includes(tag)
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                        }`}
+                        className="px-3 py-1 rounded-full text-sm font-medium transition-colors hover:opacity-90"
+                        style={{
+                          backgroundColor: filters.tags?.includes(tag) ? "var(--primary-color)" : "var(--color-card-bg)",
+                          color: filters.tags?.includes(tag) ? "var(--color-primary-text)" : "var(--text-color)",
+                          borderColor: "var(--color-border)",
+                          borderWidth: "1px",
+                        }}
                       >
                         {tag}
                       </button>
@@ -305,7 +288,7 @@ export default function GalleryPage() {
             {hasFilters && (
               <button
                 onClick={clearFilters}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 whitespace-nowrap"
+                className="text-sm font-medium text-brand hover:text-brand-hover whitespace-nowrap"
               >
                 Clear All Filters
               </button>
@@ -317,7 +300,7 @@ export default function GalleryPage() {
         {images.length > 0 ? (
           <>
             <div className="mb-6">
-              <p className="text-gray-600">
+              <p style={{ color: "var(--text-color)", opacity: 0.7 }}>
                 Showing {images.length} {images.length === 1 ? "photo" : "photos"}
               </p>
             </div>
@@ -326,7 +309,8 @@ export default function GalleryPage() {
                 <button
                   key={image.id}
                   onClick={() => openLightbox(image, index)}
-                  className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 bg-gray-100"
+                  className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+                  style={{ backgroundColor: "var(--color-card-bg)" }}
                 >
                   <div className="aspect-w-1 aspect-h-1">
                     <img
@@ -340,7 +324,7 @@ export default function GalleryPage() {
                     <div className="p-4 text-white text-left w-full">
                       <h3 className="font-semibold text-sm mb-1 line-clamp-1">{image.title}</h3>
                       {image.location && (
-                        <p className="text-xs text-gray-200 line-clamp-1">
+                        <p className="text-xs line-clamp-1" style={{ color: "rgba(255, 255, 255, 0.8)" }}>
                           <svg className="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                           </svg>
@@ -350,7 +334,7 @@ export default function GalleryPage() {
                     </div>
                   </div>
                   {image.isFeatured && (
-                    <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
+                    <div className="absolute top-2 right-2 bg-warning text-white text-xs font-bold px-2 py-1 rounded">
                       Featured
                     </div>
                   )}
@@ -360,11 +344,11 @@ export default function GalleryPage() {
           </>
         ) : (
           <div className="text-center py-16">
-            <svg className="mx-auto h-24 w-24 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="mx-auto h-24 w-24 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: "var(--text-color)", opacity: 0.4 }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No photos found</h3>
-            <p className="text-gray-600 mb-6">
+            <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>No photos found</h3>
+            <p className="mb-6" style={{ color: "var(--text-color)", opacity: 0.7 }}>
               {hasFilters
                 ? "Try adjusting your filters to see more photos."
                 : "Check back soon for our latest dive photos!"}
@@ -372,7 +356,7 @@ export default function GalleryPage() {
             {hasFilters && (
               <button
                 onClick={clearFilters}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand"
               >
                 Clear Filters
               </button>
@@ -389,7 +373,7 @@ export default function GalleryPage() {
         >
           <button
             onClick={closeLightbox}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+            className="absolute top-4 right-4 text-white hover:opacity-80 z-10"
             aria-label="Close lightbox"
           >
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -404,7 +388,7 @@ export default function GalleryPage() {
                 e.stopPropagation();
                 navigateLightbox(-1);
               }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:opacity-80 z-10"
               aria-label="Previous image"
             >
               <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -420,7 +404,7 @@ export default function GalleryPage() {
                 e.stopPropagation();
                 navigateLightbox(1);
               }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:opacity-80 z-10"
               aria-label="Next image"
             >
               <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -444,24 +428,24 @@ export default function GalleryPage() {
             <div className="bg-white/10 backdrop-blur-sm text-white p-6 rounded-lg mt-4 max-w-2xl">
               <h3 className="text-xl font-bold mb-2">{selectedImage.title}</h3>
               {selectedImage.description && (
-                <p className="text-gray-200 mb-4">{selectedImage.description}</p>
+                <p className="mb-4" style={{ color: "rgba(255, 255, 255, 0.9)" }}>{selectedImage.description}</p>
               )}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {selectedImage.location && (
                   <div>
-                    <span className="text-gray-400">Location:</span>
+                    <span style={{ color: "rgba(255, 255, 255, 0.6)" }}>Location:</span>
                     <span className="ml-2">{selectedImage.location}</span>
                   </div>
                 )}
                 {selectedImage.photographer && (
                   <div>
-                    <span className="text-gray-400">Photographer:</span>
+                    <span style={{ color: "rgba(255, 255, 255, 0.6)" }}>Photographer:</span>
                     <span className="ml-2">{selectedImage.photographer}</span>
                   </div>
                 )}
                 {selectedImage.dateTaken && (
                   <div>
-                    <span className="text-gray-400">Date:</span>
+                    <span style={{ color: "rgba(255, 255, 255, 0.6)" }}>Date:</span>
                     <span className="ml-2">
                       {new Date(selectedImage.dateTaken).toLocaleDateString()}
                     </span>
@@ -469,7 +453,7 @@ export default function GalleryPage() {
                 )}
                 {selectedImage.album && (
                   <div>
-                    <span className="text-gray-400">Album:</span>
+                    <span style={{ color: "rgba(255, 255, 255, 0.6)" }}>Album:</span>
                     <span className="ml-2">{selectedImage.album.name}</span>
                   </div>
                 )}
@@ -486,7 +470,7 @@ export default function GalleryPage() {
                   ))}
                 </div>
               )}
-              <div className="mt-4 text-xs text-gray-400">
+              <div className="mt-4 text-xs text-white/60">
                 {lightboxIndex + 1} / {images.length}
               </div>
             </div>

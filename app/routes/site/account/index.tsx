@@ -14,6 +14,7 @@ import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and, gte, desc, sql } from "drizzle-orm";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 
 // ============================================================================
 // TYPES
@@ -28,7 +29,7 @@ interface DashboardBooking {
   trip: {
     id: string;
     date: string;
-    startTime: string;
+    startTime: string | null;
     tour: {
       id: string;
       name: string;
@@ -228,7 +229,7 @@ export default function AccountDashboard() {
         {nextBooking ? (
           <div
             className="rounded-xl border p-6"
-            style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+            style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -254,7 +255,7 @@ export default function AccountDashboard() {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <StatusBadge status={nextBooking.status} />
+                <StatusBadge status={mapBookingStatusToBadgeStatus(nextBooking.status)} />
                 <Link
                   to={`/site/account/bookings`}
                   className="text-sm font-medium transition-opacity hover:opacity-80"
@@ -268,7 +269,7 @@ export default function AccountDashboard() {
         ) : (
           <div
             className="rounded-xl border p-8 text-center"
-            style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+            style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
           >
             <WaveIcon className="w-12 h-12 mx-auto opacity-40 mb-4" />
             <p className="opacity-75">No upcoming bookings</p>
@@ -335,7 +336,7 @@ function StatCard({
   return (
     <div
       className="rounded-xl border p-5"
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div className="flex items-center gap-3">
         <div
@@ -370,7 +371,7 @@ function QuickLinkCard({
     <Link
       to={to}
       className="rounded-xl border p-5 flex items-start gap-4 transition-shadow hover:shadow-md"
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -388,26 +389,22 @@ function QuickLinkCard({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "#fef3c7", text: "#d97706", label: "Pending" },
-    confirmed: { bg: "#d1fae5", text: "#059669", label: "Confirmed" },
-    checked_in: { bg: "#dbeafe", text: "#2563eb", label: "Checked In" },
-    completed: { bg: "#e5e7eb", text: "#6b7280", label: "Completed" },
-    canceled: { bg: "#fee2e2", text: "#dc2626", label: "Canceled" },
-    no_show: { bg: "#fee2e2", text: "#dc2626", label: "No Show" },
+/**
+ * Maps booking status strings to BadgeStatus types
+ * Handles database values like 'canceled' and 'no_show' that don't directly match BadgeStatus
+ */
+function mapBookingStatusToBadgeStatus(status: string): BadgeStatus {
+  // Map database status to BadgeStatus type
+  const statusMap: Record<string, BadgeStatus> = {
+    pending: "pending",
+    confirmed: "confirmed",
+    checked_in: "checked_in",
+    completed: "completed",
+    canceled: "cancelled", // Map to 'cancelled' (UK spelling used in BadgeStatus)
+    no_show: "cancelled", // Map no_show to cancelled as closest match
   };
 
-  const style = statusStyles[status] || statusStyles.pending;
-
-  return (
-    <span
-      className="px-3 py-1 rounded-full text-xs font-medium"
-      style={{ backgroundColor: style.bg, color: style.text }}
-    >
-      {style.label}
-    </span>
-  );
+  return statusMap[status] || "pending";
 }
 
 // ============================================================================
@@ -424,7 +421,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatTime(timeStr: string): string {
+function formatTime(timeStr: string | null): string {
+  if (!timeStr) return "Time TBA";
   const [hours, minutes] = timeStr.split(":");
   const date = new Date();
   date.setHours(parseInt(hours, 10), parseInt(minutes, 10));

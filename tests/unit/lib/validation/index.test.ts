@@ -640,6 +640,7 @@ describe("Validation Module", () => {
       const data = {
         category: "bcd",
         name: "BCD Large",
+        isRentable: false,
       };
       const result = equipmentSchema.safeParse(data);
       expect(result.success).toBe(true);
@@ -648,7 +649,7 @@ describe("Validation Module", () => {
     it("should validate all equipment categories", () => {
       const categories = ["bcd", "regulator", "wetsuit", "mask", "fins", "tank", "computer", "other"];
       categories.forEach((category) => {
-        const data = { category, name: "Test Equipment" };
+        const data = { category, name: "Test Equipment", isRentable: false };
         const result = equipmentSchema.safeParse(data);
         expect(result.success).toBe(true);
       });
@@ -657,7 +658,7 @@ describe("Validation Module", () => {
     it("should validate all status values", () => {
       const statuses = ["available", "rented", "maintenance", "retired"];
       statuses.forEach((status) => {
-        const data = { category: "bcd", name: "Test", status };
+        const data = { category: "bcd", name: "Test", status, isRentable: false };
         const result = equipmentSchema.safeParse(data);
         expect(result.success).toBe(true);
       });
@@ -666,14 +667,14 @@ describe("Validation Module", () => {
     it("should validate all condition values", () => {
       const conditions = ["excellent", "good", "fair", "poor"];
       conditions.forEach((condition) => {
-        const data = { category: "bcd", name: "Test", condition };
+        const data = { category: "bcd", name: "Test", condition, isRentable: false };
         const result = equipmentSchema.safeParse(data);
         expect(result.success).toBe(true);
       });
     });
 
     it("should set default status to available", () => {
-      const data = { category: "bcd", name: "Test" };
+      const data = { category: "bcd", name: "Test", rentalPrice: 10 };
       const result = equipmentSchema.safeParse(data);
       expect(result.success).toBe(true);
       if (result.success) {
@@ -682,7 +683,7 @@ describe("Validation Module", () => {
     });
 
     it("should set default condition to good", () => {
-      const data = { category: "bcd", name: "Test" };
+      const data = { category: "bcd", name: "Test", rentalPrice: 10 };
       const result = equipmentSchema.safeParse(data);
       expect(result.success).toBe(true);
       if (result.success) {
@@ -691,7 +692,7 @@ describe("Validation Module", () => {
     });
 
     it("should set default isRentable to true", () => {
-      const data = { category: "bcd", name: "Test" };
+      const data = { category: "bcd", name: "Test", rentalPrice: 10 };
       const result = equipmentSchema.safeParse(data);
       expect(result.success).toBe(true);
       if (result.success) {

@@ -7,6 +7,7 @@
 
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import { emailLogger } from '../logger';
 
 // Email configuration from environment
 const SMTP_HOST = process.env.SMTP_HOST;
@@ -26,7 +27,7 @@ let transporter: Transporter | null = null;
 
 function getTransporter(): Transporter | null {
   if (!isEmailConfigured()) {
-    console.warn('[Email] SMTP not configured - emails will be logged only');
+    emailLogger.warn('SMTP not configured - emails will be logged only');
     return null;
   }
 
@@ -67,11 +68,11 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
 
   // Log email in development or when SMTP not configured
   if (!transport) {
-    console.log('[Email] Would send email:', {
+    emailLogger.info({
       to: options.to,
       subject: options.subject,
       preview: options.text?.substring(0, 100) + '...',
-    });
+    }, 'Would send email (SMTP not configured)');
     return { success: true, messageId: 'dev-' + Date.now() };
   }
 
@@ -85,15 +86,15 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
       replyTo: options.replyTo,
     });
 
-    console.log('[Email] Sent:', {
+    emailLogger.info({
       messageId: info.messageId,
       to: options.to,
       subject: options.subject,
-    });
+    }, 'Email sent');
 
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('[Email] Failed to send:', error);
+    emailLogger.error({ err: error, to: options.to, subject: options.subject }, 'Failed to send email');
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -112,7 +113,7 @@ export async function verifyEmailConnection(): Promise<boolean> {
     await transport.verify();
     return true;
   } catch (error) {
-    console.error('[Email] Connection verification failed:', error);
+    emailLogger.error({ err: error }, 'SMTP connection verification failed');
     return false;
   }
 }

@@ -170,6 +170,38 @@ export async function getAllGlobalAgencyCourseTemplates() {
 }
 
 /**
+ * Get all available agencies from global templates
+ * Returns unique agency codes with metadata
+ */
+export async function getAvailableAgencies() {
+  const agencies = await db
+    .selectDistinct({ agencyCode: agencyCourseTemplates.agencyCode })
+    .from(agencyCourseTemplates)
+    .where(isNull(agencyCourseTemplates.agencyId))
+    .orderBy(agencyCourseTemplates.agencyCode);
+
+  // Map agency codes to full names
+  const agencyMetadata: Record<string, { name: string; description?: string }> = {
+    "padi": { name: "Professional Association of Diving Instructors", description: "World's leading scuba diving training organization" },
+    "ssi": { name: "Scuba Schools International", description: "International dive training and certification agency" },
+    "naui": { name: "National Association of Underwater Instructors", description: "Non-profit diving certification organization" },
+    "sdi-tdi": { name: "Scuba Diving International / Technical Diving International", description: "Recreational and technical diving certification" },
+    "gue": { name: "Global Underwater Explorers", description: "Technical diving and education organization" },
+    "raid": { name: "Rebreather Association of International Divers", description: "Diving safety and education organization" },
+    "bsac": { name: "British Sub-Aqua Club", description: "UK's leading diving club and training organization" },
+    "cmas": { name: "World Underwater Federation", description: "International federation for underwater activities" },
+    "iantd": { name: "International Association of Nitrox and Technical Divers", description: "Technical diving training organization" },
+    "andi": { name: "American Nitrox Divers International", description: "Nitrox and technical diving certification" },
+  };
+
+  return agencies.map(({ agencyCode }) => ({
+    code: agencyCode,
+    name: agencyCode ? (agencyMetadata[agencyCode]?.name || agencyCode.toUpperCase()) : "UNKNOWN",
+    description: agencyCode ? agencyMetadata[agencyCode]?.description : undefined,
+  }));
+}
+
+/**
  * Legacy: Get templates for a tenant-specific agency
  */
 export async function getAgencyCourseTemplates(agencyId: string) {

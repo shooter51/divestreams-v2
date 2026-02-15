@@ -199,7 +199,7 @@ export default function QuickBooksSettings() {
             ) : (
               <a
                 href="/api/integrations/quickbooks/connect"
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success-hover"
               >
                 Connect QuickBooks
               </a>

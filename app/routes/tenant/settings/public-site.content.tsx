@@ -3,6 +3,7 @@ import { useOutletContext, useFetcher } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
+import { sanitizeIframeEmbed } from "../../../../lib/security/sanitize";
 
 type OutletContextType = {
   settings: PublicSiteSettings;
@@ -51,7 +52,7 @@ export default function PublicSiteContentSettings() {
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words">
           {fetcher.data.message}
         </div>
       )}
@@ -74,7 +75,7 @@ export default function PublicSiteContentSettings() {
                 name="logoUrl"
                 defaultValue={settings.logoUrl || ""}
                 placeholder="https://example.com/logo.png"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
                 Recommended size: 200x60px, PNG or SVG
@@ -91,7 +92,7 @@ export default function PublicSiteContentSettings() {
                 name="heroImageUrl"
                 defaultValue={settings.heroImageUrl || ""}
                 placeholder="https://example.com/hero.jpg"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
                 Recommended size: 1920x600px, JPG
@@ -109,7 +110,7 @@ export default function PublicSiteContentSettings() {
               name="heroVideoUrl"
               defaultValue={settings.heroVideoUrl || ""}
               placeholder="https://example.com/video.mp4"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
             <p className="text-xs text-foreground-muted mt-1">
               Video displayed below hero section. Formats: MP4 (H.264) or WebM. Max 50MB. 16:9 aspect ratio recommended. Will autoplay muted and loop.
@@ -208,7 +209,7 @@ export default function PublicSiteContentSettings() {
                 rows={2}
                 defaultValue={settings.contactInfo?.address || ""}
                 placeholder="123 Ocean Drive, Key Largo, FL 33037"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -223,7 +224,7 @@ export default function PublicSiteContentSettings() {
                   name="contactPhone"
                   defaultValue={settings.contactInfo?.phone || ""}
                   placeholder="+1 (305) 555-0123"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -237,7 +238,7 @@ export default function PublicSiteContentSettings() {
                   name="contactEmail"
                   defaultValue={settings.contactInfo?.email || ""}
                   placeholder="info@yourdiveshop.com"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -252,7 +253,7 @@ export default function PublicSiteContentSettings() {
                 rows={3}
                 defaultValue={settings.contactInfo?.hours || ""}
                 placeholder="Mon-Fri: 8am-6pm, Sat-Sun: 7am-7pm"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -290,13 +291,9 @@ export default function PublicSiteContentSettings() {
                   className="border rounded-lg overflow-hidden"
                   suppressHydrationWarning
                   dangerouslySetInnerHTML={{
-                    __html: settings.contactInfo.mapEmbed.replace(
-                      /width="[^"]*"/,
-                      'width="100%"'
-                    ).replace(
-                      /height="[^"]*"/,
-                      'height="200"'
-                    ),
+                    __html: sanitizeIframeEmbed(settings.contactInfo.mapEmbed || "")
+                      .replace(/width="[^"]*"/, 'width="100%"')
+                      .replace(/height="[^"]*"/, 'height="200"'),
                   }}
                 />
               </div>

@@ -1,14 +1,16 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Booking - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const bookingId = params.id;
 
   if (!bookingId) {
@@ -39,7 +41,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const bookingId = params.id;
 
   if (!bookingId) {
@@ -68,7 +71,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.bookings.organizationId, organizationId), eq(schema.bookings.id, bookingId)));
 
-  return redirect(`/tenant/bookings/${bookingId}`);
+  return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully updated", "success"));
 }
 
 export default function EditBookingPage() {
@@ -127,7 +130,7 @@ export default function EditBookingPage() {
                   min="1"
                   max="20"
                   defaultValue={booking.participants}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -140,12 +143,12 @@ export default function EditBookingPage() {
                   name="status"
                   required
                   defaultValue={booking.status}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="pending">Pending</option>
                   <option value="confirmed">Confirmed</option>
                   <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="canceled">Cancelled</option>
                   <option value="no_show">No Show</option>
                 </select>
               </div>
@@ -161,7 +164,7 @@ export default function EditBookingPage() {
                 rows={3}
                 placeholder="Any special requirements or requests from the customer..."
                 defaultValue={booking.specialRequests}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -175,7 +178,7 @@ export default function EditBookingPage() {
                 rows={3}
                 placeholder="Notes visible only to staff..."
                 defaultValue={booking.internalNotes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>

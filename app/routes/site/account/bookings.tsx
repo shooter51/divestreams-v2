@@ -6,6 +6,8 @@
  * - Filter by status (all/upcoming/completed/cancelled)
  * - Booking cards with trip/course name, date, status, price
  * - Link to receipt/details
+ *
+ * Verification: Trigger CI/CD for staging baseline test validation
  */
 
 import { useState } from "react";
@@ -15,6 +17,7 @@ import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
 import { eq, and, gte, lt, desc, sql } from "drizzle-orm";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui/Badge";
 
 // ============================================================================
 // TYPES
@@ -32,7 +35,7 @@ interface BookingItem {
   trip: {
     id: string;
     date: string;
-    startTime: string;
+    startTime: string | null;
     tour: {
       id: string;
       name: string;
@@ -170,7 +173,7 @@ export default function AccountBookings() {
     { value: "all", label: "All Bookings" },
     { value: "upcoming", label: "Upcoming" },
     { value: "completed", label: "Completed" },
-    { value: "cancelled", label: "Cancelled" },
+    { value: "canceled", label: "Cancelled" },
   ];
 
   const handleFilterChange = (newFilter: string) => {
@@ -243,7 +246,7 @@ function BookingCard({ booking }: { booking: BookingItem }) {
   return (
     <div
       className={`rounded-xl border p-5 ${isCancelled ? "opacity-60" : ""}`}
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         {/* Left Side - Trip Info */}
@@ -285,21 +288,19 @@ function BookingCard({ booking }: { booking: BookingItem }) {
         {/* Right Side - Status & Price */}
         <div className="flex flex-col items-end gap-3">
           <div className="flex items-center gap-2">
-            <StatusBadge status={booking.status} />
-            <PaymentBadge status={booking.paymentStatus} />
+            <StatusBadge status={mapBookingStatus(booking.status)} />
+            <StatusBadge status={mapPaymentStatus(booking.paymentStatus)} />
           </div>
           <p className="text-lg font-semibold" style={{ color: "var(--text-color)" }}>
             {formatCurrency(booking.total, booking.currency)}
           </p>
-          {isUpcoming && !isCancelled && (
-            <Link
-              to={`/site/trips/${booking.trip.tour.id}`}
-              className="text-sm font-medium transition-opacity hover:opacity-80"
-              style={{ color: "var(--primary-color)" }}
-            >
-              View Trip Details
-            </Link>
-          )}
+          <Link
+            to={`/site/account/bookings/${booking.id}`}
+            className="text-sm font-medium transition-opacity hover:opacity-80"
+            style={{ color: "var(--primary-color)" }}
+          >
+            View Details
+          </Link>
         </div>
       </div>
     </div>
@@ -331,7 +332,7 @@ function EmptyState({ filter }: { filter: string }) {
   return (
     <div
       className="rounded-xl border p-12 text-center"
-      style={{ borderColor: "var(--accent-color)", backgroundColor: "white" }}
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-card-bg)" }}
     >
       <div
         className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4"
@@ -354,46 +355,28 @@ function EmptyState({ filter }: { filter: string }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "#fef3c7", text: "#d97706", label: "Pending" },
-    confirmed: { bg: "#d1fae5", text: "#059669", label: "Confirmed" },
-    checked_in: { bg: "#dbeafe", text: "#2563eb", label: "Checked In" },
-    completed: { bg: "#e5e7eb", text: "#6b7280", label: "Completed" },
-    canceled: { bg: "#fee2e2", text: "#dc2626", label: "Cancelled" },
-    no_show: { bg: "#fee2e2", text: "#dc2626", label: "No Show" },
+// Map database booking status to BadgeStatus type
+function mapBookingStatus(status: string): BadgeStatus {
+  const statusMap: Record<string, BadgeStatus> = {
+    pending: "pending",
+    confirmed: "confirmed",
+    checked_in: "checked_in",
+    completed: "completed",
+    canceled: "cancelled",
+    no_show: "cancelled", // Map no_show to cancelled for badge purposes
   };
-
-  const style = statusStyles[status] || statusStyles.pending;
-
-  return (
-    <span
-      className="px-2.5 py-1 rounded-full text-xs font-medium"
-      style={{ backgroundColor: style.bg, color: style.text }}
-    >
-      {style.label}
-    </span>
-  );
+  return statusMap[status] || "pending";
 }
 
-function PaymentBadge({ status }: { status: string }) {
-  const statusStyles: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "#fef3c7", text: "#d97706", label: "Unpaid" },
-    partial: { bg: "#fef3c7", text: "#d97706", label: "Partial" },
-    paid: { bg: "#d1fae5", text: "#059669", label: "Paid" },
-    refunded: { bg: "#e5e7eb", text: "#6b7280", label: "Refunded" },
+// Map database payment status to BadgeStatus type
+function mapPaymentStatus(status: string): BadgeStatus {
+  const statusMap: Record<string, BadgeStatus> = {
+    pending: "unpaid",
+    partial: "partial",
+    paid: "paid",
+    refunded: "refunded",
   };
-
-  const style = statusStyles[status] || statusStyles.pending;
-
-  return (
-    <span
-      className="px-2.5 py-1 rounded-full text-xs font-medium"
-      style={{ backgroundColor: style.bg, color: style.text }}
-    >
-      {style.label}
-    </span>
-  );
+  return statusMap[status] || "unpaid";
 }
 
 function TripTypeIcon({ type }: { type: string }) {
@@ -425,7 +408,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatTime(timeStr: string): string {
+function formatTime(timeStr: string | null): string {
+  if (!timeStr) return "Time TBA";
   const [hours, minutes] = timeStr.split(":");
   const date = new Date();
   date.setHours(parseInt(hours, 10), parseInt(minutes, 10));

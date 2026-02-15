@@ -160,19 +160,19 @@ export default function LevelsPage() {
 
       {/* Success/Error Messages */}
       {actionData?.success && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {actionData.message}
         </div>
       )}
       {actionData?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {actionData.error}
         </div>
       )}
 
       {/* No Agencies Warning */}
       {agencies.length === 0 && (
-        <div className="bg-warning-muted border border-warning text-warning px-4 py-3 rounded-lg mb-6">
+        <div className="bg-warning-muted border border-warning text-warning px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           <p className="font-medium">No certification agencies configured</p>
           <p className="text-sm">
             <Link to="/tenant/settings/training/agencies" className="underline">
@@ -224,7 +224,7 @@ export default function LevelsPage() {
                     required
                     defaultValue={editingLevel?.name || ""}
                     placeholder="e.g., Open Water Diver"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
                 <div>
@@ -238,7 +238,7 @@ export default function LevelsPage() {
                     required
                     defaultValue={editingLevel?.code || ""}
                     placeholder="e.g., OW"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
                 <div>
@@ -252,7 +252,7 @@ export default function LevelsPage() {
                     min="0"
                     defaultValue={editingLevel?.levelNumber || 0}
                     placeholder="1"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   <p className="text-xs text-foreground-muted mt-1">For sorting (1=beginner)</p>
                 </div>
@@ -266,7 +266,7 @@ export default function LevelsPage() {
                   id="agencyId"
                   name="agencyId"
                   defaultValue={editingLevel?.agencyId || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">-- Select Agency (optional) --</option>
                   {agencies.map((agency) => (
@@ -287,7 +287,7 @@ export default function LevelsPage() {
                   rows={2}
                   defaultValue={editingLevel?.description || ""}
                   placeholder="Brief description of this certification level"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -301,7 +301,7 @@ export default function LevelsPage() {
                   rows={2}
                   defaultValue={editingLevel?.prerequisites || ""}
                   placeholder="e.g., Open Water certification required"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -317,7 +317,7 @@ export default function LevelsPage() {
                     min="0"
                     defaultValue={editingLevel?.minAge || ""}
                     placeholder="e.g., 10"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
                 <div>
@@ -331,7 +331,7 @@ export default function LevelsPage() {
                     min="0"
                     defaultValue={editingLevel?.minDives || ""}
                     placeholder="e.g., 4"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
               </div>

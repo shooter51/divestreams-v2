@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader, action } from "../../../../../app/routes/tenant/settings/profile";
 
 // Mock the org-context module
@@ -237,6 +238,7 @@ describe("tenant/settings/profile route", () => {
       it("handles default values for booking settings", async () => {
         const formData = new FormData();
         formData.append("intent", "update-booking-settings");
+        formData.append("depositPercent", "0"); // Default: no deposit required
 
         const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
           method: "POST",
@@ -332,6 +334,7 @@ describe("tenant/settings/profile route", () => {
       const formData = new FormData();
       formData.append("intent", "update-booking-settings");
       formData.append("minAdvanceBooking", "24");
+      formData.append("depositPercent", "25");
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/profile", {
         method: "POST",

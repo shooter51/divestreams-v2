@@ -16,6 +16,7 @@ import {
   getPublicTrips,
   getPublicCourses,
 } from "../../../lib/db/public-site.server";
+import { getSubdomainFromHost } from "../../../lib/utils/url";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -167,30 +168,6 @@ function getYouTubeEmbedUrl(url: string): string {
   return url;
 }
 
-/**
- * Extract subdomain from request host
- */
-function getSubdomainFromHost(host: string): string | null {
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
-
 // ============================================================================
 // Helper Components
 // ============================================================================
@@ -218,8 +195,8 @@ function TripCard({
       to={`/site/trips/${trip.id}`}
       className="group block rounded-xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300"
       style={{
-        backgroundColor: "white",
-        borderColor: "var(--accent-color)",
+        backgroundColor: "var(--color-card-bg)",
+        borderColor: "var(--color-border)",
       }}
     >
       {/* Trip Image */}
@@ -301,8 +278,8 @@ function CourseCard({
       to={`/site/courses/${course.id}`}
       className="group block rounded-xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300"
       style={{
-        backgroundColor: "white",
-        borderColor: "var(--accent-color)",
+        backgroundColor: "var(--color-card-bg)",
+        borderColor: "var(--color-border)",
       }}
     >
       {/* Course Image Placeholder */}
@@ -421,7 +398,7 @@ export default function SiteHomePage() {
                 to="/site/trips"
                 className="px-6 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105"
                 style={{
-                  backgroundColor: "white",
+                  backgroundColor: "var(--color-card-bg)",
                   color: "var(--primary-color)",
                 }}
               >
@@ -462,7 +439,7 @@ export default function SiteHomePage() {
 
       {/* Video Spotlight Section */}
       {settings?.heroVideoUrl && (
-        <section className="py-12 px-4 bg-gradient-to-b from-transparent to-gray-50">
+        <section className="py-12 px-4 bg-gradient-to-b from-transparent to-surface-inset">
           <div className="max-w-6xl mx-auto">
             <div className="relative rounded-xl overflow-hidden shadow-2xl">
               {isYouTubeUrl(settings.heroVideoUrl) ? (
@@ -581,7 +558,7 @@ export default function SiteHomePage() {
                 to="/site/courses"
                 className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
                 style={{
-                  backgroundColor: "white",
+                  backgroundColor: "var(--color-card-bg)",
                   color: "var(--primary-color)",
                 }}
               >
@@ -689,7 +666,7 @@ export default function SiteHomePage() {
               {contactInfo.phone && (
                 <div
                   className="p-6 rounded-xl"
-                  style={{ backgroundColor: "white" }}
+                  style={{ backgroundColor: "var(--color-card-bg)" }}
                 >
                   <div
                     className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4"
@@ -725,7 +702,7 @@ export default function SiteHomePage() {
               {contactInfo.email && (
                 <div
                   className="p-6 rounded-xl"
-                  style={{ backgroundColor: "white" }}
+                  style={{ backgroundColor: "var(--color-card-bg)" }}
                 >
                   <div
                     className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4"
@@ -761,7 +738,7 @@ export default function SiteHomePage() {
               {contactInfo.hours && (
                 <div
                   className="p-6 rounded-xl"
-                  style={{ backgroundColor: "white" }}
+                  style={{ backgroundColor: "var(--color-card-bg)" }}
                 >
                   <div
                     className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4"

@@ -136,14 +136,14 @@ function OrgAvatar({ org, size = "md" }: { org: Org; size?: "sm" | "md" }) {
 
   // Generate a color based on org name for consistent avatar colors
   const colors = [
-    "bg-blue-500",
-    "bg-green-500",
-    "bg-purple-500",
-    "bg-orange-500",
-    "bg-pink-500",
-    "bg-teal-500",
-    "bg-indigo-500",
-    "bg-red-500",
+    "bg-brand",
+    "bg-success",
+    "bg-info",
+    "bg-accent",
+    "bg-warning",
+    "bg-danger",
+    "bg-brand-hover",
+    "bg-success-hover",
   ];
   const colorIndex = org.name.charCodeAt(0) % colors.length;
   const bgColor = colors[colorIndex];

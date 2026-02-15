@@ -1,13 +1,17 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { useState } from "react";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus, recordPayment } from "../../../../lib/db/queries.server";
+import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
+import { redirect } from "react-router";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Booking Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const bookingId = params.id;
 
   if (!bookingId) {
@@ -56,43 +60,53 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const bookingId = params.id!;
 
-  if (intent === "cancel" || intent === "confirm" || intent === "complete" || intent === "no-show") {
-    const statusMap: Record<string, string> = {
-      cancel: "cancelled",
-      confirm: "confirmed",
-      complete: "completed",
-      "no-show": "no_show",
-    };
-    const resultKeyMap: Record<string, string> = {
-      cancel: "cancelled",
-      confirm: "confirmed",
-      complete: "completed",
-      "no-show": "noShow",
-    };
-    try {
-      await updateBookingStatus(organizationId, bookingId, statusMap[intent]);
-      return { [resultKeyMap[intent]]: true };
-    } catch (error) {
-      if (error instanceof Error) {
-        return { error: error.message };
-      }
-      return { error: "Failed to update booking status" };
-    }
+  if (intent === "cancel") {
+    await updateBookingStatus(organizationId, bookingId, "cancelled");
+    return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully cancelled", "success"));
+  }
+
+  if (intent === "confirm") {
+    await updateBookingStatus(organizationId, bookingId, "confirmed");
+    return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully confirmed", "success"));
+  }
+
+  if (intent === "complete") {
+    await updateBookingStatus(organizationId, bookingId, "completed");
+    return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully marked as complete", "success"));
+  }
+
+  if (intent === "no-show") {
+    await updateBookingStatus(organizationId, bookingId, "no_show");
+    return redirect(redirectWithNotification(`/tenant/bookings/${bookingId}`, "Booking has been successfully marked as no-show", "success"));
   }
 
   if (intent === "add-payment") {
-    const amount = parseFloat(formData.get("amount") as string);
+    const amountStr = formData.get("amount") as string;
+    const amount = parseFloat(amountStr);
     const paymentMethod = formData.get("paymentMethod") as string;
     const notes = formData.get("notes") as string;
 
-    if (!amount || amount <= 0) {
-      return { error: "Valid payment amount is required" };
+    // Validate amount is a valid number
+    if (isNaN(amount)) {
+      return { error: "Payment amount must be a valid number" };
     }
+
+    // Allow $0 OR >= $1 (but not $0.01-$0.99)
+    if (amount > 0 && amount < 1) {
+      return { error: "Payment amount must be at least $1 (or $0)" };
+    }
+
+    // Don't allow negative amounts
+    if (amount < 0) {
+      return { error: "Payment amount cannot be negative" };
+    }
+
     if (!paymentMethod) {
       return { error: "Payment method is required" };
     }
@@ -116,15 +130,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
-const statusColors: Record<string, string> = {
-  pending: "bg-warning-muted text-warning",
-  confirmed: "bg-success-muted text-success",
-  completed: "bg-surface-inset text-foreground-muted",
-  cancelled: "bg-danger-muted text-danger",
-  no_show: "bg-accent-muted text-accent",
-};
-
 export default function BookingDetailPage() {
+  useNotification();
+
   const { booking } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ error?: string; message?: string; paymentAdded?: boolean }>();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -163,9 +171,20 @@ export default function BookingDetailPage() {
           .item span { font-weight: bold; }
           .total { font-size: 20px; font-weight: bold; text-align: right; margin-top: 15px; }
           .status { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 14px; }
-          .status-confirmed { background: #d1fae5; color: #065f46; }
-          .status-pending { background: #fef3c7; color: #92400e; }
-          @media print { body { padding: 0; } }
+          .status-confirmed {
+            background: var(--success-muted, #d1fae5);
+            color: var(--success, #065f46);
+          }
+          .status-pending {
+            background: var(--warning-muted, #fef3c7);
+            color: var(--warning, #92400e);
+          }
+          @media print {
+            body { padding: 0; }
+            /* Force light mode colors for print */
+            .status-confirmed { background: #d1fae5; color: #065f46; }
+            .status-pending { background: #fef3c7; color: #92400e; }
+          }
         </style>
       </head>
       <body>
@@ -231,13 +250,7 @@ export default function BookingDetailPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{booking.bookingNumber}</h1>
-            <span
-              className={`text-sm px-3 py-1 rounded-full ${
-                statusColors[booking.status] || "bg-surface-inset text-foreground"
-              }`}
-            >
-              {booking.status}
-            </span>
+            <StatusBadge status={booking.status as BadgeStatus} size="md" />
           </div>
           <p className="text-foreground-muted">Created {booking.createdAt}</p>
         </div>
@@ -283,12 +296,12 @@ export default function BookingDetailPage() {
 
       {/* Success/Error Messages */}
       {fetcher.data?.message && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {fetcher.data.message}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {fetcher.data.error}
         </div>
       )}
@@ -578,7 +591,7 @@ export default function BookingDetailPage() {
                 <select
                   name="paymentMethod"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">Select method...</option>
                   <option value="cash">Cash</option>
@@ -594,7 +607,7 @@ export default function BookingDetailPage() {
                 <input
                   type="text"
                   name="notes"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="Optional payment notes..."
                 />
               </div>

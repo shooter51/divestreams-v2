@@ -4,7 +4,7 @@
  * Tests for integration management, encryption, and CRUD operations.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 
 // Mock the database
 const mockSelect = vi.fn().mockReturnThis();
@@ -64,6 +64,11 @@ vi.mock("../../../../lib/db/schema/integrations", () => ({
 }));
 
 describe("Integration Service", () => {
+  beforeAll(() => {
+    // Set AUTH_SECRET for encryption functions
+    process.env.AUTH_SECRET = 'test-secret-key-for-unit-tests';
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset mock implementations

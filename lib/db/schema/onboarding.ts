@@ -33,13 +33,13 @@ export const onboardingProgress = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     completedTasks: jsonb("completed_tasks").$type<string[]>().default([]),
     dismissed: boolean("dismissed").default(false),
-    dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+    dismissedAt: timestamp("dismissed_at"),
     currentSection: text("current_section"),
     tourCompleted: boolean("tour_completed").default(false),
-    createdAt: timestamp("created_at", { withTimezone: true })
+    createdAt: timestamp("created_at")
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
+    updatedAt: timestamp("updated_at")
       .defaultNow()
       .notNull(),
   },

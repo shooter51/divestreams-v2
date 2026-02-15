@@ -159,12 +159,12 @@ export default function AgenciesPage() {
 
       {/* Success/Error Messages */}
       {actionData?.success && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {actionData.message}
         </div>
       )}
       {actionData?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {actionData.error}
         </div>
       )}
@@ -215,7 +215,7 @@ export default function AgenciesPage() {
                     required
                     defaultValue={editingAgency?.name || ""}
                     placeholder="e.g., PADI"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
                 <div>
@@ -229,7 +229,7 @@ export default function AgenciesPage() {
                     required
                     defaultValue={editingAgency?.code || ""}
                     placeholder="e.g., PADI"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   <p className="text-xs text-foreground-muted mt-1">Short identifier for the agency</p>
                 </div>
@@ -245,7 +245,7 @@ export default function AgenciesPage() {
                   rows={2}
                   defaultValue={editingAgency?.description || ""}
                   placeholder="Full name or description of the agency"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -259,7 +259,7 @@ export default function AgenciesPage() {
                   name="website"
                   defaultValue={editingAgency?.website || ""}
                   placeholder="https://www.example.com"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 

@@ -18,6 +18,7 @@ import {
 import { organization } from "../db/schema/auth";
 import { eq, desc, and } from "drizzle-orm";
 import { stripe } from "./index";
+import { stripeLogger } from "../logger";
 
 // ============================================================================
 // CUSTOMER MANAGEMENT
@@ -30,7 +31,7 @@ export async function getOrCreateStripeCustomer(
   orgId: string
 ): Promise<string | null> {
   if (!stripe) {
-    console.error("Stripe not initialized");
+    stripeLogger.error("Stripe not initialized");
     return null;
   }
 
@@ -53,7 +54,7 @@ export async function getOrCreateStripeCustomer(
     .limit(1);
 
   if (org.length === 0) {
-    console.error(`Organization ${orgId} not found`);
+    stripeLogger.error({ organizationId: orgId }, "Organization not found");
     return null;
   }
 
@@ -92,7 +93,7 @@ export async function syncSubscriptionToDatabase(
 ): Promise<void> {
   const orgId = subscription.metadata.organizationId;
   if (!orgId) {
-    console.error("No organizationId in subscription metadata");
+    stripeLogger.error({ subscriptionId: subscription.id }, "No organizationId in subscription metadata");
     return;
   }
 
@@ -173,7 +174,7 @@ export async function syncInvoiceToDatabase(
     .limit(1);
 
   if (customer.length === 0) {
-    console.error(`Customer ${customerId} not found in database`);
+    stripeLogger.error({ customerId }, "Customer not found in database");
     return;
   }
 
@@ -256,7 +257,7 @@ export async function syncPaymentToDatabase(
     .limit(1);
 
   if (customer.length === 0) {
-    console.error(`Customer ${customerId} not found in database`);
+    stripeLogger.error({ customerId }, "Customer not found in database");
     return;
   }
 
@@ -385,5 +386,203 @@ export async function fetchInvoicesFromStripe(
 
   for (const invoice of invoices.data) {
     await syncInvoiceToDatabase(invoice);
+  }
+}
+
+// ============================================================================
+// PRODUCT & PRICE MANAGEMENT
+// ============================================================================
+
+/**
+ * Create Stripe Product and Prices for a subscription plan
+ * Returns the price IDs for monthly and yearly billing
+ */
+export async function createStripeProductAndPrices(params: {
+  planName: string;
+  displayName: string;
+  monthlyPriceInCents: number;
+  yearlyPriceInCents: number;
+  features?: string[];
+}): Promise<{
+  productId: string;
+  monthlyPriceId: string;
+  yearlyPriceId: string;
+} | null> {
+  if (!stripe) {
+    stripeLogger.error("Stripe not initialized - cannot create product/prices");
+    return null;
+  }
+
+  const { planName, displayName, monthlyPriceInCents, yearlyPriceInCents, features = [] } = params;
+
+  try {
+    // Create Stripe Product
+    const product = await stripe.products.create({
+      name: displayName,
+      description: `${displayName} subscription plan for DiveStreams`,
+      metadata: {
+        planName,
+        source: "divestreams-admin",
+      },
+      // Add features as marketing features
+      marketing_features: features.map(feature => ({ name: feature })),
+    });
+
+    stripeLogger.info({ productId: product.id, planName }, "Created Stripe product");
+
+    // Create Monthly Price
+    const monthlyPrice = await stripe.prices.create({
+      product: product.id,
+      currency: "usd",
+      unit_amount: monthlyPriceInCents,
+      recurring: {
+        interval: "month",
+      },
+      nickname: `${displayName} - Monthly`,
+      metadata: {
+        planName,
+        billingPeriod: "monthly",
+      },
+    });
+
+    stripeLogger.info({ priceId: monthlyPrice.id, amount: monthlyPriceInCents / 100, interval: "month" }, "Created monthly price");
+
+    // Create Yearly Price
+    const yearlyPrice = await stripe.prices.create({
+      product: product.id,
+      currency: "usd",
+      unit_amount: yearlyPriceInCents,
+      recurring: {
+        interval: "year",
+      },
+      nickname: `${displayName} - Yearly`,
+      metadata: {
+        planName,
+        billingPeriod: "yearly",
+      },
+    });
+
+    stripeLogger.info({ priceId: yearlyPrice.id, amount: yearlyPriceInCents / 100, interval: "year" }, "Created yearly price");
+
+    return {
+      productId: product.id,
+      monthlyPriceId: monthlyPrice.id,
+      yearlyPriceId: yearlyPrice.id,
+    };
+  } catch (error) {
+    stripeLogger.error({ err: error, planName }, "Failed to create Stripe product/prices");
+    return null;
+  }
+}
+
+/**
+ * Update existing Stripe Prices for a subscription plan
+ * Note: Stripe prices are immutable, so this creates new prices and archives old ones
+ */
+export async function updateStripeProductAndPrices(params: {
+  productId?: string;
+  oldMonthlyPriceId?: string;
+  oldYearlyPriceId?: string;
+  planName: string;
+  displayName: string;
+  monthlyPriceInCents: number;
+  yearlyPriceInCents: number;
+  features?: string[];
+}): Promise<{
+  productId: string;
+  monthlyPriceId: string;
+  yearlyPriceId: string;
+} | null> {
+  if (!stripe) {
+    stripeLogger.error("Stripe not initialized - cannot update product/prices");
+    return null;
+  }
+
+  const {
+    productId,
+    oldMonthlyPriceId,
+    oldYearlyPriceId,
+    planName,
+    displayName,
+    monthlyPriceInCents,
+    yearlyPriceInCents,
+    features = [],
+  } = params;
+
+  try {
+    let finalProductId = productId;
+
+    // If no product ID, create a new product
+    if (!finalProductId) {
+      const product = await stripe.products.create({
+        name: displayName,
+        description: `${displayName} subscription plan for DiveStreams`,
+        metadata: {
+          planName,
+          source: "divestreams-admin",
+        },
+        marketing_features: features.map(feature => ({ name: feature })),
+      });
+      finalProductId = product.id;
+      stripeLogger.info({ productId: finalProductId }, "Created new Stripe product");
+    } else {
+      // Update existing product name and features
+      await stripe.products.update(finalProductId, {
+        name: displayName,
+        description: `${displayName} subscription plan for DiveStreams`,
+        marketing_features: features.map(feature => ({ name: feature })),
+      });
+      stripeLogger.info({ productId: finalProductId }, "Updated Stripe product");
+    }
+
+    // Archive old prices if they exist
+    if (oldMonthlyPriceId) {
+      await stripe.prices.update(oldMonthlyPriceId, { active: false });
+      stripeLogger.info({ priceId: oldMonthlyPriceId }, "Archived old monthly price");
+    }
+    if (oldYearlyPriceId) {
+      await stripe.prices.update(oldYearlyPriceId, { active: false });
+      stripeLogger.info({ priceId: oldYearlyPriceId }, "Archived old yearly price");
+    }
+
+    // Create new prices
+    const monthlyPrice = await stripe.prices.create({
+      product: finalProductId,
+      currency: "usd",
+      unit_amount: monthlyPriceInCents,
+      recurring: {
+        interval: "month",
+      },
+      nickname: `${displayName} - Monthly`,
+      metadata: {
+        planName,
+        billingPeriod: "monthly",
+      },
+    });
+
+    const yearlyPrice = await stripe.prices.create({
+      product: finalProductId,
+      currency: "usd",
+      unit_amount: yearlyPriceInCents,
+      recurring: {
+        interval: "year",
+      },
+      nickname: `${displayName} - Yearly`,
+      metadata: {
+        planName,
+        billingPeriod: "yearly",
+      },
+    });
+
+    stripeLogger.info({ monthlyPriceId: monthlyPrice.id, yearlyPriceId: yearlyPrice.id }, "Created new prices");
+
+    return {
+      productId: finalProductId,
+      monthlyPriceId: monthlyPrice.id,
+      yearlyPriceId: yearlyPrice.id,
+    };
+  } catch (error) {
+    stripeLogger.error({ err: error, planName }, "Failed to update Stripe product/prices");
+    return null;
   }
 }

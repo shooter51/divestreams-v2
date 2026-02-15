@@ -87,6 +87,13 @@ vi.mock("../../../../lib/db/schema", () => ({
     participants: "participants",
     status: "status",
   },
+  tourDiveSites: {
+    id: "id",
+    organizationId: "organizationId",
+    tourId: "tourId",
+    diveSiteId: "diveSiteId",
+    createdAt: "createdAt",
+  },
 }));
 
 // Mock Google Calendar integration
@@ -110,10 +117,10 @@ describe("Tour and Trip Management Logic", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset chain mocks
+    // Reset chain mocks - where() returns db for chaining by default
     (db.select as any).mockReturnValue(db);
     (db.from as any).mockReturnValue(db);
-    (db.where as any).mockReturnValue(db);
+    (db.where as any).mockReturnValue(db); // Default: return db for chaining
     (db.innerJoin as any).mockReturnValue(db);
     (db.leftJoin as any).mockReturnValue(db);
     (db.insert as any).mockReturnValue(db);
@@ -155,7 +162,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours).mockResolvedValue([{ count: 0 }]);
+      (db.orderBy as any).mockResolvedValueOnce(mockTours);
+      (db.groupBy as any).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId);
 
@@ -177,7 +185,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours).mockResolvedValue([{ count: 0 }]);
+      (db.orderBy as any).mockResolvedValueOnce(mockTours);
+      (db.groupBy as any).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId, { activeOnly: true });
 
@@ -198,7 +207,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours).mockResolvedValue([{ count: 0 }]);
+      (db.orderBy as any).mockResolvedValueOnce(mockTours);
+      (db.groupBy as any).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId, { type: "shore" });
 
@@ -219,7 +229,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours).mockResolvedValue([{ count: 0 }]);
+      (db.orderBy as any).mockResolvedValueOnce(mockTours);
+      (db.groupBy as any).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId, { search: "Night" });
 
@@ -468,21 +479,18 @@ describe("Tour and Trip Management Logic", () => {
 
   describe("deleteTour", () => {
     it("should delete tour and related trips", async () => {
-      // First select().from().where() returns tour trip IDs (empty = no trips)
-      // Then delete().where() runs twice (trips, then tour)
-      let selectCallCount = 0;
-      (db.select as any) = vi.fn(() => db);
-      (db.from as any) = vi.fn(() => db);
-      (db.where as any) = vi.fn(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          // First call: select trip IDs for this tour - return empty (no trips)
-          return Promise.resolve([]);
+      // Mock the count query chain to return 0 trips (allow deletion)
+      let whereCallCount = 0;
+      (db.where as any) = vi.fn().mockImplementation(() => {
+        whereCallCount++;
+        if (whereCallCount === 1) {
+          // First call: trip count check - return array with count
+          return Promise.resolve([{ count: 0 }]);
+        } else {
+          // Subsequent calls: delete operations - return Promise
+          return Promise.resolve(undefined);
         }
-        // Subsequent calls: delete operations
-        return Promise.resolve();
       });
-      (db.delete as any) = vi.fn(() => db);
 
       const result = await deleteTour(testOrgId, "tour-123");
 

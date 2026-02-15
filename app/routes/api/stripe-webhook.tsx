@@ -10,15 +10,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const signature = request.headers.get("stripe-signature");
 
   if (!signature) {
+    console.error("[WEBHOOK] Missing stripe-signature header");
     return new Response("No signature", { status: 400 });
   }
 
   const result = await handleStripeWebhook(payload, signature);
 
   if (!result.success) {
+    console.error("[WEBHOOK] Handler failed:", result.message);
     return new Response(result.message, { status: 400 });
   }
 
+  console.log("[WEBHOOK] Handler success:", result.message);
   return new Response(result.message, { status: 200 });
 }
 

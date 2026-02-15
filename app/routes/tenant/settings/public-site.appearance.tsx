@@ -113,16 +113,28 @@ export default function PublicSiteAppearanceSettings() {
     setFontFamily(settings.fontFamily);
   }, [settings]);
 
+  // Update custom colors when theme changes
+  const handleThemeChange = (newTheme: PublicSiteSettings["theme"]) => {
+    setTheme(newTheme);
+
+    // Find the theme and update colors to match its defaults
+    const selectedTheme = themes.find(t => t.id === newTheme);
+    if (selectedTheme && selectedTheme.colors.length >= 2) {
+      setPrimaryColor(selectedTheme.colors[0]);
+      setSecondaryColor(selectedTheme.colors[1]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg max-w-4xl break-words">
           {fetcher.data.message}
         </div>
       )}
 
       {fetcher.data?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words">
           {fetcher.data.error}
         </div>
       )}
@@ -152,7 +164,7 @@ export default function PublicSiteAppearanceSettings() {
                   name="theme"
                   value={themeOption.id}
                   checked={theme === themeOption.id}
-                  onChange={(e) => setTheme(e.target.value as PublicSiteSettings["theme"])}
+                  onChange={(e) => handleThemeChange(e.target.value as PublicSiteSettings["theme"])}
                   className="sr-only"
                 />
                 <div className="flex gap-1 mb-3">
@@ -352,7 +364,7 @@ export default function PublicSiteAppearanceSettings() {
               href={publicSiteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
+              className="px-4 py-2 bg-surface text-foreground rounded-lg hover:bg-surface-raised border border-border flex items-center gap-2"
             >
               <svg
                 className="w-4 h-4"

@@ -31,7 +31,7 @@ interface TripCard {
   tourDescription: string | null;
   tourType: string;
   date: string;
-  startTime: string;
+  startTime: string | null;
   endTime: string | null;
   maxParticipants: number;
   availableSpots: number;
@@ -231,7 +231,8 @@ function formatDate(dateString: string): string {
   });
 }
 
-function formatTime(timeString: string): string {
+function formatTime(timeString: string | null): string {
+  if (!timeString) return "Time TBA";
   const [hours, minutes] = timeString.split(":");
   const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? "PM" : "AM";
@@ -285,7 +286,7 @@ export default function SiteTripsPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--color-card-bg)" }}>
       {/* Hero Section */}
       <section
         className="py-16 px-4"
@@ -298,7 +299,7 @@ export default function SiteTripsPage() {
           >
             Upcoming Dive Trips
           </h1>
-          <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl opacity-80 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
             Explore our scheduled dive adventures. Book your spot today and dive into an
             unforgettable experience.
           </p>
@@ -306,32 +307,36 @@ export default function SiteTripsPage() {
       </section>
 
       {/* Filters Section */}
-      <section className="py-6 px-4 border-b" style={{ borderColor: "var(--accent-color)" }}>
+      <section className="py-6 px-4 border-b" style={{ borderColor: "var(--color-border)" }}>
         <div className="max-w-7xl mx-auto">
           <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium mb-1 opacity-75">From Date</label>
+              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>From Date</label>
               <input
                 type="date"
                 name="from"
                 defaultValue={fromDate}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none"
                 style={{
-                  borderColor: "var(--accent-color)",
+                  backgroundColor: "var(--color-card-bg)",
+                  borderColor: "var(--color-border)",
+                  color: "var(--text-color)",
                   // @ts-expect-error CSS custom property
                   "--tw-ring-color": "var(--primary-color)",
                 }}
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium mb-1 opacity-75">To Date</label>
+              <label className="block text-sm font-medium mb-1 opacity-75" style={{ color: "var(--text-color)" }}>To Date</label>
               <input
                 type="date"
                 name="to"
                 defaultValue={toDate || ""}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none"
                 style={{
-                  borderColor: "var(--accent-color)",
+                  backgroundColor: "var(--color-card-bg)",
+                  borderColor: "var(--color-border)",
+                  color: "var(--text-color)",
                   // @ts-expect-error CSS custom property
                   "--tw-ring-color": "var(--primary-color)",
                 }}
@@ -349,15 +354,19 @@ export default function SiteTripsPage() {
                 <button
                   type="button"
                   onClick={handleClearFilters}
-                  className="px-4 py-2 rounded-lg border font-medium transition-colors hover:bg-gray-50"
-                  style={{ borderColor: "var(--accent-color)" }}
+                  className="px-4 py-2 rounded-lg border font-medium transition-colors"
+                  style={{
+                    borderColor: "var(--color-border)",
+                    color: "var(--text-color)",
+                    backgroundColor: "var(--color-card-bg)"
+                  }}
                 >
                   Clear
                 </button>
               )}
             </div>
           </form>
-          <p className="mt-3 text-sm opacity-60">
+          <p className="mt-3 text-sm opacity-60" style={{ color: "var(--text-color)" }}>
             Showing {trips.length} of {total} trips
           </p>
         </div>
@@ -377,6 +386,7 @@ export default function SiteTripsPage() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  style={{ color: "var(--text-color)" }}
                 >
                   <path
                     strokeLinecap="round"
@@ -386,8 +396,8 @@ export default function SiteTripsPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold mb-2">No Trips Found</h2>
-              <p className="opacity-75 mb-6">
+              <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>No Trips Found</h2>
+              <p className="opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
                 {searchParams.get("from") || searchParams.get("to")
                   ? "Try adjusting your date filters to see more trips."
                   : "Check back soon for upcoming dive adventures!"}
@@ -416,8 +426,12 @@ export default function SiteTripsPage() {
                   <button
                     onClick={() => goToPage(page - 1)}
                     disabled={page <= 1}
-                    className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                    style={{ borderColor: "var(--accent-color)" }}
+                    className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      borderColor: "var(--color-border)",
+                      color: "var(--text-color)",
+                      backgroundColor: "var(--color-card-bg)"
+                    }}
                   >
                     Previous
                   </button>
@@ -429,7 +443,7 @@ export default function SiteTripsPage() {
                         className="w-10 h-10 rounded-lg font-medium transition-colors"
                         style={{
                           backgroundColor: p === page ? "var(--primary-color)" : "transparent",
-                          color: p === page ? "white" : "inherit",
+                          color: p === page ? "white" : "var(--text-color)",
                         }}
                       >
                         {p}
@@ -439,8 +453,12 @@ export default function SiteTripsPage() {
                   <button
                     onClick={() => goToPage(page + 1)}
                     disabled={page >= totalPages}
-                    className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                    style={{ borderColor: "var(--accent-color)" }}
+                    className="px-4 py-2 rounded-lg border font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      borderColor: "var(--color-border)",
+                      color: "var(--text-color)",
+                      backgroundColor: "var(--color-card-bg)"
+                    }}
                   >
                     Next
                   </button>
@@ -465,11 +483,14 @@ function TripCard({ trip }: { trip: TripCard }) {
   return (
     <Link
       to={`/site/trips/${trip.id}`}
-      className="group block bg-white rounded-xl shadow-sm overflow-hidden transition-shadow hover:shadow-md"
-      style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}
+      className="group block rounded-xl shadow-sm overflow-hidden transition-shadow hover:shadow-md border"
+      style={{
+        backgroundColor: "var(--color-card-bg)",
+        borderColor: "var(--color-border)"
+      }}
     >
       {/* Image */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+      <div className="relative aspect-[16/10] overflow-hidden" style={{ backgroundColor: "var(--accent-color)" }}>
         {trip.primaryImage ? (
           <img
             src={trip.primaryImage}
@@ -498,13 +519,19 @@ function TripCard({ trip }: { trip: TripCard }) {
         )}
         {/* Availability Badge */}
         <div
-          className={`absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-medium ${
-            isFull
-              ? "bg-red-100 text-red-700"
+          className="absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-medium"
+          style={{
+            backgroundColor: isFull
+              ? "var(--danger-bg)"
               : trip.availableSpots <= 3
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-green-100 text-green-700"
-          }`}
+              ? "var(--warning-muted)"
+              : "var(--success-muted)",
+            color: isFull
+              ? "var(--danger-text)"
+              : trip.availableSpots <= 3
+              ? "var(--warning)"
+              : "var(--success)",
+          }}
         >
           {isFull ? "Sold Out" : `${trip.availableSpots} spots left`}
         </div>
@@ -527,11 +554,11 @@ function TripCard({ trip }: { trip: TripCard }) {
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-semibold mb-2 line-clamp-1">{trip.tourName}</h3>
+        <h3 className="text-lg font-semibold mb-2 line-clamp-1" style={{ color: "var(--text-color)" }}>{trip.tourName}</h3>
 
         {/* Description */}
         {trip.tourDescription && (
-          <p className="text-sm opacity-70 mb-3 line-clamp-2">{trip.tourDescription}</p>
+          <p className="text-sm opacity-70 mb-3 line-clamp-2" style={{ color: "var(--text-color)" }}>{trip.tourDescription}</p>
         )}
 
         {/* Meta Info */}
@@ -578,12 +605,12 @@ function TripCard({ trip }: { trip: TripCard }) {
         {/* Inclusions */}
         <div className="flex flex-wrap gap-2 mb-4">
           {trip.includesEquipment && (
-            <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">
+            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--info-muted)", color: "var(--info)" }}>
               Equipment
             </span>
           )}
           {trip.includesMeals && (
-            <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">
+            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-muted)", color: "var(--success)" }}>
               Meals
             </span>
           )}
@@ -595,7 +622,7 @@ function TripCard({ trip }: { trip: TripCard }) {
         </div>
 
         {/* Price */}
-        <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: "var(--accent-color)" }}>
+        <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
           <div>
             <p
               className="text-2xl font-bold"
@@ -607,7 +634,7 @@ function TripCard({ trip }: { trip: TripCard }) {
           </div>
           <span
             className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity group-hover:opacity-90"
-            style={{ backgroundColor: isFull ? "#9ca3af" : "var(--primary-color)" }}
+            style={{ backgroundColor: isFull ? "var(--surface-overlay)" : "var(--primary-color)" }}
           >
             {isFull ? "Join Waitlist" : "View Details"}
           </span>

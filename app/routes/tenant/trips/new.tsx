@@ -1,10 +1,11 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
 import { useState, useEffect } from "react";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { tripSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getTours, getBoats, getStaff, createTrip } from "../../../../lib/db/queries.server";
 import { createRecurringTrip, type RecurrencePattern } from "../../../../lib/trips/recurring.server";
+import { redirectWithNotification } from "../../../../lib/use-notification";
 
 // Client-side helper to preview recurrence dates
 function calculatePreviewDates(
@@ -84,7 +85,8 @@ function calculatePreviewDates(
 export const meta: MetaFunction = () => [{ title: "Schedule Trip - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const url = new URL(request.url);
   const tourId = url.searchParams.get("tourId");
 
@@ -122,7 +124,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
 
   // Convert staff array
@@ -141,6 +144,24 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!validation.success) {
     return { errors: validation.errors, values: getFormValues(formData) };
+  }
+
+  // Additional server-side price validation (if price override is provided)
+  const priceStr = formData.get("price") as string;
+  if (priceStr) {
+    const priceNum = parseFloat(priceStr);
+    if (isNaN(priceNum)) {
+      return {
+        errors: { price: "Price must be a valid number" },
+        values: getFormValues(formData)
+      };
+    }
+    if (priceNum < 1) {
+      return {
+        errors: { price: "Price must be at least $1" },
+        values: getFormValues(formData)
+      };
+    }
   }
 
   const isRecurring = formData.get("isRecurring") === "true";
@@ -197,7 +218,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   }
 
-  return redirect("/tenant/trips");
+  return redirect(redirectWithNotification("/tenant/trips", "Trip has been successfully created", "success"));
 }
 
 // Day names for weekly selection
@@ -284,7 +305,7 @@ export default function NewTripPage() {
                 id="tourId"
                 name="tourId"
                 defaultValue={actionData?.values?.tourId || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               >
                 <option value="">Choose a tour...</option>
@@ -316,7 +337,7 @@ export default function NewTripPage() {
                 value={startDate || actionData?.values?.date || defaultDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.date && (
@@ -332,7 +353,7 @@ export default function NewTripPage() {
                 id="startTime"
                 name="startTime"
                 defaultValue={actionData?.values?.startTime || "08:00"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.startTime && (
@@ -348,7 +369,7 @@ export default function NewTripPage() {
                 id="endTime"
                 name="endTime"
                 defaultValue={actionData?.values?.endTime || "12:00"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -386,7 +407,7 @@ export default function NewTripPage() {
                   name="recurrencePattern"
                   value={recurrencePattern}
                   onChange={(e) => setRecurrencePattern(e.target.value as RecurrencePattern)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
@@ -559,7 +580,7 @@ export default function NewTripPage() {
                 min="1"
                 placeholder={selectedTour ? String(selectedTour.maxParticipants) : "From tour"}
                 defaultValue={actionData?.values?.maxParticipants}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">
                 Leave blank to use tour default
@@ -622,7 +643,7 @@ export default function NewTripPage() {
                 name="weatherNotes"
                 placeholder="e.g., Light wind expected, good visibility"
                 defaultValue={actionData?.values?.weatherNotes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -634,7 +655,7 @@ export default function NewTripPage() {
                 name="notes"
                 rows={2}
                 defaultValue={actionData?.values?.notes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>

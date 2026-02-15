@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, Link, useLoaderData, useLocation, useNavigation, useRouteError, isRouteErrorResponse } from "react-router";
+import { Outlet, Link, NavLink, useLoaderData, useLocation, isRouteErrorResponse, useRouteError } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { getBaseDomain } from "../../../lib/utils/url";
@@ -7,6 +7,8 @@ import { FeaturesContext } from "../../../lib/features-context";
 import { UpgradeModal } from "../../components/upgrade-modal";
 import type { PlanFeatureKey, PlanFeaturesObject, PlanLimits } from "../../../lib/plan-features";
 import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../../lib/plan-features";
+import { ToastProvider } from "../../../lib/toast-context";
+import { generateCsrfToken } from "../../../lib/security/csrf.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -39,6 +41,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // which is unavailable in the browser and would crash client-side hydration.
   const baseDomain = getBaseDomain();
 
+  // Generate a CSRF token tied to the user's session for form protection
+  const csrfToken = generateCsrfToken(ctx.session.id);
+
   return {
     tenant: {
       name: ctx.org.name,
@@ -47,19 +52,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
       trialDaysLeft,
       baseDomain,
     },
+    user: {
+      name: ctx.user.name,
+      email: ctx.user.email,
+    },
+    membership: {
+      role: ctx.membership.role,
+    },
     features,
     limits,
     planName,
+    csrfToken,
   };
 }
 
 export default function TenantLayout() {
-  const { tenant, features, limits, planName } = useLoaderData<typeof loader>();
+  const { tenant, user, membership, features, limits, planName } = useLoaderData<typeof loader>();
   const location = useLocation();
-  const navigation = useNavigation();
-  const isNavigating = navigation.state === "loading";
-  const [upgradeFeature, setUpgradeFeature] = useState<PlanFeatureKey | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState<PlanFeatureKey | null>(null);
 
   const isTrialing = tenant.subscriptionStatus === "trialing";
   // Use server-calculated trialDaysLeft for accurate countdown
@@ -80,8 +91,8 @@ export default function TenantLayout() {
     { href: "/tenant/dive-sites", label: "Dive Sites", icon: "🌊" },
     { href: "/tenant/boats", label: "Boats", icon: "⛵", feature: "has_equipment_boats" },
     { href: "/tenant/equipment", label: "Equipment", icon: "🤿", feature: "has_equipment_boats" },
-    { href: "/tenant/products", label: "Products", icon: "📦" },
-    { href: "/tenant/discounts", label: "Discounts", icon: "🏷️" },
+    { href: "/tenant/products", label: "Products", icon: "📦", feature: "has_pos" },
+    { href: "/tenant/discounts", label: "Discounts", icon: "🏷️", feature: "has_pos" },
     { href: "/tenant/training", label: "Training", icon: "🎓", feature: "has_training" },
     { href: "/tenant/gallery", label: "Gallery", icon: "📸" },
     { href: "/tenant/pos", label: "POS", icon: "💳", feature: "has_pos" },
@@ -90,14 +101,8 @@ export default function TenantLayout() {
   ];
 
   return (
+    <ToastProvider>
       <div className="min-h-screen bg-surface-inset">
-        {/* Navigation Loading Bar */}
-        {isNavigating && (
-          <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-brand/20">
-            <div className="h-full bg-brand animate-pulse" style={{ width: "90%", transition: "width 0.5s ease-out" }} />
-          </div>
-        )}
-
         {/* Trial Banner */}
         {isTrialing && trialDaysLeft > 0 && (
           <div className="bg-brand text-white text-center py-2 text-sm">
@@ -109,33 +114,32 @@ export default function TenantLayout() {
         )}
 
         <div className="flex">
-          {/* Mobile Header */}
-          <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-surface border-b border-border flex items-center h-14 px-4">
+          {/* Mobile header */}
+          <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-surface border-b border-border px-4 py-3 flex items-center justify-between">
+            <span className="font-semibold text-foreground">{tenant?.name || "DiveStreams"}</span>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-surface-inset text-foreground-muted"
-              aria-label="Toggle navigation"
+              className="p-2 text-foreground-muted hover:text-foreground"
+              aria-label="Toggle navigation menu"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                {sidebarOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
               </svg>
             </button>
-            <h1 className="ml-3 text-lg font-bold text-brand truncate">{tenant.name}</h1>
           </div>
 
-          {/* Sidebar Overlay (mobile) */}
-          {sidebarOpen && (
-            <div className="lg:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setSidebarOpen(false)} />
-          )}
-
           {/* Sidebar */}
-          <aside className={`w-64 bg-surface h-screen border-r border-border fixed flex flex-col z-50 transition-transform duration-200 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}>
+          <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transform transition-transform duration-200 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="p-4 border-b border-border flex-shrink-0">
               <h1 className="text-xl font-bold text-brand">{tenant.name}</h1>
               <p className="text-sm text-foreground-muted">{tenant.subdomain}.{tenant.baseDomain}</p>
             </div>
 
-            <nav className="p-4 flex-1 overflow-y-auto">
+            <nav className="p-4 flex-1 overflow-y-auto" aria-label="Main navigation">
               <ul className="space-y-1">
                 {navItems.map((item) => {
                   const isActive =
@@ -149,8 +153,9 @@ export default function TenantLayout() {
                   if (hasAccess) {
                     return (
                       <li key={item.href}>
-                        <Link
+                        <NavLink
                           to={item.href}
+                          prefetch="intent"
                           onClick={() => setSidebarOpen(false)}
                           className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                             isActive
@@ -160,7 +165,7 @@ export default function TenantLayout() {
                         >
                           <span>{item.icon}</span>
                           {item.label}
-                        </Link>
+                        </NavLink>
                       </li>
                     );
                   } else {
@@ -193,26 +198,35 @@ export default function TenantLayout() {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">Staff User</p>
-                  <p className="text-xs text-foreground-muted">Manager</p>
+                  <p className="text-sm font-medium text-foreground truncate">{user?.name || "User"}</p>
+                  <p className="text-xs text-foreground-muted">{membership?.role || "Member"}</p>
                 </div>
-                <Link
-                  to="/auth/logout"
-                  className="flex items-center gap-1.5 text-sm text-foreground-subtle hover:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded transition-colors"
-                  title="Sign out"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  <span>Sign Out</span>
-                </Link>
+                <form method="post" action="/auth/logout">
+                  <button
+                    type="submit"
+                    className="flex items-center gap-1.5 text-sm text-foreground-subtle hover:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded transition-colors"
+                    title="Sign out"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Sign Out</span>
+                  </button>
+                </form>
               </div>
             </div>
           </aside>
 
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 z-30 bg-black/50 md:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
           {/* Main Content */}
           <FeaturesContext.Provider value={{ features, limits, planName }}>
-            <main className="flex-1 lg:ml-64 p-4 lg:p-8 pt-18 lg:pt-8">
+            <main className="flex-1 md:ml-64 mt-14 md:mt-0 p-8">
               <Outlet />
             </main>
           </FeaturesContext.Provider>
@@ -226,35 +240,41 @@ export default function TenantLayout() {
         )}
 
       </div>
+    </ToastProvider>
   );
 }
 
 export function ErrorBoundary() {
   const error = useRouteError();
-  const isResponse = isRouteErrorResponse(error);
+  const isRouteError = isRouteErrorResponse(error);
 
   return (
-    <div className="min-h-screen bg-surface-inset flex items-center justify-center">
-      <div className="bg-surface-raised p-8 rounded-xl shadow-lg max-w-md text-center">
-        <div className="w-16 h-16 bg-danger-muted rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-        </div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">
-          {isResponse ? `${error.status} - ${error.statusText}` : "Something went wrong"}
+    <div className="min-h-screen flex items-center justify-center bg-surface p-4">
+      <div className="max-w-md w-full text-center">
+        <h1 className="text-4xl font-bold text-foreground mb-4">
+          {isRouteError ? error.status : "Error"}
         </h1>
         <p className="text-foreground-muted mb-6">
-          {isResponse
-            ? "The page you're looking for could not be found."
+          {isRouteError
+            ? error.status === 404
+              ? "The page you're looking for doesn't exist."
+              : error.statusText || "Something went wrong."
             : "An unexpected error occurred. Please try again."}
         </p>
-        <Link
-          to="/tenant"
-          className="inline-block bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover"
-        >
-          Back to Dashboard
-        </Link>
+        <div className="flex gap-4 justify-center">
+          <Link
+            to="/tenant/dashboard"
+            className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
+          >
+            Go to Dashboard
+          </Link>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-surface-raised text-foreground rounded-lg border border-border hover:bg-surface-inset"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     </div>
   );

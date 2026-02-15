@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../../helpers/redirect";
 import { loader, action } from "../../../../../../app/routes/tenant/equipment/$id/edit";
 import * as orgContext from "../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../lib/db/queries.server";
@@ -238,7 +239,7 @@ describe("app/routes/tenant/equipment/$id/edit.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe(`/tenant/equipment/${mockEquipmentId}`);
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe(`/tenant/equipment/${mockEquipmentId}`);
     });
 
     it("should throw 400 if equipment ID is missing in action", async () => {

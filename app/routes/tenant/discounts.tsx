@@ -6,16 +6,23 @@
 
 import { useState, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher } from "react-router";
+import { useLoaderData, useFetcher, redirect } from "react-router";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { discountCodes } from "../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { redirectWithNotification, useNotification } from "../../../lib/use-notification";
+import { useToast } from "../../../lib/toast-context";
+import { requireFeature } from "../../../lib/require-feature.server";
+import { PLAN_FEATURES } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+
+  // Discount codes are used in POS - require POS feature
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
 
   const discountCodesList = await db
     .select()
@@ -31,6 +38,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+
+  // Discount codes are used in POS - require POS feature
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
 
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -88,7 +98,7 @@ export async function action({ request }: ActionFunctionArgs) {
       isActive: true,
     });
 
-    return { success: true, message: "Discount code created" };
+    return { success: true, message: `Discount code "${code}" has been successfully created` };
   }
 
   if (intent === "update") {
@@ -104,16 +114,30 @@ export async function action({ request }: ActionFunctionArgs) {
     const applicableTo = formData.get("applicableTo") as string || "all";
     const isActive = formData.get("isActive") === "true";
 
-    // Validate discount value
+    // Validate discount value (min 1, max 100 for percentage)
     const discountValue = parseFloat(discountValueStr);
-    if (isNaN(discountValue) || discountValue <= 0) {
-      return { error: "Discount value must be a positive number" };
+    if (isNaN(discountValue)) {
+      return { error: "Discount value must be a valid number" };
+    }
+    if (discountValue < 1) {
+      return { error: "Discount value must be at least 1" };
     }
     if (discountType === "percentage" && discountValue > 100) {
       return { error: "Percentage discount cannot exceed 100%" };
     }
     if (discountType === "fixed" && discountValue > 100000) {
       return { error: "Fixed discount amount is too large (max $100,000)" };
+    }
+
+    // Validate min booking amount (must be >= 1 if provided)
+    if (minBookingAmount) {
+      const minAmount = parseFloat(minBookingAmount);
+      if (isNaN(minAmount)) {
+        return { error: "Minimum booking amount must be a valid number" };
+      }
+      if (minAmount < 1) {
+        return { error: "Minimum booking amount must be at least $1" };
+      }
     }
 
     // Check if code already exists for this organization (for a different discount)
@@ -153,7 +177,7 @@ export async function action({ request }: ActionFunctionArgs) {
         )
       );
 
-    return { success: true, message: "Discount code updated" };
+    return { success: true, message: `Discount code "${code}" has been successfully updated` };
   }
 
   if (intent === "toggle-active") {
@@ -181,7 +205,7 @@ export async function action({ request }: ActionFunctionArgs) {
         eq(discountCodes.id, id)
       )
     );
-    return { success: true, message: "Discount code deleted" };
+    return { success: true, message: "Discount code has been successfully deleted" };
   }
 
   return { error: "Invalid intent" };
@@ -203,9 +227,8 @@ type DiscountCode = {
   createdAt: Date;
 };
 
-function getDiscountStatus(discount: DiscountCode): { label: string; color: string } {
-  const now = new Date();
-
+// Takes 'now' parameter to avoid hydration mismatch (don't call new Date() during render)
+function getDiscountStatus(discount: DiscountCode, now: Date): { label: string; color: string } {
   if (!discount.isActive) {
     return { label: "Inactive", color: "bg-surface-inset text-foreground-muted" };
   }
@@ -233,13 +256,41 @@ function formatDiscountValue(type: string, value: string): string {
 }
 
 export default function DiscountsPage() {
+  useNotification();
+
   const { discountCodes } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingDiscount, setEditingDiscount] = useState<DiscountCode | null>(null);
+  const [discountType, setDiscountType] = useState<string>("percentage");
+
+  // Track discount statuses (calculated client-side to avoid hydration mismatch)
+  const [discountStatuses, setDiscountStatuses] = useState<Map<string, { label: string; color: string }>>(new Map());
 
   const isSubmitting = fetcher.state === "submitting";
-  const fetcherData = fetcher.data as { success?: boolean; message?: string; error?: string } | undefined;
+  const fetcherData = fetcher.data as { error?: string; success?: boolean; message?: string } | undefined;
+
+  // Calculate discount statuses after hydration (client-side only)
+  useEffect(() => {
+    const now = new Date();
+    const statusMap = new Map<string, { label: string; color: string }>();
+    discountCodes.forEach((discount) => {
+      statusMap.set(discount.id, getDiscountStatus(discount as DiscountCode, now));
+    });
+    setDiscountStatuses(statusMap);
+  }, [discountCodes]);
+
+  // Close modal and show toast on successful create/update/delete
+  useEffect(() => {
+    if (fetcherData?.success && fetcherData?.message) {
+      setShowForm(false);
+      setEditingDiscount(null);
+      showToast(fetcherData.message, "success");
+    } else if (fetcherData?.error) {
+      showToast(fetcherData.error, "error");
+    }
+  }, [fetcherData, showToast]);
 
   // Close modal on successful create/update/delete
   useEffect(() => {
@@ -251,12 +302,12 @@ export default function DiscountsPage() {
 
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {
-    const status = getDiscountStatus(d as DiscountCode);
-    return status.label === "Active" || status.label === "Scheduled";
+    const status = discountStatuses.get(d.id);
+    return status && (status.label === "Active" || status.label === "Scheduled");
   });
   const inactiveDiscounts = discountCodes.filter((d) => {
-    const status = getDiscountStatus(d as DiscountCode);
-    return status.label !== "Active" && status.label !== "Scheduled";
+    const status = discountStatuses.get(d.id);
+    return !status || (status.label !== "Active" && status.label !== "Scheduled");
   });
 
   const formatDateForInput = (dateVal: Date | string | null): string => {
@@ -275,6 +326,7 @@ export default function DiscountsPage() {
         <button
           onClick={() => {
             setEditingDiscount(null);
+            setDiscountType("percentage");
             setShowForm(true);
           }}
           className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
@@ -283,18 +335,7 @@ export default function DiscountsPage() {
         </button>
       </div>
 
-      {/* Success/Error Messages */}
-      {fetcherData?.success && (
-        <div className="bg-success-muted border border-success text-success p-3 rounded-lg mb-4">
-          {fetcherData.message}
-        </div>
-      )}
-
-      {fetcherData?.error && (
-        <div className="bg-danger-muted border border-danger text-danger p-3 rounded-lg mb-4">
-          {fetcherData.error}
-        </div>
-      )}
+      {/* Error Messages - Removed from here, shown in modal instead */}
 
       {/* Active Discounts */}
       <div className="mb-8">
@@ -317,7 +358,7 @@ export default function DiscountsPage() {
               </thead>
               <tbody className="divide-y">
                 {activeDiscounts.map((discount) => {
-                  const status = getDiscountStatus(discount as DiscountCode);
+                  const status = discountStatuses.get(discount.id) || { label: "Active", color: "bg-success-muted text-success" };
                   return (
                     <tr key={discount.id}>
                       <td className="px-4 py-3">
@@ -360,7 +401,9 @@ export default function DiscountsPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => {
-                              setEditingDiscount(discount as DiscountCode);
+                              const disc = discount as DiscountCode;
+                              setEditingDiscount(disc);
+                              setDiscountType(disc.discountType);
                               setShowForm(true);
                             }}
                             className="px-2 py-1 text-sm text-brand hover:bg-brand-muted rounded"
@@ -390,7 +433,10 @@ export default function DiscountsPage() {
           <div className="bg-surface-inset rounded-lg p-8 text-center">
             <p className="text-foreground-muted mb-4">No active discount codes.</p>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                setDiscountType("percentage");
+                setShowForm(true);
+              }}
               className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover"
             >
               Create Your First Discount Code
@@ -418,7 +464,7 @@ export default function DiscountsPage() {
               </thead>
               <tbody className="divide-y">
                 {inactiveDiscounts.map((discount) => {
-                  const status = getDiscountStatus(discount as DiscountCode);
+                  const status = discountStatuses.get(discount.id) || { label: "Inactive", color: "bg-surface-inset text-foreground-muted" };
                   return (
                     <tr key={discount.id}>
                       <td className="px-4 py-3">
@@ -456,7 +502,9 @@ export default function DiscountsPage() {
                           )}
                           <button
                             onClick={() => {
-                              setEditingDiscount(discount as DiscountCode);
+                              const disc = discount as DiscountCode;
+                              setEditingDiscount(disc);
+                              setDiscountType(disc.discountType);
                               setShowForm(true);
                             }}
                             className="px-2 py-1 text-sm text-brand hover:bg-brand-muted rounded"
@@ -487,6 +535,13 @@ export default function DiscountsPage() {
                 <input type="hidden" name="intent" value={editingDiscount ? "update" : "create"} />
                 {editingDiscount && <input type="hidden" name="id" value={editingDiscount.id} />}
 
+                {/* Show all error messages inside the modal */}
+                {fetcherData?.error && (
+                  <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-full break-words">
+                    {fetcherData.error}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <label className="block text-sm font-medium mb-1">Code *</label>
@@ -510,7 +565,7 @@ export default function DiscountsPage() {
                       name="description"
                       defaultValue={editingDiscount?.description || ""}
                       placeholder="e.g., Summer 2024 promotion"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -520,7 +575,8 @@ export default function DiscountsPage() {
                       name="discountType"
                       defaultValue={editingDiscount?.discountType || "percentage"}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      onChange={(e) => setDiscountType(e.target.value)}
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     >
                       <option value="percentage">Percentage (%)</option>
                       <option value="fixed">Fixed Amount ($)</option>
@@ -533,12 +589,18 @@ export default function DiscountsPage() {
                       type="number"
                       name="discountValue"
                       step="0.01"
-                      min="0"
+                      min="1"
+                      max={discountType === "percentage" ? "100" : "100000"}
                       defaultValue={editingDiscount?.discountValue || ""}
                       required
-                      placeholder="e.g., 10"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      placeholder={discountType === "percentage" ? "e.g., 10" : "e.g., 25.00"}
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
+                    <p className="text-xs text-foreground-muted mt-1">
+                      {discountType === "percentage"
+                        ? "Min 1%, max 100%"
+                        : "Min $1, max $100,000"}
+                    </p>
                   </div>
 
                   <div>
@@ -547,11 +609,15 @@ export default function DiscountsPage() {
                       type="number"
                       name="minBookingAmount"
                       step="0.01"
-                      min="0"
+                      min="1"
+                      max="100000"
                       defaultValue={editingDiscount?.minBookingAmount || ""}
                       placeholder="No minimum"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
+                    <p className="text-xs text-foreground-muted mt-1">
+                      Optional: $1 - $100,000
+                    </p>
                   </div>
 
                   <div>
@@ -562,7 +628,7 @@ export default function DiscountsPage() {
                       min="1"
                       defaultValue={editingDiscount?.maxUses || ""}
                       placeholder="Unlimited"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -572,7 +638,7 @@ export default function DiscountsPage() {
                       type="datetime-local"
                       name="validFrom"
                       defaultValue={formatDateForInput(editingDiscount?.validFrom || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -582,7 +648,7 @@ export default function DiscountsPage() {
                       type="datetime-local"
                       name="validTo"
                       defaultValue={formatDateForInput(editingDiscount?.validTo || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -592,7 +658,7 @@ export default function DiscountsPage() {
                       name="applicableTo"
                       defaultValue={editingDiscount?.applicableTo || "all"}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     >
                       <option value="all">All Bookings</option>
                       <option value="tours">Tours Only</option>

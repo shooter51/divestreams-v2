@@ -6,6 +6,8 @@
 
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
+import { escapeHtml } from "../security/sanitize";
+import { emailLogger } from "../logger";
 
 // Lazy transporter initialization
 let transporter: Transporter | null = null;
@@ -17,8 +19,8 @@ function getTransporter() {
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
-    if (!host) {
-      console.warn("SMTP not configured - emails will be logged only");
+    if (!host || !user || !pass) {
+      emailLogger.warn({ hasHost: !!host, hasUser: !!user, hasPass: !!pass }, "SMTP not fully configured - missing required credentials");
       return null;
     }
 
@@ -26,7 +28,7 @@ function getTransporter() {
       host,
       port,
       secure: port === 465,
-      auth: user && pass ? { user, pass } : undefined,
+      auth: { user, pass },
     });
   }
   return transporter;
@@ -41,16 +43,57 @@ interface EmailOptions {
   text?: string;
 }
 
+/**
+ * Check if email service is configured
+ */
+export function isEmailConfigured(): boolean {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  return !!(host && user && pass);
+}
+
+/**
+ * Verify SMTP connection on startup
+ * Call this during app initialization to detect configuration issues early
+ */
+export async function verifyEmailConnection(): Promise<{ success: boolean; error?: string }> {
+  const transport = getTransporter();
+
+  if (!transport) {
+    return {
+      success: false,
+      error: "SMTP not configured - missing credentials (check SMTP_HOST, SMTP_USER, SMTP_PASS)",
+    };
+  }
+
+  try {
+    await transport.verify();
+    emailLogger.info("SMTP connection verified successfully");
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    emailLogger.error({ err: error }, "SMTP connection verification failed");
+    return { success: false, error: errorMessage };
+  }
+}
+
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   const transport = getTransporter();
 
   if (!transport) {
-    // Log email in development
-    console.log("📧 Email (not sent - SMTP not configured):");
-    console.log(`   To: ${options.to}`);
-    console.log(`   Subject: ${options.subject}`);
-    console.log(`   Body: ${options.text || options.html.substring(0, 100)}...`);
-    return true;
+    // SMTP not configured - log for development but return false in production
+    const isDevelopment = process.env.NODE_ENV !== "production";
+
+    emailLogger.warn({
+      to: options.to,
+      subject: options.subject,
+      preview: (options.text || options.html.substring(0, 100)) + "...",
+    }, "Cannot send email - SMTP not configured");
+
+    // In development, pretend it worked for testing
+    // In production, return false so calling code knows email failed
+    return isDevelopment;
   }
 
   try {
@@ -61,9 +104,10 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       html: options.html,
       text: options.text,
     });
+    emailLogger.info({ to: options.to, subject: options.subject }, "Email sent");
     return true;
   } catch (error) {
-    console.error("Failed to send email:", error);
+    emailLogger.error({ err: error, to: options.to, subject: options.subject }, "Failed to send email");
     return false;
   }
 }
@@ -105,33 +149,33 @@ export function bookingConfirmationEmail(data: {
           <h1>Booking Confirmed! ✓</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.customerName},</p>
-          <p>Your booking with <strong>${data.shopName}</strong> has been confirmed!</p>
+          <p>Hi ${escapeHtml(data.customerName)},</p>
+          <p>Your booking with <strong>${escapeHtml(data.shopName)}</strong> has been confirmed!</p>
 
           <div class="details">
             <div class="detail-row">
               <span class="label">Booking Number</span>
-              <span class="value">${data.bookingNumber}</span>
+              <span class="value">${escapeHtml(data.bookingNumber)}</span>
             </div>
             <div class="detail-row">
               <span class="label">Trip</span>
-              <span class="value">${data.tripName}</span>
+              <span class="value">${escapeHtml(data.tripName)}</span>
             </div>
             <div class="detail-row">
               <span class="label">Date</span>
-              <span class="value">${data.tripDate}</span>
+              <span class="value">${escapeHtml(data.tripDate)}</span>
             </div>
             <div class="detail-row">
               <span class="label">Time</span>
-              <span class="value">${data.tripTime}</span>
+              <span class="value">${escapeHtml(data.tripTime)}</span>
             </div>
             <div class="detail-row">
               <span class="label">Participants</span>
-              <span class="value">${data.participants}</span>
+              <span class="value">${escapeHtml(data.participants.toString())}</span>
             </div>
             <div class="detail-row">
               <span class="label">Total</span>
-              <span class="value">${data.total}</span>
+              <span class="value">${escapeHtml(data.total)}</span>
             </div>
           </div>
 
@@ -139,7 +183,7 @@ export function bookingConfirmationEmail(data: {
           <p>If you have any questions, please contact us.</p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -149,22 +193,22 @@ export function bookingConfirmationEmail(data: {
   const text = `
 Booking Confirmed!
 
-Hi ${data.customerName},
+Hi ${escapeHtml(data.customerName)},
 
-Your booking with ${data.shopName} has been confirmed!
+Your booking with ${escapeHtml(data.shopName)} has been confirmed!
 
-Booking Number: ${data.bookingNumber}
-Trip: ${data.tripName}
-Date: ${data.tripDate}
-Time: ${data.tripTime}
-Participants: ${data.participants}
-Total: ${data.total}
+Booking Number: ${escapeHtml(data.bookingNumber)}
+Trip: ${escapeHtml(data.tripName)}
+Date: ${escapeHtml(data.tripDate)}
+Time: ${escapeHtml(data.tripTime)}
+Participants: ${escapeHtml(data.participants.toString())}
+Total: ${escapeHtml(data.total)}
 
 Please arrive 15 minutes before the scheduled departure time.
 
 If you have any questions, please contact us.
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -199,13 +243,13 @@ export function bookingReminderEmail(data: {
           <h1>See You Tomorrow! 🤿</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.customerName},</p>
+          <p>Hi ${escapeHtml(data.customerName)},</p>
           <p>This is a friendly reminder about your upcoming dive trip:</p>
 
           <div class="highlight">
-            <h2>${data.tripName}</h2>
-            <p><strong>${data.tripDate}</strong> at <strong>${data.tripTime}</strong></p>
-            <p>Booking: ${data.bookingNumber}</p>
+            <h2>${escapeHtml(data.tripName)}</h2>
+            <p><strong>${escapeHtml(data.tripDate)}</strong> at <strong>${escapeHtml(data.tripTime)}</strong></p>
+            <p>Booking: ${escapeHtml(data.bookingNumber)}</p>
           </div>
 
           <h3>What to bring:</h3>
@@ -219,7 +263,7 @@ export function bookingReminderEmail(data: {
           <p>Please arrive 15 minutes before departure.</p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -229,13 +273,13 @@ export function bookingReminderEmail(data: {
   const text = `
 See You Tomorrow!
 
-Hi ${data.customerName},
+Hi ${escapeHtml(data.customerName)},
 
 This is a friendly reminder about your upcoming dive trip:
 
-${data.tripName}
-${data.tripDate} at ${data.tripTime}
-Booking: ${data.bookingNumber}
+${escapeHtml(data.tripName)}
+${escapeHtml(data.tripDate)} at ${escapeHtml(data.tripTime)}
+Booking: ${escapeHtml(data.bookingNumber)}
 
 What to bring:
 - Swimsuit and towel
@@ -245,7 +289,7 @@ What to bring:
 
 Please arrive 15 minutes before departure.
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -277,15 +321,15 @@ export function welcomeEmail(data: {
           <h1>Welcome! 🎉</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.userName},</p>
-          <p>Welcome to <strong>${data.shopName}</strong>! Your account has been created.</p>
+          <p>Hi ${escapeHtml(data.userName)},</p>
+          <p>Welcome to <strong>${escapeHtml(data.shopName)}</strong>! Your account has been created.</p>
           <p>Click below to access your dashboard:</p>
           <p style="text-align: center;">
-            <a href="${data.loginUrl}" class="button">Go to Dashboard</a>
+            <a href="${escapeHtml(data.loginUrl)}" class="button">Go to Dashboard</a>
           </p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -293,14 +337,14 @@ export function welcomeEmail(data: {
   `;
 
   const text = `
-Welcome to ${data.shopName}!
+Welcome to ${escapeHtml(data.shopName)}!
 
-Hi ${data.userName},
+Hi ${escapeHtml(data.userName)},
 
 Your account has been created. Access your dashboard at:
-${data.loginUrl}
+${escapeHtml(data.loginUrl)}
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -331,10 +375,10 @@ export function passwordResetEmail(data: {
           <h1>Password Reset</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.userName},</p>
+          <p>Hi ${escapeHtml(data.userName)},</p>
           <p>We received a request to reset your password. Click the button below to create a new password:</p>
           <p style="text-align: center;">
-            <a href="${data.resetUrl}" class="button">Reset Password</a>
+            <a href="${escapeHtml(data.resetUrl)}" class="button">Reset Password</a>
           </p>
           <p><small>This link will expire in 1 hour. If you didn't request this, you can ignore this email.</small></p>
         </div>
@@ -349,15 +393,84 @@ export function passwordResetEmail(data: {
   const text = `
 Password Reset
 
-Hi ${data.userName},
+Hi ${escapeHtml(data.userName)},
 
 We received a request to reset your password. Visit the link below to create a new password:
 
-${data.resetUrl}
+${escapeHtml(data.resetUrl)}
 
 This link will expire in 1 hour. If you didn't request this, you can ignore this email.
 
 DiveStreams
+  `;
+
+  return { subject, html, text };
+}
+
+export function customerWelcomeEmail(data: {
+  customerName: string;
+  shopName: string;
+  loginUrl: string;
+}) {
+  const subject = `Welcome to ${data.shopName}!`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+        .button { display: inline-block; background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin: 15px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Welcome! 🎉</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${escapeHtml(data.customerName)},</p>
+          <p>Thank you for creating an account with <strong>${escapeHtml(data.shopName)}</strong>!</p>
+          <p>You can now:</p>
+          <ul>
+            <li>Book dive trips and training courses</li>
+            <li>View and manage your reservations</li>
+            <li>Access your diving history</li>
+            <li>Update your profile and certifications</li>
+          </ul>
+          <p style="text-align: center;">
+            <a href="${escapeHtml(data.loginUrl)}" class="button">Sign In to Your Account</a>
+          </p>
+        </div>
+        <div class="footer">
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Welcome to ${escapeHtml(data.shopName)}!
+
+Hi ${escapeHtml(data.customerName)},
+
+Thank you for creating an account with ${escapeHtml(data.shopName)}!
+
+You can now:
+- Book dive trips and training courses
+- View and manage your reservations
+- Access your diving history
+- Update your profile and certifications
+
+Sign in to your account at:
+${escapeHtml(data.loginUrl)}
+
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -402,25 +515,25 @@ export function contactFormNotificationEmail(data: {
 
           <div class="details">
             <div class="detail-row">
-              <span class="label">From:</span> ${data.name} (${data.email})
+              <span class="label">From:</span> ${escapeHtml(data.name)} (${escapeHtml(data.email)})
             </div>
-            ${data.phone ? `<div class="detail-row"><span class="label">Phone:</span> ${data.phone}</div>` : ""}
-            ${data.subject ? `<div class="detail-row"><span class="label">Subject:</span> ${data.subject}</div>` : ""}
+            ${data.phone ? `<div class="detail-row"><span class="label">Phone:</span> ${escapeHtml(data.phone)}</div>` : ""}
+            ${data.subject ? `<div class="detail-row"><span class="label">Subject:</span> ${escapeHtml(data.subject)}</div>` : ""}
             <div class="detail-row">
-              <span class="label">Submitted:</span> ${data.submittedAt}
+              <span class="label">Submitted:</span> ${escapeHtml(data.submittedAt)}
             </div>
-            ${data.referrerPage ? `<div class="detail-row"><span class="label">Page:</span> ${data.referrerPage}</div>` : ""}
+            ${data.referrerPage ? `<div class="detail-row"><span class="label">Page:</span> ${escapeHtml(data.referrerPage)}</div>` : ""}
           </div>
 
           <div class="message-box">
             <div class="label">Message:</div>
-            <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${data.message}</p>
+            <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${escapeHtml(data.message)}</p>
           </div>
 
-          <p><strong>Reply to:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
+          <p><strong>Reply to:</strong> <a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a></p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -430,18 +543,18 @@ export function contactFormNotificationEmail(data: {
   const text = `
 New Contact Form Submission
 
-From: ${data.name} (${data.email})
-${data.phone ? `Phone: ${data.phone}` : ""}
-${data.subject ? `Subject: ${data.subject}` : ""}
-Submitted: ${data.submittedAt}
-${data.referrerPage ? `Page: ${data.referrerPage}` : ""}
+From: ${escapeHtml(data.name)} (${escapeHtml(data.email)})
+${data.phone ? `Phone: ${escapeHtml(data.phone)}` : ""}
+${data.subject ? `Subject: ${escapeHtml(data.subject)}` : ""}
+Submitted: ${escapeHtml(data.submittedAt)}
+${data.referrerPage ? `Page: ${escapeHtml(data.referrerPage)}` : ""}
 
 Message:
-${data.message}
+${escapeHtml(data.message)}
 
-Reply to: ${data.email}
+Reply to: ${escapeHtml(data.email)}
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };
@@ -474,8 +587,8 @@ export function contactFormAutoReplyEmail(data: {
           <h1>Message Received</h1>
         </div>
         <div class="content">
-          <p>Hi ${data.name},</p>
-          <p>Thank you for reaching out to <strong>${data.shopName}</strong>. We've received your message and will get back to you as soon as possible.</p>
+          <p>Hi ${escapeHtml(data.name)},</p>
+          <p>Thank you for reaching out to <strong>${escapeHtml(data.shopName)}</strong>. We've received your message and will get back to you as soon as possible.</p>
 
           <div class="highlight">
             <p><strong>We typically respond within 24 hours.</strong></p>
@@ -483,14 +596,14 @@ export function contactFormAutoReplyEmail(data: {
 
           <p>In the meantime, if you need immediate assistance, please feel free to contact us directly:</p>
           <ul>
-            <li>Email: <a href="mailto:${data.contactEmail}">${data.contactEmail}</a></li>
-            ${data.contactPhone ? `<li>Phone: <a href="tel:${data.contactPhone}">${data.contactPhone}</a></li>` : ""}
+            <li>Email: <a href="mailto:${escapeHtml(data.contactEmail)}">${escapeHtml(data.contactEmail)}</a></li>
+            ${data.contactPhone ? `<li>Phone: <a href="tel:${escapeHtml(data.contactPhone)}">${escapeHtml(data.contactPhone)}</a></li>` : ""}
           </ul>
 
-          <p>Best regards,<br>${data.shopName} Team</p>
+          <p>Best regards,<br>${escapeHtml(data.shopName)} Team</p>
         </div>
         <div class="footer">
-          <p>${data.shopName} • Powered by DiveStreams</p>
+          <p>${escapeHtml(data.shopName)} • Powered by DiveStreams</p>
         </div>
       </div>
     </body>
@@ -498,23 +611,23 @@ export function contactFormAutoReplyEmail(data: {
   `;
 
   const text = `
-Thank you for contacting ${data.shopName}
+Thank you for contacting ${escapeHtml(data.shopName)}
 
-Hi ${data.name},
+Hi ${escapeHtml(data.name)},
 
-Thank you for reaching out to ${data.shopName}. We've received your message and will get back to you as soon as possible.
+Thank you for reaching out to ${escapeHtml(data.shopName)}. We've received your message and will get back to you as soon as possible.
 
 We typically respond within 24 hours.
 
 In the meantime, if you need immediate assistance, please feel free to contact us directly:
 
-Email: ${data.contactEmail}
-${data.contactPhone ? `Phone: ${data.contactPhone}` : ""}
+Email: ${escapeHtml(data.contactEmail)}
+${data.contactPhone ? `Phone: ${escapeHtml(data.contactPhone)}` : ""}
 
 Best regards,
-${data.shopName} Team
+${escapeHtml(data.shopName)} Team
 
-${data.shopName} • Powered by DiveStreams
+${escapeHtml(data.shopName)} • Powered by DiveStreams
   `;
 
   return { subject, html, text };

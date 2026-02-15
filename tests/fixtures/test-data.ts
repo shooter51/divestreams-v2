@@ -119,12 +119,19 @@ export const testTours = [
   },
 ];
 
+// Dynamic dates relative to now (avoid hardcoded past dates that break over time)
+const now = new Date();
+const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
 export const testTrips = [
   {
     id: 1,
     tourId: 1,
     boatId: 1,
-    date: new Date("2025-02-01"),
+    date: tomorrow,
     time: "09:00",
     availableSpots: 4,
     status: "scheduled",
@@ -133,7 +140,7 @@ export const testTrips = [
     id: 2,
     tourId: 2,
     boatId: 1,
-    date: new Date("2025-02-01"),
+    date: tomorrow,
     time: "14:00",
     availableSpots: 6,
     status: "scheduled",
@@ -142,7 +149,7 @@ export const testTrips = [
     id: 3,
     tourId: 3,
     boatId: 2,
-    date: new Date("2025-02-02"),
+    date: nextWeek,
     time: "19:00",
     availableSpots: 3,
     status: "scheduled",
@@ -159,7 +166,7 @@ export const testBookings = [
     total: 198.0,
     paidAmount: 198.0,
     status: "confirmed",
-    createdAt: new Date("2025-01-15"),
+    createdAt: lastWeek,
   },
   {
     id: 2,
@@ -170,7 +177,7 @@ export const testBookings = [
     total: 149.0,
     paidAmount: 50.0,
     status: "pending",
-    createdAt: new Date("2025-01-16"),
+    createdAt: lastWeek,
   },
   {
     id: 3,
@@ -181,7 +188,7 @@ export const testBookings = [
     total: 258.0,
     paidAmount: 0,
     status: "pending",
-    createdAt: new Date("2025-01-17"),
+    createdAt: lastWeek,
   },
 ];
 
@@ -193,7 +200,7 @@ export const testPayments = [
     method: "card",
     stripePaymentId: "pi_test_001",
     status: "succeeded",
-    createdAt: new Date("2025-01-15"),
+    createdAt: lastWeek,
   },
   {
     id: 2,
@@ -202,7 +209,7 @@ export const testPayments = [
     method: "card",
     stripePaymentId: "pi_test_002",
     status: "succeeded",
-    createdAt: new Date("2025-01-16"),
+    createdAt: lastWeek,
   },
 ];
 
@@ -216,7 +223,7 @@ export const testTenant = {
   timezone: "America/New_York",
   currency: "USD",
   isActive: true,
-  createdAt: new Date("2025-01-01"),
+  createdAt: lastWeek,
 };
 
 export const testAdminCredentials = {

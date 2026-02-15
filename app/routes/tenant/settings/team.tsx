@@ -1,15 +1,10 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, Link } from "react-router";
-import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
-import { db } from "../../../../lib/db";
-import { member, user, invitation } from "../../../../lib/db/schema";
-import { eq, and } from "drizzle-orm";
-import { PremiumGate } from "../../../../app/components/ui/UpgradePrompt";
-import { sendEmail } from "../../../../lib/email";
-import { getAppUrl } from "../../../../lib/utils/url";
-import { requireLimit } from "../../../../lib/require-feature.server";
-import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
+import type { ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
+import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
+import { useState, useEffect } from "react";
+import { PremiumGate } from "../../../components/ui/UpgradePrompt";
+import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams" }];
 
@@ -35,6 +30,14 @@ const roles = [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Import server-only modules inline to prevent client bundle leakage
+  const { requireOrgContext } = await import("../../../../lib/auth/org-context.server");
+  const { db } = await import("../../../../lib/db");
+  const { member, user, invitation } = await import("../../../../lib/db/schema");
+  const { eq, and } = await import("drizzle-orm");
+  const { requireLimit } = await import("../../../../lib/require-feature.server");
+  const { DEFAULT_PLAN_LIMITS } = await import("../../../../lib/plan-features");
+
   const ctx = await requireOrgContext(request);
 
   // Check users limit - this will redirect if limit exceeded
@@ -56,6 +59,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const team = membersRaw.map(m => ({
     id: m.id,
+    userId: m.userId,  // Include user ID for password reset
     name: m.userName || "Unknown",
     email: m.userEmail,
     role: m.role,
@@ -97,11 +101,29 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Import server-only modules inline to prevent client bundle leakage
+  const { requireOrgContext, requireRole } = await import("../../../../lib/auth/org-context.server");
+  const { db } = await import("../../../../lib/db");
+  const { member, user, invitation } = await import("../../../../lib/db/schema");
+  const { eq, and } = await import("drizzle-orm");
+  const { sendEmail } = await import("../../../../lib/email");
+  const { getAppUrl } = await import("../../../../lib/utils/url");
+  const { resetUserPassword } = await import("../../../../lib/auth/admin-password-reset.server");
+
   const ctx = await requireOrgContext(request);
+
+  // Team management actions require owner or admin role
+  requireRole(ctx, ["owner", "admin"]);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   if (intent === "invite") {
+    // Only owners and admins can invite team members
+    if (ctx.membership.role !== "owner" && ctx.membership.role !== "admin") {
+      return { error: "Only owners and admins can manage team members" };
+    }
+
     // Only premium users can invite team members
     if (!ctx.isPremium) {
       return { error: "Team invitations require a premium subscription" };
@@ -110,7 +132,86 @@ export async function action({ request }: ActionFunctionArgs) {
     const email = formData.get("email") as string;
     const role = formData.get("role") as string;
 
-    // Create invitation with generated ID
+    // Validate role against allowed values
+    const allowedRoles = ["admin", "member", "staff"];
+    if (!allowedRoles.includes(role)) {
+      return { error: "Invalid role" };
+    }
+
+    // Check if email is already a team member of THIS organization
+    const [existingMember] = await db
+      .select({
+        email: user.email,
+      })
+      .from(member)
+      .innerJoin(user, eq(member.userId, user.id))
+      .where(
+        and(
+          eq(member.organizationId, ctx.org.id),
+          eq(user.email, email)
+        )
+      )
+      .limit(1);
+
+    if (existingMember) {
+      return { error: "This email is already a team member" };
+    }
+
+    // Check if user exists globally (in any organization)
+    const [existingUser] = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, email))
+      .limit(1);
+
+    if (existingUser) {
+      // User exists - add them directly as a member (no invitation needed)
+      const memberId = crypto.randomUUID();
+      await db.insert(member).values({
+        id: memberId,
+        userId: existingUser.id,
+        organizationId: ctx.org.id,
+        role,
+      });
+
+      // Send notification email that they've been added
+      try {
+        await sendEmail({
+          to: email,
+          subject: `You've been added to ${ctx.org.name} on DiveStreams`,
+          html: `
+            <p>Hi${existingUser.name ? ` ${existingUser.name}` : ''},</p>
+            <p>${ctx.user.name || 'A team member'} has added you to <strong>${ctx.org.name}</strong> on DiveStreams as a ${role}.</p>
+            <p><a href="${getAppUrl()}">Click here to access your account</a></p>
+            <p>You can now switch between organizations from your dashboard.</p>
+          `,
+        });
+      } catch (error) {
+        console.error("Failed to send notification email:", error);
+        // Continue even if email fails - member was added
+      }
+
+      return { success: true, message: `${email} has been added to the team (existing user)` };
+    }
+
+    // Check if email already has a pending invitation
+    const [existingInvite] = await db
+      .select()
+      .from(invitation)
+      .where(
+        and(
+          eq(invitation.organizationId, ctx.org.id),
+          eq(invitation.email, email),
+          eq(invitation.status, "pending")
+        )
+      )
+      .limit(1);
+
+    if (existingInvite) {
+      return { error: "This email already has a pending invitation" };
+    }
+
+    // User doesn't exist - create invitation for new user
     const inviteId = crypto.randomUUID();
     await db.insert(invitation).values({
       id: inviteId,
@@ -141,19 +242,35 @@ export async function action({ request }: ActionFunctionArgs) {
       // Continue even if email fails - invitation was created
     }
 
-    return { success: true, message: `Invitation sent to ${email}` };
+    return { success: true, message: `Invitation sent to ${email} (new user)` };
   }
 
   if (intent === "update-role") {
-    const memberId = formData.get("userId") as string;
+    // Only owners and admins can update roles
+    if (ctx.membership.role !== "owner" && ctx.membership.role !== "admin") {
+      return { error: "Only owners and admins can manage team members" };
+    }
+
+    const userId = formData.get("userId") as string;
     const role = formData.get("role") as string;
+
+    // Prevent users from modifying their own role
+    if (userId === ctx.user.id) {
+      return { error: "You cannot modify your own role" };
+    }
+
+    // Validate role against allowed values
+    const allowedRoles = ["admin", "member", "staff"];
+    if (!allowedRoles.includes(role)) {
+      return { error: "Invalid role" };
+    }
 
     await db
       .update(member)
       .set({ role })
       .where(
         and(
-          eq(member.id, memberId),
+          eq(member.userId, userId),
           eq(member.organizationId, ctx.org.id)
         )
       );
@@ -162,11 +279,21 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "remove") {
-    const memberId = formData.get("userId") as string;
+    // Only owners and admins can remove team members
+    if (ctx.membership.role !== "owner" && ctx.membership.role !== "admin") {
+      return { error: "Only owners and admins can manage team members" };
+    }
+
+    const userId = formData.get("userId") as string;
+
+    // Prevent users from removing themselves
+    if (userId === ctx.user.id) {
+      return { error: "You cannot modify your own role" };
+    }
 
     await db.delete(member).where(
       and(
-        eq(member.id, memberId),
+        eq(member.userId, userId),
         eq(member.organizationId, ctx.org.id)
       )
     );
@@ -227,13 +354,110 @@ export async function action({ request }: ActionFunctionArgs) {
     return { success: true, message: "Invitation resent" };
   }
 
+  if (intent === "reset-password") {
+    const userId = formData.get("userId") as string;
+    const method = formData.get("method") as ResetPasswordParams["method"];
+    const newPassword = formData.get("newPassword") as string | undefined;
+
+    // Check permissions
+    if (ctx.membership.role !== "owner" && ctx.membership.role !== "admin") {
+      return { error: "Only owners and admins can reset passwords" };
+    }
+
+    // Get target member to check role
+    const [targetMember] = await db
+      .select()
+      .from(member)
+      .where(
+        and(
+          eq(member.userId, userId),
+          eq(member.organizationId, ctx.org.id)
+        )
+      )
+      .limit(1);
+
+    if (!targetMember) {
+      return { error: "User not found" };
+    }
+
+    // Cannot reset owner passwords
+    if (targetMember.role === "owner") {
+      return { error: "Cannot reset password for owner accounts" };
+    }
+
+    // Prevent self-reset
+    if (userId === ctx.user.id) {
+      return { error: "Use profile settings to change your own password" };
+    }
+
+    // Execute reset
+    try {
+      const result = await resetUserPassword({
+        targetUserId: userId,
+        adminUserId: ctx.user.id,
+        organizationId: ctx.org.id,
+        method,
+        newPassword,
+        ipAddress: request.headers.get("x-forwarded-for") || undefined,
+        userAgent: request.headers.get("user-agent") || undefined,
+      });
+
+      return {
+        success: true,
+        temporaryPassword: result.temporaryPassword,
+        message: method === "auto_generated"
+          ? `Password reset successful. Temporary password: ${result.temporaryPassword}`
+          : "Password reset successful",
+      };
+    } catch (error) {
+      console.error("Password reset error:", error);
+      return { error: error instanceof Error ? error.message : "Failed to reset password" };
+    }
+  }
+
   return null;
 }
 
 export default function TeamPage() {
   const { team, pendingInvites, roles, planLimit, limitRemaining, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
+  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
+  const csrfToken = layoutData?.csrfToken;
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
+  // Close modal only on successful invitation
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      setShowInviteModal(false);
+    }
+  }, [fetcher.data]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (openDropdownId && !target.closest('.relative')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    if (openDropdownId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdownId]);
+
+  // Close password reset modal on success (password display is handled by ResetPasswordModal)
+  useEffect(() => {
+    if (fetcher.data?.success && resetPasswordUser) {
+      if (!fetcher.data?.temporaryPassword) {
+        // Only auto-close if there's no temporary password to display
+        setResetPasswordUser(null);
+      }
+    }
+  }, [fetcher.data, resetPasswordUser]);
 
   const activeMembers = team.filter((m) => m.status === "active").length;
   const atLimit = planLimit !== -1 && activeMembers >= planLimit;
@@ -247,7 +471,9 @@ export default function TeamPage() {
         </Link>
         <h1 className="text-2xl font-bold mt-2">Team Members</h1>
         <p className="text-foreground-muted">
-          {activeMembers} of {planLimit} team members used
+          {planLimit === -1
+            ? `${activeMembers} team members (Unlimited)`
+            : `${activeMembers} of ${planLimit} team members used`}
         </p>
       </div>
 
@@ -267,7 +493,7 @@ export default function TeamPage() {
 
       {/* Plan limit warning */}
       {canInviteTeamMembers && atLimit && (
-        <div className="bg-warning-muted border border-warning-muted text-warning px-4 py-3 rounded-lg mb-6">
+        <div className="bg-warning-muted border border-warning-muted text-warning px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           <p className="font-medium">Team limit reached</p>
           <p className="text-sm">
             Your current plan allows {planLimit} team members.{" "}
@@ -307,13 +533,13 @@ export default function TeamPage() {
       </div>
 
       {/* Team List */}
-      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden mb-6">
-        <div className="divide-y">
+      <div className="bg-surface-raised rounded-xl shadow-sm mb-6 overflow-visible">
+        <div className="divide-y overflow-visible">
           {team.map((member) => (
-            <div key={member.id} className="p-4 flex items-center justify-between">
+            <div key={member.id} className="p-4 flex items-center justify-between overflow-visible">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-brand-muted text-brand rounded-full flex items-center justify-center font-medium">
-                  {member.name
+                  {(member.name || "U")
                     .split(" ")
                     .map((n: string) => n[0])
                     .join("")}
@@ -343,13 +569,20 @@ export default function TeamPage() {
                 </div>
 
                 {member.role !== "owner" && (
-                  <div className="relative group">
-                    <button className="p-2 hover:bg-surface-overlay rounded-lg">⋮</button>
-                    <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg hidden group-hover:block z-10">
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenDropdownId(openDropdownId === member.id ? null : member.id)}
+                      className="p-2 hover:bg-surface-overlay rounded-lg"
+                    >
+                      ⋮
+                    </button>
+                    {openDropdownId === member.id && (
+                      <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
                       <div className="py-1">
                         <fetcher.Form method="post">
+                          <CsrfInput />
                           <input type="hidden" name="intent" value="update-role" />
-                          <input type="hidden" name="userId" value={member.id} />
+                          <input type="hidden" name="userId" value={member.userId} />
                           <div className="px-3 py-2 text-xs text-foreground-muted font-medium">
                             Change Role
                           </div>
@@ -370,6 +603,18 @@ export default function TeamPage() {
                             ))}
                         </fetcher.Form>
                         <hr className="my-1" />
+                        <button
+                          type="button"
+                          onClick={() => setResetPasswordUser({
+                            id: member.userId,  // Use userId, not member.id
+                            name: member.name,
+                            email: member.email
+                          })}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset"
+                        >
+                          Reset Password
+                        </button>
+                        <hr className="my-1" />
                         <fetcher.Form
                           method="post"
                           onSubmit={(e) => {
@@ -382,8 +627,9 @@ export default function TeamPage() {
                             }
                           }}
                         >
+                          <CsrfInput />
                           <input type="hidden" name="intent" value="remove" />
-                          <input type="hidden" name="userId" value={member.id} />
+                          <input type="hidden" name="userId" value={member.userId} />
                           <button
                             type="submit"
                             className="w-full text-left px-3 py-2 text-sm text-danger hover:bg-danger-muted"
@@ -393,6 +639,7 @@ export default function TeamPage() {
                         </fetcher.Form>
                       </div>
                     </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -419,6 +666,7 @@ export default function TeamPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <fetcher.Form method="post">
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="resend-invite" />
                     <input type="hidden" name="inviteId" value={invite.id} />
                     <button
@@ -429,6 +677,7 @@ export default function TeamPage() {
                     </button>
                   </fetcher.Form>
                   <fetcher.Form method="post">
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="cancel-invite" />
                     <input type="hidden" name="inviteId" value={invite.id} />
                     <button
@@ -472,6 +721,33 @@ export default function TeamPage() {
         </div>
       </div>
 
+      {/* Reset Password Modal */}
+      {resetPasswordUser && (
+        <ResetPasswordModal
+          user={resetPasswordUser}
+          onClose={() => {
+            setResetPasswordUser(null);
+            // Clear fetcher data when closing modal
+            if (fetcher.state === "idle" && fetcher.data) {
+              fetcher.load(window.location.href);
+            }
+          }}
+          onSubmit={(data) => {
+            fetcher.submit(
+              {
+                intent: "reset-password",
+                userId: data.userId,
+                method: data.method,
+                ...(data.newPassword && { newPassword: data.newPassword }),
+                ...(csrfToken && { _csrf: csrfToken }),
+              },
+              { method: "post" }
+            );
+          }}
+          result={fetcher.data}
+        />
+      )}
+
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -479,9 +755,15 @@ export default function TeamPage() {
             <h2 className="text-lg font-semibold mb-4">Invite Team Member</h2>
             <fetcher.Form
               method="post"
-              onSubmit={() => setShowInviteModal(false)}
             >
+              <CsrfInput />
               <input type="hidden" name="intent" value="invite" />
+
+              {fetcher.data?.error && (
+                <div className="bg-danger-bg text-danger border border-danger-border p-3 rounded-lg mb-4">
+                  {fetcher.data.error}
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div>
@@ -494,7 +776,7 @@ export default function TeamPage() {
                     name="email"
                     required
                     placeholder="colleague@example.com"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
 
@@ -507,7 +789,7 @@ export default function TeamPage() {
                     name="role"
                     required
                     defaultValue="staff"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   >
                     {roles
                       .filter((r) => r.id !== "owner")

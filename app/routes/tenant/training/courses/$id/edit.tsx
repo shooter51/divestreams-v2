@@ -10,6 +10,7 @@ import {
 } from "../../../../../../lib/db/training.server";
 import { getTenantDb } from "../../../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../../components/ui";
+import { redirectWithNotification, useNotification } from "../../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Course - DiveStreams" }];
 
@@ -122,6 +123,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (!price || isNaN(parseFloat(price))) {
     errors.price = "Valid price is required";
+  } else {
+    const priceNum = parseFloat(price);
+    if (priceNum < 0) {
+      errors.price = "Price cannot be negative";
+    }
+    // Allow free courses (price = $0) - dive shops may offer free intro courses or promotional courses
   }
 
   if (Object.keys(errors).length > 0) {
@@ -161,7 +168,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     requiredItems,
   });
 
-  return redirect(`/tenant/training/courses/${courseId}`);
+  const courseName = name.trim();
+  return redirect(redirectWithNotification(`/tenant/training/courses/${courseId}`, `Course "${courseName}" has been successfully updated`, "success"));
 }
 
 export default function EditCoursePage() {
@@ -169,6 +177,9 @@ export default function EditCoursePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">

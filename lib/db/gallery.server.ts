@@ -58,7 +58,7 @@ export async function getPublicGalleryImages(
     offset = 0,
   } = filters;
 
-  let query = db
+  const query = db
     .select({
       id: galleryImages.id,
       organizationId: galleryImages.organizationId,
@@ -199,40 +199,56 @@ export async function getPublicGalleryAlbums(
     )
     .orderBy(asc(galleryAlbums.sortOrder), asc(galleryAlbums.name));
 
-  // Get image counts and sample images for each album
-  const albumsWithImages = await Promise.all(
-    albums.map(async (album) => {
-      const images = await db
-        .select()
-        .from(galleryImages)
-        .where(
-          and(
-            eq(galleryImages.albumId, album.id),
-            eq(galleryImages.status, "published")
-          )
-        )
-        .orderBy(asc(galleryImages.sortOrder))
-        .limit(4);
+  // Get image counts and sample images in batch queries
+  if (albums.length === 0) return [];
 
-      const [countResult] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(galleryImages)
-        .where(
-          and(
-            eq(galleryImages.albumId, album.id),
-            eq(galleryImages.status, "published")
-          )
-        );
+  const albumIds = albums.map(a => a.id);
 
-      return {
-        ...album,
-        images,
-        imageCount: countResult?.count || 0,
-      };
+  // Batch query: image counts per album
+  const imageCounts = await db
+    .select({
+      albumId: galleryImages.albumId,
+      count: sql<number>`count(*)::int`,
     })
-  );
+    .from(galleryImages)
+    .where(
+      and(
+        inArray(galleryImages.albumId, albumIds),
+        eq(galleryImages.status, "published")
+      )
+    )
+    .groupBy(galleryImages.albumId);
 
-  return albumsWithImages;
+  const imageCountMap = new Map(imageCounts.map(ic => [ic.albumId, ic.count || 0]));
+
+  // Batch query: sample images (up to 4) per album using window function
+  const sampleImages = await db
+    .select()
+    .from(galleryImages)
+    .where(
+      and(
+        inArray(galleryImages.albumId, albumIds),
+        eq(galleryImages.status, "published")
+      )
+    )
+    .orderBy(asc(galleryImages.sortOrder));
+
+  // Group sample images by album, keeping only first 4 per album
+  const imagesByAlbum = new Map<string, typeof sampleImages>();
+  for (const img of sampleImages) {
+    if (!img.albumId) continue;
+    const existing = imagesByAlbum.get(img.albumId) || [];
+    if (existing.length < 4) {
+      existing.push(img);
+      imagesByAlbum.set(img.albumId, existing);
+    }
+  }
+
+  return albums.map(album => ({
+    ...album,
+    images: imagesByAlbum.get(album.id) || [],
+    imageCount: imageCountMap.get(album.id) || 0,
+  }));
 }
 
 /**
@@ -429,29 +445,46 @@ export async function getAllGalleryAlbums(
     .where(eq(galleryAlbums.organizationId, organizationId))
     .orderBy(asc(galleryAlbums.sortOrder), asc(galleryAlbums.name));
 
-  const albumsWithImages = await Promise.all(
-    albums.map(async (album) => {
-      const images = await db
-        .select()
-        .from(galleryImages)
-        .where(eq(galleryImages.albumId, album.id))
-        .orderBy(asc(galleryImages.sortOrder))
-        .limit(4);
+  // Get image counts and sample images in batch queries
+  if (albums.length === 0) return [];
 
-      const [countResult] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(galleryImages)
-        .where(eq(galleryImages.albumId, album.id));
+  const albumIds = albums.map(a => a.id);
 
-      return {
-        ...album,
-        images,
-        imageCount: countResult?.count || 0,
-      };
+  // Batch query: image counts per album (all statuses for admin)
+  const imageCounts = await db
+    .select({
+      albumId: galleryImages.albumId,
+      count: sql<number>`count(*)::int`,
     })
-  );
+    .from(galleryImages)
+    .where(inArray(galleryImages.albumId, albumIds))
+    .groupBy(galleryImages.albumId);
 
-  return albumsWithImages;
+  const imageCountMap = new Map(imageCounts.map(ic => [ic.albumId, ic.count || 0]));
+
+  // Batch query: sample images per album (all statuses for admin)
+  const sampleImages = await db
+    .select()
+    .from(galleryImages)
+    .where(inArray(galleryImages.albumId, albumIds))
+    .orderBy(asc(galleryImages.sortOrder));
+
+  // Group sample images by album, keeping only first 4 per album
+  const imagesByAlbum = new Map<string, typeof sampleImages>();
+  for (const img of sampleImages) {
+    if (!img.albumId) continue;
+    const existing = imagesByAlbum.get(img.albumId) || [];
+    if (existing.length < 4) {
+      existing.push(img);
+      imagesByAlbum.set(img.albumId, existing);
+    }
+  }
+
+  return albums.map(album => ({
+    ...album,
+    images: imagesByAlbum.get(album.id) || [],
+    imageCount: imageCountMap.get(album.id) || 0,
+  }));
 }
 
 /**

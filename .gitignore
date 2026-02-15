@@ -43,3 +43,10 @@ temp/
 
 # Git worktrees
 .worktrees/
+.mcp.json
+
+# Coverage artifacts
+coverage-summary.json
+
+# 1Password import files
+github-secrets-1password*.csv

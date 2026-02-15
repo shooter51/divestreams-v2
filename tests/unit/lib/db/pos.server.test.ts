@@ -33,6 +33,10 @@ const { dbMock, mockReturning, mockLimit, mockOffset, mockGroupBy, resetMocks } 
   chain.offset = vi.fn((...args) => { mockOffset(...args); lastMethod = 'offset'; return chain; });
   chain.groupBy = vi.fn(() => { mockGroupBy(); lastMethod = 'other'; return chain; });
   chain.returning = vi.fn((...args) => { mockReturning(...args); lastMethod = 'returning'; return chain; });
+  // Mock transaction method - takes a callback and executes it with the chain (acting as tx)
+  chain.transaction = vi.fn(async (callback) => {
+    return await callback(chain);
+  });
   // Thenable - use appropriate mock based on last method called
   chain.then = (resolve: (value: unknown[]) => void, reject?: (error: unknown) => void) => {
     // Call the appropriate mock based on which method was called last
@@ -95,6 +99,7 @@ vi.mock("../../../../lib/db/schema", () => ({
     category: "category",
     name: "name",
     isRentable: "isRentable",
+    rentalPrice: "rentalPrice",
     status: "status",
     barcode: "barcode",
   },
@@ -104,11 +109,13 @@ vi.mock("../../../../lib/db/schema", () => ({
     tourId: "tourId",
     date: "date",
     startTime: "startTime",
+    price: "price",
     maxParticipants: "maxParticipants",
     status: "status",
   },
   tours: {
     id: "id",
+    price: "price",
     maxParticipants: "maxParticipants",
   },
   bookings: {
@@ -139,6 +146,7 @@ vi.mock("../../../../lib/db/schema", () => ({
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((col, val) => ({ col, val, op: "eq" })),
   and: vi.fn((...conditions) => ({ conditions, op: "and" })),
+  inArray: vi.fn((col, vals) => ({ col, vals, op: "inArray" })),
   sql: vi.fn((strings, ...values) => ({
     strings,
     values,
@@ -398,6 +406,8 @@ describe("pos.server database functions", () => {
   // ============================================================================
   describe("processPOSCheckout", () => {
     it("should create transaction for product sale", async () => {
+      // Product price lookup query (new server-side validation)
+      mockLimit.mockResolvedValueOnce([{ id: "prod-1", price: "50.00", salePrice: null, saleStartDate: null, saleEndDate: null }]);
       // Query with .limit() - wrapper + thenable consumption
       mockLimit.mockResolvedValueOnce([]); // Consumed by wrapper (ignored)
       mockLimit.mockResolvedValueOnce([{ count: 0 }]); // Consumed by thenable (used)
@@ -421,7 +431,7 @@ describe("pos.server database functions", () => {
         ],
         customerId: "cust-1",
         userId: "user-1",
-        payments: [{ method: "cash" as const, amount: 100 }],
+        payments: [{ method: "cash" as const, amount: 110 }], // Must match total including tax
         subtotal: 100,
         tax: 10,
         total: 110,
@@ -437,6 +447,8 @@ describe("pos.server database functions", () => {
     });
 
     it("should process booking items", async () => {
+      // Trip price lookup query (new server-side validation)
+      mockLimit.mockResolvedValueOnce([{ tripPrice: "100.00", tourPrice: "100.00" }]);
       mockLimit.mockResolvedValueOnce([{ count: 0 }]);
       mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]);
       mockReturning.mockResolvedValueOnce([]);
@@ -456,7 +468,7 @@ describe("pos.server database functions", () => {
           },
         ],
         customerId: "cust-1",
-        payments: [{ method: "card" as const, amount: 300, stripePaymentIntentId: "pi_123" }],
+        payments: [{ method: "card" as const, amount: 330, stripePaymentIntentId: "pi_123" }], // Must match total including tax
         subtotal: 300,
         tax: 30,
         total: 330,
@@ -468,6 +480,9 @@ describe("pos.server database functions", () => {
     });
 
     it("should process rental items", async () => {
+      // Equipment price lookup query (new server-side validation) - uses .limit(1) so needs wrapper + thenable
+      mockLimit.mockResolvedValueOnce([]); // Consumed by limit() wrapper call
+      mockLimit.mockResolvedValueOnce([{ rentalPrice: "20.00" }]); // Consumed by thenable
       // Two queries with .limit() - wrapper calls consume first values, thenable uses second
       mockLimit
         .mockResolvedValueOnce([]) // Consumed by 1st wrapper (ignored)
@@ -496,7 +511,7 @@ describe("pos.server database functions", () => {
           },
         ],
         customerId: "cust-1",
-        payments: [{ method: "cash" as const, amount: 60 }],
+        payments: [{ method: "cash" as const, amount: 66 }], // Must match total including tax
         subtotal: 60,
         tax: 6,
         total: 66,
@@ -509,6 +524,8 @@ describe("pos.server database functions", () => {
     });
 
     it("should handle split payment", async () => {
+      // Product price lookup query (new server-side validation)
+      mockLimit.mockResolvedValueOnce([{ id: "prod-1", price: "100.00", salePrice: null, saleStartDate: null, saleEndDate: null }]);
       mockLimit.mockResolvedValueOnce([{ count: 0 }]);
       mockReturning.mockResolvedValueOnce([{ id: "trans-1" }]);
 
@@ -527,8 +544,8 @@ describe("pos.server database functions", () => {
           },
         ],
         payments: [
-          { method: "cash" as const, amount: 50 },
-          { method: "card" as const, amount: 50, stripePaymentIntentId: "pi_123" },
+          { method: "cash" as const, amount: 55 }, // Split payment must total 110 with tax
+          { method: "card" as const, amount: 55, stripePaymentIntentId: "pi_123" },
         ],
         subtotal: 100,
         tax: 10,

@@ -10,14 +10,19 @@ export class LoginPage extends TenantBasePage {
   }
 
   async login(email: string, password: string): Promise<void> {
-    await this.fillByLabel(/email/i, email);
-    await this.fillByLabel(/password/i, password);
+    // Email field requires getByRole for accessibility matching
+    await this.page.getByRole("textbox", { name: /email/i }).fill(email);
+    // Use specific selector for password field to avoid strict mode violation with show/hide button
+    await this.page.locator('input[type="password"]').first().fill(password);
+    // Click and wait for navigation after successful login
     await this.clickButton(/sign in/i);
+    // Wait for redirect to tenant dashboard (URL change is more reliable than networkidle)
+    await this.page.waitForURL(/\/tenant/, { timeout: 15000 });
   }
 
   async expectLoginForm(): Promise<void> {
-    await expect(this.page.getByLabel(/email/i)).toBeVisible();
-    await expect(this.page.getByLabel(/password/i)).toBeVisible();
+    await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
+    await expect(this.page.locator('input[type="password"]').first()).toBeVisible();
     await expect(this.page.getByRole("button", { name: /sign in/i })).toBeVisible();
   }
 
@@ -52,7 +57,7 @@ export class ForgotPasswordPage extends TenantBasePage {
   }
 
   async expectForm(): Promise<void> {
-    await expect(this.page.getByLabel(/email/i)).toBeVisible();
+    await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
     await expect(this.page.getByRole("button", { name: /send reset link/i })).toBeVisible();
   }
 
@@ -108,8 +113,8 @@ export class SignupPage {
   }): Promise<void> {
     await this.page.getByLabel(/subdomain/i).fill(data.subdomain);
     await this.page.getByLabel(/business name/i).fill(data.businessName);
-    await this.page.getByLabel(/email/i).fill(data.email);
-    await this.page.getByLabel(/password/i).fill(data.password);
+    await this.page.getByRole("textbox", { name: /email/i }).fill(data.email);
+    await this.page.locator('input[type="password"]').first().fill(data.password);
   }
 
   async submit(): Promise<void> {
@@ -119,8 +124,8 @@ export class SignupPage {
   async expectForm(): Promise<void> {
     await expect(this.page.getByLabel(/subdomain/i)).toBeVisible();
     await expect(this.page.getByLabel(/business name/i)).toBeVisible();
-    await expect(this.page.getByLabel(/email/i)).toBeVisible();
-    await expect(this.page.getByLabel(/password/i)).toBeVisible();
+    await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
+    await expect(this.page.locator('input[type="password"]').first()).toBeVisible();
   }
 
   async expectSubdomainPreview(subdomain: string): Promise<void> {

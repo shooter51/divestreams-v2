@@ -6,7 +6,7 @@
 
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, Form, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import {
   getProducts,
   getProductCategories,
@@ -17,7 +17,8 @@ import {
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const url = new URL(request.url);
   const category = url.searchParams.get("category") || undefined;
   const search = url.searchParams.get("search") || undefined;
@@ -31,7 +32,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
 
@@ -56,7 +58,7 @@ const categoryColors: Record<string, string> = {
   apparel: "bg-info-muted text-info",
   accessories: "bg-success-muted text-success",
   courses: "bg-accent-muted text-accent",
-  rental: "bg-cyan-100 text-cyan-700",
+  rental: "bg-accent-muted text-accent",
 };
 
 export default function ProductsPage() {

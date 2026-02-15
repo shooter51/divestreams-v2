@@ -17,13 +17,13 @@ import { getPublicCourses } from "../../../../lib/db/public-site.server";
 // ============================================================================
 
 const CERTIFICATION_AGENCIES = [
-  { id: "padi", name: "PADI", color: "#003087" },
-  { id: "ssi", name: "SSI", color: "#00529b" },
-  { id: "naui", name: "NAUI", color: "#002855" },
-  { id: "sdi", name: "SDI/TDI", color: "#ff6600" },
-  { id: "raid", name: "RAID", color: "#e31937" },
-  { id: "gue", name: "GUE", color: "#1a1a1a" },
-  { id: "other", name: "Other", color: "#6b7280" },
+  { id: "padi", name: "PADI", lightColor: "#003087", darkColor: "#5b9bd5" },
+  { id: "ssi", name: "SSI", lightColor: "#00529b", darkColor: "#6cb4ee" },
+  { id: "naui", name: "NAUI", lightColor: "#002855", darkColor: "#4d7ac7" },
+  { id: "sdi", name: "SDI/TDI", lightColor: "#ff6600", darkColor: "#ff6600" },
+  { id: "raid", name: "RAID", lightColor: "#e31937", darkColor: "#e31937" },
+  { id: "gue", name: "GUE", lightColor: "#1a1a1a", darkColor: "#e5e7eb" },
+  { id: "other", name: "Other", lightColor: "#6b7280", darkColor: "#9ca3af" },
 ];
 
 const COURSE_LEVELS = [
@@ -190,7 +190,7 @@ function AgencyBadge({ agencyName }: { agencyName: string | null }) {
   return (
     <span
       className="inline-flex items-center px-2 py-1 text-xs font-semibold text-white rounded"
-      style={{ backgroundColor: agency?.color || "#6b7280" }}
+      style={{ backgroundColor: `var(--agency-${agency?.id || 'other'})` }}
     >
       {agencyName}
     </span>
@@ -204,7 +204,10 @@ function LevelBadge({ levelName }: { levelName: string | null }) {
   if (!levelName) return null;
 
   return (
-    <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+    <span
+      className="inline-flex items-center px-2 py-1 text-xs font-medium rounded"
+      style={{ backgroundColor: "var(--accent-color)", color: "var(--text-color)" }}
+    >
       {levelName}
     </span>
   );
@@ -219,7 +222,11 @@ function CourseCard({ course }: { course: Course }) {
   return (
     <Link
       to={`/site/courses/${course.id}`}
-      className="group block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-200"
+      className="group block rounded-xl shadow-sm border overflow-hidden hover:shadow-lg transition-all duration-200"
+      style={{
+        backgroundColor: "var(--color-card-bg)",
+        borderColor: "var(--color-border)",
+      }}
     >
       {/* Course Image */}
       <div
@@ -265,7 +272,7 @@ function CourseCard({ course }: { course: Course }) {
 
         {/* Description */}
         {course.description && (
-          <p className="text-sm opacity-75 mb-4 line-clamp-2">
+          <p className="text-sm opacity-75 mb-4 line-clamp-2" style={{ color: "var(--text-color)" }}>
             {course.description}
           </p>
         )}
@@ -273,21 +280,21 @@ function CourseCard({ course }: { course: Course }) {
         {/* Course Features */}
         <div className="flex flex-wrap gap-2 mb-4 text-xs">
           {course.materialsIncluded && (
-            <span className="px-2 py-1 bg-green-100 text-green-700 rounded">
+            <span className="px-2 py-1 bg-success-muted text-success rounded">
               Materials included
             </span>
           )}
           {course.equipmentIncluded && (
-            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+            <span className="px-2 py-1 bg-info-muted text-info rounded">
               Equipment included
             </span>
           )}
         </div>
 
         {/* Meta Info */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
           {/* Duration */}
-          <div className="flex items-center gap-1.5 text-sm opacity-75">
+          <div className="flex items-center gap-1.5 text-sm opacity-75" style={{ color: "var(--text-color)" }}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -335,19 +342,22 @@ function FilterSection({
   const hasFilters = filters.agency || filters.level;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-8">
+    <div className="rounded-xl shadow-sm border p-4 mb-8" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
         {/* Agency Filter */}
         <div className="flex-1">
-          <label className="block text-sm font-medium mb-2 opacity-75">
+          <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
             Certification Agency
           </label>
           <select
             value={filters.agency || ""}
             onChange={(e) => updateFilter("agency", e.target.value || null)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent"
             style={{
               outline: "none",
+              backgroundColor: "var(--color-card-bg)",
+              borderColor: "var(--color-border)",
+              color: "var(--text-color)",
               // @ts-expect-error CSS custom property
               "--tw-ring-color": "var(--primary-color)",
             }}
@@ -363,13 +373,21 @@ function FilterSection({
 
         {/* Level Filter */}
         <div className="flex-1">
-          <label className="block text-sm font-medium mb-2 opacity-75">
+          <label className="block text-sm font-medium mb-2 opacity-75" style={{ color: "var(--text-color)" }}>
             Course Level
           </label>
           <select
             value={filters.level || ""}
             onChange={(e) => updateFilter("level", e.target.value || null)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent"
+            style={{
+              outline: "none",
+              backgroundColor: "var(--color-card-bg)",
+              borderColor: "var(--color-border)",
+              color: "var(--text-color)",
+              // @ts-expect-error CSS custom property
+              "--tw-ring-color": "var(--primary-color)",
+            }}
           >
             <option value="">All Levels</option>
             {COURSE_LEVELS.map((level) => (
@@ -385,7 +403,12 @@ function FilterSection({
           <div className="flex items-end">
             <button
               onClick={clearFilters}
-              className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
+              style={{
+                backgroundColor: "var(--color-card-bg)",
+                borderColor: "var(--color-border)",
+                color: "var(--text-color)",
+              }}
             >
               Clear Filters
             </button>
@@ -424,21 +447,31 @@ function Pagination({
       <button
         onClick={() => goToPage(page - 1)}
         disabled={page === 1}
-        className="px-3 py-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+        className="px-3 py-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        style={{
+          backgroundColor: "var(--color-card-bg)",
+          borderColor: "var(--color-border)",
+          color: "var(--text-color)",
+        }}
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
       </button>
 
-      <span className="px-4 py-2 text-sm">
+      <span className="px-4 py-2 text-sm" style={{ color: "var(--text-color)" }}>
         Page {page} of {totalPages}
       </span>
 
       <button
         onClick={() => goToPage(page + 1)}
         disabled={page === totalPages}
-        className="px-3 py-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+        className="px-3 py-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        style={{
+          backgroundColor: "var(--color-card-bg)",
+          borderColor: "var(--color-border)",
+          color: "var(--text-color)",
+        }}
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -468,10 +501,10 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
           d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
         />
       </svg>
-      <h3 className="text-xl font-semibold mb-2">
+      <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--text-color)" }}>
         {hasFilters ? "No courses match your filters" : "No courses available"}
       </h3>
-      <p className="opacity-75 max-w-md mx-auto">
+      <p className="opacity-75 max-w-md mx-auto" style={{ color: "var(--text-color)" }}>
         {hasFilters
           ? "Try adjusting your filters to find more courses."
           : "Check back soon for upcoming training courses and certifications."}
@@ -489,8 +522,25 @@ export default function SiteCoursesPage() {
 
   const hasFilters = Boolean(filters.agency || filters.level);
 
+  // Generate CSS custom properties for agency colors
+  const agencyColorCSS = CERTIFICATION_AGENCIES
+    .map(({ id, lightColor, darkColor }) => `
+      :root {
+        --agency-${id}: ${lightColor};
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --agency-${id}: ${darkColor};
+        }
+      }
+    `)
+    .join('\n');
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Agency color CSS variables */}
+      <style dangerouslySetInnerHTML={{ __html: agencyColorCSS }} />
+
       {/* Page Header */}
       <div className="text-center mb-12">
         <h1
@@ -499,7 +549,7 @@ export default function SiteCoursesPage() {
         >
           Dive Courses
         </h1>
-        <p className="text-lg opacity-75 max-w-2xl mx-auto">
+        <p className="text-lg opacity-75 max-w-2xl mx-auto" style={{ color: "var(--text-color)" }}>
           Start your underwater adventure with our professional training courses.
           From beginner to instructor level, we have the perfect course for you.
         </p>
@@ -510,7 +560,7 @@ export default function SiteCoursesPage() {
 
       {/* Results Count */}
       {courses.length > 0 && (
-        <p className="text-sm opacity-75 mb-6">
+        <p className="text-sm opacity-75 mb-6" style={{ color: "var(--text-color)" }}>
           Showing {courses.length} of {total} courses
         </p>
       )}
@@ -540,7 +590,7 @@ export default function SiteCoursesPage() {
         >
           Not sure which course is right for you?
         </h2>
-        <p className="opacity-75 mb-6 max-w-xl mx-auto">
+        <p className="opacity-75 mb-6 max-w-xl mx-auto" style={{ color: "var(--text-color)" }}>
           Our team of experienced instructors can help you choose the perfect course
           based on your experience level and diving goals.
         </p>

@@ -22,14 +22,15 @@ export default defineConfig({
         "**/*.test.tsx",
         "**/node_modules/**",
         ".react-router/**",
-        // Exclude integration/external service code (better tested via integration tests)
-        "lib/integrations/**",
-        "lib/stripe/**",
-        "lib/email/**",
         // Exclude stubs
         "lib/stubs/**",
       ],
-      // No thresholds - we'll track improvement over time
+      thresholds: {
+        lines: 30,
+        functions: 30,
+        branches: 25,
+        statements: 30,
+      },
     },
     testTimeout: 60000,  // Increased for CI environment
     hookTimeout: 60000,

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { action } from "../../../../../app/routes/tenant/images/upload";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as tenantServer from "../../../../../lib/db/tenant.server";
@@ -183,7 +184,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       expect(json.error).toContain("Maximum 5 images allowed");
     });
 
-    it("should return 500 if upload fails", async () => {
+    it("should return 503 if upload fails (storage not configured)", async () => {
       const file = new File(["test"], "test.jpg", { type: "image/jpeg" });
       const formData = new FormData();
       formData.append("file", file);
@@ -218,9 +219,9 @@ describe("app/routes/tenant/images/upload.tsx", () => {
 
       const result = await action({ request, params: {}, context: {} });
 
-      expect(result.status).toBe(500);
+      expect(result.status).toBe(503);
       const json = await result.json();
-      expect(json.error).toContain("Failed to upload image");
+      expect(json.error).toContain("Image storage is not configured");
     });
 
     it("should successfully upload image", async () => {

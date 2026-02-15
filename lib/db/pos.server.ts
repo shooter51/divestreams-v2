@@ -2,10 +2,11 @@
  * POS Database Queries
  */
 
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
 import type { CartItem, Payment } from "../validation/pos";
+import { dbLogger } from "../logger";
 
 // Type for the tables object that getTenantDb returns
 // This provides the same interface as the old createTenantSchema
@@ -52,7 +53,7 @@ export async function getPOSProducts(tables: TenantTables, organizationId: strin
       .orderBy(tables.products.category, tables.products.name);
   } catch (error) {
     // Fallback if sale_price columns don't exist yet
-    console.error("POS products query failed, trying without sale fields:", error);
+    dbLogger.error({ err: error, organizationId }, "POS products query failed, trying without sale fields");
     const basicProducts = await db
       .select({
         id: tables.products.id,
@@ -92,7 +93,8 @@ export async function getPOSEquipment(tables: TenantTables, organizationId: stri
       and(
         eq(tables.equipment.organizationId, organizationId),
         eq(tables.equipment.isRentable, true),
-        eq(tables.equipment.status, "available")
+        eq(tables.equipment.status, "available"),
+        sql`${tables.equipment.rentalPrice} IS NOT NULL AND ${tables.equipment.rentalPrice} > 0`
       )
     )
     .orderBy(tables.equipment.category, tables.equipment.name);
@@ -234,6 +236,124 @@ export async function processPOSCheckout(
     notes?: string;
   }
 ) {
+  // SECURITY: Look up actual prices from the database instead of trusting
+  // client-submitted unitPrice values. This prevents price manipulation attacks.
+  const productItems = data.items.filter((item): item is CartItem & { type: "product" } => item.type === "product");
+  const bookingItems = data.items.filter((item): item is CartItem & { type: "booking" } => item.type === "booking");
+  const rentalItems = data.items.filter((item): item is CartItem & { type: "rental" } => item.type === "rental");
+
+  // Fetch actual product prices from database
+  let serverSubtotal = 0;
+
+  if (productItems.length > 0) {
+    const productIds = productItems.map(p => p.productId);
+    const dbProducts = await db
+      .select({
+        id: tables.products.id,
+        price: tables.products.price,
+        salePrice: tables.products.salePrice,
+        saleStartDate: tables.products.saleStartDate,
+        saleEndDate: tables.products.saleEndDate,
+      })
+      .from(tables.products)
+      .where(
+        and(
+          eq(tables.products.organizationId, organizationId),
+          inArray(tables.products.id, productIds)
+        )
+      );
+
+    const productPriceMap = new Map(dbProducts.map(p => {
+      // Use sale price if currently active, otherwise regular price
+      const now = new Date();
+      const isSaleActive = p.salePrice &&
+        (!p.saleStartDate || p.saleStartDate <= now) &&
+        (!p.saleEndDate || p.saleEndDate >= now);
+      const effectivePrice = isSaleActive ? Number(p.salePrice) : Number(p.price);
+      return [p.id, effectivePrice];
+    }));
+
+    for (const item of productItems) {
+      const dbPrice = productPriceMap.get(item.productId);
+      if (dbPrice === undefined) {
+        throw new Error(`Product not found: ${item.productId}`);
+      }
+      // Override client-submitted prices with server-verified prices
+      item.unitPrice = dbPrice;
+      item.total = dbPrice * item.quantity;
+      serverSubtotal += item.total;
+    }
+  }
+
+  // Fetch actual trip prices for booking items
+  if (bookingItems.length > 0) {
+    for (const item of bookingItems) {
+      const [tripRow] = await db
+        .select({
+          tripPrice: tables.trips.price,
+          tourPrice: tables.tours.price,
+        })
+        .from(tables.trips)
+        .innerJoin(tables.tours, eq(tables.trips.tourId, tables.tours.id))
+        .where(
+          and(
+            eq(tables.trips.organizationId, organizationId),
+            eq(tables.trips.id, item.tripId)
+          )
+        )
+        .limit(1);
+
+      if (!tripRow) {
+        throw new Error(`Trip not found: ${item.tripId}`);
+      }
+
+      const dbPrice = Number(tripRow.tripPrice || tripRow.tourPrice);
+      item.unitPrice = dbPrice;
+      item.total = dbPrice * item.participants;
+      serverSubtotal += item.total;
+    }
+  }
+
+  // Fetch actual rental prices for equipment items
+  if (rentalItems.length > 0) {
+    for (const item of rentalItems) {
+      const [equipRow] = await db
+        .select({ rentalPrice: tables.equipment.rentalPrice })
+        .from(tables.equipment)
+        .where(
+          and(
+            eq(tables.equipment.organizationId, organizationId),
+            eq(tables.equipment.id, item.equipmentId)
+          )
+        )
+        .limit(1);
+
+      if (!equipRow || !equipRow.rentalPrice) {
+        throw new Error(`Equipment not found or not rentable: ${item.equipmentId}`);
+      }
+
+      const dbDailyRate = Number(equipRow.rentalPrice);
+      item.dailyRate = dbDailyRate;
+      item.total = dbDailyRate * item.days;
+      serverSubtotal += item.total;
+    }
+  }
+
+  // Recalculate totals using server-verified prices
+  const calculatedTotal = serverSubtotal + data.tax;
+
+  // Override client-submitted totals with server-calculated values
+  data.subtotal = serverSubtotal;
+  data.total = calculatedTotal;
+
+  // Verify payment amounts sum to server-calculated total
+  const paymentTotal = data.payments.reduce((sum, p) => sum + p.amount, 0);
+  if (Math.abs(paymentTotal - data.total) > 0.01) {
+    throw new Error(
+      `Payment validation failed: Payment amounts (${paymentTotal.toFixed(2)}) do not match server-calculated total (${data.total.toFixed(2)})`
+    );
+  }
+
   const receiptNumber = await generateReceiptNumber(tables, organizationId);
 
   // Determine payment method string
@@ -285,92 +405,136 @@ export async function processPOSCheckout(
     }
   });
 
-  // Create transaction
-  const [transaction] = await db
-    .insert(tables.transactions)
-    .values({
-      organizationId,
-      type: "sale",
-      bookingId: null,
-      customerId: data.customerId || null,
-      userId: data.userId,
-      amount: data.total.toString(),
-      currency: "USD",
-      paymentMethod,
-      stripePaymentId,
-      items: transactionItems,
-      notes: data.notes,
-    })
-    .returning();
-
-  // Process rentals - create rental records and update equipment status
-  const rentalItems = data.items.filter((item): item is CartItem & { type: "rental" } => item.type === "rental");
-
-  if (rentalItems.length > 0 && data.customerId) {
-    const agreementNumber = await generateAgreementNumber(tables, organizationId);
-
-    for (const rental of rentalItems) {
-      const dueAt = new Date();
-      dueAt.setDate(dueAt.getDate() + rental.days);
-
-      // Create rental record
-      await db.insert(tables.rentals).values({
+  // Wrap all mutations in a database transaction for atomicity
+  const transaction = await db.transaction(async (tx) => {
+    // Create transaction
+    const [txnRecord] = await tx
+      .insert(tables.transactions)
+      .values({
         organizationId,
-        transactionId: transaction.id,
-        customerId: data.customerId,
-        equipmentId: rental.equipmentId,
-        dueAt,
-        dailyRate: rental.dailyRate.toString(),
-        totalCharge: rental.total.toString(),
-        status: "active",
-        agreementNumber,
-      });
-
-      // Update equipment status
-      await db
-        .update(tables.equipment)
-        .set({ status: "rented", updatedAt: new Date() })
-        .where(eq(tables.equipment.id, rental.equipmentId));
-    }
-  }
-
-  // Process bookings - create booking records
-  const bookingItems = data.items.filter((item): item is CartItem & { type: "booking" } => item.type === "booking");
-
-  for (const booking of bookingItems) {
-    if (!data.customerId) continue;
-
-    // Generate booking number
-    const bookingNumber = `BK-${Date.now().toString(36).toUpperCase()}`;
-
-    await db.insert(tables.bookings).values({
-      organizationId,
-      bookingNumber,
-      tripId: booking.tripId,
-      customerId: data.customerId,
-      participants: booking.participants,
-      status: "confirmed",
-      subtotal: booking.total.toString(),
-      total: booking.total.toString(),
-      currency: "USD",
-      paymentStatus: "paid",
-      paidAmount: booking.total.toString(),
-      source: "pos",
-    });
-  }
-
-  // Update product inventory
-  const productItems = data.items.filter((item): item is CartItem & { type: "product" } => item.type === "product");
-
-  for (const product of productItems) {
-    await db
-      .update(tables.products)
-      .set({
-        stockQuantity: sql`${tables.products.stockQuantity} - ${product.quantity}`,
-        updatedAt: new Date(),
+        type: "sale",
+        bookingId: null,
+        customerId: data.customerId || null,
+        userId: data.userId,
+        amount: data.total.toString(),
+        currency: "USD",
+        paymentMethod,
+        stripePaymentId,
+        items: transactionItems,
+        notes: data.notes,
       })
-      .where(eq(tables.products.id, product.productId));
-  }
+      .returning();
+
+    // Process rentals - create rental records and update equipment status
+    const rentalItems = data.items.filter((item): item is CartItem & { type: "rental" } => item.type === "rental");
+
+    if (rentalItems.length > 0 && data.customerId) {
+      const agreementNumber = await generateAgreementNumber(tables, organizationId);
+
+      for (const rental of rentalItems) {
+        const dueAt = new Date();
+        dueAt.setDate(dueAt.getDate() + rental.days);
+
+        // Create rental record
+        await tx.insert(tables.rentals).values({
+          organizationId,
+          transactionId: txnRecord.id,
+          customerId: data.customerId,
+          equipmentId: rental.equipmentId,
+          dueAt,
+          dailyRate: rental.dailyRate.toString(),
+          totalCharge: rental.total.toString(),
+          status: "active",
+          agreementNumber,
+        });
+
+        // Update equipment status
+        await tx
+          .update(tables.equipment)
+          .set({ status: "rented", updatedAt: new Date() })
+          .where(eq(tables.equipment.id, rental.equipmentId));
+      }
+    }
+
+    // Process bookings - create booking records
+    const bookingItems = data.items.filter((item): item is CartItem & { type: "booking" } => item.type === "booking");
+
+    for (const booking of bookingItems) {
+      if (!data.customerId) continue;
+
+      // Generate booking number
+      const bookingNumber = `BK-${Date.now().toString(36).toUpperCase()}`;
+
+      await tx.insert(tables.bookings).values({
+        organizationId,
+        bookingNumber,
+        tripId: booking.tripId,
+        customerId: data.customerId,
+        participants: booking.participants,
+        status: "confirmed",
+        subtotal: booking.total.toString(),
+        total: booking.total.toString(),
+        currency: "USD",
+        paymentStatus: "paid",
+        paidAmount: booking.total.toString(),
+        source: "pos",
+      });
+    }
+
+    // Update product inventory
+    const productItems = data.items.filter((item): item is CartItem & { type: "product" } => item.type === "product");
+
+    // [KAN-620 FIX] Pre-validate stock before decrementing to prevent negative inventory
+    if (productItems.length > 0) {
+      // Fetch current stock for all products in the cart
+      const productIds = productItems.map(p => p.productId);
+      const productsInCart = await tx
+        .select({
+          id: tables.products.id,
+          name: tables.products.name,
+          stockQuantity: tables.products.stockQuantity,
+        })
+        .from(tables.products)
+        .where(
+          and(
+            eq(tables.products.organizationId, organizationId),
+            inArray(tables.products.id, productIds)
+          )
+        );
+
+      // Check if any product would go negative
+      const insufficientStock: { name: string; available: number; requested: number }[] = [];
+      for (const cartItem of productItems) {
+        const product = productsInCart.find(p => p.id === cartItem.productId);
+        if (product && product.stockQuantity < cartItem.quantity) {
+          insufficientStock.push({
+            name: product.name,
+            available: product.stockQuantity,
+            requested: cartItem.quantity,
+          });
+        }
+      }
+
+      if (insufficientStock.length > 0) {
+        const errorDetails = insufficientStock
+          .map(p => `${p.name} (available: ${p.available}, requested: ${p.requested})`)
+          .join(", ");
+        throw new Error(`Insufficient stock for: ${errorDetails}`);
+      }
+    }
+
+    for (const product of productItems) {
+      await tx
+        .update(tables.products)
+        .set({
+          stockQuantity: sql`${tables.products.stockQuantity} - ${product.quantity}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(tables.products.id, product.productId));
+    }
+
+    return txnRecord;
+  });
 
   return {
     transaction,
@@ -447,4 +611,177 @@ export async function getEquipmentByBarcode(tables: TenantTables, organizationId
     )
     .limit(1);
   return equipment;
+}
+
+/**
+ * Get transaction by ID with items and customer info
+ */
+export async function getTransactionById(tables: TenantTables, organizationId: string, transactionId: string) {
+  const [transaction] = await db
+    .select({
+      transaction: tables.transactions,
+      customerFirstName: tables.customers.firstName,
+      customerLastName: tables.customers.lastName,
+      customerEmail: tables.customers.email,
+    })
+    .from(tables.transactions)
+    .leftJoin(tables.customers, eq(tables.transactions.customerId, tables.customers.id))
+    .where(
+      and(
+        eq(tables.transactions.organizationId, organizationId),
+        eq(tables.transactions.id, transactionId)
+      )
+    )
+    .limit(1);
+
+  if (!transaction) return null;
+
+  return {
+    ...transaction.transaction,
+    customer: transaction.customerFirstName
+      ? {
+          firstName: transaction.customerFirstName,
+          lastName: transaction.customerLastName,
+          email: transaction.customerEmail,
+        }
+      : null,
+  };
+}
+
+/**
+ * Process POS refund for a transaction
+ * Handles full refund of all items with inventory/equipment adjustments
+ *
+ * IMPORTANT: Wrapped in database transaction for atomicity
+ */
+export async function processPOSRefund(
+  tables: TenantTables,
+  organizationId: string,
+  data: {
+    originalTransactionId: string;
+    userId: string;
+    refundReason: string;
+    stripeRefundId?: string;
+  }
+) {
+  // Wrap entire refund process in transaction for atomicity
+  return await db.transaction(async (tx) => {
+    // Get the original transaction
+    const original = await getTransactionById(tables, organizationId, data.originalTransactionId);
+
+    if (!original) {
+      throw new Error("Original transaction not found");
+    }
+
+    if (original.type === "refund") {
+      throw new Error("Cannot refund a refund transaction");
+    }
+
+    if (original.type !== "sale") {
+      throw new Error(`Cannot refund transaction of type '${original.type}'. Only 'sale' transactions can be refunded.`);
+    }
+
+    // Check if transaction has already been refunded (double-refund prevention)
+    const [existingRefund] = await tx
+      .select()
+      .from(tables.transactions)
+      .where(eq(tables.transactions.refundedTransactionId, data.originalTransactionId))
+      .limit(1);
+
+    if (existingRefund) {
+      throw new Error("Transaction has already been refunded");
+    }
+
+    // Create refund transaction
+    const [refundTransaction] = await tx
+      .insert(tables.transactions)
+      .values({
+        organizationId,
+        type: "refund",
+        bookingId: null,
+        customerId: original.customerId,
+        userId: data.userId,
+        amount: `-${original.amount}`, // Negative amount for refund
+        currency: original.currency,
+        paymentMethod: original.paymentMethod,
+        stripePaymentId: data.stripeRefundId,
+        items: original.items,
+        notes: `Refund for transaction ${original.id}`,
+        refundedTransactionId: original.id,
+        refundReason: data.refundReason,
+      })
+      .returning();
+
+    // Process inventory adjustments for products
+    const items = (original.items as Array<{
+      type: string;
+      productId?: string;
+      quantity?: number;
+      equipmentId?: string;
+      tripId?: string;
+    }>) || [];
+
+    for (const item of items) {
+      if (item.type === "product" && item.productId && item.quantity) {
+        // Return products to inventory
+        await tx
+          .update(tables.products)
+          .set({
+            stockQuantity: sql`${tables.products.stockQuantity} + ${item.quantity}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(tables.products.id, item.productId));
+      }
+
+      if (item.type === "rental" && item.equipmentId) {
+        // Return equipment to available status
+        await tx
+          .update(tables.equipment)
+          .set({ status: "available", updatedAt: new Date() })
+          .where(eq(tables.equipment.id, item.equipmentId));
+
+        // Update rental status to returned
+        await tx
+          .update(tables.rentals)
+          .set({ status: "returned", returnedAt: new Date() })
+          .where(
+            and(
+              eq(tables.rentals.transactionId, original.id),
+              eq(tables.rentals.equipmentId, item.equipmentId)
+            )
+          );
+      }
+
+      if (item.type === "booking" && item.tripId && original.customerId) {
+        // Find and cancel the booking created by this POS transaction
+        // Match by tripId, customerId, source, and creation time window
+        const [booking] = await tx
+          .select()
+          .from(tables.bookings)
+          .where(
+            and(
+              eq(tables.bookings.organizationId, organizationId),
+              eq(tables.bookings.tripId, item.tripId),
+              eq(tables.bookings.customerId, original.customerId),
+              eq(tables.bookings.source, "pos"),
+              sql`${tables.bookings.createdAt} >= ${original.createdAt} - interval '1 minute'`,
+              sql`${tables.bookings.createdAt} <= ${original.createdAt} + interval '1 minute'`
+            )
+          )
+          .limit(1);
+
+        if (booking) {
+          await tx
+            .update(tables.bookings)
+            .set({ status: "cancelled", updatedAt: new Date() })
+            .where(eq(tables.bookings.id, booking.id));
+        }
+      }
+    }
+
+    return {
+      refundTransaction,
+      originalTransaction: original,
+    };
+  });
 }

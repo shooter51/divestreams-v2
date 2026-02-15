@@ -1,0 +1,115 @@
+# Dev VPS - Multi-Instance Template
+# Usage: INSTANCE_NAME=myfeature HOST_PORT=3002 docker compose -f docker-compose.dev-vps.yml -p ds-myfeature up -d
+# Managed by scripts/dev-instance.sh — do not use directly.
+
+services:
+  app:
+    image: ghcr.io/shooter51/divestreams-app:${IMAGE_TAG:-dev}
+    container_name: ds-${INSTANCE_NAME:-default}-app
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-3001}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_dev}@db:5432/divestreams
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
+      - AUTH_SECRET=${AUTH_SECRET:-dev-secret}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-dev-secret}
+      - AUTH_URL=${AUTH_URL:-https://${INSTANCE_NAME:-default}.dev.divestreams.com}
+      - APP_URL=${APP_URL:-https://${INSTANCE_NAME:-default}.dev.divestreams.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-DevAdmin2026}
+      - PLATFORM_ADMIN_EMAIL=${PLATFORM_ADMIN_EMAIL:-admin@divestreams.com}
+      - PLATFORM_ADMIN_PASSWORD=${PLATFORM_ADMIN_PASSWORD:-DevAdmin2026}
+      - PLATFORM_ADMIN_NAME=${PLATFORM_ADMIN_NAME:-Dev Admin}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+          cpus: '0.5'
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ds-${INSTANCE_NAME:-default}-net
+
+  worker:
+    image: ghcr.io/shooter51/divestreams-app:${IMAGE_TAG:-dev}
+    container_name: ds-${INSTANCE_NAME:-default}-worker
+    restart: unless-stopped
+    command: npm run worker
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_dev}@db:5432/divestreams
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
+      - AUTH_SECRET=${AUTH_SECRET:-dev-secret}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-dev-secret}
+      - AUTH_URL=${AUTH_URL:-https://${INSTANCE_NAME:-default}.dev.divestreams.com}
+      - APP_URL=${APP_URL:-https://${INSTANCE_NAME:-default}.dev.divestreams.com}
+    healthcheck:
+      test: ["CMD", "node", "-e", "const r=require('ioredis');const c=new r(process.env.REDIS_URL);c.ping().then(()=>{c.disconnect();process.exit(0)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+          cpus: '0.25'
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ds-${INSTANCE_NAME:-default}-net
+
+  db:
+    image: postgres:16-alpine
+    container_name: ds-${INSTANCE_NAME:-default}-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: divestreams
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-divestreams_dev}
+      POSTGRES_DB: divestreams
+    volumes:
+      - ds-${INSTANCE_NAME:-default}-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U divestreams"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ds-${INSTANCE_NAME:-default}-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: ds-${INSTANCE_NAME:-default}-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme}
+    volumes:
+      - ds-${INSTANCE_NAME:-default}-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ds-${INSTANCE_NAME:-default}-net
+
+networks:
+  ds-${INSTANCE_NAME:-default}-net:
+    driver: bridge
+
+volumes:
+  ds-${INSTANCE_NAME:-default}-pgdata:
+  ds-${INSTANCE_NAME:-default}-redisdata:

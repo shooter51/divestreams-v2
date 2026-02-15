@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
   getDiveSiteById,
   getDiveSiteStats,
@@ -12,11 +12,13 @@ import {
 } from "../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Dive Site Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const siteId = params.id;
 
   if (!siteId) {
@@ -118,7 +120,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const siteId = params.id!;
@@ -133,8 +136,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
-    await deleteDiveSite(organizationId, siteId);
-    return { deleted: true };
+    try {
+      const site = await getDiveSiteById(organizationId, siteId);
+      const siteName = site?.name || "Dive site";
+      await deleteDiveSite(organizationId, siteId);
+      return redirect(redirectWithNotification("/tenant/dive-sites", `${siteName} has been successfully deleted`, "success"));
+    } catch (error: any) {
+      return { deleteError: error.message || "Failed to delete dive site" };
+    }
   }
 
   return null;
@@ -150,6 +159,10 @@ const difficultyColors: Record<string, string> = {
 export default function DiveSiteDetailPage() {
   const { diveSite, recentTrips, stats, toursUsingSite, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const actionData = fetcher.data as { deleteError?: string } | undefined;
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this dive site?")) {
@@ -164,6 +177,14 @@ export default function DiveSiteDetailPage() {
           ← Back to Dive Sites
         </Link>
       </div>
+
+      {/* Show delete error if any */}
+      {actionData?.deleteError && (
+        <div className="mb-6 p-4 bg-danger-muted border border-danger rounded-lg">
+          <p className="text-danger font-medium">Cannot delete dive site</p>
+          <p className="text-danger text-sm mt-1">{actionData.deleteError}</p>
+        </div>
+      )}
 
       <div className="flex justify-between items-start mb-6">
         <div>
@@ -244,7 +265,7 @@ export default function DiveSiteDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Site Images</h2>
             <ImageManager
-              entityType="diveSite"
+              entityType="dive-site"
               entityId={diveSite.id}
               images={images}
               maxImages={5}

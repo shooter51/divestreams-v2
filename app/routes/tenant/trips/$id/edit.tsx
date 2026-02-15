@@ -1,14 +1,16 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getTripWithFullDetails, getAllBoats, getAllTours } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Trip - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const tripId = params.id;
 
   if (!tripId) {
@@ -55,7 +57,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const tripId = params.id;
 
   if (!tripId) {
@@ -97,7 +100,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.trips.organizationId, organizationId), eq(schema.trips.id, tripId)));
 
-  return redirect(`/tenant/trips/${tripId}`);
+  return redirect(redirectWithNotification(`/tenant/trips/${tripId}`, "Trip has been successfully updated", "success"));
 }
 
 export default function EditTripPage() {
@@ -196,7 +199,7 @@ export default function EditTripPage() {
                   id="endTime"
                   name="endTime"
                   required
-                  defaultValue={trip.endTime}
+                  defaultValue={trip.endTime ?? ""}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
@@ -219,7 +222,7 @@ export default function EditTripPage() {
                 required
                 min="1"
                 max="100"
-                defaultValue={trip.maxParticipants}
+                defaultValue={trip.maxParticipants ?? ""}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
@@ -260,7 +263,7 @@ export default function EditTripPage() {
               <option value="confirmed">Confirmed</option>
               <option value="full">Full</option>
               <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="canceled">Cancelled</option>
             </select>
           </div>
         </div>

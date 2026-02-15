@@ -11,6 +11,7 @@
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "crypto";
 import { eq, and } from "drizzle-orm";
 import { db } from "../db";
+import { integrationLogger } from "../logger";
 import {
   integrations,
   integrationSyncLog,
@@ -29,7 +30,10 @@ import {
  * In production, INTEGRATION_ENCRYPTION_KEY should be set
  */
 function getEncryptionKey(): Buffer {
-  const secret = process.env.INTEGRATION_ENCRYPTION_KEY || process.env.AUTH_SECRET || "divestreams-default-key";
+  const secret = process.env.INTEGRATION_ENCRYPTION_KEY || process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error("INTEGRATION_ENCRYPTION_KEY or AUTH_SECRET environment variable must be set");
+  }
   // Use scrypt to derive a 32-byte key from the secret
   return scryptSync(secret, "divestreams-salt", 32);
 }
@@ -256,7 +260,7 @@ export async function getIntegrationWithTokens(
       refreshToken,
     };
   } catch (error) {
-    console.error(`Failed to decrypt tokens for ${provider}:`, error);
+    integrationLogger.error({ err: error, provider, organizationId: orgId }, "Failed to decrypt tokens");
     return null;
   }
 }

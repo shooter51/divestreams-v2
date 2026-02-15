@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader, action } from "../../../../../app/routes/tenant/gallery/$id";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as gallery from "../../../../../lib/db/gallery.server";
@@ -224,7 +225,7 @@ describe.skip("app/routes/tenant/gallery/$id.tsx", () => {
       expect(gallery.deleteGalleryAlbum).toHaveBeenCalledWith(mockOrganizationId, mockAlbumId);
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/tenant/gallery");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/gallery");
     });
 
     it("should delete image", async () => {

@@ -6,6 +6,7 @@ import {
   checkLimit,
   type OrgContext,
 } from "../../../../lib/auth/org-context.server";
+import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
 
 describe("org-context.server - tenant context helpers", () => {
   describe("getSubdomainFromRequest", () => {
@@ -50,12 +51,12 @@ describe("org-context.server - tenant context helpers", () => {
     });
   });
 
-  describe("FREE_TIER_LIMITS", () => {
-    it("has expected free tier limits", () => {
-      expect(FREE_TIER_LIMITS.customers).toBe(50);
-      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(20);
-      expect(FREE_TIER_LIMITS.tours).toBe(3);
-      expect(FREE_TIER_LIMITS.teamMembers).toBe(1);
+  describe("FREE_TIER_LIMITS (derived from DEFAULT_PLAN_LIMITS.free)", () => {
+    it("has limits matching DEFAULT_PLAN_LIMITS.free", () => {
+      expect(FREE_TIER_LIMITS.customers).toBe(DEFAULT_PLAN_LIMITS.free.customers);
+      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
+      expect(FREE_TIER_LIMITS.tours).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
+      expect(FREE_TIER_LIMITS.teamMembers).toBe(DEFAULT_PLAN_LIMITS.free.users);
       expect(FREE_TIER_LIMITS.hasPOS).toBe(false);
       expect(FREE_TIER_LIMITS.hasEquipmentRentals).toBe(false);
       expect(FREE_TIER_LIMITS.hasAdvancedReports).toBe(false);
@@ -63,7 +64,7 @@ describe("org-context.server - tenant context helpers", () => {
     });
   });
 
-  describe("PREMIUM_LIMITS", () => {
+  describe("PREMIUM_LIMITS (derived from DEFAULT_PLAN_LIMITS.enterprise)", () => {
     it("has unlimited premium tier limits", () => {
       expect(PREMIUM_LIMITS.customers).toBe(Infinity);
       expect(PREMIUM_LIMITS.bookingsPerMonth).toBe(Infinity);

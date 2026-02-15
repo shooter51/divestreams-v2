@@ -8,6 +8,7 @@ import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
 import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../lib/plan-features";
 import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
 
+
 export const meta: MetaFunction = () => {
   return [{ title: "Dashboard - DiveStreams" }];
 };
@@ -23,6 +24,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 7);
 
+  // Helper to safely run a query and return a default on failure
+  async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+    try {
+      return await fn();
+    } catch (error) {
+      console.error("Dashboard query failed:", error);
+      return fallback;
+    }
+  }
+
   // Helper to format dates as strings
   const formatDate = (date: Date | string | null | undefined): string | null => {
     if (!date) return null;
@@ -32,34 +43,42 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return String(date);
   };
 
-  // Run all independent queries in parallel for ~50% latency reduction
+  // Run all dashboard queries in parallel with error resilience
   const [
-    [todayBookingsResult],
-    [totalCustomersResult],
-    [activeTripsResult],
-    [weekRevenueResult],
+    todayBookingsResult,
+    totalCustomersResult,
+    activeTripsResult,
+    weekRevenueResult,
     upcomingTripsRaw,
     recentBookingsRaw,
     usage,
   ] = await Promise.all([
-    db
-      .select({ count: count() })
-      .from(bookings)
-      .where(and(eq(bookings.organizationId, ctx.org.id), gte(bookings.createdAt, today))),
-    db
-      .select({ count: count() })
-      .from(customers)
-      .where(eq(customers.organizationId, ctx.org.id)),
-    db
-      .select({ count: count() })
-      .from(trips)
-      .where(and(eq(trips.organizationId, ctx.org.id), eq(trips.status, "scheduled"))),
-    db
-      .select({ total: sql<number>`COALESCE(SUM(${bookings.total}), 0)` })
-      .from(bookings)
-      .where(and(eq(bookings.organizationId, ctx.org.id), gte(bookings.createdAt, startOfWeek))),
-    db
-      .select({
+    safeQuery(
+      () => db.select({ count: count() }).from(bookings).where(
+        and(eq(bookings.organizationId, ctx.org.id), gte(bookings.createdAt, today))
+      ).then(r => r[0]),
+      { count: 0 }
+    ),
+    safeQuery(
+      () => db.select({ count: count() }).from(customers).where(
+        eq(customers.organizationId, ctx.org.id)
+      ).then(r => r[0]),
+      { count: 0 }
+    ),
+    safeQuery(
+      () => db.select({ count: count() }).from(trips).where(
+        and(eq(trips.organizationId, ctx.org.id), eq(trips.status, "scheduled"))
+      ).then(r => r[0]),
+      { count: 0 }
+    ),
+    safeQuery(
+      () => db.select({ total: sql<number>`COALESCE(SUM(${bookings.total}), 0)` }).from(bookings).where(
+        and(eq(bookings.organizationId, ctx.org.id), gte(bookings.createdAt, startOfWeek))
+      ).then(r => r[0]),
+      { total: 0 }
+    ),
+    safeQuery(
+      () => db.select({
         id: trips.id,
         date: trips.date,
         startTime: trips.startTime,
@@ -71,8 +90,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(and(eq(trips.organizationId, ctx.org.id), gte(trips.date, today.toISOString().split("T")[0])))
       .orderBy(trips.date, trips.startTime)
       .limit(5),
-    db
-      .select({
+      [] as { id: string; date: string | null; startTime: string | null; maxParticipants: number | null; tourName: string }[]
+    ),
+    safeQuery(
+      () => db.select({
         id: bookings.id,
         total: bookings.total,
         status: bookings.status,
@@ -89,7 +110,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
       .where(eq(bookings.organizationId, ctx.org.id))
       .orderBy(desc(bookings.createdAt))
       .limit(5),
-    getUsage(ctx.org.id),
+      [] as { id: string; total: string | null; status: string; createdAt: Date | null; customerFirstName: string; customerLastName: string; tourName: string; tripDate: string | null }[]
+    ),
+    safeQuery(
+      () => getUsage(ctx.org.id),
+      { users: 0, customers: 0, toursPerMonth: 0, storageGb: 0 } as UsageStats
+    ),
   ]);
 
   const stats = {
@@ -99,16 +125,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
     totalCustomers: totalCustomersResult?.count || 0,
   };
 
-  // Get booking counts for upcoming trips (depends on upcomingTripsRaw)
+  // Get booking counts for upcoming trips (batch query)
   const tripIds = upcomingTripsRaw.map(t => t.id);
-  const bookingCounts = tripIds.length > 0 ? await db
-    .select({
-      tripId: bookings.tripId,
-      count: sql<number>`SUM(${bookings.participants})`,
-    })
-    .from(bookings)
-    .where(sql`${bookings.tripId} IN ${tripIds}`)
-    .groupBy(bookings.tripId) : [];
+  const bookingCounts = await safeQuery(
+    () => tripIds.length > 0
+      ? db.select({
+          tripId: bookings.tripId,
+          count: sql<number>`SUM(${bookings.participants})`,
+        })
+        .from(bookings)
+        .where(sql`${bookings.tripId} IN ${tripIds}`)
+        .groupBy(bookings.tripId)
+      : Promise.resolve([]),
+    [] as { tripId: string | null; count: number }[]
+  );
 
   const bookingCountMap = new Map(bookingCounts.map(b => [b.tripId, Number(b.count) || 0]));
 
@@ -121,13 +151,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
     maxParticipants: trip.maxParticipants || 0,
   }));
 
-  const formattedBookings = recentBookingsRaw.map(b => ({
+  const recentBookings = recentBookingsRaw.map(b => ({
     id: b.id,
     customer: `${b.customerFirstName} ${b.customerLastName}`,
     trip: b.tourName,
     amount: Number(b.total || 0).toFixed(2),
     status: b.status,
     date: formatDate(b.tripDate),
+  }));
+
+  // Format dates in trips and bookings
+  const formattedTrips = upcomingTrips.map((trip) => ({
+    ...trip,
+    date: formatDate(trip.date),
+  }));
+
+  const formattedBookings = recentBookings.map((booking) => ({
+    ...booking,
+    date: formatDate(booking.date),
   }));
 
   // Get plan limits from subscription plan details or use defaults
@@ -345,7 +386,7 @@ function StatCard({
       </svg>
     ),
     boat: (
-      <svg className="w-6 h-6 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-6 h-6 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15l9-9 9 9M12 3v18" />
       </svg>
     ),

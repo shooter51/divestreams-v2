@@ -10,7 +10,7 @@ export default [
   route("privacy", "routes/marketing/privacy.tsx"),
 
   // Stripe webhook
-  route("api/stripe/webhook", "routes/api/stripe-webhook.tsx"),
+  route("api/stripe-webhook", "routes/api/stripe-webhook.tsx"),
 
   // Health check
   route("api/health", "routes/api/health.tsx"),
@@ -18,9 +18,44 @@ export default [
   // Better Auth API (catch-all for /api/auth/*)
   route("api/auth/*", "routes/api/auth.$.tsx"),
 
+  // Zapier API routes
+  route("api/zapier/subscribe", "routes/api/zapier/subscribe.tsx"),
+  route("api/zapier/triggers", "routes/api/zapier/triggers.tsx"),
+  route("api/zapier/test", "routes/api/zapier/test.tsx"),
+  route("api/zapier/actions/create-booking", "routes/api/zapier/actions/create-booking.tsx"),
+  route("api/zapier/actions/update-customer", "routes/api/zapier/actions/update-customer.tsx"),
+
+  // Integration OAuth callback routes
+  route("api/integrations/google/connect", "routes/api/integrations/google/connect.tsx"),
+  route("api/integrations/google/callback", "routes/api/integrations/google/callback.tsx"),
+  route("api/integrations/google/sync", "routes/api/integrations/google/sync.tsx"),
+  route("api/integrations/quickbooks/connect", "routes/api/integrations/quickbooks/connect.tsx"),
+  route("api/integrations/quickbooks/callback", "routes/api/integrations/quickbooks/callback.tsx"),
+  route("api/integrations/xero/callback", "routes/api/integrations/xero/callback.tsx"),
+  route("api/integrations/mailchimp/callback", "routes/api/integrations/mailchimp/callback.tsx"),
+
+  // Site disabled page (shown when public site is disabled)
+  route("site-disabled", "routes/site-disabled.tsx"),
+
   // Tenant application routes (accessed via subdomain)
   // These routes check for tenant context in their loaders
   ...prefix("tenant", [
+    // Image management API (outside layout - JSON responses only)
+    route("images", "routes/tenant/images/index.tsx"),
+    route("images/upload", "routes/tenant/images/upload.tsx"),
+    route("images/delete", "routes/tenant/images/delete.tsx"),
+    route("images/reorder", "routes/tenant/images/reorder.tsx"),
+
+    // Gallery upload API (outside layout - JSON responses only)
+    route("gallery/upload", "routes/tenant/gallery/upload.tsx"),
+
+    // Reports export API (outside layout - file responses only)
+    route("reports/export/csv", "routes/tenant/reports/export.csv.tsx"),
+    route("reports/export/pdf", "routes/tenant/reports/export.pdf.tsx"),
+
+    // Tenant login (outside layout - no auth required)
+    route("login", "routes/tenant/login.tsx"),
+
     // Tenant dashboard layout
     layout("routes/tenant/layout.tsx", [
       index("routes/tenant/dashboard.tsx"),
@@ -36,6 +71,11 @@ export default [
 
       // POS
       route("pos", "routes/tenant/pos.tsx"),
+      route("pos/products", "routes/tenant/pos/products/index.tsx"),
+      route("pos/products/new", "routes/tenant/pos/products/new.tsx"),
+      route("pos/products/:id", "routes/tenant/pos/products/$id.tsx"),
+      route("pos/products/:id/edit", "routes/tenant/pos/products/$id/edit.tsx"),
+      route("pos/transactions", "routes/tenant/pos/transactions/index.tsx"),
 
       // Customers
       route("customers", "routes/tenant/customers/index.tsx"),
@@ -50,11 +90,7 @@ export default [
       route("tours/:id/duplicate", "routes/tenant/tours/$id.duplicate.tsx"),
       route("tours/:id", "routes/tenant/tours/$id.tsx"),
 
-      // Image management API
-      route("images", "routes/tenant/images/index.tsx"),
-      route("images/upload", "routes/tenant/images/upload.tsx"),
-      route("images/delete", "routes/tenant/images/delete.tsx"),
-      route("images/reorder", "routes/tenant/images/reorder.tsx"),
+      // Trips
       route("trips", "routes/tenant/trips/index.tsx"),
       route("trips/new", "routes/tenant/trips/new.tsx"),
       route("trips/:id/edit", "routes/tenant/trips/$id/edit.tsx"),
@@ -75,6 +111,7 @@ export default [
       // Equipment
       route("equipment", "routes/tenant/equipment/index.tsx"),
       route("equipment/new", "routes/tenant/equipment/new.tsx"),
+      route("equipment/rentals", "routes/tenant/equipment/rentals.tsx"),
       route("equipment/:id/edit", "routes/tenant/equipment/$id/edit.tsx"),
       route("equipment/:id", "routes/tenant/equipment/$id.tsx"),
 
@@ -87,6 +124,7 @@ export default [
       // Gallery
       route("gallery", "routes/tenant/gallery/index.tsx"),
       route("gallery/new", "routes/tenant/gallery/new.tsx"),
+      route("gallery/upload-images", "routes/tenant/gallery/upload-images.tsx"),
       route("gallery/:id", "routes/tenant/gallery/$id.tsx"),
 
       // Training Module
@@ -100,12 +138,11 @@ export default [
       route("training/sessions/new", "routes/tenant/training/sessions/new.tsx"),
       route("training/sessions/:id", "routes/tenant/training/sessions/$id.tsx"),
       route("training/enrollments", "routes/tenant/training/enrollments/index.tsx"),
+      route("training/enrollments/new", "routes/tenant/training/enrollments/new.tsx"),
       route("training/enrollments/:id", "routes/tenant/training/enrollments/$id.tsx"),
 
       // Reports
       route("reports", "routes/tenant/reports/index.tsx"),
-      route("reports/export/csv", "routes/tenant/reports/export.csv.tsx"),
-      route("reports/export/pdf", "routes/tenant/reports/export.pdf.tsx"),
 
       // Settings
       route("settings", "routes/tenant/settings/index.tsx"),
@@ -113,8 +150,12 @@ export default [
       route("settings/billing", "routes/tenant/settings/billing.tsx"),
       route("settings/team", "routes/tenant/settings/team.tsx"),
       route("settings/integrations", "routes/tenant/settings/integrations.tsx"),
+      route("settings/integrations/quickbooks", "routes/tenant/settings/integrations/quickbooks.tsx"),
+      route("settings/integrations/zapier", "routes/tenant/settings/integrations/zapier.tsx"),
       route("settings/notifications", "routes/tenant/settings/notifications.tsx"),
       route("settings/booking-widget", "routes/tenant/settings/booking-widget.tsx"),
+      route("settings/password", "routes/tenant/settings/password.tsx"),
+      route("settings/user-profile", "routes/tenant/settings/user-profile.tsx"),
 
       // Public Site Settings (with nested routes for tabs)
       layout("routes/tenant/settings/public-site.tsx", [
@@ -172,11 +213,13 @@ export default [
       route("login", "routes/site/login.tsx"),
       route("register", "routes/site/register.tsx"),
       route("book/:type/:id", "routes/site/book/$type.$id.tsx"),
+      route("book/confirm", "routes/site/book/confirm.tsx"),
 
       // Account routes (protected by layout auth guard)
       layout("routes/site/account/_layout.tsx", [
         route("account", "routes/site/account/index.tsx"),
         route("account/bookings", "routes/site/account/bookings.tsx"),
+        route("account/bookings/:bookingId", "routes/site/account/bookings.$bookingId.tsx"),
         route("account/profile", "routes/site/account/profile.tsx"),
         route("account/logout", "routes/site/account/logout.tsx"),
       ]),

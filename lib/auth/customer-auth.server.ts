@@ -368,3 +368,74 @@ export async function verifyEmail(organizationId: string, token: string) {
     })
     .where(eq(customerCredentials.id, creds.id));
 }
+
+// ============================================================================
+// STAFF-CREATED CUSTOMERS
+// ============================================================================
+
+/**
+ * Create initial credentials for a staff-created customer
+ *
+ * When staff create a customer via the tenant portal, they don't set a password.
+ * This function creates credentials with a reset token so the customer can
+ * set their own password via email.
+ *
+ * @param organizationId - The organization context
+ * @param customerId - The customer ID
+ * @param email - The customer's email address
+ * @returns Reset token for the password setup email
+ */
+export async function createInitialCredentials(
+  organizationId: string,
+  customerId: string,
+  email: string
+) {
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Check if credentials already exist
+  const existing = await db
+    .select()
+    .from(customerCredentials)
+    .where(
+      and(
+        eq(customerCredentials.organizationId, organizationId),
+        eq(customerCredentials.email, normalizedEmail)
+      )
+    );
+
+  if (existing.length > 0) {
+    // Already has credentials, request a password reset instead
+    const resetToken = randomBytes(32).toString("hex");
+    const resetTokenExpires = new Date(
+      Date.now() + RESET_TOKEN_HOURS * 60 * 60 * 1000
+    );
+
+    await db
+      .update(customerCredentials)
+      .set({ resetToken, resetTokenExpires })
+      .where(eq(customerCredentials.id, existing[0].id));
+
+    return { resetToken };
+  }
+
+  // Generate a temporary password hash (customer will set their own via reset token)
+  const temporaryPassword = randomBytes(32).toString("hex");
+  const passwordHash = await bcrypt.hash(temporaryPassword, HASH_ROUNDS);
+
+  const resetToken = randomBytes(32).toString("hex");
+  const resetTokenExpires = new Date(
+    Date.now() + 24 * 60 * 60 * 1000 // 24 hours for initial setup
+  );
+
+  await db.insert(customerCredentials).values({
+    organizationId,
+    customerId,
+    email: normalizedEmail,
+    passwordHash, // Temporary, customer will set their own
+    resetToken,
+    resetTokenExpires,
+    emailVerified: false, // Will be verified when they set password
+  });
+
+  return { resetToken };
+}

@@ -6,6 +6,7 @@
  */
 
 import type { IntegrationProvider } from './index.server';
+import { integrationLogger } from '../logger';
 
 export interface SyncResult {
   success: boolean;
@@ -141,7 +142,7 @@ async function syncGoogleCalendar(options: SyncOptions): Promise<SyncResult> {
     const result = await syncTripsToCalendar(options.organizationId);
     return result;
   } catch (error) {
-    console.error('[Sync] Google Calendar error:', error);
+    integrationLogger.error({ err: error, provider: 'google_calendar' }, "Google Calendar sync error");
     return {
       success: false,
       synced: 0,
@@ -186,7 +187,7 @@ async function syncXero(options: SyncOptions): Promise<SyncResult> {
       errors: errors.length > 0 ? errors : undefined,
     };
   } catch (error) {
-    console.error('[Sync] Xero error:', error);
+    integrationLogger.error({ err: error, provider: 'xero' }, "Xero sync error");
     return {
       success: false,
       synced: 0,
@@ -202,7 +203,7 @@ async function syncQuickBooks(options: SyncOptions): Promise<SyncResult> {
     const result = await syncToQuickBooks(options.organizationId);
     return result;
   } catch (error) {
-    console.error('[Sync] QuickBooks error:', error);
+    integrationLogger.error({ err: error, provider: 'quickbooks' }, "QuickBooks sync error");
     return {
       success: false,
       synced: 0,
@@ -218,7 +219,7 @@ async function syncMailchimp(options: SyncOptions): Promise<SyncResult> {
     const result = await syncContactsToMailchimp(options.organizationId);
     return result;
   } catch (error) {
-    console.error('[Sync] Mailchimp error:', error);
+    integrationLogger.error({ err: error, provider: 'mailchimp' }, "Mailchimp sync error");
     return {
       success: false,
       synced: 0,
@@ -239,7 +240,7 @@ async function syncZapier(options: SyncOptions): Promise<SyncResult> {
       details: { webhookTriggered: result.triggered },
     };
   } catch (error) {
-    console.error('[Sync] Zapier error:', error);
+    integrationLogger.error({ err: error, provider: 'zapier' }, "Zapier sync error");
     return {
       success: false,
       synced: 0,

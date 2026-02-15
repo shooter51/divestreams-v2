@@ -35,4 +35,9 @@ fi
 
 # Start the application
 echo "Starting DiveStreams application..."
-exec npm run start
+# If arguments are provided, run them; otherwise run default start command
+if [ $# -gt 0 ]; then
+  exec "$@"
+else
+  exec npm run start
+fi

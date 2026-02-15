@@ -1,14 +1,16 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById } from "../../../../lib/db/queries.server";
 import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
+import { redirectWithNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const url = new URL(request.url);
   const customerId = url.searchParams.get("customerId");
   const tripId = url.searchParams.get("tripId");
@@ -60,7 +62,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
 
   const validation = validateFormData(formData, bookingSchema);
@@ -122,14 +125,14 @@ export async function action({ request }: ActionFunctionArgs) {
       participants,
       totalCents: Math.round(total * 100), // Convert to cents for email formatting
       bookingNumber: booking.bookingNumber,
-      shopName: tenant.name,
-      tenantId: tenant.id,
+      shopName: ctx.org.name,
+      tenantId: ctx.org.id,
     });
   } catch (emailError) {
     console.error("Failed to queue booking confirmation email:", emailError);
   }
 
-  return redirect("/tenant/bookings");
+  return redirect(redirectWithNotification("/tenant/bookings", "Booking has been successfully created", "success"));
 }
 
 export default function NewBookingPage() {
@@ -177,7 +180,7 @@ export default function NewBookingPage() {
                 id="customerId"
                 name="customerId"
                 defaultValue={actionData?.values?.customerId || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               >
                 <option value="">Choose a customer...</option>
@@ -230,7 +233,7 @@ export default function NewBookingPage() {
                 id="tripId"
                 name="tripId"
                 defaultValue={actionData?.values?.tripId || ""}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               >
                 <option value="">Choose a trip...</option>
@@ -361,7 +364,7 @@ export default function NewBookingPage() {
             id="source"
             name="source"
             defaultValue={actionData?.values?.source || "direct"}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+            className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           >
             <option value="direct">Direct (Walk-in/Phone)</option>
             <option value="website">Website</option>

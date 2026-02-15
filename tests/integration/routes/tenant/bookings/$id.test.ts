@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader, action } from "../../../../../app/routes/tenant/bookings/$id";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../lib/db/queries.server";
@@ -188,7 +189,9 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.updateBookingStatus).toHaveBeenCalledWith(mockOrganizationId, mockBookingId, "cancelled");
-      expect(result).toEqual({ cancelled: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
     it("should confirm booking when intent is confirm", async () => {
@@ -205,7 +208,9 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.updateBookingStatus).toHaveBeenCalledWith(mockOrganizationId, mockBookingId, "confirmed");
-      expect(result).toEqual({ confirmed: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
     it("should complete booking when intent is complete", async () => {
@@ -222,7 +227,9 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.updateBookingStatus).toHaveBeenCalledWith(mockOrganizationId, mockBookingId, "completed");
-      expect(result).toEqual({ completed: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
     it("should mark as no-show when intent is no-show", async () => {
@@ -239,7 +246,9 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.updateBookingStatus).toHaveBeenCalledWith(mockOrganizationId, mockBookingId, "no_show");
-      expect(result).toEqual({ noShow: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe(`/tenant/bookings/${mockBookingId}`);
     });
 
     it("should add payment when intent is add-payment with valid data", async () => {
@@ -270,7 +279,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
     it("should return error if payment amount is invalid", async () => {
       const formData = new FormData();
       formData.append("intent", "add-payment");
-      formData.append("amount", "0");
+      formData.append("amount", "0.50"); // Invalid: between 0 and 1
       formData.append("paymentMethod", "card");
 
       const request = new Request("http://test.com/tenant/bookings/booking-456", {
@@ -281,7 +290,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       const result = await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(queries.recordPayment).not.toHaveBeenCalled();
-      expect(result).toEqual({ error: "Valid payment amount is required" });
+      expect(result).toEqual({ error: "Payment amount must be at least $1 (or $0)" });
     });
 
     it("should return error if payment method is missing", async () => {

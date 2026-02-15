@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useFetcher, Link } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
   getGalleryAlbum,
   updateGalleryAlbum,
@@ -9,11 +9,13 @@ import {
   updateGalleryImage,
   deleteGalleryImage,
 } from "../../../../lib/db/gallery.server";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Album - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const albumId = params.id;
 
   if (!albumId) {
@@ -34,7 +36,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const albumId = params.id;
 
   if (!albumId) {
@@ -97,6 +100,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function AlbumDetailPage() {
   const { album, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDeleteAlbum = () => {
     if (
@@ -229,8 +235,7 @@ export default function AlbumDetailPage() {
             Images ({images.length})
           </h2>
           <Link
-            to="/tenant/images/upload"
-            state={{ albumId: album.id }}
+            to={`/tenant/gallery/upload-images?albumId=${album.id}`}
             className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
           >
             + Upload Images
@@ -245,8 +250,7 @@ export default function AlbumDetailPage() {
               Upload your first images to this album
             </p>
             <Link
-              to="/tenant/images/upload"
-              state={{ albumId: album.id }}
+              to={`/tenant/gallery/upload-images?albumId=${album.id}`}
               className="inline-block bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover"
             >
               Upload Images
@@ -276,7 +280,7 @@ export default function AlbumDetailPage() {
                         const form = e.currentTarget.form;
                         if (form) fetcher.submit(form);
                       }}
-                      className="px-2 py-1 text-xs rounded bg-surface-raised"
+                      className="px-2 py-1 text-xs rounded bg-surface-raised text-foreground border border-border-strong"
                     >
                       <option value="published">Published</option>
                       <option value="draft">Draft</option>

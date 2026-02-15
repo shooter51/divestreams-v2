@@ -449,6 +449,7 @@ describe("validation extended", () => {
       const data = {
         category: "bcd",
         name: "Aqualung Pro HD",
+        isRentable: false,
       };
       const result = equipmentSchema.safeParse(data);
       expect(result.success).toBe(true);
@@ -457,7 +458,7 @@ describe("validation extended", () => {
     it("validates all equipment categories", () => {
       const categories = ["bcd", "regulator", "wetsuit", "mask", "fins", "tank", "computer", "other"];
       categories.forEach((category) => {
-        const data = { category, name: "Test Equipment" };
+        const data = { category, name: "Test Equipment", isRentable: false };
         const result = equipmentSchema.safeParse(data);
         expect(result.success).toBe(true);
       });
@@ -466,7 +467,7 @@ describe("validation extended", () => {
     it("validates all status values", () => {
       const statuses = ["available", "rented", "maintenance", "retired"];
       statuses.forEach((status) => {
-        const data = { category: "bcd", name: "Test", status };
+        const data = { category: "bcd", name: "Test", status, isRentable: false };
         const result = equipmentSchema.safeParse(data);
         expect(result.success).toBe(true);
       });
@@ -475,7 +476,7 @@ describe("validation extended", () => {
     it("validates all condition values", () => {
       const conditions = ["excellent", "good", "fair", "poor"];
       conditions.forEach((condition) => {
-        const data = { category: "bcd", name: "Test", condition };
+        const data = { category: "bcd", name: "Test", condition, isRentable: false };
         const result = equipmentSchema.safeParse(data);
         expect(result.success).toBe(true);
       });

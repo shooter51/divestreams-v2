@@ -1,12 +1,14 @@
 import Stripe from "stripe";
 import { db } from "../db";
 import { organization, subscription, subscriptionPlans } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
+import { invalidateSubscriptionCache } from "../cache/subscription.server";
+import { stripeLogger } from "../logger";
 
 // Initialize Stripe
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 if (!stripeSecretKey) {
-  console.warn("STRIPE_SECRET_KEY not set - Stripe functionality disabled");
+  stripeLogger.warn("STRIPE_SECRET_KEY not set - Stripe functionality disabled");
 }
 
 export const stripe = stripeSecretKey
@@ -68,10 +70,18 @@ export async function createStripeCustomer(orgId: string): Promise<string | null
       .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
       .where(eq(subscription.organizationId, orgId));
   } else {
+    // Look up the free plan to get its ID
+    const [freePlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.name, "free"))
+      .limit(1);
+
     // Create a new subscription record if none exists
     await db.insert(subscription).values({
       organizationId: orgId,
       plan: "free",
+      planId: freePlan?.id || null, // Set both plan and planId
       status: "active",
       stripeCustomerId: customer.id,
     });
@@ -122,9 +132,172 @@ export async function createCheckoutSession(
   const priceId = billingPeriod === "yearly" ? plan.yearlyPriceId : plan.monthlyPriceId;
 
   if (!priceId) {
-    throw new Error(`No ${billingPeriod} price configured for ${planName} plan`);
+    throw new Error(
+      `Subscription upgrade not available: The "${planName}" plan does not have a Stripe Price ID configured for ${billingPeriod} billing. ` +
+      `Please contact support or try a different billing period.`
+    );
   }
 
+  // KAN-627 FIX: Check for saved payment method before redirecting to Checkout
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (!customer.deleted) {
+      const defaultPaymentMethodId = (customer as Stripe.Customer).invoice_settings?.default_payment_method;
+
+      // If customer has a saved payment method, use it directly
+      if (defaultPaymentMethodId && typeof defaultPaymentMethodId === "string") {
+        stripeLogger.info({ organizationId: orgId, paymentMethodId: defaultPaymentMethodId }, "Using saved payment method");
+
+        // Check if customer already has an active subscription
+        if (sub?.stripeSubscriptionId && sub?.status === "active") {
+          try {
+            // Modify existing subscription
+            const currentSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+
+            if (currentSubscription.status === "active") {
+              // SECURITY: Fetch prices from Stripe API to prevent manipulation
+              const currentPriceId = currentSubscription.items.data[0].price.id;
+              const currentStripePrice = await stripe.prices.retrieve(currentPriceId);
+              const currentPriceAmount = currentStripePrice.unit_amount || 0;
+
+              const newStripePrice = await stripe.prices.retrieve(priceId);
+              const newPriceAmount = newStripePrice.unit_amount || 0;
+
+              const isUpgrade = newPriceAmount > currentPriceAmount;
+
+              // Update the subscription
+              await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+                items: [{
+                  id: currentSubscription.items.data[0].id,
+                  price: priceId,
+                }],
+                proration_behavior: isUpgrade ? 'create_prorations' : 'none',
+                billing_cycle_anchor: isUpgrade ? 'now' : 'unchanged',
+                default_payment_method: defaultPaymentMethodId,
+                metadata: {
+                  organizationId: org.id,
+                  planName,
+                },
+              });
+
+              stripeLogger.info({ subscriptionId: sub.stripeSubscriptionId, planName }, "Updated existing subscription");
+
+              // Update local database immediately
+              await db
+                .update(subscription)
+                .set({
+                  planId: plan.id,
+                  plan: planName,
+                  stripePriceId: priceId,
+                  updatedAt: new Date(),
+                })
+                .where(eq(subscription.organizationId, orgId));
+
+              // Invalidate cache so user sees updated subscription immediately
+              await invalidateSubscriptionCache(orgId);
+
+              return successUrl;
+            }
+          } catch (error) {
+            stripeLogger.error({ err: error, organizationId: orgId }, "Failed to modify existing subscription");
+            // Fall through to create new subscription
+          }
+        }
+
+        // No existing subscription - create new one with saved payment method
+        try {
+          const newSubscription = await stripe.subscriptions.create({
+            customer: customerId,
+            items: [{ price: priceId }],
+            default_payment_method: defaultPaymentMethodId,
+            metadata: {
+              organizationId: org.id,
+              planName,
+            },
+          });
+
+          stripeLogger.info({ subscriptionId: newSubscription.id, organizationId: orgId }, "Created subscription with saved payment method");
+
+          // Use type assertion for Stripe API response properties
+          const subData = newSubscription as unknown as {
+            current_period_start?: number;
+            current_period_end?: number;
+          };
+
+          // Update local database immediately
+          await db
+            .update(subscription)
+            .set({
+              stripeSubscriptionId: newSubscription.id,
+              stripePriceId: priceId,
+              planId: plan.id,
+              plan: planName,
+              status: newSubscription.status as "trialing" | "active" | "past_due" | "canceled",
+              currentPeriodStart: subData.current_period_start ? new Date(subData.current_period_start * 1000) : null,
+              currentPeriodEnd: subData.current_period_end ? new Date(subData.current_period_end * 1000) : null,
+              updatedAt: new Date(),
+            })
+            .where(eq(subscription.organizationId, orgId));
+
+          // Invalidate cache so user sees updated subscription immediately
+          await invalidateSubscriptionCache(orgId);
+
+          return successUrl;
+        } catch (error) {
+          stripeLogger.error({ err: error, organizationId: orgId }, "Failed to create subscription with saved payment method");
+          // Fall through to Checkout session
+        }
+      }
+    }
+  } catch (error) {
+    stripeLogger.error({ err: error, organizationId: orgId }, "Error checking for saved payment method");
+    // Fall through to Checkout session
+  }
+
+  // No saved payment method OR modification failed - redirect to Checkout
+  stripeLogger.info({ organizationId: orgId }, "Redirecting to Checkout (no saved payment method)");
+
+  // Check if customer already has an active subscription
+  if (sub?.stripeSubscriptionId && sub?.status === "active") {
+    try {
+      // Modify existing subscription instead of creating a new one
+      const currentSubscription = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
+
+      if (currentSubscription.status === "active") {
+        // SECURITY: Fetch prices from Stripe API to prevent manipulation
+        const currentPriceId = currentSubscription.items.data[0].price.id;
+        const currentStripePrice = await stripe.prices.retrieve(currentPriceId);
+        const currentPriceAmount = currentStripePrice.unit_amount || 0;
+
+        const newStripePrice = await stripe.prices.retrieve(priceId);
+        const newPriceAmount = newStripePrice.unit_amount || 0;
+
+        const isUpgrade = newPriceAmount > currentPriceAmount;
+
+        // Update the subscription
+        await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+          items: [{
+            id: currentSubscription.items.data[0].id,
+            price: priceId,
+          }],
+          proration_behavior: isUpgrade ? 'create_prorations' : 'none',
+          billing_cycle_anchor: isUpgrade ? 'now' : 'unchanged',
+          metadata: {
+            organizationId: org.id,
+            planName,
+          },
+        });
+
+        // Return success URL directly (subscription already updated)
+        return successUrl;
+      }
+    } catch (error) {
+      stripeLogger.error({ err: error, organizationId: orgId }, "Failed to modify existing subscription via Checkout path");
+      // Fall through to create new subscription if modification fails
+    }
+  }
+
+  // Create new checkout session
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
@@ -225,11 +398,14 @@ export async function createSetupSession(
 export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subscription) {
   const orgId = stripeSubscription.metadata.organizationId || stripeSubscription.metadata.tenantId;
   if (!orgId) {
-    console.error("No organizationId in subscription metadata");
+    stripeLogger.error({ subscriptionId: stripeSubscription.id }, "No organizationId in subscription metadata");
     return;
   }
 
-  let status: string;
+  stripeLogger.info({ organizationId: orgId, subscriptionId: stripeSubscription.id, status: stripeSubscription.status }, "Processing subscription update");
+
+  // KAN-627 FIX: Map Stripe subscription status correctly
+  let status: "active" | "trialing" | "past_due" | "canceled";
   switch (stripeSubscription.status) {
     case "active":
       status = "active";
@@ -242,25 +418,82 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
       break;
     case "canceled":
     case "unpaid":
+    case "incomplete_expired":
       status = "canceled";
       break;
+    case "incomplete":
+      // Keep as trialing if incomplete (waiting for payment)
+      status = "trialing";
+      break;
     default:
-      status = stripeSubscription.status;
+      stripeLogger.warn({ status: stripeSubscription.status }, "Unknown subscription status");
+      status = "trialing";
   }
 
   // Use type assertion for Stripe API response properties
-  const sub = stripeSubscription as unknown as { current_period_end?: number };
+  const sub = stripeSubscription as unknown as {
+    current_period_end?: number;
+    current_period_start?: number;
+  };
   const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
+  const periodStart = sub.current_period_start ? new Date(sub.current_period_start * 1000) : null;
 
-  await db
-    .update(subscription)
-    .set({
-      stripeSubscriptionId: stripeSubscription.id,
-      status: status,
-      currentPeriodEnd: periodEnd,
-      updatedAt: new Date(),
-    })
-    .where(eq(subscription.organizationId, orgId));
+  // Get the price ID from the subscription
+  const item = stripeSubscription.items.data[0];
+  const priceId = item?.price?.id;
+
+  stripeLogger.info({ priceId }, "Subscription price ID");
+
+  // Look up the plan by matching the price ID (monthly or yearly)
+  let planId: string | null = null;
+  let planName = "free";
+
+  if (priceId) {
+    const [matchedPlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(
+        or(
+          eq(subscriptionPlans.monthlyPriceId, priceId),
+          eq(subscriptionPlans.yearlyPriceId, priceId)
+        )
+      )
+      .limit(1);
+
+    if (matchedPlan) {
+      planId = matchedPlan.id;
+      planName = matchedPlan.name;
+      stripeLogger.info({ planName, planId }, "Matched plan from price ID");
+    } else {
+      stripeLogger.warn({ priceId }, "No plan found for price ID");
+    }
+  }
+
+  // Update subscription with plan reference
+  try {
+    const result = await db
+      .update(subscription)
+      .set({
+        stripeSubscriptionId: stripeSubscription.id,
+        stripePriceId: priceId || null,
+        planId: planId,
+        plan: planName,
+        status: status,
+        currentPeriodStart: periodStart,
+        currentPeriodEnd: periodEnd,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscription.organizationId, orgId));
+
+    stripeLogger.info({ organizationId: orgId, status, planName }, "Updated subscription in database");
+
+    // Invalidate cache so changes are immediately visible
+    await invalidateSubscriptionCache(orgId);
+    stripeLogger.info({ organizationId: orgId }, "Invalidated subscription cache");
+  } catch (error) {
+    stripeLogger.error({ err: error, organizationId: orgId }, "Failed to update subscription in database");
+    throw error;
+  }
 }
 
 // Handle subscription deleted (from webhook)
@@ -275,6 +508,9 @@ export async function handleSubscriptionDeleted(stripeSubscription: Stripe.Subsc
       updatedAt: new Date(),
     })
     .where(eq(subscription.organizationId, orgId));
+
+  // Invalidate cache so canceled status is immediately visible
+  await invalidateSubscriptionCache(orgId);
 }
 
 // Get subscription status
@@ -326,6 +562,9 @@ export async function cancelSubscription(orgId: string): Promise<boolean> {
         updatedAt: new Date(),
       })
       .where(eq(subscription.organizationId, orgId));
+
+    // Invalidate cache so canceled status is immediately visible
+    await invalidateSubscriptionCache(orgId);
     return true;
   }
 
@@ -339,10 +578,13 @@ export async function cancelSubscription(orgId: string): Promise<boolean> {
   await db
     .update(subscription)
     .set({
-      status: "cancel_pending",
+      status: "canceled",
       updatedAt: new Date(),
     })
     .where(eq(subscription.organizationId, orgId));
+
+  // Invalidate cache so canceled status is immediately visible
+  await invalidateSubscriptionCache(orgId);
 
   return true;
 }
@@ -443,7 +685,7 @@ export async function getPaymentMethod(orgId: string): Promise<{
 
     return null;
   } catch (error) {
-    console.error("Error fetching payment method:", error);
+    stripeLogger.error({ err: error, organizationId: orgId }, "Error fetching payment method");
     return null;
   }
 }

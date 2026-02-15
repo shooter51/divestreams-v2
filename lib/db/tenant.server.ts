@@ -91,10 +91,18 @@ export async function createTenant(data: {
       updatedAt: new Date(),
     });
 
+    // Look up the free plan to get its ID
+    const [freePlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.name, "free"))
+      .limit(1);
+
     // Create subscription record for the organization
     await db.insert(subscription).values({
       organizationId: orgId,
       plan: "free",
+      planId: freePlan?.id || null, // Set both plan and planId
       status: "trialing",
       createdAt: new Date(),
       updatedAt: new Date(),

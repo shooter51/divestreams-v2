@@ -5,6 +5,7 @@ import { db } from "../../../../lib/db";
 import { customers } from "../../../../lib/db/schema";
 import { eq, or, ilike, sql, count } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Customers - DiveStreams" }];
 
@@ -32,7 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const customerList = await db
     .select()
     .from(customers)
-    .where(searchCondition ? sql`${baseCondition} AND ${searchCondition}` : baseCondition)
+    .where(searchCondition ? sql`${baseCondition} AND (${searchCondition})` : baseCondition)
     .orderBy(customers.lastName, customers.firstName)
     .limit(limit)
     .offset(offset);
@@ -41,7 +42,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const [{ value: total }] = await db
     .select({ value: count() })
     .from(customers)
-    .where(searchCondition ? sql`${baseCondition} AND ${searchCondition}` : baseCondition);
+    .where(searchCondition ? sql`${baseCondition} AND (${searchCondition})` : baseCondition);
 
   return {
     customers: customerList,
@@ -70,6 +71,9 @@ export default function CustomersPage() {
     isPremium
   } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -217,14 +221,14 @@ export default function CustomersPage() {
               <button
                 onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page - 1) })}
                 disabled={page <= 1}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
                 Previous
               </button>
               <button
                 onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page + 1) })}
                 disabled={page >= totalPages}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
                 Next
               </button>

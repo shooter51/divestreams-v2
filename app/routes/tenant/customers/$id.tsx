@@ -1,16 +1,19 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { useState } from "react";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
 import { customerCommunications } from "../../../../lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { sendEmail } from "../../../../lib/email/index";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const customerId = params.id;
 
   if (!customerId) {
@@ -79,7 +82,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const customerId = params.id;
@@ -89,15 +93,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
-    try {
-      await deleteCustomer(organizationId, customerId);
-      return redirect("/tenant/customers");
-    } catch (error) {
-      if (error instanceof Error) {
-        return { error: error.message };
-      }
-      return { error: "Failed to delete customer" };
-    }
+    const customerData = await getCustomerById(organizationId, customerId);
+    const customerName = customerData ? `${customerData.firstName} ${customerData.lastName}` : "Customer";
+    await deleteCustomer(organizationId, customerId);
+    return redirect(redirectWithNotification("/tenant/customers", `${customerName} has been successfully deleted`, "success"));
   }
 
   if (intent === "send-email") {
@@ -109,23 +108,53 @@ export async function action({ request, params }: ActionFunctionArgs) {
       return { error: "Subject and body are required" };
     }
 
-    // Log the communication (actual email sending would require SMTP setup)
+    // Actually send the email via SMTP [KAN-607 FIX]
     try {
+      const emailSent = await sendEmail({
+        to: customerEmail,
+        subject: subject,
+        html: `<p>${body.replace(/\n/g, '<br>')}</p>`,
+        text: body,
+      });
+
+      // Log the communication with actual send status
       await db.insert(customerCommunications).values({
         organizationId,
         customerId,
         type: "email",
         subject,
         body,
-        status: "sent", // In production, this would be "queued" until actually sent
-        sentAt: new Date(),
+        status: emailSent ? "sent" : "failed",
+        sentAt: emailSent ? new Date() : null,
         emailTo: customerEmail,
       });
 
-      return { success: true, message: "Email logged successfully. Note: Email delivery requires SMTP configuration." };
-    } catch {
-      // Table might not exist yet
-      return { success: true, message: "Email queued (communications table pending migration)" };
+      if (!emailSent) {
+        console.error("[Customer Email] Failed to send email to:", customerEmail);
+        return {
+          error: "Email could not be sent. Please check SMTP configuration or try again later.",
+        };
+      }
+
+      return { success: true, message: "Email sent successfully!" };
+    } catch (error) {
+      console.error("Error sending customer email:", error);
+      // Try to log the failed attempt
+      try {
+        await db.insert(customerCommunications).values({
+          organizationId,
+          customerId,
+          type: "email",
+          subject,
+          body,
+          status: "failed",
+          sentAt: null,
+          emailTo: customerEmail,
+        });
+      } catch {
+        // Table might not exist yet, ignore
+      }
+      return { error: "Failed to send email" };
     }
   }
 
@@ -136,6 +165,9 @@ export default function CustomerDetailPage() {
   const { customer, bookings, communications } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const [showEmailModal, setShowEmailModal] = useState(false);
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this customer? This cannot be undone.")) {
@@ -191,12 +223,12 @@ export default function CustomerDetailPage() {
 
       {/* Success/Error Messages */}
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6 max-w-4xl break-words">
           {fetcher.data.message}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6 max-w-4xl break-words">
           {fetcher.data.error}
         </div>
       )}
@@ -215,7 +247,7 @@ export default function CustomerDetailPage() {
               <p className="text-foreground-muted text-sm">Total Spent</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{customer.lastDiveAt || "Never"}</p>
+              <p className="text-2xl font-bold">{customer.lastDiveAt ? String(customer.lastDiveAt) : "Never"}</p>
               <p className="text-foreground-muted text-sm">Last Dive</p>
             </div>
           </div>
@@ -417,7 +449,7 @@ export default function CustomerDetailPage() {
                   type="text"
                   name="subject"
                   required
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="e.g., Your upcoming dive trip"
                 />
               </div>
@@ -428,12 +460,12 @@ export default function CustomerDetailPage() {
                   name="body"
                   required
                   rows={6}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="Write your message here..."
                 />
               </div>
 
-              <div className="bg-warning-muted border border-warning rounded-lg p-3">
+              <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-3">
                 <p className="text-sm text-warning">
                   Note: Email delivery requires SMTP configuration in settings.
                   This message will be logged to communication history.

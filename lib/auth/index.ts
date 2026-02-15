@@ -14,6 +14,8 @@ import {
 import { sendEmail } from "../email";
 
 export const auth = betterAuth({
+  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
+  baseURL: process.env.AUTH_URL || process.env.APP_URL || "http://localhost:3000",
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
@@ -29,7 +31,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
-    sendVerificationEmail: async ({ user, url }: { user: { email: string; name?: string | null }; url: string }) => {
+    sendVerificationEmail: async ({ user, url }: { user: { email: string; name: string | null }; url: string }) => {
       await sendEmail({
         to: user.email,
         subject: "Verify your DiveStreams email",
@@ -37,11 +39,11 @@ export const auth = betterAuth({
           <p>Hi ${user.name || "there"},</p>
           <p>Please verify your email address by clicking the link below:</p>
           <p><a href="${url}">Verify Email</a></p>
-          <p>If you didn't create this account, you can ignore this email.</p>
+          <p>This link expires in 24 hours.</p>
         `,
       });
     },
-    sendResetPassword: async ({ user, url }) => {
+    sendResetPassword: async ({ user, url }: { user: { email: string; name: string | null }; url: string }) => {
       await sendEmail({
         to: user.email,
         subject: "Reset your DiveStreams password",
@@ -57,7 +59,13 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true, // REQUIRED for getSession() to work (Issue #4942)
+      maxAge: 60 * 60, // 1 hour - cache duration before revalidating with DB (reduces queries by 92%)
+    },
   },
+  // Cookie configuration handled by Better Auth defaults
+  // sameSite: 'lax' and domain are set appropriately by the framework
   plugins: [
     organization({
       allowUserToCreateOrganization: true,

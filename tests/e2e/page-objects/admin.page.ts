@@ -10,13 +10,14 @@ export class AdminLoginPage extends AdminBasePage {
   }
 
   async login(password: string): Promise<void> {
-    await this.fillByLabel(/password/i, password);
+    // Use specific selector for password field to avoid strict mode violation with show/hide button
+    await this.page.locator('input[type="password"]').first().fill(password);
     await this.clickButton(/sign in/i);
   }
 
   async expectLoginForm(): Promise<void> {
     await expect(this.page.getByRole("heading", { name: /admin/i })).toBeVisible();
-    await expect(this.page.getByLabel(/password/i)).toBeVisible();
+    await expect(this.page.locator('input[type="password"]').first()).toBeVisible();
     await expect(this.page.getByRole("button", { name: /sign in/i })).toBeVisible();
   }
 
@@ -75,7 +76,7 @@ export class AdminCreateTenantPage extends AdminBasePage {
   async expectForm(): Promise<void> {
     await expect(this.page.getByLabel(/subdomain/i)).toBeVisible();
     await expect(this.page.getByLabel(/business name/i)).toBeVisible();
-    await expect(this.page.getByLabel(/email/i)).toBeVisible();
+    await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
   }
 
   async fillForm(data: {
@@ -86,7 +87,7 @@ export class AdminCreateTenantPage extends AdminBasePage {
   }): Promise<void> {
     await this.page.getByLabel(/subdomain/i).fill(data.subdomain);
     await this.page.getByLabel(/business name/i).fill(data.businessName);
-    await this.page.getByLabel(/email/i).fill(data.email);
+    await this.page.getByRole("textbox", { name: /email/i }).fill(data.email);
     if (data.phone) {
       await this.page.getByLabel(/phone/i).fill(data.phone);
     }

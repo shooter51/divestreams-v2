@@ -32,6 +32,7 @@ vi.mock("../../../../lib/db/index", () => ({
     limit: vi.fn(),
     offset: vi.fn(),
     returning: vi.fn(),
+    transaction: vi.fn(),
   },
 }));
 
@@ -114,6 +115,10 @@ describe("Booking Validation and Pricing Logic", () => {
     (db.limit as any).mockResolvedValue([]);
     (db.offset as any).mockResolvedValue([]);
     (db.returning as any).mockResolvedValue([]);
+    // Setup transaction mock to execute callback with db as tx
+    (db.transaction as any).mockImplementation(async (callback) => {
+      return callback(db);
+    });
   });
 
   // ============================================================================

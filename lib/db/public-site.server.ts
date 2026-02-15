@@ -6,7 +6,7 @@
  * publicly visible content like trips, courses, and equipment.
  */
 
-import { eq, and, sql, inArray, asc } from "drizzle-orm";
+import { eq, and, sql, inArray, asc, or, gte } from "drizzle-orm";
 import { db } from "./index";
 import {
   organization,
@@ -14,6 +14,7 @@ import {
   tours,
   equipment,
   trainingCourses,
+  trainingSessions,
   certificationAgencies,
   certificationLevels,
   images,
@@ -495,6 +496,7 @@ export async function getPublicCourseById(
       minAge: trainingCourses.minAge,
       prerequisites: trainingCourses.prerequisites,
       medicalRequirements: trainingCourses.medicalRequirements,
+      images: trainingCourses.images,
       agencyName: certificationAgencies.name,
       levelName: certificationLevels.name,
     })
@@ -515,13 +517,14 @@ export async function getPublicCourseById(
     return null;
   }
 
-  // Get images from images table
+  // Get images from images table (for custom uploaded images)
   const imageMap = await getCourseImagesMap(organizationId, [courseId]);
-  const courseImages = imageMap.get(courseId) || null;
+  const customImages = imageMap.get(courseId) || null;
 
+  // Use custom images if available, otherwise use template images from course
   return {
     ...course,
-    images: courseImages,
+    images: customImages && customImages.length > 0 ? customImages : course.images,
   };
 }
 
@@ -537,7 +540,7 @@ export async function getCourseScheduledTrips(
   trips: Array<{
     id: string;
     date: string;
-    startTime: string;
+    startTime: string | null;
     endTime: string | null;
     maxParticipants: number | null;
     price: string | null;
@@ -548,53 +551,60 @@ export async function getCourseScheduledTrips(
   const { limit = 10, page = 1 } = options;
   const offset = (page - 1) * limit;
 
-  const tripsData = await db
+  // Query training sessions instead of trips (training courses use trainingSessions table)
+  const sessionsData = await db
     .select({
-      id: trips.id,
-      date: trips.date,
-      startTime: trips.startTime,
-      endTime: trips.endTime,
-      maxParticipants: trips.maxParticipants,
-      price: trips.price,
-      status: trips.status,
+      id: trainingSessions.id,
+      date: trainingSessions.startDate,
+      startTime: trainingSessions.startTime,
+      endTime: sql<string | null>`null`, // Training sessions don't have separate end_time
+      maxParticipants: trainingSessions.maxStudents,
+      price: trainingSessions.priceOverride,
+      status: trainingSessions.status,
     })
-    .from(trips)
+    .from(trainingSessions)
     .where(
       and(
-        eq(trips.organizationId, organizationId),
-        eq(trips.tourId, courseId),
-        eq(trips.isPublic, true),
-        eq(trips.status, "scheduled")
+        eq(trainingSessions.courseId, courseId),
+        eq(trainingSessions.organizationId, organizationId),
+        or(
+          eq(trainingSessions.status, "scheduled"),
+          eq(trainingSessions.status, "open")
+        ),
+        gte(trainingSessions.startDate, new Date().toISOString().split("T")[0])
       )
     )
-    .orderBy(trips.date, trips.startTime)
+    .orderBy(trainingSessions.startDate, trainingSessions.startTime)
     .limit(limit)
     .offset(offset);
 
   // Get total count
   const countResult = await db
     .select({ count: sql<number>`count(*)` })
-    .from(trips)
+    .from(trainingSessions)
     .where(
       and(
-        eq(trips.organizationId, organizationId),
-        eq(trips.tourId, courseId),
-        eq(trips.isPublic, true),
-        eq(trips.status, "scheduled")
+        eq(trainingSessions.courseId, courseId),
+        eq(trainingSessions.organizationId, organizationId),
+        or(
+          eq(trainingSessions.status, "scheduled"),
+          eq(trainingSessions.status, "open")
+        ),
+        gte(trainingSessions.startDate, new Date().toISOString().split("T")[0])
       )
     );
 
   const total = Number(countResult[0]?.count ?? 0);
 
   return {
-    trips: tripsData.map((trip) => ({
-      id: trip.id,
-      date: trip.date,
-      startTime: trip.startTime,
-      endTime: trip.endTime,
-      maxParticipants: trip.maxParticipants,
-      price: trip.price,
-      status: trip.status,
+    trips: sessionsData.map((session) => ({
+      id: session.id,
+      date: session.date,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      maxParticipants: session.maxParticipants,
+      price: session.price,
+      status: session.status,
     })),
     total,
   };

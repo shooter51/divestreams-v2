@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc, desc } from "drizzle-orm";
-import { requireTenant, requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
   getBoatById,
   getBoatRecentTrips,
@@ -13,11 +13,13 @@ import {
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { maintenanceLogs } from "../../../../lib/db/schema";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Boat Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const boatId = params.id;
 
   if (!boatId) {
@@ -159,8 +161,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
+    const boat = await getBoatById(organizationId, boatId);
+    const boatName = boat?.name || "Boat";
     await deleteBoat(organizationId, boatId);
-    return redirect("/tenant/boats");
+    return redirect(redirectWithNotification("/tenant/boats", `${boatName} has been successfully deleted`, "success"));
   }
 
   if (intent === "log-maintenance") {
@@ -173,6 +177,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const notes = formData.get("notes") as string;
     const nextMaintenanceDate = formData.get("nextMaintenanceDate") as string;
     const nextMaintenanceType = formData.get("nextMaintenanceType") as string;
+
+    // Validate cost if provided
+    if (cost && cost.trim() !== "") {
+      const costNum = parseFloat(cost);
+      if (isNaN(costNum) || costNum < 0) {
+        return {
+          maintenanceLogged: false,
+          error: "Cost must be a valid number >= $0 (or leave blank for free/warranty work)",
+        };
+      }
+    }
 
     await db.insert(maintenanceLogs).values({
       organizationId,
@@ -196,6 +211,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function BoatDetailPage() {
   const { boat, recentTrips, upcomingTrips, stats, images, maintenanceHistory, maintenanceDue } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+
+  // Show notifications from URL params
+  useNotification();
 
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this boat?")) {

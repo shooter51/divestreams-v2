@@ -26,8 +26,10 @@
   --color-danger-hover: var(--danger-hover);
   --color-danger-muted: var(--danger-muted);
   --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
   --color-success-muted: var(--success-muted);
   --color-warning: var(--warning);
+  --color-warning-hover: var(--warning-hover);
   --color-warning-muted: var(--warning-muted);
 
   --color-accent: var(--accent);
@@ -72,8 +74,10 @@
   --danger-hover: #b91c1c;
   --danger-muted: #fef2f2;
   --success: #16a34a;
+  --success-hover: #15803d;
   --success-muted: #f0fdf4;
   --warning: #d97706;
+  --warning-hover: #b45309;
   --warning-muted: #fffbeb;
 
   /* Accent (orange) */
@@ -121,8 +125,10 @@
     --danger-hover: #dc2626;
     --danger-muted: #450a0a;
     --success: #22c55e;
+    --success-hover: #16a34a;
     --success-muted: #052e16;
     --warning: #f59e0b;
+    --warning-hover: #d97706;
     --warning-muted: #451a03;
 
     /* Accent (orange) */
@@ -145,4 +151,102 @@ html,
 body {
   background-color: var(--surface);
   color: var(--foreground);
+}
+
+/* Select dropdown styling for dark mode support */
+select {
+  color-scheme: light dark; /* Enables native dark mode for dropdowns */
+}
+
+/* Style select options to match theme */
+select option {
+  background-color: var(--surface-raised);
+  color: var(--foreground);
+}
+
+/* ============================================================================
+   FULLCALENDAR DARK MODE STYLES
+   ============================================================================ */
+
+/* FullCalendar base styles */
+.fc {
+  --fc-border-color: var(--border);
+  --fc-button-bg-color: var(--brand);
+  --fc-button-border-color: var(--brand);
+  --fc-button-hover-bg-color: var(--brand-hover);
+  --fc-button-hover-border-color: var(--brand-hover);
+  --fc-button-active-bg-color: var(--brand-hover);
+  --fc-button-active-border-color: var(--brand-hover);
+  --fc-today-bg-color: var(--surface-inset);
+  --fc-neutral-bg-color: var(--surface-raised);
+  --fc-page-bg-color: var(--surface);
+}
+
+/* Calendar headers and text */
+.fc .fc-toolbar-title,
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number,
+.fc .fc-timegrid-slot-label-cushion {
+  color: var(--foreground);
+}
+
+/* Day headers */
+.fc .fc-col-header-cell {
+  background-color: var(--surface-raised);
+  border-color: var(--border);
+}
+
+/* Time grid slots */
+.fc .fc-timegrid-slot {
+  border-color: var(--border);
+}
+
+/* Day cells */
+.fc .fc-daygrid-day,
+.fc .fc-timegrid-col {
+  background-color: var(--surface);
+  border-color: var(--border);
+}
+
+/* Today highlight */
+.fc .fc-day-today {
+  background-color: var(--surface-inset) !important;
+}
+
+/* Events */
+.fc-event {
+  border-width: 1px;
+  cursor: pointer;
+}
+
+.fc-event:hover {
+  opacity: 0.85;
+}
+
+/* More link */
+.fc .fc-more-link {
+  color: var(--brand);
+}
+
+/* Popover */
+.fc .fc-popover {
+  background-color: var(--surface-raised);
+  border-color: var(--border);
+}
+
+.fc .fc-popover-header {
+  background-color: var(--surface-inset);
+  color: var(--foreground);
+}
+
+/* Buttons */
+.fc .fc-button {
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: var(--brand-disabled);
+  border-color: var(--brand-disabled);
+  opacity: 0.6;
 }

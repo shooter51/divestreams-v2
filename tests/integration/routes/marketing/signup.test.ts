@@ -94,8 +94,8 @@ describe("marketing/signup route", () => {
     // mockReset clears the mockResolvedValueOnce queue (mockClear does NOT)
     // Without this, unconsumed org-lookup values from validation tests accumulate
     mockDb.limit.mockReset();
-    // First call: email check (return []), second call: org lookup (return org)
-    mockDb.limit.mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: "org-123", slug: "test" }]);
+    // First call: user email check (return []), second call: customer email check (return []), third call: org lookup (return org)
+    mockDb.limit.mockResolvedValueOnce([]).mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: "org-123", slug: "test" }]);
     mockDb.transaction.mockImplementation(async (fn: (tx: typeof mockTx) => Promise<void>) => {
       await fn(mockTx);
     });
@@ -238,9 +238,10 @@ describe("marketing/signup route", () => {
       });
 
       it("returns error when email already exists", async () => {
-        // Mock db to return an existing user
+        // Mock db to return an existing user and a membership
         mockDb.limit.mockReset();
-        mockDb.limit.mockResolvedValueOnce([{ id: "existing-user" }]);
+        mockDb.limit.mockResolvedValueOnce([{ id: "existing-user" }]); // User lookup
+        mockDb.limit.mockResolvedValueOnce([{ id: "existing-membership" }]); // Membership lookup
 
         const formData = new FormData();
         formData.append("shopName", "My Dive Shop");

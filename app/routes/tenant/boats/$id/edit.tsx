@@ -1,16 +1,19 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
+import { useState } from "react";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getBoatById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../../app/components/ui";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Boat - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const boatId = params.id;
 
   if (!boatId) {
@@ -77,7 +80,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const boatId = params.id;
 
   if (!boatId) {
@@ -115,7 +119,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.boats.organizationId, organizationId), eq(schema.boats.id, boatId)));
 
-  return redirect(`/tenant/boats/${boatId}`);
+  return redirect(redirectWithNotification(`/tenant/boats/${boatId}`, `Boat "${validation.data.name}" has been successfully updated`, "success"));
 }
 
 export default function EditBoatPage() {
@@ -123,6 +127,41 @@ export default function EditBoatPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
+
+  // Parse initial amenities from actionData or boat data
+  const initialAmenities = actionData?.values?.amenities
+    ? actionData.values.amenities.split(",").map((s: string) => s.trim()).filter(Boolean)
+    : boat.amenities || [];
+
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(initialAmenities);
+
+  const commonAmenities = [
+    "Dive platform",
+    "Sun deck",
+    "Toilet",
+    "Freshwater shower",
+    "Camera station",
+    "Storage lockers",
+    "Shade cover",
+    "First aid kit",
+    "Sound system",
+    "BBQ grill",
+  ];
+
+  const toggleAmenity = (amenity: string) => {
+    setSelectedAmenities((prev) =>
+      prev.includes(amenity)
+        ? prev.filter((a) => a !== amenity)
+        : [...prev, amenity]
+    );
+  };
+
+  const removeAmenity = (amenity: string) => {
+    setSelectedAmenities((prev) => prev.filter((a) => a !== amenity));
+  };
 
   return (
     <div className="max-w-2xl">
@@ -148,7 +187,7 @@ export default function EditBoatPage() {
                 name="name"
                 required
                 defaultValue={actionData?.values?.name || boat.name}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.name && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
@@ -164,7 +203,7 @@ export default function EditBoatPage() {
                   id="type"
                   name="type"
                   defaultValue={actionData?.values?.type || boat.type}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">Select type...</option>
                   <option value="Dive Boat">Dive Boat</option>
@@ -188,7 +227,7 @@ export default function EditBoatPage() {
                   min="1"
                   max="100"
                   defaultValue={actionData?.values?.capacity || boat.capacity}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -202,7 +241,7 @@ export default function EditBoatPage() {
                 name="description"
                 rows={3}
                 defaultValue={actionData?.values?.description || boat.description}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -231,26 +270,73 @@ export default function EditBoatPage() {
               id="registrationNumber"
               name="registrationNumber"
               defaultValue={actionData?.values?.registrationNumber || boat.registrationNumber}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
         </div>
 
         {/* Amenities */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
-          <h2 className="font-semibold mb-4">Amenities</h2>
+          <h2 className="font-semibold mb-4">Amenities & Features</h2>
+
+          {/* Hidden input to store selected amenities as comma-separated string */}
+          <input
+            type="hidden"
+            name="amenities"
+            value={selectedAmenities.join(", ")}
+          />
+
+          {/* Selected amenities as removable chips */}
+          {selectedAmenities.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">
+                Selected Amenities
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {selectedAmenities.map((amenity) => (
+                  <span
+                    key={amenity}
+                    className="inline-flex items-center gap-1 bg-brand-muted text-brand px-3 py-1 rounded-full text-sm"
+                  >
+                    {amenity}
+                    <button
+                      type="button"
+                      onClick={() => removeAmenity(amenity)}
+                      className="hover:text-brand-hover"
+                      aria-label={`Remove ${amenity}`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Common amenities - hide already selected ones */}
           <div>
-            <label htmlFor="amenities" className="block text-sm font-medium mb-1">
-              Amenities
-            </label>
-            <input
-              type="text"
-              id="amenities"
-              name="amenities"
-              placeholder="e.g., Dive platform, Sun deck, Toilet (comma-separated)"
-              defaultValue={actionData?.values?.amenities || boat.amenities?.join(", ")}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
-            />
+            <p className="text-sm font-medium mb-2">Add Amenities:</p>
+            <div className="flex flex-wrap gap-2">
+              {commonAmenities
+                .filter((amenity) => !selectedAmenities.includes(amenity))
+                .map((amenity) => (
+                  <button
+                    key={amenity}
+                    type="button"
+                    onClick={() => toggleAmenity(amenity)}
+                    className="text-xs bg-surface-inset hover:bg-brand hover:text-white px-3 py-1 rounded transition-colors"
+                  >
+                    + {amenity}
+                  </button>
+                ))}
+              {commonAmenities.every((amenity) => selectedAmenities.includes(amenity)) && (
+                <p className="text-xs text-foreground-muted italic">
+                  All common amenities added! You can remove any by clicking the × button above.
+                </p>
+              )}
+            </div>
           </div>
         </div>
 

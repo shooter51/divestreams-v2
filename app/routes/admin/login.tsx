@@ -10,12 +10,6 @@ import { eq, and } from "drizzle-orm";
 import { getAppUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
-type ActionData = {
-  error?: string;
-  notPlatformMember?: {
-    email: string;
-  };
-};
 
 export const meta: MetaFunction = () => [{ title: "Admin Login - DiveStreams" }];
 
@@ -43,28 +37,28 @@ export async function action({ request }: ActionFunctionArgs) {
   const password = formData.get("password");
   const redirectTo = formData.get("redirectTo");
 
-  // Validate redirectTo - prevent open redirect by ensuring it's a safe relative path
-  const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/dashboard";
-  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/dashboard";
-
-  // Rate limit login attempts
+  // Rate limit admin login attempts
   const clientIp = getClientIp(request);
-  const rateLimitResult = checkRateLimit(`admin-login:${clientIp}`, {
-    maxAttempts: 10,
-    windowMs: 15 * 60 * 1000,
-  });
-
-  if (!rateLimitResult.allowed) {
-    return { error: "Too many login attempts. Please try again later." };
+  if (typeof email === "string" && email) {
+    const rateLimit = await checkRateLimit(`admin-login:${clientIp}:${email}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return { error: "Too many login attempts. Please try again later." };
+    }
   }
+
+  // Validate redirectTo to prevent open redirect attacks
+  const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/dashboard";
+  // Only allow relative URLs (must start with / and not contain ://)
+  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+    ? rawRedirect : "/dashboard";
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {
-    return { error: "Please enter a valid email address" };
+    return { error: "Please enter a valid email address", email: email || "" };
   }
 
   if (typeof password !== "string" || !password) {
-    return { error: "Password is required" };
+    return { error: "Password is required", email: email || "" };
   }
 
   try {
@@ -81,13 +75,13 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok) {
-      return { error: userData.message || "Invalid email or password" };
+      return { error: userData.message || "Invalid email or password", email };
     }
 
     const userId = userData?.user?.id;
 
     if (!userId) {
-      return { error: "Failed to get user information" };
+      return { error: "Failed to get user information", email };
     }
 
     // Find the platform organization
@@ -99,7 +93,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (!platformOrg) {
       console.error("Platform organization not found");
-      return { error: "Platform configuration error. Please contact support." };
+      return { error: "Platform configuration error. Please contact support.", email };
     }
 
     // Check if user is a member of the platform organization
@@ -132,9 +126,17 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error("Admin login error:", error);
-    return { error: "An error occurred during login. Please try again." };
+    return { error: "An error occurred during login. Please try again.", email: email || "" };
   }
 }
+
+type ActionData = {
+  error?: string;
+  email?: string;
+  notPlatformMember?: {
+    email: string;
+  };
+};
 
 export default function AdminLoginPage() {
   const actionData = useActionData<ActionData>();
@@ -179,7 +181,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-surface-inset flex items-center justify-center">
       <div className="bg-surface-raised p-8 rounded-xl shadow-lg w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-surface rounded-xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white text-xl font-bold">DS</span>
           </div>
           <h1 className="text-2xl font-bold text-foreground">DiveStreams Admin</h1>
@@ -190,7 +192,7 @@ export default function AdminLoginPage() {
           <input type="hidden" name="redirectTo" value={redirectTo} />
 
           {actionData?.error && (
-            <div className="bg-danger-muted text-danger p-3 rounded-lg text-sm">
+            <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words text-sm">
               {actionData.error}
             </div>
           )}
@@ -206,6 +208,7 @@ export default function AdminLoginPage() {
               autoComplete="email"
               autoFocus
               required
+              defaultValue={actionData?.email || ""}
               className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               placeholder="admin@example.com"
             />
@@ -247,7 +250,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 disabled:bg-brand-disabled transition-colors"
+            className="w-full bg-surface text-white py-3 rounded-lg font-medium hover:bg-surface-overlay disabled:bg-brand-disabled transition-colors"
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">

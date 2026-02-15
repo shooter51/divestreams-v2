@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader, action } from "../../../../../app/routes/tenant/customers/$id";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../lib/db/queries.server";
@@ -10,6 +11,7 @@ vi.mock("../../../../../lib/db/queries.server");
 vi.mock("../../../../../lib/db", () => ({
   db: {
     select: vi.fn(),
+    insert: vi.fn(),
   },
 }));
 
@@ -218,10 +220,17 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
       // Check redirect
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/tenant/customers");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/customers");
     });
 
     it("should send email and return success", async () => {
+      // Mock the insert chain for customerCommunications
+      const mockInsertBuilder = {
+        insert: vi.fn().mockReturnThis(),
+        values: vi.fn().mockResolvedValue([]),
+      };
+      vi.mocked(db.insert).mockReturnValue(mockInsertBuilder as any);
+
       const formData = new FormData();
       formData.append("intent", "send-email");
       formData.append("subject", "Test Email");

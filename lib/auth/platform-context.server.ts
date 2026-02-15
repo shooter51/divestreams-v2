@@ -10,9 +10,10 @@ import { redirect } from "react-router";
 import { eq, and } from "drizzle-orm";
 import { auth } from "./index";
 import { db } from "../db";
-import { organization, member } from "../db/schema/auth";
+import { organization, member, account } from "../db/schema/auth";
 import type { User, Session, Member } from "../db/schema/auth";
 import { isAdminSubdomain } from "./org-context.server";
+import { authLogger } from "../logger";
 
 // ============================================================================
 // CONSTANTS
@@ -87,7 +88,7 @@ export async function getPlatformContext(
 
   if (!platformOrg) {
     // Platform organization doesn't exist - this is a configuration error
-    console.error("Platform organization not found. Slug:", PLATFORM_ORG_SLUG);
+    authLogger.error({ slug: PLATFORM_ORG_SLUG }, "Platform organization not found");
     return null;
   }
 
@@ -143,6 +144,23 @@ export async function requirePlatformContext(
   if (!context) {
     const url = new URL(request.url);
     throw redirect(`/login?redirect=${encodeURIComponent(url.pathname)}`);
+  }
+
+  // Check if user is forced to change password
+  const [userAccount] = await db
+    .select()
+    .from(account)
+    .where(eq(account.userId, context.user.id))
+    .limit(1);
+
+  if (userAccount?.forcePasswordChange) {
+    const url = new URL(request.url);
+    if (
+      !url.pathname.includes("/settings/password") &&
+      !url.pathname.includes("/logout")
+    ) {
+      throw redirect("/admin/settings/password?forced=true");
+    }
   }
 
   return context;

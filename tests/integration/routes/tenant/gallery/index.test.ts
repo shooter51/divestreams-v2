@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/gallery/index";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as gallery from "../../../../../lib/db/gallery.server";

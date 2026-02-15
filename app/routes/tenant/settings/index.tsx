@@ -1,10 +1,147 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { Link, useLoaderData, useFetcher } from "react-router";
+import { useEffect } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { member, customers, certificationAgencies, certificationLevels } from "../../../../lib/db/schema";
+import { member, customers, certificationAgencies, certificationLevels, tenants, organization } from "../../../../lib/db/schema";
 import { eq, count, and } from "drizzle-orm";
 import { seedDemoData } from "../../../../lib/db/seed-demo-data.server";
+import { sendEmail } from "../../../../lib/email/email.server";
+import { cancelSubscription } from "../../../../lib/stripe/index";
+
+/**
+ * Seed only training agencies (PADI, SSI, NAUI) without other demo data.
+ * This is idempotent and safe to call multiple times.
+ */
+async function seedTrainingAgencies(organizationId: string) {
+  // Check existing agencies
+  const existingAgencies = await db
+    .select({ code: certificationAgencies.code })
+    .from(certificationAgencies)
+    .where(eq(certificationAgencies.organizationId, organizationId));
+
+  const hasPadi = existingAgencies.some((a) => a.code.toLowerCase() === "padi");
+  const hasSsi = existingAgencies.some((a) => a.code.toLowerCase() === "ssi");
+  const hasNaui = existingAgencies.some((a) => a.code.toLowerCase() === "naui");
+
+  let seeded = 0;
+
+  // Seed PADI if missing
+  if (!hasPadi) {
+    const [agency] = await db
+      .insert(certificationAgencies)
+      .values({
+        organizationId,
+        code: "padi",
+        name: "PADI",
+        description: "Professional Association of Diving Instructors",
+        website: "https://www.padi.com",
+      })
+      .returning();
+
+    await db.insert(certificationLevels).values([
+      {
+        organizationId,
+        agencyId: agency.id,
+        code: "open-water",
+        name: "Open Water Diver",
+        levelNumber: 3,
+        description: "Entry-level certification",
+        minAge: 10,
+        minDives: 0,
+      },
+      {
+        organizationId,
+        agencyId: agency.id,
+        code: "advanced-ow",
+        name: "Advanced Open Water",
+        levelNumber: 4,
+        description: "Explore specialty diving",
+        minAge: 12,
+        minDives: 0,
+      },
+    ]);
+    seeded++;
+  }
+
+  // Seed SSI if missing
+  if (!hasSsi) {
+    const [agency] = await db
+      .insert(certificationAgencies)
+      .values({
+        organizationId,
+        code: "ssi",
+        name: "SSI",
+        description: "Scuba Schools International",
+        website: "https://www.divessi.com",
+      })
+      .returning();
+
+    await db.insert(certificationLevels).values([
+      {
+        organizationId,
+        agencyId: agency.id,
+        code: "ssi-open-water",
+        name: "Open Water Diver",
+        levelNumber: 3,
+        description: "SSI entry-level certification",
+        minAge: 10,
+        minDives: 0,
+      },
+      {
+        organizationId,
+        agencyId: agency.id,
+        code: "ssi-advanced",
+        name: "Advanced Adventurer",
+        levelNumber: 4,
+        description: "SSI advanced certification",
+        minAge: 12,
+        minDives: 0,
+      },
+    ]);
+    seeded++;
+  }
+
+  // Seed NAUI if missing
+  if (!hasNaui) {
+    const [agency] = await db
+      .insert(certificationAgencies)
+      .values({
+        organizationId,
+        code: "naui",
+        name: "NAUI",
+        description: "National Association of Underwater Instructors",
+        website: "https://www.naui.org",
+      })
+      .returning();
+
+    await db.insert(certificationLevels).values([
+      {
+        organizationId,
+        agencyId: agency.id,
+        code: "naui-scuba-diver",
+        name: "Scuba Diver",
+        levelNumber: 3,
+        description: "NAUI entry-level certification",
+        minAge: 10,
+        minDives: 0,
+      },
+      {
+        organizationId,
+        agencyId: agency.id,
+        code: "naui-advanced",
+        name: "Advanced Scuba Diver",
+        levelNumber: 4,
+        description: "NAUI advanced certification",
+        minAge: 15,
+        minDives: 0,
+      },
+    ]);
+    seeded++;
+  }
+
+  return { seeded, total: 3, existing: 3 - seeded };
+}
 
 /**
  * Seed only training agencies (PADI, SSI, NAUI) without other demo data.
@@ -178,7 +315,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireRole } = await import("../../../../lib/auth/org-context.server");
   const ctx = await requireOrgContext(request);
+
+  // Settings actions (seed data, account deletion) require owner or admin role
+  requireRole(ctx, ["owner", "admin"]);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
 
@@ -208,6 +350,129 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
+  // Request account deletion (tenant owner only)
+  if (intent === "requestDeletion") {
+    try {
+      // Verify user is the owner
+      const [membership] = await db
+        .select({ role: member.role })
+        .from(member)
+        .where(and(
+          eq(member.userId, ctx.user.id),
+          eq(member.organizationId, ctx.org.id)
+        ))
+        .limit(1);
+
+      if (membership?.role !== "owner") {
+        return {
+          success: false,
+          message: "Only the organization owner can request account deletion"
+        };
+      }
+
+      // Get tenant record to deactivate
+      const [tenant] = await db
+        .select()
+        .from(tenants)
+        .where(eq(tenants.subdomain, ctx.org.slug))
+        .limit(1);
+
+      if (!tenant) {
+        return { success: false, message: "Tenant not found" };
+      }
+
+      // Deactivate the tenant immediately
+      await db
+        .update(tenants)
+        .set({
+          isActive: false,
+          updatedAt: new Date()
+        })
+        .where(eq(tenants.id, tenant.id));
+
+      // Cancel Stripe subscription if exists
+      try {
+        await cancelSubscription(ctx.org.id);
+      } catch (error) {
+        console.error("Failed to cancel Stripe subscription:", error);
+        // Continue anyway - deactivation is more important
+      }
+
+      // Send email to platform admins
+      const adminEmail = process.env.ADMIN_EMAIL || "support@divestreams.com";
+      const deletionDate = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours from now
+
+      try {
+        await sendEmail({
+        to: adminEmail,
+        subject: `[ACTION REQUIRED] Account Deletion Request - ${ctx.org.name}`,
+        html: `
+          <h2>Account Deletion Request</h2>
+          <p>A tenant has requested account deletion:</p>
+          <ul>
+            <li><strong>Organization:</strong> ${ctx.org.name}</li>
+            <li><strong>Subdomain:</strong> ${ctx.org.slug}.divestreams.com</li>
+            <li><strong>Owner Email:</strong> ${ctx.user.email}</li>
+            <li><strong>Organization ID:</strong> ${ctx.org.id}</li>
+            <li><strong>Tenant ID:</strong> ${tenant.id}</li>
+            <li><strong>Request Date:</strong> ${new Date().toISOString()}</li>
+          </ul>
+          <p><strong>Status:</strong> Account has been DEACTIVATED (no longer accessible)</p>
+          <p><strong>Action Required:</strong> Review and delete the tenant from the admin portal after ${deletionDate.toLocaleDateString()}.</p>
+          <p><strong>Next Steps:</strong></p>
+          <ol>
+            <li>Verify the deletion request is legitimate</li>
+            <li>Wait 48 hours for any cancellation requests</li>
+            <li>Delete the tenant from the admin portal: <a href="https://divestreams.com/admin/tenants/${ctx.org.slug}">View Tenant</a></li>
+          </ol>
+        `,
+        text: `
+Account Deletion Request
+
+Organization: ${ctx.org.name}
+Subdomain: ${ctx.org.slug}.divestreams.com
+Owner Email: ${ctx.user.email}
+Organization ID: ${ctx.org.id}
+Tenant ID: ${tenant.id}
+Request Date: ${new Date().toISOString()}
+
+Status: Account has been DEACTIVATED (no longer accessible)
+
+Action Required: Review and delete the tenant from the admin portal after ${deletionDate.toLocaleDateString()}.
+
+Next Steps:
+1. Verify the deletion request is legitimate
+2. Wait 48 hours for any cancellation requests
+3. Delete the tenant from the admin portal
+        `
+        });
+      } catch (emailError) {
+        // Log critical email failure but don't block deactivation
+        console.error("CRITICAL: Deletion notification email failed to send", {
+          error: emailError,
+          tenant: ctx.org.name,
+          subdomain: ctx.org.slug,
+          tenantId: tenant.id,
+          ownerId: ctx.user.id,
+          ownerEmail: ctx.user.email
+        });
+        // TODO: Add to admin notification queue or alert system
+      }
+
+      return {
+        success: true,
+        message: "Account deactivation successful. Our team will complete the deletion within 48 hours.",
+        redirectToLogout: true
+      };
+    } catch (error) {
+      console.error("Failed to process deletion request:", error);
+      return {
+        success: false,
+        message: "Failed to process deletion request. Please contact support."
+      };
+    }
+  }
+
   return { success: false, message: "Unknown action" };
 }
 
@@ -217,6 +482,13 @@ export default function SettingsPage() {
   const fetcher = useFetcher<typeof action>();
   const isSeeding = fetcher.state === "submitting";
 
+  // Handle logout redirect after deletion request
+  useEffect(() => {
+    if (fetcher.data?.redirectToLogout && fetcher.data?.success) {
+      window.location.href = "/auth/logout";
+    }
+  }, [fetcher.data]);
+
   const settingsLinks: Array<{
     href: string;
     title: string;
@@ -225,6 +497,13 @@ export default function SettingsPage() {
     preview: string | null;
     disabled?: boolean;
   }> = [
+    {
+      href: "/tenant/settings/user-profile",
+      title: "My Profile",
+      description: "Update your personal information and change your password",
+      icon: "👤",
+      preview: null,
+    },
     {
       href: "/tenant/settings/profile",
       title: "Shop Profile",
@@ -345,6 +624,14 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={isSeeding}
+                onClick={(e) => {
+                  if (!window.confirm(
+                    "This will add sample customers, tours, bookings, equipment, and products to your account. " +
+                    "This action cannot be easily undone. Continue?"
+                  )) {
+                    e.preventDefault();
+                  }
+                }}
                 className="px-4 py-2 text-sm bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSeeding ? "Seeding..." : "Load Demo Data"}
@@ -374,10 +661,15 @@ export default function SettingsPage() {
               </p>
             </div>
             <button
-              onClick={() => alert("Data export feature coming soon. Contact support@divestreams.com for immediate data export needs.")}
-              className="px-4 py-2 text-sm border border-danger-muted rounded-lg hover:bg-danger-muted text-danger"
+              onClick={() => {
+                console.error("Data export feature not yet implemented.");
+                // TODO: Implement data export feature
+              }}
+              disabled
+              title="Data export feature coming soon. Contact support@divestreams.com for immediate data export needs."
+              className="px-4 py-2 text-sm border border-danger-muted rounded-lg hover:bg-danger-muted text-danger disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Export Data
+              Export Data (Coming Soon)
             </button>
           </div>
           <hr className="border-danger-muted" />
@@ -385,26 +677,24 @@ export default function SettingsPage() {
             <div>
               <p className="font-medium text-danger">Delete account</p>
               <p className="text-xs text-danger">
-                Permanently delete your account and all data
+                Request account deletion - will be reviewed by platform admins
               </p>
             </div>
-            <button
-              onClick={() => {
-                if (confirm("⚠️ WARNING: This will permanently delete your account and ALL data including customers, bookings, trips, and equipment. This action CANNOT be undone.\n\nAre you absolutely sure you want to delete your account?")) {
-                  if (confirm("Please confirm once more. Type 'DELETE' in the next prompt to proceed.")) {
-                    const input = prompt("Type DELETE to confirm account deletion:");
-                    if (input === "DELETE") {
-                      alert("Account deletion request submitted. Our team will process this within 24 hours and send confirmation to your email.");
-                    } else {
-                      alert("Account deletion cancelled - confirmation text did not match.");
-                    }
+            <fetcher.Form method="post">
+              <input type="hidden" name="intent" value="requestDeletion" />
+              <button
+                type="submit"
+                disabled={fetcher.state === "submitting"}
+                onClick={(e) => {
+                  if (!confirm("⚠️ WARNING: This will deactivate your account and submit a deletion request to our platform administrators.\n\nYour account will be:\n1. Immediately deactivated (no access)\n2. Reviewed by admins within 24-48 hours\n3. Permanently deleted after review\n\nALL data including customers, bookings, trips, and equipment will be deleted. This action CANNOT be undone.\n\nAre you absolutely sure you want to request account deletion?")) {
+                    e.preventDefault();
                   }
-                }
-              }}
-              className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger-hover"
-            >
-              Delete Account
-            </button>
+                }}
+                className="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger-hover disabled:opacity-50"
+              >
+                {fetcher.state === "submitting" ? "Submitting..." : "Request Deletion"}
+              </button>
+            </fetcher.Form>
           </div>
         </div>
       </div>

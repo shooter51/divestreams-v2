@@ -1,0 +1,6 @@
+firstName,lastName,email,phone,certificationLevel,certificationNumber,certifyingAgency,emergencyContact,emergencyPhone,medicalNotes,address,city,state,country,postalCode
+John,Doe,john.doe@example.com,+1-555-0101,Advanced Open Water,AOW123456,PADI,"Jane Doe",+1-555-0102,"No known medical conditions","123 Ocean Drive","Miami","FL","USA",33139
+Sarah,Smith,sarah.smith@example.com,+1-555-0201,Open Water,OW789012,SSI,"Mike Smith",+1-555-0202,"","456 Beach Road","San Diego","CA","USA",92101
+Michael,Johnson,m.johnson@example.com,+1-555-0301,Rescue Diver,RD345678,PADI,"Lisa Johnson",+1-555-0302,"Asthma - well controlled","789 Coral Street","Key West","FL","USA",33040
+Emily,Williams,emily.w@example.com,+1-555-0401,Dive Master,DM901234,NAUI,"Tom Williams",+1-555-0402,"","321 Marina Way","Honolulu","HI","USA",96815
+David,Brown,d.brown@example.com,+1-555-0501,Open Water,OW567890,PADI,"Anna Brown",+1-555-0502,"Vegetarian diet","654 Sunset Blvd","Malibu","CA","USA",90265

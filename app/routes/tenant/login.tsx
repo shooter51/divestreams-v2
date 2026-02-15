@@ -2,14 +2,18 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "react
 import { Form, Link, useActionData, useNavigation, useSearchParams, useLoaderData, redirect } from "react-router";
 import { useState } from "react";
 import { auth } from "../../../lib/auth";
-import { getSubdomainFromRequest } from "../../../lib/auth/org-context.server";
+import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
+import { getAppUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { CsrfTokenInput } from "../../components/CsrfInput";
 
 type ActionData = {
   error?: string;
+  email?: string;
   notMember?: {
     orgName: string;
     orgId: string;
@@ -18,23 +22,19 @@ type ActionData = {
   };
 };
 
+type LoaderData = {
+  orgName: string;
+  orgId: string | null;
+  subdomain: string | null;
+  noAccessError?: string | null;
+  mainSiteUrl?: string;
+  csrfToken: string;
+};
+
 export const meta: MetaFunction = () => [{ title: "Login - DiveStreams" }];
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  // Check if already logged in
-  const sessionData = await auth.api.getSession({
-    headers: request.headers,
-  });
-
-  if (sessionData?.user) {
-    // Already logged in, redirect to app
-    const url = new URL(request.url);
-    const rawRedirect = url.searchParams.get("redirect") || "/tenant";
-    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/tenant";
-    throw redirect(redirectTo);
-  }
-
-  // Get org info for display
+export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderData> {
+  // Get org info first
   const subdomain = getSubdomainFromRequest(request);
   let orgName = "this shop";
   let orgId: string | null = null;
@@ -52,7 +52,35 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  return { orgName, orgId, subdomain };
+  // Check if already logged in to THIS organization
+  const orgContext = await getOrgContext(request);
+  if (orgContext) {
+    const url = new URL(request.url);
+    const redirectTo = url.searchParams.get("redirect") || "/tenant";
+    throw redirect(redirectTo);
+  }
+
+  // Check if user has a session but no membership in THIS organization
+  const sessionData = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  // Generate CSRF token for the login/join forms (no session required)
+  const csrfToken = generateAnonCsrfToken();
+
+  if (sessionData && sessionData.user) {
+    // User is logged in but doesn't have access to this organization
+    return {
+      orgName,
+      orgId,
+      subdomain,
+      mainSiteUrl: getAppUrl(),
+      noAccessError: `You are logged in as ${sessionData.user.email}, but you don't have access to this organization. Please contact the organization owner to request access, or log out and sign in with a different account.`,
+      csrfToken,
+    };
+  }
+
+  return { orgName, orgId, subdomain, csrfToken };
 }
 
 // Email validation regex
@@ -63,9 +91,27 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
   const redirectTo = formData.get("redirectTo");
 
-  // Validate redirectTo - prevent open redirect by ensuring it's a safe relative path
-  const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/tenant";
-  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/tenant";
+  // Validate CSRF token (log warning if missing, reject if present but invalid)
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
+    return { error: "Invalid form submission. Please refresh and try again." };
+  }
+
+  // Rate limit login attempts
+  const clientIp = getClientIp(request);
+  const loginEmail = formData.get("email") as string;
+  if (intent !== "join" && loginEmail) {
+    const rateLimit = await checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return { error: "Too many login attempts. Please try again later." };
+    }
+  }
+
+  // Validate redirectTo to prevent open redirects (only allow relative URLs)
+  let validatedRedirectTo = "/tenant"; // default
+  if (typeof redirectTo === "string" && redirectTo.startsWith("/") && !redirectTo.includes("://")) {
+    validatedRedirectTo = redirectTo;
+  }
 
   // Handle "join" intent - user wants to join org as customer
   if (intent === "join") {
@@ -81,22 +127,15 @@ export async function action({ request }: ActionFunctionArgs) {
     const userId = sessionData.user.id;
     const orgId = formData.get("orgId");
 
-    if (typeof orgId !== "string" || !orgId) {
-      return { error: "Missing organization information" };
+    // Null check before using
+    if (typeof userId !== "string" || typeof orgId !== "string" || !userId || !orgId) {
+      return { error: "Missing user or organization information", email: "" };
     }
 
-    // Verify orgId matches the current subdomain's organization
-    const subdomain = getSubdomainFromRequest(request);
-    if (subdomain) {
-      const [org] = await db
-        .select({ id: organization.id })
-        .from(organization)
-        .where(eq(organization.slug, subdomain))
-        .limit(1);
-
-      if (!org || org.id !== orgId) {
-        return { error: "Invalid organization" };
-      }
+    // Verify session matches the userId to prevent unauthorized joins
+    const sessionData = await auth.api.getSession({ headers: request.headers });
+    if (!sessionData?.user || sessionData.user.id !== userId) {
+      return { error: "Unauthorized: session mismatch" };
     }
 
     try {
@@ -120,6 +159,7 @@ export async function action({ request }: ActionFunctionArgs) {
           organizationId: orgId,
           role: "customer",
           createdAt: new Date(),
+          updatedAt: new Date(),
         });
       }
 
@@ -127,7 +167,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(validatedRedirectTo);
     } catch (error) {
       console.error("Join error:", error);
-      return { error: "Failed to join organization. Please try again." };
+      return { error: "Failed to join organization. Please try again.", email: "" };
     }
   }
 
@@ -148,11 +188,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {
-    return { error: "Please enter a valid email address" };
+    return { error: "Please enter a valid email address", email: email || "" };
   }
 
   if (typeof password !== "string" || !password) {
-    return { error: "Password is required" };
+    return { error: "Password is required", email: email || "" };
   }
 
   try {
@@ -169,7 +209,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const userData = await response.json();
 
     if (!response.ok) {
-      return { error: userData.message || "Invalid email or password" };
+      return { error: userData.message || "Invalid email or password", email };
     }
 
     const userId = userData?.user?.id;
@@ -223,12 +263,12 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return { error: "An error occurred during login. Please try again." };
+    return { error: "An error occurred during login. Please try again.", email: email || "" };
   }
 }
 
 export default function LoginPage() {
-  const { orgName } = useLoaderData<typeof loader>();
+  const { orgName, noAccessError, mainSiteUrl, csrfToken } = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
@@ -263,6 +303,7 @@ export default function LoginPage() {
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-surface-raised py-8 px-4 shadow-sm rounded-xl sm:px-10">
             <Form method="post" className="space-y-4">
+              <CsrfTokenInput token={csrfToken} />
               <input type="hidden" name="intent" value="join" />
               <input type="hidden" name="userId" value={userId} />
               <input type="hidden" name="orgId" value={orgId} />
@@ -319,6 +360,28 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Access Denied Warning - shown when user is logged in but doesn't have access to this org */}
+        {noAccessError && mainSiteUrl && (
+          <div className="mb-6 bg-warning-muted border border-warning text-warning p-4 rounded-xl max-w-4xl break-words">
+            <div className="font-semibold mb-2">🔒 Access Denied</div>
+            <p className="text-sm">{noAccessError}</p>
+            <div className="mt-4 flex gap-2">
+              <a
+                href="/auth/logout"
+                className="flex-1 px-4 py-2 bg-warning text-white rounded-lg hover:bg-warning-hover text-center text-sm"
+              >
+                Log Out
+              </a>
+              <a
+                href={mainSiteUrl}
+                className="flex-1 px-4 py-2 border-2 border-warning text-warning rounded-lg hover:bg-warning-muted text-center text-sm"
+              >
+                Go to Main Site
+              </a>
+            </div>
+          </div>
+        )}
+
         <div className="bg-surface-raised py-8 px-4 shadow-sm rounded-xl sm:px-10">
           {/* Error Message */}
           {actionData?.error && (
@@ -328,6 +391,7 @@ export default function LoginPage() {
           )}
 
           <Form method="post" className="space-y-6">
+            <CsrfTokenInput token={csrfToken} />
             <input type="hidden" name="redirectTo" value={redirectTo} />
 
             {/* Email Field */}
@@ -342,6 +406,7 @@ export default function LoginPage() {
                   type="email"
                   autoComplete="email"
                   required
+                  defaultValue={actionData?.email || ""}
                   className="appearance-none block w-full px-3 py-2 border border-border-strong rounded-lg shadow-sm bg-surface-inset placeholder-foreground-subtle focus:outline-none focus:ring-brand focus:border-brand"
                   placeholder="you@example.com"
                 />

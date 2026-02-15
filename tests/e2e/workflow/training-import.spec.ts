@@ -56,8 +56,8 @@ test.describe("Training Import Wizard", () => {
   test("[KAN-576] A.1 Navigate to training import from dashboard @smoke", async ({ page }) => {
     // Go to training dashboard
     await page.goto(getTenantUrl("/tenant/training"));
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Check if we were redirected to dashboard (feature gate)
     if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
@@ -70,8 +70,8 @@ test.describe("Training Import Wizard", () => {
     const importButton = page.getByRole("link", { name: /import courses/i });
     if (!(await importButton.isVisible().catch(() => false))) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
+      await page.waitForLoadState("networkidle").catch(() => {});
     }
     await expect(importButton).toBeVisible({ timeout: 10000 });
 
@@ -89,8 +89,7 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-577] B.1 Step 1: Select agency displays correctly @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Check if we were redirected (feature gate)
     if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
@@ -98,12 +97,14 @@ test.describe("Training Import Wizard", () => {
       return;
     }
 
-    // Verify Step 1 is active (retry with reload if needed)
+    // Wait for Step 1 with condition-based waiting (retry with reload if needed)
     const step1 = page.locator('text=Select Agency');
-    if (!(await step1.isVisible().catch(() => false))) {
+    try {
+      await step1.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
       await page.reload();
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
+      await step1.waitFor({ state: "visible", timeout: 8000 });
     }
     await expect(step1).toBeVisible({ timeout: 8000 });
 
@@ -127,8 +128,7 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-578] B.2 Step 1: Cannot submit without selecting agency @validation", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Check if we were redirected (feature gate)
     if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
@@ -136,12 +136,14 @@ test.describe("Training Import Wizard", () => {
       return;
     }
 
-    // Try to submit without selection - retry with reload if button not found
+    // Wait for Next button with condition-based waiting (retry with reload if needed)
     const nextButton = page.getByRole("button", { name: /next.*select courses/i });
-    if (!(await nextButton.isVisible().catch(() => false))) {
+    try {
+      await nextButton.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
       await page.reload();
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
+      await nextButton.waitFor({ state: "visible", timeout: 8000 });
     }
     await expect(nextButton).toBeVisible({ timeout: 8000 });
     await nextButton.click();
@@ -155,7 +157,7 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-579] C.1 Step 2: Select courses after choosing agency @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Select a supported agency (PADI, SSI, or NAUI)
     const selected = await selectSupportedAgency(page);
@@ -164,7 +166,7 @@ test.describe("Training Import Wizard", () => {
       // Submit to go to step 2
       const nextButton = page.getByRole("button", { name: /next.*select courses/i });
       await nextButton.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Verify we're on Step 2
       const step2Heading = page.getByRole("heading", { name: /choose courses to import/i });
@@ -186,14 +188,14 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-580] C.2 Step 2: Select All and Select None buttons work @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Navigate to Step 2
     const selected = await selectSupportedAgency(page);
 
     if (selected) {
       await page.getByRole("button", { name: /next.*select courses/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Wait for select all button to be visible
       const selectAllBtn = page.getByRole("button", { name: /select all/i });
@@ -224,14 +226,14 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-581] C.3 Step 2: Individual course selection toggles correctly @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Navigate to Step 2
     const selected = await selectSupportedAgency(page);
 
     if (selected) {
       await page.getByRole("button", { name: /next.*select courses/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Find first checkbox - wait for it
       const firstCheckbox = page.locator('input[name="courses"]').first();
@@ -258,14 +260,14 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-582] C.4 Step 2: Cannot proceed without selecting courses @validation", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Navigate to Step 2
     const selected = await selectSupportedAgency(page);
 
     if (selected) {
       await page.getByRole("button", { name: /next.*select courses/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Verify preview button is disabled when nothing selected
       const previewButton = page.locator('button[type="submit"]').filter({ hasText: /preview/i });
@@ -278,14 +280,14 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-583] C.5 Step 2: Course cards display all information @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Navigate to Step 2
     const selected = await selectSupportedAgency(page);
 
     if (selected) {
       await page.getByRole("button", { name: /next.*select courses/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Check Open Water Diver course card - wait for it
       const courseCard = page.locator('label').filter({ has: page.locator('text=/open water/i') }).first();
@@ -309,7 +311,7 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-584] D.1 Step 3: Preview displays after selecting courses @critical", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Navigate through all steps
     const selected = await selectSupportedAgency(page);
@@ -317,7 +319,7 @@ test.describe("Training Import Wizard", () => {
     if (selected) {
       // Step 1: Select agency - already done by helper
       await page.getByRole("button", { name: /next.*select courses/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Step 2: Select a course
       const firstCheckbox = page.locator('input[name="courses"]').first();
@@ -329,7 +331,7 @@ test.describe("Training Import Wizard", () => {
       const previewButton = page.locator('button[type="submit"]').filter({ hasText: /preview/i });
       await expect(previewButton).toBeEnabled();
       await previewButton.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Verify we're on Step 3
       const step3Heading = page.getByRole("heading", { name: /preview.*import/i });
@@ -345,14 +347,14 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-585] D.2 Step 3: Import button is enabled when courses selected @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Navigate to Step 3
     const selected = await selectSupportedAgency(page);
 
     if (selected) {
       await page.getByRole("button", { name: /next.*select courses/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       const firstCheckbox = page.locator('input[name="courses"]').first();
       await expect(firstCheckbox).toBeVisible({ timeout: 10000 });
@@ -362,7 +364,7 @@ test.describe("Training Import Wizard", () => {
       const previewButton = page.locator('button[type="submit"]').filter({ hasText: /preview/i });
       await expect(previewButton).toBeEnabled();
       await previewButton.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Verify import button exists and is enabled
       const importButton = page.locator('button[type="submit"]').filter({ hasText: /import/i });
@@ -375,14 +377,14 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-586] D.3 Step 3: What will happen section displays correctly @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Navigate to Step 3
     const selected = await selectSupportedAgency(page);
 
     if (selected) {
       await page.getByRole("button", { name: /next.*select courses/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       const firstCheckbox = page.locator('input[name="courses"]').first();
       await expect(firstCheckbox).toBeVisible({ timeout: 10000 });
@@ -391,7 +393,7 @@ test.describe("Training Import Wizard", () => {
 
       const previewButton = page.locator('button[type="submit"]').filter({ hasText: /preview/i });
       await previewButton.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Verify "What will happen" section
       const whatWillHappen = page.locator('text=/what will happen/i');
@@ -412,8 +414,7 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-587] E.1 Progress indicator shows current step @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
 
     // Check if we were redirected (feature gate)
     if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
@@ -421,14 +422,14 @@ test.describe("Training Import Wizard", () => {
       return;
     }
 
-    // Step 1: Verify step 1 is active (blue circle with "1")
-    // The step indicator has: div.rounded-full with bg-blue-600 when active
+    // Wait for step 1 indicator with condition-based waiting (retry with reload if needed)
     const step1Circle = page.locator('div.rounded-full:has-text("1")').first();
-    // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
-    if (!(await step1Circle.isVisible().catch(() => false))) {
+    try {
+      await step1Circle.waitFor({ state: "visible", timeout: 5000 });
+    } catch {
       await page.reload();
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
+      await step1Circle.waitFor({ state: "visible", timeout: 8000 });
     }
     await expect(step1Circle).toBeVisible({ timeout: 8000 });
     const step1Classes = await step1Circle.getAttribute('class');
@@ -439,7 +440,7 @@ test.describe("Training Import Wizard", () => {
 
     if (selected) {
       await page.getByRole("button", { name: /next.*select courses/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Verify step 1 is completed (checkmark in green circle)
       const step1Checkmark = page.locator('div.rounded-full:has-text("✓")').first();
@@ -458,21 +459,21 @@ test.describe("Training Import Wizard", () => {
 
   test("[KAN-588] E.2 Back button navigation works @smoke", async ({ page }) => {
     await page.goto(getTenantUrl("/tenant/training/import"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     const selected = await selectSupportedAgency(page);
 
     if (selected) {
       // Go to Step 2
       await page.getByRole("button", { name: /next.*select courses/i }).click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Click Back link (it's actually an <a> tag, not a button)
       const backLink = page.getByRole("link", { name: /back/i });
       await expect(backLink).toBeVisible({ timeout: 10000 });
 
       await backLink.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Verify we're back on Step 1
       const step1Heading = page.getByRole("heading", { name: /select certification agency/i });

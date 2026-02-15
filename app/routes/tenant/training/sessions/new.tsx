@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getCourseById, getCourses, createSession } from "../../../../../lib/db/training.server";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Schedule Session - DiveStreams" }];
 
@@ -68,7 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
     status: "scheduled",
   });
 
-  return redirect(`/tenant/training/sessions/${session.id}`);
+  return redirect(redirectWithNotification("/tenant/training/sessions", "Session has been successfully created", "success"));
 }
 
 export default function NewSessionPage() {
@@ -110,7 +111,7 @@ export default function NewSessionPage() {
               name="courseId"
               required
               defaultValue={courseId || ""}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
               <option value="">Choose a course...</option>
               {courses.map((course) => (
@@ -150,7 +151,7 @@ export default function NewSessionPage() {
                 name="startDate"
                 required
                 defaultValue={defaultDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               {actionData?.errors?.startDate && (
                 <p className="text-danger text-sm mt-1">{actionData.errors.startDate}</p>
@@ -165,7 +166,7 @@ export default function NewSessionPage() {
                 type="date"
                 id="endDate"
                 name="endDate"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">Leave blank for single-day sessions</p>
             </div>
@@ -178,7 +179,7 @@ export default function NewSessionPage() {
                 type="time"
                 id="startTime"
                 name="startTime"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -198,7 +199,7 @@ export default function NewSessionPage() {
                 id="location"
                 name="location"
                 placeholder="e.g., Main Dive Center, Beach Site A"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -211,7 +212,7 @@ export default function NewSessionPage() {
                 id="meetingPoint"
                 name="meetingPoint"
                 placeholder="e.g., Front desk at 8:00 AM"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -231,7 +232,7 @@ export default function NewSessionPage() {
                 id="instructorName"
                 name="instructorName"
                 placeholder="Instructor name"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -245,7 +246,7 @@ export default function NewSessionPage() {
                 name="maxStudents"
                 min="1"
                 placeholder={selectedCourse?.maxStudents?.toString() || "8"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
               <p className="text-xs text-foreground-muted mt-1">Leave blank to use course default</p>
             </div>
@@ -292,7 +293,7 @@ export default function NewSessionPage() {
               name="notes"
               rows={3}
               placeholder="Any additional notes for this session..."
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
         </div>

@@ -86,13 +86,13 @@ const getTenantUrl = (path: string = "/") =>
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
   // Use the dynamic user created for this test
-  await page.getByLabel(/email/i).fill(trainingTestData.user.email);
-  await page.getByLabel(/password/i).fill(trainingTestData.user.password);
+  await page.getByRole("textbox", { name: /email/i }).fill(trainingTestData.user.email);
+  await page.locator('input[type="password"]').first().fill(trainingTestData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
   }
 }
 
@@ -151,7 +151,7 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
   test("[KAN-443] A.1 Training dashboard loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Dashboard should show heading or training-related content
     const hasHeading = await page
@@ -169,16 +169,16 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
   test("[KAN-444] A.2 Navigation link to courses works", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Try clicking courses link or navigate directly
     const coursesLink = page.getByRole("link", { name: /courses/i }).first();
     if (await coursesLink.isVisible().catch(() => false)) {
       await coursesLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     } else {
       await page.goto(getTenantUrl("/tenant/training/courses"));
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     }
     expect(page.url().includes("/training")).toBeTruthy();
   });
@@ -186,15 +186,15 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
   test("[KAN-445] A.3 Navigation link to sessions works", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const sessionsLink = page.getByRole("link", { name: /session/i }).first();
     if (await sessionsLink.isVisible().catch(() => false)) {
       await sessionsLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     } else {
       await page.goto(getTenantUrl("/tenant/training/sessions"));
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     }
     expect(page.url().includes("/training")).toBeTruthy();
   });
@@ -202,15 +202,15 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
   test("[KAN-446] A.4 Navigation link to enrollments works", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const enrollmentsLink = page.getByRole("link", { name: /enrollment|student/i }).first();
     if (await enrollmentsLink.isVisible().catch(() => false)) {
       await enrollmentsLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     } else {
       await page.goto(getTenantUrl("/tenant/training/enrollments"));
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     }
     expect(page.url().includes("/training")).toBeTruthy();
   });
@@ -218,7 +218,7 @@ test.describe.serial("Block A: Training Dashboard & Navigation", () => {
   test("[KAN-447] A.5 Dashboard shows empty state or stats when no courses", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Check for either stats cards or empty state message
     const hasStats = await page
@@ -245,7 +245,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-448] B.1 Navigate to courses list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasHeading = await page
       .getByRole("heading", { name: /course/i })
@@ -257,8 +257,8 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-449] B.2 Courses page has Add/Create Course button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses"));
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const addLink = page.getByRole("link", { name: /add.*course|create.*course|new.*course/i });
     const newLink = page.locator('a[href*="/new"]');
@@ -267,8 +267,8 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     const newVisible = await newLink.isVisible().catch(() => false);
     if (!addVisible && !newVisible) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
+      await page.waitForLoadState("load");
     }
     await expect(addLink.or(newLink).first()).toBeVisible({ timeout: 8000 });
   });
@@ -276,7 +276,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-450] B.3 Navigate to new course form", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasHeading = await page
       .getByRole("heading", { name: /new|create|add.*course/i })
@@ -289,7 +289,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-451] B.4 New course form has name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
     const nameInput = await page
@@ -303,7 +303,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-452] B.5 New course form has agency dropdown", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const agencySelect = await page.getByLabel(/agency/i).isVisible().catch(() => false);
     const agencyDropdown = await page
@@ -316,7 +316,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-453] B.6 New course form has price field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const priceField = await page.getByLabel(/price/i).isVisible().catch(() => false);
     const priceInput = await page
@@ -330,7 +330,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-454] B.7 Create new course @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     // Fill in course details
@@ -371,7 +371,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     // Submit form
     await Promise.all([
       page.getByRole("button", { name: /create|save|add/i }).click(),
-      page.waitForTimeout(3000),
+      page.waitForLoadState("networkidle").catch(() => {}),
     ]).catch(() => null);
 
     const redirectedToList =
@@ -386,7 +386,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
   test("[KAN-455] B.8 Courses list shows created course", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     const hasCourses = await page
@@ -414,14 +414,14 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     const courseId = trainingTestData.createdIds.course;
     if (!courseId) {
       await page.goto(getTenantUrl("/tenant/training/courses"));
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
       // Verify we're on the courses page (not redirected to login)
       const currentUrl = page.url();
       expect(currentUrl.includes("/tenant/training") || currentUrl.includes("/courses")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     // Verify we're on the course detail page
     const currentUrl = page.url();
     expect(currentUrl.includes("/courses") || currentUrl.includes("/training")).toBeTruthy();
@@ -436,7 +436,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const saveBtn = await page
       .getByRole("button", { name: /save|update/i })
@@ -455,7 +455,7 @@ test.describe.serial("Block C: Session Management", () => {
   test("[KAN-458] C.1 Navigate to sessions list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/sessions"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasHeading = await page
       .getByRole("heading", { name: /session|schedule|calendar/i })
@@ -467,7 +467,7 @@ test.describe.serial("Block C: Session Management", () => {
   test("[KAN-459] C.2 Sessions page shows calendar or list view", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/sessions"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasCalendar = await page
       .locator('[class*="calendar"], [class*="schedule"], table')
@@ -491,7 +491,7 @@ test.describe.serial("Block C: Session Management", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Look for schedule/add session button
     const scheduleBtn = await page
@@ -516,7 +516,7 @@ test.describe.serial("Block C: Session Management", () => {
 
     // Navigate to course detail and try to create session
     await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     // Try clicking schedule session button
@@ -525,10 +525,10 @@ test.describe.serial("Block C: Session Management", () => {
 
     if (await scheduleBtn.isVisible().catch(() => false)) {
       await scheduleBtn.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     } else if (await scheduleLink.isVisible().catch(() => false)) {
       await scheduleLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     }
 
     // Fill in session details if form appears
@@ -551,7 +551,7 @@ test.describe.serial("Block C: Session Management", () => {
     const submitBtn = page.getByRole("button", { name: /create|save|schedule/i }).first();
     if (await submitBtn.isVisible().catch(() => false)) {
       await submitBtn.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
     }
 
     expect(page.url().includes("/training")).toBeTruthy();
@@ -560,7 +560,7 @@ test.describe.serial("Block C: Session Management", () => {
   test("[KAN-462] C.5 Session appears in sessions list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/sessions"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     const hasSessions = await page
@@ -588,7 +588,7 @@ test.describe.serial("Block C: Session Management", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/sessions/${sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
@@ -601,7 +601,7 @@ test.describe.serial("Block C: Session Management", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/sessions/${sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show course name or link
     const hasCourseLink = await page
@@ -617,7 +617,7 @@ test.describe.serial("Block C: Session Management", () => {
     await page.goto(
       getTenantUrl("/tenant/training/sessions/00000000-0000-0000-0000-000000000000")
     );
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     // Should redirect to list or show error, not crash
     expect(page.url().includes("/training")).toBeTruthy();
   });
@@ -632,7 +632,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
   test("[KAN-466] D.1 Navigate to enrollments list page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/enrollments"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasHeading = await page
       .getByRole("heading", { name: /enrollment|student/i })
@@ -644,7 +644,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
   test("[KAN-467] D.2 Enrollments page shows list or empty state", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/enrollments"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasEnrollments = await page
       .locator("table, [class*='grid'], [class*='card'], [class*='list']")
@@ -667,7 +667,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Look for enroll button
     const enrollBtn = await page
@@ -692,7 +692,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
 
     // Navigate to course and try to enroll
     await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     // Click enroll button
@@ -701,10 +701,10 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
 
     if (await enrollBtn.isVisible().catch(() => false)) {
       await enrollBtn.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     } else if (await enrollLink.isVisible().catch(() => false)) {
       await enrollLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     }
 
     // If a customer selection modal/form appears, try to select/create
@@ -717,7 +717,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     const submitBtn = page.getByRole("button", { name: /enroll|create|save|confirm/i }).first();
     if (await submitBtn.isVisible().catch(() => false)) {
       await submitBtn.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
     }
 
     expect(page.url().includes("/training")).toBeTruthy();
@@ -727,7 +727,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     test.setTimeout(60000); // Increase timeout for slow loading in full suite
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/enrollments"));
-    await page.waitForTimeout(2000); // Increased wait for page load
+    await page.waitForLoadState("load"); // Increased wait for page load
     if (!(await isAuthenticated(page))) return;
 
     const hasEnrollments = await page
@@ -755,7 +755,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/training")).toBeTruthy();
   });
 
@@ -768,7 +768,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show status or progress
     const hasStatus = await page
@@ -784,7 +784,7 @@ test.describe.serial("Block D: Enrollment Workflow", () => {
     await page.goto(
       getTenantUrl("/tenant/training/enrollments/00000000-0000-0000-0000-000000000000")
     );
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/training")).toBeTruthy();
   });
 });
@@ -798,7 +798,7 @@ test.describe.serial("Block E: Training Settings", () => {
   test("[KAN-474] E.1 Navigate to agencies settings page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/agencies"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasHeading = await page
       .getByRole("heading", { name: /agency|agencies|certification/i })
@@ -810,7 +810,7 @@ test.describe.serial("Block E: Training Settings", () => {
   test("[KAN-475] E.2 Agencies page shows list or add option", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/agencies"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show existing agencies (PADI, SSI, etc.) or add button
     const hasAgencies = await page
@@ -828,14 +828,14 @@ test.describe.serial("Block E: Training Settings", () => {
   test("[KAN-476] E.3 Can add a new agency", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/agencies"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     // Try to add agency
     const addBtn = page.getByRole("button", { name: /add|create|new/i }).first();
     if (await addBtn.isVisible().catch(() => false)) {
       await addBtn.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
 
       // Fill in agency name
       const nameField = page.getByLabel(/name/i).first();
@@ -853,7 +853,7 @@ test.describe.serial("Block E: Training Settings", () => {
       const saveBtn = page.getByRole("button", { name: /save|create|add/i }).first();
       if (await saveBtn.isVisible().catch(() => false)) {
         await saveBtn.click();
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState("load");
       }
     }
 
@@ -863,7 +863,7 @@ test.describe.serial("Block E: Training Settings", () => {
   test("[KAN-477] E.4 Navigate to levels settings page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/levels"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasHeading = await page
       .getByRole("heading", { name: /level|certification/i })
@@ -875,7 +875,7 @@ test.describe.serial("Block E: Training Settings", () => {
   test("[KAN-478] E.5 Levels page shows list or add option", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/levels"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show existing levels or add button
     const hasLevels = await page
@@ -893,14 +893,14 @@ test.describe.serial("Block E: Training Settings", () => {
   test("[KAN-479] E.6 Can add a new level", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/settings/levels"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     // Try to add level
     const addBtn = page.getByRole("button", { name: /add|create|new/i }).first();
     if (await addBtn.isVisible().catch(() => false)) {
       await addBtn.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
 
       // Fill in level name
       const nameField = page.getByLabel(/name/i).first();
@@ -918,7 +918,7 @@ test.describe.serial("Block E: Training Settings", () => {
       const saveBtn = page.getByRole("button", { name: /save|create|add/i }).first();
       if (await saveBtn.isVisible().catch(() => false)) {
         await saveBtn.click();
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState("load");
       }
     }
 
@@ -935,7 +935,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
   test("[KAN-480] F.1 Course form has isPublic toggle", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Check for public/active toggle
     const publicToggle = await page.getByLabel(/public|active|published/i).isVisible().catch(() => false);
@@ -950,7 +950,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
   test("[KAN-481] F.2 Course form has schedule type option", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/training/courses/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Check for schedule type (fixed vs on-demand)
     const scheduleSelect = await page.getByLabel(/schedule.*type/i).isVisible().catch(() => false);
@@ -967,7 +967,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show enrolled students count or section
     const hasEnrollmentInfo = await page
@@ -987,7 +987,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/courses/${courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show sessions section
     const hasSessionsSection = await page
@@ -1003,7 +1003,7 @@ test.describe.serial("Block F: Advanced Course Features", () => {
     await page.goto(
       getTenantUrl("/tenant/training/courses/00000000-0000-0000-0000-000000000000")
     );
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url().includes("/training")).toBeTruthy();
   });
 });
@@ -1023,7 +1023,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/sessions/${sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show skills or attendance section
     const hasSkillsSection = await page
@@ -1043,7 +1043,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show progress tracker or skills list
     const hasProgress = await page
@@ -1063,7 +1063,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show certification info or issue button
     const hasCertSection = await page
@@ -1083,7 +1083,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should show exam status
     const hasExamInfo = await page
@@ -1103,7 +1103,7 @@ test.describe.serial("Block G: Skill Tracking & Certification", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/training/enrollments/${enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Should have status update option
     const hasStatusUpdate = await page

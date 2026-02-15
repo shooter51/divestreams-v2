@@ -9,10 +9,12 @@
 import { redirect } from "react-router";
 import { eq, and, count, gte } from "drizzle-orm";
 import { auth } from "./index";
-import { db } from "../db";
+import { db, withOrgContext, type DbTransaction } from "../db";
+import { authLogger } from "../logger";
 import {
   organization,
   member,
+  account,
 } from "../db/schema/auth";
 import { subscription } from "../db/schema/subscription";
 import { subscriptionPlans, customers, tours, bookings } from "../db/schema";
@@ -24,6 +26,12 @@ import type {
 } from "../db/schema/auth";
 import type { Subscription } from "../db/schema/subscription";
 import type { PlanFeaturesObject, PlanLimits } from "../plan-features";
+import { DEFAULT_PLAN_LIMITS, DEFAULT_PLAN_FEATURES } from "../plan-features";
+import { requireCsrf } from "../security/csrf.server";
+import {
+  getSubdomainFromRequest,
+  getSubdomainFromHost,
+} from "../utils/url";
 
 /**
  * Plan details from subscription_plans table
@@ -37,39 +45,13 @@ export interface PlanDetails {
 }
 
 // ============================================================================
-// FREE TIER LIMITS
+// TIER LIMITS (derived from DB plan data, with hardcoded fallbacks)
 // ============================================================================
 
 /**
- * Free tier limits for the freemium model
- */
-export const FREE_TIER_LIMITS = {
-  customers: 50,
-  bookingsPerMonth: 20,
-  tours: 3,
-  teamMembers: 1,
-  hasPOS: false,
-  hasEquipmentRentals: false,
-  hasAdvancedReports: false,
-  hasEmailNotifications: false,
-} as const;
-
-/**
- * Premium tier has unlimited access
- */
-export const PREMIUM_LIMITS = {
-  customers: Infinity,
-  bookingsPerMonth: Infinity,
-  tours: Infinity,
-  teamMembers: Infinity,
-  hasPOS: true,
-  hasEquipmentRentals: true,
-  hasAdvancedReports: true,
-  hasEmailNotifications: true,
-} as const;
-
-/**
- * Type for tier limits - supports both free and premium values
+ * Type for tier limits used in OrgContext.
+ * Combines quantity limits (from PlanLimits) with feature flags.
+ * The DB plan is the source of truth; these constants are fallback defaults.
  */
 export interface TierLimits {
   customers: number;
@@ -81,6 +63,54 @@ export interface TierLimits {
   hasAdvancedReports: boolean;
   hasEmailNotifications: boolean;
 }
+
+/**
+ * Build a TierLimits object from DB-driven PlanLimits and PlanFeaturesObject.
+ * This is the single conversion point between the DB schema and the OrgContext shape.
+ *
+ * @param planLimits - The numeric limits from the plan (users, customers, toursPerMonth, storageGb)
+ * @param features - The feature flags from the plan
+ * @returns A TierLimits object for use in OrgContext
+ */
+export function buildTierLimits(
+  planLimits: PlanLimits,
+  features: PlanFeaturesObject
+): TierLimits {
+  return {
+    customers: planLimits.customers === -1 ? Infinity : planLimits.customers,
+    bookingsPerMonth: planLimits.toursPerMonth === -1 ? Infinity : planLimits.toursPerMonth,
+    tours: planLimits.toursPerMonth === -1 ? Infinity : planLimits.toursPerMonth,
+    teamMembers: planLimits.users === -1 ? Infinity : planLimits.users,
+    hasPOS: features.has_pos ?? false,
+    hasEquipmentRentals: features.has_equipment_boats ?? false,
+    hasAdvancedReports: features.has_advanced_notifications ?? false,
+    hasEmailNotifications: features.has_advanced_notifications ?? false,
+  };
+}
+
+/**
+ * Default free tier limits - derived from plan-features.ts defaults.
+ * Used as fallback when no plan is found in the database.
+ *
+ * @deprecated Prefer DB-driven limits from subscription plan. This exists only
+ * as a safe fallback when the plan lookup fails or no subscription exists.
+ */
+export const FREE_TIER_LIMITS: TierLimits = buildTierLimits(
+  DEFAULT_PLAN_LIMITS.free,
+  DEFAULT_PLAN_FEATURES.free
+);
+
+/**
+ * Legacy premium limits constant.
+ * In the consolidated system, premium limits come from the DB plan.
+ * This constant exists only for backward compatibility in tests.
+ *
+ * @deprecated Use DB-driven plan limits instead.
+ */
+export const PREMIUM_LIMITS: TierLimits = buildTierLimits(
+  DEFAULT_PLAN_LIMITS.enterprise,
+  DEFAULT_PLAN_FEATURES.enterprise
+);
 
 // ============================================================================
 // ORGANIZATION CONTEXT TYPE
@@ -124,67 +154,11 @@ export interface OrgContext {
 }
 
 // ============================================================================
-// SUBDOMAIN HELPERS
+// SUBDOMAIN HELPERS (re-exported from lib/utils/url.ts)
 // ============================================================================
 
-/**
- * Extract subdomain from request host
- *
- * Handles:
- * - localhost: subdomain.localhost:5173
- * - production: subdomain.divestreams.com
- *
- * @returns The subdomain or null if none
- */
-export function getSubdomainFromRequest(request: Request): string | null {
-  const url = new URL(request.url);
-  const host = url.host;
-
-  // Handle localhost development
-  // Format: subdomain.localhost:5173
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  // Handle production and staging
-  const parts = host.split(".");
-
-  // Check if this is the staging environment
-  // Format: staging.divestreams.com (base) or {tenant}.staging.divestreams.com (tenant)
-  if (parts.length >= 3 && parts[parts.length - 3] === "staging") {
-    // This is staging environment
-    if (parts.length === 3) {
-      // staging.divestreams.com - base staging site, no tenant
-      return null;
-    }
-    if (parts.length >= 4) {
-      // {tenant}.staging.divestreams.com
-      const subdomain = parts[0].toLowerCase();
-      // Ignore www as it's not a tenant subdomain
-      if (subdomain === "www") {
-        return null;
-      }
-      return subdomain;
-    }
-  }
-
-  // Handle production
-  // Format: subdomain.divestreams.com
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    // Ignore www and staging as they're not tenant subdomains
-    if (subdomain === "www" || subdomain === "staging") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
+// Re-export subdomain helpers so existing imports from this module continue to work.
+export { getSubdomainFromRequest, getSubdomainFromHost };
 
 /**
  * Check if the current request is for the admin subdomain
@@ -311,67 +285,50 @@ export async function getOrgContext(
       .limit(1);
   }
 
-  // Determine if premium (any paid plan with active or cancel_pending status)
-  // cancel_pending means user cancelled but still has access until billing period ends
+  // Determine if premium based on plan details (not legacy string field)
+  // Use planDetails.monthlyPrice to ensure we check the authoritative FK relationship
   const isPremium =
-    planName !== "free" && (sub?.status === "active" || sub?.status === "cancel_pending");
+    planDetails &&
+    planDetails.monthlyPrice > 0 &&
+    sub?.status === "active";
 
-  // Set limits based on subscription plan from database
-  // Fall back to free tier limits if plan not found
-  const dbLimits = planDetails?.limits as {
-    users?: number;
-    customers?: number;
-    toursPerMonth?: number;
-    storageGb?: number;
-  } | undefined;
-
+  // Build TierLimits from the DB plan data (single source of truth).
+  // Falls back to FREE_TIER_LIMITS when no plan is found.
   const limits: TierLimits = planDetails
-    ? {
-        customers: dbLimits?.customers ?? FREE_TIER_LIMITS.customers,
-        bookingsPerMonth: dbLimits?.toursPerMonth ?? FREE_TIER_LIMITS.bookingsPerMonth,
-        tours: dbLimits?.toursPerMonth ?? FREE_TIER_LIMITS.tours,
-        teamMembers: dbLimits?.users ?? FREE_TIER_LIMITS.teamMembers,
-        hasPOS: isPremium,
-        hasEquipmentRentals: isPremium,
-        hasAdvancedReports: isPremium,
-        hasEmailNotifications: isPremium,
-      }
+    ? buildTierLimits(
+        planDetails.limits as PlanLimits,
+        planDetails.features as PlanFeaturesObject
+      )
     : FREE_TIER_LIMITS;
 
-  // Get usage statistics from database
-  let customerCount = 0;
-  let tourCount = 0;
-  let bookingsThisMonthCount = 0;
+  // Get usage statistics from database (run all 3 queries in parallel)
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-  try {
+  const [customerCount, tourCount, bookingsThisMonthCount] = await Promise.all([
     // Count customers for this organization
-    const [customerResult] = await db
+    db
       .select({ count: count() })
       .from(customers)
-      .where(eq(customers.organizationId, org.id));
-    customerCount = customerResult?.count ?? 0;
-  } catch (error) {
-    console.error("Failed to count customers:", error);
-  }
-
-  try {
+      .where(eq(customers.organizationId, org.id))
+      .then(([result]) => result?.count ?? 0)
+      .catch((error) => {
+        authLogger.error({ err: error, organizationId: org.id }, "Failed to count customers");
+        return 0;
+      }),
     // Count tours for this organization
-    const [tourResult] = await db
+    db
       .select({ count: count() })
       .from(tours)
-      .where(eq(tours.organizationId, org.id));
-    tourCount = tourResult?.count ?? 0;
-  } catch (error) {
-    console.error("Failed to count tours:", error);
-  }
-
-  try {
+      .where(eq(tours.organizationId, org.id))
+      .then(([result]) => result?.count ?? 0)
+      .catch((error) => {
+        authLogger.error({ err: error, organizationId: org.id }, "Failed to count tours");
+        return 0;
+      }),
     // Count bookings created this month for this organization
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const [bookingsResult] = await db
+    db
       .select({ count: count() })
       .from(bookings)
       .where(
@@ -379,11 +336,13 @@ export async function getOrgContext(
           eq(bookings.organizationId, org.id),
           gte(bookings.createdAt, startOfMonth)
         )
-      );
-    bookingsThisMonthCount = bookingsResult?.count ?? 0;
-  } catch (error) {
-    console.error("Failed to count bookings:", error);
-  }
+      )
+      .then(([result]) => result?.count ?? 0)
+      .catch((error) => {
+        authLogger.error({ err: error, organizationId: org.id }, "Failed to count bookings");
+        return 0;
+      }),
+  ]);
 
   const usage: OrgUsage = {
     customers: customerCount,
@@ -440,11 +399,53 @@ export async function getOrgContext(
  * @throws Redirect to login page if not authenticated
  */
 export async function requireOrgContext(request: Request): Promise<OrgContext> {
+  const subdomain = getSubdomainFromRequest(request);
+
+  // Check if tenant is deactivated BEFORE trying to get context
+  if (subdomain && subdomain !== "admin") {
+    const { tenants } = await import("../db/schema");
+    const [tenant] = await db
+      .select({ isActive: tenants.isActive })
+      .from(tenants)
+      .where(eq(tenants.subdomain, subdomain))
+      .limit(1);
+
+    if (tenant && !tenant.isActive) {
+      // Tenant is deactivated - show error page
+      throw new Response(
+        `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Account Deactivated</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 600px; margin: 100px auto; padding: 20px; text-align: center; }
+              h1 { color: #dc2626; }
+              p { color: #666; line-height: 1.6; }
+              .box { background: #fee; border: 1px solid #fcc; border-radius: 8px; padding: 20px; margin: 20px 0; }
+            </style>
+          </head>
+          <body>
+            <h1>Account Deactivated</h1>
+            <div class="box">
+              <p><strong>This account has been deactivated and is no longer accessible.</strong></p>
+              <p>If you believe this is an error, please contact support at <a href="mailto:support@divestreams.com">support@divestreams.com</a>.</p>
+            </div>
+          </body>
+        </html>
+        `,
+        {
+          status: 403,
+          headers: { "Content-Type": "text/html" }
+        }
+      );
+    }
+  }
+
   const context = await getOrgContext(request);
 
   if (!context) {
     // Get the subdomain for the redirect
-    const subdomain = getSubdomainFromRequest(request);
     const url = new URL(request.url);
 
     // If we have a subdomain, redirect to tenant login at /auth/login
@@ -455,6 +456,29 @@ export async function requireOrgContext(request: Request): Promise<OrgContext> {
     // Otherwise redirect to main login
     throw redirect("/login");
   }
+
+  // Check if user is forced to change password
+  const [userAccount] = await db
+    .select()
+    .from(account)
+    .where(eq(account.userId, context.user.id))
+    .limit(1);
+
+  if (userAccount?.forcePasswordChange) {
+    const url = new URL(request.url);
+    // Allow access to password change page and logout
+    if (
+      !url.pathname.includes("/settings/password") &&
+      !url.pathname.includes("/logout")
+    ) {
+      throw redirect("/tenant/settings/password?forced=true");
+    }
+  }
+
+  // Validate CSRF token for mutation requests (POST, PUT, DELETE, PATCH).
+  // This is skipped for GET/HEAD/OPTIONS and for exempt API routes.
+  // During the rollout phase, missing tokens are logged but not blocked.
+  await requireCsrf(request, context.session.id);
 
   return context;
 }
@@ -614,3 +638,42 @@ export async function requireTenant(
     organizationId: context.org.id,
   };
 }
+
+// ============================================================================
+// ROW-LEVEL SECURITY HELPERS
+// ============================================================================
+
+/**
+ * Execute a database operation with RLS org context set.
+ *
+ * Combines requireOrgContext with withOrgContext for a one-call pattern
+ * in route loaders/actions that need both auth and RLS enforcement.
+ *
+ * Usage in a route loader:
+ * ```ts
+ * export async function loader({ request }: LoaderFunctionArgs) {
+ *   const { context, result } = await withOrgRLS(request, async (tx, ctx) => {
+ *     return tx.select().from(customers)
+ *       .where(eq(customers.organizationId, ctx.org.id));
+ *   });
+ *   return { customers: result, org: context.org };
+ * }
+ * ```
+ *
+ * @param request - The incoming request (used for auth + subdomain resolution)
+ * @param callback - Function receiving the transaction and org context
+ * @returns Object with `context` (OrgContext) and `result` (callback return value)
+ */
+export async function withOrgRLS<T>(
+  request: Request,
+  callback: (tx: DbTransaction, context: OrgContext) => Promise<T>
+): Promise<{ context: OrgContext; result: T }> {
+  const context = await requireOrgContext(request);
+  const result = await withOrgContext(context.org.id, (tx) =>
+    callback(tx, context)
+  );
+  return { context, result };
+}
+
+// Re-export withOrgContext for direct use when orgId is already known
+export { withOrgContext, type DbTransaction } from "../db";

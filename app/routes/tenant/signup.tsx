@@ -6,6 +6,7 @@ import { getSubdomainFromRequest } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,7 +27,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (sessionData?.user) {
     // Already logged in, redirect to app
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/tenant";
+    const rawRedirect = url.searchParams.get("redirect") || "/tenant";
+    // Validate redirect to prevent open redirect attacks (only allow relative URLs)
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+      ? rawRedirect : "/tenant";
     throw redirect(redirectTo);
   }
 
@@ -52,6 +56,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Rate limit signup attempts
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`signup:${clientIp}`, { maxAttempts: 5, windowMs: 60 * 60 * 1000 });
+  if (!rateLimit.allowed) {
+    return { errors: { form: "Too many signup attempts. Please try again later." } };
+  }
+
   const formData = await request.formData();
   const name = formData.get("name");
   const email = formData.get("email");
@@ -59,8 +70,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const confirmPassword = formData.get("confirmPassword");
   const redirectTo = formData.get("redirectTo");
 
-  // Validate redirectTo and default to /app
-  const validatedRedirectTo = typeof redirectTo === "string" ? redirectTo : "/tenant";
+  // Validate redirectTo to prevent open redirect attacks
+  const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/tenant";
+  // Only allow relative URLs (must start with / and not contain ://)
+  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+    ? rawRedirect : "/tenant";
 
   // Validation
   const errors: Record<string, string> = {};
@@ -158,6 +172,7 @@ export async function action({ request }: ActionFunctionArgs) {
               organizationId: org.id,
               role: "customer",
               createdAt: new Date(),
+              updatedAt: new Date(),
             });
           }
         }

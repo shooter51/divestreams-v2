@@ -79,30 +79,30 @@ async function main() {
     console.log("✓ Password column ready");
 
     // Check if user already exists
-    const existing = await client.unsafe(`
-      SELECT id FROM "${schemaName}".users WHERE email = '${values.email}'
-    `);
+    const existing = await client`
+      SELECT id FROM "${client(schemaName)}".users WHERE email = ${values.email}
+    `;
 
     const passwordHash = hashPassword(values.password);
 
     if (existing.length > 0) {
       // Update existing user
-      await client.unsafe(`
-        UPDATE "${schemaName}".users
-        SET password_hash = '${passwordHash}',
+      await client`
+        UPDATE "${client(schemaName)}".users
+        SET password_hash = ${passwordHash},
             role = 'owner',
             is_active = true,
-            name = '${values.name}',
+            name = ${values.name},
             updated_at = NOW()
-        WHERE email = '${values.email}'
-      `);
+        WHERE email = ${values.email}
+      `;
       console.log(`✓ Updated existing user: ${values.email}`);
     } else {
       // Create new user
-      await client.unsafe(`
-        INSERT INTO "${schemaName}".users (email, name, role, is_active, email_verified, password_hash)
-        VALUES ('${values.email}', '${values.name}', 'owner', true, true, '${passwordHash}')
-      `);
+      await client`
+        INSERT INTO "${client(schemaName)}".users (email, name, role, is_active, email_verified, password_hash)
+        VALUES (${values.email}, ${values.name}, 'owner', true, true, ${passwordHash})
+      `;
       console.log(`✓ Created new admin user: ${values.email}`);
     }
 

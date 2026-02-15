@@ -53,7 +53,7 @@ function CourseCard({
       className="block bg-white rounded-lg border hover:shadow-md transition-shadow overflow-hidden"
     >
       {/* Agency Badge */}
-      <div className="bg-gray-50 px-4 py-3 border-b flex items-center justify-between">
+      <div className="bg-surface-inset px-4 py-3 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
           {course.agencyLogo ? (
             <img
@@ -62,12 +62,12 @@ function CourseCard({
               className="h-6 object-contain"
             />
           ) : (
-            <span className="text-sm font-semibold text-gray-700">
+            <span className="text-sm font-semibold text-foreground">
               {course.agencyCode}
             </span>
           )}
         </div>
-        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
+        <span className="text-xs bg-brand-muted text-brand px-2 py-1 rounded font-medium">
           {course.levelName}
         </span>
       </div>
@@ -77,13 +77,13 @@ function CourseCard({
         <h3 className="font-semibold text-lg mb-1">{course.name}</h3>
 
         {course.description && (
-          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+          <p className="text-sm text-foreground-muted line-clamp-2 mb-3">
             {course.description}
           </p>
         )}
 
         {/* Course info */}
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+        <div className="flex items-center gap-4 text-sm text-foreground-muted mb-3">
           <span className="flex items-center gap-1">
             <svg
               className="w-4 h-4"
@@ -126,7 +126,7 @@ function CourseCard({
             </span>
           )}
           {totalDives > 0 && (
-            <span className="text-xs bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded">
+            <span className="text-xs bg-info-muted text-info px-2 py-0.5 rounded">
               {totalDives} open water dive{totalDives !== 1 ? "s" : ""}
             </span>
           )}
@@ -142,7 +142,7 @@ function CourseCard({
               {formatPrice(course.price, course.currency)}
             </span>
             {course.depositAmount && (
-              <span className="text-sm text-gray-500 ml-2">
+              <span className="text-sm text-foreground-muted ml-2">
                 ({formatPrice(course.depositAmount, course.currency)} deposit)
               </span>
             )}
@@ -173,7 +173,7 @@ export default function EmbedCoursesPage() {
     return (
       <div className="text-center py-12">
         <svg
-          className="w-16 h-16 mx-auto text-gray-300 mb-4"
+          className="w-16 h-16 mx-auto text-foreground-subtle mb-4"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -185,10 +185,10 @@ export default function EmbedCoursesPage() {
             d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
           />
         </svg>
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">
+        <h2 className="text-xl font-semibold text-foreground mb-2">
           No Courses Available
         </h2>
-        <p className="text-gray-500">Check back soon for upcoming courses!</p>
+        <p className="text-foreground-muted">Check back soon for upcoming courses!</p>
       </div>
     );
   }
@@ -233,7 +233,7 @@ export default function EmbedCoursesPage() {
                 className="h-8 object-contain"
               />
             ) : (
-              <span className="text-lg font-semibold text-gray-700">
+              <span className="text-lg font-semibold text-foreground">
                 {group.agencyName}
               </span>
             )}

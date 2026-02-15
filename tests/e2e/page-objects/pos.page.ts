@@ -35,12 +35,13 @@ export class POSPage extends TenantBasePage {
   async selectTab(tab: "retail" | "rentals" | "trips"): Promise<void> {
     await this.page.getByRole("button", { name: new RegExp(`^${tab}$`, "i") }).click();
     // Wait for tab content to load
-    await this.page.waitForTimeout(300);
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   async expectTabActive(tab: "retail" | "rentals" | "trips"): Promise<void> {
     const tabButton = this.page.getByRole("button", { name: new RegExp(`^${tab}$`, "i") });
-    await expect(tabButton).toHaveClass(/bg-white|text-blue/);
+    // Active tabs use semantic tokens: bg-surface-raised and text-brand
+    await expect(tabButton).toHaveClass(/bg-surface-raised.*text-brand/);
   }
 
   // ============================================
@@ -67,8 +68,8 @@ export class POSPage extends TenantBasePage {
 
   async searchProducts(query: string): Promise<void> {
     await this.page.getByPlaceholder(/search/i).fill(query);
-    // Wait for filter to apply
-    await this.page.waitForTimeout(300);
+    // Wait for filter to apply (debounced input)
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   async clearProductSearch(): Promise<void> {
@@ -92,14 +93,14 @@ export class POSPage extends TenantBasePage {
   // ============================================
 
   async addRentalToCart(equipmentName: string, days: number = 1): Promise<void> {
-    // Find the rental card
-    const rentalCard = this.productGrid.locator("div.p-4").filter({ hasText: equipmentName });
+    // Find the rental card (use .first() to handle multiple items with same name)
+    const rentalCard = this.productGrid.locator("div.p-4").filter({ hasText: equipmentName }).first();
 
     // Click "Add Rental" button
     await rentalCard.getByRole("button", { name: /add rental/i }).click();
 
-    // Wait for days selector to appear
-    await this.page.waitForTimeout(200);
+    // Wait for days selector to appear (the Add $X.XX button)
+    await rentalCard.getByRole("button", { name: /add \$/i }).waitFor({ state: "visible" });
 
     // Adjust days if needed (default is 1)
     if (days > 1) {
@@ -113,7 +114,7 @@ export class POSPage extends TenantBasePage {
   }
 
   async getRentalCardInfo(equipmentName: string): Promise<{ name: string; size?: string; dailyRate: string }> {
-    const rentalCard = this.productGrid.locator("div.p-4").filter({ hasText: equipmentName });
+    const rentalCard = this.productGrid.locator("div.p-4").filter({ hasText: equipmentName }).first();
     const name = await rentalCard.locator("p.font-medium").textContent() || "";
     const sizeEl = rentalCard.locator("p.text-sm.text-gray-600");
     const size = (await sizeEl.isVisible()) ? (await sizeEl.textContent())?.replace("Size: ", "") : undefined;
@@ -126,14 +127,14 @@ export class POSPage extends TenantBasePage {
   // ============================================
 
   async addTripToCart(tourName: string, participants: number = 1): Promise<void> {
-    // Find the trip card
-    const tripCard = this.productGrid.locator("div.p-4").filter({ hasText: tourName });
+    // Find the trip card (use .first() to handle multiple trips with same name)
+    const tripCard = this.productGrid.locator("div.p-4").filter({ hasText: tourName }).first();
 
     // Click "Book Now" button
     await tripCard.getByRole("button", { name: /book now/i }).click();
 
-    // Wait for participant selector to appear
-    await this.page.waitForTimeout(200);
+    // Wait for participant selector to appear (the Add $X.XX button)
+    await tripCard.getByRole("button", { name: /add \$/i }).waitFor({ state: "visible" });
 
     // Adjust participants if needed (default is 1)
     if (participants > 1) {
@@ -147,7 +148,7 @@ export class POSPage extends TenantBasePage {
   }
 
   async getTripCardInfo(tourName: string): Promise<{ name: string; time: string; price: string; spotsLeft: string }> {
-    const tripCard = this.productGrid.locator("div.p-4").filter({ hasText: tourName });
+    const tripCard = this.productGrid.locator("div.p-4").filter({ hasText: tourName }).first();
     const name = await tripCard.locator("p.font-medium").textContent() || "";
     const time = await tripCard.locator("p.text-sm.text-gray-600").textContent() || "";
     const price = await tripCard.locator(".text-purple-600").textContent() || "";
@@ -176,8 +177,8 @@ export class POSPage extends TenantBasePage {
   }
 
   async getCartItemCount(): Promise<number> {
-    // Each cart item is in a div with bg-gray-50 class
-    return await this.cartContainer.locator(".bg-gray-50").count();
+    // Each cart item is in a div with bg-surface-inset class (semantic design token)
+    return await this.cartContainer.locator(".bg-surface-inset").count();
   }
 
   async getCartItemByIndex(index: number): Promise<{
@@ -185,9 +186,9 @@ export class POSPage extends TenantBasePage {
     details: string;
     total: string;
   }> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(index);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(index);
     const name = await cartItem.locator("p.font-medium").first().textContent() || "";
-    const details = await cartItem.locator("p.text-sm.text-gray-600").textContent() || "";
+    const details = await cartItem.locator("p.text-sm.text-foreground-muted").textContent() || "";
     const total = await cartItem.locator("p.font-medium").last().textContent() || "";
     return { name: name.trim(), details: details.trim(), total: total.trim() };
   }
@@ -197,54 +198,56 @@ export class POSPage extends TenantBasePage {
     details: string;
     total: string;
   }> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").filter({ hasText: itemName });
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").filter({ hasText: itemName });
     const name = await cartItem.locator("p.font-medium").first().textContent() || "";
-    const details = await cartItem.locator("p.text-sm.text-gray-600").textContent() || "";
+    const details = await cartItem.locator("p.text-sm.text-foreground-muted").textContent() || "";
     const total = await cartItem.locator("p.font-medium").last().textContent() || "";
     return { name: name.trim(), details: details.trim(), total: total.trim() };
   }
 
   async increaseQuantity(itemIndex: number): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(itemIndex);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(itemIndex);
     await cartItem.locator("button").filter({ hasText: "+" }).click();
   }
 
   async decreaseQuantity(itemIndex: number): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(itemIndex);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(itemIndex);
     await cartItem.locator("button").filter({ hasText: "-" }).click();
   }
 
   async getItemQuantity(itemIndex: number): Promise<number> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(itemIndex);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(itemIndex);
     const quantityText = await cartItem.locator(".w-6.text-center").textContent();
     return parseInt(quantityText || "0", 10);
   }
 
   async updateItemQuantity(index: number, quantity: number): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(index);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(index);
     const currentQty = await this.getItemQuantity(index);
 
     if (quantity > currentQty) {
       for (let i = currentQty; i < quantity; i++) {
         await cartItem.locator("button").filter({ hasText: "+" }).click();
-        await this.page.waitForTimeout(100);
+        // Wait for quantity display to update
+        await expect(cartItem.locator(".w-6.text-center")).toContainText(String(i + 1));
       }
     } else if (quantity < currentQty) {
       for (let i = currentQty; i > quantity; i--) {
         await cartItem.locator("button").filter({ hasText: "-" }).click();
-        await this.page.waitForTimeout(100);
+        // Wait for quantity display to update
+        await expect(cartItem.locator(".w-6.text-center")).toContainText(String(i - 1));
       }
     }
   }
 
   async removeCartItem(index: number): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").nth(index);
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").nth(index);
     // The remove button has an X icon (SVG with path)
     await cartItem.locator("button.text-red-500").click();
   }
 
   async removeCartItemByName(itemName: string): Promise<void> {
-    const cartItem = this.cartContainer.locator(".bg-gray-50").filter({ hasText: itemName });
+    const cartItem = this.cartContainer.locator(".bg-surface-inset").filter({ hasText: itemName });
     await cartItem.locator("button.text-red-500").click();
   }
 
@@ -290,9 +293,9 @@ export class POSPage extends TenantBasePage {
 
   async searchCustomer(query: string): Promise<void> {
     await this.page.getByPlaceholder(/search customer/i).fill(query);
-    // Trigger search with Enter or wait for debounce
+    // Trigger search with Enter and wait for results
     await this.page.keyboard.press("Enter");
-    await this.page.waitForTimeout(500);
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   async selectCustomer(customerName: string): Promise<void> {
@@ -428,12 +431,12 @@ export class POSPage extends TenantBasePage {
 
   async navigateAway(): Promise<void> {
     await this.gotoApp("/dashboard");
-    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForLoadState("load");
   }
 
   async navigateBack(): Promise<void> {
     await this.goto();
-    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForLoadState("load");
   }
 
   // ============================================
@@ -441,7 +444,11 @@ export class POSPage extends TenantBasePage {
   // ============================================
 
   async waitForCartUpdate(): Promise<void> {
-    await this.page.waitForTimeout(300);
+    // Wait for any pending network requests to complete
+    await this.page.waitForLoadState("networkidle").catch(() => {
+      // Network idle may not be reached in some cases, fall back to domcontentloaded
+    });
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   async expectNoProducts(): Promise<void> {

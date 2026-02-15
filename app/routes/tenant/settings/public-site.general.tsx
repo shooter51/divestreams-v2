@@ -64,7 +64,7 @@ export default function PublicSiteGeneralSettings() {
   return (
     <div className="space-y-6">
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words">
           {fetcher.data.message}
         </div>
       )}
@@ -111,7 +111,7 @@ export default function PublicSiteGeneralSettings() {
               name="customDomain"
               defaultValue={customDomain || ""}
               placeholder="www.yourdiveshop.com"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               disabled={!isPremium}
             />
             {!isPremium && (

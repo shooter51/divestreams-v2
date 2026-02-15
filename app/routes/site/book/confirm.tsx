@@ -18,6 +18,8 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { getBookingDetails, type BookingDetails } from "../../../../lib/db/mutations.public";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { getSubdomainFromHost } from "../../../../lib/utils/url";
+import { StatusBadge, type BadgeStatus, Badge } from "../../../components/ui";
 
 // ============================================================================
 // TYPES
@@ -41,31 +43,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { name: "description", content: `Your booking ${data.booking.bookingNumber} has been confirmed` },
   ];
 };
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-function getSubdomainFromHost(host: string): string | null {
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
 
 // ============================================================================
 // LOADER
@@ -160,12 +137,12 @@ export default function BookingConfirmationPage() {
         <div
           className="rounded-xl p-6 shadow-lg mb-6"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
             borderWidth: "1px",
           }}
         >
-          <div className="text-center mb-6 pb-6 border-b" style={{ borderColor: "var(--accent-color)" }}>
+          <div className="text-center mb-6 pb-6 border-b" style={{ borderColor: "var(--color-border)" }}>
             <p className="text-sm opacity-75 mb-1">Booking Reference</p>
             <p
               className="text-3xl font-bold font-mono tracking-wider"
@@ -180,7 +157,7 @@ export default function BookingConfirmationPage() {
 
           {/* Booking Status */}
           <div className="flex items-center justify-center gap-4 mb-6">
-            <StatusBadge status={booking.status} />
+            <StatusBadge status={booking.status as BadgeStatus} size="md" />
             <PaymentBadge status={booking.paymentStatus} />
           </div>
 
@@ -257,7 +234,7 @@ export default function BookingConfirmationPage() {
             )}
 
             {/* Payment Summary */}
-            <div className="pt-4 border-t" style={{ borderColor: "var(--accent-color)" }}>
+            <div className="pt-4 border-t" style={{ borderColor: "var(--color-border)" }}>
               <h3 className="font-semibold mb-3" style={{ color: "var(--text-color)" }}>
                 Payment Summary
               </h3>
@@ -272,7 +249,7 @@ export default function BookingConfirmationPage() {
                     <span>{formatCurrency(booking.tax, booking.currency)}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-semibold text-lg pt-2 border-t" style={{ borderColor: "var(--accent-color)" }}>
+                <div className="flex justify-between font-semibold text-lg pt-2 border-t" style={{ borderColor: "var(--color-border)" }}>
                   <span>Total</span>
                   <span style={{ color: "var(--primary-color)" }}>
                     {formatCurrency(booking.total, booking.currency)}
@@ -287,8 +264,8 @@ export default function BookingConfirmationPage() {
         <div
           className="rounded-xl p-6 shadow-sm mb-6 flex items-start gap-4"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
             borderWidth: "1px",
           }}
         >
@@ -314,8 +291,8 @@ export default function BookingConfirmationPage() {
         <div
           className="rounded-xl p-6 shadow-sm mb-6"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
             borderWidth: "1px",
           }}
         >
@@ -371,9 +348,9 @@ export default function BookingConfirmationPage() {
           )}
           <Link
             to="/site"
-            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold border transition-colors hover:bg-gray-50"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold border transition-colors hover:opacity-90"
             style={{
-              borderColor: "var(--accent-color)",
+              borderColor: "var(--color-border)",
               color: "var(--text-color)",
             }}
           >
@@ -402,44 +379,21 @@ export default function BookingConfirmationPage() {
 // HELPER COMPONENTS
 // ============================================================================
 
-function StatusBadge({ status }: { status: string }) {
-  const statusConfig: Record<string, { label: string; bgColor: string; textColor: string }> = {
-    pending: { label: "Pending", bgColor: "#fef3c7", textColor: "#92400e" },
-    confirmed: { label: "Confirmed", bgColor: "#d1fae5", textColor: "#065f46" },
-    completed: { label: "Completed", bgColor: "#dbeafe", textColor: "#1e40af" },
-    canceled: { label: "Canceled", bgColor: "#fee2e2", textColor: "#991b1b" },
-    no_show: { label: "No Show", bgColor: "#f3f4f6", textColor: "#374151" },
-  };
-
-  const config = statusConfig[status] || statusConfig.pending;
-
-  return (
-    <span
-      className="px-3 py-1 rounded-full text-sm font-medium"
-      style={{ backgroundColor: config.bgColor, color: config.textColor }}
-    >
-      {config.label}
-    </span>
-  );
-}
-
 function PaymentBadge({ status }: { status: string }) {
-  const statusConfig: Record<string, { label: string; bgColor: string; textColor: string }> = {
-    pending: { label: "Payment Pending", bgColor: "#fef3c7", textColor: "#92400e" },
-    paid: { label: "Paid", bgColor: "#d1fae5", textColor: "#065f46" },
-    refunded: { label: "Refunded", bgColor: "#dbeafe", textColor: "#1e40af" },
-    failed: { label: "Payment Failed", bgColor: "#fee2e2", textColor: "#991b1b" },
+  const paymentConfig: Record<string, { variant: "default" | "success" | "warning" | "error" | "info"; label: string }> = {
+    pending: { variant: "warning", label: "Payment Pending" },
+    partial: { variant: "warning", label: "Partial Payment" },
+    paid: { variant: "success", label: "Paid" },
+    refunded: { variant: "default", label: "Refunded" },
+    failed: { variant: "error", label: "Payment Failed" },
   };
 
-  const config = statusConfig[status] || statusConfig.pending;
+  const config = paymentConfig[status] || paymentConfig.pending;
 
   return (
-    <span
-      className="px-3 py-1 rounded-full text-sm font-medium"
-      style={{ backgroundColor: config.bgColor, color: config.textColor }}
-    >
+    <Badge variant={config.variant} size="md">
       {config.label}
-    </span>
+    </Badge>
   );
 }
 

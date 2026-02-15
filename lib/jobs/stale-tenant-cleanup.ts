@@ -22,6 +22,7 @@ import {
 import { sendEmail } from "../email";
 import { eq, and, lt, sql, isNull, inArray } from "drizzle-orm";
 import { getEmailQueue } from "./index";
+import { jobLogger } from "../logger";
 
 // Inactivity thresholds in days
 const FIRST_WARNING_DAYS = 60;
@@ -299,7 +300,7 @@ async function softDeleteOrganization(organizationId: string): Promise<void> {
     })
     .where(eq(organization.id, organizationId));
 
-  console.log(`[stale-tenant-cleanup] Soft deleted organization ${organizationId}`);
+  jobLogger.info({ organizationId }, "Soft deleted organization due to inactivity");
 }
 
 /**
@@ -325,8 +326,10 @@ export async function cleanupStaleTenants(): Promise<{
     errors: [] as string[],
   };
 
-  console.log(`[stale-tenant-cleanup] Starting cleanup job at ${now.toISOString()}`);
-  console.log(`[stale-tenant-cleanup] Thresholds: 60 days = ${sixtyDaysAgo.toISOString()}, 75 days = ${seventyFiveDaysAgo.toISOString()}, 90 days = ${ninetyDaysAgo.toISOString()}`);
+  jobLogger.info({
+    startedAt: now.toISOString(),
+    thresholds: { sixtyDays: sixtyDaysAgo.toISOString(), seventyFiveDays: seventyFiveDaysAgo.toISOString(), ninetyDays: ninetyDaysAgo.toISOString() },
+  }, "Starting stale tenant cleanup job");
 
   try {
     // Get all free-tier organizations that are not already soft-deleted
@@ -344,7 +347,7 @@ export async function cleanupStaleTenants(): Promise<{
         sql`(${subscription.plan} = 'free' OR ${subscription.plan} IS NULL)`
       );
 
-    console.log(`[stale-tenant-cleanup] Found ${freeOrgs.length} free-tier organizations to check`);
+    jobLogger.info({ count: freeOrgs.length }, "Found free-tier organizations to check");
 
     for (const org of freeOrgs) {
       results.processed++;
@@ -354,7 +357,7 @@ export async function cleanupStaleTenants(): Promise<{
 
         // Skip already soft-deleted organizations
         if (metadata.softDeletedAt) {
-          console.log(`[stale-tenant-cleanup] Skipping already deleted org: ${org.orgSlug}`);
+          jobLogger.debug({ slug: org.orgSlug }, "Skipping already deleted org");
           continue;
         }
 
@@ -364,7 +367,7 @@ export async function cleanupStaleTenants(): Promise<{
         if (!lastActivity) {
           // No sessions found - use organization creation date as fallback
           // This handles new orgs that were created but never logged in
-          console.log(`[stale-tenant-cleanup] No sessions found for org ${org.orgSlug}, skipping`);
+          jobLogger.debug({ slug: org.orgSlug }, "No sessions found for org, skipping");
           continue;
         }
 
@@ -372,12 +375,12 @@ export async function cleanupStaleTenants(): Promise<{
           (now.getTime() - lastActivity.getTime()) / (24 * 60 * 60 * 1000)
         );
 
-        console.log(`[stale-tenant-cleanup] Org ${org.orgSlug}: ${daysSinceActivity} days since last activity`);
+        jobLogger.info({ slug: org.orgSlug, daysSinceActivity }, "Organization inactivity check");
 
         // Get owner info for emails
         const owner = await getOrgOwnerEmail(org.orgId);
         if (!owner) {
-          console.log(`[stale-tenant-cleanup] No owner found for org ${org.orgSlug}, skipping`);
+          jobLogger.warn({ slug: org.orgSlug }, "No owner found for org, skipping cleanup");
           continue;
         }
 
@@ -420,7 +423,7 @@ export async function cleanupStaleTenants(): Promise<{
               .where(eq(organization.id, org.orgId));
 
             results.secondWarningsSent++;
-            console.log(`[stale-tenant-cleanup] Sent second warning to ${owner.email} for org ${org.orgSlug}`);
+            jobLogger.info({ email: owner.email, slug: org.orgSlug }, "Sent second inactivity warning");
           }
         } else if (daysSinceActivity >= FIRST_WARNING_DAYS) {
           // 60-74 days - send first warning (if not already sent)
@@ -451,22 +454,22 @@ export async function cleanupStaleTenants(): Promise<{
               .where(eq(organization.id, org.orgId));
 
             results.firstWarningsSent++;
-            console.log(`[stale-tenant-cleanup] Sent first warning to ${owner.email} for org ${org.orgSlug}`);
+            jobLogger.info({ email: owner.email, slug: org.orgSlug }, "Sent first inactivity warning");
           }
         }
       } catch (orgError) {
         const errorMsg = `Error processing org ${org.orgSlug}: ${orgError instanceof Error ? orgError.message : String(orgError)}`;
         results.errors.push(errorMsg);
-        console.error(`[stale-tenant-cleanup] ${errorMsg}`);
+        jobLogger.error({ err: orgError, slug: org.orgSlug }, "Error processing org for stale tenant cleanup");
       }
     }
   } catch (error) {
     const errorMsg = `Fatal error in cleanup job: ${error instanceof Error ? error.message : String(error)}`;
     results.errors.push(errorMsg);
-    console.error(`[stale-tenant-cleanup] ${errorMsg}`);
+    jobLogger.error({ err: error }, "Fatal error in stale tenant cleanup job");
   }
 
-  console.log(`[stale-tenant-cleanup] Cleanup complete:`, results);
+  jobLogger.info({ results }, "Stale tenant cleanup complete");
   return results;
 }
 
@@ -477,5 +480,5 @@ export async function scheduleStaleTenantCleanup(): Promise<void> {
   const queue = getEmailQueue(); // Re-use maintenance queue via email queue pattern
 
   // We'll add to the maintenance queue in the index.ts
-  console.log("[stale-tenant-cleanup] Cleanup job registered");
+  jobLogger.info("Stale tenant cleanup job registered");
 }

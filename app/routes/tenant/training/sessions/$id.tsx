@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, useNavigate } from "react-router";
+import { useLoaderData, Link, useFetcher, useNavigate, redirect } from "react-router";
 import { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import {
@@ -9,6 +9,7 @@ import {
   deleteSession,
   getCourses,
 } from "../../../../../lib/db/training.server";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Session Details - DiveStreams" }];
 
@@ -43,7 +44,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const newStatus = formData.get("status") as string;
     if (newStatus) {
       await updateSession(ctx.org.id, sessionId, { status: newStatus });
-      return { success: true, message: `Session status updated to ${newStatus}` };
+      return redirect(redirectWithNotification(`/tenant/training/sessions/${sessionId}`, "Session has been successfully updated", "success"));
     }
     return { error: "Status is required" };
   }
@@ -72,12 +73,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
     if (notes !== undefined) updates.notes = notes || null;
 
     await updateSession(ctx.org.id, sessionId, updates);
-    return { success: true, message: "Session updated successfully" };
+    return redirect(redirectWithNotification(`/tenant/training/sessions/${sessionId}`, "Session has been successfully updated", "success"));
   }
 
   if (intent === "delete") {
     await deleteSession(ctx.org.id, sessionId);
-    return { success: true, deleted: true };
+    return redirect(redirectWithNotification("/tenant/training/sessions", "Session has been successfully deleted", "success"));
   }
 
   return null;
@@ -106,19 +107,16 @@ const enrollmentStatusColors: Record<string, string> = {
 };
 
 export default function SessionDetailPage() {
+  useNotification();
+
   const { session, enrollments, courses } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string; deleted?: boolean }>();
+  const fetcher = useFetcher<{ error?: string }>();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Redirect after delete
-  if (fetcher.data?.deleted) {
-    navigate("/tenant/training/sessions");
-    return null;
-  }
-
-  const spotsAvailable = (session.maxStudents || 0) - (session.enrolledCount || 0);
+  // If maxStudents is null/undefined, treat as unlimited (no calculation needed)
+  const spotsAvailable = session.maxStudents ? session.maxStudents - (session.enrolledCount || 0) : null;
   const sessionPrice = session.priceOverride || session.coursePrice || "0";
 
   const handleStatusChange = (newStatus: string) => {
@@ -176,7 +174,7 @@ export default function SessionDetailPage() {
           )}
         </div>
         <div className="flex gap-2">
-          {session.status !== "cancelled" && session.status !== "completed" && spotsAvailable > 0 && (
+          {session.status !== "cancelled" && session.status !== "completed" && (spotsAvailable === null || spotsAvailable > 0) && (
             <Link
               to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
               className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
@@ -201,14 +199,9 @@ export default function SessionDetailPage() {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {fetcher.data?.success && fetcher.data?.message && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
-          {fetcher.data.message}
-        </div>
-      )}
+      {/* Error Messages */}
       {fetcher.data?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {fetcher.data.error}
         </div>
       )}
@@ -220,12 +213,14 @@ export default function SessionDetailPage() {
           <div className="grid grid-cols-4 gap-4">
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
-                {session.enrolledCount || 0}/{session.maxStudents || "?"}
+                {session.enrolledCount || 0}{session.maxStudents ? `/${session.maxStudents}` : ""}
               </p>
               <p className="text-foreground-muted text-sm">Enrolled</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-success">{spotsAvailable}</p>
+              <p className={`text-2xl font-bold ${spotsAvailable !== null && spotsAvailable > 0 ? "text-success" : spotsAvailable === 0 ? "text-danger" : ""}`}>
+                {spotsAvailable !== null ? spotsAvailable : "∞"}
+              </p>
               <p className="text-foreground-muted text-sm">Spots Left</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
@@ -421,14 +416,6 @@ export default function SessionDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Enrolled Students ({enrollments.length})</h2>
-              {spotsAvailable > 0 && session.status !== "cancelled" && session.status !== "completed" && (
-                <Link
-                  to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
-                  className="text-brand text-sm hover:underline"
-                >
-                  + Enroll Student
-                </Link>
-              )}
             </div>
             {enrollments.length === 0 ? (
               <p className="text-foreground-muted text-sm">No students enrolled yet.</p>
@@ -506,12 +493,6 @@ export default function SessionDetailPage() {
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <Link
-                to={`/tenant/training/enrollments/new?sessionId=${session.id}`}
-                className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
-              >
-                Add Enrollment
-              </Link>
-              <Link
                 to={`/tenant/training/courses/${session.courseId}`}
                 className="block w-full text-left px-3 py-2 text-sm hover:bg-surface-inset rounded-lg"
               >
@@ -540,8 +521,8 @@ export default function SessionDetailPage() {
               </div>
               <div className="flex justify-between text-sm font-medium">
                 <span>Available</span>
-                <span className={spotsAvailable === 0 ? "text-danger" : "text-success"}>
-                  {session.maxStudents ? spotsAvailable : "Unlimited"}
+                <span className={spotsAvailable === 0 ? "text-danger" : spotsAvailable !== null ? "text-success" : ""}>
+                  {spotsAvailable !== null ? spotsAvailable : "Unlimited"}
                 </span>
               </div>
               {session.maxStudents && (

@@ -7,45 +7,55 @@
 
 import { Link, useLoaderData } from "react-router";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { useState, useEffect } from "react";
 import {
   getPublicCourseById,
   getCourseScheduledTrips,
 } from "../../../../lib/db/public-site.server";
-import type { SiteLoaderData } from "../_layout";
+import { db } from "../../../../lib/db";
+import { organization } from "../../../../lib/db/schema/auth";
+import { eq } from "drizzle-orm";
+import { getSubdomainFromHost } from "../../../../lib/utils/url";
 
 // ============================================================================
 // CERTIFICATION AGENCIES
 // ============================================================================
 
-const CERTIFICATION_AGENCIES: Record<string, { name: string; color: string; description: string }> = {
+const CERTIFICATION_AGENCIES: Record<string, { name: string; lightColor: string; darkColor: string; description: string }> = {
   padi: {
     name: "PADI",
-    color: "#003087",
+    lightColor: "#003087",
+    darkColor: "#5b9bd5",
     description: "Professional Association of Diving Instructors - World's largest diver training organization",
   },
   ssi: {
     name: "SSI",
-    color: "#00529b",
+    lightColor: "#00529b",
+    darkColor: "#6cb4ee",
     description: "Scuba Schools International - Globally recognized dive training",
   },
   naui: {
     name: "NAUI",
-    color: "#002855",
+    lightColor: "#002855",
+    darkColor: "#4d7ac7",
     description: "National Association of Underwater Instructors - Since 1959",
   },
   sdi: {
     name: "SDI/TDI",
-    color: "#ff6600",
+    lightColor: "#ff6600",
+    darkColor: "#ff6600",
     description: "Scuba Diving International / Technical Diving International",
   },
   raid: {
     name: "RAID",
-    color: "#e31937",
+    lightColor: "#e31937",
+    darkColor: "#e31937",
     description: "Rebreather Association of International Divers",
   },
   gue: {
     name: "GUE",
-    color: "#1a1a1a",
+    lightColor: "#1a1a1a",
+    darkColor: "#e5e7eb",
     description: "Global Underwater Explorers - Excellence in diving education",
   },
 };
@@ -57,7 +67,7 @@ const CERTIFICATION_AGENCIES: Record<string, { name: string; color: string; desc
 interface ScheduledSession {
   id: string;
   date: string;
-  startTime: string;
+  startTime: string | null;
   endTime: string | null;
   maxParticipants: number | null;
   price: string | null;
@@ -94,6 +104,7 @@ interface LoaderData {
   course: CourseDetail;
   sessions: ScheduledSession[];
   totalSessions: number;
+  organizationSlug: string;
 }
 
 // ============================================================================
@@ -101,18 +112,33 @@ interface LoaderData {
 // ============================================================================
 
 /**
- * Get agency color from name
+ * Get agency color CSS variable from name
  */
-function getAgencyColor(agencyName: string | null): string {
-  if (!agencyName) return "#6b7280";
+function getAgencyColorVar(agencyName: string | null): string {
+  if (!agencyName) return "var(--agency-default)";
 
   const nameLower = agencyName.toLowerCase();
   for (const [id, agency] of Object.entries(CERTIFICATION_AGENCIES)) {
     if (nameLower.includes(id) || nameLower.includes(agency.name.toLowerCase())) {
-      return agency.color;
+      return `var(--agency-${id})`;
     }
   }
-  return "#6b7280";
+  return "var(--agency-default)";
+}
+
+/**
+ * Get agency color object from name
+ */
+function getAgencyColorObj(agencyName: string | null): { light: string; dark: string } {
+  if (!agencyName) return { light: "#6b7280", dark: "#9ca3af" };
+
+  const nameLower = agencyName.toLowerCase();
+  for (const [id, agency] of Object.entries(CERTIFICATION_AGENCIES)) {
+    if (nameLower.includes(id) || nameLower.includes(agency.name.toLowerCase())) {
+      return { light: agency.lightColor, dark: agency.darkColor };
+    }
+  }
+  return { light: "#6b7280", dark: "#9ca3af" };
 }
 
 /**
@@ -156,7 +182,8 @@ function formatDate(dateStr: string): string {
 /**
  * Format time for display
  */
-function formatTime(timeStr: string): string {
+function formatTime(timeStr: string | null): string {
+  if (!timeStr) return "Time TBA";
   const [hours, minutes] = timeStr.split(":");
   const h = parseInt(hours, 10);
   const ampm = h >= 12 ? "PM" : "AM";
@@ -168,22 +195,28 @@ function formatTime(timeStr: string): string {
 // LOADER
 // ============================================================================
 
-export async function loader({ params, context }: LoaderFunctionArgs): Promise<LoaderData> {
+export async function loader({ params, request }: LoaderFunctionArgs): Promise<LoaderData> {
   const { courseId } = params;
 
   if (!courseId) {
     throw new Response("Course ID is required", { status: 400 });
   }
 
-  // Get organization from parent layout context
-  const parentData = context?.parentData as SiteLoaderData | undefined;
+  const url = new URL(request.url);
+  const host = url.host;
+  const subdomain = getSubdomainFromHost(host);
 
-  if (!parentData?.organization?.id) {
+  // Get organization from subdomain or custom domain
+  const [org] = subdomain
+    ? await db.select().from(organization).where(eq(organization.slug, subdomain)).limit(1)
+    : await db.select().from(organization).where(eq(organization.customDomain, host.split(":")[0])).limit(1);
+
+  if (!org) {
     throw new Response("Organization not found", { status: 404 });
   }
 
   // Get course details
-  const course = await getPublicCourseById(parentData.organization.id, courseId);
+  const course = await getPublicCourseById(org.id, courseId);
 
   if (!course) {
     throw new Response("Course not found", { status: 404 });
@@ -191,7 +224,7 @@ export async function loader({ params, context }: LoaderFunctionArgs): Promise<L
 
   // Get scheduled sessions for this course
   const sessionsResult = await getCourseScheduledTrips(
-    parentData.organization.id,
+    org.id,
     courseId,
     { limit: 10 }
   );
@@ -200,6 +233,7 @@ export async function loader({ params, context }: LoaderFunctionArgs): Promise<L
     course,
     sessions: sessionsResult.trips,
     totalSessions: sessionsResult.total,
+    organizationSlug: subdomain || org.slug,
   };
 }
 
@@ -228,12 +262,12 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 function AgencyCertificationCard({
   agency,
 }: {
-  agency: { id: string; name: string; color: string; description: string };
+  agency: { id: string; name: string; colorVar: string; colorObj: { light: string; dark: string }; description: string };
 }) {
   return (
     <div
       className="rounded-xl p-6 text-white"
-      style={{ backgroundColor: agency.color }}
+      style={{ backgroundColor: agency.colorVar }}
     >
       <div className="flex items-center gap-4 mb-3">
         <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -335,7 +369,7 @@ function WhatsIncludedSection({ course }: { course: CourseDetail }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-surface-raised dark:bg-surface-raised rounded-xl shadow-sm border border-border-strong p-6">
       <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-color)" }}>
         What's Included
       </h2>
@@ -360,7 +394,7 @@ function WhatsIncludedSection({ course }: { course: CourseDetail }) {
           <ul className="space-y-2 text-sm opacity-75">
             {excludedItems.map((item, index) => (
               <li key={index} className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 {item}
@@ -405,7 +439,7 @@ function PrerequisitesSection({ course }: { course: CourseDetail }) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-surface-raised dark:bg-surface-raised rounded-xl shadow-sm border border-border-strong p-6">
       <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-color)" }}>
         Prerequisites
       </h2>
@@ -437,18 +471,51 @@ function SessionCard({
   courseId,
   defaultPrice,
   currency,
+  organizationSlug,
+  isSelected,
+  onSelect,
 }: {
   session: ScheduledSession;
   courseId: string;
   defaultPrice: string;
   currency: string;
+  organizationSlug: string;
+  isSelected?: boolean;
+  onSelect?: (sessionId: string) => void;
 }) {
   const price = session.price || defaultPrice;
 
+  const handleSelect = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if ('key' in e && e.key !== 'Enter' && e.key !== ' ') {
+      return;
+    }
+    if ('key' in e) {
+      e.preventDefault();
+    }
+    onSelect?.(session.id);
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Select session on ${formatDate(session.date)}${session.startTime ? ` at ${formatTime(session.startTime)}` : ''}`}
+      className={`bg-surface-raised rounded-xl shadow-sm border-2 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+        isSelected ? 'bg-brand-muted dark:bg-brand-muted/20' : 'hover:bg-surface-overlay'
+      }`}
+      style={{
+        borderColor: isSelected ? "var(--primary-color)" : "var(--border-color)",
+      }}
+      onClick={handleSelect}
+      onKeyDown={handleSelect}
+    >
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
+          {isSelected && (
+            <svg className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary-color)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )}
           <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
@@ -477,9 +544,10 @@ function SessionCard({
           {formatPrice(price, currency)}
         </span>
         <Link
-          to={`/site/book/course/${courseId}?session=${session.id}`}
+          to={`/embed/${organizationSlug}/courses/${courseId}/enroll?sessionId=${session.id}`}
           className="px-4 py-2 text-white font-semibold rounded-lg transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--primary-color)" }}
+          onClick={(e) => e.stopPropagation()}
         >
           Enroll
         </Link>
@@ -497,16 +565,22 @@ function SessionsSection({
   courseId,
   defaultPrice,
   currency,
+  organizationSlug,
+  selectedSessionId,
+  onSelectSession,
 }: {
   sessions: ScheduledSession[];
   totalSessions: number;
   courseId: string;
   defaultPrice: string;
   currency: string;
+  organizationSlug: string;
+  selectedSessionId?: string | null;
+  onSelectSession?: (sessionId: string) => void;
 }) {
   if (sessions.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+      <div className="bg-surface-raised rounded-xl shadow-sm border border-border-strong p-6 text-center">
         <svg
           className="w-12 h-12 mx-auto mb-3 opacity-50"
           style={{ color: "var(--primary-color)" }}
@@ -522,7 +596,7 @@ function SessionsSection({
         </p>
         <Link
           to="/site/contact"
-          className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors hover:bg-gray-50"
+          className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors hover:opacity-90"
           style={{ borderColor: "var(--primary-color)", color: "var(--primary-color)" }}
         >
           Contact Us
@@ -544,6 +618,9 @@ function SessionsSection({
             courseId={courseId}
             defaultPrice={defaultPrice}
             currency={currency}
+            organizationSlug={organizationSlug}
+            isSelected={selectedSessionId === session.id}
+            onSelect={onSelectSession}
           />
         ))}
       </div>
@@ -561,18 +638,60 @@ function SessionsSection({
 // ============================================================================
 
 export default function SiteCourseDetailPage() {
-  const { course, sessions, totalSessions } = useLoaderData<typeof loader>();
+  const { course, sessions, totalSessions, organizationSlug } = useLoaderData<typeof loader>();
+
+  // Session selection state
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+
+  // Auto-select single session for better UX
+  useEffect(() => {
+    if (sessions.length === 1 && !selectedSessionId) {
+      setSelectedSessionId(sessions[0].id);
+    }
+  }, [sessions, selectedSessionId]);
 
   // Get agency info for styling
-  const agencyColor = getAgencyColor(course.agencyName);
+  const agencyColorVar = getAgencyColorVar(course.agencyName);
+  const agencyColorObj = getAgencyColorObj(course.agencyName);
   const agencyInfo = course.agencyName ? {
     name: course.agencyName,
-    color: agencyColor,
+    colorVar: agencyColorVar,
+    colorObj: agencyColorObj,
     description: CERTIFICATION_AGENCIES[course.agencyName.toLowerCase()]?.description || `${course.agencyName} certified course`,
   } : null;
 
+  // Generate CSS custom properties for agency colors
+  const agencyColorCSS = Object.entries(CERTIFICATION_AGENCIES)
+    .map(([id, agency]) => `
+      :root {
+        --agency-${id}: ${agency.lightColor};
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --agency-${id}: ${agency.darkColor};
+        }
+      }
+    `)
+    .join('\n') + `
+      :root {
+        --agency-default: #6b7280;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --agency-default: #9ca3af;
+        }
+      }
+    `;
+
+  // Determine enrollment state
+  const hasSessionsAvailable = sessions.length > 0;
+  const canEnrollNow = hasSessionsAvailable && selectedSessionId !== null;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Agency color CSS variables */}
+      <style dangerouslySetInnerHTML={{ __html: agencyColorCSS }} />
+
       {/* Breadcrumb */}
       <nav className="mb-8">
         <ol className="flex items-center gap-2 text-sm">
@@ -631,13 +750,13 @@ export default function SiteCourseDetailPage() {
               {course.agencyName && (
                 <span
                   className="inline-flex items-center px-3 py-1 text-sm font-semibold text-white rounded-full"
-                  style={{ backgroundColor: agencyColor }}
+                  style={{ backgroundColor: agencyColorVar }}
                 >
                   {course.agencyName}
                 </span>
               )}
               {course.levelName && (
-                <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-gray-100 text-gray-700 rounded-full">
+                <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-surface-inset text-foreground rounded-full">
                   {course.levelName}
                 </span>
               )}
@@ -717,7 +836,7 @@ export default function SiteCourseDetailPage() {
         <div className="lg:col-span-1 space-y-6">
           {/* Price Card */}
           <div
-            className="bg-white rounded-xl shadow-lg border-2 p-6 sticky top-24"
+            className="bg-surface-raised rounded-xl shadow-lg border-2 p-6 sticky top-24"
             style={{ borderColor: "var(--primary-color)" }}
           >
             <div className="text-center mb-6">
@@ -732,19 +851,53 @@ export default function SiteCourseDetailPage() {
             </div>
 
             {/* Enroll Button */}
-            <Link
-              to={`/site/book/course/${course.id}`}
-              className="w-full py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
-              style={{ backgroundColor: "var(--primary-color)" }}
-            >
-              Enroll Now
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
+            {!hasSessionsAvailable ? (
+              // No sessions available - show Contact Us
+              <Link
+                to="/site/contact"
+                className="w-full py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ backgroundColor: "var(--primary-color)" }}
+              >
+                Contact Us
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </Link>
+            ) : canEnrollNow ? (
+              // Session selected - allow enrollment
+              <Link
+                to={`/embed/${organizationSlug}/courses/${course.id}/enroll?sessionId=${selectedSessionId}`}
+                className="w-full py-3 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ backgroundColor: "var(--primary-color)" }}
+              >
+                Enroll Now
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            ) : (
+              // Sessions available but none selected - disabled state
+              <div>
+                <button
+                  disabled
+                  aria-disabled="true"
+                  aria-describedby="enroll-helper-text"
+                  className="w-full py-3 text-white font-semibold rounded-lg opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ backgroundColor: "var(--primary-color)" }}
+                >
+                  Enroll Now
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </button>
+                <p id="enroll-helper-text" className="mt-2 text-sm text-center opacity-75">
+                  Select a session below to enroll
+                </p>
+              </div>
+            )}
 
             {/* Quick Info */}
-            <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+            <div className="mt-6 pt-6 border-t border-border-strong space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <svg className="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -797,6 +950,9 @@ export default function SiteCourseDetailPage() {
           courseId={course.id}
           defaultPrice={course.price}
           currency={course.currency}
+          organizationSlug={organizationSlug}
+          selectedSessionId={selectedSessionId}
+          onSelectSession={setSelectedSessionId}
         />
       </div>
 

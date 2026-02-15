@@ -19,13 +19,13 @@ function getTenantUrl(path: string) {
 
 async function loginToTenant(page: any) {
   await page.goto(getTenantUrl("/auth/login"));
-  await page.getByLabel(/email/i).fill(testData.user.email);
-  await page.getByLabel(/password/i).fill(testData.user.password);
+  await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
+  await page.locator('input[type="password"]').first().fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
   }
 }
 
@@ -84,16 +84,16 @@ test.describe("Stripe Integration", () => {
     await page.goto(getTenantUrl("/tenant/settings/integrations"));
 
     // Wait for page to load
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     // Find the Stripe integration card by its unique structure
     const stripeCard = page.locator('div.bg-surface-raised.rounded-xl:has(h3:text-is("Stripe"))').first();
     // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
     if (!(await stripeCard.isVisible().catch(() => false))) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
+      await page.waitForLoadState("networkidle").catch(() => {});
     }
     await expect(stripeCard).toBeVisible({ timeout: 8000 });
 

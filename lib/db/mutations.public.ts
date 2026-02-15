@@ -102,101 +102,104 @@ export async function createWidgetBooking(
     throw new Error("Cannot book past trips");
   }
 
-  // Find or create customer
-  const existingCustomers = await db
-    .select({ id: schema.customers.id })
-    .from(schema.customers)
-    .where(
-      and(
-        eq(schema.customers.organizationId, organizationId),
-        eq(schema.customers.email, input.email.toLowerCase())
+  // Wrap find-or-create customer + create booking in a transaction for atomicity
+  return await db.transaction(async (tx) => {
+    // Find or create customer
+    const existingCustomers = await tx
+      .select({ id: schema.customers.id })
+      .from(schema.customers)
+      .where(
+        and(
+          eq(schema.customers.organizationId, organizationId),
+          eq(schema.customers.email, input.email.toLowerCase())
+        )
       )
-    )
-    .limit(1);
+      .limit(1);
 
-  let customerId: string;
+    let customerId: string;
 
-  if (existingCustomers.length > 0) {
-    customerId = existingCustomers[0].id;
+    if (existingCustomers.length > 0) {
+      customerId = existingCustomers[0].id;
 
-    // Update customer info
-    await db
-      .update(schema.customers)
-      .set({
-        firstName: input.firstName,
-        lastName: input.lastName,
-        phone: input.phone || undefined,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.customers.id, customerId));
-  } else {
-    // Create new customer
-    const newCustomer = await db
-      .insert(schema.customers)
+      // Update customer info
+      await tx
+        .update(schema.customers)
+        .set({
+          firstName: input.firstName,
+          lastName: input.lastName,
+          phone: input.phone || undefined,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.customers.id, customerId));
+    } else {
+      // Create new customer
+      const newCustomer = await tx
+        .insert(schema.customers)
+        .values({
+          organizationId,
+          email: input.email.toLowerCase(),
+          firstName: input.firstName,
+          lastName: input.lastName,
+          phone: input.phone || null,
+        })
+        .returning({ id: schema.customers.id });
+
+      customerId = newCustomer[0].id;
+    }
+
+    // Calculate pricing
+    const pricePerPerson = parseFloat(trip.tripPrice || trip.tourPrice);
+    const subtotal = pricePerPerson * input.participants;
+    const tax = 0; // Tax calculation can be added later
+    const total = subtotal + tax;
+
+    // Generate booking number
+    const bookingNumber = generateBookingNumber();
+
+    // Create booking
+    const newBooking = await tx
+      .insert(schema.bookings)
       .values({
         organizationId,
-        email: input.email.toLowerCase(),
-        firstName: input.firstName,
-        lastName: input.lastName,
-        phone: input.phone || null,
+        bookingNumber,
+        tripId: input.tripId,
+        customerId,
+        participants: input.participants,
+        status: "pending",
+        subtotal: subtotal.toFixed(2),
+        tax: tax.toFixed(2),
+        total: total.toFixed(2),
+        currency: trip.currency,
+        paymentStatus: "pending",
+        specialRequests: input.specialRequests || null,
+        source: "widget",
       })
-      .returning({ id: schema.customers.id });
+      .returning({
+        id: schema.bookings.id,
+        bookingNumber: schema.bookings.bookingNumber,
+        tripId: schema.bookings.tripId,
+        customerId: schema.bookings.customerId,
+        participants: schema.bookings.participants,
+        total: schema.bookings.total,
+        currency: schema.bookings.currency,
+        status: schema.bookings.status,
+        paymentStatus: schema.bookings.paymentStatus,
+      });
 
-    customerId = newCustomer[0].id;
-  }
+    const booking = newBooking[0];
 
-  // Calculate pricing
-  const pricePerPerson = parseFloat(trip.tripPrice || trip.tourPrice);
-  const subtotal = pricePerPerson * input.participants;
-  const tax = 0; // Tax calculation can be added later
-  const total = subtotal + tax;
-
-  // Generate booking number
-  const bookingNumber = generateBookingNumber();
-
-  // Create booking
-  const newBooking = await db
-    .insert(schema.bookings)
-    .values({
-      organizationId,
-      bookingNumber,
-      tripId: input.tripId,
-      customerId,
-      participants: input.participants,
-      status: "pending",
-      subtotal: subtotal.toFixed(2),
-      tax: tax.toFixed(2),
-      total: total.toFixed(2),
-      currency: trip.currency,
-      paymentStatus: "pending",
-      specialRequests: input.specialRequests || null,
-      source: "widget",
-    })
-    .returning({
-      id: schema.bookings.id,
-      bookingNumber: schema.bookings.bookingNumber,
-      tripId: schema.bookings.tripId,
-      customerId: schema.bookings.customerId,
-      participants: schema.bookings.participants,
-      total: schema.bookings.total,
-      currency: schema.bookings.currency,
-      status: schema.bookings.status,
-      paymentStatus: schema.bookings.paymentStatus,
-    });
-
-  const booking = newBooking[0];
-
-  return {
-    id: booking.id,
-    bookingNumber: booking.bookingNumber,
-    tripId: booking.tripId,
-    customerId: booking.customerId,
-    participants: Number(booking.participants),
-    total: booking.total,
-    currency: booking.currency,
-    status: booking.status,
-    paymentStatus: booking.paymentStatus,
-  };
+    return {
+      id: booking.id,
+      bookingNumber: booking.bookingNumber,
+      tripId: booking.tripId,
+      customerId: booking.customerId,
+      participants: Number(booking.participants),
+      total: booking.total,
+      currency: booking.currency,
+      status: booking.status,
+      paymentStatus: booking.paymentStatus,
+    };
+  });
 }
 
 // Get booking details for confirmation page

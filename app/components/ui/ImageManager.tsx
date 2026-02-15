@@ -21,7 +21,7 @@ export interface Image {
 }
 
 interface ImageManagerProps {
-  entityType: "tour" | "diveSite" | "boat" | "equipment" | "staff" | "course";
+  entityType: "tour" | "dive-site" | "boat" | "equipment" | "staff" | "course" | "product";
   entityId: string;
   images: Image[];
   maxImages?: number;
@@ -72,10 +72,19 @@ export function ImageManager({
         return;
       }
 
+      console.log("Upload response:", result);
+
+      if (!result.image) {
+        console.error("No image in response:", result);
+        setError("Invalid response from server");
+        return;
+      }
+
       const newImages = [...images, result.image];
       setImages(newImages);
       onImagesChange?.(newImages);
-    } catch {
+    } catch (error) {
+      console.error("Upload error:", error);
       setError("Upload failed. Please try again.");
     } finally {
       setUploading(false);

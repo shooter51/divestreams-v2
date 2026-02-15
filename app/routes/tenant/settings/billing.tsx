@@ -16,6 +16,7 @@ import {
   fetchInvoicesFromStripe,
 } from "../../../../lib/stripe/stripe-billing.server";
 import { FEATURE_LABELS, type PlanFeaturesObject } from "../../../../lib/plan-features";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
@@ -93,8 +94,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     {
       id: "enterprise",
       name: "Enterprise",
-      price: 99,
-      yearlyPrice: 950,
+      price: 199,
+      yearlyPrice: 1910,
       features: ["Everything in Pro", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options"],
       limits: { bookings: -1, team: -1 },
       isFree: false,
@@ -246,7 +247,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const { requireRole } = await import("../../../../lib/auth/org-context.server");
   const ctx = await requireOrgContext(request);
+
+  // Billing actions (upgrade, cancel, payment changes) require owner role only
+  requireRole(ctx, ["owner"]);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
 
@@ -323,6 +329,7 @@ export default function BillingPage() {
     type: "success" | "error" | "info";
     message: string;
   } | null>(null);
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("yearly");
 
   // Find current plan data for features display
   const currentPlanData = plans.find((p) => p.id === billing.currentPlan);
@@ -340,8 +347,8 @@ export default function BillingPage() {
   useEffect(() => {
     if (searchParams.get("success") === "true") {
       setNotification({
-        type: "success",
-        message: "Payment successful! Your subscription has been updated.",
+        type: "info",
+        message: "Payment successful! Your subscription is being updated. This may take a few moments. Please refresh the page in 30 seconds.",
       });
       setSearchParams({}, { replace: true });
     } else if (searchParams.get("payment_added") === "true") {
@@ -445,6 +452,7 @@ export default function BillingPage() {
           </div>
           <div className="flex gap-2">
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
@@ -510,7 +518,39 @@ export default function BillingPage() {
 
       {/* Available Plans */}
       <div className="mb-6">
-        <h2 className="font-semibold mb-4">Available Plans</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-semibold">Available Plans</h2>
+
+          {/* Billing Period Toggle */}
+          <div className="flex items-center gap-2 bg-surface-inset rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setBillingPeriod("monthly")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                billingPeriod === "monthly"
+                  ? "bg-surface-raised text-foreground shadow-sm"
+                  : "text-foreground-muted hover:text-foreground"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingPeriod("yearly")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                billingPeriod === "yearly"
+                  ? "bg-surface-raised text-foreground shadow-sm"
+                  : "text-foreground-muted hover:text-foreground"
+              }`}
+            >
+              Yearly
+              <span className="ml-1.5 text-xs text-success font-semibold">
+                Save {plans[1] ? Math.round(((plans[1].price * 12 - plans[1].yearlyPrice) / (plans[1].price * 12)) * 100) : 20}%
+              </span>
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-3 gap-4">
           {plans.map((plan) => {
             const isCurrent = plan.id === billing.currentPlan;
@@ -528,13 +568,29 @@ export default function BillingPage() {
                 )}
                 <h3 className="font-semibold text-lg">{plan.name}</h3>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold">${plan.price}</span>
-                  <span className="text-foreground-muted">/month</span>
+                  {billingPeriod === "monthly" ? (
+                    <>
+                      <span className="text-3xl font-bold">${plan.price}</span>
+                      <span className="text-foreground-muted">/month</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-3xl font-bold">${plan.yearlyPrice}</span>
+                      <span className="text-foreground-muted">/year</span>
+                    </>
+                  )}
                 </div>
                 <p className="text-sm text-foreground-muted mt-1">
-                  or ${plan.yearlyPrice}/year (save{" "}
-                  {Math.round(((plan.price * 12 - plan.yearlyPrice) / (plan.price * 12)) * 100)}
-                  %)
+                  {billingPeriod === "monthly" ? (
+                    <>
+                      ${plan.yearlyPrice}/year saves{" "}
+                      {Math.round(((plan.price * 12 - plan.yearlyPrice) / (plan.price * 12)) * 100)}%
+                    </>
+                  ) : (
+                    <>
+                      ${(plan.yearlyPrice / 12).toFixed(2)}/month billed annually
+                    </>
+                  )}
                 </p>
                 <ul className="mt-4 space-y-2 text-sm">
                   {plan.features.map((feature) => (
@@ -554,8 +610,10 @@ export default function BillingPage() {
                     </button>
                   ) : (
                     <fetcher.Form method="post">
+                      <CsrfInput />
                       <input type="hidden" name="intent" value="upgrade" />
                       <input type="hidden" name="planId" value={plan.id} />
+                      <input type="hidden" name="billingPeriod" value={billingPeriod} />
                       <button
                         type="submit"
                         disabled={isSubmitting}
@@ -601,6 +659,7 @@ export default function BillingPage() {
               </div>
             </div>
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
@@ -615,6 +674,7 @@ export default function BillingPage() {
           <div className="text-center py-4">
             <p className="text-foreground-muted mb-3">No payment method on file</p>
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-payment" />
               <button
                 type="submit"
@@ -694,6 +754,7 @@ export default function BillingPage() {
               }
             }}
           >
+            <CsrfInput />
             <input type="hidden" name="intent" value="cancel" />
             <button
               type="submit"
@@ -708,7 +769,7 @@ export default function BillingPage() {
 
       {/* Canceled Notice */}
       {billing.subscriptionStatus === "canceled" && (
-        <div className="bg-warning-muted border border-warning-muted rounded-xl p-6">
+        <div className="bg-warning-muted border border-warning-muted rounded-xl max-w-4xl break-words p-6">
           <h2 className="font-semibold mb-2 text-warning">Subscription Canceled</h2>
           <p className="text-warning text-sm mb-4">
             Your subscription has been canceled. You will retain access until{" "}

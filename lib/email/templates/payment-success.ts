@@ -1,6 +1,10 @@
 /**
  * Payment Success Email Template
+ *
+ * SECURITY: All user-provided data is escaped to prevent XSS attacks
  */
+
+import { escapeHtml } from "../../security/sanitize";
 
 export interface PaymentSuccessData {
   customerName: string;
@@ -20,7 +24,18 @@ export function getPaymentSuccessEmail(data: PaymentSuccessData): {
   html: string;
   text: string;
 } {
-  const subject = `Payment Confirmed - ${data.amount} ${data.currency.toUpperCase()}`;
+  // SECURITY: Escape all user-provided data to prevent XSS
+  const customerName = escapeHtml(data.customerName);
+  const amount = escapeHtml(data.amount);
+  const currency = escapeHtml(data.currency.toUpperCase());
+  const paymentDate = escapeHtml(data.paymentDate);
+  const invoiceNumber = data.invoiceNumber ? escapeHtml(data.invoiceNumber) : null;
+  const description = data.description ? escapeHtml(data.description) : null;
+  const organizationName = escapeHtml(data.organizationName);
+  const organizationEmail = data.organizationEmail ? escapeHtml(data.organizationEmail) : null;
+  const invoiceUrl = data.invoiceUrl ? escapeHtml(data.invoiceUrl) : null;
+
+  const subject = `Payment Confirmed - ${amount} ${currency}`;
 
   const html = `
 <!DOCTYPE html>
@@ -37,7 +52,7 @@ export function getPaymentSuccessEmail(data: PaymentSuccessData): {
 
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
     <p style="font-size: 16px; margin-bottom: 20px;">
-      Hi ${data.customerName},
+      Hi ${customerName},
     </p>
 
     <p style="margin-bottom: 20px;">
@@ -51,31 +66,31 @@ export function getPaymentSuccessEmail(data: PaymentSuccessData): {
         <tr>
           <td style="padding: 8px 0; color: #666;">Amount:</td>
           <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #059669;">
-            ${data.amount} ${data.currency.toUpperCase()}
+            ${amount} ${currency}
           </td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #666;">Date:</td>
-          <td style="padding: 8px 0; text-align: right;">${data.paymentDate}</td>
+          <td style="padding: 8px 0; text-align: right;">${paymentDate}</td>
         </tr>
-        ${data.invoiceNumber ? `
+        ${invoiceNumber ? `
         <tr>
           <td style="padding: 8px 0; color: #666;">Invoice:</td>
-          <td style="padding: 8px 0; text-align: right;">${data.invoiceNumber}</td>
+          <td style="padding: 8px 0; text-align: right;">${invoiceNumber}</td>
         </tr>
         ` : ''}
-        ${data.description ? `
+        ${description ? `
         <tr>
           <td style="padding: 8px 0; color: #666;">Description:</td>
-          <td style="padding: 8px 0; text-align: right;">${data.description}</td>
+          <td style="padding: 8px 0; text-align: right;">${description}</td>
         </tr>
         ` : ''}
       </table>
     </div>
 
-    ${data.invoiceUrl ? `
+    ${invoiceUrl ? `
     <div style="text-align: center; margin: 25px 0;">
-      <a href="${data.invoiceUrl}" style="display: inline-block; background: #0066cc; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+      <a href="${invoiceUrl}" style="display: inline-block; background: #0066cc; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 500;">
         View Receipt
       </a>
     </div>
@@ -83,13 +98,13 @@ export function getPaymentSuccessEmail(data: PaymentSuccessData): {
 
     <p style="color: #666; font-size: 14px; margin-top: 25px;">
       If you have any questions about this payment, please contact us at
-      ${data.organizationEmail ? `<a href="mailto:${data.organizationEmail}" style="color: #0066cc;">${data.organizationEmail}</a>` : 'our support team'}.
+      ${organizationEmail ? `<a href="mailto:${organizationEmail}" style="color: #0066cc;">${organizationEmail}</a>` : 'our support team'}.
     </p>
 
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
 
     <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
-      This email was sent by ${data.organizationName}
+      This email was sent by ${organizationName}
     </p>
   </div>
 </body>
@@ -99,21 +114,21 @@ export function getPaymentSuccessEmail(data: PaymentSuccessData): {
   const text = `
 Payment Confirmed
 
-Hi ${data.customerName},
+Hi ${customerName},
 
 Thank you for your payment! We've successfully processed your transaction.
 
 Payment Details:
-- Amount: ${data.amount} ${data.currency.toUpperCase()}
-- Date: ${data.paymentDate}
-${data.invoiceNumber ? `- Invoice: ${data.invoiceNumber}` : ''}
-${data.description ? `- Description: ${data.description}` : ''}
+- Amount: ${amount} ${currency}
+- Date: ${paymentDate}
+${invoiceNumber ? `- Invoice: ${invoiceNumber}` : ''}
+${description ? `- Description: ${description}` : ''}
 
-${data.invoiceUrl ? `View your receipt: ${data.invoiceUrl}` : ''}
+${invoiceUrl ? `View your receipt: ${invoiceUrl}` : ''}
 
 If you have any questions about this payment, please contact us.
 
-${data.organizationName}
+${organizationName}
   `.trim();
 
   return { subject, html, text };

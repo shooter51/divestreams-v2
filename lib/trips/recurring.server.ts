@@ -472,6 +472,17 @@ export async function cancelRecurringSeries(
   const { includeTemplate = false, cancelDate } = options;
   const effectiveDate = cancelDate || new Date().toISOString().split("T")[0];
 
+  // Get list of trips that will be cancelled (for Google Calendar sync)
+  const tripsToBeCancelled = await db
+    .select({ id: trips.id })
+    .from(trips)
+    .where(and(
+      eq(trips.organizationId, organizationId),
+      eq(trips.recurringTemplateId, templateId),
+      gte(trips.date, effectiveDate),
+      sql`${trips.status} NOT IN ('completed', 'cancelled')`
+    ));
+
   // Cancel future instances
   await db
     .update(trips)
@@ -485,6 +496,21 @@ export async function cancelRecurringSeries(
 
   // Cancel template if requested
   if (includeTemplate) {
+    const [templateTrip] = await db
+      .select({ id: trips.id })
+      .from(trips)
+      .where(and(
+        eq(trips.organizationId, organizationId),
+        eq(trips.id, templateId),
+        gte(trips.date, effectiveDate),
+        sql`${trips.status} NOT IN ('completed', 'cancelled')`
+      ))
+      .limit(1);
+
+    if (templateTrip) {
+      tripsToBeCancelled.push({ id: templateTrip.id });
+    }
+
     await db
       .update(trips)
       .set({ status: "cancelled", updatedAt: new Date() })
@@ -494,6 +520,23 @@ export async function cancelRecurringSeries(
         gte(trips.date, effectiveDate),
         sql`${trips.status} NOT IN ('completed', 'cancelled')`
       ));
+  }
+
+  // Sync cancelled trips to Google Calendar (async, don't block response)
+  if (tripsToBeCancelled.length > 0) {
+    // Import and sync each cancelled trip to Google Calendar
+    // Note: syncTripToCalendar defaults to UTC timezone
+    import("../integrations/google-calendar.server")
+      .then(({ syncTripToCalendar }) => {
+        tripsToBeCancelled.forEach((trip) => {
+          syncTripToCalendar(organizationId, trip.id).catch((error) =>
+            console.error(`Google Calendar sync failed for cancelled trip ${trip.id}:`, error)
+          );
+        });
+      })
+      .catch((error) => {
+        console.error("Failed to import Google Calendar integration:", error);
+      });
   }
 
   // Return count of cancelled trips (estimate)

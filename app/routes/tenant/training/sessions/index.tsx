@@ -2,6 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getSessions, getCourses } from "../../../../../lib/db/training.server";
+import { useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Training Sessions - DiveStreams" }];
 
@@ -45,6 +46,8 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function SessionsPage() {
+  useNotification();
+
   const { sessions, courses, total, courseId, status } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -98,7 +101,7 @@ export default function SessionsPage() {
             <select
               value={courseId}
               onChange={(e) => updateFilter("courseId", e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
               <option value="">All Courses</option>
               {courses.map((course) => (
@@ -117,7 +120,7 @@ export default function SessionsPage() {
             <select
               value={status}
               onChange={(e) => updateFilter("status", e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             >
               <option value="">All Statuses</option>
               <option value="scheduled">Scheduled</option>
@@ -207,7 +210,7 @@ export default function SessionsPage() {
                       <div className="flex items-center gap-6">
                         <div className="text-right">
                           <p className="font-medium">
-                            {session.enrolledCount || 0}/{session.maxStudents || "?"} enrolled
+                            {session.enrolledCount || 0}{session.maxStudents ? `/${session.maxStudents}` : ""} enrolled
                           </p>
                           <p className="text-sm text-foreground-muted">
                             {session.priceOverride

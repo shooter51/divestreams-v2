@@ -53,6 +53,7 @@ export function CardModal({
   const [cardElement, setCardElement] = useState<StripeCardElementType | null>(null);
   const [cardComplete, setCardComplete] = useState(false);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [pendingPayment, setPendingPayment] = useState<{ clientSecret: string; paymentIntentId: string } | null>(null);
 
   // Load Stripe.js when modal opens with manual entry
   useEffect(() => {
@@ -86,15 +87,24 @@ export function CardModal({
   useEffect(() => {
     if (!stripe || step !== "manual-entry") return;
 
+    // Get colors from CSS variables
+    const computedStyle = getComputedStyle(document.documentElement);
+    const foreground = computedStyle.getPropertyValue("--foreground").trim() ||
+      computedStyle.getPropertyValue("color") || "#1F2937";  // Fallback to body color or default
+    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() ||
+      "#6B7280";  // Gray-500 fallback
+    const danger = computedStyle.getPropertyValue("--danger").trim() ||
+      "#DC2626";  // Red-600 fallback
+
     const elements = stripe.elements();
     const card = elements.create("card", {
       style: {
         base: {
           fontSize: "16px",
-          color: "#424770",
-          "::placeholder": { color: "#aab7c4" },
+          color: foreground,
+          "::placeholder": { color: foregroundMuted },
         },
-        invalid: { color: "#9e2146" },
+        invalid: { color: danger },
       },
     });
 
@@ -134,33 +144,63 @@ export function CardModal({
       if (data.error) {
         setError(data.error);
         setStep("error");
-      } else if (data.clientSecret && stripe && cardElement) {
-        // Confirm the payment
-        confirmPayment(data.clientSecret, data.paymentIntentId!);
+      } else if (data.clientSecret && data.paymentIntentId) {
+        // Store payment details - will be processed when Stripe is ready
+        setPendingPayment({
+          clientSecret: data.clientSecret,
+          paymentIntentId: data.paymentIntentId,
+        });
       }
     }
-  }, [fetcher.state, fetcher.data, stripe, cardElement]);
+  }, [fetcher.state, fetcher.data]);
+
+  // Process pending payment when Stripe and card element are ready
+  useEffect(() => {
+    if (pendingPayment && stripe && cardElement) {
+      confirmPayment(pendingPayment.clientSecret, pendingPayment.paymentIntentId);
+      setPendingPayment(null); // Clear pending payment
+    }
+  }, [pendingPayment, stripe, cardElement]);
 
   const confirmPayment = async (clientSecret: string, intentId: string) => {
     if (!stripe || !cardElement) return;
 
     setStep("processing");
 
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card: cardElement },
-    });
+    try {
+      // Wrap Stripe call in Promise.race for 30-second timeout
+      const result = await Promise.race([
+        stripe.confirmCardPayment(clientSecret, {
+          payment_method: { card: cardElement },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Payment timeout - please try again")), 30000)
+        ),
+      ]);
 
-    if (result.error) {
-      setError(result.error.message || "Payment failed");
+      if (result.error) {
+        setError(result.error.message || "Payment failed");
+        setStep("error");
+      } else if (result.paymentIntent?.status === "succeeded") {
+        setPaymentIntentId(intentId);
+        setStep("success");
+        // Auto-complete after showing success
+        setTimeout(() => {
+          onComplete([{ method: "card", amount: total, stripePaymentIntentId: intentId }]);
+          handleClose();
+        }, 1500);
+      } else {
+        // Handle unexpected response format
+        console.error("Unexpected payment response:", result);
+        setError("Payment status unclear - please contact support");
+        setStep("error");
+      }
+    } catch (err) {
+      // Handle timeout, network errors, and other exceptions
+      const errorMessage = err instanceof Error ? err.message : "Payment failed - please try again";
+      console.error("Payment confirmation error:", err);
+      setError(errorMessage);
       setStep("error");
-    } else if (result.paymentIntent?.status === "succeeded") {
-      setPaymentIntentId(intentId);
-      setStep("success");
-      // Auto-complete after showing success
-      setTimeout(() => {
-        onComplete([{ method: "card", amount: total, stripePaymentIntentId: intentId }]);
-        handleClose();
-      }, 1500);
     }
   };
 
@@ -198,6 +238,7 @@ export function CardModal({
     setError(null);
     setCardComplete(false);
     setPaymentIntentId(null);
+    setPendingPayment(null);
     onClose();
   }, [onClose]);
 
@@ -511,7 +552,7 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
           <button
             onClick={() => onComplete([{ method: "cash", amount: total }])}
             disabled={tenderedAmount < total}
-            className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
+            className="flex-1 py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Complete Sale
           </button>
@@ -521,20 +562,198 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
   );
 }
 
-// Split Payment Modal
-export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModalProps) {
-  const [payments, setPayments] = useState<Array<{ method: "card" | "cash"; amount: number }>>([]);
-  const [currentMethod, setCurrentMethod] = useState<"card" | "cash">("card");
+// Split Payment Modal - supports Cash and Credit Card splits
+interface SplitModalProps extends CheckoutModalProps {
+  stripeConnected: boolean;
+  stripePublishableKey: string | null;
+  customerId?: string;
+}
+
+export function SplitModal({
+  isOpen,
+  onClose,
+  total,
+  onComplete,
+  stripeConnected,
+  stripePublishableKey,
+  customerId
+}: SplitModalProps) {
+  const fetcher = useFetcher();
+  const [payments, setPayments] = useState<Array<{ method: "cash" | "card"; amount: number; stripePaymentIntentId?: string }>>([]);
   const [currentAmount, setCurrentAmount] = useState("");
+  const [currentMethod, setCurrentMethod] = useState<"cash" | "card">("cash");
+  const [processingCard, setProcessingCard] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [stripe, setStripe] = useState<StripeType | null>(null);
+  const [cardElement, setCardElement] = useState<StripeCardElementType | null>(null);
+  const [cardComplete, setCardComplete] = useState(false);
+  const [pendingCardPayment, setPendingCardPayment] = useState<{ amount: number; clientSecret: string; paymentIntentId: string } | null>(null);
 
   const paidAmount = payments.reduce((sum, p) => sum + p.amount, 0);
   const remaining = total - paidAmount;
 
-  const addPayment = () => {
+  // Load Stripe.js when modal opens
+  useEffect(() => {
+    if (!isOpen || !stripePublishableKey) return;
+
+    if ((window as unknown as { Stripe?: (key: string) => StripeType }).Stripe) {
+      const stripeInstance = (window as unknown as { Stripe: (key: string) => StripeType }).Stripe(stripePublishableKey);
+      setStripe(stripeInstance);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://js.stripe.com/v3/";
+    script.async = true;
+    script.onload = () => {
+      if ((window as unknown as { Stripe?: (key: string) => StripeType }).Stripe) {
+        const stripeInstance = (window as unknown as { Stripe: (key: string) => StripeType }).Stripe(stripePublishableKey);
+        setStripe(stripeInstance);
+      }
+    };
+    document.body.appendChild(script);
+  }, [isOpen, stripePublishableKey]);
+
+  // Mount card element when Stripe is loaded and card method is selected
+  useEffect(() => {
+    if (!stripe || currentMethod !== "card") return;
+
+    const computedStyle = getComputedStyle(document.documentElement);
+    const foreground = computedStyle.getPropertyValue("--foreground").trim() ||
+      computedStyle.getPropertyValue("color") || "#1F2937";  // Fallback to body color or default
+    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() ||
+      "#6B7280";  // Gray-500 fallback
+    const danger = computedStyle.getPropertyValue("--danger").trim() ||
+      "#DC2626";  // Red-600 fallback
+
+    const elements = stripe.elements();
+    const card = elements.create("card", {
+      style: {
+        base: {
+          fontSize: "16px",
+          color: foreground,
+          "::placeholder": { color: foregroundMuted },
+        },
+        invalid: { color: danger },
+      },
+    });
+
+    const mountCard = () => {
+      const cardContainer = document.getElementById("split-stripe-card-element");
+      if (cardContainer) {
+        card.mount("#split-stripe-card-element");
+        card.on("change", (e) => {
+          setCardComplete(e.complete);
+          if (e.error) {
+            setError(e.error.message);
+          } else {
+            setError(null);
+          }
+        });
+        setCardElement(card);
+      } else {
+        setTimeout(mountCard, 100);
+      }
+    };
+
+    mountCard();
+
+    return () => {
+      card.unmount();
+      setCardElement(null);
+    };
+  }, [stripe, currentMethod]);
+
+  // Handle fetcher response for payment intent creation
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data) {
+      const data = fetcher.data as { clientSecret?: string; paymentIntentId?: string; error?: string };
+
+      if (data.error) {
+        setError(data.error);
+        setProcessingCard(false);
+      } else if (data.clientSecret && data.paymentIntentId) {
+        const amount = parseFloat(currentAmount);
+        setPendingCardPayment({
+          amount,
+          clientSecret: data.clientSecret,
+          paymentIntentId: data.paymentIntentId,
+        });
+      }
+    }
+  }, [fetcher.state, fetcher.data, currentAmount]);
+
+  // Process pending card payment
+  useEffect(() => {
+    if (pendingCardPayment && stripe && cardElement) {
+      confirmCardPayment(pendingCardPayment);
+      setPendingCardPayment(null);
+    }
+  }, [pendingCardPayment, stripe, cardElement]);
+
+  const confirmCardPayment = async (payment: { amount: number; clientSecret: string; paymentIntentId: string }) => {
+    if (!stripe || !cardElement) return;
+
+    try {
+      // Add 30-second timeout protection (matches CardModal pattern)
+      const result = await Promise.race([
+        stripe.confirmCardPayment(payment.clientSecret, {
+          payment_method: { card: cardElement },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Payment timeout - please try again")), 30000)
+        ),
+      ]);
+
+      if (result.error) {
+        setError(result.error.message || "Payment failed");
+        setProcessingCard(false);
+      } else if (result.paymentIntent?.status === "succeeded") {
+        // Add card payment to list
+        setPayments([...payments, {
+          method: "card",
+          amount: payment.amount,
+          stripePaymentIntentId: payment.paymentIntentId
+        }]);
+        setCurrentAmount("");
+        setProcessingCard(false);
+        setError(null);
+        setCardComplete(false);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Payment failed";
+      setError(errorMessage);
+      setProcessingCard(false);
+    }
+  };
+
+  const addCashPayment = () => {
     const amount = parseFloat(currentAmount);
     if (!isNaN(amount) && amount > 0 && amount <= remaining) {
-      setPayments([...payments, { method: currentMethod, amount }]);
+      setPayments([...payments, { method: "cash", amount }]);
       setCurrentAmount("");
+      setError(null);
+    }
+  };
+
+  const addCardPayment = () => {
+    const amount = parseFloat(currentAmount);
+    if (!isNaN(amount) && amount > 0 && amount <= remaining) {
+      if (!cardComplete) {
+        setError("Please enter complete card details");
+        return;
+      }
+
+      setError(null);
+      setProcessingCard(true);
+
+      const formData = new FormData();
+      formData.append("intent", "create-payment-intent");
+      formData.append("amount", Math.round(amount * 100).toString());
+      if (customerId) {
+        formData.append("customerId", customerId);
+      }
+      fetcher.submit(formData, { method: "post" });
     }
   };
 
@@ -542,11 +761,21 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
     setPayments(payments.filter((_, i) => i !== index));
   };
 
+  const handleClose = () => {
+    setPayments([]);
+    setCurrentAmount("");
+    setCurrentMethod("cash");
+    setError(null);
+    setProcessingCard(false);
+    setCardComplete(false);
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
+      <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">Split Payment</h2>
 
         <div className="space-y-4">
@@ -566,14 +795,26 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
           {/* Existing payments */}
           {payments.length > 0 && (
             <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground-muted">Payments Added:</p>
               {payments.map((payment, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-surface-inset rounded">
-                  <span className="capitalize">{payment.method}</span>
+                <div key={index} className="flex items-center justify-between p-3 bg-surface-inset rounded-lg">
                   <div className="flex items-center gap-2">
-                    <span>${payment.amount.toFixed(2)}</span>
+                    {payment.method === "cash" ? (
+                      <svg className="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                    )}
+                    <span className="font-medium capitalize">{payment.method}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold">${payment.amount.toFixed(2)}</span>
                     <button
                       onClick={() => removePayment(index)}
-                      className="text-danger hover:text-danger"
+                      className="text-danger hover:text-danger text-xl font-bold"
                     >
                       ×
                     </button>
@@ -585,29 +826,37 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
 
           {/* Add payment */}
           {remaining > 0 && (
-            <div className="p-4 border rounded-lg space-y-3">
+            <div className="p-4 border-2 border-brand rounded-lg space-y-3 max-w-full break-words">
+              <p className="text-sm font-medium">Add Payment</p>
+
+              {/* Payment method tabs */}
               <div className="flex gap-2">
                 <button
-                  onClick={() => setCurrentMethod("card")}
-                  className={`flex-1 py-2 rounded-lg ${
-                    currentMethod === "card"
-                      ? "bg-brand text-white"
-                      : "bg-surface-inset hover:bg-surface-overlay"
-                  }`}
-                >
-                  Card
-                </button>
-                <button
                   onClick={() => setCurrentMethod("cash")}
-                  className={`flex-1 py-2 rounded-lg ${
+                  className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors ${
                     currentMethod === "cash"
-                      ? "bg-green-600 text-white"
+                      ? "bg-success text-white"
                       : "bg-surface-inset hover:bg-surface-overlay"
                   }`}
                 >
                   Cash
                 </button>
+                <button
+                  onClick={() => setCurrentMethod("card")}
+                  disabled={!stripeConnected}
+                  className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors ${
+                    currentMethod === "card"
+                      ? "bg-brand text-white"
+                      : stripeConnected
+                      ? "bg-surface-inset hover:bg-surface-overlay"
+                      : "bg-surface-inset opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  Card
+                </button>
               </div>
+
+              {/* Amount input */}
               <div className="flex gap-2">
                 <input
                   type="number"
@@ -616,38 +865,64 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
                   onChange={(e) => setCurrentAmount(e.target.value)}
                   placeholder="Amount"
                   className="flex-1 px-3 py-2 border rounded-lg"
+                  disabled={processingCard}
                 />
                 <button
                   onClick={() => setCurrentAmount(remaining.toFixed(2))}
+                  disabled={processingCard}
                   className="px-3 py-2 bg-surface-inset rounded-lg hover:bg-surface-overlay text-sm"
                 >
-                  Rest
-                </button>
-                <button
-                  onClick={addPayment}
-                  disabled={!currentAmount || parseFloat(currentAmount) <= 0}
-                  className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay"
-                >
-                  Add
+                  Remaining
                 </button>
               </div>
+
+              {/* Card details (only show when card method selected) */}
+              {currentMethod === "card" && stripeConnected && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Card Information</label>
+                  <div
+                    id="split-stripe-card-element"
+                    className="p-3 border rounded-lg bg-surface-raised min-h-[44px]"
+                  />
+                </div>
+              )}
+
+              {error && (
+                <p className="text-sm text-danger max-w-full break-words">{error}</p>
+              )}
+
+              {/* Add button */}
+              <button
+                onClick={currentMethod === "cash" ? addCashPayment : addCardPayment}
+                disabled={
+                  !currentAmount ||
+                  parseFloat(currentAmount) <= 0 ||
+                  parseFloat(currentAmount) > remaining ||
+                  processingCard ||
+                  (currentMethod === "card" && !cardComplete)
+                }
+                className={`w-full py-2 rounded-lg font-medium ${
+                  currentMethod === "cash"
+                    ? "bg-success text-white hover:bg-success-hover disabled:bg-surface-overlay"
+                    : "bg-brand text-white hover:bg-brand-hover disabled:bg-surface-overlay"
+                } disabled:cursor-not-allowed`}
+              >
+                {processingCard ? "Processing..." : `Add ${currentMethod === "cash" ? "Cash" : "Card"} Payment`}
+              </button>
             </div>
           )}
         </div>
 
         <div className="flex gap-3 mt-6">
           <button
-            onClick={() => {
-              setPayments([]);
-              onClose();
-            }}
+            onClick={handleClose}
             className="flex-1 py-3 border rounded-lg hover:bg-surface-inset"
           >
             Cancel
           </button>
           <button
             onClick={() => onComplete(payments)}
-            disabled={remaining > 0.01}
+            disabled={remaining > 0.01 || processingCard}
             className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Complete Sale

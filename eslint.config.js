@@ -89,13 +89,70 @@ export default tseslint.config(
     },
     rules: {
       // Disable overly strict rules
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-require-imports": "off",
-      "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-require-imports": "warn",
+      "@typescript-eslint/ban-ts-comment": "warn",
       "no-console": "off",
       "prefer-const": "warn",
       "no-var": "error",
+
+      // Dark mode regression prevention
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Literal[value=/#[0-9a-fA-F]{3,8}$/]",
+          message:
+            "❌ Hardcoded hex colors are prohibited. Use semantic tokens instead:\n" +
+            "  ✅ backgroundColor: 'var(--surface)'\n" +
+            "  ✅ color: 'var(--foreground)'\n" +
+            "  ✅ borderColor: 'var(--border)'\n" +
+            "  ✅ import { semanticColors } from 'lib/utils/semantic-colors'\n" +
+            "Allowed exceptions: 'transparent', 'currentColor', 'inherit'\n" +
+            "See: docs/DARK_MODE_GUIDE.md",
+        },
+        {
+          selector: "Literal[value=/^(rgb|rgba|hsl|hsla)\\(/]",
+          message:
+            "❌ Hardcoded RGB/HSL colors are prohibited. Use semantic tokens instead:\n" +
+            "  ✅ backgroundColor: 'var(--surface)'\n" +
+            "  ✅ color: 'var(--foreground)'\n" +
+            "See: docs/DARK_MODE_GUIDE.md",
+        },
+      ],
+    },
+  },
+  // Exempt files with legitimate hardcoded color use cases
+  {
+    files: [
+      "app/routes/tenant/settings/public-site*.tsx",  // User theming interface
+      "app/routes/tenant/reports/export.pdf.tsx",     // PDF generation library
+      "app/routes/**/print-*.tsx",                     // Print templates
+      "app/routes/tenant/bookings/$id.tsx",           // HTML email templates
+      "app/routes/tenant/dive-sites/$id.tsx",         // HTML embed templates
+    ],
+    rules: {
+      "no-restricted-syntax": "off",  // Allow hardcoded colors in these specific files
+    },
+  },
+  // Playwright E2E test-specific rules
+  {
+    files: ["tests/e2e/**/*.{ts,tsx,js,jsx}", "tests/e2e/**/*.page.{ts,tsx}"],
+    rules: {
+      // Prevent usage of waitForTimeout (anti-pattern that causes flaky tests)
+      "no-restricted-syntax": [
+        "warn", // Downgraded from "error" to allow existing 679 instances (see DIVE-ika)
+        {
+          selector: "CallExpression[callee.property.name='waitForTimeout']",
+          message:
+            "❌ waitForTimeout() is prohibited. Use condition-based waiting instead:\n" +
+            "  ✅ await page.waitForLoadState('networkidle')\n" +
+            "  ✅ await locator.waitFor({ state: 'visible' })\n" +
+            "  ✅ await expect(locator).toBeVisible({ timeout: 10000 })\n" +
+            "See: tests/e2e/workflow/customer-management.spec.ts for examples\n" +
+            "Related: KAN-625, DIVE-ika",
+        },
+      ],
     },
   }
 );

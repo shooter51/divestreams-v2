@@ -1,3 +1,6 @@
+# NOTE: Mount /var/log/caddy as a volume in docker-compose to persist access logs.
+# Example: - caddy_logs:/var/log/caddy
+
 {
     email admin@divestreams.com
     on_demand_tls {
@@ -5,15 +8,25 @@
     }
 }
 
+(security_headers) {
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        -Server
+    }
+}
+
 divestreams.com {
     reverse_proxy app:3000
     encode gzip
 
+    import security_headers
+
     header {
-        X-Content-Type-Options nosniff
         X-Frame-Options DENY
-        Referrer-Policy strict-origin-when-cross-origin
-        -Server
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self' https://api.stripe.com; frame-ancestors 'none'"
     }
 
     log {
@@ -31,15 +44,22 @@ www.divestreams.com {
         on_demand
     }
 
-    reverse_proxy app:3000
     encode gzip
 
+    import security_headers
+
     header {
-        X-Content-Type-Options nosniff
-        X-Frame-Options DENY
-        Referrer-Policy strict-origin-when-cross-origin
-        -Server
+        X-Frame-Options SAMEORIGIN
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self' https://api.stripe.com; frame-ancestors 'none'"
     }
+
+    handle /embed/* {
+        header -X-Frame-Options
+        header Content-Security-Policy "frame-ancestors *"
+        reverse_proxy app:3000
+    }
+
+    reverse_proxy app:3000
 
     log {
         output file /var/log/caddy/access.log

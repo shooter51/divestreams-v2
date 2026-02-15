@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { action } from "../../../../../app/routes/tenant/boats/new";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../lib/db/queries.server";
@@ -27,7 +28,8 @@ describe("app/routes/tenant/boats/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createBoat).mockResolvedValue(undefined);
+      const mockBoat = { id: "boat-123", name: "Sea Explorer" };
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
 
       const formData = new FormData();
       formData.append("name", "Sea Explorer");
@@ -73,7 +75,7 @@ describe("app/routes/tenant/boats/new.tsx", () => {
 
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/tenant/boats");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe(`/tenant/boats/${mockBoat.id}/edit`);
     });
 
     it("should return validation errors for missing name", async () => {
@@ -136,7 +138,8 @@ describe("app/routes/tenant/boats/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createBoat).mockResolvedValue(undefined);
+      const mockBoat = { id: "boat-456", name: "Simple Boat" };
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
 
       const formData = new FormData();
       formData.append("name", "Simple Boat");
@@ -169,7 +172,8 @@ describe("app/routes/tenant/boats/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createBoat).mockResolvedValue(undefined);
+      const mockBoat = { id: "boat-789", name: "Amenity Boat" };
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
 
       const formData = new FormData();
       formData.append("name", "Amenity Boat");
@@ -198,7 +202,8 @@ describe("app/routes/tenant/boats/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createBoat).mockResolvedValue(undefined);
+      const mockBoat = { id: "boat-101", name: "Large Boat" };
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
 
       const formData = new FormData();
       formData.append("name", "Large Boat");
@@ -255,7 +260,8 @@ describe("app/routes/tenant/boats/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createBoat).mockResolvedValue(undefined);
+      const mockBoat = { id: "boat-202", name: "Active Boat" };
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
 
       const formData = new FormData();
       formData.append("name", "Active Boat");
@@ -283,7 +289,8 @@ describe("app/routes/tenant/boats/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createBoat).mockResolvedValue(undefined);
+      const mockBoat = { id: "boat-303", name: "No Amenities Boat" };
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
 
       const formData = new FormData();
       formData.append("name", "No Amenities Boat");

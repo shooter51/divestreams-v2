@@ -2,17 +2,19 @@ import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getEquipmentById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../../app/components/ui";
 import { BarcodeScannerModal } from "../../../../components/BarcodeScannerModal";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Equipment - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const equipmentId = params.id;
 
   if (!equipmentId) {
@@ -90,7 +92,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const equipmentId = params.id;
 
   if (!equipmentId) {
@@ -136,7 +139,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.equipment.organizationId, organizationId), eq(schema.equipment.id, equipmentId)));
 
-  return redirect(`/tenant/equipment/${equipmentId}`);
+  return redirect(redirectWithNotification(`/tenant/equipment/${equipmentId}`, `Equipment "${validation.data.name}" has been successfully updated`, "success"));
 }
 
 export default function EditEquipmentPage() {
@@ -271,7 +274,7 @@ export default function EditEquipmentPage() {
                 <button
                   type="button"
                   onClick={() => setShowBarcodeScanner(true)}
-                  className="px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+                  className="px-3 py-2 bg-surface text-foreground border border-border rounded-lg hover:bg-surface-raised"
                   title="Scan Barcode"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -324,7 +327,7 @@ export default function EditEquipmentPage() {
                 id="condition"
                 name="condition"
                 required
-                defaultValue={actionData?.values?.condition || equipment.condition}
+                defaultValue={actionData?.values?.condition || equipment.condition || ""}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               >
                 <option value="excellent">Excellent</option>
@@ -347,23 +350,38 @@ export default function EditEquipmentPage() {
                 value="true"
                 defaultChecked={actionData?.values?.isRentable !== "false" && equipment.isRentable}
                 className="rounded"
+                id="isRentableCheckbox"
               />
               <span className="font-medium">Available for Rent</span>
             </label>
+            <p className="text-xs text-foreground-muted -mt-2 ml-7">
+              Equipment marked as rentable will appear in the POS rental section
+            </p>
 
-            <div>
+            <div className="w-1/2">
               <label htmlFor="rentalPrice" className="block text-sm font-medium mb-1">
-                Daily Rental Price ($)
+                Rental Price (per day) {" "}
+                <span className="text-foreground-muted text-xs">(required if rentable)</span>
               </label>
-              <input
-                type="number"
-                id="rentalPrice"
-                name="rentalPrice"
-                step="0.01"
-                min="0"
-                defaultValue={actionData?.values?.rentalPrice || equipment.rentalPrice}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-2 text-foreground-muted">$</span>
+                <input
+                  type="number"
+                  id="rentalPrice"
+                  name="rentalPrice"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="10.00"
+                  defaultValue={actionData?.values?.rentalPrice || equipment.rentalPrice}
+                  className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                />
+              </div>
+              <p className="text-xs text-foreground-muted mt-1">
+                Equipment with no rental price won't appear in POS
+              </p>
+              {actionData?.errors?.rentalPrice && (
+                <p className="text-danger text-sm mt-1">{actionData.errors.rentalPrice}</p>
+              )}
             </div>
           </div>
         </div>
@@ -380,7 +398,7 @@ export default function EditEquipmentPage() {
                 type="date"
                 id="lastServiceDate"
                 name="lastServiceDate"
-                defaultValue={actionData?.values?.lastServiceDate || equipment.lastServiceDate}
+                defaultValue={actionData?.values?.lastServiceDate || (equipment.lastServiceDate ? String(equipment.lastServiceDate) : "")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>
@@ -393,7 +411,7 @@ export default function EditEquipmentPage() {
                 type="date"
                 id="nextServiceDate"
                 name="nextServiceDate"
-                defaultValue={actionData?.values?.nextServiceDate || equipment.nextServiceDate}
+                defaultValue={actionData?.values?.nextServiceDate || (equipment.nextServiceDate ? String(equipment.nextServiceDate) : "")}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
               />
             </div>

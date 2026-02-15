@@ -97,7 +97,18 @@ export async function action({ params, request }: ActionFunctionArgs) {
   if (!sessionId) errors.form = "No training session selected";
 
   if (Object.keys(errors).length > 0) {
-    return { errors };
+    return {
+      errors,
+      values: {
+        sessionId,
+        firstName,
+        lastName,
+        email,
+        phone,
+        dateOfBirth,
+        notes,
+      }
+    };
   }
 
   try {
@@ -124,6 +135,15 @@ export async function action({ params, request }: ActionFunctionArgs) {
         : "Failed to create enrollment. Please try again.";
     return {
       errors: { form: message },
+      values: {
+        sessionId,
+        firstName,
+        lastName,
+        email,
+        phone,
+        dateOfBirth,
+        notes,
+      }
     };
   }
 }
@@ -191,7 +211,7 @@ export default function EnrollmentFormPage() {
             <input type="hidden" name="sessionId" value={session.id} />
 
             {actionData?.errors?.form && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded">
                 {actionData.errors.form}
               </div>
             )}
@@ -210,11 +230,12 @@ export default function EnrollmentFormPage() {
                   <input
                     type="text"
                     name="firstName"
+                    defaultValue={actionData?.values?.firstName || ""}
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   {actionData?.errors?.firstName && (
-                    <p className="text-red-600 text-sm mt-1">
+                    <p className="text-danger text-sm mt-1">
                       {actionData.errors.firstName}
                     </p>
                   )}
@@ -227,11 +248,12 @@ export default function EnrollmentFormPage() {
                   <input
                     type="text"
                     name="lastName"
+                    defaultValue={actionData?.values?.lastName || ""}
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   {actionData?.errors?.lastName && (
-                    <p className="text-red-600 text-sm mt-1">
+                    <p className="text-danger text-sm mt-1">
                       {actionData.errors.lastName}
                     </p>
                   )}
@@ -246,11 +268,12 @@ export default function EnrollmentFormPage() {
                   <input
                     type="email"
                     name="email"
+                    defaultValue={actionData?.values?.email || ""}
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   {actionData?.errors?.email && (
-                    <p className="text-red-600 text-sm mt-1">
+                    <p className="text-danger text-sm mt-1">
                       {actionData.errors.email}
                     </p>
                   )}
@@ -263,7 +286,8 @@ export default function EnrollmentFormPage() {
                   <input
                     type="tel"
                     name="phone"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    defaultValue={actionData?.values?.phone || ""}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
               </div>
@@ -275,7 +299,8 @@ export default function EnrollmentFormPage() {
                 <input
                   type="date"
                   name="dateOfBirth"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  defaultValue={actionData?.values?.dateOfBirth || ""}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Required for certification processing
@@ -291,8 +316,9 @@ export default function EnrollmentFormPage() {
               <textarea
                 name="notes"
                 rows={3}
+                defaultValue={actionData?.values?.notes || ""}
                 placeholder="Prior diving experience, scheduling preferences, medical conditions, etc."
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -341,7 +367,7 @@ export default function EnrollmentFormPage() {
                   {course.agencyCode}
                 </span>
               )}
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+              <span className="text-xs bg-brand-muted text-brand px-2 py-0.5 rounded">
                 {course.levelName}
               </span>
             </div>
@@ -445,8 +471,8 @@ export default function EnrollmentFormPage() {
             </div>
 
             {/* Certification Badge */}
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-2 text-blue-700">
+            <div className="mt-4 p-3 bg-brand-muted rounded-lg">
+              <div className="flex items-center gap-2 text-brand">
                 <svg
                   className="w-5 h-5"
                   fill="none"
@@ -464,7 +490,7 @@ export default function EnrollmentFormPage() {
                   {course.agencyCode} Certified
                 </span>
               </div>
-              <p className="text-xs text-blue-600 mt-1">
+              <p className="text-xs text-brand mt-1">
                 You'll receive an internationally recognized certification upon
                 successful completion.
               </p>

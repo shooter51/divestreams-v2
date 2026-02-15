@@ -4,9 +4,10 @@
  * Full-featured POS for retail, rentals, and quick bookings.
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher } from "react-router";
+import { useLoaderData, useFetcher, Link } from "react-router";
+import { z } from "zod";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
@@ -19,6 +20,8 @@ import {
   processPOSCheckout,
   generateAgreementNumber,
   getProductByBarcode,
+  getTransactionById,
+  processPOSRefund,
 } from "../../../lib/db/pos.server";
 import { db } from "../../../lib/db/index";
 import { organizationSettings } from "../../../lib/db/schema";
@@ -29,8 +32,9 @@ import {
   createPOSPaymentIntent,
   createTerminalConnectionToken,
   listTerminalReaders,
+  createStripeRefund,
 } from "../../../lib/integrations/stripe.server";
-import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
+const BarcodeScannerModal = lazy(() => import("../../components/BarcodeScannerModal").then(m => ({ default: m.BarcodeScannerModal || m.default })));
 import { Cart } from "../../components/pos/Cart";
 import { ProductGrid } from "../../components/pos/ProductGrid";
 import {
@@ -40,7 +44,12 @@ import {
   RentalAgreementModal,
   CustomerSearchModal,
 } from "../../components/pos/CheckoutModals";
+import {
+  TransactionLookupModal,
+  RefundConfirmationModal,
+} from "../../components/pos/RefundModals";
 import type { CartItem } from "../../../lib/validation/pos";
+import { useToast } from "../../../lib/toast-context";
 
 export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" }];
 
@@ -87,7 +96,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     listTerminalReaders(organizationId),
   ]);
 
-  const stripeConnected = stripeSettings?.connected && stripeSettings?.chargesEnabled;
+  // Allow Stripe connection if:
+  // 1. Fully onboarded (charges_enabled = true), OR
+  // 2. In test mode (sandbox accounts don't require full onboarding)
+  const stripeConnected = stripeSettings?.connected &&
+    (stripeSettings?.chargesEnabled || !stripeSettings?.liveMode);
   const hasTerminalReaders = terminalReaders && terminalReaders.length > 0;
 
   return {
@@ -183,6 +196,86 @@ export async function action({ request }: ActionFunctionArgs) {
     return { barcodeNotFound: true, scannedBarcode: barcode };
   }
 
+  if (intent === "lookup-transaction") {
+    try {
+      // Validate input with Zod schema
+      const transactionLookupSchema = z.object({
+        transactionId: z.string().uuid("Invalid transaction ID format"),
+      });
+
+      const { transactionId } = transactionLookupSchema.parse({
+        transactionId: formData.get("transactionId"),
+      });
+
+      const transaction = await getTransactionById(tables, organizationId, transactionId);
+
+      if (!transaction) {
+        return { error: "Transaction not found" };
+      }
+
+      return { transaction };
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return { error: error.errors[0].message };
+      }
+      return { error: error instanceof Error ? error.message : "Failed to lookup transaction" };
+    }
+  }
+
+  if (intent === "process-refund") {
+    try {
+      // Validate input with Zod schema
+      const refundRequestSchema = z.object({
+        originalTransactionId: z.string().uuid("Invalid transaction ID format"),
+        paymentMethod: z.enum(["cash", "card", "split"]),
+        stripePaymentId: z.string().optional(),
+        refundReason: z.string().min(1, "Refund reason is required").max(500, "Refund reason too long"),
+      });
+
+      const rawData = JSON.parse(formData.get("data") as string);
+      const data = refundRequestSchema.parse(rawData);
+      const userId = ctx.user.id;
+
+      // If original payment was by card, process Stripe refund first
+      let stripeRefundId: string | undefined;
+
+      if (data.paymentMethod === "card" && data.stripePaymentId) {
+        const refund = await createStripeRefund(organizationId, data.stripePaymentId, {
+          reason: "requested_by_customer",
+          metadata: {
+            originalTransactionId: data.originalTransactionId,
+            refundReason: data.refundReason,
+          },
+        });
+
+        if (!refund) {
+          return { error: "Stripe refund failed. Stripe not connected." };
+        }
+
+        stripeRefundId = refund.refundId;
+      }
+
+      // Process the refund in our system
+      const result = await processPOSRefund(tables, organizationId, {
+        originalTransactionId: data.originalTransactionId,
+        userId,
+        refundReason: data.refundReason,
+        stripeRefundId,
+      });
+
+      return {
+        success: true,
+        refundId: result.refundTransaction.id,
+        amount: Math.abs(Number(result.refundTransaction.amount)),
+      };
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return { error: error.errors[0].message };
+      }
+      return { error: error instanceof Error ? error.message : "Refund processing failed" };
+    }
+  }
+
   if (intent === "checkout") {
     try {
       const data = JSON.parse(formData.get("data") as string);
@@ -223,6 +316,7 @@ export default function POSPage() {
     hasTerminalReaders,
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const { showToast } = useToast();
 
   // State
   const [tab, setTab] = useState<"retail" | "rentals" | "trips">("retail");
@@ -246,6 +340,28 @@ export default function POSPage() {
   const [pendingCheckout, setPendingCheckout] = useState<"card" | "cash" | "split" | null>(null);
   const [barcodeError, setBarcodeError] = useState<string | null>(null);
 
+  // Refund modal state
+  const [showTransactionLookup, setShowTransactionLookup] = useState(false);
+  const [showRefundConfirmation, setShowRefundConfirmation] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<{
+    id: string;
+    amount: string;
+    paymentMethod: string;
+    stripePaymentId: string | null;
+    items: Array<{
+      type: string;
+      name: string;
+      quantity?: number;
+      unitPrice: number;
+      total: number;
+    }>;
+    createdAt: string;
+    customer: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    } | null;
+  } | null>(null);
   // Cart calculations
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
   const tax = subtotal * (taxRate / 100);
@@ -386,6 +502,28 @@ export default function POSPage() {
     fetcher.submit(formData, { method: "POST" });
   }, [fetcher]);
 
+  // Refund handling
+  const handleTransactionFound = useCallback((transaction: typeof selectedTransaction) => {
+    setSelectedTransaction(transaction);
+    setShowTransactionLookup(false);
+    setShowRefundConfirmation(true);
+  }, []);
+
+  const handleRefundConfirm = useCallback((refundReason: string) => {
+    if (!selectedTransaction) return;
+
+    const formData = new FormData();
+    formData.append("intent", "process-refund");
+    formData.append("data", JSON.stringify({
+      originalTransactionId: selectedTransaction.id,
+      paymentMethod: selectedTransaction.paymentMethod,
+      stripePaymentId: selectedTransaction.stripePaymentId,
+      refundReason,
+    }));
+
+    fetcher.submit(formData, { method: "POST" });
+  }, [selectedTransaction, fetcher]);
+
   // Update search results and handle barcode results when fetcher returns
   useEffect(() => {
     const fetcherData = fetcher.data as {
@@ -393,6 +531,10 @@ export default function POSPage() {
       scannedProduct?: { id: string; name: string; price: string; stockQuantity: number };
       barcodeNotFound?: boolean;
       scannedBarcode?: string;
+      success?: boolean;
+      receiptNumber?: string;
+      refundId?: string;
+      amount?: number;
     } | undefined;
 
     if (fetcherData?.customers) {
@@ -410,7 +552,19 @@ export default function POSPage() {
       // Clear error after 3 seconds
       setTimeout(() => setBarcodeError(null), 3000);
     }
-  }, [fetcher.data, addProduct]);
+
+    // Handle sale success
+    if (fetcherData?.success && fetcherData?.receiptNumber && !fetcherData?.refundId) {
+      showToast(`Sale complete! Receipt #${fetcherData.receiptNumber}`, "success");
+    }
+
+    // Handle refund success
+    if (fetcherData?.success && fetcherData?.refundId && fetcherData?.amount) {
+      showToast(`Refund processed successfully! $${fetcherData.amount.toFixed(2)} refunded to customer.`, "success");
+      setShowRefundConfirmation(false);
+      setSelectedTransaction(null);
+    }
+  }, [fetcher.data, addProduct, showToast]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
@@ -419,8 +573,10 @@ export default function POSPage() {
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold">Point of Sale</h1>
           <button
+            type="button"
             onClick={clearCart}
-            className="px-4 py-2 text-sm bg-surface-inset rounded-lg hover:bg-surface-overlay"
+            className="px-4 py-2 text-sm bg-surface-inset rounded-lg hover:bg-surface-overlay transition-colors"
+            aria-label="Start new sale and clear cart"
           >
             New Sale
           </button>
@@ -433,6 +589,24 @@ export default function POSPage() {
             </svg>
             Scan Barcode
           </button>
+          <button
+            onClick={() => setShowTransactionLookup(true)}
+            className="px-4 py-2 text-sm border border-warning text-warning rounded-lg hover:bg-warning-muted flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+            </svg>
+            Refund
+          </button>
+          <Link
+            to="/tenant/pos/transactions"
+            className="px-4 py-2 text-sm border rounded-lg hover:bg-surface-inset flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            Transactions
+          </Link>
         </div>
         <div className="text-sm text-foreground-muted">
           {tenant.name} - {new Date().toLocaleDateString()}
@@ -522,6 +696,9 @@ export default function POSPage() {
         onClose={() => setCheckoutMethod(null)}
         total={total}
         onComplete={completeCheckout}
+        stripeConnected={stripeConnected}
+        stripePublishableKey={stripePublishableKey}
+        customerId={customer?.id}
       />
 
       <RentalAgreementModal
@@ -561,17 +738,38 @@ export default function POSPage() {
         isSearching={fetcher.state === "submitting"}
       />
 
-      <BarcodeScannerModal
-        isOpen={showBarcodeScanner}
-        onClose={() => setShowBarcodeScanner(false)}
-        onScan={handleBarcodeScan}
-        title="Scan Product Barcode"
-        showConfirmation={false}
+      <Suspense fallback={null}>
+        <BarcodeScannerModal
+          isOpen={showBarcodeScanner}
+          onClose={() => setShowBarcodeScanner(false)}
+          onScan={handleBarcodeScan}
+          title="Scan Product Barcode"
+          showConfirmation={false}
+        />
+      </Suspense>
+
+      {/* Refund Modals */}
+      <TransactionLookupModal
+        isOpen={showTransactionLookup}
+        onClose={() => setShowTransactionLookup(false)}
+        onTransactionFound={handleTransactionFound}
       />
+
+      {selectedTransaction && (
+        <RefundConfirmationModal
+          isOpen={showRefundConfirmation}
+          onClose={() => {
+            setShowRefundConfirmation(false);
+            setSelectedTransaction(null);
+          }}
+          transaction={selectedTransaction}
+          onConfirm={handleRefundConfirm}
+        />
+      )}
 
       {/* Barcode Error Toast */}
       {barcodeError && (
-        <div className="fixed bottom-4 left-4 bg-amber-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+        <div className="fixed bottom-4 left-4 bg-warning text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
@@ -579,12 +777,7 @@ export default function POSPage() {
         </div>
       )}
 
-      {/* Success Toast */}
-      {(fetcher.data as { success?: boolean; receiptNumber?: string } | undefined)?.success && (
-        <div className="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg">
-          Sale complete! Receipt #{(fetcher.data as { receiptNumber: string }).receiptNumber}
-        </div>
-      )}
+      {/* Sale and Refund success toasts are now handled via useToast in the useEffect above */}
     </div>
   );
 }

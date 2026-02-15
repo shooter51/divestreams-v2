@@ -21,6 +21,7 @@ import {
   Link,
   Form,
 } from "react-router";
+import { useState } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
@@ -28,6 +29,8 @@ import {
   loginCustomer,
   getCustomerBySession,
 } from "../../../lib/auth/customer-auth.server";
+import { getSubdomainFromHost } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -110,7 +113,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (customer) {
       // Already logged in - redirect to account
       const rawRedirect = url.searchParams.get("redirect") || "/site/account";
-      const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/site/account";
+      // Validate redirect to prevent open redirect attacks (only allow relative URLs)
+      const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+        ? rawRedirect : "/site/account";
       return redirect(redirectTo);
     }
   }
@@ -155,6 +160,21 @@ export async function action({ request }: ActionFunctionArgs) {
     throw new Response("Organization not found", { status: 404 });
   }
 
+  // Rate limiting - 10 login attempts per 15 minutes per IP
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`site-login:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    const minutesUntilReset = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
+    const rateLimitErrors: ActionErrors = {
+      form: `Too many login attempts. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+    };
+    return { errors: rateLimitErrors, email: "" };
+  }
+
   const formData = await request.formData();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -181,9 +201,11 @@ export async function action({ request }: ActionFunctionArgs) {
     // Attempt login
     const session = await loginCustomer(org.id, email, password);
 
-    // Get redirect URL (validated to prevent open redirect)
+    // Get redirect URL and validate to prevent open redirect attacks
     const rawRedirect = url.searchParams.get("redirect") || "/site/account";
-    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/site/account";
+    // Only allow relative URLs (must start with / and not contain ://)
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+      ? rawRedirect : "/site/account";
 
     // Set session cookie and redirect
     const cookieValue = `${CUSTOMER_SESSION_COOKIE}=${session.token}; ${getCookieOptions(rememberMe)}`;
@@ -195,8 +217,9 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     // Login failed
+    const loginErrors: ActionErrors = { form: "Invalid email or password" };
     return {
-      errors: { form: "Invalid email or password" },
+      errors: loginErrors,
       email,
     };
   }
@@ -205,30 +228,6 @@ export async function action({ request }: ActionFunctionArgs) {
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
-
-/**
- * Extract subdomain from request host
- */
-function getSubdomainFromHost(host: string): string | null {
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
 
 /**
  * Parse a specific cookie from cookie header string
@@ -261,10 +260,12 @@ export default function SiteLoginPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
+  const [showPassword, setShowPassword] = useState(false);
 
   const isSubmitting = navigation.state === "submitting";
   const organization = layoutData?.organization;
   const redirectTo = searchParams.get("redirect");
+  const message = searchParams.get("message");
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
@@ -277,12 +278,41 @@ export default function SiteLoginPage() {
           </p>
         </div>
 
+        {/* Success Message - Password Set */}
+        {message === "password-set" && (
+          <div
+            className="mb-6 p-4 rounded-lg text-sm max-w-4xl break-words"
+            style={{
+              backgroundColor: "var(--success-bg, #d1fae5)",
+              color: "var(--success-text, #065f46)",
+              border: "1px solid var(--success-border, #34d399)",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="font-medium">
+                Password set successfully! You can now sign in with your new password.
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Login Card */}
         <div
           className="rounded-xl p-8 shadow-lg border"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
           }}
         >
           <Form method="post" className="space-y-6">
@@ -291,9 +321,9 @@ export default function SiteLoginPage() {
               <div
                 className="p-4 rounded-lg text-sm"
                 style={{
-                  backgroundColor: "#fef2f2",
-                  color: "#dc2626",
-                  border: "1px solid #fecaca",
+                  backgroundColor: "var(--danger-bg)",
+                  color: "var(--danger-text)",
+                  border: "1px solid var(--danger-border)",
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -330,17 +360,17 @@ export default function SiteLoginPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.email
-                    ? "#fca5a5"
-                    : "var(--accent-color)",
+                    ? "var(--danger-border)"
+                    : "var(--color-border)",
                   backgroundColor: actionData?.errors?.email
-                    ? "#fef2f2"
-                    : "white",
+                    ? "var(--danger-bg)"
+                    : "var(--color-card-bg)",
                 }}
                 placeholder="you@example.com"
                 required
               />
               {actionData?.errors?.email && (
-                <p className="mt-1.5 text-sm" style={{ color: "#dc2626" }}>
+                <p className="mt-1.5 text-sm" style={{ color: "var(--danger-text)" }}>
                   {actionData.errors.email}
                 </p>
               )}
@@ -363,25 +393,45 @@ export default function SiteLoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                autoComplete="current-password"
-                className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
-                style={{
-                  borderColor: actionData?.errors?.password
-                    ? "#fca5a5"
-                    : "var(--accent-color)",
-                  backgroundColor: actionData?.errors?.password
-                    ? "#fef2f2"
-                    : "white",
-                }}
-                placeholder="Enter your password"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  autoComplete="current-password"
+                  className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
+                  style={{
+                    borderColor: actionData?.errors?.password
+                      ? "var(--danger-border)"
+                      : "var(--color-border)",
+                    backgroundColor: actionData?.errors?.password
+                      ? "var(--danger-bg)"
+                      : "var(--color-card-bg)",
+                  }}
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:opacity-70 transition-opacity"
+                  style={{ color: "var(--text-muted)" }}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
               {actionData?.errors?.password && (
-                <p className="mt-1.5 text-sm" style={{ color: "#dc2626" }}>
+                <p className="mt-1.5 text-sm" style={{ color: "var(--danger-text)" }}>
                   {actionData.errors.password}
                 </p>
               )}
@@ -393,7 +443,7 @@ export default function SiteLoginPage() {
                 type="checkbox"
                 id="rememberMe"
                 name="rememberMe"
-                className="w-4 h-4 rounded border-gray-300 focus:ring-2"
+                className="w-4 h-4 rounded border-border focus:ring-2"
                 style={{
                   accentColor: "var(--primary-color)",
                 }}
@@ -455,13 +505,13 @@ export default function SiteLoginPage() {
             <div className="absolute inset-0 flex items-center">
               <div
                 className="w-full border-t"
-                style={{ borderColor: "var(--accent-color)" }}
+                style={{ borderColor: "var(--color-border)" }}
               />
             </div>
             <div className="relative flex justify-center text-sm">
               <span
                 className="px-4"
-                style={{ backgroundColor: "white", color: "var(--text-color)" }}
+                style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}
               >
                 New to {organization?.name || "our site"}?
               </span>

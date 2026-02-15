@@ -3,7 +3,7 @@
  * Database Seed Script
  *
  * Seeds the public schema with:
- * - Subscription plans
+ * - Subscription plans (from centralized config)
  *
  * Usage:
  *   npm run db:seed
@@ -12,83 +12,56 @@
 import { db } from "../lib/db";
 import { subscriptionPlans } from "../lib/db/schema";
 import { eq } from "drizzle-orm";
+import { getAllPlanConfigs } from "../lib/stripe/plan-config";
 
 async function main() {
-  console.log("\n🌱 Seeding database...\n");
+  console.log("\n🌱 Seeding database from centralized config...\n");
 
-  // Check if plans already exist
-  const existingPlans = await db.select().from(subscriptionPlans);
-  if (existingPlans.length > 0) {
-    console.log("Subscription plans already exist. Skipping...");
-  } else {
-    console.log("Creating subscription plans...");
-    await db.insert(subscriptionPlans).values([
-      {
-        name: "starter",
-        displayName: "Starter",
-        monthlyPrice: 4900,
-        yearlyPrice: 47000,
-        features: [
-          "Up to 3 users",
-          "1,000 customers",
-          "Booking management",
-          "Basic reporting",
-          "Email support",
-        ],
-        limits: {
-          users: 3,
-          customers: 1000,
-          toursPerMonth: 100,
-          storageGb: 5,
-        },
-      },
-      {
-        name: "pro",
-        displayName: "Pro",
-        monthlyPrice: 9900,
-        yearlyPrice: 95000,
-        features: [
-          "Up to 10 users",
-          "Unlimited customers",
-          "Online booking widget",
-          "Equipment tracking",
-          "Advanced reporting",
-          "Priority support",
-          "API access",
-        ],
-        limits: {
-          users: 10,
-          customers: -1,
-          toursPerMonth: -1,
-          storageGb: 25,
-        },
-      },
-      {
-        name: "enterprise",
-        displayName: "Enterprise",
-        monthlyPrice: 19900,
-        yearlyPrice: 191000,
-        features: [
-          "Unlimited users",
-          "Unlimited customers",
-          "Multi-location support",
-          "Custom integrations",
-          "Dedicated support",
-          "White-label options",
-          "SLA guarantee",
-        ],
-        limits: {
-          users: -1,
-          customers: -1,
-          toursPerMonth: -1,
-          storageGb: 100,
-        },
-      },
-    ]);
-    console.log("✓ Created 3 subscription plans");
+  // Get all plan configurations
+  const planConfigs = getAllPlanConfigs();
+
+  for (const config of planConfigs) {
+    // Check if plan exists
+    const [existingPlan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.name, config.name))
+      .limit(1);
+
+    if (existingPlan) {
+      // Update existing plan (prices may have changed)
+      console.log(`Updating plan: ${config.displayName}`);
+      await db
+        .update(subscriptionPlans)
+        .set({
+          displayName: config.displayName,
+          monthlyPrice: config.monthlyPrice,
+          yearlyPrice: config.yearlyPrice,
+          features: config.features,
+          limits: config.limits,
+          updatedAt: new Date(),
+        })
+        .where(eq(subscriptionPlans.name, config.name));
+      console.log(`  ✓ Updated ${config.displayName}: $${config.monthlyPrice/100}/mo`);
+    } else {
+      // Create new plan
+      console.log(`Creating plan: ${config.displayName}`);
+      await db.insert(subscriptionPlans).values({
+        name: config.name,
+        displayName: config.displayName,
+        monthlyPrice: config.monthlyPrice,
+        yearlyPrice: config.yearlyPrice,
+        features: config.features,
+        limits: config.limits,
+      });
+      console.log(`  ✓ Created ${config.displayName}: $${config.monthlyPrice/100}/mo`);
+    }
   }
 
-  console.log("\n✅ Seeding complete!\n");
+  console.log(`\n✅ Seeded ${planConfigs.length} subscription plans!\n`);
+  console.log("📝 Next steps:");
+  console.log("   1. Create Stripe prices: npm run stripe:setup");
+  console.log("   2. Verify sync: npm run stripe:verify\n");
   process.exit(0);
 }
 

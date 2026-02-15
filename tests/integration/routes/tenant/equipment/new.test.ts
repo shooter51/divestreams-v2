@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { action } from "../../../../../app/routes/tenant/equipment/new";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../lib/db/queries.server";
@@ -27,7 +28,12 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
         data: {} as any,
       });
 
-      vi.mocked(queries.createEquipment).mockResolvedValue(undefined);
+      vi.mocked(queries.createEquipment).mockResolvedValue({
+        id: "equipment-123",
+        name: "BCD Pro",
+        category: "bcd",
+        organizationId: mockOrganizationId,
+      } as any);
 
       const formData = new FormData();
       formData.append("name", "BCD Pro");
@@ -66,10 +72,12 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
         })
       );
 
-      // Check redirect
+      // Check redirect to equipment detail page (to add images)
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/tenant/equipment");
+      const location = result.headers.get("Location");
+      expect(getRedirectPathname(location)).toMatch(/^\/tenant\/equipment\/[\w-]+$/);
+      expect(location).toContain("success=Equipment");
     });
 
     it("should return validation errors for missing name", async () => {

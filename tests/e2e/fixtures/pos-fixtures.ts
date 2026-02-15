@@ -33,39 +33,39 @@ export const testProducts = {
   },
   rentals: {
     bcd: {
-      name: "BCD Rental",
-      dailyRate: 35.0,
-      size: "Medium",
+      name: "Aqua Lung Pro HD",  // Matches seed data: lib/db/seed-demo-data.server.ts:401
+      dailyRate: 15.0,
+      size: "M",  // Seed data has sizes: M, L, XL
     },
     regulator: {
-      name: "Regulator Set",
-      dailyRate: 25.0,
+      name: "Scubapro MK25/S600",  // Matches seed data: lib/db/seed-demo-data.server.ts:404
+      dailyRate: 20.0,
     },
     tank: {
-      name: "Aluminum Tank",
-      dailyRate: 15.0,
+      name: "Aluminum 80",  // Matches seed data: lib/db/seed-demo-data.server.ts (tank name)
+      dailyRate: 10.0,  // Updated to match seed data
     },
     wetsuit: {
-      name: "Wetsuit Rental",
-      dailyRate: 20.0,
-      size: "Large",
+      name: "3mm Full Suit",  // Matches seed data: lib/db/seed-demo-data.server.ts:407
+      dailyRate: 10.0,  // Updated to match seed data
+      size: "M",  // Seed data has sizes: S, M, L
     },
   },
   trips: {
     morningDive: {
-      tourName: "Morning Reef Dive",
-      pricePerPerson: 89.0,
-      maxParticipants: 10,
+      tourName: "Two Tank Morning Dive",  // Matches seed data: lib/db/seed-demo-data.server.ts:465
+      pricePerPerson: 120.0,  // Updated to match seed data ($120.00)
+      maxParticipants: 16,  // Updated to match seed data
     },
-    afternoonDive: {
-      tourName: "Afternoon Drift Dive",
-      pricePerPerson: 99.0,
-      maxParticipants: 8,
+    twoTank: {
+      tourName: "Two Tank Morning Dive",  // Primary trip in seed data
+      pricePerPerson: 120.0,
+      maxParticipants: 16,
     },
     nightDive: {
-      tourName: "Night Dive Adventure",
-      pricePerPerson: 129.0,
-      maxParticipants: 6,
+      tourName: "Night Dive Adventure",  // Matches seed data: lib/db/seed-demo-data.server.ts:481
+      pricePerPerson: 85.0,  // Updated to match seed data ($85.00)
+      maxParticipants: 8,  // Updated to match seed data
     },
   },
 };
@@ -157,13 +157,13 @@ export const cartScenarios = {
   // Single rental
   singleRental: {
     description: "Add single rental to cart",
-    items: [{ type: "rental" as const, name: "BCD Rental", price: 35.0, days: 3 }],
+    items: [{ type: "rental" as const, name: "Aqua Lung Pro HD", price: 15.0, days: 3 }],
   },
 
   // Single booking
   singleBooking: {
     description: "Add single trip booking to cart",
-    items: [{ type: "booking" as const, name: "Morning Reef Dive", price: 89.0, participants: 2 }],
+    items: [{ type: "booking" as const, name: "Two Tank Morning Dive", price: 120.0, participants: 2 }],
   },
 
   // Mixed cart
@@ -171,8 +171,8 @@ export const cartScenarios = {
     description: "Add products, rentals, and bookings to cart",
     items: [
       { type: "product" as const, name: "Dive Mask Pro", price: 79.99, quantity: 1 },
-      { type: "rental" as const, name: "BCD Rental", price: 35.0, days: 2 },
-      { type: "booking" as const, name: "Morning Reef Dive", price: 89.0, participants: 2 },
+      { type: "rental" as const, name: "Aqua Lung Pro HD", price: 15.0, days: 2 },
+      { type: "booking" as const, name: "Two Tank Morning Dive", price: 120.0, participants: 2 },
     ],
   },
 };

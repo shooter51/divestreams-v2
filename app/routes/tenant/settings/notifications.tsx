@@ -130,7 +130,7 @@ export default function NotificationsPage() {
       </div>
 
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           Settings saved successfully!
         </div>
       )}
@@ -178,7 +178,7 @@ export default function NotificationsPage() {
                 <select
                   name="reminderDaysBefore"
                   defaultValue={settings.reminderDaysBefore}
-                  className="ml-2 px-2 py-1 border rounded"
+                  className="ml-2 px-2 py-1 border border-border-strong rounded bg-surface-raised text-foreground"
                 >
                   <option value="1">1 day</option>
                   <option value="2">2 days</option>
@@ -248,7 +248,7 @@ export default function NotificationsPage() {
                 <select
                   name="lowCapacityThreshold"
                   defaultValue={settings.lowCapacityThreshold}
-                  className="ml-2 px-2 py-1 border rounded"
+                  className="ml-2 px-2 py-1 border border-border-strong rounded bg-surface-raised text-foreground"
                 >
                   <option value="1">1 spot</option>
                   <option value="2">2 spots</option>

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
+import { getRedirectPathname } from "../../../helpers/redirect";
 import { loader } from "../../../../app/routes/tenant/boats/index";
 
 // Mock the org-context module
@@ -33,6 +34,13 @@ vi.mock("../../../../lib/db/schema", () => ({
   trips: {
     id: "id",
     boatId: "boatId",
+    organizationId: "organizationId",
+  },
+  images: {
+    id: "id",
+    entityType: "entityType",
+    entityId: "entityId",
+    url: "url",
     organizationId: "organizationId",
   },
 }));
@@ -186,11 +194,18 @@ describe("tenant/boats route", () => {
         groupBy: vi.fn().mockResolvedValue([{ boatId: "boat-1", count: 15 }]),
       };
 
+      const mockImagesQuery = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       (db.select as Mock).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return mockBoatsQuery;
-        return mockTripsQuery;
+        if (selectCallCount === 2) return mockTripsQuery;
+        return mockImagesQuery;
       });
 
       const request = new Request("https://demo.divestreams.com/tenant/boats");
@@ -287,11 +302,18 @@ describe("tenant/boats route", () => {
         groupBy: vi.fn().mockResolvedValue([]),
       };
 
+      const mockImagesQuery = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       (db.select as Mock).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return mockBoatsQuery;
-        return mockTripsQuery;
+        if (selectCallCount === 2) return mockTripsQuery;
+        return mockImagesQuery;
       });
 
       const request = new Request("https://demo.divestreams.com/tenant/boats");
@@ -329,11 +351,18 @@ describe("tenant/boats route", () => {
         groupBy: vi.fn().mockResolvedValue([]),
       };
 
+      const mockImagesQuery = {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockResolvedValue([]),
+      };
+
       let selectCallCount = 0;
       (db.select as Mock).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) return mockBoatsQuery;
-        return mockTripsQuery;
+        if (selectCallCount === 2) return mockTripsQuery;
+        return mockImagesQuery;
       });
 
       const request = new Request("https://demo.divestreams.com/tenant/boats");

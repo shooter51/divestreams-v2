@@ -7,10 +7,11 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, count } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { uploadToB2, getImageKey, getWebPMimeType } from "../../../../lib/storage";
 import { processImage, isValidImageType } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { storageLogger } from "../../../../lib/logger";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_IMAGES_PER_ENTITY = 5;
@@ -21,7 +22,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const { tenant } = await requireTenant(request);
+    const ctx = await requireOrgContext(request);
+    const organizationId = ctx.org.id;
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -42,7 +44,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Validate allowed entity types
-    const allowedTypes = ["tour", "diveSite", "boat", "equipment", "staff", "course"];
+    const allowedTypes = ["tour", "dive-site", "boat", "equipment", "staff", "course", "product"];
     if (!allowedTypes.includes(entityType)) {
       return Response.json(
         { error: `Invalid entityType. Allowed: ${allowedTypes.join(", ")}` },
@@ -67,7 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Check image count limit
-    const { db, schema } = getTenantDb(tenant.subdomain);
+    const { db, schema } = getTenantDb(ctx.org.slug);
 
     const [countResult] = await db
       .select({ count: count() })
@@ -92,16 +94,17 @@ export async function action({ request }: ActionFunctionArgs) {
     const processed = await processImage(buffer);
 
     // Generate storage keys
-    const baseKey = getImageKey(tenant.subdomain, entityType, entityId, file.name);
+    const baseKey = getImageKey(ctx.org.slug, entityType, entityId, file.name);
     const originalKey = `${baseKey}.webp`;
     const thumbnailKey = `${baseKey}-thumb.webp`;
 
     // Upload to B2
     const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
     if (!originalUpload) {
+      storageLogger.error("B2 storage not configured - missing environment variables");
       return Response.json(
-        { error: "Failed to upload image. Storage not configured." },
-        { status: 500 }
+        { error: "Image storage is not configured. Please contact support." },
+        { status: 503 }
       );
     }
 
@@ -111,12 +114,10 @@ export async function action({ request }: ActionFunctionArgs) {
     const nextOrder = countResult.count;
 
     // Save to database
-    // Note: Need organizationId from context for organization-based multi-tenancy
-    // For now, we use tenant.subdomain as a proxy - proper implementation would use requireOrgContext
     const [image] = await db
       .insert(schema.images)
       .values({
-        organizationId: tenant.subdomain, // Using subdomain as org identifier for now
+        organizationId, // Now using actual organization ID from context
         entityType,
         entityId,
         url: originalUpload.cdnUrl,
@@ -132,29 +133,39 @@ export async function action({ request }: ActionFunctionArgs) {
       })
       .returning();
 
-    return Response.json({
-      success: true,
-      image: {
-        id: image.id,
-        url: image.url,
-        thumbnailUrl: image.thumbnailUrl,
-        filename: image.filename,
-        width: image.width,
-        height: image.height,
-        alt: image.alt,
-        sortOrder: image.sortOrder,
-        isPrimary: image.isPrimary,
-      },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        image: {
+          id: image.id,
+          url: image.url,
+          thumbnailUrl: image.thumbnailUrl,
+          filename: image.filename,
+          width: image.width,
+          height: image.height,
+          alt: image.alt,
+          sortOrder: image.sortOrder,
+          isPrimary: image.isPrimary,
+        },
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   } catch (error) {
-    console.error("Image upload error:", error);
+    storageLogger.error({ err: error }, "Image upload error");
+
+    // Provide more specific error message in development
+    const errorMessage = process.env.NODE_ENV === "development" && error instanceof Error
+      ? `Failed to upload image: ${error.message}`
+      : "Failed to upload image";
+
     return Response.json(
-      { error: "Failed to upload image" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
-}
-
-export default function ImageUpload() {
-  return null;
 }

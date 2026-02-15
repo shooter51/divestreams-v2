@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
+import { getRedirectPathname } from "../../../helpers/redirect";
 
 // Mock react-router redirect - must be before importing route
 const mockRedirect = vi.fn();
@@ -197,7 +198,7 @@ describe("tenant/customers/new route", () => {
 
       expect(response).toBeInstanceOf(Response);
       expect((response as Response).status).toBe(302);
-      expect((response as Response).headers.get("location")).toBe("/tenant/customers");
+      expect(getRedirectPathname((response as Response).headers.get("location"))).toBe("/tenant/customers");
 
       expect(createCustomer).toHaveBeenCalledWith("org-uuid-123", expect.objectContaining({
         email: "john@example.com",

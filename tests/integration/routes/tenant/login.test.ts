@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
+import { getRedirectPathname } from "../../../helpers/redirect";
 
 // Track whether we're in a loader context (where redirect throws) or action context (where redirect returns)
 let shouldThrowRedirect = false;
@@ -45,6 +46,7 @@ vi.mock("../../../../lib/auth", () => ({
 // Mock the org-context module
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   getSubdomainFromRequest: vi.fn(),
+  getOrgContext: vi.fn(),
 }));
 
 // Mock the database module
@@ -86,7 +88,7 @@ vi.mock("../../../../lib/utils/rate-limit", () => ({
 }));
 
 import { auth } from "../../../../lib/auth";
-import { getSubdomainFromRequest } from "../../../../lib/auth/org-context.server";
+import { getSubdomainFromRequest, getOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 
 describe("tenant/login route", () => {
@@ -94,13 +96,15 @@ describe("tenant/login route", () => {
     vi.clearAllMocks();
     mockRedirect.mockClear();
     shouldThrowRedirect = false; // Reset for each test
+    (getOrgContext as Mock).mockResolvedValue(null); // Default: no org context
   });
 
   describe("loader", () => {
     it("redirects to /tenant when already logged in", async () => {
       shouldThrowRedirect = true; // loader uses throw redirect()
-      (auth.api.getSession as Mock).mockResolvedValue({
+      (getOrgContext as Mock).mockResolvedValue({
         user: { id: "user-1", email: "test@example.com" },
+        org: { id: "org-1", name: "Demo Dive Shop", slug: "demo" },
       });
 
       const request = new Request("https://demo.divestreams.com/login");
@@ -112,14 +116,15 @@ describe("tenant/login route", () => {
       } catch (response) {
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/tenant");
+        expect(getRedirectPathname((response as Response).headers.get("Location"))).toBe("/tenant");
       }
     });
 
     it("redirects to specified path when already logged in with redirect param", async () => {
       shouldThrowRedirect = true; // loader uses throw redirect()
-      (auth.api.getSession as Mock).mockResolvedValue({
+      (getOrgContext as Mock).mockResolvedValue({
         user: { id: "user-1", email: "test@example.com" },
+        org: { id: "org-1", name: "Demo Dive Shop", slug: "demo" },
       });
 
       const request = new Request("https://demo.divestreams.com/login?redirect=/tenant/bookings");
@@ -130,7 +135,7 @@ describe("tenant/login route", () => {
       } catch (response) {
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/tenant/bookings");
+        expect(getRedirectPathname((response as Response).headers.get("Location"))).toBe("/tenant/bookings");
       }
     });
 
@@ -190,7 +195,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Please enter a valid email address" });
+        expect(response).toEqual({ error: "Please enter a valid email address", email: expect.any(String) });
       });
 
       it("returns error when email is invalid format", async () => {
@@ -205,7 +210,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Please enter a valid email address" });
+        expect(response).toEqual({ error: "Please enter a valid email address", email: expect.any(String) });
       });
 
       it("returns error when password is empty", async () => {
@@ -220,7 +225,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Password is required" });
+        expect(response).toEqual({ error: "Password is required", email: expect.any(String) });
       });
     });
 
@@ -243,7 +248,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Invalid credentials" });
+        expect(response).toEqual({ error: "Invalid credentials", email: "user@example.com" });
       });
 
       it("redirects to /tenant when login is successful and user is a member", async () => {
@@ -297,7 +302,7 @@ describe("tenant/login route", () => {
 
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/tenant");
+        expect(getRedirectPathname((response as Response).headers.get("Location"))).toBe("/tenant");
       });
 
       it("returns notMember when user is not a member of the org", async () => {
@@ -406,7 +411,7 @@ describe("tenant/login route", () => {
 
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
-        expect((response as Response).headers.get("Location")).toBe("/tenant");
+        expect(getRedirectPathname((response as Response).headers.get("Location"))).toBe("/tenant");
         expect(db.insert).toHaveBeenCalled();
       });
 
@@ -425,7 +430,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "You must be logged in to join an organization" });
+        expect(response).toEqual({ error: "Missing user or organization information", email: "" });
       });
 
       it("returns error when orgId is missing", async () => {
@@ -443,7 +448,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Missing organization information" });
+        expect(response).toEqual({ error: "Missing user or organization information", email: "" });
       });
 
       it("does not create duplicate membership", async () => {
@@ -509,7 +514,7 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "An error occurred during login. Please try again." });
+        expect(response).toEqual({ error: "An error occurred during login. Please try again.", email: "user@example.com" });
         expect(consoleSpy).toHaveBeenCalled();
 
         consoleSpy.mockRestore();

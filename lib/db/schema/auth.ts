@@ -80,6 +80,7 @@ export const account = pgTable(
     scope: text("scope"),
     idToken: text("id_token"),
     password: text("password"),
+    forcePasswordChange: boolean("force_password_change").default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -150,7 +151,7 @@ export const organization = pgTable(
   "organization",
   {
     id: text("id").primaryKey(),
-    name: text("name").notNull(),
+    name: text("name").notNull().unique(),
     slug: text("slug").notNull().unique(),
     logo: text("logo"),
     metadata: text("metadata"), // JSON stored as text for flexibility
@@ -161,6 +162,7 @@ export const organization = pgTable(
   },
   (table) => [
     uniqueIndex("organization_slug_idx").on(table.slug),
+    index("organization_name_idx").on(table.name),
   ]
 );
 

@@ -6,6 +6,7 @@
 
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, Link, useOutletContext } from "react-router";
+import { useState, useEffect } from "react";
 import {
   getOrganizationBySlug,
   getPublicCourseById,
@@ -70,6 +71,18 @@ export default function CourseDetailPage() {
     branding: { primaryColor: string };
   }>();
 
+  // Session selection state
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null
+  );
+
+  // Auto-select single session for better UX
+  useEffect(() => {
+    if (course.upcomingSessions.length === 1 && !selectedSessionId) {
+      setSelectedSessionId(course.upcomingSessions[0].id);
+    }
+  }, [course.upcomingSessions, selectedSessionId]);
+
   const totalHours = (course.classroomHours || 0) + (course.poolHours || 0);
   const totalDives = course.openWaterDives || 0;
 
@@ -78,7 +91,7 @@ export default function CourseDetailPage() {
       {/* Back link */}
       <Link
         to={`/embed/${tenantSlug}/courses`}
-        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+        className="inline-flex items-center text-sm text-foreground-muted hover:text-foreground mb-4"
       >
         <svg
           className="w-4 h-4 mr-1"
@@ -108,11 +121,11 @@ export default function CourseDetailPage() {
                 className="h-8 object-contain"
               />
             ) : (
-              <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded">
+              <span className="text-sm font-semibold text-foreground bg-surface-overlay px-3 py-1 rounded">
                 {course.agencyCode}
               </span>
             )}
-            <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded font-medium">
+            <span className="text-sm bg-brand-muted text-brand px-3 py-1 rounded font-medium">
               {course.levelName}
             </span>
           </div>
@@ -120,24 +133,24 @@ export default function CourseDetailPage() {
           <h1 className="text-2xl font-bold mb-4">{course.name}</h1>
 
           {course.description && (
-            <div className="prose prose-sm max-w-none text-gray-600 mb-6">
+            <div className="prose prose-sm max-w-none text-foreground-muted mb-6">
               <p>{course.description}</p>
             </div>
           )}
 
           {/* Course Info Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">
+            <div className="bg-surface-inset rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-foreground">
                 {course.durationDays}
               </div>
-              <div className="text-sm text-gray-500">Days</div>
+              <div className="text-sm text-foreground-muted">Days</div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">
+            <div className="bg-surface-inset rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-foreground">
                 {course.maxStudents}
               </div>
-              <div className="text-sm text-gray-500">Max Students</div>
+              <div className="text-sm text-foreground-muted">Max Students</div>
             </div>
             {totalHours > 0 && (
               <div className="bg-info-muted rounded-lg p-4 text-center">
@@ -148,11 +161,11 @@ export default function CourseDetailPage() {
               </div>
             )}
             {totalDives > 0 && (
-              <div className="bg-cyan-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-cyan-700">
+              <div className="bg-info-muted rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-info">
                   {totalDives}
                 </div>
-                <div className="text-sm text-cyan-600">Open Water Dives</div>
+                <div className="text-sm text-info">Open Water Dives</div>
               </div>
             )}
           </div>
@@ -161,9 +174,9 @@ export default function CourseDetailPage() {
           <div className="mb-6">
             <h3 className="font-semibold text-lg mb-3">What You'll Learn</h3>
             <ul className="space-y-2">
-              <li className="flex items-start gap-2 text-gray-600">
+              <li className="flex items-start gap-2 text-foreground-muted">
                 <svg
-                  className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                  className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -176,9 +189,9 @@ export default function CourseDetailPage() {
                 Comprehensive dive theory and safety procedures
               </li>
               {course.classroomHours > 0 && (
-                <li className="flex items-start gap-2 text-gray-600">
+                <li className="flex items-start gap-2 text-foreground-muted">
                   <svg
-                    className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -192,9 +205,9 @@ export default function CourseDetailPage() {
                 </li>
               )}
               {course.poolHours > 0 && (
-                <li className="flex items-start gap-2 text-gray-600">
+                <li className="flex items-start gap-2 text-foreground-muted">
                   <svg
-                    className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -208,9 +221,9 @@ export default function CourseDetailPage() {
                 </li>
               )}
               {totalDives > 0 && (
-                <li className="flex items-start gap-2 text-gray-600">
+                <li className="flex items-start gap-2 text-foreground-muted">
                   <svg
-                    className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -223,9 +236,9 @@ export default function CourseDetailPage() {
                   {totalDives} open water training dive{totalDives !== 1 ? "s" : ""}
                 </li>
               )}
-              <li className="flex items-start gap-2 text-gray-600">
+              <li className="flex items-start gap-2 text-foreground-muted">
                 <svg
-                  className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                  className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -248,10 +261,32 @@ export default function CourseDetailPage() {
                 Available Training Sessions
               </h3>
               <div className="space-y-2">
-                {course.upcomingSessions.map((session) => (
+                {course.upcomingSessions.map((session) => {
+                  const isSelected = selectedSessionId === session.id;
+                  const handleSelect = (e: React.MouseEvent | React.KeyboardEvent) => {
+                    if ('key' in e && e.key !== 'Enter' && e.key !== ' ') {
+                      return;
+                    }
+                    if ('key' in e) {
+                      e.preventDefault();
+                    }
+                    setSelectedSessionId(session.id);
+                  };
+
+                  return (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Select session on ${formatDate(session.startDate)}`}
+                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                      isSelected ? 'bg-brand-muted' : 'bg-surface-inset hover:bg-surface-overlay'
+                    }`}
+                    style={{
+                      borderColor: isSelected ? branding.primaryColor : "#e5e7eb",
+                    }}
+                    onClick={handleSelect}
+                    onKeyDown={handleSelect}
                   >
                     <div>
                       <div className="font-medium">
@@ -259,7 +294,7 @@ export default function CourseDetailPage() {
                         {session.endDate && session.endDate !== session.startDate &&
                           ` - ${formatDate(session.endDate)}`}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-foreground-muted">
                         {session.startTime && formatTime(session.startTime)}
                         {session.location && ` | ${session.location}`}
                         {session.instructorName && ` | ${session.instructorName}`}
@@ -269,33 +304,38 @@ export default function CourseDetailPage() {
                       <span
                         className={`text-sm px-2 py-1 rounded ${
                           session.availableSpots > 0
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                            ? "bg-success-muted text-success"
+                            : "bg-danger-muted text-danger"
                         }`}
                       >
                         {session.availableSpots > 0
                           ? `${session.availableSpots} spots`
                           : "Full"}
                       </span>
-                      {session.availableSpots > 0 && (
-                        <Link
-                          to={`/embed/${tenantSlug}/courses/${course.id}/enroll?sessionId=${session.id}`}
-                          className="text-sm font-medium px-4 py-2 rounded text-white"
-                          style={{ backgroundColor: branding.primaryColor }}
+                      {isSelected && (
+                        <svg
+                          className="w-6 h-6 text-success"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
                         >
-                          Enroll
-                        </Link>
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
                       )}
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
             </div>
           )}
 
           {course.upcomingSessions.length === 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-yellow-800">
+            <div className="bg-warning-muted border border-warning rounded-lg p-4">
+              <p className="text-warning">
                 No upcoming sessions scheduled at this time. Please contact us for
                 more information about future course dates.
               </p>
@@ -305,7 +345,7 @@ export default function CourseDetailPage() {
 
         {/* Right Column - Enrollment Card */}
         <div>
-          <div className="bg-gray-50 rounded-lg p-6 sticky top-4">
+          <div className="bg-surface-inset rounded-lg p-6 sticky top-4">
             <div className="flex items-baseline justify-between mb-2">
               <span
                 className="text-3xl font-bold"
@@ -316,7 +356,7 @@ export default function CourseDetailPage() {
             </div>
 
             {course.depositAmount && (
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-foreground-muted mb-4">
                 Deposit:{" "}
                 {formatPrice(course.depositAmount, course.currency)} due at
                 enrollment
@@ -325,10 +365,10 @@ export default function CourseDetailPage() {
 
             <div className="border-t pt-4 mb-4">
               <h4 className="font-medium mb-2">Course Includes:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
+              <ul className="text-sm text-foreground-muted space-y-1">
                 <li className="flex items-center gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -343,7 +383,7 @@ export default function CourseDetailPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -357,7 +397,7 @@ export default function CourseDetailPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -371,7 +411,7 @@ export default function CourseDetailPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -387,19 +427,44 @@ export default function CourseDetailPage() {
             </div>
 
             {course.upcomingSessions.length > 0 ? (
-              <>
-                <div className="text-sm text-gray-600 text-center mb-3">
-                  Select a session above to enroll
-                </div>
-                <p className="text-xs text-gray-500 text-center">
-                  Choose from {course.upcomingSessions.length} available session
-                  {course.upcomingSessions.length !== 1 ? "s" : ""}
-                </p>
-              </>
+              selectedSessionId ? (
+                <Link
+                  to={`/embed/${tenantSlug}/courses/${course.id}/enroll?sessionId=${selectedSessionId}`}
+                  className="w-full py-3 text-white font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                  style={{ backgroundColor: branding.primaryColor }}
+                >
+                  Enroll Now
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+              ) : (
+                <>
+                  <button
+                    disabled
+                    aria-disabled="true"
+                    aria-describedby="enroll-helper-text-embed"
+                    className="w-full py-3 text-white font-semibold rounded-lg opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
+                    style={{ backgroundColor: branding.primaryColor }}
+                  >
+                    Enroll Now
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </button>
+                  <p id="enroll-helper-text-embed" className="mt-2 text-sm text-center opacity-75">
+                    Select a session below to enroll
+                  </p>
+                </>
+              )
             ) : (
-              <p className="text-xs text-gray-500 text-center">
-                Contact us for upcoming session dates
-              </p>
+              <Link
+                to={`/embed/${tenantSlug}/contact`}
+                className="w-full py-3 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
+                style={{ backgroundColor: branding.primaryColor }}
+              >
+                Contact Us
+              </Link>
             )}
           </div>
         </div>

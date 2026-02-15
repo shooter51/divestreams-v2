@@ -1,0 +1,68 @@
+COMPLETE LIST OF 46 FAILED TESTS
+=================================
+
+POS SYSTEM FAILURES (20 tests):
+-------------------------------
+1. KAN-631.1: POS New Sale button should be visible and enabled
+2. KAN-631.2: New Sale button should clear cart when clicked (single product)
+3. KAN-631.3: New Sale button should clear cart with multiple items
+4. KAN-631.4: New Sale button should work multiple times in succession
+5. KAN-631.5: New Sale button should have correct styling (not disabled appearance)
+6. KAN-631.6: New Sale button should clear cart with different item quantities
+7. KAN-631.7: New Sale button functionality test
+
+8. KAN-633.1: BUG - should add rental equipment to cart
+9. KAN-633.2: BUG - should add trip booking to cart
+10. KAN-633.3: BASELINE - should add product to cart (working case)
+11. KAN-633.4: should require customer for rentals
+12. KAN-633.5: should require customer for bookings
+13. KAN-633.6: should add multiple rentals with different durations
+14. KAN-633.7: should add multiple trip bookings with different participant counts
+15. KAN-633.8: POS cart functionality test
+
+16. KAN-634-A: Split payment modal opens and shows correct UI
+17. KAN-634-B: Cash-only split payment works
+18. KAN-634-C: Multiple cash payments in split mode
+19. KAN-634-D: Can remove payments from split payment
+20. KAN-634-E: Complete sale button disabled when amount does not match total
+
+TRAINING/COURSE MANAGEMENT FAILURES (9 tests):
+----------------------------------------------
+21. KAN-610: should load enrollment form from training dashboard without error
+22. KAN-576: A.1 Navigate to training import from dashboard @smoke
+23. KAN-577: B.1 Step 1: Select agency displays correctly @smoke
+24. KAN-578: B.2 Step 1: Cannot submit without selecting agency @validation
+25. KAN-587: E.1 Progress indicator shows current step @smoke
+26. KAN-638.1: should require session selection before enabling Enroll Now button
+27. KAN-638.2: should navigate to enrollment form with sessionId when session is selected
+28. KAN-638.3: sidebar Enroll Now button should work after selecting session
+29. KAN-638.4: clicking sidebar Enroll Now without session selection should show error
+30. KAN-638.5: course with no available sessions should show contact message
+
+CUSTOMER BOOKING CANCELLATION FAILURES (9 tests):
+-------------------------------------------------
+31. KAN-652.1: customer can view their booking details
+32. KAN-652.2: customer can cancel their own booking with reason
+33. KAN-652.3: cancelled booking appears in "Cancelled" filter tab (dev)
+34. KAN-652.4: cancelled booking appears in "Cancelled" filter tab (staging)
+35. KAN-652.5: dev environment is accessible and booking cancellation feature exists
+36. KAN-652.6: booking detail route is accessible (dev)
+37. KAN-652.7: booking detail route exists (returns 401/403 when not logged in) (staging)
+38. KAN-652.8: customer can access registration page (staging)
+39. KAN-652.9: staging environment is accessible and loads site content
+
+ALBUM UPLOAD FAILURE (1 test):
+------------------------------
+40. KAN-630: should upload image to album successfully
+
+WORKFLOW/CRUD FAILURES (7 tests):
+---------------------------------
+41. KAN-85: 6.2 Boats page has Add Boat button
+42. KAN-168: 11.6 New trip form has boat selector
+43. KAN-197: 14.5 POS page has payment button
+44. KAN-298: C.2 Edit customer form loads with existing data
+45. KAN-346: C.2 Edit tour form loads with existing data
+46. KAN-387: A.5 Trips page has Add/Schedule button (strict mode violation)
+47. KAN-536: B.2 Create discount code - modal closes after success (strict mode violation)
+
+Note: Tests 46-47 are strict mode violations where selectors match multiple elements.

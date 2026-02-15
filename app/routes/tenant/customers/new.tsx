@@ -4,6 +4,10 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createCustomer } from "../../../../lib/db/queries.server";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
+import { db } from "../../../../lib/db";
+import { user } from "../../../../lib/db/schema/auth";
+import { eq } from "drizzle-orm";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
@@ -44,6 +48,26 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors, values };
   }
 
+  // Check if email already exists as a tenant user
+  const [existingUser] = await db
+    .select()
+    .from(user)
+    .where(eq(user.email, email))
+    .limit(1);
+
+  if (existingUser) {
+    const values: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      if (typeof value === "string") {
+        values[key] = value;
+      }
+    });
+    return {
+      errors: { email: "This email is already registered as a tenant user" },
+      values,
+    };
+  }
+
   // Parse certifications from form
   const certAgency = formData.get("certAgency") as string;
   const certLevel = formData.get("certLevel") as string;
@@ -54,7 +78,7 @@ export async function action({ request }: ActionFunctionArgs) {
     : undefined;
 
   try {
-    await createCustomer(organizationId, {
+    const customer = await createCustomer(organizationId, {
       email,
       firstName,
       lastName,
@@ -74,7 +98,41 @@ export async function action({ request }: ActionFunctionArgs) {
       notes: formData.get("notes") as string || undefined,
     });
 
-    return redirect("/tenant/customers");
+    // Create initial credentials and send password setup email
+    try {
+      const { createInitialCredentials } = await import("../../../../lib/auth/customer-auth.server");
+      const { triggerCustomerSetPassword } = await import("../../../../lib/email/triggers");
+
+      const { resetToken } = await createInitialCredentials(
+        organizationId,
+        customer.id,
+        email
+      );
+
+      // Send password setup email
+      await triggerCustomerSetPassword({
+        customerEmail: email,
+        customerName: `${firstName} ${lastName}`,
+        shopName: ctx.org.name,
+        subdomain: ctx.org.slug,
+        resetToken,
+        tenantId: ctx.org.id,
+      });
+
+      return redirect(redirectWithNotification(
+        "/tenant/customers",
+        `Customer "${firstName} ${lastName}" has been created. An email has been sent to ${email} with instructions to set their password.`,
+        "success"
+      ));
+    } catch (emailError) {
+      console.error("Failed to send password setup email:", emailError);
+      // Customer was created successfully, just email failed
+      return redirect(redirectWithNotification(
+        "/tenant/customers",
+        `Customer "${firstName} ${lastName}" has been created, but the password setup email could not be sent. Please contact support.`,
+        "warning"
+      ));
+    }
   } catch (error) {
     console.error("Failed to create customer:", error);
     const values: Record<string, string> = {};
@@ -97,6 +155,9 @@ export default function NewCustomerPage() {
   const isSubmitting = navigation.state === "submitting";
   const isNearLimit = limitMax !== -1 && limitRemaining <= Math.ceil(limitMax * 0.2);
 
+  // Show notifications from URL params
+  useNotification();
+
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
@@ -104,6 +165,21 @@ export default function NewCustomerPage() {
           ← Back to Customers
         </Link>
         <h1 className="text-2xl font-bold mt-2">Add Customer</h1>
+      </div>
+
+      {/* Password Setup Info */}
+      <div className="bg-brand-muted border border-brand rounded-lg p-4 mb-6 max-w-4xl break-words">
+        <div className="flex items-start gap-3">
+          <svg className="w-5 h-5 text-brand mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 className="font-semibold text-brand mb-1">Password Setup Email</h3>
+            <p className="text-sm text-brand-hover">
+              After creating this customer, an email will be automatically sent to their email address with a secure link to set up their password. This allows them to log in to the customer portal, view bookings, and manage their profile.
+            </p>
+          </div>
+        </div>
       </div>
 
       <form method="post" className="space-y-6">
@@ -120,7 +196,7 @@ export default function NewCustomerPage() {
                 id="firstName"
                 name="firstName"
                 defaultValue={actionData?.values?.firstName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.firstName && (
@@ -136,7 +212,7 @@ export default function NewCustomerPage() {
                 id="lastName"
                 name="lastName"
                 defaultValue={actionData?.values?.lastName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.lastName && (
@@ -152,7 +228,7 @@ export default function NewCustomerPage() {
                 id="email"
                 name="email"
                 defaultValue={actionData?.values?.email}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.email && (
@@ -168,7 +244,7 @@ export default function NewCustomerPage() {
                 id="phone"
                 name="phone"
                 defaultValue={actionData?.values?.phone}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -180,7 +256,7 @@ export default function NewCustomerPage() {
                 id="dateOfBirth"
                 name="dateOfBirth"
                 defaultValue={actionData?.values?.dateOfBirth}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -198,7 +274,7 @@ export default function NewCustomerPage() {
                 id="certAgency"
                 name="certAgency"
                 defaultValue={actionData?.values?.certAgency}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="">Select...</option>
                 <option value="PADI">PADI</option>
@@ -217,7 +293,7 @@ export default function NewCustomerPage() {
                 id="certLevel"
                 name="certLevel"
                 defaultValue={actionData?.values?.certLevel}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="">Select...</option>
                 <option value="Open Water">Open Water</option>
@@ -236,7 +312,7 @@ export default function NewCustomerPage() {
                 id="certNumber"
                 name="certNumber"
                 defaultValue={actionData?.values?.certNumber}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -255,7 +331,7 @@ export default function NewCustomerPage() {
                 id="emergencyContactName"
                 name="emergencyContactName"
                 defaultValue={actionData?.values?.emergencyContactName}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -267,7 +343,7 @@ export default function NewCustomerPage() {
                 id="emergencyContactPhone"
                 name="emergencyContactPhone"
                 defaultValue={actionData?.values?.emergencyContactPhone}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -280,7 +356,7 @@ export default function NewCustomerPage() {
                 name="emergencyContactRelation"
                 placeholder="e.g., Spouse, Parent"
                 defaultValue={actionData?.values?.emergencyContactRelation}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -300,7 +376,7 @@ export default function NewCustomerPage() {
                 rows={2}
                 placeholder="Any conditions we should know about..."
                 defaultValue={actionData?.values?.medicalConditions}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div>
@@ -312,7 +388,7 @@ export default function NewCustomerPage() {
                 name="medications"
                 rows={2}
                 defaultValue={actionData?.values?.medications}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -331,7 +407,7 @@ export default function NewCustomerPage() {
                 id="address"
                 name="address"
                 defaultValue={actionData?.values?.address}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div className="grid grid-cols-4 gap-4">
@@ -344,7 +420,7 @@ export default function NewCustomerPage() {
                   id="city"
                   name="city"
                   defaultValue={actionData?.values?.city}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
               <div>
@@ -356,7 +432,7 @@ export default function NewCustomerPage() {
                   id="state"
                   name="state"
                   defaultValue={actionData?.values?.state}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
               <div>
@@ -368,7 +444,7 @@ export default function NewCustomerPage() {
                   id="postalCode"
                   name="postalCode"
                   defaultValue={actionData?.values?.postalCode}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -381,7 +457,7 @@ export default function NewCustomerPage() {
                 id="country"
                 name="country"
                 defaultValue={actionData?.values?.country}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -400,7 +476,7 @@ export default function NewCustomerPage() {
                 name="notes"
                 rows={3}
                 defaultValue={actionData?.values?.notes}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
             <div className="flex items-center gap-2">

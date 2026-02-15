@@ -8,9 +8,10 @@ on:
         required: true
         type: choice
         options:
-          - staging
+          - dev
+          - test
           - production
-        default: staging
+        default: test
 
 env:
   REGISTRY: ghcr.io
@@ -18,7 +19,7 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, divestreams]
     environment: ${{ github.event.inputs.environment }}
     permissions:
       contents: read
@@ -38,69 +39,62 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image (staging)
-        if: ${{ github.event.inputs.environment == 'staging' }}
+      - name: Set deployment variables
+        id: config
+        run: |
+          case "${{ github.event.inputs.environment }}" in
+            dev)
+              echo "tag=dev" >> $GITHUB_OUTPUT
+              echo "vps_id=${{ vars.DEV_VPS_ID }}" >> $GITHUB_OUTPUT
+              echo "project=divestreams-dev" >> $GITHUB_OUTPUT
+              echo "url=https://dev.divestreams.com" >> $GITHUB_OUTPUT
+              echo "min_containers=3" >> $GITHUB_OUTPUT
+              ;;
+            test)
+              echo "tag=test" >> $GITHUB_OUTPUT
+              echo "vps_id=${{ vars.TEST_VPS_ID }}" >> $GITHUB_OUTPUT
+              echo "project=divestreams-test" >> $GITHUB_OUTPUT
+              echo "url=https://test.divestreams.com" >> $GITHUB_OUTPUT
+              echo "min_containers=4" >> $GITHUB_OUTPUT
+              ;;
+            production)
+              echo "tag=latest" >> $GITHUB_OUTPUT
+              echo "vps_id=${{ vars.PROD_VPS_ID }}" >> $GITHUB_OUTPUT
+              echo "project=divestreams-prod" >> $GITHUB_OUTPUT
+              echo "url=https://divestreams.com" >> $GITHUB_OUTPUT
+              echo "min_containers=4" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.config.outputs.tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push Docker image (production)
-        if: ${{ github.event.inputs.environment == 'production' }}
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Deploy to staging VPS
-        if: ${{ github.event.inputs.environment == 'staging' }}
+      - name: Deploy to VPS
         run: |
-          echo "Deploying to staging (VPS 1271895)"
+          echo "Deploying to ${{ github.event.inputs.environment }} (VPS ${{ steps.config.outputs.vps_id }})"
           curl -X POST \
-            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1271895/docker/divestreams-staging/update" \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/${{ steps.config.outputs.vps_id }}/docker/${{ steps.config.outputs.project }}/update" \
             -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --fail-with-body
-
-      - name: Deploy to production VPS
-        if: ${{ github.event.inputs.environment == 'production' }}
-        run: |
-          echo "Deploying to production (VPS 1239852)"
-          curl -X POST \
-            "https://developers.hostinger.com/api/vps/v1/virtual-machines/1239852/docker/divestreams-v2/update" \
-            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --fail-with-body
+            --fail
 
       - name: Wait for deployment to stabilize
         run: sleep 45
 
       - name: Verify containers are running
         run: |
-          if [ "${{ github.event.inputs.environment }}" == "staging" ]; then
-            VPS_ID=1271895
-            PROJECT=divestreams-staging
-          else
-            VPS_ID=1239852
-            PROJECT=divestreams-v2
-          fi
-
           echo "Checking container status..."
           RESPONSE=$(curl -s -X GET \
-            "https://developers.hostinger.com/api/vps/v1/virtual-machines/$VPS_ID/docker/$PROJECT/containers" \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/${{ steps.config.outputs.vps_id }}/docker/${{ steps.config.outputs.project }}/containers" \
             -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
             -H "Content-Type: application/json")
 
@@ -109,12 +103,12 @@ jobs:
           RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
           echo "Running containers: $RUNNING_COUNT"
 
-          if [ "$RUNNING_COUNT" -lt 4 ]; then
-            echo "ERROR: Expected 4 containers running, found $RUNNING_COUNT"
+          if [ "$RUNNING_COUNT" -lt ${{ steps.config.outputs.min_containers }} ]; then
+            echo "ERROR: Expected ${{ steps.config.outputs.min_containers }} containers running, found $RUNNING_COUNT"
             exit 1
           fi
 
-          echo "✅ All 4 containers are running"
+          echo "✅ All containers are running"
 
       - name: Deployment Summary
         run: |
@@ -122,9 +116,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tag:** ${{ steps.config.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ github.event.inputs.environment }}" == "staging" ]; then
-            echo "**URL:** https://staging.divestreams.com" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "**URL:** https://divestreams.com" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "**URL:** ${{ steps.config.outputs.url }}" >> $GITHUB_STEP_SUMMARY

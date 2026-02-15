@@ -5,10 +5,11 @@ import { test as base, type Page } from "@playwright/test";
  */
 export const testConfig = {
   adminPassword: process.env.ADMIN_PASSWORD || "DiveAdmin2026",
+  adminEmail: "admin@divestreams.com",
   tenantSubdomain: "demo",
   tenantCredentials: {
     email: "owner@demo.com",
-    password: "demo123",
+    password: "demo1234",
   },
   testUser: {
     email: `test${Date.now()}@example.com`,
@@ -34,8 +35,8 @@ export async function loginToTenant(
     return;
   }
 
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
+  await page.getByRole("textbox", { name: /email/i }).fill(email);
+  await page.locator('input[type="password"]').first().fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
 
   // Wait for redirect to app
@@ -44,14 +45,18 @@ export async function loginToTenant(
 
 /**
  * Helper to login to admin
+ * Admin login requires both email AND password (platform admin users only)
  */
 export async function loginToAdmin(
   page: Page,
+  email: string = testConfig.adminEmail,
   password: string = testConfig.adminPassword
 ): Promise<void> {
   await page.goto("http://admin.localhost:5173/login");
 
-  await page.getByLabel(/password/i).fill(password);
+  // Admin login requires BOTH email and password (use getByRole for accessibility)
+  await page.getByRole("textbox", { name: /email/i }).fill(email);
+  await page.locator('input[type="password"]').first().fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
 
   // Wait for redirect to dashboard

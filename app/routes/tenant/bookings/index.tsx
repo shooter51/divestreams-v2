@@ -5,6 +5,8 @@ import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
 import { eq, or, ilike, sql, count, and, gte } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Bookings - DiveStreams" }];
 
@@ -127,15 +129,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-const statusColors: Record<string, string> = {
-  pending: "bg-warning-muted text-warning",
-  confirmed: "bg-success-muted text-success",
-  completed: "bg-surface-inset text-foreground-muted",
-  cancelled: "bg-danger-muted text-danger",
-  no_show: "bg-accent-muted text-accent",
-};
+// Map database status to BadgeStatus type
+function mapBookingStatus(status: string): BadgeStatus {
+  if (status === "canceled") return "cancelled";
+  if (status === "checked_in") return "checked_in";
+  return status as BadgeStatus;
+}
 
 export default function BookingsPage() {
+  useNotification();
+
   const {
     bookings,
     total,
@@ -243,7 +246,7 @@ export default function BookingsPage() {
           <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
           <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="canceled">Cancelled</option>
           <option value="no_show">No Show</option>
         </select>
         <button
@@ -314,13 +317,7 @@ export default function BookingsPage() {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        statusColors[booking.status] || "bg-surface-inset text-foreground"
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
+                    <StatusBadge status={mapBookingStatus(booking.status)} size="sm" />
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link
@@ -346,14 +343,14 @@ export default function BookingsPage() {
               <button
                 onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page - 1) })}
                 disabled={page <= 1}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
                 Previous
               </button>
               <button
                 onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), page: String(page + 1) })}
                 disabled={page >= totalPages}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border border-border-strong rounded bg-surface-raised text-foreground hover:bg-surface-overlay disabled:opacity-50"
               >
                 Next
               </button>

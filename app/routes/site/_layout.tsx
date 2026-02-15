@@ -5,61 +5,20 @@
  * Handles tenant resolution, theme application, and site navigation.
  */
 
-import { Outlet, Link, useLoaderData, useLocation, useRouteError, isRouteErrorResponse } from "react-router";
+import { Outlet, Link, useLoaderData, useLocation, Form, isRouteErrorResponse, useRouteError } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { eq, or } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization, type PublicSiteSettings } from "../../../lib/db/schema/auth";
+import type { Customer } from "../../../lib/db/schema";
 import { getTheme, getThemeStyleBlock, type ThemeName } from "../../../lib/themes/public-site-themes";
+import { getCustomerBySession } from "../../../lib/auth/customer-auth.server";
+import { getSubdomainFromHost } from "../../../lib/utils/url";
 
 // ============================================================================
-// THEME CSS VARIABLES
+// FONT FAMILIES
 // ============================================================================
-
-/**
- * Theme presets with CSS variable values
- */
-const themePresets: Record<
-  PublicSiteSettings["theme"],
-  { primary: string; secondary: string; background: string; text: string; accent: string }
-> = {
-  ocean: {
-    primary: "#0077b6",
-    secondary: "#00b4d8",
-    background: "#f0f9ff",
-    text: "#1e3a5f",
-    accent: "#90e0ef",
-  },
-  tropical: {
-    primary: "#2d6a4f",
-    secondary: "#40916c",
-    background: "#f0fff4",
-    text: "#1b4332",
-    accent: "#95d5b2",
-  },
-  minimal: {
-    primary: "#374151",
-    secondary: "#6b7280",
-    background: "#f9fafb",
-    text: "#111827",
-    accent: "#d1d5db",
-  },
-  dark: {
-    primary: "#60a5fa",
-    secondary: "#818cf8",
-    background: "#0f172a",
-    text: "#e2e8f0",
-    accent: "#1e293b",
-  },
-  classic: {
-    primary: "#1e40af",
-    secondary: "#3b82f6",
-    background: "#ffffff",
-    text: "#1f2937",
-    accent: "#dbeafe",
-  },
-};
 
 /**
  * Font family CSS values
@@ -70,37 +29,6 @@ const fontFamilies: Record<PublicSiteSettings["fontFamily"], string> = {
   roboto: "'Roboto', system-ui, sans-serif",
   "open-sans": "'Open Sans', system-ui, sans-serif",
 };
-
-// ============================================================================
-// SUBDOMAIN RESOLUTION
-// ============================================================================
-
-/**
- * Extract subdomain from request host
- */
-function getSubdomainFromHost(host: string): string | null {
-  // Handle localhost development: subdomain.localhost:5173
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  // Handle production: subdomain.divestreams.com
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    // Ignore www and admin as they're not tenant subdomains
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
 
 // ============================================================================
 // LOADER
@@ -115,14 +43,7 @@ export interface SiteLoaderData {
   };
   settings: PublicSiteSettings;
   themeVars: {
-    primaryColor: string;
-    secondaryColor: string;
-    backgroundColor: string;
-    textColor: string;
-    accentColor: string;
     fontFamily: string;
-    cardBg: string;
-    borderColor: string;
   };
   darkCSS: string;
   enabledPages: {
@@ -135,6 +56,7 @@ export interface SiteLoaderData {
     gallery: boolean;
   };
   contactInfo: PublicSiteSettings["contactInfo"];
+  customer: Customer | null;
 }
 
 export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoaderData> {
@@ -202,26 +124,35 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     throw redirect(`/site-disabled?org=${encodeURIComponent(org.name)}`);
   }
 
-  // Get theme preset and apply custom colors if specified
-  const themePreset = themePresets[settings.theme];
-  const isDark = settings.theme === "dark";
+  // Font family setting (only non-color variable needed in themeVars)
   const themeVars = {
-    primaryColor: settings.primaryColor || themePreset.primary,
-    secondaryColor: settings.secondaryColor || themePreset.secondary,
-    backgroundColor: themePreset.background,
-    textColor: themePreset.text,
-    accentColor: themePreset.accent,
     fontFamily: fontFamilies[settings.fontFamily],
-    cardBg: isDark ? "#1E293B" : "#FFFFFF",
-    borderColor: isDark ? "#334155" : "#E5E7EB",
   };
 
   // Generate light + dark mode CSS from the full theme system
+  // This includes @media (prefers-color-scheme: dark) overrides
+  // All color variables are set here and automatically adapt to system dark mode
   const fullTheme = getTheme(settings.theme as ThemeName);
   const darkCSS = getThemeStyleBlock(fullTheme, {
     primaryColor: settings.primaryColor || undefined,
     secondaryColor: settings.secondaryColor || undefined,
   });
+
+  // Check for customer session
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const cookies = Object.fromEntries(
+    cookieHeader.split("; ").filter(Boolean).map((c) => {
+      const [key, ...rest] = c.split("=");
+      return [key, rest.join("=")];
+    })
+  );
+
+  const sessionToken = cookies["customer_session"];
+  let customer: Customer | null = null;
+
+  if (sessionToken) {
+    customer = await getCustomerBySession(sessionToken);
+  }
 
   return {
     organization: {
@@ -235,6 +166,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     darkCSS,
     enabledPages: settings.pages,
     contactInfo: settings.contactInfo,
+    customer,
   };
 }
 
@@ -243,7 +175,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
 // ============================================================================
 
 export default function SiteLayout() {
-  const { organization, themeVars, enabledPages, contactInfo, darkCSS } =
+  const { organization, themeVars, enabledPages, contactInfo, darkCSS, customer } =
     useLoaderData<typeof loader>();
   const location = useLocation();
 
@@ -348,24 +280,51 @@ export default function SiteLayout() {
 
             {/* Auth Actions */}
             <div className="flex items-center gap-3">
-              <Link
-                to="/site/login"
-                className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                style={{
-                  color: "var(--primary-color)",
-                }}
-              >
-                Log In
-              </Link>
-              <Link
-                to="/site/register"
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
-                style={{
-                  backgroundColor: "var(--primary-color)",
-                }}
-              >
-                Sign Up
-              </Link>
+              {customer ? (
+                <>
+                  <Link
+                    to="/site/account"
+                    className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                    style={{
+                      color: "var(--primary-color)",
+                    }}
+                  >
+                    My Account
+                  </Link>
+                  <Form method="post" action="/site/account/logout">
+                    <button
+                      type="submit"
+                      className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:opacity-80"
+                      style={{
+                        color: "var(--text-color)",
+                      }}
+                    >
+                      Log Out
+                    </button>
+                  </Form>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/site/login"
+                    className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                    style={{
+                      color: "var(--primary-color)",
+                    }}
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/site/register"
+                    className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: "var(--primary-color)",
+                    }}
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -503,25 +462,43 @@ export default function SiteLayout() {
 
 export function ErrorBoundary() {
   const error = useRouteError();
-  const isResponse = isRouteErrorResponse(error);
+  const isRouteError = isRouteErrorResponse(error);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow-lg max-w-md text-center">
-        <h1 className="text-2xl font-bold mb-2">
-          {isResponse ? `${error.status} - ${error.statusText}` : "Something went wrong"}
+    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "#f8fafc", color: "#1e293b" }}>
+      <div className="max-w-md w-full text-center">
+        <h1 className="text-6xl font-bold mb-4" style={{ color: "#0369a1" }}>
+          {isRouteError ? error.status : "Oops"}
         </h1>
-        <p className="text-gray-600 mb-6">
-          {isResponse
-            ? "The page you're looking for could not be found."
-            : "An unexpected error occurred. Please try again."}
+        <h2 className="text-2xl font-semibold mb-2">
+          {isRouteError
+            ? error.status === 404
+              ? "Page Not Found"
+              : "Something Went Wrong"
+            : "Unexpected Error"}
+        </h2>
+        <p className="text-gray-600 mb-8">
+          {isRouteError
+            ? error.status === 404
+              ? "The page you're looking for doesn't exist or has been moved."
+              : error.statusText || "We encountered an issue processing your request."
+            : "An unexpected error occurred. Please try again later."}
         </p>
-        <a
-          href="/site"
-          className="inline-block bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800"
-        >
-          Back to Home
-        </a>
+        <div className="flex gap-4 justify-center">
+          <Link
+            to="/site"
+            className="px-6 py-3 text-white rounded-lg font-medium transition-colors"
+            style={{ backgroundColor: "#0369a1" }}
+          >
+            Back to Home
+          </Link>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-white text-gray-700 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     </div>
   );

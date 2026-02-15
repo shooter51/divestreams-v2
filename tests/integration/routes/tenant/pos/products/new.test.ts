@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../../helpers/redirect";
 import { loader, action } from "../../../../../../app/routes/tenant/pos/products/new";
 import * as orgContext from "../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../lib/db/queries.server";
@@ -50,7 +51,7 @@ describe("app/routes/tenant/pos/products/new.tsx", () => {
 
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/tenant/pos/products/prod-123");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/pos/products/prod-123");
     });
 
     it("should return validation error for missing name", async () => {

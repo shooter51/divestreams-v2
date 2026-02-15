@@ -1,12 +1,14 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { db } from "../../../lib/db";
 import { member, user, invitation, organization } from "../../../lib/db/schema/auth";
 import { eq, and, desc } from "drizzle-orm";
 import { sendEmail } from "../../../lib/email";
 import { getAppUrl, getAdminUrl } from "../../../lib/utils/url";
+import { resetUserPassword, type ResetPasswordParams } from "../../../lib/auth/admin-password-reset.server";
+import { ResetPasswordModal } from "../../components/settings/ResetPasswordModal";
 
 export const meta: MetaFunction = () => [{ title: "Team - DiveStreams Admin" }];
 
@@ -292,6 +294,57 @@ export async function action({ request }: ActionFunctionArgs) {
 
       return { success: true, message: "Invitation resent" };
     }
+
+    case "reset-password": {
+      const userId = formData.get("userId") as string;
+      const method = formData.get("method") as ResetPasswordParams["method"];
+      const newPassword = formData.get("newPassword") as string | undefined;
+
+      // Get target member to check role
+      const [targetMember] = await db
+        .select()
+        .from(member)
+        .where(eq(member.userId, userId))
+        .limit(1);
+
+      if (!targetMember) {
+        return { error: "User not found" };
+      }
+
+      // Cannot reset owner passwords
+      if (targetMember.role === "owner") {
+        return { error: "Cannot reset password for owner accounts" };
+      }
+
+      // Prevent self-reset
+      if (userId === ctx.user.id) {
+        return { error: "Use profile settings to change your own password" };
+      }
+
+      // Execute reset
+      try {
+        const result = await resetUserPassword({
+          targetUserId: userId,
+          adminUserId: ctx.user.id,
+          organizationId: platformOrg.id,
+          method,
+          newPassword,
+          ipAddress: request.headers.get("x-forwarded-for") || undefined,
+          userAgent: request.headers.get("user-agent") || undefined,
+        });
+
+        return {
+          success: true,
+          temporaryPassword: result.temporaryPassword,
+          message: method === "auto_generated"
+            ? `Password reset successful. Temporary password: ${result.temporaryPassword}`
+            : "Password reset successful",
+        };
+      } catch (error) {
+        console.error("Password reset error:", error);
+        return { error: error instanceof Error ? error.message : "Failed to reset password" };
+      }
+    }
   }
 
   return { error: "Unknown action" };
@@ -302,6 +355,17 @@ export default function AdminTeamPage() {
     useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState<{ id: string; name: string; email: string } | null>(null);
+
+  // Close modal on successful invite
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data?.message && showInviteModal) {
+      setShowInviteModal(false);
+    }
+  }, [fetcher.data, showInviteModal]);
+
+  // Password reset result is passed to modal via fetcher.data
+  // Modal will display PasswordDisplayModal for auto-generated passwords
 
   return (
     <div className="space-y-6">
@@ -376,7 +440,7 @@ export default function AdminTeamPage() {
                       <button className="p-2 hover:bg-surface-overlay rounded-lg text-foreground-muted">
                         ...
                       </button>
-                      <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg hidden group-hover:block z-10">
+                      <div className="absolute right-0 mt-1 w-48 bg-surface-raised border rounded-lg shadow-lg hidden group-hover:block z-50 max-h-96 overflow-y-auto">
                         <div className="py-1">
                           {m.role !== "owner" && (
                             <>
@@ -411,6 +475,15 @@ export default function AdminTeamPage() {
                               <hr className="my-1" />
                             </>
                           )}
+                          {m.role !== "owner" && (
+                            <button
+                              onClick={() => setResetPasswordUser({ id: m.userId, name: m.name || "User", email: m.email })}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-inset"
+                            >
+                              Reset Password
+                            </button>
+                          )}
+                          {m.role !== "owner" && <hr className="my-1" />}
                           <fetcher.Form
                             method="post"
                             onSubmit={(e) => {
@@ -525,10 +598,14 @@ export default function AdminTeamPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-surface-raised rounded-xl p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4">Invite Team Member</h2>
-            <fetcher.Form
-              method="post"
-              onSubmit={() => setShowInviteModal(false)}
-            >
+
+            {fetcher.data?.error && (
+              <div className="mb-4 bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg text-sm">
+                {fetcher.data.error}
+              </div>
+            )}
+
+            <fetcher.Form method="post">
               <input type="hidden" name="intent" value="invite" />
 
               <div className="space-y-4">
@@ -545,7 +622,7 @@ export default function AdminTeamPage() {
                     name="email"
                     required
                     placeholder="admin@example.com"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
 
@@ -561,7 +638,7 @@ export default function AdminTeamPage() {
                     name="role"
                     required
                     defaultValue="admin"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                   >
                     {roles.map((role) => (
                       <option key={role.id} value={role.id}>
@@ -593,6 +670,32 @@ export default function AdminTeamPage() {
             </fetcher.Form>
           </div>
         </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetPasswordUser && (
+        <ResetPasswordModal
+          user={resetPasswordUser}
+          onClose={() => {
+            setResetPasswordUser(null);
+            // Clear fetcher data when closing modal
+            if (fetcher.state === "idle" && fetcher.data) {
+              fetcher.load(window.location.href);
+            }
+          }}
+          onSubmit={(data) => {
+            fetcher.submit(
+              {
+                intent: "reset-password",
+                userId: data.userId,
+                method: data.method,
+                ...(data.newPassword && { newPassword: data.newPassword }),
+              },
+              { method: "post" }
+            );
+          }}
+          result={fetcher.data}
+        />
       )}
     </div>
   );

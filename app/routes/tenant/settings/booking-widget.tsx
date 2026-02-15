@@ -135,7 +135,7 @@ export default function BookingWidgetPage() {
       </div>
 
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success-muted text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           Settings saved successfully!
         </div>
       )}
@@ -302,12 +302,12 @@ export default function BookingWidgetPage() {
               Copy this code to embed the booking widget on your website:
             </p>
             <div className="relative">
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto">
+              <pre className="bg-surface text-foreground p-4 rounded-lg text-sm overflow-x-auto border border-border">
                 <code>{iframeCode}</code>
               </pre>
               <button
                 onClick={() => copyToClipboard(iframeCode)}
-                className="absolute top-2 right-2 px-3 py-1 bg-gray-700 text-white rounded text-xs hover:bg-gray-600"
+                className="absolute top-2 right-2 px-3 py-1 bg-surface-raised text-foreground rounded text-xs hover:bg-surface-overlay border border-border"
               >
                 {copied ? "Copied!" : "Copy"}
               </button>

@@ -1,12 +1,16 @@
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation } from "react-router";
+import { redirect, useActionData, useNavigation, useLoaderData } from "react-router";
 import { createTenant, isSubdomainAvailable } from "../../../lib/db/tenant.server";
 import { triggerWelcomeEmail } from "../../../lib/email/triggers";
 import { getTenantUrl } from "../../../lib/utils/url";
 import { hashPassword } from "../../../lib/auth/password.server";
 import { db } from "../../../lib/db";
 import { user, account, member, organization } from "../../../lib/db/schema/auth";
-import { eq } from "drizzle-orm";
+import { customers } from "../../../lib/db/schema";
+import { eq, sql } from "drizzle-orm";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { CsrfTokenInput } from "../../components/CsrfInput";
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,8 +19,25 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export function loader() {
+  return { csrfToken: generateAnonCsrfToken() };
+}
+
 export async function action({ request }: ActionFunctionArgs) {
+  // Rate limit signup attempts
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`signup:${clientIp}`, { maxAttempts: 5, windowMs: 60 * 60 * 1000 });
+  if (!rateLimit.allowed) {
+    return { errors: { form: "Too many signup attempts. Please try again later." } as Record<string, string> };
+  }
+
   const formData = await request.formData();
+
+  // Validate CSRF token (reject if present but invalid)
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
+    return { errors: { form: "Invalid form submission. Please refresh and try again." } as Record<string, string> };
+  }
 
   const shopName = formData.get("shopName") as string;
   const subdomain = formData.get("subdomain") as string;
@@ -60,19 +81,64 @@ export async function action({ request }: ActionFunctionArgs) {
       .from(user)
       .where(eq(user.email, email))
       .limit(1);
+
     if (existingUser) {
-      errors.email = "An account with this email already exists";
+      // Check if user has any organization memberships
+      const [membership] = await db
+        .select({ id: member.id })
+        .from(member)
+        .where(eq(member.userId, existingUser.id))
+        .limit(1);
+
+      if (membership) {
+        // User has an active organization - can't sign up again
+        errors.email = "An account with this email already exists";
+      } else {
+        // Instead of deleting the user, suggest they recover their account
+        return {
+          errors: {
+            form: "An account with this email already exists. Please try logging in or resetting your password.",
+          } as Record<string, string>,
+          values: { shopName, subdomain, email, phone },
+        };
+      }
+    } else {
+      // Check if email exists as a customer
+      const existingCustomer = await db
+        .select({ id: customers.id })
+        .from(customers)
+        .where(eq(customers.email, email))
+        .limit(1);
+      if (existingCustomer.length > 0) {
+        errors.email = "This email is already registered as a customer";
+      }
     }
   }
 
   if (!password || password.length < 8) {
     errors.password = "Password must be at least 8 characters";
+  } else if (!/[A-Z]/.test(password)) {
+    errors.password = "Password must contain at least one uppercase letter";
+  } else if (!/[a-z]/.test(password)) {
+    errors.password = "Password must contain at least one lowercase letter";
+  } else if (!/[0-9]/.test(password)) {
+    errors.password = "Password must contain at least one number";
   } else if (password !== confirmPassword) {
     errors.confirmPassword = "Passwords do not match";
   }
 
   if (Object.keys(errors).length > 0) {
-    return { errors, values: { shopName, subdomain, email, phone } };
+    return {
+      errors,
+      values: {
+        shopName,
+        subdomain,
+        email,
+        phone,
+        // Note: We don't preserve passwords for security reasons
+        // Users will need to re-enter them after fixing validation errors
+      }
+    };
   }
 
   try {
@@ -153,6 +219,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function SignupPage() {
+  const { csrfToken } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -183,8 +250,9 @@ export default function SignupPage() {
           </p>
 
           <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
+            <CsrfTokenInput token={csrfToken} />
             {actionData?.errors?.form && (
-              <div className="bg-danger-muted text-danger p-3 rounded-lg mb-6">
+              <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words mb-6">
                 {actionData.errors.form}
               </div>
             )}
@@ -198,7 +266,7 @@ export default function SignupPage() {
                   type="text"
                   id="shopName"
                   name="shopName"
-                  defaultValue={actionData?.values?.shopName}
+                  defaultValue={actionData?.values?.shopName || ""}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="Paradise Dive Center"
                   required
@@ -217,7 +285,7 @@ export default function SignupPage() {
                     type="text"
                     id="subdomain"
                     name="subdomain"
-                    defaultValue={actionData?.values?.subdomain}
+                    defaultValue={actionData?.values?.subdomain || ""}
                     className="flex-1 px-4 py-2 border rounded-l-lg focus:ring-2 focus:ring-brand focus:border-brand"
                     placeholder="paradise"
                     pattern="[a-z0-9]+(-[a-z0-9]+)*"
@@ -240,7 +308,7 @@ export default function SignupPage() {
                   type="email"
                   id="email"
                   name="email"
-                  defaultValue={actionData?.values?.email}
+                  defaultValue={actionData?.values?.email || ""}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="owner@diveshop.com"
                   required
@@ -258,7 +326,7 @@ export default function SignupPage() {
                   type="tel"
                   id="phone"
                   name="phone"
-                  defaultValue={actionData?.values?.phone}
+                  defaultValue={actionData?.values?.phone || ""}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   placeholder="+1 (555) 123-4567"
                 />

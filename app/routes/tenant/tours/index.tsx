@@ -3,8 +3,10 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { tours, trips } from "../../../../lib/db/schema";
-import { eq, or, ilike, sql, count } from "drizzle-orm";
+import { eq, or, ilike, sql, count, and } from "drizzle-orm";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Tours - DiveStreams" }];
 
@@ -71,6 +73,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const tripCountMap = new Map(tripCounts.map(tc => [tc.tourId, tc.count]));
 
+  // Get tenant database for images query
+  const { db: tenantDb, schema: tenantSchema } = getTenantDb(ctx.org.id);
+
+  // Query primary images for all tours
+  const tourIds = tourList.map(t => t.id);
+  const tourImages = tourIds.length > 0 ? await tenantDb
+    .select({
+      entityId: tenantSchema.images.entityId,
+      thumbnailUrl: tenantSchema.images.thumbnailUrl,
+      url: tenantSchema.images.url,
+    })
+    .from(tenantSchema.images)
+    .where(
+      and(
+        eq(tenantSchema.images.organizationId, ctx.org.id),
+        eq(tenantSchema.images.entityType, "tour"),
+        eq(tenantSchema.images.isPrimary, true)
+      )
+    ) : [];
+
+  const imageMap = new Map(tourImages.map(img => [img.entityId, img.thumbnailUrl || img.url]));
+
   // Transform to UI format
   const tourData = tourList.map((t) => ({
     id: t.id,
@@ -83,6 +107,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     minCertLevel: t.minCertLevel,
     isActive: t.isActive ?? true,
     tripCount: tripCountMap.get(t.id) || 0,
+    imageUrl: imageMap.get(t.id),
   }));
 
   // Get total count for usage tracking (without filters)
@@ -108,12 +133,15 @@ const tourTypes: Record<string, { label: string; color: string }> = {
   single_dive: { label: "Single Dive", color: "bg-brand-muted text-brand" },
   multi_dive: { label: "Multi-Dive", color: "bg-info-muted text-info" },
   course: { label: "Course", color: "bg-info-muted text-info" },
-  snorkel: { label: "Snorkel", color: "bg-cyan-100 text-cyan-700" },
-  night_dive: { label: "Night Dive", color: "bg-slate-100 text-slate-700" },
+  snorkel: { label: "Snorkel", color: "bg-info-muted text-info" },
+  night_dive: { label: "Night Dive", color: "bg-surface-overlay text-foreground-muted" },
   other: { label: "Other", color: "bg-surface-inset text-foreground" },
 };
 
 export default function ToursPage() {
+  // Show notifications from URL params
+  useNotification();
+
   const {
     tours,
     total,
@@ -237,10 +265,28 @@ export default function ToursPage() {
             <Link
               key={tour.id}
               to={`/tenant/tours/${tour.id}`}
-              className="bg-surface-raised rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-surface-raised rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="font-semibold text-lg">{tour.name}</h3>
+              {/* Tour Image */}
+              {tour.imageUrl ? (
+                <div className="w-full h-48 overflow-hidden">
+                  <img
+                    src={tour.imageUrl}
+                    alt={tour.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-48 bg-surface-inset flex items-center justify-center">
+                  <svg className="w-16 h-16 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-lg">{tour.name}</h3>
                 {!tour.isActive && (
                   <span className="text-xs bg-surface-inset text-foreground-muted px-2 py-1 rounded">
                     Inactive
@@ -277,6 +323,7 @@ export default function ToursPage() {
                     {tour.tripCount} trips run
                   </span>
                 </div>
+              </div>
               </div>
             </Link>
           ))}

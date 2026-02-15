@@ -6,6 +6,7 @@ import {
   getLevels,
   createCourse,
 } from "../../../../../lib/db/training.server";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Create Course - DiveStreams" }];
 
@@ -51,6 +52,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!price || isNaN(parseFloat(price))) {
     errors.price = "Valid price is required";
+  } else {
+    const priceNum = parseFloat(price);
+    if (priceNum < 0) {
+      errors.price = "Price cannot be negative";
+    }
+    // Allow free courses (price = $0) - dive shops may offer free intro courses or promotional courses
   }
 
   if (Object.keys(errors).length > 0) {
@@ -85,7 +92,8 @@ export async function action({ request }: ActionFunctionArgs) {
     isPublic,
   });
 
-  return redirect("/tenant/training/courses");
+  const courseName = name.trim();
+  return redirect(redirectWithNotification("/tenant/training/courses", `Course "${courseName}" has been successfully created`, "success"));
 }
 
 export default function NewCoursePage() {
@@ -93,6 +101,9 @@ export default function NewCoursePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">
@@ -121,7 +132,7 @@ export default function NewCoursePage() {
                 name="name"
                 defaultValue={actionData?.values?.name}
                 placeholder="e.g., Open Water Diver"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 required
               />
               {actionData?.errors?.name && (
@@ -139,7 +150,7 @@ export default function NewCoursePage() {
                 name="code"
                 defaultValue={actionData?.values?.code}
                 placeholder="e.g., OWD, AOWD, EFR"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -153,7 +164,7 @@ export default function NewCoursePage() {
                 rows={3}
                 defaultValue={actionData?.values?.description}
                 placeholder="Describe the course, what students will learn..."
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -166,7 +177,7 @@ export default function NewCoursePage() {
                   id="agencyId"
                   name="agencyId"
                   defaultValue={actionData?.values?.agencyId || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">Select Agency</option>
                   {agencies.map((agency) => (
@@ -185,7 +196,7 @@ export default function NewCoursePage() {
                   id="levelId"
                   name="levelId"
                   defaultValue={actionData?.values?.levelId || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">Select Level</option>
                   {levels.map((level) => (
@@ -213,7 +224,7 @@ export default function NewCoursePage() {
                 name="durationDays"
                 min="1"
                 defaultValue={actionData?.values?.durationDays || "3"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -228,7 +239,7 @@ export default function NewCoursePage() {
                 min="0"
                 defaultValue={actionData?.values?.classroomHours}
                 placeholder="e.g., 8"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -243,7 +254,7 @@ export default function NewCoursePage() {
                 min="0"
                 defaultValue={actionData?.values?.poolHours}
                 placeholder="e.g., 4"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -258,7 +269,7 @@ export default function NewCoursePage() {
                 min="0"
                 defaultValue={actionData?.values?.openWaterDives}
                 placeholder="e.g., 4"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -298,7 +309,7 @@ export default function NewCoursePage() {
                 id="currency"
                 name="currency"
                 defaultValue={actionData?.values?.currency || "USD"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
@@ -320,7 +331,7 @@ export default function NewCoursePage() {
                 name="maxStudents"
                 min="1"
                 defaultValue={actionData?.values?.maxStudents || "4"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -335,7 +346,7 @@ export default function NewCoursePage() {
                 min="1"
                 defaultValue={actionData?.values?.minAge}
                 placeholder="e.g., 10"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -354,7 +365,7 @@ export default function NewCoursePage() {
               rows={2}
               defaultValue={actionData?.values?.prerequisites}
               placeholder="e.g., Open Water Diver certification, minimum 10 logged dives"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
         </div>

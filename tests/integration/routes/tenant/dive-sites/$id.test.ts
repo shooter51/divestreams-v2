@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader, action } from "../../../../../app/routes/tenant/dive-sites/$id";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../lib/db/queries.server";
@@ -281,6 +282,12 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
     });
 
     it("should delete site", async () => {
+      const mockSite = {
+        id: mockSiteId,
+        name: "Blue Corner",
+      };
+
+      vi.mocked(queries.getDiveSiteById).mockResolvedValue(mockSite as any);
       vi.mocked(queries.deleteDiveSite).mockResolvedValue(undefined);
 
       const formData = new FormData();
@@ -294,7 +301,9 @@ describe("app/routes/tenant/dive-sites/$id.tsx", () => {
       const result = await action({ request, params: { id: mockSiteId }, context: {} });
 
       expect(queries.deleteDiveSite).toHaveBeenCalledWith(mockOrganizationId, mockSiteId);
-      expect(result).toEqual({ deleted: true });
+      expect(result).toBeInstanceOf(Response);
+      expect((result as Response).status).toBe(302);
+      expect(getRedirectPathname((result as Response).headers.get("Location"))).toBe("/tenant/dive-sites");
     });
 
     it("should return null for unknown intent", async () => {

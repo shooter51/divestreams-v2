@@ -207,7 +207,7 @@ export function BarcodeScanner({
       {/* Camera viewport */}
       <div ref={scannerRef} className="w-full aspect-[4/3]">
         {!isInitialized && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 dark:bg-black">
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2" />
               <p className="text-white text-sm">Starting camera...</p>
@@ -221,15 +221,15 @@ export function BarcodeScanner({
         <div className="absolute inset-0 pointer-events-none">
           {/* Scan area indicator */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-3/4 h-24 border-2 border-blue-400 rounded-lg relative">
+            <div className="w-3/4 h-24 border-2 border-brand rounded-lg relative">
               {/* Corner markers */}
-              <div className="absolute -top-0.5 -left-0.5 w-6 h-6 border-t-4 border-l-4 border-blue-500 rounded-tl" />
-              <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-4 border-r-4 border-blue-500 rounded-tr" />
-              <div className="absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-4 border-l-4 border-blue-500 rounded-bl" />
-              <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-4 border-r-4 border-blue-500 rounded-br" />
+              <div className="absolute -top-0.5 -left-0.5 w-6 h-6 border-t-4 border-l-4 border-brand rounded-tl" />
+              <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-4 border-r-4 border-brand rounded-tr" />
+              <div className="absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-4 border-l-4 border-brand rounded-bl" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-4 border-r-4 border-brand rounded-br" />
 
               {/* Scan line animation */}
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500 animate-pulse" />
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-danger animate-pulse" />
             </div>
           </div>
 

@@ -1,17 +1,17 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createGalleryAlbum } from "../../../../lib/db/gallery.server";
 
 export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireTenant(request);
+  await requireOrgContext(request);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
   const formData = await request.formData();
 
   const name = formData.get("name") as string;
@@ -24,7 +24,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: { name: "Album name is required" } };
   }
 
-  const album = await createGalleryAlbum(organizationId, {
+  const album = await createGalleryAlbum(ctx.org.id, {
     name,
     description: description || null,
     slug,

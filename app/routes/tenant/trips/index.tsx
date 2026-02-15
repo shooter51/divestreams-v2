@@ -4,6 +4,8 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { trips as tripsTable, tours, boats, bookings } from "../../../../lib/db/schema";
 import { eq, and, gte, or, sql, lt } from "drizzle-orm";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Trips - DiveStreams" }];
 
@@ -114,15 +116,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-const statusColors: Record<string, string> = {
-  open: "bg-brand-muted text-brand",
-  confirmed: "bg-success-muted text-success",
-  full: "bg-info-muted text-info",
-  completed: "bg-surface-inset text-foreground-muted",
-  cancelled: "bg-danger-muted text-danger",
-};
+// Map trip status to BadgeStatus type
+function mapTripStatus(status: string): BadgeStatus {
+  if (status === "open") return "pending";
+  if (status === "full") return "confirmed";
+  if (status === "canceled") return "cancelled";
+  return status as BadgeStatus;
+}
 
 export default function TripsPage() {
+  useNotification();
+
   const { trips, tripsByDate, total, view, tourId } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -248,13 +252,7 @@ export default function TripsPage() {
                           </p>
                           <p className="text-sm text-foreground-muted">${trip.revenue}</p>
                         </div>
-                        <span
-                          className={`text-xs px-3 py-1 rounded-full ${
-                            statusColors[trip.status] || "bg-surface-inset text-foreground"
-                          }`}
-                        >
-                          {trip.status}
-                        </span>
+                        <StatusBadge status={mapTripStatus(trip.status)} size="sm" />
                       </div>
                     </Link>
                   ))}

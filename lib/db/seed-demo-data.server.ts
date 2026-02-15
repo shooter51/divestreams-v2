@@ -1,6 +1,7 @@
 import { db } from "./index";
 import * as schema from "./schema";
-import { eq } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
+import { organization } from "./schema/auth";
 
 // ============================================================================
 // DEMO IMAGE URLS - Using Unsplash for realistic diving photos
@@ -74,6 +75,28 @@ const DEMO_IMAGES = {
  * @param organizationId - The organization ID to seed data for
  */
 export async function seedDemoData(organizationId: string): Promise<void> {
+  // Verify organization exists
+  const [org] = await db
+    .select({ id: organization.id })
+    .from(organization)
+    .where(eq(organization.id, organizationId))
+    .limit(1);
+
+  if (!org) {
+    throw new Error(`Organization ${organizationId} not found`);
+  }
+
+  // Check if data already exists for this organization
+  const [existingCustomer] = await db
+    .select({ id: schema.customers.id })
+    .from(schema.customers)
+    .where(eq(schema.customers.organizationId, organizationId))
+    .limit(1);
+
+  if (existingCustomer) {
+    console.log(`⚠️  Demo data already exists for organization ${organizationId}, skipping seed`);
+    return;
+  }
 
   // Demo Customers
   const customers = [
@@ -205,29 +228,33 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
+  // Insert customers into PUBLIC schema with organizationId
   const customerIds: string[] = [];
   for (const customer of customers) {
-    const [inserted] = await db
+    const [result] = await db
       .insert(schema.customers)
       .values({
         organizationId,
         email: customer.email,
         firstName: customer.firstName,
         lastName: customer.lastName,
-        phone: customer.phone,
-        dateOfBirth: customer.dateOfBirth,
-        emergencyContactName: customer.emergencyContactName,
-        emergencyContactPhone: customer.emergencyContactPhone,
-        emergencyContactRelation: customer.emergencyContactRelation,
-        certifications: customer.certifications,
-        country: customer.country,
-        city: customer.city,
+        phone: customer.phone || null,
+        dateOfBirth: customer.dateOfBirth || null,
+        emergencyContactName: customer.emergencyContactName || null,
+        emergencyContactPhone: customer.emergencyContactPhone || null,
+        emergencyContactRelation: customer.emergencyContactRelation || null,
+        certifications: customer.certifications || [],
+        country: customer.country || null,
+        city: customer.city || null,
         totalDives: customer.totalDives || 0,
-        notes: customer.notes,
-        tags: customer.tags,
+        notes: customer.notes || null,
+        tags: customer.tags || [],
       })
       .returning({ id: schema.customers.id });
-    customerIds.push(inserted.id);
+
+    if (result) {
+      customerIds.push(result.id);
+    }
   }
 
   // Demo Dive Sites
@@ -299,9 +326,10 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
+  // Insert dive sites into PUBLIC schema with organizationId
   const diveSiteIds: string[] = [];
   for (const site of diveSites) {
-    const [inserted] = await db
+    const [result] = await db
       .insert(schema.diveSites)
       .values({
         organizationId,
@@ -318,7 +346,10 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         images: site.images,
       })
       .returning({ id: schema.diveSites.id });
-    diveSiteIds.push(inserted.id);
+
+    if (result) {
+      diveSiteIds.push(result.id);
+    }
   }
 
   // Demo Boats
@@ -343,9 +374,10 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
+  // Insert boats into PUBLIC schema with organizationId
   const boatIds: string[] = [];
   for (const boat of boats) {
-    const [inserted] = await db
+    const [result] = await db
       .insert(schema.boats)
       .values({
         organizationId,
@@ -358,7 +390,10 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         images: boat.images,
       })
       .returning({ id: schema.boats.id });
-    boatIds.push(inserted.id);
+
+    if (result) {
+      boatIds.push(result.id);
+    }
   }
 
   // Demo Equipment
@@ -385,24 +420,28 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     { category: "torch", name: "BigBlue AL1200", brand: "BigBlue", rentalPrice: "15.00" },
   ];
 
+  // Insert equipment into PUBLIC schema with organizationId
   const equipmentIds: string[] = [];
   for (const item of equipmentItems) {
-    const [inserted] = await db
+    const [result] = await db
       .insert(schema.equipment)
       .values({
         organizationId,
         category: item.category,
         name: item.name,
         brand: item.brand,
-        size: item.size,
+        size: item.size || null,
         rentalPrice: item.rentalPrice,
         isRentable: true,
         status: "available",
         condition: "good",
-        isPublic: true, // Make equipment visible on public site
+        isPublic: false,
       })
       .returning({ id: schema.equipment.id });
-    equipmentIds.push(inserted.id);
+
+    if (result) {
+      equipmentIds.push(result.id);
+    }
   }
 
   // Demo Tours
@@ -487,9 +526,10 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
+  // Insert tours into PUBLIC schema with organizationId
   const tourIds: string[] = [];
   for (const tour of tours) {
-    const [inserted] = await db
+    const [result] = await db
       .insert(schema.tours)
       .values({
         organizationId,
@@ -503,26 +543,40 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         includesEquipment: tour.includesEquipment,
         includesMeals: tour.includesMeals,
         includesTransport: tour.includesTransport,
-        inclusions: tour.inclusions,
-        exclusions: tour.exclusions,
-        minCertLevel: tour.minCertLevel,
-        minAge: tour.minAge,
-        requirements: tour.requirements,
-        images: tour.images,
+        inclusions: tour.inclusions || [],
+        exclusions: tour.exclusions || [],
+        minCertLevel: tour.minCertLevel || null,
+        minAge: tour.minAge || null,
+        requirements: tour.requirements || [],
+        images: tour.images || [],
       })
       .returning({ id: schema.tours.id });
-    tourIds.push(inserted.id);
+
+    if (result) {
+      tourIds.push(result.id);
+    }
   }
 
-  // Link tours to dive sites
-  await db.insert(schema.tourDiveSites).values([
-    { organizationId, tourId: tourIds[0], diveSiteId: diveSiteIds[0], order: 1 }, // Discover -> Coral Garden
-    { organizationId, tourId: tourIds[1], diveSiteId: diveSiteIds[0], order: 1 }, // Two Tank -> Coral Garden
-    { organizationId, tourId: tourIds[1], diveSiteId: diveSiteIds[4], order: 2 }, // Two Tank -> Manta Point
-    { organizationId, tourId: tourIds[2], diveSiteId: diveSiteIds[0], order: 1 }, // Night Dive -> Coral Garden
-    { organizationId, tourId: tourIds[3], diveSiteId: diveSiteIds[2], order: 1 }, // Wreck -> Shipwreck Bay
-    { organizationId, tourId: tourIds[4], diveSiteId: diveSiteIds[0], order: 1 }, // Snorkel -> Coral Garden
-  ]);
+  // Link tours to dive sites in PUBLIC schema
+  const tourDiveSiteLinks = [
+    { tourId: tourIds[0], diveSiteId: diveSiteIds[0], order: 1 }, // Discover -> Coral Garden
+    { tourId: tourIds[1], diveSiteId: diveSiteIds[0], order: 1 }, // Two Tank -> Coral Garden
+    { tourId: tourIds[1], diveSiteId: diveSiteIds[4], order: 2 }, // Two Tank -> Manta Point
+    { tourId: tourIds[2], diveSiteId: diveSiteIds[0], order: 1 }, // Night Dive -> Coral Garden
+    { tourId: tourIds[3], diveSiteId: diveSiteIds[2], order: 1 }, // Wreck -> Shipwreck Bay
+    { tourId: tourIds[4], diveSiteId: diveSiteIds[0], order: 1 }, // Snorkel -> Coral Garden
+  ];
+
+  for (const link of tourDiveSiteLinks) {
+    await db
+      .insert(schema.tourDiveSites)
+      .values({
+        organizationId,
+        tourId: link.tourId,
+        diveSiteId: link.diveSiteId,
+        order: link.order,
+      });
+  }
 
   // Demo Trips (scheduled in the coming weeks)
   const today = new Date();
@@ -548,13 +602,14 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     { tourIdx: 2, boatIdx: 0, daysFromNow: 15, startTime: "17:30", endTime: "20:30" },
   ];
 
+  // Insert trips into PUBLIC schema with organizationId
   const tripIds: string[] = [];
   for (const trip of trips) {
     const tripDate = new Date(today);
     tripDate.setDate(tripDate.getDate() + trip.daysFromNow);
     const dateStr = tripDate.toISOString().split("T")[0];
 
-    const [inserted] = await db
+    const [result] = await db
       .insert(schema.trips)
       .values({
         organizationId,
@@ -564,10 +619,13 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         startTime: trip.startTime,
         endTime: trip.endTime,
         status: "scheduled",
-        isPublic: true, // Make trips visible on public site
+        isPublic: false,
       })
       .returning({ id: schema.trips.id });
-    tripIds.push(inserted.id);
+
+    if (result) {
+      tripIds.push(result.id);
+    }
   }
 
   // Demo Bookings
@@ -585,6 +643,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   // Tour prices for calculating totals
   const tourPrices = [150, 120, 85, 95, 65];
 
+  // Insert bookings into PUBLIC schema with organizationId
   for (let i = 0; i < bookings.length; i++) {
     const booking = bookings[i];
     const tripData = trips[booking.tripIdx];
@@ -594,20 +653,22 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     const total = subtotal + tax;
     const paidAmount = booking.paymentStatus === "paid" ? total : booking.paymentStatus === "partial" ? total * 0.5 : 0;
 
-    await db.insert(schema.bookings).values({
-      organizationId,
-      bookingNumber: `BK-${String(1000 + i).padStart(4, "0")}`,
-      tripId: tripIds[booking.tripIdx],
-      customerId: customerIds[booking.customerIdx],
-      participants: booking.participants,
-      status: booking.status,
-      subtotal: subtotal.toFixed(2),
-      tax: tax.toFixed(2),
-      total: total.toFixed(2),
-      paymentStatus: booking.paymentStatus,
-      paidAmount: paidAmount.toFixed(2),
-      source: "direct",
-    });
+    await db
+      .insert(schema.bookings)
+      .values({
+        organizationId,
+        bookingNumber: `BK-${String(1000 + i).padStart(4, "0")}`,
+        tripId: tripIds[booking.tripIdx],
+        customerId: customerIds[booking.customerIdx],
+        participants: booking.participants,
+        status: booking.status,
+        subtotal: subtotal.toFixed(2),
+        tax: tax.toFixed(2),
+        total: total.toFixed(2),
+        paymentStatus: booking.paymentStatus,
+        paidAmount: paidAmount.toFixed(2),
+        source: "direct",
+      });
   }
 
   // ============================================================================
@@ -717,20 +778,23 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     },
   ];
 
+  // Insert products into PUBLIC schema with organizationId
   for (const product of products) {
-    await db.insert(schema.products).values({
-      organizationId,
-      name: product.name,
-      sku: product.sku,
-      category: product.category,
-      description: product.description,
-      price: product.price,
-      costPrice: product.costPrice,
-      stockQuantity: product.stockQuantity,
-      imageUrl: product.imageUrl,
-      trackInventory: true,
-      isActive: true,
-    });
+    await db
+      .insert(schema.products)
+      .values({
+        organizationId,
+        name: product.name,
+        sku: product.sku,
+        category: product.category,
+        description: product.description || null,
+        price: product.price,
+        costPrice: product.costPrice || null,
+        stockQuantity: product.stockQuantity || 0,
+        imageUrl: product.imageUrl || null,
+        trackInventory: true,
+        isActive: true,
+      });
   }
 
   // ============================================================================
@@ -786,20 +850,23 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   const validTo = new Date();
   validTo.setMonth(validTo.getMonth() + 6); // Valid for 6 months
 
+  // Insert discount codes into PUBLIC schema with organizationId
   for (const discount of discountCodes) {
-    await db.insert(schema.discountCodes).values({
-      organizationId,
-      code: discount.code,
-      description: discount.description,
-      discountType: discount.discountType,
-      discountValue: discount.discountValue,
-      minBookingAmount: discount.minBookingAmount,
-      maxUses: discount.maxUses,
-      applicableTo: discount.applicableTo,
-      validFrom,
-      validTo,
-      isActive: true,
-    });
+    await db
+      .insert(schema.discountCodes)
+      .values({
+        organizationId,
+        code: discount.code,
+        description: discount.description,
+        discountType: discount.discountType,
+        discountValue: discount.discountValue,
+        minBookingAmount: discount.minBookingAmount || null,
+        maxUses: discount.maxUses || null,
+        applicableTo: discount.applicableTo,
+        validFrom: validFrom, // timestamp field expects Date object
+        validTo: validTo, // timestamp field expects Date object
+        isActive: true,
+      });
   }
 
   // ============================================================================
@@ -816,28 +883,31 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     { bookingIdx: 6, amount: 132.00, method: "cash" }, // BK-1006 - partial (50%)
   ];
 
+  // Insert transactions into PUBLIC schema with organizationId
   for (let i = 0; i < transactionData.length; i++) {
     const txn = transactionData[i];
     const booking = bookings[txn.bookingIdx];
     const tripData = trips[booking.tripIdx];
     const price = tourPrices[tripData.tourIdx];
 
-    await db.insert(schema.transactions).values({
-      organizationId,
-      type: "payment",
-      customerId: customerIds[booking.customerIdx],
-      amount: txn.amount.toFixed(2),
-      paymentMethod: txn.method,
-      items: [
-        {
-          description: tours[tripData.tourIdx].name,
-          quantity: booking.participants,
-          unitPrice: price,
-          total: price * booking.participants,
-        },
-      ],
-      notes: `Payment for booking BK-${String(1000 + txn.bookingIdx).padStart(4, "0")}`,
-    });
+    await db
+      .insert(schema.transactions)
+      .values({
+        organizationId,
+        type: "payment",
+        customerId: customerIds[booking.customerIdx],
+        amount: txn.amount.toFixed(2),
+        paymentMethod: txn.method,
+        items: [
+          {
+            description: tours[tripData.tourIdx].name,
+            quantity: booking.participants,
+            unitPrice: price,
+            total: price * booking.participants,
+          },
+        ],
+        notes: `Payment for booking BK-${String(1000 + txn.bookingIdx).padStart(4, "0")}`,
+      });
   }
 
   // ============================================================================
@@ -899,23 +969,25 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     });
   });
 
-  // Insert all images
+  // Insert all images into PUBLIC schema with organizationId
   for (const img of imageEntries) {
-    await db.insert(schema.images).values({
-      organizationId,
-      entityType: img.entityType,
-      entityId: img.entityId,
-      url: img.url,
-      thumbnailUrl: img.url.replace("w=1200", "w=200"), // Generate thumbnail URL
-      filename: img.filename,
-      mimeType: "image/jpeg",
-      sizeBytes: 150000 + Math.floor(Math.random() * 100000), // Random size 150-250KB
-      width: 1200,
-      height: 800,
-      alt: `${img.entityType.replace("_", " ")} image`,
-      sortOrder: img.sortOrder,
-      isPrimary: img.isPrimary,
-    });
+    await db
+      .insert(schema.images)
+      .values({
+        organizationId,
+        entityType: img.entityType,
+        entityId: img.entityId,
+        url: img.url,
+        thumbnailUrl: img.url.replace("w=1200", "w=200"), // Generate thumbnail URL
+        filename: img.filename,
+        mimeType: "image/jpeg",
+        sizeBytes: 150000 + Math.floor(Math.random() * 100000), // Random size 150-250KB
+        width: 1200,
+        height: 800,
+        alt: `${img.entityType.replace("_", " ")} image`,
+        sortOrder: img.sortOrder,
+        isPrimary: img.isPrimary,
+      });
   }
 
   // ============================================================================
@@ -1015,21 +1087,24 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     // Generate agreement number
     const agreementNum = `RNT-${String(2024001 + rentalCount).padStart(7, "0")}`;
 
-    await db.insert(schema.rentals).values({
-      organizationId,
-      customerId: customerIds[rental.customerIdx],
-      equipmentId: equipmentIds[rental.equipmentIdx],
-      rentedAt,
-      dueAt,
-      returnedAt,
-      dailyRate: rental.dailyRate,
-      totalCharge: totalCharge.toFixed(2),
-      status: rental.status,
-      agreementNumber: agreementNum,
-      agreementSignedAt: rentedAt,
-      agreementSignedBy: customers[rental.customerIdx].firstName + " " + customers[rental.customerIdx].lastName,
-      notes: rental.status === "overdue" ? "OVERDUE - Customer contacted" : null,
-    });
+    // Insert rental into PUBLIC schema with organizationId
+    await db
+      .insert(schema.rentals)
+      .values({
+        organizationId,
+        customerId: customerIds[rental.customerIdx],
+        equipmentId: equipmentIds[rental.equipmentIdx],
+        rentedAt: rentedAt,
+        dueAt: dueAt,
+        returnedAt: returnedAt,
+        dailyRate: rental.dailyRate,
+        totalCharge: totalCharge.toFixed(2),
+        status: rental.status,
+        agreementNumber: agreementNum,
+        agreementSignedAt: rentedAt,
+        agreementSignedBy: customers[rental.customerIdx].firstName + " " + customers[rental.customerIdx].lastName,
+        notes: rental.status === "overdue" ? "OVERDUE - Customer contacted" : null,
+      });
 
     rentalCount++;
   }
@@ -1051,12 +1126,11 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   const hasSsi = existingAgencies.some((a) => a.code.toLowerCase() === "ssi");
   const hasNaui = existingAgencies.some((a) => a.code.toLowerCase() === "naui");
 
-  let trainingStats = { agencies: 0, levels: 0, courses: 0 };
+  let trainingStats = { agencies: 0, levels: 0, courses: 0, sessions: 0 };
 
   // Seed each agency individually if it doesn't exist
   let agenciesSeeded = 0;
   let levelsSeeded = 0;
-  let coursesSeeded = 0;
 
   try {
     // Seed PADI if missing
@@ -1101,45 +1175,12 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         })
         .returning();
 
-      // Seed sample courses for PADI
-      await db.insert(schema.trainingCourses).values([
-        {
-          organizationId,
-          agencyId: padiAgency.id,
-          levelId: openWaterLevel.id,
-          name: "Open Water Diver Certification",
-          code: "OWD",
-          description: "Become a certified diver!",
-          durationDays: 3,
-          classroomHours: 8,
-          poolHours: 8,
-          openWaterDives: 4,
-          price: "449.00",
-          currency: "USD",
-          isPublic: true,
-        },
-        {
-          organizationId,
-          agencyId: padiAgency.id,
-          levelId: advancedLevel.id,
-          requiredCertLevel: openWaterLevel.id,
-          name: "Advanced Open Water Diver",
-          code: "AOWD",
-          description: "Build confidence and skills",
-          durationDays: 2,
-          classroomHours: 4,
-          poolHours: 0,
-          openWaterDives: 5,
-          price: "399.00",
-          currency: "USD",
-          isPublic: true,
-        },
-      ]);
+      // Note: Course seeding removed (KAN-650) - users should import courses via training import feature
+      // Only seeding agencies and certification levels (reference data)
 
       agenciesSeeded++;
       levelsSeeded += 2;
-      coursesSeeded += 2;
-      console.log("  ✓ PADI agency seeded");
+      console.log("  ✓ PADI agency seeded (agencies and levels only)");
     }
 
     // Seed SSI if missing
@@ -1227,12 +1268,283 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     }
 
     if (agenciesSeeded > 0) {
-      console.log(`  ✓ Training data seeded (${agenciesSeeded} agencies, ${levelsSeeded} levels, ${coursesSeeded} courses)`);
+      console.log(`  ✓ Training data seeded (${agenciesSeeded} agencies, ${levelsSeeded} levels)`);
     } else {
-      console.log("  ℹ️  All training agencies already exist, skipping...");
+      console.log("  ℹ️  All training agencies already exist");
     }
 
-    trainingStats = { agencies: agenciesSeeded, levels: levelsSeeded, courses: coursesSeeded };
+    // Seed training courses if missing
+    const existingCourses = await db
+      .select()
+      .from(schema.trainingCourses)
+      .where(eq(schema.trainingCourses.organizationId, organizationId));
+
+    let coursesSeeded = 0;
+    let sessionsSeeded = 0;
+
+    if (existingCourses.length === 0) {
+      console.log("  → Seeding training courses and sessions...");
+
+      // Get agency IDs for course creation
+      const [padiAgency] = await db
+        .select()
+        .from(schema.certificationAgencies)
+        .where(
+          and(
+            eq(schema.certificationAgencies.organizationId, organizationId),
+            eq(schema.certificationAgencies.code, "padi")
+          )
+        )
+        .limit(1);
+
+      const [ssiAgency] = await db
+        .select()
+        .from(schema.certificationAgencies)
+        .where(
+          and(
+            eq(schema.certificationAgencies.organizationId, organizationId),
+            eq(schema.certificationAgencies.code, "ssi")
+          )
+        )
+        .limit(1);
+
+      // Get certification level IDs
+      const [owdLevel] = await db
+        .select()
+        .from(schema.certificationLevels)
+        .where(
+          and(
+            eq(schema.certificationLevels.organizationId, organizationId),
+            eq(schema.certificationLevels.code, "padi-owd")
+          )
+        )
+        .limit(1);
+
+      const [aowdLevel] = await db
+        .select()
+        .from(schema.certificationLevels)
+        .where(
+          and(
+            eq(schema.certificationLevels.organizationId, organizationId),
+            eq(schema.certificationLevels.code, "padi-aowd")
+          )
+        )
+        .limit(1);
+
+      const [rescueLevel] = await db
+        .select()
+        .from(schema.certificationLevels)
+        .where(
+          and(
+            eq(schema.certificationLevels.organizationId, organizationId),
+            eq(schema.certificationLevels.code, "padi-rescue")
+          )
+        )
+        .limit(1);
+
+      // Create 4 demo courses
+      const courses = [];
+
+      // Course 1: PADI Open Water Diver (beginner, 4 days, $450)
+      if (padiAgency && owdLevel) {
+        const [course1] = await db
+          .insert(schema.trainingCourses)
+          .values({
+            organizationId,
+            agencyId: padiAgency.id,
+            levelId: owdLevel.id,
+            name: "PADI Open Water Diver",
+            code: "OWD",
+            description: "Learn to dive with PADI, the world's leading scuba diving training organization. This entry-level course teaches you the skills and knowledge to become a certified diver.",
+            durationDays: 4,
+            classroomHours: 8,
+            poolHours: 8,
+            openWaterDives: 4,
+            price: "450.00",
+            currency: "USD",
+            minStudents: 2,
+            maxStudents: 8,
+            materialsIncluded: true,
+            equipmentIncluded: false,
+            minAge: 10,
+            prerequisites: "Basic swimming ability, comfort in water",
+            medicalRequirements: "PADI Medical Statement required",
+            isPublic: true,
+            isActive: true,
+            sortOrder: 1,
+          })
+          .returning();
+        courses.push(course1);
+        coursesSeeded++;
+      }
+
+      // Course 2: PADI Advanced Open Water (intermediate, 2 days, $350)
+      if (padiAgency && aowdLevel) {
+        const [course2] = await db
+          .insert(schema.trainingCourses)
+          .values({
+            organizationId,
+            agencyId: padiAgency.id,
+            levelId: aowdLevel.id,
+            name: "PADI Advanced Open Water",
+            code: "AOWD",
+            description: "Build on your Open Water skills with adventure dives including deep diving, underwater navigation, and three specialty dives of your choice.",
+            durationDays: 2,
+            classroomHours: 0,
+            poolHours: 0,
+            openWaterDives: 5,
+            price: "350.00",
+            currency: "USD",
+            minStudents: 2,
+            maxStudents: 6,
+            materialsIncluded: true,
+            equipmentIncluded: false,
+            minAge: 12,
+            prerequisites: "PADI Open Water Diver or equivalent",
+            requiredCertLevel: owdLevel.id,
+            isPublic: true,
+            isActive: true,
+            sortOrder: 2,
+          })
+          .returning();
+        courses.push(course2);
+        coursesSeeded++;
+      }
+
+      // Course 3: SSI Enriched Air Nitrox (specialty, 1 day, $175)
+      if (ssiAgency) {
+        const [course3] = await db
+          .insert(schema.trainingCourses)
+          .values({
+            organizationId,
+            agencyId: ssiAgency.id,
+            name: "SSI Enriched Air Nitrox",
+            code: "EAN",
+            description: "Learn to safely dive with enriched air (nitrox) to extend your bottom time and reduce nitrogen loading.",
+            durationDays: 1,
+            classroomHours: 4,
+            poolHours: 0,
+            openWaterDives: 0,
+            price: "175.00",
+            currency: "USD",
+            minStudents: 2,
+            maxStudents: 10,
+            materialsIncluded: true,
+            equipmentIncluded: false,
+            minAge: 12,
+            prerequisites: "Any entry-level certification",
+            isPublic: true,
+            isActive: true,
+            sortOrder: 3,
+          })
+          .returning();
+        courses.push(course3);
+        coursesSeeded++;
+      }
+
+      // Course 4: PADI Rescue Diver (advanced, 3 days, $550)
+      if (padiAgency && rescueLevel) {
+        const [course4] = await db
+          .insert(schema.trainingCourses)
+          .values({
+            organizationId,
+            agencyId: padiAgency.id,
+            levelId: rescueLevel.id,
+            name: "PADI Rescue Diver",
+            code: "RESCUE",
+            description: "Challenge yourself to become a better dive buddy by learning to prevent and manage diving emergencies.",
+            durationDays: 3,
+            classroomHours: 12,
+            poolHours: 8,
+            openWaterDives: 4,
+            price: "550.00",
+            currency: "USD",
+            minStudents: 2,
+            maxStudents: 6,
+            materialsIncluded: true,
+            equipmentIncluded: false,
+            minAge: 12,
+            prerequisites: "PADI Advanced Open Water + 20 logged dives + CPR/First Aid certification within 24 months",
+            requiredCertLevel: aowdLevel?.id,
+            isPublic: true,
+            isActive: true,
+            sortOrder: 4,
+          })
+          .returning();
+        courses.push(course4);
+        coursesSeeded++;
+      }
+
+      // Create 2-3 sessions per course (mix of scheduled and open status)
+      for (const course of courses) {
+        // Session 1: Near future (2 weeks out) - scheduled
+        const [session1] = await db
+          .insert(schema.trainingSessions)
+          .values({
+            organizationId,
+            courseId: course.id,
+            startDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            startTime: "09:00:00",
+            location: "Dive Shop Classroom & Pool",
+            meetingPoint: "Front desk at 8:45 AM",
+            instructorName: "Sarah Johnson",
+            maxStudents: course.maxStudents,
+            status: "scheduled",
+            notes: "All materials provided. Bring swimsuit and towel.",
+          })
+          .returning();
+        sessionsSeeded++;
+
+        // Session 2: Next month - open for enrollment
+        const [session2] = await db
+          .insert(schema.trainingSessions)
+          .values({
+            organizationId,
+            courseId: course.id,
+            startDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            startTime: null, // Test nullable startTime
+            location: "Dive Shop Classroom",
+            instructorName: "Mike Torres",
+            maxStudents: course.maxStudents,
+            status: "open",
+            notes: "Schedule flexible - time TBA based on student availability.",
+          })
+          .returning();
+        sessionsSeeded++;
+
+        // Session 3: Weekend session (if not specialty course)
+        if (course.durationDays > 1) {
+          const [session3] = await db
+            .insert(schema.trainingSessions)
+            .values({
+              organizationId,
+              courseId: course.id,
+              startDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+              startTime: "08:00:00",
+              location: "Dive Shop & Local Beach",
+              meetingPoint: "Meet at shop, carpool to beach",
+              instructorName: "David Chen",
+              maxStudents: course.maxStudents - 2, // Smaller weekend class
+              priceOverride: (parseFloat(course.price) + 50).toString(), // Weekend premium
+              status: "open",
+              notes: "Weekend intensive format. Lunch included.",
+            })
+            .returning();
+          sessionsSeeded++;
+        }
+      }
+
+      console.log(`  ✓ Created ${coursesSeeded} courses and ${sessionsSeeded} sessions`);
+    } else {
+      console.log("  ℹ️  Training courses already exist, skipping...");
+    }
+
+    trainingStats = {
+      agencies: agenciesSeeded,
+      levels: levelsSeeded,
+      courses: coursesSeeded,
+      sessions: sessionsSeeded
+    };
   } catch (error) {
     console.warn("  ⚠️  Warning: Training data seeding failed:", error);
   }
@@ -1345,7 +1657,8 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   console.log(`  - ${rentalCount} rentals`);
   console.log(`  - ${trainingStats.agencies} training agencies`);
   console.log(`  - ${trainingStats.levels} certification levels`);
-  console.log(`  - ${trainingStats.courses} training courses`);
+  console.log(`  - ${trainingStats.courses || 0} training courses`);
+  console.log(`  - ${trainingStats.sessions || 0} training sessions`);
   console.log(`  - ${galleryStats.albums} gallery albums`);
   console.log(`  - ${galleryStats.images} gallery images`);
 }

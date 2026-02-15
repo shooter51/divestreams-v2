@@ -14,46 +14,8 @@ import { organization } from "../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { sendEmail, contactFormNotificationEmail, contactFormAutoReplyEmail } from "../../../lib/email";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
-
-/**
- * Extract subdomain from request host
- */
-function getSubdomainFromHost(host: string): string | null {
-  // Handle localhost development: subdomain.localhost:5173
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  // Handle production: subdomain.divestreams.com
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    // Ignore www and admin as they're not tenant subdomains
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
-}
-
-/**
- * Sanitize map embed HTML to only allow iframes from trusted map providers.
- * Strips all other HTML to prevent XSS.
- */
-function sanitizeMapEmbed(html: string): string {
-  const iframeMatch = html.match(/<iframe\s[^>]*src="(https:\/\/(?:www\.google\.com\/maps|maps\.google\.com|www\.openstreetmap\.org)[^"]*)"[^>]*><\/iframe>/i);
-  if (!iframeMatch) {
-    return ""; // Not a recognized map embed, strip entirely
-  }
-  const src = iframeMatch[1];
-  return `<iframe src="${src}" width="100%" height="100%" style="border:0" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
-}
+import { sanitizeIframeEmbed } from "../../../lib/security/sanitize";
+import { getSubdomainFromHost } from "../../../lib/utils/url";
 
 // ============================================================================
 // ICONS
@@ -220,7 +182,7 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
 
   // Rate limiting - 5 submissions per 15 minutes per IP
   const clientIp = getClientIp(request);
-  const rateLimitResult = checkRateLimit(`contact-form:${clientIp}`, {
+  const rateLimitResult = await checkRateLimit(`contact-form:${clientIp}`, {
     maxAttempts: 5,
     windowMs: 15 * 60 * 1000,
   });
@@ -317,6 +279,8 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       timeStyle: "short",
     });
 
+    let emailSent = false;
+
     if (contactInfo?.email) {
       const notificationEmail = contactFormNotificationEmail({
         name: name.trim(),
@@ -328,12 +292,14 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
         submittedAt: formattedDate,
       });
 
-      await sendEmail({
+      const notificationResult = await sendEmail({
         to: contactInfo.email,
         subject: notificationEmail.subject,
         html: notificationEmail.html,
         text: notificationEmail.text,
       });
+
+      emailSent = emailSent || notificationResult;
     }
 
     // Send auto-reply confirmation to customer
@@ -344,12 +310,21 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
       contactPhone: contactInfo?.phone ?? undefined,
     });
 
-    await sendEmail({
+    const autoReplyResult = await sendEmail({
       to: email.trim(),
       subject: autoReplyEmail.subject,
       html: autoReplyEmail.html,
       text: autoReplyEmail.text,
     });
+
+    emailSent = emailSent || autoReplyResult;
+
+    // Message is saved in database regardless of email delivery
+    // But warn user if emails failed to send
+    if (!emailSent) {
+      console.error("[Contact Form] WARNING: Message saved but emails failed to send");
+      console.error(`[Contact Form] Organization: ${org.name}, Customer: ${email.trim()}`);
+    }
 
     return { success: true };
   } catch (error) {
@@ -413,11 +388,13 @@ export default function SiteContactPage() {
         <div
           className="rounded-2xl p-8 shadow-sm border"
           style={{
-            backgroundColor: "white",
-            borderColor: "var(--accent-color)",
+            backgroundColor: "var(--color-card-bg)",
+            borderColor: "var(--color-border)",
           }}
         >
-          <h2 className="text-2xl font-semibold mb-6">Send us a message</h2>
+          <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--text-color)" }}>
+            Send us a message
+          </h2>
 
           {actionData?.success ? (
             <div
@@ -452,8 +429,9 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-name"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
-                  Name <span className="text-red-500">*</span>
+                  Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -477,7 +455,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.name && (
                   <p
                     id="name-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.name}
@@ -490,8 +468,9 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-email"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
-                  Email <span className="text-red-500">*</span>
+                  Email <span className="text-danger">*</span>
                 </label>
                 <input
                   type="email"
@@ -515,7 +494,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.email && (
                   <p
                     id="email-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.email}
@@ -528,6 +507,7 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-phone"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
                   Phone <span className="text-sm opacity-50">(optional)</span>
                 </label>
@@ -552,7 +532,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.phone && (
                   <p
                     id="phone-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.phone}
@@ -565,8 +545,9 @@ export default function SiteContactPage() {
                 <label
                   htmlFor="contact-message"
                   className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--text-color)" }}
                 >
-                  Message <span className="text-red-500">*</span>
+                  Message <span className="text-danger">*</span>
                 </label>
                 <textarea
                   id="contact-message"
@@ -589,7 +570,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.message && (
                   <p
                     id="message-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.message}
@@ -599,7 +580,7 @@ export default function SiteContactPage() {
 
               {/* General Error */}
               {actionData?.error && (
-                <div className="p-4 rounded-lg bg-red-50 text-red-700 flex items-center gap-2">
+                <div className="p-4 rounded-lg flex items-center gap-2" style={{ backgroundColor: "var(--danger-bg)", color: "var(--danger-text)" }}>
                   <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
                   <p>{actionData.error}</p>
                 </div>
@@ -626,11 +607,13 @@ export default function SiteContactPage() {
           <div
             className="rounded-2xl p-8 shadow-sm border"
             style={{
-              backgroundColor: "white",
-              borderColor: "var(--accent-color)",
+              backgroundColor: "var(--color-card-bg)",
+              borderColor: "var(--color-border)",
             }}
           >
-            <h2 className="text-2xl font-semibold mb-6">Get in touch</h2>
+            <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--text-color)" }}>
+              Get in touch
+            </h2>
 
             <div className="space-y-6">
               {/* Address */}
@@ -749,9 +732,7 @@ export default function SiteContactPage() {
             >
               <div
                 className="aspect-video w-full [&>iframe]:w-full [&>iframe]:h-full"
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeMapEmbed(contactInfo.mapEmbed),
-                }}
+                dangerouslySetInnerHTML={{ __html: sanitizeIframeEmbed(contactInfo.mapEmbed) }}
               />
             </div>
           )}

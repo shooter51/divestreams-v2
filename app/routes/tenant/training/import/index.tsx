@@ -1,15 +1,15 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useActionData, useNavigation } from "react-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
-import { getAgencies, getAgencyById, createCourse } from "../../../../../lib/db/training.server";
-import { getAgencyTemplates, type AgencyCourseTemplate } from "../../../../../lib/data/agency-templates";
+import { getAgencies, createAgency, createCourse } from "../../../../../lib/db/training.server";
+import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const orgContext = await requireOrgContext(request);
+  await requireOrgContext(request);
 
-  // Get available agencies for this organization
-  const agencies = await getAgencies(orgContext.org.id);
+  // Get all available agencies from global templates
+  const agencies = await getAvailableAgencies();
 
   return { agencies };
 }
@@ -19,36 +19,191 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const step = formData.get("step") as string;
-  const agencyId = formData.get("agencyId") as string;
+
+  // CSV Upload Handler
+  if (step === "csv-upload") {
+    const csvFile = formData.get("csvFile") as File | null;
+
+    if (!csvFile || csvFile.size === 0) {
+      return {
+        error: "No CSV file was uploaded. Please select a file before clicking Upload CSV.",
+        suggestion: "Click 'Choose File' or 'Browse' to select your CSV file, then click 'Upload CSV'."
+      };
+    }
+
+    try {
+      const csvText = await csvFile.text();
+      const lines = csvText.trim().split("\n");
+
+      if (lines.length < 2) {
+        return {
+          error: "The uploaded CSV file appears to be empty or only contains a header row.",
+          suggestion: "Make sure your CSV file contains course data rows below the header row."
+        };
+      }
+
+      // Parse CSV (skip header row)
+      const importedCourses: string[] = [];
+      const errors: { course: string; reason: string }[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        const columns = parseCSVLine(line).map(col => col.trim());
+
+        if (columns.length < 12) {
+          errors.push({
+            course: `Row ${i + 1}`,
+            reason: `Invalid CSV format - expected 12 columns, got ${columns.length}. Make sure all commas are present.`
+          });
+          continue;
+        }
+
+        const [agencyCode, courseName, courseCode, description, durationDays, classroomHours, poolHours, openWaterDives, minAge, prerequisites, price, currency] = columns;
+
+        if (!agencyCode || !courseName) {
+          errors.push({
+            course: `Row ${i + 1}`,
+            reason: "Missing required fields: agency_code and course_name are required."
+          });
+          continue;
+        }
+
+        try {
+          // Find or create agency
+          const existingAgencies = await getAgencies(orgContext.org.id);
+          let agency = existingAgencies.find(a => a.code.toLowerCase() === agencyCode.toLowerCase());
+
+          if (!agency) {
+            agency = await createAgency({
+              organizationId: orgContext.org.id,
+              name: agencyCode.toUpperCase(),
+              code: agencyCode.toLowerCase(),
+              isActive: true,
+            });
+          }
+
+          // Check for duplicate course before creating
+          const { db } = await import("../../../../../lib/db/index");
+          const { getTenantDb } = await import("../../../../../lib/db/tenant.server");
+          const { eq, and } = await import("drizzle-orm");
+          const { schema: tables } = getTenantDb(orgContext.org.id);
+
+          const [existingCourse] = await db
+            .select()
+            .from(tables.trainingCourses)
+            .where(and(
+              eq(tables.trainingCourses.organizationId, orgContext.org.id),
+              eq(tables.trainingCourses.agencyId, agency.id),
+              eq(tables.trainingCourses.code, courseCode || "")
+            ))
+            .limit(1);
+
+          if (existingCourse) {
+            errors.push({
+              course: courseName,
+              reason: "This course already exists in your catalog. Skipped."
+            });
+            continue;
+          }
+
+          // Create course
+          await createCourse({
+            organizationId: orgContext.org.id,
+            agencyId: agency.id,
+            name: courseName,
+            code: courseCode || "",
+            description: description || "",
+            durationDays: parseInt(durationDays) || 0,
+            classroomHours: classroomHours ? parseInt(classroomHours) : undefined,
+            poolHours: poolHours ? parseInt(poolHours) : undefined,
+            openWaterDives: openWaterDives ? parseInt(openWaterDives) : undefined,
+            minAge: minAge ? parseInt(minAge) : undefined,
+            prerequisites: prerequisites || undefined,
+            price: price || "0.00",
+            currency: currency || "USD",
+            isActive: true,
+            isPublic: false,
+          });
+
+          importedCourses.push(courseName);
+        } catch (error) {
+          console.error(`Failed to import CSV row ${i + 1}:`, error);
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          errors.push({
+            course: courseName || `Row ${i + 1}`,
+            reason: errorMessage.includes("duplicate") || errorMessage.includes("unique")
+              ? "This course already exists in your catalog."
+              : "Database error while creating course. Please check the CSV format."
+          });
+        }
+      }
+
+      if (errors.length > 0 && importedCourses.length === 0) {
+        return {
+          error: "None of the courses in the CSV could be imported. See details below.",
+          detailedErrors: errors,
+          suggestion: "Check that your CSV file matches the template format exactly."
+        };
+      }
+
+      return {
+        success: true,
+        step: "complete",
+        importedCount: importedCourses.length,
+        importedCourses,
+        detailedErrors: errors.length > 0 ? errors : undefined,
+      };
+    } catch (error) {
+      console.error("CSV parsing error:", error);
+      return {
+        error: "Failed to parse the CSV file. Make sure it's a valid CSV format.",
+        suggestion: "Download the CSV template again and make sure you're using the correct format."
+      };
+    }
+  }
 
   // Step 1: User selected an agency - fetch available course templates
   if (step === "select-agency") {
-    if (!agencyId) {
-      return { error: "Please select a certification agency" };
-    }
+    const agencyCode = formData.get("agencyCode") as string;
+    const agencyName = formData.get("agencyName") as string;
 
-    // Get the agency from database to get its code
-    const agency = await getAgencyById(orgContext.org.id, agencyId);
-    if (!agency) {
-      return { error: "Agency not found" };
-    }
-
-    // Get templates for this agency
-    const templates = getAgencyTemplates(agency.code);
-    if (!templates) {
+    if (!agencyCode) {
       return {
-        error: `No course templates available for ${agency.name}. Templates are available for: PADI, SSI, NAUI`
+        error: "Please select a certification agency from the dropdown menu to continue.",
+        fieldErrors: { agency: "Certification agency is required" }
+      };
+    }
+
+    // Get templates for this agency from database
+    const templates = await getGlobalAgencyCourseTemplates(agencyCode);
+    if (!templates || templates.length === 0) {
+      return {
+        error: `We don't have any course templates available for ${agencyName} yet. This could mean the agency hasn't been set up in the system. Please contact support to add ${agencyName} course templates.`,
+        suggestion: "Try selecting a different agency like PADI, SSI, or NAUI which have extensive course catalogs available."
       };
     }
 
     return {
       success: true,
       step: "select-courses",
-      agency: { id: agency.id, name: agency.name, code: agency.code },
-      courses: templates.courses.map((course, index) => ({
-        id: `${agency.code}-${course.code}`,
-        templateIndex: index,
-        ...course,
+      agency: { code: agencyCode, name: agencyName },
+      courses: templates.map((template) => ({
+        id: `${agencyCode}-${template.code || 'unknown'}`,
+        name: template.name,
+        code: template.code || '',
+        description: template.description || '',
+        images: template.images || [],
+        durationDays: template.durationDays,
+        classroomHours: template.classroomHours ?? 0,
+        poolHours: template.poolHours ?? 0,
+        openWaterDives: template.openWaterDives ?? 0,
+        prerequisites: template.prerequisites || '',
+        minAge: template.minAge ?? 0,
+        medicalRequirements: template.medicalRequirements || '',
+        requiredItems: template.requiredItems || [],
+        materialsIncluded: template.materialsIncluded ?? false,
       })),
     };
   }
@@ -60,27 +215,35 @@ export async function action({ request }: ActionFunctionArgs) {
     const agencyName = formData.get("agencyName") as string;
 
     if (selectedCourseIds.length === 0) {
-      return { error: "Please select at least one course to import" };
+      return {
+        error: "Please select at least one course to import by checking the boxes next to the courses you want.",
+        fieldErrors: { courses: "At least one course must be selected" },
+        suggestion: "You can use the 'Select All' button to quickly select all available courses, or check individual courses one by one."
+      };
     }
 
     // Get the templates again to get full course data
-    const templates = getAgencyTemplates(agencyCode);
-    if (!templates) {
-      return { error: "Agency templates not found" };
+    const templates = await getGlobalAgencyCourseTemplates(agencyCode);
+    if (!templates || templates.length === 0) {
+      return {
+        error: `The course templates for ${agencyName} could not be loaded. This might be a temporary issue.`,
+        suggestion: "Please go back and try selecting the agency again. If the problem persists, contact support."
+      };
     }
 
     // Filter to selected courses
-    const selectedCourses = templates.courses.filter((_, index) =>
-      selectedCourseIds.includes(`${agencyCode}-${templates.courses[index].code}`)
+    const selectedCourses = templates.filter((template) =>
+      selectedCourseIds.includes(`${agencyCode}-${template.code}`)
     );
 
     return {
       success: true,
       step: "preview",
-      agency: { id: agencyId, name: agencyName, code: agencyCode },
-      selectedCourses: selectedCourses.map(course => ({
-        id: `${agencyCode}-${course.code}`,
-        ...course,
+      agency: { code: agencyCode, name: agencyName },
+      selectedCourses: selectedCourses.map(template => ({
+        id: `${agencyCode}-${template.code || 'unknown'}`,
+        name: template.name,
+        code: template.code || '',
       })),
       selectedCount: selectedCourses.length,
     };
@@ -89,49 +252,69 @@ export async function action({ request }: ActionFunctionArgs) {
   // Step 3: Execute the import
   if (step === "execute-import") {
     const agencyCode = formData.get("agencyCode") as string;
+    const agencyName = formData.get("agencyName") as string;
     const courseCodesJson = formData.get("courseCodes") as string;
 
     if (!agencyCode || !courseCodesJson) {
-      return { error: "Missing import data" };
+      return {
+        error: "Some required information is missing from your import request. Please start over from the beginning.",
+        suggestion: "Click 'Start Over' and go through the import process again step by step."
+      };
     }
 
     const courseCodes: string[] = JSON.parse(courseCodesJson);
-    const templates = getAgencyTemplates(agencyCode);
+    const templates = await getGlobalAgencyCourseTemplates(agencyCode);
 
-    if (!templates) {
-      return { error: "Agency templates not found" };
+    if (!templates || templates.length === 0) {
+      return {
+        error: `The course templates for ${agencyName} are no longer available. This might be a temporary database issue.`,
+        suggestion: "Please try the import again in a few minutes. If the issue continues, contact support."
+      };
     }
 
-    // Get the agency record for linking
-    const agencies = await getAgencies(orgContext.org.id);
-    const agency = agencies.find(a => a.code.toLowerCase() === agencyCode.toLowerCase());
+    // Find or create the agency record for this tenant
+    const existingAgencies = await getAgencies(orgContext.org.id);
+    let agency = existingAgencies.find(a => a.code.toLowerCase() === agencyCode.toLowerCase());
+
+    if (!agency) {
+      // Create the agency for this tenant
+      agency = await createAgency({
+        organizationId: orgContext.org.id,
+        name: agencyName,
+        code: agencyCode,
+        isActive: true,
+      });
+    }
 
     const importedCourses: string[] = [];
-    const errors: string[] = [];
+    const errors: { course: string; reason: string }[] = [];
 
     for (const code of courseCodes) {
-      const template = templates.courses.find(c => c.code === code);
+      const template = templates.find(t => t.code === code);
       if (!template) {
-        errors.push(`Template not found for code: ${code}`);
+        errors.push({
+          course: code,
+          reason: `Course template "${code}" could not be found in the database. It may have been removed.`
+        });
         continue;
       }
 
       try {
         const course = await createCourse({
           organizationId: orgContext.org.id,
-          agencyId: agency?.id,
+          agencyId: agency.id,
           name: template.name,
-          code: template.code,
-          description: template.description,
+          code: template.code || "",
+          description: template.description || "",
           durationDays: template.durationDays,
-          classroomHours: template.classroomHours,
-          poolHours: template.poolHours,
-          openWaterDives: template.openWaterDives,
-          minAge: template.minAge,
-          prerequisites: template.prerequisites,
-          medicalRequirements: template.medicalRequirements,
-          materialsIncluded: template.materialsIncluded,
-          requiredItems: template.requiredItems,
+          classroomHours: template.classroomHours ?? undefined,
+          poolHours: template.poolHours ?? undefined,
+          openWaterDives: template.openWaterDives ?? undefined,
+          minAge: template.minAge ?? undefined,
+          prerequisites: template.prerequisites ?? undefined,
+          medicalRequirements: template.medicalRequirements ?? undefined,
+          materialsIncluded: template.materialsIncluded ?? undefined,
+          requiredItems: template.requiredItems ?? undefined,
           price: "0.00", // Default price - user will set
           currency: "USD",
           isActive: true,
@@ -140,12 +323,22 @@ export async function action({ request }: ActionFunctionArgs) {
         importedCourses.push(course.name);
       } catch (error) {
         console.error(`Failed to import ${template.name}:`, error);
-        errors.push(`Failed to import ${template.name}`);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        errors.push({
+          course: template.name,
+          reason: errorMessage.includes("duplicate") || errorMessage.includes("unique")
+            ? "This course already exists in your catalog."
+            : "There was a database error while creating this course. Please try again."
+        });
       }
     }
 
     if (errors.length > 0 && importedCourses.length === 0) {
-      return { error: errors.join(", ") };
+      return {
+        error: "None of the selected courses could be imported. See details below for each course.",
+        detailedErrors: errors,
+        suggestion: "Some courses may already exist in your catalog. Try importing only new courses, or contact support if you need help."
+      };
     }
 
     return {
@@ -153,11 +346,14 @@ export async function action({ request }: ActionFunctionArgs) {
       step: "complete",
       importedCount: importedCourses.length,
       importedCourses,
-      errors: errors.length > 0 ? errors : undefined,
+      detailedErrors: errors.length > 0 ? errors : undefined,
     };
   }
 
-  return { error: "Unknown step" };
+  return {
+    error: "An unexpected error occurred during the import process.",
+    suggestion: "Please start over and try again. If the problem continues, contact support."
+  };
 }
 
 export default function TrainingImportPage() {
@@ -176,6 +372,49 @@ export default function TrainingImportPage() {
         <p className="text-foreground-muted">
           Import course templates from certification agencies to quickly populate your course catalog
         </p>
+
+        {/* CSV Upload Section */}
+        <div className="mt-4 p-4 bg-brand-muted border border-brand rounded-lg">
+          <h3 className="font-medium text-brand mb-3">Import Custom Courses via CSV</h3>
+          <p className="text-sm text-brand mb-4">
+            Download our CSV template, fill it with your course data, then upload it below to bulk import custom courses
+          </p>
+          <div className="flex gap-3">
+            <a
+              href="/templates/training-courses-import-template.csv"
+              download
+              className="px-4 py-2 bg-surface-raised text-brand border border-brand rounded-lg hover:bg-brand-muted transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download CSV Template
+            </a>
+            <Form method="post" encType="multipart/form-data" className="flex-1 flex gap-2">
+              <input type="hidden" name="step" value="csv-upload" />
+              <input
+                type="file"
+                name="csvFile"
+                accept=".csv"
+                className="flex-1 px-3 py-2 border border-brand rounded-lg bg-surface-raised text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-brand file:text-white hover:file:bg-brand-hover"
+                required
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Upload CSV
+              </button>
+            </Form>
+          </div>
+          <p className="text-xs text-brand mt-2 italic">
+            CSV format: agency_code, course_name, course_code, description, duration_days, classroom_hours, pool_hours, open_water_dives, min_age, prerequisites, price, currency
+          </p>
+        </div>
       </div>
 
       {/* Progress Steps */}
@@ -195,8 +434,28 @@ export default function TrainingImportPage() {
 
       {/* Error Display */}
       {actionData?.error && (
-        <div className="mb-6 bg-danger-muted border border-danger rounded-lg p-4 text-danger">
-          {actionData.error}
+        <div className="mb-6 bg-danger-muted border border-danger rounded-lg p-4 max-w-4xl break-words">
+          <div className="flex items-start gap-2">
+            <span className="text-danger font-bold text-xl">⚠</span>
+            <div className="flex-1">
+              <h3 className="font-semibold text-danger mb-1">Import Error</h3>
+              <p className="text-danger text-sm mb-2">{actionData.error}</p>
+              {actionData.suggestion && (
+                <p className="text-danger-hover text-sm italic">💡 {actionData.suggestion}</p>
+              )}
+              {actionData.detailedErrors && actionData.detailedErrors.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-danger text-sm font-medium">Course-specific errors:</p>
+                  {actionData.detailedErrors.map((err: { course: string; reason: string }, idx: number) => (
+                    <div key={idx} className="bg-surface-raised rounded p-2 text-sm">
+                      <span className="font-medium text-foreground">{err.course}:</span>
+                      <span className="text-foreground-muted ml-2">{err.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -226,7 +485,7 @@ export default function TrainingImportPage() {
           <CompleteStep
             importedCount={actionData?.importedCount || 0}
             importedCourses={actionData?.importedCourses || []}
-            errors={actionData?.errors}
+            detailedErrors={actionData?.detailedErrors}
           />
         )}
       </div>
@@ -238,7 +497,7 @@ function Step({ number, title, active, completed }: { number: number; title: str
   return (
     <div className="flex flex-col items-center">
       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
-        completed ? "bg-green-600 text-white" :
+        completed ? "bg-success text-white" :
         active ? "bg-brand text-white" :
         "bg-surface-overlay text-foreground-muted"
       }`}>
@@ -251,39 +510,52 @@ function Step({ number, title, active, completed }: { number: number; title: str
   );
 }
 
-function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ id: string; name: string; code: string }>; isSubmitting: boolean }) {
+function SelectAgencyStep({ agencies, isSubmitting }: { agencies: Array<{ code: string | null; name: string; description?: string }>; isSubmitting: boolean }) {
+  const [selectedAgency, setSelectedAgency] = React.useState<string>("");
+
+  const handleAgencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedAgency(e.target.value);
+  };
+
+  const selectedAgencyData = agencies.find(a => a.code === selectedAgency && a.code !== null);
+
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Step 1: Select Certification Agency</h2>
       <p className="text-foreground-muted mb-6">
-        Choose the certification agency whose courses you want to import. We support PADI, SSI, and NAUI course templates.
+        Choose the certification agency whose courses you want to import. We support 10 major certification agencies with 680+ course templates.
       </p>
 
       <Form method="post" className="max-w-md">
         <input type="hidden" name="step" value="select-agency" />
+        <input type="hidden" name="agencyCode" value={selectedAgency} />
+        <input type="hidden" name="agencyName" value={selectedAgencyData?.name || ""} />
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="agencyId" className="block text-sm font-medium mb-2">
+            <label htmlFor="agencySelect" className="block text-sm font-medium mb-2">
               Certification Agency *
             </label>
             <select
-              id="agencyId"
-              name="agencyId"
+              id="agencySelect"
+              value={selectedAgency}
+              onChange={handleAgencyChange}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               required
               disabled={isSubmitting}
             >
               <option value="">Select an agency...</option>
-              {agencies.map((agency) => (
-                <option key={agency.id} value={agency.id}>
+              {agencies.filter(a => a.code !== null).map((agency) => (
+                <option key={agency.code!} value={agency.code!}>
                   {agency.name}
                 </option>
               ))}
             </select>
-            <p className="text-sm text-foreground-muted mt-1">
-              Don't see your agency? Add it in Settings → Training → Agencies first.
-            </p>
+            {selectedAgencyData?.description && (
+              <p className="text-sm text-foreground-muted mt-2">
+                {selectedAgencyData.description}
+              </p>
+            )}
           </div>
 
           <div className="pt-4">
@@ -306,8 +578,16 @@ function SelectCoursesStep({
   agency,
   isSubmitting
 }: {
-  courses: Array<AgencyCourseTemplate & { id: string }>;
-  agency: { id: string; name: string; code: string };
+  courses: Array<{
+    id: string;
+    name: string;
+    code: string;
+    description: string;
+    durationDays: number;
+    openWaterDives: number;
+    minAge: number;
+  }>;
+  agency: { code: string; name: string };
   isSubmitting: boolean;
 }) {
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
@@ -361,7 +641,6 @@ function SelectCoursesStep({
 
       <Form method="post">
         <input type="hidden" name="step" value="select-courses" />
-        <input type="hidden" name="agencyId" value={agency.id} />
         <input type="hidden" name="agencyCode" value={agency.code} />
         <input type="hidden" name="agencyName" value={agency.name} />
 
@@ -426,8 +705,12 @@ function PreviewStep({
   agency,
   isSubmitting
 }: {
-  selectedCourses: Array<AgencyCourseTemplate & { id: string }>;
-  agency: { id: string; name: string; code: string };
+  selectedCourses: Array<{
+    id: string;
+    name: string;
+    code: string;
+  }>;
+  agency: { code: string; name: string };
   isSubmitting: boolean;
 }) {
   return (
@@ -469,8 +752,8 @@ function PreviewStep({
 
       <Form method="post" className="space-y-4">
         <input type="hidden" name="step" value="execute-import" />
-        <input type="hidden" name="agencyId" value={agency.id} />
         <input type="hidden" name="agencyCode" value={agency.code} />
+        <input type="hidden" name="agencyName" value={agency.name} />
         <input type="hidden" name="courseCodes" value={JSON.stringify(selectedCourses.map(c => c.code))} />
 
         <div className="flex gap-3">
@@ -483,7 +766,7 @@ function PreviewStep({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-success-muted"
+            className="flex-1 bg-success text-white px-6 py-3 rounded-lg hover:bg-success-hover transition-colors font-medium disabled:bg-success-muted"
           >
             {isSubmitting ? "Importing courses..." : `Import ${selectedCourses.length} Courses`}
           </button>
@@ -496,11 +779,11 @@ function PreviewStep({
 function CompleteStep({
   importedCount,
   importedCourses,
-  errors
+  detailedErrors
 }: {
   importedCount: number;
   importedCourses: string[];
-  errors?: string[];
+  detailedErrors?: Array<{ course: string; reason: string }>;
 }) {
   return (
     <div className="text-center">
@@ -510,17 +793,23 @@ function CompleteStep({
 
       <h2 className="text-2xl font-semibold mb-2">Import Complete!</h2>
       <p className="text-foreground-muted mb-6">
-        Successfully imported {importedCount} courses into your catalog
+        Successfully imported {importedCount} {importedCount === 1 ? 'course' : 'courses'} into your catalog
       </p>
 
-      {errors && errors.length > 0 && (
-        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-6 text-left">
-          <h3 className="font-medium text-warning mb-2">Some courses had issues:</h3>
-          <ul className="text-sm text-warning list-disc list-inside">
-            {errors.map((error, i) => (
-              <li key={i}>{error}</li>
+      {detailedErrors && detailedErrors.length > 0 && (
+        <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-4 mb-6 text-left">
+          <div className="flex items-start gap-2 mb-3">
+            <span className="text-warning">⚠</span>
+            <h3 className="font-medium text-warning">Some courses couldn't be imported:</h3>
+          </div>
+          <div className="space-y-2">
+            {detailedErrors.map((error, i) => (
+              <div key={i} className="bg-surface-raised rounded p-3">
+                <p className="text-sm font-medium text-foreground mb-1">{error.course}</p>
+                <p className="text-xs text-foreground-muted">{error.reason}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
@@ -562,4 +851,36 @@ function CompleteStep({
       </div>
     </div>
   );
+}
+
+/**
+ * RFC 4180 compliant CSV parser that handles quoted fields and embedded commas
+ * Copied from products.tsx to ensure consistent CSV parsing across the codebase
+ */
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        // Escaped quote
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current);
+  return result;
 }

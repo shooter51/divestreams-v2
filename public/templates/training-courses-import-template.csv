@@ -1,0 +1,6 @@
+name,code,agencyCode,description,price,currency,durationDays,classroomHours,poolHours,openWaterDives,minAge,prerequisites,medicalRequirements,materialsIncluded,isActive,isPublic
+"Open Water Diver",OWD,PADI,"Learn the fundamentals of scuba diving and get certified",499.00,USD,3,8,8,4,10,"Able to swim","Medical clearance form required","Textbook and certification card",TRUE,TRUE
+"Advanced Open Water",AOW,PADI,"Enhance your diving skills with 5 adventure dives",399.00,USD,2,4,0,5,12,"Open Water certification","Medical clearance if applicable","Logbook and certification card",TRUE,TRUE
+"Rescue Diver",RD,PADI,"Learn to prevent and manage dive emergencies",450.00,USD,3,12,8,0,15,"Advanced Open Water + CPR/First Aid","Current medical clearance","Slate and certification card",TRUE,TRUE
+"Dive Master",DM,PADI,"Become a professional diver and leader",899.00,USD,14,40,20,0,18,"Rescue Diver + 60 logged dives + CPR/First Aid","Comprehensive medical exam required","Professional materials and certification",TRUE,TRUE
+"Enriched Air (Nitrox)",EAN,PADI,"Learn to dive with enriched air nitrox mixtures",199.00,USD,1,4,0,0,12,"Open Water certification","Standard medical clearance","Manual and certification card",TRUE,TRUE

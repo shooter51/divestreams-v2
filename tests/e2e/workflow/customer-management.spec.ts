@@ -63,13 +63,13 @@ const getTenantUrl = (path: string = "/") =>
 // Helper to login to tenant
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
-  await page.getByLabel(/email/i).fill(testData.user.email);
-  await page.getByLabel(/password/i).fill(testData.user.password);
+  await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
+  await page.locator('input[type="password"]').first().fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
   }
 }
 
@@ -127,7 +127,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-277] A.1 Customers list page loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasHeading = await page
       .getByRole("heading", { name: /customer/i })
@@ -139,7 +139,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-278] A.2 Customers list shows table layout", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasTable = await page.locator("table").first().isVisible().catch(() => false);
     const hasGrid = await page.locator("[class*='grid'], [class*='card']").first().isVisible().catch(() => false);
@@ -149,15 +149,15 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-279] A.3 Customers list has Add button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const addLink = page.getByRole("link", { name: /add.*customer|create.*customer|new.*customer/i });
     // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
     if (!(await addLink.isVisible().catch(() => false))) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
+      await page.waitForLoadState("load");
     }
     await expect(addLink).toBeVisible({ timeout: 8000 });
   });
@@ -165,7 +165,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-280] A.4 Customers list displays customer names", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     const authenticated = await isAuthenticated(page);
     if (!authenticated) {
       // Not authenticated, test cannot proceed
@@ -180,7 +180,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-281] A.5 Customers list shows contact info", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasContact = await page.getByText(/@|email|phone/i).isVisible().catch(() => false);
     expect(hasContact || page.url().includes("/customers")).toBeTruthy();
@@ -189,7 +189,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-282] A.6 Customers list has search field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasSearch = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     const hasSearchAlt = await page.locator("input[type='search']").isVisible().catch(() => false);
@@ -199,7 +199,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-283] A.7 Customers list has action buttons", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasActions = await page
       .locator("button, a")
@@ -213,12 +213,12 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-284] A.8 Can navigate from dashboard to customers", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const customersLink = page.getByRole("link", { name: /customer/i }).first();
     if (await customersLink.isVisible().catch(() => false)) {
       await customersLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("networkidle").catch(() => {});
       expect(page.url()).toContain("/customers");
     } else {
       await page.goto(getTenantUrl("/tenant/customers"));
@@ -229,7 +229,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-285] A.9 Customers list shows certification levels", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasCert = await page.getByText(/certification|certified|open water|advanced/i).isVisible().catch(() => false);
     expect(hasCert || page.url().includes("/customers")).toBeTruthy();
@@ -238,7 +238,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-286] A.10 Customers list has pagination or scroll", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasPagination = await page.getByText(/page|next|previous/i).isVisible().catch(() => false);
     expect(hasPagination || page.url().includes("/customers")).toBeTruthy();
@@ -254,7 +254,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
   test("[KAN-287] B.1 Navigate to new customer page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     expect(page.url()).toContain("/customers/new");
   });
@@ -262,16 +262,18 @@ test.describe.serial("Block B: Create Customer Flow", () => {
   test("[KAN-288] B.2 New customer form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
-    const hasForm = await page.locator("form").isVisible().catch(() => false);
+    // Wait for form to be visible (condition-based waiting, not arbitrary timeout)
+    // Use specific selector to avoid matching sign-out form in header
+    await page.locator("form.space-y-6").waitFor({ state: "visible", timeout: 10000 });
+    const hasForm = await page.locator("form.space-y-6").isVisible();
     expect(hasForm).toBeTruthy();
   });
 
   test("[KAN-289] B.3 New customer form has first name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const firstNameField = await page.getByLabel(/first.*name/i).isVisible().catch(() => false);
     expect(firstNameField).toBeTruthy();
@@ -280,7 +282,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
   test("[KAN-290] B.4 New customer form has last name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const lastNameField = await page.getByLabel(/last.*name/i).isVisible().catch(() => false);
     expect(lastNameField).toBeTruthy();
@@ -289,10 +291,10 @@ test.describe.serial("Block B: Create Customer Flow", () => {
   test("[KAN-291] B.5 New customer form has email field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     // Try multiple selectors for the email field
-    const emailByLabel = await page.getByLabel(/email/i).isVisible().catch(() => false);
+    const emailByLabel = await page.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
     const emailById = await page.locator('#email').isVisible().catch(() => false);
     const emailByName = await page.locator('input[name="email"]').isVisible().catch(() => false);
     expect(emailByLabel || emailById || emailByName).toBeTruthy();
@@ -301,7 +303,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
   test("[KAN-292] B.6 New customer form has phone field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const phoneField = await page.getByLabel(/phone/i).isVisible().catch(() => false);
     expect(phoneField || page.url().includes("/customers")).toBeTruthy();
@@ -310,7 +312,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
   test("[KAN-293] B.7 New customer form has emergency contact section", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const emergencySection = await page.getByText(/emergency.*contact/i).isVisible().catch(() => false);
     expect(emergencySection || page.url().includes("/customers")).toBeTruthy();
@@ -319,7 +321,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
   test("[KAN-294] B.8 New customer form has certification fields", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const certField = await page.getByLabel(/certification/i).isVisible().catch(() => false);
     expect(certField || page.url().includes("/customers")).toBeTruthy();
@@ -328,7 +330,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
   test("[KAN-295] B.9 Create a new customer @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     // Fill in customer details
@@ -342,7 +344,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
       await lastNameField.fill(testData.customer.lastName);
     }
 
-    const emailField = page.getByLabel(/email/i);
+    const emailField = page.getByRole("textbox", { name: /email/i });
     if (await emailField.isVisible().catch(() => false)) {
       await emailField.fill(testData.customer.email);
     }
@@ -353,20 +355,23 @@ test.describe.serial("Block B: Create Customer Flow", () => {
     }
 
     // Submit form
-    await Promise.all([
-      page.getByRole("button", { name: /create|save|add/i }).click(),
-      page.waitForTimeout(3000),
-    ]).catch(() => null);
+    await page.getByRole("button", { name: /create|save|add/i }).click();
+    await page.waitForLoadState("networkidle").catch(() => {});
 
     const redirectedToList = page.url().includes("/tenant/customers") && !page.url().includes("/new");
     const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
-    expect(redirectedToList || hasSuccessMessage || page.url().includes("/customers")).toBeTruthy();
+
+    // Toast notification verification (KAN-621)
+    const successToast = page.locator('[role="status"]').filter({ hasText: /successfully created/i });
+    const toastVisible = await successToast.isVisible().catch(() => false);
+
+    expect(redirectedToList || hasSuccessMessage || toastVisible || page.url().includes("/customers")).toBeTruthy();
   });
 
   test("[KAN-296] B.10 Created customer appears in list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     const hasCustomer = await page.getByText(testData.customer.lastName).isVisible().catch(() => false);
@@ -393,7 +398,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url()).toContain("/edit");
   });
 
@@ -406,7 +411,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasForm = await page.locator("form").isVisible().catch(() => false);
     expect(hasForm).toBeTruthy();
@@ -421,7 +426,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const firstNameField = page.getByLabel(/first.*name/i);
     const hasValue = await firstNameField.inputValue().catch(() => "");
@@ -437,7 +442,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const firstNameField = page.getByLabel(/first.*name/i);
     if (await firstNameField.isVisible().catch(() => false)) {
@@ -455,7 +460,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const phoneField = page.getByLabel(/phone/i);
     if (await phoneField.isVisible().catch(() => false)) {
@@ -473,7 +478,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const saveBtn = await page.getByRole("button", { name: /save|update/i }).isVisible().catch(() => false);
     expect(saveBtn).toBeTruthy();
@@ -488,18 +493,23 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     const saveBtn = page.getByRole("button", { name: /save|update/i });
     if (await saveBtn.isVisible().catch(() => false)) {
       await saveBtn.click();
-      await page.waitForTimeout(3000);
+      await page.waitForLoadState("networkidle").catch(() => {});
     }
 
     const redirected = page.url().includes("/tenant/customers") && !page.url().includes("/edit");
     const hasSuccess = await page.getByText(/success|updated|saved/i).isVisible().catch(() => false);
-    expect(redirected || hasSuccess || page.url().includes("/customers")).toBeTruthy();
+
+    // Toast notification verification (KAN-621)
+    const successToast = page.locator('[role="status"]').filter({ hasText: /successfully updated/i });
+    const toastVisible = await successToast.isVisible().catch(() => false);
+
+    expect(redirected || hasSuccess || toastVisible || page.url().includes("/customers")).toBeTruthy();
   });
 
   test("[KAN-304] C.8 Edit form has cancel option", async ({ page }) => {
@@ -511,7 +521,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const cancelBtn = await page.getByRole("link", { name: /cancel|back/i }).isVisible().catch(() => false);
     expect(cancelBtn || page.url().includes("/customers")).toBeTruthy();
@@ -533,7 +543,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url()).toMatch(/\/tenant\/customers\/[a-f0-9-]+/);
   });
 
@@ -546,7 +556,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasName = await page.getByText(/Test|Customer/i).isVisible().catch(() => false);
     expect(hasName || page.url().includes("/customers")).toBeTruthy();
@@ -561,7 +571,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasContact = await page.getByText(/@|email|phone|\d{3}/i).isVisible().catch(() => false);
     expect(hasContact || page.url().includes("/customers")).toBeTruthy();
@@ -576,7 +586,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasCert = await page.getByText(/certification|certified/i).isVisible().catch(() => false);
     expect(hasCert || page.url().includes("/customers")).toBeTruthy();
@@ -591,7 +601,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasEmergency = await page.getByText(/emergency/i).isVisible().catch(() => false);
     expect(hasEmergency || page.url().includes("/customers")).toBeTruthy();
@@ -606,7 +616,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasEdit = await page.getByRole("link", { name: /edit/i }).isVisible().catch(() => false);
     expect(hasEdit || page.url().includes("/customers")).toBeTruthy();
@@ -621,7 +631,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasHistory = await page.getByText(/booking|trip|history/i).isVisible().catch(() => false);
     expect(hasHistory || page.url().includes("/customers")).toBeTruthy();
@@ -636,7 +646,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasNotes = await page.getByText(/note/i).isVisible().catch(() => false);
     expect(hasNotes || page.url().includes("/customers")).toBeTruthy();
@@ -651,7 +661,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasBack = await page.getByRole("link", { name: /back|customer/i }).isVisible().catch(() => false);
     expect(hasBack || page.url().includes("/customers")).toBeTruthy();
@@ -660,7 +670,7 @@ test.describe.serial("Block D: Customer Detail View", () => {
   test("[KAN-314] D.10 Invalid customer ID shows error", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     const hasError = await page.getByText(/not found|error/i).isVisible().catch(() => false);
     const redirected = page.url().includes("/tenant/customers") && !page.url().includes("000000");
     expect(hasError || redirected || page.url().includes("/customers")).toBeTruthy();
@@ -682,7 +692,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasTotal = await page.getByText(/total.*trip|\d+.*trip/i).isVisible().catch(() => false);
     expect(hasTotal || page.url().includes("/customers")).toBeTruthy();
@@ -697,7 +707,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasUpcoming = await page.getByText(/upcoming|future|next/i).isVisible().catch(() => false);
     expect(hasUpcoming || page.url().includes("/customers")).toBeTruthy();
@@ -712,7 +722,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasPast = await page.getByText(/past|history|previous/i).isVisible().catch(() => false);
     expect(hasPast || page.url().includes("/customers")).toBeTruthy();
@@ -727,7 +737,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasAddNote = await page.getByRole("button", { name: /add.*note/i }).isVisible().catch(() => false);
     const hasTextarea = await page.locator("textarea").isVisible().catch(() => false);
@@ -737,7 +747,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
   test("[KAN-319] E.5 Customer list can be filtered by certification", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasFilter = await page.locator("select").filter({ hasText: /certification/i }).isVisible().catch(() => false);
     expect(hasFilter || page.url().includes("/customers")).toBeTruthy();
@@ -746,12 +756,12 @@ test.describe.serial("Block E: Customer History & Activity", () => {
   test("[KAN-320] E.6 Can search customers by name", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const searchField = page.getByPlaceholder(/search/i).or(page.locator("input[type='search']")).first();
     if (await searchField.isVisible().catch(() => false)) {
       await searchField.fill("Test");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("networkidle").catch(() => {});
       const hasResults = await page.getByText(/Test/).isVisible().catch(() => false);
       expect(hasResults || page.url().includes("/customers")).toBeTruthy();
     }
@@ -760,12 +770,12 @@ test.describe.serial("Block E: Customer History & Activity", () => {
   test("[KAN-321] E.7 Can search customers by email", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/customers"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const searchField = page.getByPlaceholder(/search/i).or(page.locator("input[type='search']")).first();
     if (await searchField.isVisible().catch(() => false)) {
       await searchField.fill("@example.com");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("networkidle").catch(() => {});
     }
     expect(page.url()).toContain("/customers");
   });
@@ -779,7 +789,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/customers/${customerId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasDelete = await page.getByRole("button", { name: /delete/i }).isVisible().catch(() => false);
     expect(hasDelete || page.url().includes("/customers")).toBeTruthy();

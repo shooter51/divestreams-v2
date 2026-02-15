@@ -1,20 +1,22 @@
 import { useState } from "react";
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createEquipment } from "../../../../lib/db/queries.server";
 import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
+import { redirectWithNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Add Equipment - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireTenant(request);
+  await requireOrgContext(request);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
 
   const validation = validateFormData(formData, equipmentSchema);
@@ -23,7 +25,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  await createEquipment(organizationId, {
+  const newEquipment = await createEquipment(organizationId, {
     category: formData.get("category") as string,
     name: formData.get("name") as string,
     brand: (formData.get("brand") as string) || undefined,
@@ -38,7 +40,12 @@ export async function action({ request }: ActionFunctionArgs) {
     isPublic: formData.get("isPublic") === "true",
   });
 
-  return redirect("/tenant/equipment");
+  if (!newEquipment) {
+    return { errors: { form: "Failed to create equipment" }, values: getFormValues(formData) };
+  }
+
+  const equipmentName = formData.get("name") as string;
+  return redirect(redirectWithNotification(`/tenant/equipment/${newEquipment.id}`, `Equipment "${equipmentName}" created successfully! Add images below to complete your equipment listing.`, "success"));
 }
 
 export default function NewEquipmentPage() {
@@ -72,7 +79,7 @@ export default function NewEquipmentPage() {
                   name="category"
                   required
                   defaultValue={actionData?.values?.category || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">Select category...</option>
                   <option value="bcd">BCD</option>
@@ -100,7 +107,7 @@ export default function NewEquipmentPage() {
                   required
                   placeholder="e.g., Aqualung Pro HD"
                   defaultValue={actionData?.values?.name}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
                 {actionData?.errors?.name && (
                   <p className="text-danger text-sm mt-1">{actionData.errors.name}</p>
@@ -119,7 +126,7 @@ export default function NewEquipmentPage() {
                   name="brand"
                   placeholder="e.g., Aqualung"
                   defaultValue={actionData?.values?.brand}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -133,7 +140,7 @@ export default function NewEquipmentPage() {
                   name="model"
                   placeholder="e.g., Pro HD"
                   defaultValue={actionData?.values?.model}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
             </div>
@@ -148,7 +155,7 @@ export default function NewEquipmentPage() {
                   id="serialNumber"
                   name="serialNumber"
                   defaultValue={actionData?.values?.serialNumber}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 />
               </div>
 
@@ -169,7 +176,7 @@ export default function NewEquipmentPage() {
                   <button
                     type="button"
                     onClick={() => setShowBarcodeScanner(true)}
-                    className="px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+                    className="px-3 py-2 bg-surface text-foreground border border-border rounded-lg hover:bg-surface-raised"
                     title="Scan Barcode"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -189,7 +196,7 @@ export default function NewEquipmentPage() {
                   id="size"
                   name="size"
                   defaultValue={actionData?.values?.size || ""}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                 >
                   <option value="">N/A</option>
                   <option value="XS">XS</option>
@@ -216,7 +223,7 @@ export default function NewEquipmentPage() {
                 id="status"
                 name="status"
                 defaultValue={actionData?.values?.status || "available"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="available">Available</option>
                 <option value="rented">Rented</option>
@@ -233,7 +240,7 @@ export default function NewEquipmentPage() {
                 id="condition"
                 name="condition"
                 defaultValue={actionData?.values?.condition || "good"}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 <option value="excellent">Excellent</option>
                 <option value="good">Good</option>
@@ -255,13 +262,18 @@ export default function NewEquipmentPage() {
                 value="true"
                 defaultChecked={actionData?.values?.isRentable !== "false"}
                 className="rounded"
+                id="isRentableCheckbox"
               />
               <span className="font-medium">Available for Rental</span>
             </label>
+            <p className="text-xs text-foreground-muted -mt-2 ml-7">
+              Equipment marked as rentable will appear in the POS rental section
+            </p>
 
             <div className="w-1/2">
               <label htmlFor="rentalPrice" className="block text-sm font-medium mb-1">
-                Rental Price (per day)
+                Rental Price (per day) {" "}
+                <span className="text-foreground-muted text-xs">(required if rentable)</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-foreground-muted">$</span>
@@ -270,11 +282,18 @@ export default function NewEquipmentPage() {
                   id="rentalPrice"
                   name="rentalPrice"
                   step="0.01"
-                  min="0"
+                  min="0.01"
+                  placeholder="10.00"
                   defaultValue={actionData?.values?.rentalPrice}
                   className="w-full pl-7 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 />
               </div>
+              <p className="text-xs text-foreground-muted mt-1">
+                Equipment with no rental price won't appear in POS
+              </p>
+              {actionData?.errors?.rentalPrice && (
+                <p className="text-danger text-sm mt-1">{actionData.errors.rentalPrice}</p>
+              )}
             </div>
           </div>
         </div>
@@ -292,7 +311,7 @@ export default function NewEquipmentPage() {
                 id="lastServiceDate"
                 name="lastServiceDate"
                 defaultValue={actionData?.values?.lastServiceDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -305,7 +324,7 @@ export default function NewEquipmentPage() {
                 id="nextServiceDate"
                 name="nextServiceDate"
                 defaultValue={actionData?.values?.nextServiceDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
           </div>
@@ -319,7 +338,7 @@ export default function NewEquipmentPage() {
               name="serviceNotes"
               rows={2}
               defaultValue={actionData?.values?.serviceNotes}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
             />
           </div>
         </div>
@@ -337,7 +356,7 @@ export default function NewEquipmentPage() {
                 id="purchaseDate"
                 name="purchaseDate"
                 defaultValue={actionData?.values?.purchaseDate}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -371,7 +390,7 @@ export default function NewEquipmentPage() {
             name="notes"
             rows={3}
             defaultValue={actionData?.values?.notes}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+            className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
           />
           <div className="mt-4">
             <label className="flex items-center gap-2">

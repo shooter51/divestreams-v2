@@ -3,8 +3,13 @@
  *
  * Renders different types of content blocks from the page builder.
  * Each block type has its own rendering logic and styling.
+ *
+ * SECURITY: All user-generated HTML is sanitized with DOMPurify
+ * to prevent XSS attacks.
  */
 
+import DOMPurify from "isomorphic-dompurify";
+import { sanitizeUrl } from "../../lib/security/sanitize";
 import type {
   ContentBlock,
   HeadingBlock,
@@ -82,35 +87,32 @@ function HeadingRenderer({ block }: { block: HeadingBlock }) {
   );
 }
 
-/** Sanitize HTML to prevent XSS - allow only safe tags for rich text */
-function sanitizeHtml(html: string): string {
-  // Strip script tags and event handlers
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/javascript\s*:/gi, "")
-    .replace(/<iframe\b[^>]*>/gi, "")
-    .replace(/<\/iframe>/gi, "")
-    .replace(/<object\b[^>]*>/gi, "")
-    .replace(/<\/object>/gi, "")
-    .replace(/<embed\b[^>]*>/gi, "")
-    .replace(/<\/embed>/gi, "");
-}
-
 function ParagraphRenderer({ block }: { block: ParagraphBlock }) {
+  // Sanitize HTML to prevent XSS attacks
+  const sanitized = DOMPurify.sanitize(block.content, {
+    ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "code"],
+    ALLOWED_ATTR: ["href", "target", "rel"],
+  });
+
   return (
     <div
       className="prose prose-lg max-w-none mb-6"
-      dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.content) }}
+      dangerouslySetInnerHTML={{ __html: sanitized }}
     />
   );
 }
 
 function HtmlRenderer({ block }: { block: HtmlBlock }) {
+  // Sanitize HTML to prevent XSS attacks
+  const sanitized = DOMPurify.sanitize(block.content, {
+    ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "h1", "h2", "h3", "div", "span", "code", "pre"],
+    ALLOWED_ATTR: ["href", "target", "rel", "class", "style"],
+  });
+
   return (
     <div
       className="mb-6"
-      dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.content) }}
+      dangerouslySetInnerHTML={{ __html: sanitized }}
     />
   );
 }
@@ -286,7 +288,7 @@ function CtaRenderer({ block }: { block: CtaBlock }) {
         </p>
       )}
       <a
-        href={block.buttonUrl}
+        href={sanitizeUrl(block.buttonUrl, true)}
         className="inline-block bg-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
         style={{ color: "var(--primary-color)" }}
       >

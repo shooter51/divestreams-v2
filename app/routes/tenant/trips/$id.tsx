@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { useState } from "react";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
   getTripWithFullDetails,
   getTripBookings,
@@ -16,11 +16,15 @@ import {
   getRecurringSeriesInstances,
   cancelRecurringSeries,
 } from "../../../../lib/trips/recurring.server";
+import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
+import { redirect } from "react-router";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const tripId = params.id;
 
   if (!tripId) {
@@ -102,28 +106,29 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const tripId = params.id!;
 
   if (intent === "cancel") {
     await updateTripStatus(organizationId, tripId, "cancelled");
-    return { cancelled: true };
+    return redirect(redirectWithNotification(`/tenant/trips/${tripId}`, "Trip has been successfully cancelled", "success"));
   }
 
   if (intent === "cancel-series") {
     const templateId = formData.get("templateId") as string;
     if (templateId) {
       await cancelRecurringSeries(organizationId, templateId, { includeTemplate: true });
-      return { seriesCancelled: true };
+      return redirect(redirectWithNotification("/tenant/trips", "Trip series has been successfully cancelled", "success"));
     }
     return { error: "Template ID required to cancel series" };
   }
 
   if (intent === "complete") {
     await updateTripStatus(organizationId, tripId, "completed");
-    return { completed: true };
+    return redirect(redirectWithNotification(`/tenant/trips/${tripId}`, "Trip has been successfully marked as complete", "success"));
   }
 
   if (intent === "send-bulk-email") {
@@ -176,13 +181,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return null;
 }
 
-const statusColors: Record<string, string> = {
-  open: "bg-brand-muted text-brand",
-  confirmed: "bg-success-muted text-success",
-  full: "bg-info-muted text-info",
-  completed: "bg-surface-inset text-foreground-muted",
-  cancelled: "bg-danger-muted text-danger",
-};
+// Map trip status strings to BadgeStatus types
+function mapTripStatusToBadgeStatus(status: string): BadgeStatus {
+  const statusMap: Record<string, BadgeStatus> = {
+    open: "pending",
+    confirmed: "confirmed",
+    full: "confirmed",
+    completed: "completed",
+    cancelled: "cancelled",
+  };
+  return statusMap[status] || "pending";
+}
 
 // Quick message templates for common scenarios
 const messageTemplates = [
@@ -209,6 +218,8 @@ const messageTemplates = [
 ];
 
 export default function TripDetailPage() {
+  useNotification();
+
   const { trip, bookings, revenue, recurringInfo } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string; seriesCancelled?: boolean }>();
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -216,7 +227,7 @@ export default function TripDetailPage() {
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
 
-  const spotsAvailable = trip.maxParticipants - trip.bookedParticipants;
+  const spotsAvailable = (trip.maxParticipants ?? 0) - trip.bookedParticipants;
 
   // Get unique customers from bookings
   const customers = bookings.map((b) => ({
@@ -284,12 +295,23 @@ export default function TripDetailPage() {
           th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
           th { background: #f0f0f0; font-weight: bold; }
           .status { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
-          .status-paid { background: #d1fae5; color: #065f46; }
-          .status-pending { background: #fef3c7; color: #92400e; }
+          .status-paid {
+            background: var(--success-muted, #d1fae5);
+            color: var(--success, #065f46);
+          }
+          .status-pending {
+            background: var(--warning-muted, #fef3c7);
+            color: var(--warning, #92400e);
+          }
           .notes-section { margin-top: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
           .notes-section h3 { margin-top: 0; }
           .signature-line { margin-top: 50px; border-top: 1px solid #000; width: 200px; padding-top: 5px; }
-          @media print { body { padding: 0; } }
+          @media print {
+            body { padding: 0; }
+            /* Force light mode colors for print */
+            .status-paid { background: #d1fae5; color: #065f46; }
+            .status-pending { background: #fef3c7; color: #92400e; }
+          }
         </style>
       </head>
       <body>
@@ -376,13 +398,7 @@ export default function TripDetailPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{trip.tour.name}</h1>
-            <span
-              className={`text-sm px-3 py-1 rounded-full ${
-                statusColors[trip.status] || "bg-surface-inset text-foreground"
-              }`}
-            >
-              {trip.status}
-            </span>
+            <StatusBadge status={mapTripStatusToBadgeStatus(trip.status)} size="md" />
             {recurringInfo?.isRecurring && (
               <span
                 className="text-sm px-3 py-1 rounded-full bg-info-muted text-info flex items-center gap-1 cursor-pointer"
@@ -464,12 +480,12 @@ export default function TripDetailPage() {
 
       {/* Success/Error Messages */}
       {fetcher.data?.success && (
-        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg mb-6">
+        <div className="bg-success-muted border border-success text-success px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {fetcher.data.message}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded-lg max-w-4xl break-words mb-6">
           {fetcher.data.error}
         </div>
       )}
@@ -591,7 +607,7 @@ export default function TripDetailPage() {
                   >
                     <div>
                       <p className="font-medium">
-                        {booking.customer.firstName} {booking.customer.lastName}
+                        {String(booking.customer.firstName)} {String(booking.customer.lastName)}
                       </p>
                       <p className="text-sm text-foreground-muted">
                         {booking.bookingNumber} • {booking.participants} pax
@@ -697,7 +713,7 @@ export default function TripDetailPage() {
                 <div
                   className="bg-brand rounded-full h-2"
                   style={{
-                    width: `${(trip.bookedParticipants / trip.maxParticipants) * 100}%`,
+                    width: `${(trip.bookedParticipants / (trip.maxParticipants ?? 1)) * 100}%`,
                   }}
                 />
               </div>
@@ -759,14 +775,12 @@ export default function TripDetailPage() {
                         </p>
                         <p className="text-sm text-foreground-muted">{instance.startTime}</p>
                       </div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          statusColors[instance.status] || "bg-surface-inset"
-                        }`}
-                      >
-                        {instance.status}
-                        {instance.id === trip.id && " (current)"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={mapTripStatusToBadgeStatus(instance.status)} />
+                        {instance.id === trip.id && (
+                          <span className="text-xs text-foreground-muted">(current)</span>
+                        )}
+                      </div>
                     </Link>
                   ))
                 )}
@@ -836,7 +850,7 @@ export default function TripDetailPage() {
                       key={customer.id}
                       className="text-xs bg-brand-muted text-brand px-2 py-1 rounded"
                     >
-                      {customer.firstName} {customer.lastName}
+                      {String(customer.firstName)} {String(customer.lastName)}
                     </span>
                   ))}
                 </div>
@@ -870,7 +884,7 @@ export default function TripDetailPage() {
                   </p>
                 </div>
 
-                <div className="bg-warning-muted border border-warning rounded-lg p-3">
+                <div className="bg-warning-muted border border-warning rounded-lg max-w-4xl break-words p-3">
                   <p className="text-sm text-warning">
                     Note: Email delivery requires SMTP configuration in settings.
                     Messages will be logged to each customer's communication history.

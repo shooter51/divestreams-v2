@@ -2,7 +2,7 @@
  * POS Product/Equipment/Trip Grid Component
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Product {
   id: string;
@@ -17,17 +17,17 @@ interface Product {
 }
 
 // Helper to check if product is currently on sale
-function isOnSale(product: Product): boolean {
+// Takes 'now' parameter to avoid hydration mismatch (don't call new Date() during render)
+function isOnSale(product: Product, now: Date): boolean {
   if (!product.salePrice) return false;
-  const now = new Date();
   if (product.saleStartDate && new Date(product.saleStartDate) > now) return false;
   if (product.saleEndDate && new Date(product.saleEndDate) < now) return false;
   return true;
 }
 
 // Helper to get the effective price (sale price if on sale, otherwise regular price)
-function getEffectivePrice(product: Product): number {
-  if (isOnSale(product)) {
+function getEffectivePrice(product: Product, now: Date): number {
+  if (isOnSale(product, now)) {
     return Number(product.salePrice);
   }
   return Number(product.price);
@@ -82,6 +82,21 @@ export function ProductGrid({
   searchQuery,
   onSearchChange,
 }: ProductGridProps) {
+  // Track which products are on sale (calculated client-side to avoid hydration mismatch)
+  const [productsOnSale, setProductsOnSale] = useState<Set<string>>(new Set());
+
+  // Calculate sale status after hydration (client-side only)
+  useEffect(() => {
+    const now = new Date();
+    const onSaleSet = new Set<string>();
+    products.forEach((product) => {
+      if (isOnSale(product, now)) {
+        onSaleSet.add(product.id);
+      }
+    });
+    setProductsOnSale(onSaleSet);
+  }, [products]);
+
   // Get unique categories based on tab
   const categories = tab === "retail"
     ? [...new Set(products.map(p => p.category))]
@@ -153,8 +168,8 @@ export function ProductGrid({
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {tab === "retail" && filteredProducts.map(product => {
-            const onSale = isOnSale(product);
-            const effectivePrice = getEffectivePrice(product);
+            const onSale = productsOnSale.has(product.id);
+            const effectivePrice = onSale && product.salePrice ? Number(product.salePrice) : Number(product.price);
             return (
             <button
               key={product.id}
@@ -233,7 +248,9 @@ function RentalCard({
   const [showDays, setShowDays] = useState(false);
   const [days, setDays] = useState(1);
 
-  if (!equipment.rentalPrice) return null;
+  // Equipment should always have a rental price if it gets here from the backend query
+  // But keep this as a safety check - should not happen in practice
+  if (!equipment.rentalPrice || Number(equipment.rentalPrice) <= 0) return null;
 
   return (
     <div className="p-4 bg-surface-raised rounded-lg shadow-sm border">
@@ -244,7 +261,7 @@ function RentalCard({
       {!showDays ? (
         <button
           onClick={() => setShowDays(true)}
-          className="mt-2 w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+          className="mt-2 w-full py-2 bg-success text-white rounded-lg hover:bg-success-hover text-sm"
         >
           Add Rental
         </button>
@@ -271,7 +288,7 @@ function RentalCard({
               setShowDays(false);
               setDays(1);
             }}
-            className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+            className="w-full py-2 bg-success text-white rounded-lg hover:bg-success-hover text-sm"
           >
             Add ${(Number(equipment.rentalPrice) * days).toFixed(2)}
           </button>

@@ -1,16 +1,18 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getDiveSiteById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../../app/components/ui";
+import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Edit Dive Site - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const siteId = params.id;
 
   if (!siteId) {
@@ -80,7 +82,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const siteId = params.id;
 
   if (!siteId) {
@@ -121,7 +124,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     })
     .where(and(eq(schema.diveSites.organizationId, organizationId), eq(schema.diveSites.id, siteId)));
 
-  return redirect(`/tenant/dive-sites/${siteId}`);
+  const diveSiteName = validation.data.name;
+  return redirect(redirectWithNotification(`/tenant/dive-sites/${siteId}`, `Dive Site "${diveSiteName}" has been successfully updated`, "success"));
 }
 
 export default function EditDiveSitePage() {
@@ -129,6 +133,9 @@ export default function EditDiveSitePage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">
@@ -289,7 +296,7 @@ export default function EditDiveSitePage() {
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Site Images</h2>
           <ImageManager
-            entityType="diveSite"
+            entityType="dive-site"
             entityId={site.id}
             images={images}
             maxImages={5}

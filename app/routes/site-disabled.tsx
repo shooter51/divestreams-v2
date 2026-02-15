@@ -12,7 +12,7 @@ export default function SiteDisabled() {
   const orgName = searchParams.get("org") || "This Organization";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundImage: 'linear-gradient(to bottom right, var(--brand-muted), var(--surface))' }}>
       <div className="max-w-md w-full">
         <div className="bg-surface-raised rounded-2xl shadow-xl p-8 text-center">
           {/* Icon */}

@@ -11,12 +11,15 @@ import {
   requireRole,
   requirePremium,
   checkLimit,
+  buildTierLimits,
   type OrgContext,
   type OrgRole,
   type PremiumFeature,
   FREE_TIER_LIMITS,
   PREMIUM_LIMITS,
 } from "../../../../lib/auth/org-context.server";
+import { DEFAULT_PLAN_LIMITS, DEFAULT_PLAN_FEATURES } from "../../../../lib/plan-features";
+import type { PlanLimits, PlanFeaturesObject } from "../../../../lib/plan-features";
 
 describe("org-context.server - extended tests", () => {
   // Helper to create mock context
@@ -240,11 +243,11 @@ describe("org-context.server - extended tests", () => {
       expect(FREE_TIER_LIMITS.hasEmailNotifications).toBe(false);
     });
 
-    it("FREE_TIER_LIMITS has specific numeric limits", () => {
-      expect(FREE_TIER_LIMITS.customers).toBe(50);
-      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(20);
-      expect(FREE_TIER_LIMITS.tours).toBe(3);
-      expect(FREE_TIER_LIMITS.teamMembers).toBe(1);
+    it("FREE_TIER_LIMITS matches DEFAULT_PLAN_LIMITS.free", () => {
+      expect(FREE_TIER_LIMITS.customers).toBe(DEFAULT_PLAN_LIMITS.free.customers);
+      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
+      expect(FREE_TIER_LIMITS.tours).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
+      expect(FREE_TIER_LIMITS.teamMembers).toBe(DEFAULT_PLAN_LIMITS.free.users);
     });
 
     it("PREMIUM_LIMITS has unlimited numeric values", () => {
@@ -252,6 +255,63 @@ describe("org-context.server - extended tests", () => {
       expect(PREMIUM_LIMITS.bookingsPerMonth).toBe(Infinity);
       expect(PREMIUM_LIMITS.tours).toBe(Infinity);
       expect(PREMIUM_LIMITS.teamMembers).toBe(Infinity);
+    });
+  });
+
+  describe("buildTierLimits", () => {
+    it("converts PlanLimits and features to TierLimits", () => {
+      const planLimits: PlanLimits = { users: 3, customers: 500, toursPerMonth: 25, storageGb: 5 };
+      const features: PlanFeaturesObject = {
+        has_pos: true,
+        has_equipment_boats: true,
+        has_advanced_notifications: false,
+      };
+      const result = buildTierLimits(planLimits, features);
+
+      expect(result.customers).toBe(500);
+      expect(result.bookingsPerMonth).toBe(25);
+      expect(result.tours).toBe(25);
+      expect(result.teamMembers).toBe(3);
+      expect(result.hasPOS).toBe(true);
+      expect(result.hasEquipmentRentals).toBe(true);
+      expect(result.hasAdvancedReports).toBe(false);
+      expect(result.hasEmailNotifications).toBe(false);
+    });
+
+    it("converts -1 to Infinity for unlimited limits", () => {
+      const planLimits: PlanLimits = { users: -1, customers: -1, toursPerMonth: -1, storageGb: 100 };
+      const features: PlanFeaturesObject = {
+        has_pos: true,
+        has_equipment_boats: true,
+        has_advanced_notifications: true,
+      };
+      const result = buildTierLimits(planLimits, features);
+
+      expect(result.customers).toBe(Infinity);
+      expect(result.bookingsPerMonth).toBe(Infinity);
+      expect(result.tours).toBe(Infinity);
+      expect(result.teamMembers).toBe(Infinity);
+    });
+
+    it("defaults missing feature flags to false", () => {
+      const planLimits: PlanLimits = { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 };
+      const features: PlanFeaturesObject = {};
+      const result = buildTierLimits(planLimits, features);
+
+      expect(result.hasPOS).toBe(false);
+      expect(result.hasEquipmentRentals).toBe(false);
+      expect(result.hasAdvancedReports).toBe(false);
+      expect(result.hasEmailNotifications).toBe(false);
+    });
+
+    it("produces same output as FREE_TIER_LIMITS when given free plan defaults", () => {
+      const result = buildTierLimits(DEFAULT_PLAN_LIMITS.free, DEFAULT_PLAN_FEATURES.free);
+      expect(result).toEqual(FREE_TIER_LIMITS);
+    });
+
+    it("produces same output as PREMIUM_LIMITS when given enterprise plan defaults", () => {
+      const result = buildTierLimits(DEFAULT_PLAN_LIMITS.enterprise, DEFAULT_PLAN_FEATURES.enterprise);
+      expect(result).toEqual(PREMIUM_LIMITS);
     });
   });
 

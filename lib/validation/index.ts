@@ -6,10 +6,17 @@
 
 import { z } from "zod";
 
-// Helper for optional number fields - converts empty strings to undefined
+// Helper for optional rental/selling price fields - converts empty strings to undefined
+// Uses .min(1) to enforce rental prices >= $1
 const optionalNumber = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? undefined : val),
-  z.coerce.number().positive().optional()
+  z.coerce.number().min(1, "Must be at least $1").optional()
+);
+
+// Helper for optional cost/purchase price fields - allows $0 for free items
+const optionalCostNumber = z.preprocess(
+  (val) => (val === "" || val === undefined || val === null ? undefined : val),
+  z.coerce.number().min(0, "Cannot be negative").optional()
 );
 
 const optionalIntNumber = z.preprocess(
@@ -240,15 +247,27 @@ export const equipmentSchema = z.object({
   size: z.string().optional(),
   status: z.enum(["available", "rented", "maintenance", "retired"]).default("available"),
   condition: z.enum(["excellent", "good", "fair", "poor"]).default("good"),
-  rentalPrice: optionalNumber,
+  rentalPrice: optionalNumber, // Rental prices must be >= $1
   isRentable: z.boolean().default(true),
   lastServiceDate: z.string().optional(),
   nextServiceDate: z.string().optional(),
   serviceNotes: z.string().optional(),
   purchaseDate: z.string().optional(),
-  purchasePrice: optionalNumber,
+  purchasePrice: optionalCostNumber, // Purchase prices can be $0 (donated/free equipment)
   notes: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    // If equipment is marked as rentable, rental price must be provided
+    if (data.isRentable && (!data.rentalPrice || data.rentalPrice <= 0)) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Rental price is required for rentable equipment and must be at least $1",
+    path: ["rentalPrice"], // Show error on rentalPrice field
+  }
+);
 
 export type EquipmentInput = z.infer<typeof equipmentSchema>;
 

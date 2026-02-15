@@ -84,6 +84,7 @@ async function main() {
         role: "admin",
         invitedAt: new Date(),
         createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 

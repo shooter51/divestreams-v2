@@ -78,7 +78,7 @@ export class NewCustomerPage extends TenantBasePage {
   async expectForm(): Promise<void> {
     await expect(this.page.getByLabel(/first name/i)).toBeVisible();
     await expect(this.page.getByLabel(/last name/i)).toBeVisible();
-    await expect(this.page.getByLabel(/email/i)).toBeVisible();
+    await expect(this.page.getByRole("textbox", { name: /email/i })).toBeVisible();
   }
 
   async fillForm(data: {
@@ -89,7 +89,7 @@ export class NewCustomerPage extends TenantBasePage {
   }): Promise<void> {
     await this.page.getByLabel(/first name/i).fill(data.firstName);
     await this.page.getByLabel(/last name/i).fill(data.lastName);
-    await this.page.getByLabel(/email/i).fill(data.email);
+    await this.page.getByRole("textbox", { name: /email/i }).fill(data.email);
     if (data.phone) {
       await this.page.getByLabel(/phone/i).fill(data.phone);
     }
@@ -122,7 +122,7 @@ export class EditCustomerPage extends TenantBasePage {
   }
 
   async updateEmail(email: string): Promise<void> {
-    await this.page.getByLabel(/email/i).fill(email);
+    await this.page.getByRole("textbox", { name: /email/i }).fill(email);
   }
 
   async updatePhone(phone: string): Promise<void> {

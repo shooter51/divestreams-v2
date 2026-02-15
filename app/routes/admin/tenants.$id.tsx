@@ -1,6 +1,6 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link, useFetcher } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db } from "../../../lib/db";
 import { organization, member, user, account } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
@@ -10,6 +10,7 @@ import { requirePlatformContext } from "../../../lib/auth/platform-context.serve
 import { getBaseDomain, getTenantUrl } from "../../../lib/utils/url";
 import { hashPassword, generateRandomPassword } from "../../../lib/auth/password.server";
 import { auth } from "../../../lib/auth";
+import { invalidateSubscriptionCache } from "../../../lib/cache/subscription.server";
 
 export const meta: MetaFunction = () => [{ title: "Organization Details - DiveStreams Admin" }];
 
@@ -28,6 +29,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     .limit(1);
 
   if (!org) throw new Response("Not found", { status: 404 });
+
+  // Get tenant record to check isActive status
+  const { tenants } = await import("../../../lib/db/schema");
+  const [tenant] = await db
+    .select()
+    .from(tenants)
+    .where(eq(tenants.subdomain, org.slug))
+    .limit(1);
 
   // Get members with user info
   const members = await db
@@ -91,6 +100,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     },
     tenantUrl,
     baseDomain,
+    isActive: tenant?.isActive ?? true,
     members: members.map((m) => ({
       ...m,
       createdAt: m.createdAt.toISOString().split("T")[0],
@@ -149,6 +159,29 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return redirect("/dashboard");
   }
 
+  if (intent === "deactivate") {
+    // Find the tenant record by organization slug
+    const { tenants } = await import("../../../lib/db/schema");
+    const [tenant] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.subdomain, org.slug))
+      .limit(1);
+
+    if (tenant) {
+      // Toggle isActive status
+      await db
+        .update(tenants)
+        .set({
+          isActive: !tenant.isActive,
+          updatedAt: new Date()
+        })
+        .where(eq(tenants.id, tenant.id));
+    }
+
+    return { success: true, message: tenant?.isActive ? "Tenant deactivated" : "Tenant activated" };
+  }
+
   if (intent === "updateName") {
     const name = formData.get("name") as string;
     if (!name) {
@@ -165,16 +198,24 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const planId = formData.get("planId") as string;
     const status = formData.get("status") as string;
 
-    // Get plan details for backwards compatibility (populate legacy 'plan' field)
+    // [KAN-594 FIX] Get plan details for backwards compatibility AND validation
     let planName = "free";
+    let selectedPlan = null;
+
     if (planId) {
-      const [selectedPlan] = await db
+      [selectedPlan] = await db
         .select()
         .from(subscriptionPlans)
         .where(eq(subscriptionPlans.id, planId))
         .limit(1);
+
       if (selectedPlan) {
-        planName = selectedPlan.name.toLowerCase();
+        planName = selectedPlan.name;
+      } else {
+        return {
+          errors: { planId: "Invalid plan ID" },
+          success: false
+        };
       }
     }
 
@@ -186,6 +227,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       .limit(1);
 
     if (existingSub) {
+      // [KAN-594 FIX] Update BOTH planId (FK) and plan (legacy string)
       await db
         .update(subscription)
         .set({
@@ -196,6 +238,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         })
         .where(eq(subscription.id, existingSub.id));
     } else {
+      // [KAN-594 FIX] Create subscription with BOTH fields set
       await db.insert(subscription).values({
         id: crypto.randomUUID(),
         organizationId: org.id,
@@ -206,6 +249,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
         updatedAt: new Date(),
       });
     }
+
+    // [KAN-594 FIX PHASE 3] Invalidate cache after subscription change
+    // This ensures tenant immediately sees premium features without re-login
+    await invalidateSubscriptionCache(org.id);
+
     return { success: true };
   }
 
@@ -342,7 +390,7 @@ type ModalState = {
 };
 
 export default function OrganizationDetailsPage() {
-  const { organization: org, members, subscription: sub, usage, plans, tenantUrl, baseDomain } = useLoaderData<typeof loader>();
+  const { organization: org, members, subscription: sub, usage, plans, tenantUrl, baseDomain, isActive } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const fetcher = useFetcher<typeof action>();
@@ -359,9 +407,21 @@ export default function OrganizationDetailsPage() {
   };
 
   // Handle fetcher response for generated password
-  if (fetcher.data?.generatedPassword && !generatedPassword) {
-    setGeneratedPassword(fetcher.data.generatedPassword);
-  }
+  useEffect(() => {
+    if (fetcher.data?.generatedPassword && !generatedPassword) {
+      setGeneratedPassword(fetcher.data.generatedPassword);
+    }
+  }, [fetcher.data, generatedPassword]);
+
+  // Close modal on successful email change or password reset (send link)
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data?.message && modal.type) {
+      // Don't close if it's a generated password - user needs to see it
+      if (!fetcher.data.generatedPassword) {
+        closeModal();
+      }
+    }
+  }, [fetcher.data, modal.type]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -398,7 +458,7 @@ export default function OrganizationDetailsPage() {
       </div>
 
       {actionData?.success && (
-        <div className="mb-6 bg-success-muted text-success p-3 rounded-lg text-sm">
+        <div className="mb-6 bg-success-muted text-success p-3 rounded-lg text-sm max-w-4xl break-words">
           Changes saved successfully
         </div>
       )}
@@ -645,10 +705,27 @@ export default function OrganizationDetailsPage() {
                 href={tenantUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full text-center py-2 px-4 border rounded-lg hover:bg-surface-inset text-sm"
+                className={`block w-full text-center py-2 px-4 border rounded-lg text-sm ${
+                  isActive
+                    ? "hover:bg-surface-inset"
+                    : "opacity-50 cursor-not-allowed"
+                }`}
               >
-                Open Dashboard
+                Open Dashboard {!isActive && "(Deactivated)"}
               </a>
+              <form method="post" className="w-full">
+                <input type="hidden" name="intent" value="deactivate" />
+                <button
+                  type="submit"
+                  className={`w-full py-2 px-4 border rounded-lg text-sm ${
+                    isActive
+                      ? "border-warning text-warning hover:bg-warning-muted"
+                      : "border-success text-success hover:bg-success-muted"
+                  }`}
+                >
+                  {isActive ? "Deactivate Tenant" : "Reactivate Tenant"}
+                </button>
+              </form>
               <button
                 onClick={handleDelete}
                 className="w-full py-2 px-4 border border-danger text-danger rounded-lg hover:bg-danger-muted text-sm"
@@ -663,6 +740,18 @@ export default function OrganizationDetailsPage() {
             <h2 className="font-semibold mb-4">Current Status</h2>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
+                <span className="text-sm text-foreground-muted">Tenant:</span>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    isActive
+                      ? "bg-success-muted text-success"
+                      : "bg-danger-muted text-danger"
+                  }`}
+                >
+                  {isActive ? "Active" : "Deactivated"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
                 <span className="text-sm text-foreground-muted">Plan:</span>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
@@ -675,7 +764,7 @@ export default function OrganizationDetailsPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-foreground-muted">Status:</span>
+                <span className="text-sm text-foreground-muted">Subscription:</span>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
                     statusColors[sub?.status || "active"] || "bg-surface-inset"
@@ -698,13 +787,13 @@ export default function OrganizationDetailsPage() {
             </h3>
 
             {fetcher.data?.error && (
-              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm max-w-4xl break-words">
                 {fetcher.data.error}
               </div>
             )}
 
             {fetcher.data?.success && !generatedPassword && (
-              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm max-w-4xl break-words">
                 {fetcher.data.message}
               </div>
             )}
@@ -813,13 +902,13 @@ export default function OrganizationDetailsPage() {
             </h3>
 
             {fetcher.data?.error && (
-              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-danger-muted text-danger p-3 rounded-lg text-sm max-w-4xl break-words">
                 {fetcher.data.error}
               </div>
             )}
 
             {fetcher.data?.success && (
-              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm">
+              <div className="mb-4 bg-success-muted text-success p-3 rounded-lg text-sm max-w-4xl break-words">
                 {fetcher.data.message}
               </div>
             )}

@@ -20,15 +20,13 @@ import { relations } from "drizzle-orm";
 
 export * from "./schema/auth";
 export * from "./schema/subscription";
-// API keys and webhooks removed - DIVE-031
-// export * from "./schema/api-keys";
-// export * from "./schema/webhooks";
 export * from "./schema/integrations";
 export * from "./schema/quickbooks";
 export * from "./schema/public-site";
 export * from "./schema/training";
 export * from "./schema/gallery";
 export * from "./schema/team";
+export * from "./schema/password-audit";
 // Note: page-content.ts exports TeamMember interface which conflicts with schema/team.ts TeamMember type
 // We only need the table and types from team.ts, not the interface from page-content.ts
 export {
@@ -60,7 +58,7 @@ export * from "./schema/zapier";
 export * from "./schema/onboarding";
 
 // Import organization for foreign key references
-import { organization } from "./schema/auth";
+import { organization, user } from "./schema/auth";
 
 // ============================================================================
 // PUBLIC SCHEMA - Shared across all tenants (LEGACY - to be removed)
@@ -88,6 +86,13 @@ export const subscriptionPlans = pgTable("subscription_plans", {
     storageGb: number;
   }>(),
   isActive: boolean("is_active").notNull().default(true),
+  // [KAN-594] Prevents migration 0017/0020 from overwriting admin customizations
+  adminModified: boolean("admin_modified").notNull().default(false),
+  // [KAN-627] Stores Stripe product ID and other integration metadata
+  metadata: jsonb("metadata").$type<{
+    stripeProductId?: string;
+    [key: string]: any;
+  }>(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -293,6 +298,7 @@ export const tours = pgTable("tours", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => [
   index("tours_org_idx").on(table.organizationId),
+  uniqueIndex("tours_org_name_idx").on(table.organizationId, table.name),
 ]);
 
 // Tour to dive site mapping
@@ -408,6 +414,10 @@ export const bookings = pgTable("bookings", {
   specialRequests: text("special_requests"),
   internalNotes: text("internal_notes"),
 
+  // Cancellation tracking (KAN-652)
+  cancelledAt: timestamp("cancelled_at"),
+  cancellationReason: text("cancellation_reason"),
+
   // Source tracking
   source: text("source").default("direct"), // direct, online, referral, etc.
 
@@ -480,14 +490,26 @@ export const transactions = pgTable("transactions", {
   stripePaymentId: text("stripe_payment_id"),
 
   // Line items for POS
-  items: jsonb("items").$type<{
+  items: jsonb("items").$type<Array<{
     description: string;
     quantity: number;
     unitPrice: number;
     total: number;
-  }[]>(),
+    type?: string;
+    productId?: string;
+    equipmentId?: string;
+    tripId?: string;
+    tourName?: string;
+    days?: number;
+    dailyRate?: number;
+    participants?: number;
+  }>>(),
 
   notes: text("notes"),
+
+  // Refund tracking
+  refundedTransactionId: uuid("refunded_transaction_id").references((): any => transactions.id, { onDelete: "set null" }),
+  refundReason: text("refund_reason"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (table) => [
@@ -705,7 +727,7 @@ export const maintenanceLogs = pgTable("maintenance_logs", {
   nextMaintenanceType: text("next_maintenance_type"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  createdBy: text("created_by").references(() => organization.id), // User who logged it
+  createdBy: text("created_by").references(() => user.id), // User who logged it
 }, (table) => [
   index("maintenance_logs_org_idx").on(table.organizationId),
   index("maintenance_logs_boat_idx").on(table.boatId),
@@ -738,7 +760,7 @@ export const serviceRecords = pgTable("service_records", {
   nextServiceType: text("next_service_type"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  createdBy: text("created_by").references(() => organization.id), // User who logged it
+  createdBy: text("created_by").references(() => user.id), // User who logged it
 }, (table) => [
   index("service_records_org_idx").on(table.organizationId),
   index("service_records_equipment_idx").on(table.equipmentId),

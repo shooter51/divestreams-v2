@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
+import { getRedirectPathname } from "../../../helpers/redirect";
 import { loader } from "../../../../app/routes/tenant/tours/index";
 
 // Mock the org-context module
@@ -40,10 +41,18 @@ vi.mock("../../../../lib/db/schema", () => ({
     tourId: "tourId",
     organizationId: "organizationId",
   },
+  images: {
+    id: "id",
+    entityType: "entityType",
+    entityId: "entityId",
+    url: "url",
+    organizationId: "organizationId",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
+  and: vi.fn((...conditions) => ({ type: "and", conditions })),
   or: vi.fn((...conditions) => ({ type: "or", conditions })),
   ilike: vi.fn((field, pattern) => ({ type: "ilike", field, pattern })),
   sql: vi.fn((strings, ...values) => ({ type: "sql", strings, values })),

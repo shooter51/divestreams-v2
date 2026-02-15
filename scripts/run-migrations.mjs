@@ -36,6 +36,13 @@ async function runMigrations() {
 
     console.log(`Found ${migrationFiles.length} migration files`);
 
+    // Acquire advisory lock to prevent concurrent migration runs
+    const MIGRATION_LOCK_ID = 123456789;
+    console.log('Acquiring migration advisory lock...');
+    await sql`SELECT pg_advisory_lock(${MIGRATION_LOCK_ID})`;
+    console.log('Lock acquired, running migrations...');
+
+    try {
     for (const file of migrationFiles) {
       console.log(`Running migration: ${file}`);
 
@@ -67,6 +74,12 @@ async function runMigrations() {
     }
 
     console.log('All migrations completed successfully!');
+
+    } finally {
+      // Release advisory lock
+      await sql`SELECT pg_advisory_unlock(${MIGRATION_LOCK_ID})`;
+      console.log('Migration lock released');
+    }
 
   } finally {
     await sql.end();

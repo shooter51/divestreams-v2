@@ -4,26 +4,72 @@
 
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, Link, useNavigation, redirect } from "react-router";
-import { requireTenant } from "../../../../../../lib/auth/org-context.server";
+import { eq, and, asc } from "drizzle-orm";
+import { requireOrgContext } from "../../../../../../lib/auth/org-context.server";
 import { getProductById, updateProduct } from "../../../../../../lib/db/queries.server";
+import { getTenantDb } from "../../../../../../lib/db/tenant.server";
+import { ImageManager, type Image } from "../../../../../../app/components/ui";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
   { title: data?.product ? `Edit ${data.product.name} - DiveStreams` : "Edit Product - DiveStreams" },
 ];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
-  const product = await getProductById(organizationId, params.id!);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
+  const productId = params.id!;
+
+  // Get tenant database for images query
+  const { db, schema } = getTenantDb(organizationId);
+
+  const [product, productImages] = await Promise.all([
+    getProductById(organizationId, productId),
+    db
+      .select({
+        id: schema.images.id,
+        url: schema.images.url,
+        thumbnailUrl: schema.images.thumbnailUrl,
+        filename: schema.images.filename,
+        width: schema.images.width,
+        height: schema.images.height,
+        alt: schema.images.alt,
+        sortOrder: schema.images.sortOrder,
+        isPrimary: schema.images.isPrimary,
+      })
+      .from(schema.images)
+      .where(
+        and(
+          eq(schema.images.organizationId, organizationId),
+          eq(schema.images.entityType, "product"),
+          eq(schema.images.entityId, productId)
+        )
+      )
+      .orderBy(asc(schema.images.sortOrder)),
+  ]);
 
   if (!product) {
     throw new Response("Product not found", { status: 404 });
   }
 
-  return { product };
+  // Format images for the component
+  const images: Image[] = productImages.map((img) => ({
+    id: img.id,
+    url: img.url,
+    thumbnailUrl: img.thumbnailUrl || img.url,
+    filename: img.filename,
+    width: img.width ?? undefined,
+    height: img.height ?? undefined,
+    alt: img.alt ?? undefined,
+    sortOrder: img.sortOrder,
+    isPrimary: img.isPrimary,
+  }));
+
+  return { product, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
 
   const name = formData.get("name") as string;
@@ -60,7 +106,7 @@ const categories = [
 ];
 
 export default function EditProductPage() {
-  const { product } = useLoaderData<typeof loader>();
+  const { product, images } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -244,6 +290,17 @@ export default function EditProductPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Product Images */}
+        <div className="border-t pt-6">
+          <h3 className="font-medium mb-4">Product Images</h3>
+          <ImageManager
+            entityType="product"
+            entityId={product.id}
+            images={images}
+            maxImages={5}
+          />
         </div>
 
         {/* Status */}

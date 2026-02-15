@@ -5,25 +5,35 @@
 import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Form } from "react-router";
-import { requireTenant } from "../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../lib/db/tenant.server";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db/index";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
+import { useNotification } from "../../../lib/use-notification";
+import { useToast } from "../../../lib/toast-context";
+import { requireFeature } from "../../../lib/require-feature.server";
+import { PLAN_FEATURES } from "../../../lib/plan-features";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+
+  // Products are part of POS functionality - require POS feature
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
+
+  const organizationId = ctx.org.id;
   const { schema: tables } = getTenantDb(organizationId);
 
   try {
     const products = await db
       .select()
       .from(tables.products)
+      .where(eq(tables.products.organizationId, organizationId))
       .orderBy(tables.products.category, tables.products.name);
 
-    return { tenant, products, migrationNeeded: false };
+    return { products, migrationNeeded: false };
   } catch (error) {
     // If sale_price columns don't exist yet, try without them
     console.error("Products query failed, trying basic query:", error);
@@ -48,18 +58,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
           updatedAt: tables.products.updatedAt,
         })
         .from(tables.products)
+        .where(eq(tables.products.organizationId, organizationId))
         .orderBy(tables.products.category, tables.products.name);
 
-      return { tenant, products, migrationNeeded: true };
+      return { products, migrationNeeded: true };
     } catch (fallbackError) {
       console.error("Basic products query also failed:", fallbackError);
-      return { tenant, products: [], migrationNeeded: true };
+      return { products: [], migrationNeeded: true };
     }
   }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { tenant, organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+
+  // Products are part of POS functionality - require POS feature
+  requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
+
+  const organizationId = ctx.org.id;
   const { schema: tables } = getTenantDb(organizationId);
 
   const formData = await request.formData();
@@ -79,8 +95,28 @@ export async function action({ request }: ActionFunctionArgs) {
     const saleStartDate = formData.get("saleStartDate") as string || null;
     const saleEndDate = formData.get("saleEndDate") as string || null;
 
+    // Validate price (required, must be >= $1)
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum)) {
+      return { error: "Price must be a valid number" };
+    }
+    if (priceNum < 1) {
+      return { error: "Price must be at least $1" };
+    }
+
+    // Validate costPrice (optional, but must be >= $0 if provided)
+    if (costPrice) {
+      const costNum = parseFloat(costPrice);
+      if (isNaN(costNum)) {
+        return { error: "Cost price must be a valid number" };
+      }
+      if (costNum < 0) {
+        return { error: "Cost price cannot be negative" };
+      }
+    }
+
     await db.insert(tables.products).values({
-      organizationId: tenant.subdomain, // Using subdomain as org identifier
+      organizationId, // Use actual organization UUID
       name,
       category,
       price,
@@ -97,7 +133,7 @@ export async function action({ request }: ActionFunctionArgs) {
       isActive: true,
     });
 
-    return { success: true, message: "Product created" };
+    return { success: true, message: `Product "${name}" has been successfully created` };
   }
 
   if (intent === "update") {
@@ -115,6 +151,26 @@ export async function action({ request }: ActionFunctionArgs) {
     const saleStartDate = formData.get("saleStartDate") as string || null;
     const saleEndDate = formData.get("saleEndDate") as string || null;
     const isActive = formData.get("isActive") === "true";
+
+    // Validate price (required, must be >= $1)
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum)) {
+      return { error: "Price must be a valid number" };
+    }
+    if (priceNum < 1) {
+      return { error: "Price must be at least $1" };
+    }
+
+    // Validate costPrice (optional, but must be >= $0 if provided)
+    if (costPrice) {
+      const costNum = parseFloat(costPrice);
+      if (isNaN(costNum)) {
+        return { error: "Cost price must be a valid number" };
+      }
+      if (costNum < 0) {
+        return { error: "Cost price cannot be negative" };
+      }
+    }
 
     await db
       .update(tables.products)
@@ -134,9 +190,12 @@ export async function action({ request }: ActionFunctionArgs) {
         isActive,
         updatedAt: new Date(),
       })
-      .where(eq(tables.products.id, id));
+      .where(and(
+        eq(tables.products.organizationId, organizationId),
+        eq(tables.products.id, id)
+      ));
 
-    return { success: true, message: "Product updated" };
+    return { success: true, message: `Product "${name}" has been successfully updated` };
   }
 
   if (intent === "adjust-stock") {
@@ -146,14 +205,28 @@ export async function action({ request }: ActionFunctionArgs) {
     const [product] = await db
       .select()
       .from(tables.products)
-      .where(eq(tables.products.id, id));
+      .where(and(
+        eq(tables.products.organizationId, organizationId),
+        eq(tables.products.id, id)
+      ));
 
     if (product) {
-      const newQuantity = Math.max(0, product.stockQuantity + adjustment);
+      const newQuantity = product.stockQuantity + adjustment;
+
+      // Validate that stock won't go negative
+      if (newQuantity < 0) {
+        return {
+          error: `Cannot adjust stock: adjustment of ${adjustment} would result in negative stock (${newQuantity}). Current stock is ${product.stockQuantity}.`
+        };
+      }
+
       await db
         .update(tables.products)
         .set({ stockQuantity: newQuantity, updatedAt: new Date() })
-        .where(eq(tables.products.id, id));
+        .where(and(
+          eq(tables.products.organizationId, organizationId),
+          eq(tables.products.id, id)
+        ));
     }
 
     return { success: true, message: `Stock adjusted by ${adjustment}` };
@@ -161,8 +234,19 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     const id = formData.get("id") as string;
-    await db.delete(tables.products).where(eq(tables.products.id, id));
-    return { success: true, message: "Product deleted" };
+    const [product] = await db
+      .select()
+      .from(tables.products)
+      .where(and(
+        eq(tables.products.organizationId, organizationId),
+        eq(tables.products.id, id)
+      ));
+    const productName = product?.name || "Product";
+    await db.delete(tables.products).where(and(
+      eq(tables.products.organizationId, organizationId),
+      eq(tables.products.id, id)
+    ));
+    return { success: true, message: `${productName} has been successfully deleted` };
   }
 
   if (intent === "bulk-update-stock") {
@@ -174,29 +258,82 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "No products selected" };
     }
 
+    // Validation: Check for negative values in "set" mode
+    if (updateType === "set" && value < 0) {
+      return { error: "Cannot set stock to negative value" };
+    }
+
+    // Validation: For "adjust" mode, check if any product would go negative
+    if (updateType === "adjust") {
+      // First, fetch all products to validate
+      const productsToUpdate = await db
+        .select({
+          id: tables.products.id,
+          name: tables.products.name,
+          stockQuantity: tables.products.stockQuantity,
+        })
+        .from(tables.products)
+        .where(
+          and(
+            eq(tables.products.organizationId, organizationId),
+            // Filter by productIds using OR conditions
+          )
+        );
+
+      // Filter to only selected products (since Drizzle doesn't have a simple IN operator)
+      const selectedProductsData = productsToUpdate.filter(p => productIds.includes(p.id));
+
+      // Check if any product would go negative
+      const invalidProducts = selectedProductsData
+        .filter(p => p.stockQuantity + value < 0)
+        .map(p => ({
+          name: p.name,
+          current: p.stockQuantity,
+          result: p.stockQuantity + value,
+        }));
+
+      if (invalidProducts.length > 0) {
+        const errorDetails = invalidProducts
+          .map(p => `${p.name} (current: ${p.current}, would be: ${p.result})`)
+          .join(", ");
+        return {
+          error: `Cannot adjust stock: ${invalidProducts.length} product${invalidProducts.length !== 1 ? 's' : ''} would have negative stock. ${errorDetails}`,
+        };
+      }
+    }
+
     let updatedCount = 0;
 
     for (const productId of productIds) {
       if (updateType === "set") {
-        // Set stock to specific value
+        // Set stock to specific value (already validated as non-negative)
         await db
           .update(tables.products)
-          .set({ stockQuantity: Math.max(0, value), updatedAt: new Date() })
-          .where(eq(tables.products.id, productId));
+          .set({ stockQuantity: value, updatedAt: new Date() })
+          .where(and(
+            eq(tables.products.organizationId, organizationId),
+            eq(tables.products.id, productId)
+          ));
         updatedCount++;
       } else {
-        // Adjust by value
+        // Adjust by value (already validated no products will go negative)
         const [product] = await db
           .select()
           .from(tables.products)
-          .where(eq(tables.products.id, productId));
+          .where(and(
+            eq(tables.products.organizationId, organizationId),
+            eq(tables.products.id, productId)
+          ));
 
         if (product) {
-          const newQuantity = Math.max(0, product.stockQuantity + value);
+          const newQuantity = product.stockQuantity + value;
           await db
             .update(tables.products)
             .set({ stockQuantity: newQuantity, updatedAt: new Date() })
-            .where(eq(tables.products.id, productId));
+            .where(and(
+              eq(tables.products.organizationId, organizationId),
+              eq(tables.products.id, productId)
+            ));
           updatedCount++;
         }
       }
@@ -212,12 +349,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const csvData = formData.get("csvData") as string;
 
     if (!csvData) {
-      return { error: "No CSV data provided" };
+      return { error: "Please select a CSV file to upload." };
     }
 
     const lines = csvData.split("\n").filter(line => line.trim());
     if (lines.length < 2) {
-      return { error: "CSV must have a header row and at least one data row" };
+      return { error: "Your CSV file appears to be empty. Please make sure it has a header row and at least one product." };
     }
 
     // Parse header row
@@ -227,14 +364,24 @@ export async function action({ request }: ActionFunctionArgs) {
     const requiredColumns = ["name", "sku", "price", "stockquantity"];
     const missingColumns = requiredColumns.filter(col => !headers.includes(col));
     if (missingColumns.length > 0) {
-      return { error: `Missing required columns: ${missingColumns.join(", ")}` };
+      const friendlyNames: Record<string, string> = {
+        name: "Product Name",
+        sku: "SKU",
+        price: "Price",
+        stockquantity: "Stock Quantity"
+      };
+      const missingFriendly = missingColumns.map(col => friendlyNames[col] || col);
+      return { error: `Your CSV is missing required columns: ${missingFriendly.join(", ")}. Please download the template and make sure all required columns are included.` };
     }
 
     const validCategories = ["equipment", "apparel", "accessories", "courses", "rental", "consumables", "other"];
 
     let successCount = 0;
     let errorCount = 0;
+    let skippedCount = 0;
     const errors: string[] = [];
+    const warnings: string[] = [];
+    const processedSkus = new Set<string>(); // Track SKUs within this CSV file
 
     // Process each data row
     for (let i = 1; i < lines.length; i++) {
@@ -248,35 +395,58 @@ export async function action({ request }: ActionFunctionArgs) {
 
       // Validate required fields
       if (!row.name) {
-        errors.push(`Row ${i + 1}: Missing required field 'name'`);
+        errors.push(`Row ${i + 1}: Product name is required. Please add a name for this product.`);
         errorCount++;
         continue;
       }
       if (!row.sku) {
-        errors.push(`Row ${i + 1}: Missing required field 'sku'`);
+        errors.push(`Row ${i + 1}: SKU is required for "${row.name}". Please add a unique SKU code.`);
         errorCount++;
         continue;
       }
       if (!row.price || isNaN(parseFloat(row.price))) {
-        errors.push(`Row ${i + 1}: Invalid or missing 'price'`);
+        errors.push(`Row ${i + 1}: "${row.name}" needs a valid price (e.g., 25.99). Please check the price column.`);
         errorCount++;
         continue;
       }
       if (row.stockquantity === "" || isNaN(parseInt(row.stockquantity))) {
-        errors.push(`Row ${i + 1}: Invalid or missing 'stockQuantity'`);
+        errors.push(`Row ${i + 1}: "${row.name}" needs a valid stock quantity (e.g., 10). Please enter a number.`);
         errorCount++;
+        continue;
+      }
+
+      // Check for duplicate SKU within this CSV file
+      if (processedSkus.has(row.sku)) {
+        errors.push(`Row ${i + 1}: Duplicate SKU "${row.sku}" found in CSV file. Each SKU must be unique.`);
+        errorCount++;
+        continue;
+      }
+
+      // Check for duplicate SKU in database
+      const [existingProduct] = await db
+        .select({ id: tables.products.id, name: tables.products.name })
+        .from(tables.products)
+        .where(and(
+          eq(tables.products.organizationId, organizationId),
+          eq(tables.products.sku, row.sku)
+        ))
+        .limit(1);
+
+      if (existingProduct) {
+        warnings.push(`Row ${i + 1}: Product with SKU "${row.sku}" already exists (${existingProduct.name}). Skipped.`);
+        skippedCount++;
         continue;
       }
 
       // Validate category
       const category = row.category?.toLowerCase() || "other";
       if (!validCategories.includes(category)) {
-        errors.push(`Row ${i + 1}: Invalid category '${row.category}', using 'other'`);
+        errors.push(`Row ${i + 1}: "${row.name}" has an invalid category. Valid categories are: ${validCategories.join(", ")}. Setting to "other".`);
       }
 
       try {
         await db.insert(tables.products).values({
-          organizationId: tenant.subdomain, // Using subdomain as org identifier
+          organizationId, // Use actual organization UUID
           name: row.name,
           sku: row.sku,
           category: validCategories.includes(category) ? category : "other",
@@ -288,17 +458,36 @@ export async function action({ request }: ActionFunctionArgs) {
           isActive: row.isactive?.toLowerCase() !== "false",
           trackInventory: true,
         });
+        processedSkus.add(row.sku); // Track successfully imported SKU
         successCount++;
       } catch (err) {
-        errors.push(`Row ${i + 1}: Database error - ${err instanceof Error ? err.message : "Unknown error"}`);
+        const errorMsg = err instanceof Error ? err.message : "Unknown error";
+        // Provide user-friendly error messages for common database errors
+        if (errorMsg.includes("duplicate") || errorMsg.includes("unique")) {
+          errors.push(`Row ${i + 1}: SKU "${row.sku}" already exists. Please use a unique SKU for each product.`);
+        } else if (errorMsg.includes("constraint")) {
+          errors.push(`Row ${i + 1}: "${row.name}" has invalid data. Please check that all values meet the requirements.`);
+        } else {
+          errors.push(`Row ${i + 1}: Could not save "${row.name}". ${errorMsg}`);
+        }
         errorCount++;
       }
     }
 
+    let message = `Imported ${successCount} product${successCount !== 1 ? 's' : ''}`;
+    if (skippedCount > 0) message += `, ${skippedCount} skipped (duplicates)`;
+    if (errorCount > 0) message += `, ${errorCount} error${errorCount !== 1 ? 's' : ''}`;
+
     return {
       success: true,
-      message: `Imported ${successCount} products${errorCount > 0 ? `, ${errorCount} errors` : ""}`,
-      importResult: { successCount, errorCount, errors: errors.slice(0, 10) },
+      message,
+      importResult: {
+        successCount,
+        errorCount,
+        skippedCount,
+        errors: errors.slice(0, 10),
+        warnings: warnings.slice(0, 10)
+      },
     };
   }
 
@@ -345,26 +534,33 @@ const CATEGORIES = [
 ];
 
 // Helper to check if product is currently on sale
-function isOnSale(product: {
-  salePrice?: string | null;
-  saleStartDate?: Date | string | null;
-  saleEndDate?: Date | string | null;
-}): boolean {
+// Pass current time as parameter to avoid hydration mismatch (server vs client time)
+function isOnSale(
+  product: {
+    salePrice?: string | null;
+    saleStartDate?: Date | string | null;
+    saleEndDate?: Date | string | null;
+  },
+  now: Date
+): boolean {
   if (!product.salePrice) return false;
-  const now = new Date();
   if (product.saleStartDate && new Date(product.saleStartDate) > now) return false;
   if (product.saleEndDate && new Date(product.saleEndDate) < now) return false;
   return true;
 }
 
 // Helper to get the effective price (sale price if on sale, otherwise regular price)
-function getEffectivePrice(product: {
-  price: string;
-  salePrice?: string | null;
-  saleStartDate?: Date | string | null;
-  saleEndDate?: Date | string | null;
-}): number {
-  if (isOnSale(product)) {
+// Pass current time as parameter to avoid hydration mismatch
+function getEffectivePrice(
+  product: {
+    price: string;
+    salePrice?: string | null;
+    saleStartDate?: Date | string | null;
+    saleEndDate?: Date | string | null;
+  },
+  now: Date
+): number {
+  if (isOnSale(product, now)) {
     return Number(product.salePrice);
   }
   return Number(product.price);
@@ -406,12 +602,14 @@ export default function ProductsPage() {
   const fetcher = useFetcher();
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithSaleFields | null>(null);
-  const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string } | null>(null);
+  const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string; currentStock: number } | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importResult, setImportResult] = useState<{
     successCount: number;
     errorCount: number;
+    skippedCount: number;
     errors: string[];
+    warnings: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
@@ -419,6 +617,28 @@ export default function ProductsPage() {
   const [bulkUpdateType, setBulkUpdateType] = useState<"set" | "adjust">("adjust");
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState("");
+  // Track which products are on sale (client-side only to avoid hydration mismatch)
+  const [productsOnSale, setProductsOnSale] = useState<Set<string>>(new Set());
+  const [dismissedMessage, setDismissedMessage] = useState(false);
+
+  // Show notifications from URL params
+  useNotification();
+
+  // Get toast context for showing success/error messages
+  const { showToast } = useToast();
+
+  // Calculate which products are on sale (client-side only to avoid hydration errors)
+  useEffect(() => {
+    const now = new Date();
+    const onSaleSet = new Set<string>();
+    products.forEach((product) => {
+      const productWithSale = product as ProductWithSaleFields;
+      if (isOnSale(productWithSale, now)) {
+        onSaleSet.add(product.id);
+      }
+    });
+    setProductsOnSale(onSaleSet);
+  }, [products]);
 
   const isSubmitting = fetcher.state === "submitting";
 
@@ -426,16 +646,32 @@ export default function ProductsPage() {
     success?: boolean;
     message?: string;
     error?: string;
-    importResult?: { successCount: number; errorCount: number; errors: string[] };
+    importResult?: {
+      successCount: number;
+      errorCount: number;
+      skippedCount: number;
+      errors: string[];
+      warnings: string[];
+    };
   } | undefined;
 
-  // Close modal on successful create/update/delete
+  // Reset dismissed flag when new fetcher data arrives
   useEffect(() => {
-    if (fetcherData?.success) {
+    if (fetcherData) {
+      setDismissedMessage(false);
+    }
+  }, [fetcherData]);
+
+  // Close modal and show toast on successful create/update/delete
+  useEffect(() => {
+    if (fetcherData?.success && fetcherData?.message) {
       setShowForm(false);
       setEditingProduct(null);
+      showToast(fetcherData.message, "success");
+    } else if (fetcherData?.error) {
+      showToast(fetcherData.error, "error");
     }
-  }, [fetcherData?.success]);
+  }, [fetcherData, showToast]);
 
   // Toggle product selection
   const toggleProductSelection = (productId: string) => {
@@ -540,9 +776,11 @@ export default function ProductsPage() {
   };
 
   // Update import result when fetcher completes
-  if (fetcherData?.importResult && fetcherData.importResult !== importResult) {
-    setImportResult(fetcherData.importResult);
-  }
+  useEffect(() => {
+    if (fetcherData?.importResult) {
+      setImportResult(fetcherData.importResult);
+    }
+  }, [fetcherData?.importResult]);
 
   // Group products by category
   const productsByCategory = products.reduce((acc, product) => {
@@ -567,7 +805,7 @@ export default function ProductsPage() {
           {selectedProducts.size > 0 && (
             <button
               onClick={() => setShowBulkUpdate(true)}
-              className="px-4 py-2 bg-warning-muted text-white rounded-lg hover:bg-warning"
+              className="px-4 py-2 bg-warning text-white rounded-lg hover:bg-warning-hover shadow-sm"
             >
               Bulk Update ({selectedProducts.size})
             </button>
@@ -600,7 +838,7 @@ export default function ProductsPage() {
 
       {/* Low Stock Alert */}
       {lowStockProducts.length > 0 && (
-        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-6">
+        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-6 max-w-4xl break-words">
           <h3 className="font-semibold text-warning mb-2">Low Stock Alert</h3>
           <div className="flex flex-wrap gap-2">
             {lowStockProducts.map((p) => (
@@ -616,32 +854,71 @@ export default function ProductsPage() {
       )}
 
       {/* Success Message */}
-      {fetcherData?.success && (
-        <div className="bg-success-muted border border-success text-success p-3 rounded-lg mb-4">
-          {fetcherData.message}
+      {fetcherData?.success && !dismissedMessage && (
+        <div className="bg-success-muted border border-success text-success p-3 rounded-lg mb-4 max-w-4xl break-words">
+          <div className="flex items-center justify-between">
+            <span>{fetcherData.message}</span>
+            <button
+              onClick={() => setDismissedMessage(true)}
+              className="text-success hover:text-success-hover text-sm ml-4 flex-shrink-0"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
       {/* Error Message */}
-      {fetcherData?.error && (
-        <div className="bg-danger-muted border border-danger text-danger p-3 rounded-lg mb-4">
-          {fetcherData.error}
+      {fetcherData?.error && !dismissedMessage && (
+        <div className="bg-danger-muted border border-danger text-danger p-3 rounded-lg mb-4 max-w-4xl break-words">
+          <div className="flex items-center justify-between">
+            <span>{fetcherData.error}</span>
+            <button
+              onClick={() => setDismissedMessage(true)}
+              className="text-danger hover:text-danger-hover text-sm ml-4 flex-shrink-0"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Import Results */}
-      {importResult && importResult.errors.length > 0 && (
-        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-4">
+      {/* Import Results - Warnings (Skipped Duplicates) */}
+      {importResult && importResult.warnings && importResult.warnings.length > 0 && (
+        <div className="bg-warning-muted border border-warning rounded-lg p-4 mb-4 max-w-4xl break-words">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold text-warning">Import Errors</h3>
+            <h3 className="font-semibold text-warning">Skipped Products (Duplicates)</h3>
             <button
               onClick={() => setImportResult(null)}
-              className="text-warning hover:text-warning text-sm"
+              className="text-warning hover:text-warning-hover text-sm"
             >
               Dismiss
             </button>
           </div>
           <ul className="text-sm text-warning space-y-1">
+            {importResult.warnings.map((warning, idx) => (
+              <li key={idx}>{warning}</li>
+            ))}
+            {importResult.skippedCount > 10 && (
+              <li className="italic">...and {importResult.skippedCount - 10} more skipped</li>
+            )}
+          </ul>
+        </div>
+      )}
+
+      {/* Import Results - Errors */}
+      {importResult && importResult.errors && importResult.errors.length > 0 && (
+        <div className="bg-danger-muted border border-danger rounded-lg p-4 mb-4 max-w-4xl break-words">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-danger">Import Errors</h3>
+            <button
+              onClick={() => setImportResult(null)}
+              className="text-danger hover:text-danger-hover text-sm"
+            >
+              Dismiss
+            </button>
+          </div>
+          <ul className="text-sm text-danger space-y-1">
             {importResult.errors.map((error, idx) => (
               <li key={idx}>{error}</li>
             ))}
@@ -680,9 +957,9 @@ export default function ProductsPage() {
               </thead>
               <tbody className="divide-y">
                 {categoryProducts.map((product) => {
-                  // Cast product to include optional sale fields for type checking
+                  // Check if product is on sale from client-side state (avoids hydration errors)
+                  const onSale = productsOnSale.has(product.id);
                   const productWithSale = product as typeof product & { salePrice?: string | null; saleStartDate?: Date | string | null; saleEndDate?: Date | string | null };
-                  const onSale = isOnSale(productWithSale);
                   return (
                   <tr key={product.id} className={!product.isActive ? "bg-surface-inset opacity-60" : ""}>
                     <td className="px-4 py-3">
@@ -750,7 +1027,7 @@ export default function ProductsPage() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => setStockAdjustment({ id: product.id, name: product.name })}
+                          onClick={() => setStockAdjustment({ id: product.id, name: product.name, currentStock: product.stockQuantity })}
                           className="px-2 py-1 text-sm bg-surface-inset rounded hover:bg-surface-overlay"
                           title="Adjust Stock"
                         >
@@ -810,7 +1087,7 @@ export default function ProductsPage() {
                       name="name"
                       defaultValue={editingProduct?.name || ""}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -820,7 +1097,7 @@ export default function ProductsPage() {
                       name="category"
                       defaultValue={editingProduct?.category || "equipment"}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     >
                       {CATEGORIES.map((cat) => (
                         <option key={cat} value={cat}>
@@ -836,7 +1113,7 @@ export default function ProductsPage() {
                       type="text"
                       name="sku"
                       defaultValue={editingProduct?.sku || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                       placeholder="Optional"
                     />
                   </div>
@@ -855,7 +1132,7 @@ export default function ProductsPage() {
                       <button
                         type="button"
                         onClick={() => setShowBarcodeScanner(true)}
-                        className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 flex items-center gap-2"
+                        className="px-4 py-2 bg-surface text-foreground border border-border rounded-lg hover:bg-surface-raised flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -874,7 +1151,7 @@ export default function ProductsPage() {
                       min="0"
                       defaultValue={editingProduct?.price || ""}
                       required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -886,7 +1163,7 @@ export default function ProductsPage() {
                       step="0.01"
                       min="0"
                       defaultValue={editingProduct?.costPrice || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                       placeholder="For margin calc"
                     />
                   </div>
@@ -898,7 +1175,7 @@ export default function ProductsPage() {
                       name="stockQuantity"
                       min="0"
                       defaultValue={editingProduct?.stockQuantity ?? 0}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -909,7 +1186,7 @@ export default function ProductsPage() {
                       name="lowStockThreshold"
                       min="0"
                       defaultValue={editingProduct?.lowStockThreshold ?? 5}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -926,7 +1203,7 @@ export default function ProductsPage() {
                       step="0.01"
                       min="0"
                       defaultValue={editingProduct?.salePrice || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                       placeholder="Leave empty for no sale"
                     />
                   </div>
@@ -941,7 +1218,7 @@ export default function ProductsPage() {
                       type="datetime-local"
                       name="saleStartDate"
                       defaultValue={formatDateForInput(editingProduct?.saleStartDate || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -951,7 +1228,7 @@ export default function ProductsPage() {
                       type="datetime-local"
                       name="saleEndDate"
                       defaultValue={formatDateForInput(editingProduct?.saleEndDate || null)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -961,7 +1238,7 @@ export default function ProductsPage() {
                       name="description"
                       rows={2}
                       defaultValue={editingProduct?.description || ""}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
                     />
                   </div>
 
@@ -1042,6 +1319,11 @@ export default function ProductsPage() {
               <input type="hidden" name="intent" value="adjust-stock" />
               <input type="hidden" name="id" value={stockAdjustment.id} />
 
+              <div className="bg-surface-inset rounded-lg p-3 mb-3">
+                <div className="text-sm text-foreground-muted">Current Stock</div>
+                <div className="text-2xl font-bold text-foreground">{stockAdjustment.currentStock}</div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Adjustment (+ to add, - to remove)
@@ -1053,6 +1335,9 @@ export default function ProductsPage() {
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-center text-xl"
                   placeholder="e.g., 10 or -5"
                 />
+                <p className="text-xs text-foreground-muted mt-1">
+                  Note: Stock cannot go below 0. Adjustments that would result in negative stock will be rejected.
+                </p>
               </div>
 
               <div className="flex gap-3">
@@ -1084,10 +1369,24 @@ export default function ProductsPage() {
 
             <div className="space-y-4">
               <div className="bg-surface-inset rounded-lg p-4">
-                <h3 className="font-medium text-sm mb-2">CSV Format Requirements:</h3>
-                <p className="text-sm text-foreground-muted mb-2">
-                  Your CSV file must include a header row with these columns:
-                </p>
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 className="font-medium text-sm">CSV Format Requirements:</h3>
+                    <p className="text-sm text-foreground-muted mt-1">
+                      Your CSV file must include a header row with these columns:
+                    </p>
+                  </div>
+                  <a
+                    href="/templates/products-import-template.csv"
+                    download
+                    className="px-3 py-1 bg-brand text-white text-xs rounded hover:bg-brand-hover flex items-center gap-1"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download Template
+                  </a>
+                </div>
                 <ul className="text-xs text-foreground-muted space-y-1 ml-4 list-disc">
                   <li><strong>name</strong> (required)</li>
                   <li><strong>sku</strong> (required)</li>
@@ -1175,13 +1474,14 @@ export default function ProductsPage() {
                   type="number"
                   name="value"
                   required
+                  min={bulkUpdateType === "set" ? "0" : undefined}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand text-center text-xl"
                   placeholder={bulkUpdateType === "adjust" ? "e.g., 10 or -5" : "e.g., 50"}
                 />
                 <p className="text-xs text-foreground-muted mt-1">
                   {bulkUpdateType === "adjust"
                     ? "Use positive numbers to add stock, negative to remove"
-                    : "All selected products will be set to this quantity"
+                    : "All selected products will be set to this quantity (minimum: 0)"
                   }
                 </p>
               </div>

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getRedirectPathname } from "../../../../../helpers/redirect";
 import { loader, action } from "../../../../../../app/routes/tenant/pos/products/$id";
 import * as orgContext from "../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../lib/db/queries.server";
@@ -67,11 +68,11 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       expect(queries.deleteProduct).toHaveBeenCalledWith(mockOrganizationId, "prod-1");
       expect(result).toBeInstanceOf(Response);
       expect(result.status).toBe(302);
-      expect(result.headers.get("Location")).toBe("/tenant/pos/products");
+      expect(getRedirectPathname(result.headers.get("Location"))).toBe("/tenant/pos/products");
     });
 
     it("should adjust stock up", async () => {
-      vi.mocked(queries.adjustProductStock).mockResolvedValue(undefined);
+      vi.mocked(queries.adjustProductStock).mockResolvedValue({ success: true, newQuantity: 10 });
 
       const formData = new FormData();
       formData.append("intent", "adjustStock");
@@ -89,7 +90,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     });
 
     it("should adjust stock down", async () => {
-      vi.mocked(queries.adjustProductStock).mockResolvedValue(undefined);
+      vi.mocked(queries.adjustProductStock).mockResolvedValue({ success: true, newQuantity: 10 });
 
       const formData = new FormData();
       formData.append("intent", "adjustStock");
@@ -107,7 +108,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     });
 
     it("should handle invalid adjustment value", async () => {
-      vi.mocked(queries.adjustProductStock).mockResolvedValue(undefined);
+      vi.mocked(queries.adjustProductStock).mockResolvedValue({ success: true, newQuantity: 10 });
 
       const formData = new FormData();
       formData.append("intent", "adjustStock");
@@ -124,7 +125,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     });
 
     it("should handle zero adjustment", async () => {
-      vi.mocked(queries.adjustProductStock).mockResolvedValue(undefined);
+      vi.mocked(queries.adjustProductStock).mockResolvedValue({ success: true, newQuantity: 10 });
 
       const formData = new FormData();
       formData.append("intent", "adjustStock");

@@ -49,7 +49,8 @@ describe('Payment Success Email Template', () => {
 
     const { html } = getPaymentSuccessEmail(data);
 
-    expect(html).toContain('https://stripe.com/invoice/123');
+    // HTML version has escaped URLs for security (/ becomes &#x2F;)
+    expect(html).toContain('https:&#x2F;&#x2F;stripe.com&#x2F;invoice&#x2F;123');
     expect(html).toContain('View Receipt');
   });
 

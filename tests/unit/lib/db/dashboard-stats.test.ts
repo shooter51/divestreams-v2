@@ -250,18 +250,17 @@ describe("Dashboard Statistics Logic", () => {
         },
       ];
 
-      // Batch participant counts (single query with groupBy)
-      const batchParticipants = [
+      const participantCounts = [
         { tripId: "trip-1", total: 7 },
         { tripId: "trip-2", total: 5 },
       ];
 
       const mockLimit = vi.fn().mockResolvedValue(mockTrips);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimit });
+      const mockGroupBy = vi.fn().mockResolvedValue(participantCounts);
 
-      // Mock for first query (trips) - where → orderBy → limit
-      // Mock for second query (batch participants) - where → groupBy (terminal)
-      const mockGroupBy = vi.fn().mockResolvedValue(batchParticipants);
+      // Mock for first query (trips query) - where → orderBy → limit
+      // Mock for second query (participant counts) - where → groupBy
       (db.where as any)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
@@ -283,13 +282,16 @@ describe("Dashboard Statistics Logic", () => {
         maxParticipants: 10,
       }));
 
+      const participantCounts = mockTrips.map((trip) => ({
+        tripId: trip.id,
+        total: 5,
+      }));
+
       const mockLimit = vi.fn().mockResolvedValue(mockTrips);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimit });
+      const mockGroupBy = vi.fn().mockResolvedValue(participantCounts);
 
-      // Trips query + single batch participant query
-      const mockGroupBy = vi.fn().mockResolvedValue(
-        mockTrips.map(t => ({ tripId: t.id, total: 5 }))
-      );
+      // Mock for trips query + participant counts query
       (db.where as any)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
@@ -312,9 +314,9 @@ describe("Dashboard Statistics Logic", () => {
 
       const mockLimit = vi.fn().mockResolvedValue(mockTrips);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimit });
+      const mockGroupBy = vi.fn().mockResolvedValue([]); // No participant counts
 
-      // Batch query returns no bookings for this trip
-      const mockGroupBy = vi.fn().mockResolvedValue([]);
+      // Mock for trips query + participant counts query
       (db.where as any)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
@@ -335,12 +337,13 @@ describe("Dashboard Statistics Logic", () => {
         },
       ];
 
+      const participantCounts = [{ tripId: "trip-1", total: 10 }];
+
       const mockLimit = vi.fn().mockResolvedValue(mockTrips);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimit });
+      const mockGroupBy = vi.fn().mockResolvedValue(participantCounts);
 
-      const mockGroupBy = vi.fn().mockResolvedValue([
-        { tripId: "trip-1", total: 10 },
-      ]);
+      // Mock for trips query + participant counts query
       (db.where as any)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });
@@ -354,6 +357,8 @@ describe("Dashboard Statistics Logic", () => {
     it("should return empty array when no upcoming trips", async () => {
       const mockLimit = vi.fn().mockResolvedValue([]);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimit });
+
+      // Only one query when trips array is empty - no participant count query
       (db.where as any).mockReturnValue({ orderBy: mockOrderBy });
 
       const result = await getUpcomingTrips(testOrgId);
@@ -372,12 +377,13 @@ describe("Dashboard Statistics Logic", () => {
         },
       ];
 
+      const participantCounts = [{ tripId: "trip-1", total: 5 }];
+
       const mockLimit = vi.fn().mockResolvedValue(mockTrips);
       const mockOrderBy = vi.fn().mockReturnValue({ limit: mockLimit });
+      const mockGroupBy = vi.fn().mockResolvedValue(participantCounts);
 
-      const mockGroupBy = vi.fn().mockResolvedValue([
-        { tripId: "trip-1", total: 5 },
-      ]);
+      // Mock for trips query + participant counts query
       (db.where as any)
         .mockReturnValueOnce({ orderBy: mockOrderBy })
         .mockReturnValueOnce({ groupBy: mockGroupBy });

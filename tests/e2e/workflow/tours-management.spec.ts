@@ -65,13 +65,13 @@ const getTenantUrl = (path: string = "/") =>
 // Helper to login to tenant
 async function loginToTenant(page: Page) {
   await page.goto(getTenantUrl("/auth/login"));
-  await page.getByLabel(/email/i).fill(testData.user.email);
-  await page.getByLabel(/password/i).fill(testData.user.password);
+  await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
+  await page.locator('input[type="password"]').first().fill(testData.user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle").catch(() => {});
   }
 }
 
@@ -129,7 +129,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-323] A.1 Tours list page loads after login @smoke", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasHeading = await page
       .getByRole("heading", { name: /tour/i })
@@ -141,7 +141,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-324] A.2 Tours list shows table or grid layout", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasTable = await page.locator("table").first().isVisible().catch(() => false);
     const hasGrid = await page.locator("[class*='grid']").first().isVisible().catch(() => false);
@@ -152,15 +152,15 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-325] A.3 Tours list has Add/Create button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const addLink = page.getByRole("link", { name: /add.*tour|create.*tour|new.*tour/i });
     // Retry with reload if not found (Vite dep optimization can cause page reloads in CI)
     if (!(await addLink.isVisible().catch(() => false))) {
       await page.reload();
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
+      await page.waitForLoadState("load");
     }
     await expect(addLink).toBeVisible({ timeout: 8000 });
   });
@@ -168,7 +168,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-326] A.4 Tours list displays tour names", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasContent = await page.locator("table tbody tr, [class*='card']").first().isVisible().catch(() => false);
     const hasEmptyState = await page.getByText(/no tour|empty|create.*first/i).isVisible().catch(() => false);
@@ -178,7 +178,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-327] A.5 Tours list shows pricing information", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasPrice = await page.getByText(/\$\d+|\d+\.\d{2}|price/i).isVisible().catch(() => false);
     expect(hasPrice || page.url().includes("/tours")).toBeTruthy();
@@ -187,7 +187,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-328] A.6 Tours list shows tour type/category", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasType = await page.getByText(/single|multiple|course|type/i).isVisible().catch(() => false);
     expect(hasType || page.url().includes("/tours")).toBeTruthy();
@@ -196,7 +196,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-329] A.7 Tours list has action buttons", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasActions = await page
       .locator("button, a")
@@ -210,12 +210,12 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-330] A.8 Can navigate from dashboard to tours", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const toursLink = page.getByRole("link", { name: /tour/i }).first();
     if (await toursLink.isVisible().catch(() => false)) {
       await toursLink.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       expect(page.url()).toContain("/tours");
     } else {
       await page.goto(getTenantUrl("/tenant/tours"));
@@ -226,14 +226,14 @@ test.describe.serial("Block A: Navigation & List View", () => {
   test("[KAN-331] A.9 Tours list URL is correct", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState("domcontentloaded");
     expect(page.url()).toContain("/tenant/tours");
   });
 
   test("[KAN-332] A.10 Tours list responds to direct navigation", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     const pageLoaded = await page.locator("body").isVisible();
     expect(pageLoaded).toBeTruthy();
   });
@@ -248,7 +248,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-333] B.1 Navigate to new tour page", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     expect(page.url()).toContain("/tours/new");
   });
@@ -256,16 +256,18 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-334] B.2 New tour form loads", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
     if (!(await isAuthenticated(page))) return;
-    const hasForm = await page.locator("form").isVisible().catch(() => false);
+    // Wait for form to be visible (condition-based waiting, not arbitrary timeout)
+    // Use specific selector to avoid matching sign-out form in header
+    await page.locator("form.space-y-6").waitFor({ state: "visible", timeout: 10000 });
+    const hasForm = await page.locator("form.space-y-6").isVisible();
     expect(hasForm).toBeTruthy();
   });
 
   test("[KAN-335] B.3 New tour form has name field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const nameField = await page.getByLabel(/name/i).first().isVisible().catch(() => false);
     expect(nameField).toBeTruthy();
@@ -274,7 +276,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-336] B.4 New tour form has type selection", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const typeSelect = await page.getByLabel(/type/i).isVisible().catch(() => false);
     const typeRadio = await page.locator("input[type='radio']").first().isVisible().catch(() => false);
@@ -284,7 +286,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-337] B.5 New tour form has price field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const priceField = await page.getByLabel(/price/i).isVisible().catch(() => false);
     expect(priceField).toBeTruthy();
@@ -293,7 +295,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-338] B.6 New tour form has duration field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const durationField = await page.getByLabel(/duration/i).isVisible().catch(() => false);
     expect(durationField || page.url().includes("/tours")).toBeTruthy();
@@ -302,7 +304,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-339] B.7 New tour form has max participants field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const maxField = await page.getByLabel(/max.*participant|capacity/i).isVisible().catch(() => false);
     expect(maxField || page.url().includes("/tours")).toBeTruthy();
@@ -311,7 +313,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-340] B.8 New tour form has description field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const descField = await page.getByLabel(/description/i).isVisible().catch(() => false);
     const textarea = await page.locator("textarea").first().isVisible().catch(() => false);
@@ -321,7 +323,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-341] B.9 New tour form has requirements field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const reqField = await page.getByLabel(/requirement/i).isVisible().catch(() => false);
     expect(reqField || page.url().includes("/tours")).toBeTruthy();
@@ -330,7 +332,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-342] B.10 Create a new tour @critical", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     // Fill in tour details
@@ -362,18 +364,23 @@ test.describe.serial("Block B: Create Tour Flow", () => {
     // Submit form
     await Promise.all([
       page.getByRole("button", { name: /create|save|add/i }).click(),
-      page.waitForTimeout(3000),
+      page.waitForLoadState("networkidle").catch(() => {}),
     ]).catch(() => null);
 
     const redirectedToList = page.url().includes("/tenant/tours") && !page.url().includes("/new");
     const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
-    expect(redirectedToList || hasSuccessMessage || page.url().includes("/tours")).toBeTruthy();
+
+    // Toast notification verification (KAN-621)
+    const successToast = page.locator('[role="status"]').filter({ hasText: /successfully created/i });
+    const toastVisible = await successToast.isVisible().catch(() => false);
+
+    expect(redirectedToList || hasSuccessMessage || toastVisible || page.url().includes("/tours")).toBeTruthy();
   });
 
   test("[KAN-343] B.11 Created tour appears in list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
 
     const hasTour = await page.getByText(testData.tour.name).isVisible().catch(() => false);
@@ -387,7 +394,7 @@ test.describe.serial("Block B: Create Tour Flow", () => {
   test("[KAN-344] B.12 New tour form has submit button", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/new"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const submitBtn = await page.getByRole("button", { name: /create|save|add/i }).isVisible().catch(() => false);
     expect(submitBtn).toBeTruthy();
@@ -410,7 +417,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url()).toContain("/edit");
   });
 
@@ -419,7 +426,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     const tourId = testData.createdIds.tour;
     if (!tourId) {
       await page.goto(getTenantUrl("/tenant/tours"));
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState("load");
       const authenticated = await isAuthenticated(page);
       if (!authenticated) {
         expect(page.url()).toContain("/login");
@@ -429,7 +436,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState("load");
     const authenticated = await isAuthenticated(page);
     if (!authenticated) {
       expect(page.url()).toContain("/login");
@@ -448,7 +455,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) {
       test.skip();
       return;
@@ -479,7 +486,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) {
       test.skip();
       return;
@@ -500,7 +507,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) {
       test.skip();
       return;
@@ -521,7 +528,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) {
       test.skip();
       return;
@@ -541,7 +548,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) {
       test.skip();
       return;
@@ -558,7 +565,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) {
       test.skip();
       return;
@@ -567,18 +574,23 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
     const saveBtn = page.getByRole("button", { name: /save|update/i });
     if (await saveBtn.isVisible().catch(() => false)) {
       await saveBtn.click();
-      await page.waitForTimeout(3000);
+      await page.waitForLoadState("networkidle").catch(() => {});
     }
 
     const redirected = page.url().includes("/tenant/tours") && !page.url().includes("/edit");
     const hasSuccess = await page.getByText(/success|updated|saved/i).isVisible().catch(() => false);
-    expect(redirected || hasSuccess || page.url().includes("/tours")).toBeTruthy();
+
+    // Toast notification verification (KAN-621)
+    const successToast = page.locator('[role="status"]').filter({ hasText: /successfully updated/i });
+    const toastVisible = await successToast.isVisible().catch(() => false);
+
+    expect(redirected || hasSuccess || toastVisible || page.url().includes("/tours")).toBeTruthy();
   });
 
   test("[KAN-353] C.9 Updated values appear in list", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasEdited = await page.getByText(/Edited/).isVisible().catch(() => false);
     expect(hasEdited || page.url().includes("/tours")).toBeTruthy();
@@ -592,7 +604,7 @@ test.describe.serial("Block C: Edit Tour Flow", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/edit`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) {
       test.skip();
       return;
@@ -618,7 +630,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     expect(page.url()).toMatch(/\/tenant\/tours\/[a-f0-9-]+/);
   });
 
@@ -631,7 +643,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasName = await page.getByText(/E2E Tour|Edited/).isVisible().catch(() => false);
     expect(hasName || page.url().includes("/tours")).toBeTruthy();
@@ -646,7 +658,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasPrice = await page.getByText(/\$|price/i).isVisible().catch(() => false);
     expect(hasPrice || page.url().includes("/tours")).toBeTruthy();
@@ -661,7 +673,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasDuration = await page.getByText(/duration|hour/i).isVisible().catch(() => false);
     expect(hasDuration || page.url().includes("/tours")).toBeTruthy();
@@ -676,7 +688,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasMax = await page.getByText(/participant|capacity/i).isVisible().catch(() => false);
     expect(hasMax || page.url().includes("/tours")).toBeTruthy();
@@ -691,7 +703,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasDesc = await page.getByText(/description|E2E test tour/i).isVisible().catch(() => false);
     expect(hasDesc || page.url().includes("/tours")).toBeTruthy();
@@ -706,7 +718,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasEdit = await page.getByRole("link", { name: /edit/i }).isVisible().catch(() => false);
     const hasEditBtn = await page.getByRole("button", { name: /edit/i }).isVisible().catch(() => false);
@@ -722,7 +734,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasBack = await page.getByRole("link", { name: /back|tour/i }).isVisible().catch(() => false);
     expect(hasBack || page.url().includes("/tours")).toBeTruthy();
@@ -737,7 +749,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasTrips = await page.getByText(/trip|schedule|upcoming/i).isVisible().catch(() => false);
     expect(hasTrips || page.url().includes("/tours")).toBeTruthy();
@@ -746,7 +758,7 @@ test.describe.serial("Block D: Tour Detail View", () => {
   test("[KAN-364] D.10 Invalid tour ID shows error", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours/00000000-0000-0000-0000-000000000000"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     const hasError = await page.getByText(/not found|error/i).isVisible().catch(() => false);
     const redirected = page.url().includes("/tenant/tours") && !page.url().includes("000000");
     expect(hasError || redirected || page.url().includes("/tours")).toBeTruthy();
@@ -768,7 +780,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasStatus = await page.getByText(/active|inactive|status/i).isVisible().catch(() => false);
     expect(hasStatus || page.url().includes("/tours")).toBeTruthy();
@@ -783,7 +795,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const toggleBtn = await page.getByRole("button", { name: /activate|deactivate|toggle/i }).isVisible().catch(() => false);
     expect(toggleBtn || page.url().includes("/tours")).toBeTruthy();
@@ -798,7 +810,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasDelete = await page.getByRole("button", { name: /delete|remove/i }).isVisible().catch(() => false);
     expect(hasDelete || page.url().includes("/tours")).toBeTruthy();
@@ -813,12 +825,12 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const deleteBtn = page.getByRole("button", { name: /delete|remove/i }).first();
     if (await deleteBtn.isVisible().catch(() => false)) {
       await deleteBtn.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       const hasConfirm = await page.getByText(/confirm|sure|delete/i).isVisible().catch(() => false);
       const hasCancelBtn = await page.getByRole("button", { name: /cancel|no/i }).isVisible().catch(() => false);
       if (hasCancelBtn) {
@@ -837,16 +849,16 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const deleteBtn = page.getByRole("button", { name: /delete|remove/i }).first();
     if (await deleteBtn.isVisible().catch(() => false)) {
       await deleteBtn.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       const cancelBtn = page.getByRole("button", { name: /cancel|no/i });
       if (await cancelBtn.isVisible().catch(() => false)) {
         await cancelBtn.click();
-        await page.waitForTimeout(500);
+        await page.waitForLoadState("domcontentloaded");
       }
     }
     expect(page.url()).toContain("/tours");
@@ -855,7 +867,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
   test("[KAN-370] E.6 Tour list has quick actions", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasActions = await page.locator("button, [role='button']").filter({ hasText: /edit|delete|view/i }).first().isVisible().catch(() => false);
     expect(hasActions || page.url().includes("/tours")).toBeTruthy();
@@ -870,7 +882,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasDuplicate = await page.getByRole("button", { name: /duplicate|copy/i }).isVisible().catch(() => false);
     const hasDuplicateLink = await page.getByRole("link", { name: /duplicate|copy/i }).isVisible().catch(() => false);
@@ -886,7 +898,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
       return;
     }
     await page.goto(getTenantUrl(`/tenant/tours/${tourId}/duplicate`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     const isNewForm = page.url().includes("/new") || page.url().includes("/duplicate");
     const hasForm = await page.locator("form").isVisible().catch(() => false);
     expect(isNewForm || hasForm || page.url().includes("/tours")).toBeTruthy();
@@ -895,7 +907,7 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
   test("[KAN-373] E.9 Archived tours are hidden by default", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasFilter = await page.getByText(/filter|show.*archived|all/i).isVisible().catch(() => false);
     expect(hasFilter || page.url().includes("/tours")).toBeTruthy();
@@ -904,12 +916,12 @@ test.describe.serial("Block E: Tour Status & Delete", () => {
   test("[KAN-374] E.10 Can view archived tours", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const filterSelect = page.locator("select").filter({ hasText: /status|filter/i }).first();
     if (await filterSelect.isVisible().catch(() => false)) {
       await filterSelect.selectOption({ label: /archived|all/i }).catch(() => null);
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     }
     expect(page.url()).toContain("/tours");
   });
@@ -924,7 +936,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
   test("[KAN-375] F.1 Tours list has search field", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasSearch = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     const hasSearchAlt = await page.locator("input[type='search']").isVisible().catch(() => false);
@@ -934,12 +946,12 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
   test("[KAN-376] F.2 Can search tours by name", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const searchField = page.getByPlaceholder(/search/i).or(page.locator("input[type='search']")).first();
     if (await searchField.isVisible().catch(() => false)) {
       await searchField.fill("E2E");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       const hasResults = await page.getByText(/E2E/).isVisible().catch(() => false);
       expect(hasResults || page.url().includes("/tours")).toBeTruthy();
     }
@@ -948,7 +960,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
   test("[KAN-377] F.3 Tours list has type filter", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasFilter = await page.getByText(/type|category|filter/i).isVisible().catch(() => false);
     const hasSelect = await page.locator("select").first().isVisible().catch(() => false);
@@ -958,12 +970,12 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
   test("[KAN-378] F.4 Can filter by tour type", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const typeFilter = page.locator("select").first();
     if (await typeFilter.isVisible().catch(() => false)) {
       await typeFilter.selectOption({ index: 1 }).catch(() => null);
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
     }
     expect(page.url()).toContain("/tours");
   });
@@ -971,7 +983,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
   test("[KAN-379] F.5 Tours list has price range filter", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasPriceFilter = await page.getByText(/price.*range|min.*price|max.*price/i).isVisible().catch(() => false);
     expect(hasPriceFilter || page.url().includes("/tours")).toBeTruthy();
@@ -980,7 +992,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
   test("[KAN-380] F.6 Can sort tours", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const hasSortOption = await page.getByText(/sort|order/i).isVisible().catch(() => false);
     const hasTableHeader = await page.locator("th").first().isVisible().catch(() => false);
@@ -990,12 +1002,12 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
   test("[KAN-381] F.7 Empty search shows no results", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const searchField = page.getByPlaceholder(/search/i).or(page.locator("input[type='search']")).first();
     if (await searchField.isVisible().catch(() => false)) {
       await searchField.fill("NONEXISTENTXYZ123");
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState("domcontentloaded");
       const hasEmpty = await page.getByText(/no.*found|no.*tour|empty/i).isVisible().catch(() => false);
       expect(hasEmpty || page.url().includes("/tours")).toBeTruthy();
     }
@@ -1004,7 +1016,7 @@ test.describe.serial("Block F: Tour Filtering & Search", () => {
   test("[KAN-382] F.8 Can clear filters", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/tours"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
     const clearBtn = await page.getByRole("button", { name: /clear|reset.*filter/i }).isVisible().catch(() => false);
     expect(clearBtn || page.url().includes("/tours")).toBeTruthy();

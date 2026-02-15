@@ -5,6 +5,9 @@ import { tourSchema, validateFormData, getFormValues } from "../../../../lib/val
 import { createTour } from "../../../../lib/db/queries.server";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -21,7 +24,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
   const organizationId = ctx.org.id;
+  const tenantSlug = ctx.org.slug;
   const formData = await request.formData();
+
+  // Extract image files before processing other form data
+  const imageFiles: File[] = [];
+  const allImages = formData.getAll("images");
+  for (const item of allImages) {
+    if (item instanceof File && item.size > 0) {
+      imageFiles.push(item);
+    }
+  }
+  // Remove images from formData before validation (schema expects strings, not File objects)
+  formData.delete("images");
 
   // Parse inclusions/exclusions from comma-separated strings
   const inclusionsStr = formData.get("inclusionsStr") as string;
@@ -56,23 +71,164 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors, values: getFormValues(formData) };
   }
 
-  await createTour(organizationId, {
-    name: formData.get("name") as string,
-    description: (formData.get("description") as string) || undefined,
-    type: formData.get("type") as string,
-    duration: formData.get("duration") ? Number(formData.get("duration")) : undefined,
-    maxParticipants: Number(formData.get("maxParticipants")),
-    minParticipants: formData.get("minParticipants") ? Number(formData.get("minParticipants")) : undefined,
-    price: Number(formData.get("price")),
-    currency: (formData.get("currency") as string) || undefined,
-    includesEquipment: formData.get("includesEquipment") === "true",
-    includesMeals: formData.get("includesMeals") === "true",
-    includesTransport: formData.get("includesTransport") === "true",
-    minCertLevel: (formData.get("minCertLevel") as string) || undefined,
-    minAge: formData.get("minAge") ? Number(formData.get("minAge")) : undefined,
-  });
+  // Additional server-side price validation
+  const priceStr = formData.get("price") as string;
+  const priceNum = parseFloat(priceStr);
+  if (isNaN(priceNum)) {
+    return {
+      errors: { price: "Price must be a valid number" },
+      values: getFormValues(formData)
+    };
+  }
+  if (priceNum < 1) {
+    return {
+      errors: { price: "Price must be at least $1" },
+      values: getFormValues(formData)
+    };
+  }
 
-  return redirect("/tenant/tours");
+  let newTour;
+  try {
+    newTour = await createTour(organizationId, {
+      name: formData.get("name") as string,
+      description: (formData.get("description") as string) || undefined,
+      type: formData.get("type") as string,
+      duration: formData.get("duration") ? Number(formData.get("duration")) : undefined,
+      maxParticipants: Number(formData.get("maxParticipants")),
+      minParticipants: formData.get("minParticipants") ? Number(formData.get("minParticipants")) : undefined,
+      price: Number(formData.get("price")),
+      currency: (formData.get("currency") as string) || undefined,
+      includesEquipment: formData.get("includesEquipment") === "true",
+      includesMeals: formData.get("includesMeals") === "true",
+      includesTransport: formData.get("includesTransport") === "true",
+      minCertLevel: (formData.get("minCertLevel") as string) || undefined,
+      minAge: formData.get("minAge") ? Number(formData.get("minAge")) : undefined,
+    });
+  } catch (error: any) {
+    // Handle unique constraint violation
+    if (error?.code === "23505" || error?.message?.includes("duplicate") || error?.message?.includes("unique")) {
+      return {
+        errors: { name: "A tour with this name already exists" },
+        values: getFormValues(formData)
+      };
+    }
+    // Re-throw other errors
+    throw error;
+  }
+
+  // Process uploaded images if any
+  if (imageFiles.length > 0 && tenantSlug) {
+    // Check if storage is configured BEFORE attempting uploads
+    const s3Client = getS3Client();
+    if (!s3Client) {
+      const tourName = formData.get("name") as string;
+      return redirect(redirectWithNotification(
+        `/tenant/tours/${newTour.id}`,
+        `Tour "${tourName}" created, but image storage is not configured. Contact support to enable image uploads.`,
+        "warning"
+      ));
+    }
+
+    const { db, schema } = getTenantDb(tenantSlug);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+    let uploadedCount = 0;
+    const skippedFiles: string[] = [];
+    const failedFiles: string[] = [];
+
+    for (let i = 0; i < Math.min(imageFiles.length, 5); i++) {
+      const file = imageFiles[i];
+
+      // Validate file type
+      if (!isValidImageType(file.type)) {
+        skippedFiles.push(`${file.name} (invalid type: ${file.type})`);
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        skippedFiles.push(`${file.name} (exceeds 10MB limit)`);
+        continue;
+      }
+
+      try {
+        // Process image
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const processed = await processImage(buffer);
+
+        // Generate storage keys
+        const baseKey = getImageKey(tenantSlug, "tour", newTour.id, file.name);
+        const originalKey = `${baseKey}.webp`;
+        const thumbnailKey = `${baseKey}-thumb.webp`;
+
+        // Upload to S3/B2
+        const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+        if (!originalUpload) {
+          failedFiles.push(`${file.name} (storage error)`);
+          continue;
+        }
+
+        const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+
+        // Save to database
+        await db.insert(schema.images).values({
+          organizationId,
+          entityType: "tour",
+          entityId: newTour.id,
+          url: originalUpload.cdnUrl,
+          thumbnailUrl: thumbnailUpload?.cdnUrl || originalUpload.cdnUrl,
+          filename: file.name,
+          mimeType: getWebPMimeType(),
+          sizeBytes: processed.original.length,
+          width: processed.width,
+          height: processed.height,
+          alt: file.name,
+          sortOrder: i,
+          isPrimary: i === 0,
+        });
+
+        uploadedCount++;
+      } catch (error) {
+        console.error(`Failed to upload image ${file.name}:`, error);
+        failedFiles.push(`${file.name} (upload failed)`);
+      }
+    }
+
+    const tourName = formData.get("name") as string;
+
+    // Build detailed message based on results
+    let message: string;
+    let messageType: "success" | "warning" | "error" = "success";
+
+    if (uploadedCount === imageFiles.length) {
+      message = `Tour "${tourName}" created with ${uploadedCount} image${uploadedCount > 1 ? "s" : ""}!`;
+    } else if (uploadedCount > 0) {
+      message = `Tour "${tourName}" created with ${uploadedCount} of ${imageFiles.length} images.`;
+      if (skippedFiles.length > 0) {
+        message += ` Skipped: ${skippedFiles.join(", ")}`;
+      }
+      if (failedFiles.length > 0) {
+        message += ` Failed: ${failedFiles.join(", ")}`;
+      }
+      messageType = "warning";
+    } else {
+      message = `Tour "${tourName}" created, but all ${imageFiles.length} image(s) failed to upload.`;
+      if (skippedFiles.length > 0) {
+        message += ` Skipped: ${skippedFiles.join(", ")}`;
+      }
+      if (failedFiles.length > 0) {
+        message += ` Failed: ${failedFiles.join(", ")}`;
+      }
+      messageType = "error";
+    }
+
+    return redirect(redirectWithNotification(`/tenant/tours/${newTour.id}`, message, messageType));
+  }
+
+  const tourName = formData.get("name") as string;
+  // Redirect to detail page where user can immediately add images via ImageManager
+  return redirect(redirectWithNotification(`/tenant/tours/${newTour.id}`, `Tour "${tourName}" created successfully! Add images below to complete your tour listing.`, "success"));
 }
 
 export default function NewTourPage() {
@@ -81,6 +237,9 @@ export default function NewTourPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const isNearLimit = limitMax !== -1 && limitRemaining <= Math.ceil(limitMax * 0.2);
+
+  // Show notifications from URL params
+  useNotification();
 
   return (
     <div className="max-w-2xl">
@@ -94,7 +253,7 @@ export default function NewTourPage() {
         </p>
       </div>
 
-      <form method="post" className="space-y-6">
+      <form method="post" encType="multipart/form-data" className="space-y-6">
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
@@ -369,6 +528,35 @@ export default function NewTourPage() {
           </div>
         </div>
 
+        {/* Images */}
+        <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Images (Optional)</h2>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="images" className="block text-sm font-medium mb-2">
+                Upload up to 5 images
+              </label>
+              <input
+                type="file"
+                id="images"
+                name="images"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                className="block w-full text-sm text-foreground-muted
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-medium
+                  file:bg-brand file:text-white
+                  hover:file:bg-brand-hover
+                  file:cursor-pointer cursor-pointer"
+              />
+              <p className="mt-2 text-sm text-foreground-muted">
+                JPEG, PNG, WebP, or GIF. Max 10MB each. You can add more images later.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Status */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <label className="flex items-center gap-2">
@@ -403,13 +591,13 @@ export default function NewTourPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled"
+            className="bg-brand text-white px-6 py-2 rounded-lg hover:bg-brand-hover disabled:bg-brand-disabled disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "Creating..." : "Create Tour"}
           </button>
           <Link
             to="/tenant/tours"
-            className="px-6 py-2 border rounded-lg hover:bg-surface-inset"
+            className={`px-6 py-2 border rounded-lg hover:bg-surface-inset ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
           >
             Cancel
           </Link>

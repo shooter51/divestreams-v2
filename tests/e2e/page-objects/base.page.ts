@@ -14,7 +14,7 @@ export abstract class BasePage {
    * Wait for navigation to complete
    */
   async waitForNavigation(): Promise<void> {
-    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForLoadState("load");
   }
 
   /**
@@ -22,7 +22,7 @@ export abstract class BasePage {
    */
   async clickAndWaitForNavigation(locator: Locator): Promise<void> {
     await Promise.all([
-      this.page.waitForNavigation({ waitUntil: "networkidle" }),
+      this.page.waitForNavigation({ waitUntil: "load" }),
       locator.click(),
     ]);
   }
@@ -125,14 +125,16 @@ export abstract class TenantBasePage extends BasePage {
   }
 
   protected get tenantUrl(): string {
-    return `http://${this.tenantSubdomain}.localhost:5173`;
+    // Extract host from baseUrl (e.g., "http://localhost:5173" -> "localhost:5173")
+    const baseUrlHost = this.baseUrl.replace(/^https?:\/\//, '');
+    return `http://${this.tenantSubdomain}.${baseUrlHost}`;
   }
 
   /**
    * Navigate to tenant app route
    */
   async gotoApp(path: string = ""): Promise<void> {
-    await this.page.goto(`${this.tenantUrl}/app${path}`);
+    await this.page.goto(`${this.tenantUrl}/tenant${path}`);
     await this.waitForNavigation();
   }
 
@@ -143,14 +145,24 @@ export abstract class TenantBasePage extends BasePage {
     await this.page.goto(`${this.tenantUrl}/auth${path}`);
     await this.waitForNavigation();
   }
+
+  /**
+   * Navigate to public site route (customer-facing pages)
+   */
+  async gotoSite(path: string = ""): Promise<void> {
+    await this.page.goto(`${this.tenantUrl}/site${path}`);
+    await this.waitForNavigation();
+  }
 }
 
 /**
- * Admin-scoped base page
+ * Admin-scoped base page (tenant admin panel)
  */
 export abstract class AdminBasePage extends BasePage {
   protected get adminUrl(): string {
-    return "http://admin.localhost:5173";
+    // Extract host from baseUrl (e.g., "http://localhost:5173" -> "localhost:5173")
+    const baseUrlHost = this.baseUrl.replace(/^https?:\/\//, '');
+    return `http://demo.${baseUrlHost}/tenant`;
   }
 
   /**

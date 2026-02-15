@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireTenant } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import {
   getTourById,
   getTourStats,
@@ -12,11 +12,13 @@ import {
 } from "../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
+import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Tour Details - DiveStreams" }];
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const tourId = params.id;
 
   if (!tourId) {
@@ -124,7 +126,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
   const tourId = params.id!;
@@ -140,13 +143,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     try {
+      const tour = await getTourById(organizationId, tourId);
+      const tourName = tour?.name || "Tour";
       await deleteTour(organizationId, tourId);
-      return { deleted: true };
-    } catch (error) {
-      if (error instanceof Error) {
-        return { error: error.message };
-      }
-      return { error: "Failed to delete tour" };
+      return redirect(redirectWithNotification("/tenant/tours", `${tourName} has been successfully deleted`, "success"));
+    } catch (error: any) {
+      return { deleteError: error.message || "Failed to delete tour" };
     }
   }
 
@@ -165,6 +167,10 @@ const tourTypes: Record<string, string> = {
 export default function TourDetailPage() {
   const { tour, upcomingTrips, diveSites, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const actionData = fetcher.data as { deleteError?: string } | undefined;
+
+  // Show notifications from URL params
+  useNotification();
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -187,6 +193,14 @@ export default function TourDetailPage() {
           ← Back to Tours
         </Link>
       </div>
+
+      {/* Show delete error if any */}
+      {actionData?.deleteError && (
+        <div className="mb-6 p-4 bg-danger-muted border border-danger rounded-lg">
+          <p className="text-danger font-medium">Cannot delete tour</p>
+          <p className="text-danger text-sm mt-1">{actionData.deleteError}</p>
+        </div>
+      )}
 
       <div className="flex justify-between items-start mb-6">
         <div>

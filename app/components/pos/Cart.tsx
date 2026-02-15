@@ -65,6 +65,7 @@ export function Cart({
                       onClick={() => onUpdateQuantity(index, item.quantity - 1)}
                       className="w-6 h-6 rounded bg-surface-overlay hover:bg-border text-sm"
                       disabled={item.quantity <= 1}
+                      aria-label="Decrease quantity"
                     >
                       -
                     </button>
@@ -72,6 +73,7 @@ export function Cart({
                     <button
                       onClick={() => onUpdateQuantity(index, item.quantity + 1)}
                       className="w-6 h-6 rounded bg-surface-overlay hover:bg-border text-sm"
+                      aria-label="Increase quantity"
                     >
                       +
                     </button>
@@ -81,6 +83,7 @@ export function Cart({
               <button
                 onClick={() => onRemoveItem(index)}
                 className="text-danger hover:text-danger"
+                aria-label="Remove item"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -146,7 +149,7 @@ export function Cart({
           <button
             onClick={() => onCheckout("cash")}
             disabled={!canCheckout}
-            className="py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
+            className="py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Cash
           </button>

@@ -4,14 +4,27 @@
 
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { Form, Link, useActionData, useNavigation, redirect } from "react-router";
-import { requireTenant } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { createProduct } from "../../../../../lib/db/queries.server";
+import { uploadToB2, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../../lib/storage";
+import { getTenantDb } from "../../../../../lib/db/tenant.server";
+import { redirectWithNotification } from "../../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "New Product - DiveStreams" }];
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { organizationId } = await requireTenant(request);
+  const ctx = await requireOrgContext(request);
+  const organizationId = ctx.org.id;
   const formData = await request.formData();
+
+  // Extract image files before processing other form data
+  const imageFiles: File[] = [];
+  const allImages = formData.getAll("images");
+  for (const item of allImages) {
+    if (item instanceof File && item.size > 0) {
+      imageFiles.push(item);
+    }
+  }
 
   const name = formData.get("name") as string;
   const category = formData.get("category") as string;
@@ -33,6 +46,105 @@ export async function action({ request }: ActionFunctionArgs) {
     stockQuantity: formData.get("stockQuantity") ? parseInt(formData.get("stockQuantity") as string) : undefined,
     lowStockThreshold: formData.get("lowStockThreshold") ? parseInt(formData.get("lowStockThreshold") as string) : undefined,
   });
+
+  // Process uploaded images if any
+  if (imageFiles.length > 0) {
+    // Check if storage is configured BEFORE attempting uploads
+    const s3Client = getS3Client();
+    if (!s3Client) {
+      return redirect(redirectWithNotification(
+        `/tenant/pos/products/${product.id}`,
+        `Product "${name}" created, but image storage is not configured. Contact support to enable image uploads.`,
+        "warning"
+      ));
+    }
+
+    const { db, schema } = getTenantDb(ctx.org.slug);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+    let uploadedCount = 0;
+    const skippedFiles: string[] = [];
+    const failedFiles: string[] = [];
+
+    for (let i = 0; i < Math.min(imageFiles.length, 5); i++) {
+      const file = imageFiles[i];
+
+      // Validate file type
+      if (!isValidImageType(file.type)) {
+        skippedFiles.push(`${file.name} (invalid type: ${file.type})`);
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        skippedFiles.push(`${file.name} (exceeds 10MB limit)`);
+        continue;
+      }
+
+      try {
+        // Process image
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const processed = await processImage(buffer);
+
+        // Generate storage keys
+        const baseKey = getImageKey(ctx.org.slug, "product", product.id, file.name);
+        const originalKey = `${baseKey}.webp`;
+        const thumbnailKey = `${baseKey}-thumb.webp`;
+
+        // Upload to S3/B2
+        const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+        if (!originalUpload) {
+          failedFiles.push(`${file.name} (storage error)`);
+          continue;
+        }
+
+        const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+
+        // Save to database
+        await db.insert(schema.images).values({
+          organizationId,
+          entityType: "product",
+          entityId: product.id,
+          url: originalUpload.cdnUrl,
+          thumbnailUrl: thumbnailUpload?.cdnUrl || originalUpload.cdnUrl,
+          filename: file.name,
+          mimeType: getWebPMimeType(),
+          sizeBytes: processed.original.length,
+          width: processed.width,
+          height: processed.height,
+          alt: file.name,
+          sortOrder: i,
+          isPrimary: i === 0,
+        });
+
+        uploadedCount++;
+      } catch (error) {
+        console.error(`Failed to upload image ${file.name}:`, error);
+        failedFiles.push(`${file.name} (upload failed)`);
+      }
+    }
+
+    // Build detailed message based on results
+    let message: string;
+    let messageType: "success" | "warning" | "error" = "success";
+
+    if (uploadedCount === imageFiles.length) {
+      message = `Product "${name}" created with ${uploadedCount} image${uploadedCount > 1 ? "s" : ""}!`;
+    } else if (uploadedCount > 0) {
+      message = `Product "${name}" created with ${uploadedCount} of ${imageFiles.length} images.`;
+      if (skippedFiles.length > 0) message += ` Skipped: ${skippedFiles.join(", ")}`;
+      if (failedFiles.length > 0) message += ` Failed: ${failedFiles.join(", ")}`;
+      messageType = "warning";
+    } else {
+      message = `Product "${name}" created, but all ${imageFiles.length} image(s) failed to upload.`;
+      if (skippedFiles.length > 0) message += ` Skipped: ${skippedFiles.join(", ")}`;
+      if (failedFiles.length > 0) message += ` Failed: ${failedFiles.join(", ")}`;
+      messageType = "error";
+    }
+
+    return redirect(redirectWithNotification(`/tenant/pos/products/${product.id}`, message, messageType));
+  }
 
   return redirect(`/tenant/pos/products/${product.id}`);
 }
@@ -62,12 +174,12 @@ export default function NewProductPage() {
       </div>
 
       {actionData?.error && (
-        <div className="bg-danger-muted text-danger px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-muted text-danger px-4 py-3 rounded-lg mb-6 max-w-4xl break-words">
           {actionData.error}
         </div>
       )}
 
-      <Form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
+      <Form method="post" encType="multipart/form-data" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
         {/* Basic Info */}
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
@@ -235,6 +347,33 @@ export default function NewProductPage() {
                 />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Images */}
+        <div className="border-t pt-6">
+          <h3 className="font-medium mb-4">Product Images (Optional)</h3>
+          <div>
+            <label htmlFor="images" className="block text-sm font-medium mb-2">
+              Upload up to 5 images
+            </label>
+            <input
+              type="file"
+              id="images"
+              name="images"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              className="block w-full text-sm text-foreground-muted
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-lg file:border-0
+                file:text-sm file:font-medium
+                file:bg-brand file:text-white
+                hover:file:bg-brand-hover
+                file:cursor-pointer cursor-pointer"
+            />
+            <p className="mt-2 text-sm text-foreground-muted">
+              JPEG, PNG, WebP, or GIF. Max 10MB each.
+            </p>
           </div>
         </div>
 

@@ -1,0 +1,6 @@
+name,sku,barcode,category,description,price,costPrice,currency,stockQuantity,lowStockThreshold,taxRate,isActive
+"Dive Mask - Pro Series",MASK-001,123456789012,Equipment,"Professional diving mask with anti-fog coating",89.99,45.00,USD,25,5,0.08,TRUE
+"Snorkel Set",SNORK-001,123456789013,Equipment,"Complete snorkel set with mask and fins",129.99,65.00,USD,15,3,0.08,TRUE
+"Dive Computer - Advanced",COMP-001,123456789014,Electronics,"Advanced dive computer with GPS and wireless connectivity",499.99,250.00,USD,8,2,0.08,TRUE
+"Wetsuit 3mm",SUIT-001,123456789015,Apparel,"3mm neoprene wetsuit for warm water diving",199.99,100.00,USD,12,3,0.08,TRUE
+"Dive Tank - Aluminum 80",TANK-001,123456789016,Equipment,"Standard 80 cubic foot aluminum dive tank",349.99,200.00,USD,10,2,0.08,TRUE

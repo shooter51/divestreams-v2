@@ -5,6 +5,7 @@ import { subscriptionPlans } from "../../../lib/db/schema";
 import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { eq } from "drizzle-orm";
 import { FEATURE_LABELS, type PlanFeaturesObject, type PlanFeatureKey, type PlanLimits } from "../../../lib/plan-features";
+import { createStripeProductAndPrices, updateStripeProductAndPrices } from "../../../lib/stripe/stripe-billing.server";
 
 export const meta: MetaFunction = () => [{ title: "Edit Plan - DiveStreams Admin" }];
 
@@ -87,20 +88,90 @@ export async function action({ request, params }: ActionFunctionArgs) {
   };
 
   try {
+    // Automatically create/update Stripe product and prices
+    let finalMonthlyPriceId = monthlyPriceId;
+    let finalYearlyPriceId = yearlyPriceId;
+
+    // Get feature descriptions for Stripe product
+    const featureDescriptions = features.descriptions || [];
+
     if (planId === "new") {
+      // Create new Stripe product and prices
+      const stripeResult = await createStripeProductAndPrices({
+        planName: name,
+        displayName,
+        monthlyPriceInCents: monthlyPrice,
+        yearlyPriceInCents: yearlyPrice,
+        features: featureDescriptions.slice(0, 5), // Stripe allows max 5 marketing features
+      });
+
+      if (stripeResult) {
+        finalMonthlyPriceId = stripeResult.monthlyPriceId;
+        finalYearlyPriceId = stripeResult.yearlyPriceId;
+        console.log(`Automatically created Stripe prices for plan "${name}"`);
+      } else {
+        console.warn(`Failed to create Stripe prices for plan "${name}" - using manual IDs if provided`);
+      }
+
       // Create new plan
       await db.insert(subscriptionPlans).values({
         name,
         displayName,
         monthlyPrice,
         yearlyPrice,
-        monthlyPriceId: monthlyPriceId || null,
-        yearlyPriceId: yearlyPriceId || null,
+        monthlyPriceId: finalMonthlyPriceId || null,
+        yearlyPriceId: finalYearlyPriceId || null,
         features,
         limits,
         isActive,
+        adminModified: true, // [KAN-594] Mark as admin-customized
+        metadata: stripeResult ? { stripeProductId: stripeResult.productId } : null,
       });
     } else {
+      // Get existing plan to check if we need to update Stripe prices
+      const [existingPlan] = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.id, planId!))
+        .limit(1);
+
+      // Only update Stripe if prices changed or no Stripe IDs exist
+      const pricesChanged = existingPlan && (
+        existingPlan.monthlyPrice !== monthlyPrice ||
+        existingPlan.yearlyPrice !== yearlyPrice
+      );
+      const needsStripeSetup = !existingPlan?.monthlyPriceId || !existingPlan?.yearlyPriceId;
+
+      // Define stripeResult outside the if block so it's accessible for metadata update
+      let stripeResult: Awaited<ReturnType<typeof updateStripeProductAndPrices>> | null = null;
+
+      if (pricesChanged || needsStripeSetup) {
+        stripeResult = await updateStripeProductAndPrices({
+          productId: existingPlan?.metadata?.stripeProductId as string | undefined,
+          oldMonthlyPriceId: existingPlan?.monthlyPriceId || undefined,
+          oldYearlyPriceId: existingPlan?.yearlyPriceId || undefined,
+          planName: name,
+          displayName,
+          monthlyPriceInCents: monthlyPrice,
+          yearlyPriceInCents: yearlyPrice,
+          features: featureDescriptions.slice(0, 5),
+        });
+
+        if (stripeResult) {
+          finalMonthlyPriceId = stripeResult.monthlyPriceId;
+          finalYearlyPriceId = stripeResult.yearlyPriceId;
+          console.log(`Automatically updated Stripe prices for plan "${name}"`);
+        } else {
+          console.warn(`Failed to update Stripe prices for plan "${name}" - keeping existing IDs`);
+          finalMonthlyPriceId = existingPlan?.monthlyPriceId || monthlyPriceId;
+          finalYearlyPriceId = existingPlan?.yearlyPriceId || yearlyPriceId;
+        }
+      } else {
+        // Keep existing Stripe price IDs if no changes
+        finalMonthlyPriceId = existingPlan?.monthlyPriceId || monthlyPriceId;
+        finalYearlyPriceId = existingPlan?.yearlyPriceId || yearlyPriceId;
+      }
+
       // Update existing plan
       await db
         .update(subscriptionPlans)
@@ -109,11 +180,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
           displayName,
           monthlyPrice,
           yearlyPrice,
-          monthlyPriceId: monthlyPriceId || null,
-          yearlyPriceId: yearlyPriceId || null,
+          monthlyPriceId: finalMonthlyPriceId || null,
+          yearlyPriceId: finalYearlyPriceId || null,
           features,
           limits,
           isActive,
+          adminModified: true, // [KAN-594] Mark as admin-customized to prevent migration overwrites
+          metadata: stripeResult
+            ? { stripeProductId: stripeResult.productId }
+            : existingPlan?.metadata, // Preserve existing metadata if no Stripe update
           updatedAt: new Date(),
         })
         .where(eq(subscriptionPlans.id, planId!));
@@ -153,7 +228,7 @@ export default function EditPlanPage() {
 
       <form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
         {actionData?.errors?.form && (
-          <div className="bg-danger-muted text-danger p-3 rounded-lg text-sm">
+          <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words text-sm">
             {actionData.errors.form}
           </div>
         )}
@@ -236,32 +311,33 @@ export default function EditPlanPage() {
             )}
           </div>
 
-          <div>
-            <label htmlFor="monthlyPriceId" className="block text-sm font-medium mb-1">
-              Stripe Monthly Price ID
-            </label>
-            <input
-              type="text"
-              id="monthlyPriceId"
-              name="monthlyPriceId"
-              defaultValue={plan?.monthlyPriceId || ""}
-              placeholder="price_..."
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="yearlyPriceId" className="block text-sm font-medium mb-1">
-              Stripe Yearly Price ID
-            </label>
-            <input
-              type="text"
-              id="yearlyPriceId"
-              name="yearlyPriceId"
-              defaultValue={plan?.yearlyPriceId || ""}
-              placeholder="price_..."
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand font-mono text-sm"
-            />
+          <div className="col-span-2">
+            <div className="bg-brand-muted border border-brand-muted rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-brand mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="font-medium text-brand mb-1">Stripe Integration - Automatic</h3>
+                  <p className="text-sm text-brand">
+                    Stripe products and prices are <strong>automatically created</strong> when you save this plan.
+                    The monthly and yearly price IDs will be generated and linked to this plan.
+                  </p>
+                  {plan?.monthlyPriceId && (
+                    <div className="mt-3 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-brand font-medium">Monthly Price ID:</span>
+                        <code className="text-xs bg-surface-raised px-2 py-1 rounded font-mono">{plan.monthlyPriceId}</code>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-brand font-medium">Yearly Price ID:</span>
+                        <code className="text-xs bg-surface-raised px-2 py-1 rounded font-mono">{plan.yearlyPriceId}</code>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="col-span-2">

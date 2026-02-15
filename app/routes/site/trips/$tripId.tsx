@@ -16,6 +16,7 @@ import { eq, and, sql, asc } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { trips, tours, bookings, images, boats, diveSites, tourDiveSites } from "../../../../lib/db/schema";
 import { organization } from "../../../../lib/db/schema/auth";
+import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { useState } from "react";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -40,7 +41,7 @@ interface TripDetail {
   tourDescription: string | null;
   tourType: string;
   date: string;
-  startTime: string;
+  startTime: string | null;
   endTime: string | null;
   maxParticipants: number;
   availableSpots: number;
@@ -81,31 +82,6 @@ interface DiveSiteInfo {
   difficulty: string | null;
   highlights: string[];
   order: number;
-}
-
-// ============================================================================
-// SUBDOMAIN HELPER
-// ============================================================================
-
-function getSubdomainFromHost(host: string): string | null {
-  if (host.includes("localhost")) {
-    const parts = host.split(".");
-    if (parts.length >= 2 && parts[0] !== "localhost") {
-      return parts[0].toLowerCase();
-    }
-    return null;
-  }
-
-  const parts = host.split(".");
-  if (parts.length >= 3) {
-    const subdomain = parts[0].toLowerCase();
-    if (subdomain === "www" || subdomain === "admin") {
-      return null;
-    }
-    return subdomain;
-  }
-
-  return null;
 }
 
 // ============================================================================
@@ -307,6 +283,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     images: tripImages,
     diveSites: diveSitesList,
     organizationName: org.name,
+    organizationSlug: subdomain || org.slug,
   };
 }
 
@@ -333,7 +310,8 @@ function formatDate(dateString: string): string {
   });
 }
 
-function formatTime(timeString: string): string {
+function formatTime(timeString: string | null): string {
+  if (!timeString) return "Time TBA";
   const [hours, minutes] = timeString.split(":");
   const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? "PM" : "AM";
@@ -365,7 +343,7 @@ function formatPrice(price: string, currency: string): string {
 // ============================================================================
 
 export default function SiteTripDetailPage() {
-  const { trip, images, diveSites, organizationName } = useLoaderData<typeof loader>();
+  const { trip, images, diveSites, organizationName, organizationSlug } = useLoaderData<typeof loader>();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
 
@@ -373,7 +351,7 @@ export default function SiteTripDetailPage() {
   const primaryImage = images.length > 0 ? images[0] : null;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--color-card-bg)" }}>
       {/* Back Link */}
       <div className="max-w-7xl mx-auto px-4 py-4">
         <Link
@@ -411,6 +389,7 @@ export default function SiteTripDetailPage() {
               </svg>
             </div>
           )}
+          {/* Intentional dark overlay for hero text readability - universal across themes */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
           {/* Image count badge */}
@@ -420,7 +399,12 @@ export default function SiteTripDetailPage() {
                 e.stopPropagation();
                 setShowGallery(true);
               }}
-              className="absolute bottom-4 right-4 bg-white/90 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-white transition-colors"
+              className="absolute bottom-4 right-4 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+              style={{
+                backgroundColor: "var(--color-card-bg)",
+                color: "var(--text-color)",
+                opacity: 0.9
+              }}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -431,13 +415,19 @@ export default function SiteTripDetailPage() {
 
           {/* Availability Badge */}
           <div
-            className={`absolute top-4 right-4 px-4 py-2 rounded-full text-sm font-semibold ${
-              isFull
-                ? "bg-red-500 text-white"
+            className="absolute top-4 right-4 px-4 py-2 rounded-full text-sm font-semibold"
+            style={{
+              backgroundColor: isFull
+                ? "var(--danger-bg)"
                 : trip.availableSpots <= 3
-                ? "bg-yellow-400 text-yellow-900"
-                : "bg-green-500 text-white"
-            }`}
+                ? "var(--warning-muted)"
+                : "var(--success-muted)",
+              color: isFull
+                ? "var(--danger-text)"
+                : trip.availableSpots <= 3
+                ? "var(--warning)"
+                : "var(--success)",
+            }}
           >
             {isFull ? "Sold Out" : `${trip.availableSpots} spots available`}
           </div>
@@ -466,9 +456,9 @@ export default function SiteTripDetailPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Description */}
-            <div className="bg-white rounded-xl p-6 shadow-sm" style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}>
-              <h2 className="text-xl font-semibold mb-4">About This Trip</h2>
-              <p className="opacity-80 whitespace-pre-line">
+            <div className="rounded-xl p-6 shadow-sm border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>About This Trip</h2>
+              <p className="opacity-80 whitespace-pre-line" style={{ color: "var(--text-color)" }}>
                 {trip.tourDescription || "Join us for an unforgettable diving experience!"}
               </p>
               {trip.notes && (
@@ -476,45 +466,45 @@ export default function SiteTripDetailPage() {
                   <p className="text-sm font-medium mb-1" style={{ color: "var(--primary-color)" }}>
                     Additional Notes
                   </p>
-                  <p className="text-sm opacity-80">{trip.notes}</p>
+                  <p className="text-sm opacity-80" style={{ color: "var(--text-color)" }}>{trip.notes}</p>
                 </div>
               )}
             </div>
 
             {/* Trip Details */}
-            <div className="bg-white rounded-xl p-6 shadow-sm" style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}>
-              <h2 className="text-xl font-semibold mb-4">Trip Details</h2>
+            <div className="rounded-xl p-6 shadow-sm border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>Trip Details</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <div>
-                  <p className="text-sm opacity-60 mb-1">Date</p>
-                  <p className="font-medium">{formatDate(trip.date)}</p>
+                  <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>Date</p>
+                  <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatDate(trip.date)}</p>
                 </div>
                 <div>
-                  <p className="text-sm opacity-60 mb-1">Start Time</p>
-                  <p className="font-medium">{formatTime(trip.startTime)}</p>
+                  <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>Start Time</p>
+                  <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatTime(trip.startTime)}</p>
                 </div>
                 {trip.endTime && (
                   <div>
-                    <p className="text-sm opacity-60 mb-1">End Time</p>
-                    <p className="font-medium">{formatTime(trip.endTime)}</p>
+                    <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>End Time</p>
+                    <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatTime(trip.endTime)}</p>
                   </div>
                 )}
                 {trip.duration && (
                   <div>
-                    <p className="text-sm opacity-60 mb-1">Duration</p>
-                    <p className="font-medium">{formatDuration(trip.duration)}</p>
+                    <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>Duration</p>
+                    <p className="font-medium" style={{ color: "var(--text-color)" }}>{formatDuration(trip.duration)}</p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm opacity-60 mb-1">Group Size</p>
-                  <p className="font-medium">
+                  <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>Group Size</p>
+                  <p className="font-medium" style={{ color: "var(--text-color)" }}>
                     {trip.minParticipants}-{trip.maxParticipants} divers
                   </p>
                 </div>
                 {trip.boatName && (
                   <div>
-                    <p className="text-sm opacity-60 mb-1">Boat</p>
-                    <p className="font-medium">{trip.boatName}</p>
+                    <p className="text-sm opacity-60 mb-1" style={{ color: "var(--text-color)" }}>Boat</p>
+                    <p className="font-medium" style={{ color: "var(--text-color)" }}>{trip.boatName}</p>
                   </div>
                 )}
               </div>
@@ -522,8 +512,8 @@ export default function SiteTripDetailPage() {
 
             {/* Dive Sites */}
             {diveSites.length > 0 && (
-              <div className="bg-white rounded-xl p-6 shadow-sm" style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}>
-                <h2 className="text-xl font-semibold mb-4">Dive Sites</h2>
+              <div className="rounded-xl p-6 shadow-sm border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
+                <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>Dive Sites</h2>
                 <div className="space-y-4">
                   {diveSites.map((site, index) => (
                     <div
@@ -536,23 +526,23 @@ export default function SiteTripDetailPage() {
                           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold mr-2" style={{ backgroundColor: "var(--primary-color)", color: "white" }}>
                             {index + 1}
                           </span>
-                          <span className="font-semibold">{site.name}</span>
+                          <span className="font-semibold" style={{ color: "var(--text-color)" }}>{site.name}</span>
                         </div>
                         {site.difficulty && (
-                          <span className="text-xs px-2 py-1 rounded-full bg-white/80">
+                          <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}>
                             {site.difficulty}
                           </span>
                         )}
                       </div>
                       {site.description && (
-                        <p className="mt-2 text-sm opacity-80">{site.description}</p>
+                        <p className="mt-2 text-sm opacity-80" style={{ color: "var(--text-color)" }}>{site.description}</p>
                       )}
                       <div className="mt-2 flex flex-wrap gap-3 text-sm">
                         {site.maxDepth && (
-                          <span className="opacity-60">Max Depth: {site.maxDepth}m</span>
+                          <span className="opacity-60" style={{ color: "var(--text-color)" }}>Max Depth: {site.maxDepth}m</span>
                         )}
                         {site.highlights.length > 0 && (
-                          <span className="opacity-60">
+                          <span className="opacity-60" style={{ color: "var(--text-color)" }}>
                             Highlights: {site.highlights.slice(0, 3).join(", ")}
                           </span>
                         )}
@@ -564,15 +554,15 @@ export default function SiteTripDetailPage() {
             )}
 
             {/* What's Included */}
-            <div className="bg-white rounded-xl p-6 shadow-sm" style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}>
-              <h2 className="text-xl font-semibold mb-4">What's Included</h2>
+            <div className="rounded-xl p-6 shadow-sm border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>What's Included</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-medium text-green-700 mb-3">Included</h3>
+                  <h3 className="text-sm font-medium text-success mb-3">Included</h3>
                   <ul className="space-y-2">
                     {trip.includesEquipment && (
                       <li className="flex items-center gap-2 text-sm">
-                        <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         Dive equipment rental
@@ -580,7 +570,7 @@ export default function SiteTripDetailPage() {
                     )}
                     {trip.includesMeals && (
                       <li className="flex items-center gap-2 text-sm">
-                        <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         Meals & refreshments
@@ -588,38 +578,38 @@ export default function SiteTripDetailPage() {
                     )}
                     {trip.includesTransport && (
                       <li className="flex items-center gap-2 text-sm">
-                        <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         Transportation
                       </li>
                     )}
                     {trip.inclusions.map((item, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm">
-                        <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-color)" }}>
+                        <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         {item}
                       </li>
                     ))}
                     {!trip.includesEquipment && !trip.includesMeals && !trip.includesTransport && trip.inclusions.length === 0 && (
-                      <li className="text-sm opacity-60">Basic trip package</li>
+                      <li className="text-sm opacity-60" style={{ color: "var(--text-color)" }}>Basic trip package</li>
                     )}
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium opacity-60 mb-3">Not Included</h3>
+                  <h3 className="text-sm font-medium opacity-60 mb-3" style={{ color: "var(--text-color)" }}>Not Included</h3>
                   <ul className="space-y-2">
                     {trip.exclusions.map((item, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm opacity-70">
-                        <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <li key={i} className="flex items-center gap-2 text-sm opacity-70" style={{ color: "var(--text-color)" }}>
+                        <svg className="w-5 h-5 flex-shrink-0" style={{ color: "var(--color-border)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                         {item}
                       </li>
                     ))}
                     {trip.exclusions.length === 0 && (
-                      <li className="text-sm opacity-60">None specified</li>
+                      <li className="text-sm opacity-60" style={{ color: "var(--text-color)" }}>None specified</li>
                     )}
                   </ul>
                 </div>
@@ -628,8 +618,8 @@ export default function SiteTripDetailPage() {
 
             {/* Requirements */}
             {(trip.minCertLevel || trip.minAge || trip.requirements.length > 0) && (
-              <div className="bg-white rounded-xl p-6 shadow-sm" style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}>
-                <h2 className="text-xl font-semibold mb-4">Requirements</h2>
+              <div className="rounded-xl p-6 shadow-sm border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
+                <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-color)" }}>Requirements</h2>
                 <div className="space-y-4">
                   {trip.minCertLevel && (
                     <div className="flex items-start gap-3">
@@ -637,8 +627,8 @@ export default function SiteTripDetailPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                       </svg>
                       <div>
-                        <p className="font-medium">Minimum Certification</p>
-                        <p className="text-sm opacity-70">{trip.minCertLevel} or equivalent</p>
+                        <p className="font-medium" style={{ color: "var(--text-color)" }}>Minimum Certification</p>
+                        <p className="text-sm opacity-70" style={{ color: "var(--text-color)" }}>{trip.minCertLevel} or equivalent</p>
                       </div>
                     </div>
                   )}
@@ -648,17 +638,17 @@ export default function SiteTripDetailPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                       <div>
-                        <p className="font-medium">Minimum Age</p>
-                        <p className="text-sm opacity-70">{trip.minAge} years old</p>
+                        <p className="font-medium" style={{ color: "var(--text-color)" }}>Minimum Age</p>
+                        <p className="text-sm opacity-70" style={{ color: "var(--text-color)" }}>{trip.minAge} years old</p>
                       </div>
                     </div>
                   )}
                   {trip.requirements.map((req, i) => (
                     <div key={i} className="flex items-start gap-3">
-                      <svg className="w-5 h-5 mt-0.5 flex-shrink-0 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-5 h-5 mt-0.5 flex-shrink-0 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                       </svg>
-                      <p className="text-sm">{req}</p>
+                      <p className="text-sm" style={{ color: "var(--text-color)" }}>{req}</p>
                     </div>
                   ))}
                 </div>
@@ -667,14 +657,14 @@ export default function SiteTripDetailPage() {
 
             {/* Weather Notes */}
             {trip.weatherNotes && (
-              <div className="bg-blue-50 rounded-xl p-6" style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}>
+              <div className="rounded-xl p-6 border" style={{ backgroundColor: "var(--accent-color)", borderColor: "var(--color-border)" }}>
                 <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 flex-shrink-0" style={{ color: "var(--primary-color)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
                   </svg>
                   <div>
-                    <h3 className="font-semibold text-blue-900">Weather & Conditions</h3>
-                    <p className="text-sm text-blue-800 mt-1">{trip.weatherNotes}</p>
+                    <h3 className="font-semibold" style={{ color: "var(--text-color)" }}>Weather & Conditions</h3>
+                    <p className="text-sm mt-1" style={{ color: "var(--text-color)" }}>{trip.weatherNotes}</p>
                   </div>
                 </div>
               </div>
@@ -683,10 +673,10 @@ export default function SiteTripDetailPage() {
 
           {/* Booking Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 bg-white rounded-xl p-6 shadow-lg" style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}>
+            <div className="sticky top-24 rounded-xl p-6 shadow-lg border" style={{ backgroundColor: "var(--color-card-bg)", borderColor: "var(--color-border)" }}>
               {/* Price */}
               <div className="text-center mb-6">
-                <p className="text-sm opacity-60">Price per person</p>
+                <p className="text-sm opacity-60" style={{ color: "var(--text-color)" }}>Price per person</p>
                 <p className="text-4xl font-bold" style={{ color: "var(--primary-color)" }}>
                   {formatPrice(trip.price, trip.currency)}
                 </p>
@@ -695,21 +685,21 @@ export default function SiteTripDetailPage() {
               {/* Availability */}
               <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: "var(--accent-color)" }}>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Availability</span>
-                  <span className={`text-sm font-semibold ${isFull ? "text-red-600" : "text-green-600"}`}>
+                  <span className="text-sm font-medium" style={{ color: "var(--text-color)" }}>Availability</span>
+                  <span className={`text-sm font-semibold ${isFull ? "text-danger" : "text-success"}`}>
                     {isFull ? "Sold Out" : `${trip.availableSpots} spots left`}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full rounded-full h-2" style={{ backgroundColor: "var(--color-border)" }}>
                   <div
                     className="h-2 rounded-full transition-all"
                     style={{
                       width: `${(trip.bookedCount / trip.maxParticipants) * 100}%`,
-                      backgroundColor: isFull ? "#ef4444" : "var(--primary-color)",
+                      backgroundColor: isFull ? "var(--danger)" : "var(--primary-color)",
                     }}
                   />
                 </div>
-                <p className="text-xs opacity-60 mt-2 text-center">
+                <p className="text-xs opacity-60 mt-2 text-center" style={{ color: "var(--text-color)" }}>
                   {trip.bookedCount} of {trip.maxParticipants} booked
                 </p>
               </div>
@@ -717,30 +707,30 @@ export default function SiteTripDetailPage() {
               {/* Quick Info */}
               <div className="space-y-3 mb-6 text-sm">
                 <div className="flex justify-between">
-                  <span className="opacity-60">Date</span>
-                  <span className="font-medium">{formatDate(trip.date)}</span>
+                  <span className="opacity-60" style={{ color: "var(--text-color)" }}>Date</span>
+                  <span className="font-medium" style={{ color: "var(--text-color)" }}>{formatDate(trip.date)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="opacity-60">Time</span>
-                  <span className="font-medium">{formatTime(trip.startTime)}</span>
+                  <span className="opacity-60" style={{ color: "var(--text-color)" }}>Time</span>
+                  <span className="font-medium" style={{ color: "var(--text-color)" }}>{formatTime(trip.startTime)}</span>
                 </div>
                 {trip.duration && (
                   <div className="flex justify-between">
-                    <span className="opacity-60">Duration</span>
-                    <span className="font-medium">{formatDuration(trip.duration)}</span>
+                    <span className="opacity-60" style={{ color: "var(--text-color)" }}>Duration</span>
+                    <span className="font-medium" style={{ color: "var(--text-color)" }}>{formatDuration(trip.duration)}</span>
                   </div>
                 )}
               </div>
 
               {/* Book Now Button */}
               <Link
-                to={`/site/book/trip/${trip.id}`}
+                to={`/embed/${organizationSlug}/book?tripId=${trip.id}`}
                 className={`block w-full py-4 rounded-lg text-center font-semibold text-lg transition-opacity ${
                   isFull
-                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    ? "text-white cursor-not-allowed"
                     : "text-white hover:opacity-90"
                 }`}
-                style={isFull ? {} : { backgroundColor: "var(--primary-color)" }}
+                style={{ backgroundColor: isFull ? "var(--surface-overlay)" : "var(--primary-color)" }}
                 onClick={(e) => {
                   if (isFull) e.preventDefault();
                 }}
@@ -750,14 +740,14 @@ export default function SiteTripDetailPage() {
 
               {/* Inclusions Quick List */}
               {(trip.includesEquipment || trip.includesMeals || trip.includesTransport) && (
-                <div className="mt-6 pt-6 border-t" style={{ borderColor: "var(--accent-color)" }}>
-                  <p className="text-xs font-medium opacity-60 mb-3">INCLUDED IN PRICE</p>
+                <div className="mt-6 pt-6 border-t" style={{ borderColor: "var(--color-border)" }}>
+                  <p className="text-xs font-medium opacity-60 mb-3" style={{ color: "var(--text-color)" }}>INCLUDED IN PRICE</p>
                   <div className="flex flex-wrap gap-2">
                     {trip.includesEquipment && (
-                      <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Equipment</span>
+                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--info-muted)", color: "var(--info)" }}>Equipment</span>
                     )}
                     {trip.includesMeals && (
-                      <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Meals</span>
+                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--success-muted)", color: "var(--success)" }}>Meals</span>
                     )}
                     {trip.includesTransport && (
                       <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">Transport</span>
@@ -767,8 +757,8 @@ export default function SiteTripDetailPage() {
               )}
 
               {/* Questions */}
-              <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "var(--accent-color)" }}>
-                <p className="text-sm opacity-60 mb-2">Have questions?</p>
+              <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "var(--color-border)" }}>
+                <p className="text-sm opacity-60 mb-2" style={{ color: "var(--text-color)" }}>Have questions?</p>
                 <Link
                   to="/site/contact"
                   className="text-sm font-medium hover:underline"

@@ -11,10 +11,10 @@ describe("Storage Index", () => {
     it("exports B2 storage functions", async () => {
       const storageModule = await import("../../../../lib/storage");
 
-      // B2 exports
+      // B2 exports (using native B2 SDK, not S3 client)
       expect(storageModule.uploadToB2).toBeDefined();
       expect(storageModule.deleteFromB2).toBeDefined();
-      expect(storageModule.getS3Client).toBeDefined();
+      expect(storageModule.getImageKey).toBeDefined();
     });
 
     it("exports image processor functions", async () => {
@@ -34,9 +34,9 @@ describe("Storage Index", () => {
       expect(typeof deleteFromB2).toBe("function");
     });
 
-    it("getS3Client is a function", async () => {
-      const { getS3Client } = await import("../../../../lib/storage");
-      expect(typeof getS3Client).toBe("function");
+    it("getImageKey is a function", async () => {
+      const { getImageKey } = await import("../../../../lib/storage");
+      expect(typeof getImageKey).toBe("function");
     });
 
     it("processImage is a function", async () => {

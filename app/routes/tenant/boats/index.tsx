@@ -6,6 +6,8 @@ import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { boats as boatsTable, trips } from "../../../../lib/db/schema";
 import { eq, ilike, sql, count, and } from "drizzle-orm";
+import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Boats - DiveStreams" }];
 
@@ -64,6 +66,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const tripCountMap = new Map(tripCounts.map(t => [t.boatId, t.count]));
 
+  // Get tenant database for images query
+  const { db: tenantDb, schema: tenantSchema } = getTenantDb(ctx.org.id);
+
+  // Query primary images for all boats
+  const boatIds = rawBoats.map(b => b.id);
+  const boatImages = boatIds.length > 0 ? await tenantDb
+    .select({
+      entityId: tenantSchema.images.entityId,
+      thumbnailUrl: tenantSchema.images.thumbnailUrl,
+      url: tenantSchema.images.url,
+    })
+    .from(tenantSchema.images)
+    .where(
+      and(
+        eq(tenantSchema.images.organizationId, ctx.org.id),
+        eq(tenantSchema.images.entityType, "boat"),
+        eq(tenantSchema.images.isPrimary, true)
+      )
+    ) : [];
+
+  const imageMap = new Map(boatImages.map(img => [img.entityId, img.thumbnailUrl || img.url]));
+
   // Transform to UI format
   const boats = rawBoats.map((b) => ({
     id: b.id,
@@ -75,6 +99,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     amenities: Array.isArray(b.amenities) ? b.amenities : [],
     isActive: b.isActive ?? true,
     tripCount: tripCountMap.get(b.id) || 0,
+    imageUrl: imageMap.get(b.id),
   }));
 
   const totalCapacity = boats.filter((b) => b.isActive).reduce((sum, b) => sum + b.capacity, 0);
@@ -91,6 +116,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function BoatsPage() {
+  // Show notifications from URL params
+  useNotification();
+
   const { boats, total, activeCount, totalCapacity, search } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -171,15 +199,33 @@ export default function BoatsPage() {
             <Link
               key={boat.id}
               to={`/tenant/boats/${boat.id}`}
-              className={`bg-surface-raised rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow ${
+              className={`bg-surface-raised rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow ${
                 !boat.isActive ? "opacity-60" : ""
               }`}
             >
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="font-semibold text-lg">{boat.name}</h3>
-                  <p className="text-foreground-muted text-sm">{boat.type}</p>
+              {/* Boat Image */}
+              {boat.imageUrl ? (
+                <div className="w-full h-48 overflow-hidden">
+                  <img
+                    src={boat.imageUrl}
+                    alt={boat.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+              ) : (
+                <div className="w-full h-48 bg-surface-inset flex items-center justify-center">
+                  <svg className="w-16 h-16 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+
+              <div className="p-5">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="font-semibold text-lg">{boat.name}</h3>
+                    <p className="text-foreground-muted text-sm">{boat.type}</p>
+                  </div>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
                     boat.isActive ? "bg-success-muted text-success" : "bg-surface-inset text-foreground-muted"
@@ -221,6 +267,7 @@ export default function BoatsPage() {
                   Reg: {boat.registrationNumber}
                 </p>
               )}
+              </div>
             </Link>
           ))}
         </div>
