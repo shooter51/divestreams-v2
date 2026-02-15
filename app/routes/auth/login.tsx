@@ -81,7 +81,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Rate limit login attempts
   const clientIp = getClientIp(request);
-  const rateLimitResult = checkRateLimit(`login:${clientIp}`, {
+  const rateLimitResult = await checkRateLimit(`login:${clientIp}`, {
     maxAttempts: 10,
     windowMs: 15 * 60 * 1000,
   });

@@ -87,6 +87,13 @@ async function globalSetup(config: FullConfig) {
         }
 
         demoUserId = userResult.user.id;
+
+        // Verify email for E2E tests
+        await db
+          .update(user)
+          .set({ emailVerified: true })
+          .where(eq(user.id, demoUserId));
+
         console.log("✓ Demo owner user created");
       } catch (error) {
         // Race condition: user may have been created by another worker between check and create
@@ -105,6 +112,15 @@ async function globalSetup(config: FullConfig) {
       }
     } else {
       demoUserId = existingUser.id;
+
+      // Ensure email is verified for existing users
+      if (!existingUser.emailVerified) {
+        await db
+          .update(user)
+          .set({ emailVerified: true })
+          .where(eq(user.id, demoUserId));
+      }
+
       console.log("✓ Demo owner user already exists");
     }
 
@@ -243,6 +259,13 @@ async function globalSetup(config: FullConfig) {
         }
 
         platformAdminUserId = adminResult.user.id;
+
+        // Verify email for E2E tests
+        await db
+          .update(user)
+          .set({ emailVerified: true })
+          .where(eq(user.id, platformAdminUserId));
+
         console.log("✓ Platform admin user created");
       } catch (error) {
         // Race condition handling
@@ -261,6 +284,15 @@ async function globalSetup(config: FullConfig) {
       }
     } else {
       platformAdminUserId = existingPlatformAdmin.id;
+
+      // Ensure email is verified for existing users
+      if (!existingPlatformAdmin.emailVerified) {
+        await db
+          .update(user)
+          .set({ emailVerified: true })
+          .where(eq(user.id, platformAdminUserId));
+      }
+
       console.log("✓ Platform admin user already exists");
     }
 

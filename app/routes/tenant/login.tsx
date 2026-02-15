@@ -133,7 +133,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Verify session matches the userId to prevent unauthorized joins
-    const sessionData = await auth.api.getSession({ headers: request.headers });
+    // sessionData already fetched above at line 119
     if (!sessionData?.user || sessionData.user.id !== userId) {
       return { error: "Unauthorized: session mismatch" };
     }
@@ -175,9 +175,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email");
   const password = formData.get("password");
 
-  // Rate limit login attempts
-  const clientIp = getClientIp(request);
-  const rateLimitResult = checkRateLimit(`tenant-login:${clientIp}`, {
+  // Rate limit login attempts (clientIp already fetched above at line 101)
+  const rateLimitResult = await checkRateLimit(`tenant-login:${clientIp}`, {
     maxAttempts: 10,
     windowMs: 15 * 60 * 1000,
   });

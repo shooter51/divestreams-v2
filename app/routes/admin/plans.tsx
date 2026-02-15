@@ -5,6 +5,7 @@ import { db } from "../../../lib/db";
 import { subscriptionPlans, subscription, tenants } from "../../../lib/db/schema";
 import { eq, desc, count } from "drizzle-orm";
 import { useToast } from "../../../lib/toast-context";
+import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 
 export const meta: MetaFunction = () => [{ title: "Plans - DiveStreams Admin" }];
 
