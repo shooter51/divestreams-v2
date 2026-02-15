@@ -198,6 +198,51 @@ echo "<GITHUB_PAT>" | docker login ghcr.io -u shooter51 --password-stdin
 - `staging` → Test VPS (human QA)
 - `main` → Production (live)
 
+### Branch Protection Rules
+All three branches are protected. Direct pushes are blocked — changes must go through PRs.
+
+| Branch | Required CI Checks | PR Required | Notes |
+|--------|-------------------|-------------|-------|
+| **develop** | `test` (lint + typecheck + unit tests) | Yes | Fast gate for AI agent work |
+| **staging** | `test` + `e2e` (full suite) | Yes | Full gate before human QA |
+| **main** | `test` + `e2e` (full suite) | Yes | Production gate |
+
+**All CI gates are enforced.** Lint errors, type errors, and test failures will block deployment. There are no `continue-on-error` flags in the pipeline.
+
+### AI Agent Workflow (Vibe Coding)
+```
+1. vibe-kanban creates workspace → feature branch (vk/xxxx-...)
+2. AI agent works on feature branch
+3. PR to develop → unit tests gate → merge
+4. develop auto-deploys to Dev VPS
+5. PR to staging → unit tests + E2E gate → merge
+6. staging auto-deploys to Test VPS → smoke tests
+7. Tom tests on Test VPS
+8. PR to main → merge → retag :test → :latest → deploy Prod
+```
+
+### Checking CI Failures
+```bash
+# List recent CI runs
+gh run list --limit 5
+
+# View a specific run
+gh run view <run-id>
+
+# View failed job logs
+gh run view <run-id> --log-failed
+
+# Re-run failed jobs
+gh run rerun <run-id> --failed
+```
+
+### Pre-Push Checklist (Run Before PR)
+```bash
+npm run lint         # Must have 0 errors (warnings OK)
+npm run typecheck    # Must pass cleanly
+npm test -- --run    # Must have 0 failures
+```
+
 ### Environment Variables
 Set in `.env` files on each VPS:
 - `DB_PASSWORD` - PostgreSQL password
