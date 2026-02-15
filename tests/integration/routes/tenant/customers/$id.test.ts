@@ -21,9 +21,18 @@ describe("app/routes/tenant/customers/$id.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
-      tenant: { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() },
-      organizationId: mockOrganizationId,
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
+      org: { id: "org-123", name: "Test Org", slug: "test", createdAt: new Date() },
+      user: { id: "user-1", email: "owner@example.com", name: "Owner" },
+      session: { id: "session-1" },
+      membership: { id: "member-1", role: "owner" },
+      subscription: null,
+      limits: {
+        customers: 50, bookingsPerMonth: 100, tours: 10, teamMembers: 1,
+        hasPOS: true, hasEquipmentRentals: true, hasAdvancedReports: false, hasEmailNotifications: false,
+      },
+      usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
+      canAddCustomer: true, canAddTour: true, canAddBooking: true, isPremium: false,
     } as any);
   });
 

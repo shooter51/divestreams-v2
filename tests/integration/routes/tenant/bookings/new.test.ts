@@ -18,7 +18,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
       tenant: mockTenant,
       organizationId: mockOrganizationId,
     } as any);

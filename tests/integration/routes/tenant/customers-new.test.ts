@@ -24,7 +24,7 @@ vi.mock("react-router", async () => {
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
-  requireTenant: vi.fn(),
+  requireOrgContext: vi.fn(),
   requireOrgContext: vi.fn(),
 }));
 
@@ -41,20 +41,22 @@ vi.mock("../../../../lib/plan-features", () => ({
 }));
 
 import { action, loader } from "../../../../app/routes/tenant/customers/new";
-import { requireTenant, requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createCustomer } from "../../../../lib/db/queries.server";
 
 describe("tenant/customers/new route", () => {
-  const mockTenantContext = {
-    tenant: {
-      id: "tenant-1",
-      subdomain: "demo",
-      schemaName: "tenant_demo",
-      name: "Demo Dive Shop",
-      subscriptionStatus: "active",
-      trialEndsAt: null,
+  const mockOrgContext = {
+    org: { id: "org-uuid-123", name: "Demo Dive Shop", slug: "demo", createdAt: new Date() },
+    user: { id: "user-1", email: "owner@example.com", name: "Owner" },
+    session: { id: "session-1" },
+    membership: { id: "member-1", role: "owner" },
+    subscription: null,
+    limits: {
+      customers: 50, bookingsPerMonth: 100, tours: 10, teamMembers: 1,
+      hasPOS: false, hasEquipmentRentals: true, hasAdvancedReports: false, hasEmailNotifications: false,
     },
-    organizationId: "org-uuid-123",
+    usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
+    canAddCustomer: true, canAddTour: true, canAddBooking: true, isPremium: false,
   };
 
   const mockOrgContext = {
@@ -77,7 +79,7 @@ describe("tenant/customers/new route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRedirect.mockClear();
-    (requireTenant as Mock).mockResolvedValue(mockTenantContext);
+    (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
     (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
   });
 

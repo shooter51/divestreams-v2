@@ -14,7 +14,7 @@ import type { Mock } from "vitest";
 // Mock the organization context
 vi.mock("../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
-  requireTenant: vi.fn(),
+  requireOrgContext: vi.fn(),
 }));
 
 // Mock database
@@ -37,7 +37,7 @@ vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
-import { requireOrgContext, requireTenant } from "../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { eq, and } from "drizzle-orm";
 
@@ -54,7 +54,7 @@ describe("Tenant Action Isolation", () => {
     membership: { role: "owner" },
   };
 
-  const mockTenantContextA = {
+  const mockOrgContextA = {
     tenant: {
       id: "org-a-uuid-123",
       subdomain: "shop-a",
@@ -64,7 +64,7 @@ describe("Tenant Action Isolation", () => {
     organizationId: "org-a-uuid-123",
   };
 
-  const mockTenantContextB = {
+  const mockOrgContextB = {
     tenant: {
       id: "org-b-uuid-456",
       subdomain: "shop-b",
@@ -80,10 +80,10 @@ describe("Tenant Action Isolation", () => {
 
   describe("Customer Creation Isolation", () => {
     it("creates customer with correct organization ID", () => {
-      (requireTenant as Mock).mockResolvedValue(mockTenantContextA);
+      (requireOrgContext as Mock).mockResolvedValue(mockOrgContextA);
 
       const customerData = {
-        organizationId: mockTenantContextA.organizationId,
+        organizationId: mockOrgContextA.organizationId,
         firstName: "John",
         lastName: "Doe",
         email: "john@example.com",
@@ -97,8 +97,8 @@ describe("Tenant Action Isolation", () => {
     it("tenant A cannot create customers for tenant B", () => {
       // Even if malicious data is submitted, the server should use
       // the organizationId from the authenticated context
-      const serverOrgId = mockTenantContextA.organizationId;
-      const attemptedOrgId = mockTenantContextB.organizationId;
+      const serverOrgId = mockOrgContextA.organizationId;
+      const attemptedOrgId = mockOrgContextB.organizationId;
 
       // Server should override any submitted organizationId
       const customerData = {
@@ -114,17 +114,17 @@ describe("Tenant Action Isolation", () => {
   describe("Booking Creation Isolation", () => {
     it("creates booking with correct organization ID", () => {
       const bookingData = {
-        organizationId: mockTenantContextA.organizationId,
+        organizationId: mockOrgContextA.organizationId,
         customerId: "customer-123",
         tripId: "trip-456",
         participants: 2,
       };
 
-      expect(bookingData.organizationId).toBe(mockTenantContextA.organizationId);
+      expect(bookingData.organizationId).toBe(mockOrgContextA.organizationId);
     });
 
     it("verifies customer belongs to same organization", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const customerId = "customer-123";
       const mockTable = { organizationId: "organizationId", id: "id" };
 
@@ -138,7 +138,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("verifies trip belongs to same organization", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const tripId = "trip-456";
       const mockTable = { organizationId: "organizationId", id: "id" };
 
@@ -154,7 +154,7 @@ describe("Tenant Action Isolation", () => {
 
   describe("Update Operations Isolation", () => {
     it("updates only filter by organization ID", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const recordId = "record-123";
       const mockTable = { organizationId: "organizationId", id: "id" };
 
@@ -170,7 +170,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("tenant A cannot update tenant B records", () => {
-      const tenantAOrgId = mockTenantContextA.organizationId;
+      const tenantAOrgId = mockOrgContextA.organizationId;
       const tenantBRecordId = "tenant-b-record";
 
       // When tenant A tries to update tenant B's record,
@@ -185,7 +185,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("customer update includes org check", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const customerId = "customer-123";
 
       const conditions = [
@@ -197,7 +197,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("booking status update includes org check", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const bookingId = "booking-123";
 
       const conditions = [
@@ -211,7 +211,7 @@ describe("Tenant Action Isolation", () => {
 
   describe("Delete Operations Isolation", () => {
     it("deletes only filter by organization ID", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const recordId = "record-123";
       const mockTable = { organizationId: "organizationId", id: "id" };
 
@@ -225,7 +225,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("tenant A cannot delete tenant B records", () => {
-      const tenantAOrgId = mockTenantContextA.organizationId;
+      const tenantAOrgId = mockOrgContextA.organizationId;
       const tenantBRecordId = "tenant-b-record";
 
       // Similar to update, delete should have 0 rows affected
@@ -238,7 +238,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("soft delete includes org check", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const customerId = "customer-123";
 
       // For soft deletes (setting deletedAt), same isolation applies
@@ -255,7 +255,7 @@ describe("Tenant Action Isolation", () => {
 
   describe("Query Isolation Patterns", () => {
     it("list queries always include org filter", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const mockTable = { organizationId: "organizationId" };
 
       db.select();
@@ -266,7 +266,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("detail queries include org filter", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const recordId = "record-123";
       const mockTable = { organizationId: "organizationId", id: "id" };
 
@@ -281,7 +281,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("search queries include org filter", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const searchTerm = "john";
 
       // Even with search/filter conditions, org filter is required
@@ -294,7 +294,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("aggregation queries include org filter", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
 
       // Count, sum, etc. should be scoped to organization
       const aggregateConfig = {
@@ -308,7 +308,7 @@ describe("Tenant Action Isolation", () => {
 
   describe("Foreign Key Relationship Isolation", () => {
     it("booking references valid customer from same org", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const customerId = "customer-123";
 
       // Before booking creation, validate customer exists in same org
@@ -324,7 +324,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("booking references valid trip from same org", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const tripId = "trip-456";
 
       const validationQuery = {
@@ -339,7 +339,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("trip references valid tour from same org", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const tourId = "tour-789";
 
       const validationQuery = {
@@ -354,7 +354,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("equipment rental references valid equipment from same org", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const equipmentId = "equipment-123";
 
       const validationQuery = {
@@ -371,7 +371,7 @@ describe("Tenant Action Isolation", () => {
 
   describe("Batch Operation Isolation", () => {
     it("bulk update only affects org records", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const recordIds = ["record-1", "record-2", "record-3"];
 
       // Bulk operations must include org filter
@@ -385,7 +385,7 @@ describe("Tenant Action Isolation", () => {
     });
 
     it("bulk delete only affects org records", () => {
-      const orgId = mockTenantContextA.organizationId;
+      const orgId = mockOrgContextA.organizationId;
       const recordIds = ["record-1", "record-2"];
 
       const bulkConfig = {

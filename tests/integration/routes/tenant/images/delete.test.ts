@@ -15,7 +15,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireTenant).mockResolvedValue({
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
       tenant: mockTenant,
       organizationId: "org-123",
     } as any);
