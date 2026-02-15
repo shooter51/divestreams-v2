@@ -109,6 +109,7 @@ describe("tenant/login route", () => {
     mockRedirect.mockClear();
     shouldThrowRedirect = false; // Reset for each test
     (getOrgContext as Mock).mockResolvedValue(null); // Default: no org context
+    (auth.api.getSession as Mock).mockResolvedValue(null); // Default: no session
   });
 
   describe("loader", () => {
@@ -418,7 +419,8 @@ describe("tenant/login route", () => {
         expect(db.insert).toHaveBeenCalled();
       });
 
-      it("returns error when userId is missing", async () => {
+      it("returns error when not logged in", async () => {
+        // No session mock - getSession returns null (default from beforeEach)
         const formData = new FormData();
         formData.append("intent", "join");
         formData.append("orgId", "org-1");
@@ -430,13 +432,18 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Missing user or organization information", email: "" });
+        expect(response).toEqual({ error: "You must be logged in to join an organization" });
       });
 
       it("returns error when orgId is missing", async () => {
+        // Mock session so code reaches the validation check
+        (auth.api.getSession as Mock).mockResolvedValue({
+          user: { id: "user-1", email: "user@example.com" },
+          session: { id: "session-1" },
+        });
+
         const formData = new FormData();
         formData.append("intent", "join");
-        formData.append("userId", "user-1");
 
         const request = new Request("https://demo.divestreams.com/login", {
           method: "POST",

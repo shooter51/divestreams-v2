@@ -15,7 +15,8 @@ import { eq } from "drizzle-orm";
 import { handleSubscriptionUpdated } from "../lib/stripe/index";
 import type Stripe from "stripe";
 
-const hasDb = process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('divestreams:divestreams');
+// Skip unless explicitly running with a seeded database (this test needs subscription plans)
+const hasDb = process.env.DATABASE_URL && process.env.RUN_DB_TESTS === 'true';
 
 describe.skipIf(!hasDb)("Subscription Plan Persistence (DIVE-166)", () => {
   let testOrgId: string;
