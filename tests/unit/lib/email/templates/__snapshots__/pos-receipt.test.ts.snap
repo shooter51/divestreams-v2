@@ -1,0 +1,126 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`getPOSReceiptEmail > should generate correct output for default data 2`] = `
+"<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #0066cc 0%, #0099ff 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">Receipt</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Dive Shop Inc</p>
+  </div>
+
+  <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+    <p style="font-size: 16px; margin-bottom: 20px;">
+      Hi John Doe,
+    </p>
+
+    <p style="margin-bottom: 20px;">
+      Thank you for your purchase! Here's your receipt for reference.
+    </p>
+
+    <!-- Receipt Details -->
+    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb;">
+        <div>
+          <p style="margin: 0; color: #666; font-size: 12px;">RECEIPT NUMBER</p>
+          <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 14px;">REC-001</p>
+        </div>
+        <div style="text-align: right;">
+          <p style="margin: 0; color: #666; font-size: 12px;">DATE</p>
+          <p style="margin: 5px 0 0 0; font-size: 14px;">2024-01-15 10:30 AM</p>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <h3 style="margin: 20px 0 10px 0; font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Items</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+        
+          <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #f3f4f6;">
+              <div style="font-weight: 500;">Dive Mask</div>
+              <div style="font-size: 12px; color: #666;">2 × USD 45.00</div>
+            </td>
+            <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #f3f4f6; font-weight: 500;">
+              USD 90.00
+            </td>
+          </tr>
+        
+          <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #f3f4f6;">
+              <div style="font-weight: 500;">Snorkel</div>
+              <div style="font-size: 12px; color: #666;">1 × USD 25.00</div>
+            </td>
+            <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #f3f4f6; font-weight: 500;">
+              USD 25.00
+            </td>
+          </tr>
+        
+      </table>
+
+      <!-- Totals -->
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <tr>
+          <td style="padding: 8px 0; color: #666;">Subtotal:</td>
+          <td style="padding: 8px 0; text-align: right;">USD 115.00</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #666;">VAT:</td>
+          <td style="padding: 8px 0; text-align: right;">USD 11.50</td>
+        </tr>
+        <tr style="border-top: 2px solid #e5e7eb;">
+          <td style="padding: 12px 0; font-weight: bold; font-size: 16px;">Total:</td>
+          <td style="padding: 12px 0; text-align: right; font-weight: bold; font-size: 16px; color: #059669;">
+            USD 126.50
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #666;">Payment Method:</td>
+          <td style="padding: 8px 0; text-align: right; text-transform: capitalize;">credit card</td>
+        </tr>
+      </table>
+    </div>
+
+    <p style="color: #666; font-size: 14px; margin-top: 25px; text-align: center;">
+      Thank you for your business!
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
+
+    <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
+      This email was sent by Dive Shop Inc
+    </p>
+  </div>
+</body>
+</html>"
+`;
+
+exports[`getPOSReceiptEmail > should generate correct output for default data 3`] = `
+"RECEIPT
+Dive Shop Inc
+
+Hi John Doe,
+
+Thank you for your purchase! Here's your receipt for reference.
+
+RECEIPT NUMBER: REC-001
+DATE: 2024-01-15 10:30 AM
+
+ITEMS:
+- Dive Mask (2 × USD 45.00): USD 90.00
+- Snorkel (1 × USD 25.00): USD 25.00
+
+SUMMARY:
+Subtotal: USD 115.00
+VAT: USD 11.50
+Total: USD 126.50
+Payment Method: credit card
+
+Thank you for your business!
+
+Dive Shop Inc"
+`;

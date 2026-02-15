@@ -103,196 +103,217 @@ export interface Product {
 }
 
 // ============================================================================
+// Helpers
+// ============================================================================
+
+/** Pick first defined value (treats null as a valid value, unlike ??). */
+function pick<T>(camel: T | undefined, snake: unknown): T {
+  return camel !== undefined ? camel : snake as T;
+}
+
+// ============================================================================
 // Mapper functions
 // ============================================================================
 
 export function mapCustomer(row: CustomerInput) {
+  const r = row as Record<string, unknown>;
   return {
     id: row.id,
     email: row.email,
-    firstName: row.firstName || (row as Record<string, unknown>).first_name as string,
-    lastName: row.lastName || (row as Record<string, unknown>).last_name as string,
+    firstName: pick(row.firstName, r.first_name) as string,
+    lastName: pick(row.lastName, r.last_name) as string,
     phone: row.phone,
-    dateOfBirth: row.dateOfBirth || (row as Record<string, unknown>).date_of_birth as string | null,
-    emergencyContactName: row.emergencyContactName || (row as Record<string, unknown>).emergency_contact_name as string | null,
-    emergencyContactPhone: row.emergencyContactPhone || (row as Record<string, unknown>).emergency_contact_phone as string | null,
-    emergencyContactRelation: row.emergencyContactRelation || (row as Record<string, unknown>).emergency_contact_relation as string | null,
-    medicalConditions: row.medicalConditions || (row as Record<string, unknown>).medical_conditions as string | null,
+    dateOfBirth: pick(row.dateOfBirth, r.date_of_birth) as string | null,
+    emergencyContactName: pick(row.emergencyContactName, r.emergency_contact_name) as string | null,
+    emergencyContactPhone: pick(row.emergencyContactPhone, r.emergency_contact_phone) as string | null,
+    emergencyContactRelation: pick(row.emergencyContactRelation, r.emergency_contact_relation) as string | null,
+    medicalConditions: pick(row.medicalConditions, r.medical_conditions) as string | null,
     medications: row.medications,
     certifications: row.certifications,
     address: row.address,
     city: row.city,
     state: row.state,
-    postalCode: row.postalCode || (row as Record<string, unknown>).postal_code as string | null,
+    postalCode: pick(row.postalCode, r.postal_code) as string | null,
     country: row.country,
-    preferredLanguage: row.preferredLanguage || (row as Record<string, unknown>).preferred_language as string || "en",
+    preferredLanguage: pick(row.preferredLanguage, r.preferred_language) as string ?? "en",
     tags: row.tags || [],
-    marketingOptIn: row.marketingOptIn ?? (row as Record<string, unknown>).marketing_opt_in ?? false,
+    marketingOptIn: pick(row.marketingOptIn, r.marketing_opt_in) ?? false,
     notes: row.notes,
-    totalDives: row.totalDives || (row as Record<string, unknown>).total_dives as number || 0,
-    totalSpent: Number(row.totalSpent || (row as Record<string, unknown>).total_spent || 0),
-    lastDiveAt: row.lastDiveAt || (row as Record<string, unknown>).last_dive_at as Date | null,
-    createdAt: row.createdAt || (row as Record<string, unknown>).created_at as Date,
-    updatedAt: row.updatedAt || (row as Record<string, unknown>).updated_at as Date,
+    totalDives: pick(row.totalDives, r.total_dives) as number ?? 0,
+    totalSpent: Number(pick(row.totalSpent, r.total_spent) ?? 0),
+    lastDiveAt: pick(row.lastDiveAt, r.last_dive_at) as Date | null,
+    createdAt: pick(row.createdAt, r.created_at) as Date,
+    updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };
 }
 
 export function mapTour(row: TourInput) {
+  const r = row as Record<string, unknown>;
   return {
     id: row.id,
     name: row.name,
     description: row.description,
     type: row.type,
     duration: row.duration,
-    maxParticipants: row.maxParticipants || (row as Record<string, unknown>).max_participants as number,
-    minParticipants: row.minParticipants || (row as Record<string, unknown>).min_participants as number,
-    price: Number(row.price || 0),
+    maxParticipants: pick(row.maxParticipants, r.max_participants) as number,
+    minParticipants: pick(row.minParticipants, r.min_participants) as number,
+    price: Number(row.price ?? 0),
     currency: row.currency,
-    includesEquipment: row.includesEquipment || (row as Record<string, unknown>).includes_equipment as boolean,
-    includesMeals: row.includesMeals || (row as Record<string, unknown>).includes_meals as boolean,
-    includesTransport: row.includesTransport || (row as Record<string, unknown>).includes_transport as boolean,
-    minCertLevel: row.minCertLevel || (row as Record<string, unknown>).min_cert_level as string | null,
-    minAge: row.minAge || (row as Record<string, unknown>).min_age as number | null,
+    includesEquipment: pick(row.includesEquipment, r.includes_equipment) as boolean,
+    includesMeals: pick(row.includesMeals, r.includes_meals) as boolean,
+    includesTransport: pick(row.includesTransport, r.includes_transport) as boolean,
+    minCertLevel: pick(row.minCertLevel, r.min_cert_level) as string | null,
+    minAge: pick(row.minAge, r.min_age) as number | null,
     inclusions: row.inclusions || [],
     exclusions: row.exclusions || [],
     requirements: row.requirements || [],
-    isActive: row.isActive || (row as Record<string, unknown>).is_active as boolean,
-    createdAt: row.createdAt || (row as Record<string, unknown>).created_at as Date,
-    updatedAt: row.updatedAt || (row as Record<string, unknown>).updated_at as Date,
+    isActive: pick(row.isActive, r.is_active) as boolean,
+    createdAt: pick(row.createdAt, r.created_at) as Date,
+    updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };
 }
 
 export function mapTrip(row: TripInput) {
+  const r = row as Record<string, unknown>;
   return {
     id: row.id,
-    tourId: row.tourId || (row as Record<string, unknown>).tour_id as string,
-    boatId: row.boatId || (row as Record<string, unknown>).boat_id as string | null,
+    tourId: pick(row.tourId, r.tour_id) as string,
+    boatId: pick(row.boatId, r.boat_id) as string | null,
     date: row.date,
-    startTime: row.startTime || (row as Record<string, unknown>).start_time as string,
-    endTime: row.endTime || (row as Record<string, unknown>).end_time as string | null,
+    startTime: pick(row.startTime, r.start_time) as string,
+    endTime: pick(row.endTime, r.end_time) as string | null,
     status: row.status,
-    maxParticipants: row.maxParticipants || (row as Record<string, unknown>).max_participants as number | null,
+    maxParticipants: pick(row.maxParticipants, r.max_participants) as number | null,
     price: row.price ? Number(row.price) : null,
     notes: row.notes,
-    weatherNotes: row.weatherNotes || (row as Record<string, unknown>).weather_notes as string | null || null,
-    isPublic: row.isPublic ?? (row as Record<string, unknown>).is_public ?? false,
-    tourName: row.tourName || row.tour_name,
-    tourType: row.tourType || row.tour_type,
-    boatName: row.boatName || row.boat_name,
-    bookedParticipants: Number(row.bookedParticipants || row.booked_participants || 0),
-    createdAt: row.createdAt || (row as Record<string, unknown>).created_at as Date,
-    updatedAt: row.updatedAt || (row as Record<string, unknown>).updated_at as Date,
+    weatherNotes: pick(row.weatherNotes, r.weather_notes) as string | null ?? null,
+    isPublic: pick(row.isPublic, r.is_public) ?? false,
+    tourName: pick(row.tourName, row.tour_name),
+    tourType: pick(row.tourType, row.tour_type),
+    boatName: pick(row.boatName, row.boat_name),
+    bookedParticipants: Number(pick(row.bookedParticipants, row.booked_participants) ?? 0),
+    createdAt: pick(row.createdAt, r.created_at) as Date,
+    updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };
 }
 
 export function mapBooking(row: BookingInput) {
-  const firstName = row.first_name || row.firstName || '';
-  const lastName = row.last_name || row.lastName || '';
+  const r = row as Record<string, unknown>;
+  const firstName = pick(row.first_name, row.firstName) as string ?? '';
+  const lastName = pick(row.last_name, row.lastName) as string ?? '';
   return {
     id: row.id,
-    bookingNumber: row.bookingNumber || (row as Record<string, unknown>).booking_number as string,
-    tripId: row.tripId || (row as Record<string, unknown>).trip_id as string,
-    customerId: row.customerId || (row as Record<string, unknown>).customer_id as string,
+    bookingNumber: pick(row.bookingNumber, r.booking_number) as string,
+    tripId: pick(row.tripId, r.trip_id) as string,
+    customerId: pick(row.customerId, r.customer_id) as string,
     participants: row.participants,
     status: row.status,
-    subtotal: Number(row.subtotal || 0),
-    discount: Number(row.discount || 0),
-    tax: Number(row.tax || 0),
-    total: Number(row.total || 0),
+    subtotal: Number(row.subtotal ?? 0),
+    discount: Number(row.discount ?? 0),
+    tax: Number(row.tax ?? 0),
+    total: Number(row.total ?? 0),
     currency: row.currency,
-    paymentStatus: row.paymentStatus || (row as Record<string, unknown>).payment_status as string,
-    paidAmount: Number(row.paidAmount || (row as Record<string, unknown>).paid_amount || 0),
-    specialRequests: row.specialRequests || (row as Record<string, unknown>).special_requests as string | null,
+    paymentStatus: pick(row.paymentStatus, r.payment_status) as string,
+    paidAmount: Number(pick(row.paidAmount, r.paid_amount) ?? 0),
+    specialRequests: pick(row.specialRequests, r.special_requests) as string | null,
     source: row.source,
     firstName,
     lastName,
     customerName: firstName && lastName ? `${firstName} ${lastName}` : row.customerName,
-    customerEmail: row.customer_email || (row as Record<string, unknown>).customerEmail as string,
-    customerPhone: row.customer_phone || (row as Record<string, unknown>).customerPhone as string | null,
-    tourName: (row as Record<string, unknown>).tourName as string || row.tour_name,
-    tripDate: (row as Record<string, unknown>).tripDate as string || row.trip_date,
-    tripTime: (row as Record<string, unknown>).tripTime as string || row.trip_time,
-    createdAt: row.createdAt || (row as Record<string, unknown>).created_at as Date,
-    updatedAt: row.updatedAt || (row as Record<string, unknown>).updated_at as Date,
+    customerEmail: pick(row.customer_email, r.customerEmail) as string,
+    customerPhone: pick(row.customer_phone, r.customerPhone) as string | null,
+    tourName: pick(r.tourName, row.tour_name) as string,
+    tripDate: pick(r.tripDate, row.trip_date) as string,
+    tripTime: pick(r.tripTime, row.trip_time) as string,
+    createdAt: pick(row.createdAt, r.created_at) as Date,
+    updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };
 }
 
 export function mapEquipment(row: EquipmentInput) {
+  const r = row as Record<string, unknown>;
+  const rentalPriceRaw = pick(row.rentalPrice, r.rental_price);
+  const purchasePriceRaw = pick(row.purchasePrice, r.purchase_price);
   return {
     id: row.id,
     category: row.category,
     name: row.name,
     brand: row.brand,
     model: row.model,
-    serialNumber: row.serialNumber || (row as Record<string, unknown>).serial_number as string | null,
+    serialNumber: pick(row.serialNumber, r.serial_number) as string | null,
     barcode: row.barcode,
     size: row.size,
     status: row.status,
     condition: row.condition,
-    rentalPrice: row.rentalPrice || (row as Record<string, unknown>).rental_price ? Number(row.rentalPrice || (row as Record<string, unknown>).rental_price) : null,
-    isRentable: row.isRentable || (row as Record<string, unknown>).is_rentable as boolean,
-    isPublic: row.isPublic ?? (row as Record<string, unknown>).is_public ?? false,
-    lastServiceDate: row.lastServiceDate || (row as Record<string, unknown>).last_service_date as Date | null,
-    nextServiceDate: row.nextServiceDate || (row as Record<string, unknown>).next_service_date as Date | null,
-    serviceNotes: row.serviceNotes || (row as Record<string, unknown>).service_notes as string | null,
-    purchaseDate: row.purchaseDate || (row as Record<string, unknown>).purchase_date as Date | null,
-    purchasePrice: row.purchasePrice || (row as Record<string, unknown>).purchase_price ? Number(row.purchasePrice || (row as Record<string, unknown>).purchase_price) : null,
+    rentalPrice: rentalPriceRaw != null ? Number(rentalPriceRaw) : null,
+    isRentable: pick(row.isRentable, r.is_rentable) as boolean,
+    isPublic: pick(row.isPublic, r.is_public) ?? false,
+    lastServiceDate: pick(row.lastServiceDate, r.last_service_date) as Date | null,
+    nextServiceDate: pick(row.nextServiceDate, r.next_service_date) as Date | null,
+    serviceNotes: pick(row.serviceNotes, r.service_notes) as string | null,
+    purchaseDate: pick(row.purchaseDate, r.purchase_date) as Date | null,
+    purchasePrice: purchasePriceRaw != null ? Number(purchasePriceRaw) : null,
     notes: row.notes,
-    createdAt: row.createdAt || (row as Record<string, unknown>).created_at as Date,
-    updatedAt: row.updatedAt || (row as Record<string, unknown>).updated_at as Date,
+    createdAt: pick(row.createdAt, r.created_at) as Date,
+    updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };
 }
 
 export function mapBoat(row: BoatInput) {
+  const r = row as Record<string, unknown>;
   return {
     id: row.id,
     name: row.name,
     description: row.description,
     capacity: row.capacity,
     type: row.type,
-    registrationNumber: row.registrationNumber || (row as Record<string, unknown>).registration_number as string | null,
+    registrationNumber: pick(row.registrationNumber, r.registration_number) as string | null,
     amenities: row.amenities,
-    isActive: row.isActive || (row as Record<string, unknown>).is_active as boolean,
-    createdAt: row.createdAt || (row as Record<string, unknown>).created_at as Date,
-    updatedAt: row.updatedAt || (row as Record<string, unknown>).updated_at as Date,
+    isActive: pick(row.isActive, r.is_active) as boolean,
+    createdAt: pick(row.createdAt, r.created_at) as Date,
+    updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };
 }
 
 export function mapDiveSite(row: DiveSiteInput) {
+  const r = row as Record<string, unknown>;
   return {
     id: row.id,
     name: row.name,
     description: row.description,
     latitude: row.latitude ? Number(row.latitude) : null,
     longitude: row.longitude ? Number(row.longitude) : null,
-    maxDepth: row.maxDepth || (row as Record<string, unknown>).max_depth as number | null,
-    minDepth: row.minDepth || (row as Record<string, unknown>).min_depth as number | null,
+    maxDepth: pick(row.maxDepth, r.max_depth) as number | null,
+    minDepth: pick(row.minDepth, r.min_depth) as number | null,
     difficulty: row.difficulty,
-    currentStrength: row.currentStrength || (row as Record<string, unknown>).current_strength as string | null,
+    currentStrength: pick(row.currentStrength, r.current_strength) as string | null,
     visibility: row.visibility,
     highlights: row.highlights,
-    isActive: row.isActive || (row as Record<string, unknown>).is_active as boolean,
-    createdAt: row.createdAt || (row as Record<string, unknown>).created_at as Date,
-    updatedAt: row.updatedAt || (row as Record<string, unknown>).updated_at as Date,
+    isActive: pick(row.isActive, r.is_active) as boolean,
+    createdAt: pick(row.createdAt, r.created_at) as Date,
+    updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };
 }
 
 export function mapProduct(row: ProductInput): Product {
+  const r = row as Record<string, unknown>;
+  const costPriceRaw = pick(row.costPrice, r.cost_price);
+  const salePriceRaw = pick(row.salePrice, r.sale_price);
   return {
     id: row.id,
     name: row.name,
     sku: row.sku,
     category: row.category,
     description: row.description,
-    price: Number(row.price || 0),
-    costPrice: row.costPrice || (row as Record<string, unknown>).cost_price ? Number(row.costPrice || (row as Record<string, unknown>).cost_price) : null,
+    price: Number(row.price ?? 0),
+    costPrice: costPriceRaw != null ? Number(costPriceRaw) : null,
     currency: row.currency,
-    taxRate: Number(row.taxRate || (row as Record<string, unknown>).tax_rate || 0),
-    salePrice: row.salePrice || (row as Record<string, unknown>).sale_price ? Number(row.salePrice || (row as Record<string, unknown>).sale_price) : null,
-    trackInventory: row.trackInventory || (row as Record<string, unknown>).track_inventory as boolean,
-    stockQuantity: row.stockQuantity || (row as Record<string, unknown>).stock_quantity as number || 0,
-    lowStockThreshold: row.lowStockThreshold || (row as Record<string, unknown>).low_stock_threshold as number || 5,
-    imageUrl: row.imageUrl || (row as Record<string, unknown>).image_url as string | null,
-    isActive: row.isActive || (row as Record<string, unknown>).is_active as boolean,
+    taxRate: Number(pick(row.taxRate, r.tax_rate) ?? 0),
+    salePrice: salePriceRaw != null ? Number(salePriceRaw) : null,
+    trackInventory: pick(row.trackInventory, r.track_inventory) as boolean,
+    stockQuantity: pick(row.stockQuantity, r.stock_quantity) as number ?? 0,
+    lowStockThreshold: pick(row.lowStockThreshold, r.low_stock_threshold) as number ?? 5,
+    imageUrl: pick(row.imageUrl, r.image_url) as string | null,
+    isActive: pick(row.isActive, r.is_active) as boolean,
   };
 }

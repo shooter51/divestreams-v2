@@ -568,7 +568,7 @@ describe("Customer CRUD Business Logic", () => {
         lastName: "DOB",
       });
 
-      expect(result.dateOfBirth).toBeUndefined();
+      expect(result.dateOfBirth).toBeNull();
     });
 
     it("should handle customers with empty certifications array", async () => {
