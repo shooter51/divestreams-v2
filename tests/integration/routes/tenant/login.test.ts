@@ -81,6 +81,24 @@ vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
+// Mock rate limiting - always allow
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
+// Mock CSRF token validation - always valid
+vi.mock("../../../../lib/security/csrf.server", () => ({
+  generateAnonCsrfToken: vi.fn().mockReturnValue("test-csrf-token"),
+  validateAnonCsrfToken: vi.fn().mockReturnValue(true),
+  CSRF_FIELD_NAME: "_csrf",
+}));
+
+// Mock getAppUrl
+vi.mock("../../../../lib/utils/url", () => ({
+  getAppUrl: vi.fn().mockReturnValue("http://localhost:5173"),
+}));
+
 import { auth } from "../../../../lib/auth";
 import { getSubdomainFromRequest, getOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
@@ -358,6 +376,12 @@ describe("tenant/login route", () => {
 
     describe("join intent", () => {
       it("adds user as customer to organization", async () => {
+        // Mock session verification - action checks session matches userId
+        (auth.api.getSession as Mock).mockResolvedValue({
+          user: { id: "user-1", email: "user@example.com" },
+          session: { id: "session-1" },
+        });
+
         // Mock that user is not already a member
         const mockMemberCheckQuery = {
           select: vi.fn().mockReturnThis(),
@@ -425,6 +449,12 @@ describe("tenant/login route", () => {
       });
 
       it("does not create duplicate membership", async () => {
+        // Mock session verification - action checks session matches userId
+        (auth.api.getSession as Mock).mockResolvedValue({
+          user: { id: "user-1", email: "user@example.com" },
+          session: { id: "session-1" },
+        });
+
         // Mock that user is already a member
         const mockMemberCheckQuery = {
           select: vi.fn().mockReturnThis(),

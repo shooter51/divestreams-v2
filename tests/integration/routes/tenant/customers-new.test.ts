@@ -24,7 +24,6 @@ vi.mock("react-router", async () => {
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
-  requireTenant: vi.fn(),
   requireOrgContext: vi.fn(),
 }));
 
@@ -36,12 +35,29 @@ vi.mock("../../../../lib/require-feature.server", () => ({
   requireLimit: vi.fn().mockResolvedValue({ current: 0, limit: 50, remaining: 50 }),
 }));
 
-vi.mock("../../../../lib/plan-features", () => ({
-  DEFAULT_PLAN_LIMITS: { free: { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 } },
-}));
+vi.mock("../../../../lib/plan-features", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+  };
+});
+
+// Mock the db module to prevent real DB calls (user email check)
+vi.mock("../../../../lib/db", () => {
+  const mockSelectBuilder = {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([]), // No existing user found
+  };
+  return {
+    db: {
+      select: vi.fn().mockReturnValue(mockSelectBuilder),
+    },
+  };
+});
 
 import { action, loader } from "../../../../app/routes/tenant/customers/new";
-import { requireTenant, requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createCustomer } from "../../../../lib/db/queries.server";
 
 describe("tenant/customers/new route", () => {
@@ -77,7 +93,6 @@ describe("tenant/customers/new route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRedirect.mockClear();
-    (requireTenant as Mock).mockResolvedValue(mockTenantContext);
     (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
   });
 

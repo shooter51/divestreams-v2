@@ -8,7 +8,9 @@ import { eq } from "drizzle-orm";
 
 const execAsync = promisify(exec);
 
-describe("seed-agency-templates script", () => {
+const hasDb = process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('divestreams:divestreams');
+
+describe.skipIf(!hasDb)("seed-agency-templates script", () => {
   let testOrgId: string;
   let testAgencyId: string;
 

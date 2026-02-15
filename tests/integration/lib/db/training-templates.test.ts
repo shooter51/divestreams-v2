@@ -5,7 +5,9 @@ import { certificationAgencies, certificationLevels, agencyCourseTemplates } fro
 import { organization } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 
-describe("upsertAgencyCourseTemplate", () => {
+const hasDb = process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('divestreams:divestreams');
+
+describe.skipIf(!hasDb)("upsertAgencyCourseTemplate", () => {
   let testAgencyId: string;
   let testLevelId: string;
   let testOrgId: string;

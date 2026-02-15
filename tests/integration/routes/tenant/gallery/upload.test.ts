@@ -8,10 +8,13 @@ import { action } from "../../../../../app/routes/tenant/gallery/upload";
 
 // Mock dependencies
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
-  requireTenant: vi.fn(() =>
+  requireOrgContext: vi.fn(() =>
     Promise.resolve({
-      tenant: { id: "test-tenant", subdomain: "test" },
-      organizationId: "test-org-id",
+      org: { id: "test-org-id", name: "Test Org", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
     })
   ),
 }));

@@ -130,9 +130,24 @@ export default tseslint.config(
       "app/routes/**/print-*.tsx",                     // Print templates
       "app/routes/tenant/bookings/$id.tsx",           // HTML email templates
       "app/routes/tenant/dive-sites/$id.tsx",         // HTML embed templates
+      "lib/themes/**",                                 // Theme preset definitions (color data)
+      "lib/utils/public-site.ts",                      // Theme utility defaults
+      "app/routes/embed/**",                           // Embed widget branding defaults & CSS fallbacks
+      "app/routes/site/**",                             // Public site with own theming (agency colors, overlays)
+      "app/routes/tenant/settings/booking-widget.tsx", // Widget color configuration
+      "app/components/pos/CheckoutModals.tsx",          // Stripe Elements CSS variable fallbacks
     ],
     rules: {
       "no-restricted-syntax": "off",  // Allow hardcoded colors in these specific files
+    },
+  },
+  // Exempt test files that contain color data as test fixtures/assertions
+  {
+    files: [
+      "tests/**/*.test.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-syntax": "off",  // Allow color literals in test assertions
     },
   },
   // Playwright E2E test-specific rules

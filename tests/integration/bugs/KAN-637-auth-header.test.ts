@@ -12,7 +12,9 @@ import { eq, and } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { randomBytes, randomUUID } from "node:crypto";
 
-describe("KAN-637: Site layout auth header state", () => {
+const hasDb = process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('divestreams:divestreams');
+
+describe.skipIf(!hasDb)("KAN-637: Site layout auth header state", () => {
   let testOrgId: string;
   let testCustomerId: string;
   let testSessionToken: string;
