@@ -79,7 +79,7 @@ describe("form-helpers", () => {
       formData.set("name", "John Doe");
       formData.set("email", "john@example.com");
 
-      const preserved = preserveFormFields<{}>(formData, []);
+      const preserved = preserveFormFields<Record<string, never>>(formData, []);
 
       expect(preserved).toEqual({});
     });
