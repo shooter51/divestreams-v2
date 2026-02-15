@@ -497,7 +497,7 @@ function Step({ number, title, active, completed }: { number: number; title: str
   return (
     <div className="flex flex-col items-center">
       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
-        completed ? "bg-green-600 text-white" :
+        completed ? "bg-success text-white" :
         active ? "bg-brand text-white" :
         "bg-surface-overlay text-foreground-muted"
       }`}>
@@ -766,7 +766,7 @@ function PreviewStep({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-success-muted"
+            className="flex-1 bg-success text-white px-6 py-3 rounded-lg hover:bg-success-hover transition-colors font-medium disabled:bg-success-muted"
           >
             {isSubmitting ? "Importing courses..." : `Import ${selectedCourses.length} Courses`}
           </button>

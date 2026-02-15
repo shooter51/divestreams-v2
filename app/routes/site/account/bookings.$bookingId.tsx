@@ -423,7 +423,7 @@ export default function BookingDetail() {
           {parseFloat(booking.discount) > 0 && (
             <div className="flex justify-between">
               <span className="opacity-75">Discount:</span>
-              <span className="text-green-600">
+              <span className="text-success">
                 -{formatCurrency(booking.discount, booking.currency)}
               </span>
             </div>

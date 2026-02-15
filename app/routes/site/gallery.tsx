@@ -169,7 +169,7 @@ export default function GalleryPage() {
       <div className="text-white py-16" style={{ background: "linear-gradient(135deg, var(--primary-color), var(--secondary-color))" }}>
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Photo Gallery</h1>
-          <p className="text-xl text-blue-100">
+          <p className="text-xl text-white/80">
             Explore our underwater adventures and dive experiences
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function GalleryPage() {
                   key={album.id}
                   onClick={() => updateFilter("album", album.id)}
                   className={`group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ${
-                    filters.albumId === album.id ? "ring-4 ring-blue-500" : ""
+                    filters.albumId === album.id ? "ring-4 ring-brand" : ""
                   }`}
                 >
                   <div className="aspect-w-16 aspect-h-9" style={{ backgroundColor: "var(--color-card-bg)", opacity: 0.5 }}>
@@ -238,7 +238,7 @@ export default function GalleryPage() {
                   <select
                     value={filters.category || ""}
                     onChange={(e) => updateFilter("category", e.target.value || null)}
-                    className="block w-full rounded-md border-border shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="block w-full rounded-md border-border shadow-sm focus:border-brand focus:ring-brand"
                     style={{ backgroundColor: "var(--color-card-bg)", color: "var(--text-color)" }}
                   >
                     <option value="">All Categories</option>
@@ -288,7 +288,7 @@ export default function GalleryPage() {
             {hasFilters && (
               <button
                 onClick={clearFilters}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 whitespace-nowrap"
+                className="text-sm font-medium text-brand hover:text-brand-hover whitespace-nowrap"
               >
                 Clear All Filters
               </button>
@@ -334,7 +334,7 @@ export default function GalleryPage() {
                     </div>
                   </div>
                   {image.isFeatured && (
-                    <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
+                    <div className="absolute top-2 right-2 bg-warning text-white text-xs font-bold px-2 py-1 rounded">
                       Featured
                     </div>
                   )}
@@ -356,7 +356,7 @@ export default function GalleryPage() {
             {hasFilters && (
               <button
                 onClick={clearFilters}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand"
               >
                 Clear Filters
               </button>

@@ -263,7 +263,7 @@ export default function EnrollmentDetailPage() {
           {enrollment.status !== "completed" && !enrollment.certificationNumber && (
             <button
               onClick={() => setShowCertModal(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              className="bg-success text-white px-4 py-2 rounded-lg hover:bg-success-hover"
             >
               Issue Certification
             </button>
@@ -587,7 +587,7 @@ export default function EnrollmentDetailPage() {
                 </p>
                 <button
                   onClick={() => setShowCertModal(true)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success-hover"
                 >
                   Issue Certification
                 </button>
@@ -714,7 +714,7 @@ export default function EnrollmentDetailPage() {
                 <button
                   type="submit"
                   disabled={fetcher.state === "submitting"}
-                  className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-success-muted"
+                  className="flex-1 py-2 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-success-muted"
                 >
                   Issue Certification
                 </button>

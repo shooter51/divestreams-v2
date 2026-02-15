@@ -386,7 +386,7 @@ function StatCard({
       </svg>
     ),
     boat: (
-      <svg className="w-6 h-6 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-6 h-6 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15l9-9 9 9M12 3v18" />
       </svg>
     ),

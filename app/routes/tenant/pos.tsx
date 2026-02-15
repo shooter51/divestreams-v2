@@ -591,7 +591,7 @@ export default function POSPage() {
           </button>
           <button
             onClick={() => setShowTransactionLookup(true)}
-            className="px-4 py-2 text-sm border border-amber-600 text-amber-600 rounded-lg hover:bg-amber-50 flex items-center gap-2"
+            className="px-4 py-2 text-sm border border-warning text-warning rounded-lg hover:bg-warning-muted flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
@@ -769,7 +769,7 @@ export default function POSPage() {
 
       {/* Barcode Error Toast */}
       {barcodeError && (
-        <div className="fixed bottom-4 left-4 bg-amber-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+        <div className="fixed bottom-4 left-4 bg-warning text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>

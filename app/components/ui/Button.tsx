@@ -1,13 +1,14 @@
 import { Link } from "react-router";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
+type ButtonVariant = "primary" | "secondary" | "danger" | "success" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: "bg-brand text-white hover:bg-brand-hover disabled:opacity-50",
   secondary: "bg-surface text-foreground border border-border-strong hover:bg-surface-inset",
   danger: "bg-danger text-white hover:bg-danger-hover disabled:opacity-50",
+  success: "bg-success text-white hover:bg-success-hover disabled:opacity-50",
   ghost: "text-foreground-muted hover:bg-surface-overlay",
 };
 

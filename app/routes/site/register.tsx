@@ -435,7 +435,7 @@ export default function SiteRegisterPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  First Name <span className="text-red-500">*</span>
+                  First Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -459,7 +459,7 @@ export default function SiteRegisterPage() {
                 {actionData?.errors?.firstName && (
                   <p
                     id="firstName-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.firstName}
@@ -474,7 +474,7 @@ export default function SiteRegisterPage() {
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--text-color)" }}
                 >
-                  Last Name <span className="text-red-500">*</span>
+                  Last Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -498,7 +498,7 @@ export default function SiteRegisterPage() {
                 {actionData?.errors?.lastName && (
                   <p
                     id="lastName-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.lastName}
@@ -514,7 +514,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Email <span className="text-red-500">*</span>
+                Email <span className="text-danger">*</span>
               </label>
               <input
                 type="email"
@@ -538,7 +538,7 @@ export default function SiteRegisterPage() {
               {actionData?.errors?.email && (
                 <p
                   id="email-error"
-                  className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                  className="mt-1 text-sm text-danger flex items-center gap-1"
                 >
                   <ExclamationCircleIcon className="w-4 h-4" />
                   {actionData.errors.email}
@@ -576,7 +576,7 @@ export default function SiteRegisterPage() {
               {actionData?.errors?.phone && (
                 <p
                   id="phone-error"
-                  className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                  className="mt-1 text-sm text-danger flex items-center gap-1"
                 >
                   <ExclamationCircleIcon className="w-4 h-4" />
                   {actionData.errors.phone}
@@ -591,7 +591,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Password <span className="text-red-500">*</span>
+                Password <span className="text-danger">*</span>
               </label>
               <div className="relative">
                 <input
@@ -627,7 +627,7 @@ export default function SiteRegisterPage() {
                 </button>
               </div>
               {actionData?.errors?.password && (
-                <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                <p className="mt-1 text-sm text-danger flex items-center gap-1">
                   <ExclamationCircleIcon className="w-4 h-4" />
                   {actionData.errors.password}
                 </p>
@@ -644,7 +644,7 @@ export default function SiteRegisterPage() {
                 className="block text-sm font-medium mb-2"
                 style={{ color: "var(--text-color)" }}
               >
-                Confirm Password <span className="text-red-500">*</span>
+                Confirm Password <span className="text-danger">*</span>
               </label>
               <div className="relative">
                 <input
@@ -682,7 +682,7 @@ export default function SiteRegisterPage() {
               {actionData?.errors?.confirmPassword && (
                 <p
                   id="confirmPassword-error"
-                  className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                  className="mt-1 text-sm text-danger flex items-center gap-1"
                 >
                   <ExclamationCircleIcon className="w-4 h-4" />
                   {actionData.errors.confirmPassword}
@@ -730,7 +730,7 @@ export default function SiteRegisterPage() {
               {actionData?.errors?.terms && (
                 <p
                   id="terms-error"
-                  className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                  className="mt-1 text-sm text-danger flex items-center gap-1"
                 >
                   <ExclamationCircleIcon className="w-4 h-4" />
                   {actionData.errors.terms}
@@ -740,7 +740,7 @@ export default function SiteRegisterPage() {
 
             {/* General Error */}
             {actionData?.error && (
-              <div className="p-4 rounded-lg bg-red-50 text-red-700 flex items-center gap-2">
+              <div className="p-4 rounded-lg bg-danger-muted text-danger flex items-center gap-2">
                 <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
                 <p>{actionData.error}</p>
               </div>
