@@ -1,0 +1,29 @@
+# Dev VPS - System-level Caddy configuration
+# Routes *.dev.divestreams.com to Docker instances by subdomain.
+# Updated dynamically by scripts/dev-instance.sh.
+
+{
+    email admin@divestreams.com
+}
+
+(security_headers) {
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+}
+
+# Landing page for dev.divestreams.com
+dev.divestreams.com {
+    import security_headers
+    respond "DiveStreams Dev VPS - use <instance>.dev.divestreams.com" 200
+}
+
+# Instance routes — managed by dev-instance.sh
+# BEGIN INSTANCES
+default.dev.divestreams.com {
+    import security_headers
+    reverse_proxy localhost:3001
+}
+# END INSTANCES

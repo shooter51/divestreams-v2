@@ -1,17 +1,17 @@
 services:
   app:
-    image: ghcr.io/shooter51/divestreams-app:staging
-    container_name: divestreams-staging-app
+    image: ghcr.io/shooter51/divestreams-app:test
+    container_name: divestreams-test-app
     restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_staging}@db:5432/divestreams
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_test}@db:5432/divestreams
       - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
       - AUTH_SECRET=${AUTH_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      - AUTH_URL=${AUTH_URL:-https://staging.divestreams.com}
-      - APP_URL=${APP_URL:-https://staging.divestreams.com}
+      - AUTH_URL=${AUTH_URL:-https://test.divestreams.com}
+      - APP_URL=${APP_URL:-https://test.divestreams.com}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - SMTP_HOST=${SMTP_HOST}
@@ -49,18 +49,18 @@ services:
       - divestreams-network
 
   worker:
-    image: ghcr.io/shooter51/divestreams-app:staging
-    container_name: divestreams-staging-worker
+    image: ghcr.io/shooter51/divestreams-app:test
+    container_name: divestreams-test-worker
     restart: unless-stopped
     command: npm run worker
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_staging}@db:5432/divestreams
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_test}@db:5432/divestreams
       - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
       - AUTH_SECRET=${AUTH_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      - AUTH_URL=${AUTH_URL:-https://staging.divestreams.com}
-      - APP_URL=${APP_URL:-https://staging.divestreams.com}
+      - AUTH_URL=${AUTH_URL:-https://test.divestreams.com}
+      - APP_URL=${APP_URL:-https://test.divestreams.com}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER}
@@ -92,13 +92,13 @@ services:
           cpus: '0.5'
 
   zapier-worker:
-    image: ghcr.io/shooter51/divestreams-app:staging
-    container_name: divestreams-staging-zapier-worker
+    image: ghcr.io/shooter51/divestreams-app:test
+    container_name: divestreams-test-zapier-worker
     restart: unless-stopped
     command: npm run worker:zapier
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_staging}@db:5432/divestreams
+      - DATABASE_URL=postgresql://divestreams:${DB_PASSWORD:-divestreams_test}@db:5432/divestreams
       - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
     healthcheck:
       test: ["CMD", "node", "-e", "const r=require('ioredis');const c=new r(process.env.REDIS_URL);c.ping().then(()=>{c.disconnect();process.exit(0)}).catch(()=>process.exit(1))"]
@@ -121,7 +121,7 @@ services:
 
   db:
     image: postgres:16-alpine
-    container_name: divestreams-staging-db
+    container_name: divestreams-test-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: divestreams
@@ -139,7 +139,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: divestreams-staging-redis
+    container_name: divestreams-test-redis
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme}
     volumes:
@@ -154,7 +154,7 @@ services:
 
   caddy:
     image: caddy:2-alpine
-    container_name: divestreams-staging-caddy
+    container_name: divestreams-test-caddy
     restart: unless-stopped
     ports:
       - "80:80"
@@ -162,8 +162,7 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-      - /docker/divestreams-staging/caddy-config:/etc/caddy:ro
-      - /docker/divestreams-staging/certs:/certs:ro
+      - ./Caddyfile.test:/etc/caddy/Caddyfile:ro
     depends_on:
       - app
     networks:
