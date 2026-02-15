@@ -11,9 +11,7 @@ interface MailchimpIntegrationProps {
 }
 
 export function MailchimpIntegration({
-  isConnected,
   mailchimpSettings,
-  mailchimpAudiences,
   onNotification,
 }: MailchimpIntegrationProps) {
   const fetcher = useFetcher();
@@ -21,11 +19,8 @@ export function MailchimpIntegration({
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
 
-  // Config modal state
+  // Config modal state (not yet implemented)
   const [showConfigModal, setShowConfigModal] = useState(false);
-  const [selectedAudience, setSelectedAudience] = useState(mailchimpSettings?.selectedAudienceId || "");
-  const [syncOnBooking, setSyncOnBooking] = useState(mailchimpSettings?.syncOnBooking ?? true);
-  const [syncOnCustomerCreate, setSyncOnCustomerCreate] = useState(mailchimpSettings?.syncOnCustomerCreate ?? true);
 
   // Handle fetcher responses
   const fetcherData = fetcher.data as Record<string, unknown> | undefined;

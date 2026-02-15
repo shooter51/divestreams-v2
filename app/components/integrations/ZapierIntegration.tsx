@@ -21,7 +21,6 @@ export function ZapierIntegration({
   onNotification,
 }: ZapierIntegrationProps) {
   const fetcher = useFetcher();
-  const [copied, setCopied] = useState(false);
 
   // Connect modal state
   const [showConnectModal, setShowConnectModal] = useState(false);
@@ -40,8 +39,6 @@ export function ZapierIntegration({
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
       const textArea = document.createElement("textarea");
       textArea.value = text;
@@ -49,8 +46,6 @@ export function ZapierIntegration({
       textArea.select();
       document.execCommand("copy");
       document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
   };
 
