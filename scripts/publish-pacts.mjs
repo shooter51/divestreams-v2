@@ -35,9 +35,7 @@ if (!pactBrokerUrl) {
 }
 
 if (!pactBrokerToken) {
-  console.error("❌ PACT_BROKER_TOKEN environment variable is not set");
-  console.log("   Set it to your Pact Broker authentication token");
-  process.exit(1);
+  console.warn("⚠️  PACT_BROKER_TOKEN not set - publishing without authentication");
 }
 
 console.log("📦 Publishing Pact contracts to Pact Broker...");
@@ -48,7 +46,7 @@ console.log(`   Broker: ${pactBrokerUrl}`);
 const opts = {
   pactFilesOrDirs: [path.resolve(__dirname, "../pacts/contracts")],
   pactBroker: pactBrokerUrl,
-  pactBrokerToken: pactBrokerToken,
+  ...(pactBrokerToken && { pactBrokerToken }),  // Only include token if set
   consumerVersion: gitSha,
   branch: gitBranch,
   tags: [gitBranch, gitBranch === "main" ? "production" : "development"],
