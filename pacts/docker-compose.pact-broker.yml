@@ -1,0 +1,74 @@
+# Self-hosted Pact Broker Docker Compose
+#
+# This file sets up a self-hosted Pact Broker with PostgreSQL backend
+# for storing and sharing Pact contracts.
+#
+# Usage:
+#   docker-compose -f pacts/docker-compose.pact-broker.yml up -d
+#
+# Access:
+#   http://localhost:9292
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pact-broker-db
+    environment:
+      POSTGRES_DB: pact_broker
+      POSTGRES_USER: pact_broker
+      POSTGRES_PASSWORD: pact_broker_password
+    volumes:
+      - pact-broker-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "pact_broker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pact-broker-network
+
+  pact-broker:
+    image: pactfoundation/pact-broker:latest
+    container_name: pact-broker
+    ports:
+      - "9292:9292"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database connection
+      PACT_BROKER_DATABASE_URL: "postgresql://pact_broker:pact_broker_password@postgres:5432/pact_broker"
+
+      # Basic auth (optional, remove for no auth)
+      PACT_BROKER_BASIC_AUTH_USERNAME: admin
+      PACT_BROKER_BASIC_AUTH_PASSWORD: admin
+
+      # Public URL (change this to your actual URL in production)
+      PACT_BROKER_BASE_URL: "http://localhost:9292"
+
+      # Allow publishing of contracts
+      PACT_BROKER_ALLOW_DANGEROUS_CONTRACT_MODIFICATION: "true"
+
+      # Logging
+      PACT_BROKER_LOG_LEVEL: INFO
+
+      # Database connection pool
+      PACT_BROKER_DATABASE_POOL_MIN_SIZE: 2
+      PACT_BROKER_DATABASE_POOL_MAX_SIZE: 10
+
+    healthcheck:
+      test: ["CMD", "wget", "-O-", "http://localhost:9292/diagnostic/status/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - pact-broker-network
+
+volumes:
+  pact-broker-db:
+
+networks:
+  pact-broker-network:
+    driver: bridge

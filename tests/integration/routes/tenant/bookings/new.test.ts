@@ -19,8 +19,11 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
-      tenant: mockTenant,
-      organizationId: mockOrganizationId,
+      org: { id: mockOrganizationId, name: "Test Dive Shop", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
     } as any);
   });
 
@@ -254,7 +257,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
         totalCents: 20000,
         bookingNumber: "BK-001",
         shopName: "Test Dive Shop",
-        tenantId: "tenant-123",
+        tenantId: "org-123",
       });
 
       expect(result).toBeInstanceOf(Response);

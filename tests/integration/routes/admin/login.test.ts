@@ -37,6 +37,12 @@ vi.mock("../../../../lib/utils/url", () => ({
   getAppUrl: vi.fn().mockReturnValue("http://localhost:5173"),
 }));
 
+// Mock rate limiting - always allow
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 vi.mock("../../../../lib/db/schema/auth", () => ({
   organization: {
     id: "id",

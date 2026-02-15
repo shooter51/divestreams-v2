@@ -1,0 +1,21 @@
+# Pact Configuration
+# This file configures Pact for contract testing
+
+# Pact Broker URL (can also be set via PACT_BROKER_BASE_URL env var)
+# For Pactflow: https://your-org.pactflow.io
+# For self-hosted: https://your-pact-broker.com
+# broker_base_url=https://your-org.pactflow.io
+
+# Pact Broker Authentication Token (can also be set via PACT_BROKER_TOKEN env var)
+# Get this from your Pact Broker settings
+# broker_token=YOUR_TOKEN_HERE
+
+# Consumer version (will use git SHA if not specified)
+# consumer_version=
+
+# Enable verbose logging
+# verbose=true
+
+# Directories
+pact_dir=pacts/contracts
+log_dir=pacts/logs

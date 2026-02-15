@@ -34,17 +34,11 @@ import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 describe("tenant/images/upload route", () => {
   const mockOrgContext = {
-    org: { id: "org-uuid-123", name: "Demo Dive Shop", slug: "demo", createdAt: new Date() },
-    user: { id: "user-1", email: "owner@example.com", name: "Owner" },
-    session: { id: "session-1" },
-    membership: { id: "member-1", role: "owner" },
-    subscription: null,
-    limits: {
-      customers: 50, bookingsPerMonth: 100, tours: 10, teamMembers: 1,
-      hasPOS: false, hasEquipmentRentals: true, hasAdvancedReports: false, hasEmailNotifications: false,
-    },
-    usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
-    canAddCustomer: true, canAddTour: true, canAddBooking: true, isPremium: false,
+    org: { id: "org-uuid-123", name: "Demo Dive Shop", subdomain: "demo" },
+    canAddCustomer: true,
+    usage: { customers: 0 },
+    limits: { customers: 100 },
+    isPremium: false,
   };
 
   const mockDb = {

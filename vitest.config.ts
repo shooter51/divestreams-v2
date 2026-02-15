@@ -35,6 +35,8 @@ export default defineConfig({
         ".react-router/**",
         // Exclude stubs
         "lib/stubs/**",
+        // Exclude routes from unit coverage (covered by integration tests)
+        "app/routes/**",
         // Exclude integration-heavy code better suited for integration tests
         "lib/integrations/**",
         "lib/jobs/**",
