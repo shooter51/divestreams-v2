@@ -34,7 +34,9 @@ jobs:
 
       # PostgreSQL and Redis run as persistent containers on the VPS alongside the runner
       # No need to start/stop them per job - they're always available at:
-      #   - PostgreSQL: 127.0.0.1:5432 (user: test, pass: test, db: testdb)
+      #   - PostgreSQL: 127.0.0.1:5432 (user: test, pass: test)
+      #     - Unit tests use: testdb
+      #     - E2E tests use: testdb_e2e (separate to avoid conflicts)
       #   - Redis: 127.0.0.1:6379
 
       - name: Install dependencies
@@ -86,7 +88,9 @@ jobs:
 
       # PostgreSQL and Redis run as persistent containers on the VPS alongside the runner
       # No need to start/stop them per job - they're always available at:
-      #   - PostgreSQL: 127.0.0.1:5432 (user: test, pass: test, db: testdb)
+      #   - PostgreSQL: 127.0.0.1:5432 (user: test, pass: test)
+      #     - Unit tests use: testdb
+      #     - E2E tests use: testdb_e2e (separate to avoid conflicts)
       #   - Redis: 127.0.0.1:6379
 
       - name: Install dependencies
@@ -100,12 +104,12 @@ jobs:
       - name: Setup database schema and run migrations
         run: node scripts/run-migrations.mjs
         env:
-          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb_e2e
 
       - name: Seed subscription plans
         run: npm run db:seed
         env:
-          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb_e2e
 
       - name: Clean up any lingering processes on port 5173
         run: |
@@ -124,7 +128,7 @@ jobs:
           fi
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb_e2e
           REDIS_URL: redis://127.0.0.1:6379
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:5173

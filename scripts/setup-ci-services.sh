@@ -22,6 +22,13 @@ docker run -d \
   -v ci-postgres-data:/var/lib/postgresql/data \
   postgres:16-alpine
 
+# Wait for PostgreSQL to be ready
+sleep 3
+
+# Create additional database for E2E tests (separate from unit tests)
+echo "Creating testdb_e2e database..."
+docker exec ci-postgres psql -U test -d testdb -c "CREATE DATABASE testdb_e2e;" 2>/dev/null || echo "Database testdb_e2e may already exist"
+
 # Start Redis container
 echo "Starting Redis container..."
 docker run -d \
@@ -53,7 +60,9 @@ echo ""
 echo "✅ CI services setup complete!"
 echo ""
 echo "Services running:"
-echo "  - PostgreSQL: 127.0.0.1:5432 (user: test, pass: test, db: testdb)"
+echo "  - PostgreSQL: 127.0.0.1:5432 (user: test, pass: test)"
+echo "    - testdb (for unit/integration tests)"
+echo "    - testdb_e2e (for e2e tests)"
 echo "  - Redis: 127.0.0.1:6379"
 echo ""
 echo "Containers are set to restart automatically (--restart unless-stopped)"
