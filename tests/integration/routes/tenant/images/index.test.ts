@@ -14,8 +14,11 @@ describe("app/routes/tenant/images/index.tsx", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
-      tenant: mockTenant,
-      organizationId: "org-123",
+      org: { id: "org-123", name: "Test Org", subdomain: "test", slug: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
     } as any);
   });
 
@@ -60,7 +63,7 @@ describe("app/routes/tenant/images/index.tsx", () => {
       const request = new Request("http://test.com/tenant/images?entityType=tour&entityId=123");
       const result = await loader({ request, params: {}, context: {} });
 
-      expect(tenantServer.getTenantDb).toHaveBeenCalledWith(mockTenant.subdomain);
+      expect(tenantServer.getTenantDb).toHaveBeenCalledWith("test");
 
       const json = await result.json();
       expect(json.images).toHaveLength(2);

@@ -23,6 +23,19 @@ vi.mock("../../../../lib/email/triggers", () => ({
   triggerWelcomeEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
+// Mock the rate limiter (prevents rate limit from triggering across tests)
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 5 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
+// Mock the CSRF validation (tests don't submit CSRF tokens)
+vi.mock("../../../../lib/security/csrf.server", () => ({
+  generateAnonCsrfToken: vi.fn().mockReturnValue("mock-csrf-token"),
+  validateAnonCsrfToken: vi.fn().mockReturnValue(true),
+  CSRF_FIELD_NAME: "_csrf",
+}));
+
 // Mock the password hashing
 vi.mock("../../../../lib/auth/password.server", () => ({
   hashPassword: vi.fn().mockResolvedValue("hashed-password-mock"),

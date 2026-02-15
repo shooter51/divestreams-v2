@@ -10,17 +10,11 @@ import { action } from "../../../../../app/routes/tenant/gallery/upload";
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(() =>
     Promise.resolve({
-      org: { id: "test-org-id", name: "Test Shop", slug: "test", createdAt: new Date() },
-      user: { id: "user-1", email: "owner@example.com", name: "Owner" },
-      session: { id: "session-1" },
-      membership: { id: "member-1", role: "owner" },
-      subscription: null,
-      limits: {
-        customers: 50, bookingsPerMonth: 100, tours: 10, teamMembers: 1,
-        hasPOS: false, hasEquipmentRentals: true, hasAdvancedReports: false, hasEmailNotifications: false,
-      },
-      usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
-      canAddCustomer: true, canAddTour: true, canAddBooking: true, isPremium: false,
+      org: { id: "test-org-id", name: "Test Org", subdomain: "test" },
+      canAddCustomer: true,
+      usage: { customers: 0 },
+      limits: { customers: 100 },
+      isPremium: false,
     })
   ),
 }));

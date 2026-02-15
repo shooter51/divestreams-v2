@@ -1,0 +1,511 @@
+{
+  "consumer": {
+    "name": "OAuthProvider"
+  },
+  "interactions": [
+    {
+      "description": "a Google OAuth callback",
+      "providerStates": [
+        {
+          "name": "valid OAuth state and code"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "query": {
+            "code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "state": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/integrations/google/callback",
+        "query": {
+          "code": [
+            "4/0AY0e-g7xyz"
+          ],
+          "state": [
+            "state123"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Location": "/integrations?success=Google+connected+successfully"
+        },
+        "matchingRules": {
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 302
+      }
+    },
+    {
+      "description": "a Google OAuth callback with error",
+      "providerStates": [
+        {
+          "name": "OAuth error occurred"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "query": {
+            "error": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/integrations/google/callback",
+        "query": {
+          "error": [
+            "access_denied"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Location": "/integrations?error=declined"
+        },
+        "matchingRules": {
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 302
+      }
+    },
+    {
+      "description": "a Google OAuth callback without code",
+      "providerStates": [
+        {
+          "name": "code parameter is missing"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "query": {
+            "state": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/integrations/google/callback",
+        "query": {
+          "state": [
+            "state123"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Location": "/integrations?error="
+        },
+        "matchingRules": {
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 302
+      }
+    },
+    {
+      "description": "a Mailchimp OAuth callback",
+      "providerStates": [
+        {
+          "name": "valid Mailchimp OAuth parameters"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "query": {
+            "code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "state": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/integrations/mailchimp/callback",
+        "query": {
+          "code": [
+            "mc-code-abc"
+          ],
+          "state": [
+            "state111"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Location": "/integrations?success=Mailchimp"
+        },
+        "matchingRules": {
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 302
+      }
+    },
+    {
+      "description": "a Mailchimp OAuth callback without state",
+      "providerStates": [
+        {
+          "name": "state parameter is missing"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "query": {
+            "code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/integrations/mailchimp/callback",
+        "query": {
+          "code": [
+            "mc-code-abc"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Location": "/integrations?error="
+        },
+        "matchingRules": {
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 302
+      }
+    },
+    {
+      "description": "a QuickBooks OAuth callback",
+      "providerStates": [
+        {
+          "name": "valid QuickBooks OAuth parameters"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "query": {
+            "code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "realmId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "state": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/integrations/quickbooks/callback",
+        "query": {
+          "code": [
+            "auth-code"
+          ],
+          "realmId": [
+            "realm123"
+          ],
+          "state": [
+            "state456"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Location": "/integrations?success=QuickBooks"
+        },
+        "matchingRules": {
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 302
+      }
+    },
+    {
+      "description": "a QuickBooks OAuth callback without realmId",
+      "providerStates": [
+        {
+          "name": "realmId parameter is missing"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "query": {
+            "code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "state": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/integrations/quickbooks/callback",
+        "query": {
+          "code": [
+            "auth-code"
+          ],
+          "state": [
+            "state456"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Location": "/integrations?error="
+        },
+        "matchingRules": {
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 302
+      }
+    },
+    {
+      "description": "a Xero OAuth callback",
+      "providerStates": [
+        {
+          "name": "valid Xero OAuth parameters"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "query": {
+            "code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "state": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/integrations/xero/callback",
+        "query": {
+          "code": [
+            "xero-code-xyz"
+          ],
+          "state": [
+            "state789"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Location": "/integrations?success=Xero"
+        },
+        "matchingRules": {
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 302
+      }
+    },
+    {
+      "description": "a Xero OAuth callback with error",
+      "providerStates": [
+        {
+          "name": "Xero OAuth error occurred"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "query": {
+            "error": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/integrations/xero/callback",
+        "query": {
+          "error": [
+            "access_denied"
+          ]
+        }
+      },
+      "response": {
+        "headers": {
+          "Location": "/integrations?error=declined"
+        },
+        "matchingRules": {
+          "header": {
+            "Location": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 302
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "16.2.0"
+    },
+    "pactRust": {
+      "ffi": "0.4.28",
+      "models": "1.3.5"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "DiveStreamsAPI"
+  }
+}

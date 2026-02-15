@@ -68,39 +68,12 @@ import {
 import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
 
 describe("tenant/bookings/new route", () => {
+  const mockOrganizationId = "org-uuid-123";
   const mockOrgContext = {
-    org: {
-      id: "org-uuid-123",
-      name: "Demo Dive Shop",
-      slug: "demo",
-      createdAt: new Date(),
-    },
-    user: {
-      id: "user-1",
-      email: "owner@example.com",
-      name: "Demo Owner",
-    },
-    session: { id: "session-1" },
-    membership: { id: "member-1", role: "owner" },
-    subscription: null,
-    limits: {
-      customers: 50,
-      bookingsPerMonth: 100,
-      tours: 10,
-      teamMembers: 1,
-      hasPOS: false,
-      hasEquipmentRentals: true,
-      hasAdvancedReports: false,
-      hasEmailNotifications: false,
-    },
-    usage: {
-      customers: 0,
-      tours: 0,
-      bookingsThisMonth: 0,
-    },
+    org: { id: mockOrganizationId, name: "Demo Dive Shop", subdomain: "demo" },
     canAddCustomer: true,
-    canAddTour: true,
-    canAddBooking: true,
+    usage: { customers: 0 },
+    limits: { customers: 100 },
     isPremium: false,
   };
 
@@ -145,7 +118,7 @@ describe("tenant/bookings/new route", () => {
   });
 
   describe("loader", () => {
-    it("requires org context", async () => {
+    it("requires tenant context", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/bookings/new");
 
       await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);

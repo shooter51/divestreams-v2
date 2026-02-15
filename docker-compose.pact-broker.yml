@@ -1,0 +1,72 @@
+# Pact Broker - Production Deployment
+#
+# Self-hosted Pact Broker for DiveStreams contract testing
+# Deployed to: pact.dev.divestreams.com (Dev VPS)
+#
+# Usage:
+#   docker-compose -f docker-compose.pact-broker.yml up -d
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pact-broker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pact_broker
+      POSTGRES_USER: pact_broker
+      POSTGRES_PASSWORD: ${PACT_BROKER_DB_PASSWORD:-pact_broker_secure_password}
+    volumes:
+      - pact-broker-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "pact_broker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pact-broker-network
+
+  pact-broker:
+    image: pactfoundation/pact-broker:latest
+    container_name: pact-broker
+    restart: unless-stopped
+    ports:
+      - "9292:9292"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database connection
+      PACT_BROKER_DATABASE_URL: "postgresql://pact_broker:${PACT_BROKER_DB_PASSWORD:-pact_broker_secure_password}@postgres:5432/pact_broker"
+
+      # Public URL - will be accessed via Caddy at pact.dev.divestreams.com
+      PACT_BROKER_BASE_URL: "${PACT_BROKER_BASE_URL:-https://pact.dev.divestreams.com}"
+
+      # Allow publishing of contracts (needed for development)
+      PACT_BROKER_ALLOW_DANGEROUS_CONTRACT_MODIFICATION: "true"
+
+      # Logging
+      PACT_BROKER_LOG_LEVEL: INFO
+
+      # Database connection pool
+      PACT_BROKER_DATABASE_POOL_MIN_SIZE: 2
+      PACT_BROKER_DATABASE_POOL_MAX_SIZE: 10
+
+      # No basic auth - will use token auth via GitHub Actions
+      PACT_BROKER_PUBLIC_HEARTBEAT: "true"
+
+    healthcheck:
+      test: ["CMD", "wget", "-O-", "http://localhost:9292/diagnostic/status/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - pact-broker-network
+
+volumes:
+  pact-broker-db:
+
+networks:
+  pact-broker-network:
+    driver: bridge

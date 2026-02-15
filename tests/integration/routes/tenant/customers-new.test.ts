@@ -25,7 +25,6 @@ vi.mock("react-router", async () => {
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
-  requireOrgContext: vi.fn(),
 }));
 
 vi.mock("../../../../lib/db/queries.server", () => ({
@@ -36,27 +35,42 @@ vi.mock("../../../../lib/require-feature.server", () => ({
   requireLimit: vi.fn().mockResolvedValue({ current: 0, limit: 50, remaining: 50 }),
 }));
 
-vi.mock("../../../../lib/plan-features", () => ({
-  DEFAULT_PLAN_LIMITS: { free: { users: 1, customers: 50, toursPerMonth: 5, storageGb: 0.5 } },
-}));
+vi.mock("../../../../lib/plan-features", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+  };
+});
+
+// Mock the db module to prevent real DB calls (user email check)
+vi.mock("../../../../lib/db", () => {
+  const mockSelectBuilder = {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([]), // No existing user found
+  };
+  return {
+    db: {
+      select: vi.fn().mockReturnValue(mockSelectBuilder),
+    },
+  };
+});
 
 import { action, loader } from "../../../../app/routes/tenant/customers/new";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createCustomer } from "../../../../lib/db/queries.server";
 
 describe("tenant/customers/new route", () => {
-  const mockOrgContext = {
-    org: { id: "org-uuid-123", name: "Demo Dive Shop", slug: "demo", createdAt: new Date() },
-    user: { id: "user-1", email: "owner@example.com", name: "Owner" },
-    session: { id: "session-1" },
-    membership: { id: "member-1", role: "owner" },
-    subscription: null,
-    limits: {
-      customers: 50, bookingsPerMonth: 100, tours: 10, teamMembers: 1,
-      hasPOS: false, hasEquipmentRentals: true, hasAdvancedReports: false, hasEmailNotifications: false,
+  const mockTenantContext = {
+    tenant: {
+      id: "tenant-1",
+      subdomain: "demo",
+      schemaName: "tenant_demo",
+      name: "Demo Dive Shop",
+      subscriptionStatus: "active",
+      trialEndsAt: null,
     },
-    usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
-    canAddCustomer: true, canAddTour: true, canAddBooking: true, isPremium: false,
+    organizationId: "org-uuid-123",
   };
 
   const mockOrgContext = {
@@ -79,7 +93,6 @@ describe("tenant/customers/new route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRedirect.mockClear();
-    (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
     (requireOrgContext as Mock).mockResolvedValue(mockOrgContext);
   });
 

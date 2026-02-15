@@ -52,7 +52,6 @@ export function CardModal({
   const [stripe, setStripe] = useState<StripeType | null>(null);
   const [cardElement, setCardElement] = useState<StripeCardElementType | null>(null);
   const [cardComplete, setCardComplete] = useState(false);
-  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [pendingPayment, setPendingPayment] = useState<{ clientSecret: string; paymentIntentId: string } | null>(null);
 
   // Load Stripe.js when modal opens with manual entry
@@ -89,12 +88,9 @@ export function CardModal({
 
     // Get colors from CSS variables
     const computedStyle = getComputedStyle(document.documentElement);
-    const foreground = computedStyle.getPropertyValue("--foreground").trim() ||
-      computedStyle.getPropertyValue("color") || "#1F2937";  // Fallback to body color or default
-    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() ||
-      "#6B7280";  // Gray-500 fallback
-    const danger = computedStyle.getPropertyValue("--danger").trim() ||
-      "#DC2626";  // Red-600 fallback
+    const foreground = computedStyle.getPropertyValue("--foreground").trim() || 'currentColor';
+    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() || 'currentColor';
+    const danger = computedStyle.getPropertyValue("--danger").trim() || 'currentColor';
 
     const elements = stripe.elements();
     const card = elements.create("card", {
@@ -182,7 +178,6 @@ export function CardModal({
         setError(result.error.message || "Payment failed");
         setStep("error");
       } else if (result.paymentIntent?.status === "succeeded") {
-        setPaymentIntentId(intentId);
         setStep("success");
         // Auto-complete after showing success
         setTimeout(() => {
@@ -237,7 +232,6 @@ export function CardModal({
     setStep("method-select");
     setError(null);
     setCardComplete(false);
-    setPaymentIntentId(null);
     setPendingPayment(null);
     onClose();
   }, [onClose]);
@@ -619,12 +613,9 @@ export function SplitModal({
     if (!stripe || currentMethod !== "card") return;
 
     const computedStyle = getComputedStyle(document.documentElement);
-    const foreground = computedStyle.getPropertyValue("--foreground").trim() ||
-      computedStyle.getPropertyValue("color") || "#1F2937";  // Fallback to body color or default
-    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() ||
-      "#6B7280";  // Gray-500 fallback
-    const danger = computedStyle.getPropertyValue("--danger").trim() ||
-      "#DC2626";  // Red-600 fallback
+    const foreground = computedStyle.getPropertyValue("--foreground").trim() || 'currentColor';
+    const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() || 'currentColor';
+    const danger = computedStyle.getPropertyValue("--danger").trim() || 'currentColor';
 
     const elements = stripe.elements();
     const card = elements.create("card", {

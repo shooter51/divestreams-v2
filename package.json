@@ -42,7 +42,15 @@
     "stripe:verify": "tsx scripts/verify-stripe-prices.ts",
     "stripe:sync-prices": "tsx scripts/sync-stripe-prices.ts",
     "stripe:verify-webhooks": "tsx scripts/verify-stripe-webhooks.ts",
-    "stripe:test-upgrade": "tsx scripts/test-subscription-upgrade.ts"
+    "stripe:test-upgrade": "tsx scripts/test-subscription-upgrade.ts",
+    "pact:consumer": "vitest run tests/pact/consumer",
+    "pact:provider": "vitest run tests/pact/provider",
+    "pact:publish": "node scripts/publish-pacts.mjs",
+    "pact:verify": "npm run pact:provider",
+    "pact:can-deploy": "node scripts/can-i-deploy.mjs",
+    "pact:can-deploy:dev": "node scripts/can-i-deploy.mjs --environment dev",
+    "pact:can-deploy:test": "node scripts/can-i-deploy.mjs --environment test",
+    "pact:can-deploy:production": "node scripts/can-i-deploy.mjs --environment production"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
@@ -87,6 +95,8 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@pact-foundation/pact": "^16.2.0",
+    "@pact-foundation/pact-node": "^10.18.0",
     "@playwright/test": "^1.57.0",
     "@react-router/dev": "7.12.0",
     "@tailwindcss/vite": "^4.1.13",

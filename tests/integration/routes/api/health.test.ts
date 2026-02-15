@@ -1,77 +1,164 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
+import { loader } from "../../../../app/routes/api/health";
 
 /**
  * Integration tests for api/health route
- * Tests health check endpoint response format
+ * Tests actual HTTP loader behavior with DB and Redis mocks
  */
 
+// Mock database
+vi.mock("../../../../lib/db", () => ({
+  db: {
+    execute: vi.fn(),
+  },
+}));
+
+// Mock Redis
+vi.mock("../../../../lib/redis.server", () => ({
+  getRedisConnection: vi.fn(),
+}));
+
+import { db } from "../../../../lib/db";
+import { getRedisConnection } from "../../../../lib/redis.server";
+
 describe("api/health route", () => {
-  describe("Health Response Structure", () => {
-    it("health response has status field", () => {
-      const healthResponse = {
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        version: "2.0.0",
-      };
-
-      expect(healthResponse.status).toBe("ok");
-    });
-
-    it("health response has timestamp", () => {
-      const healthResponse = {
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        version: "2.0.0",
-      };
-
-      expect(healthResponse.timestamp).toBeDefined();
-      expect(new Date(healthResponse.timestamp)).toBeInstanceOf(Date);
-    });
-
-    it("health response has version info", () => {
-      const healthResponse = {
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        version: "2.0.0",
-      };
-
-      expect(healthResponse.version).toBeDefined();
-      expect(healthResponse.version).toMatch(/^\d+\.\d+\.\d+$/);
-    });
-
-    it("timestamp is in ISO format", () => {
-      const healthResponse = {
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        version: "2.0.0",
-      };
-
-      // ISO format: YYYY-MM-DDTHH:mm:ss.sssZ
-      expect(healthResponse.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  describe("Health Check Semantics", () => {
-    it("status ok means system is healthy", () => {
-      const status = "ok";
-      const isHealthy = status === "ok";
+  describe("GET /api/health", () => {
+    it("returns 200 with healthy status when all checks pass", async () => {
+      // Mock successful DB check
+      (db.execute as Mock).mockResolvedValue([]);
 
-      expect(isHealthy).toBe(true);
+      // Mock successful Redis check
+      const mockRedis = { ping: vi.fn().mockResolvedValue("PONG") };
+      (getRedisConnection as Mock).mockReturnValue(mockRedis);
+
+      const request = new Request("https://divestreams.com/api/health");
+      const response = await loader({ request, params: {}, context: {} } as any);
+
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.status).toBe("ok");
+      expect(data.checks.database).toBe("ok");
+      expect(data.checks.redis).toBe("ok");
+      expect(data.version).toBe("2.0.0");
+      expect(data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
 
-    it("version follows semver format", () => {
-      const version = "2.0.0";
-      const semverRegex = /^\d+\.\d+\.\d+$/;
+    it("returns 503 with degraded status when database fails", async () => {
+      // Mock DB failure
+      (db.execute as Mock).mockRejectedValue(new Error("Connection refused"));
 
-      expect(version).toMatch(semverRegex);
+      // Mock successful Redis check
+      const mockRedis = { ping: vi.fn().mockResolvedValue("PONG") };
+      (getRedisConnection as Mock).mockReturnValue(mockRedis);
+
+      const request = new Request("https://divestreams.com/api/health");
+      const response = await loader({ request, params: {}, context: {} } as any);
+
+      expect(response.status).toBe(503);
+
+      const data = await response.json();
+      expect(data.status).toBe("degraded");
+      expect(data.checks.database).toBe("error");
+      expect(data.checks.redis).toBe("ok");
     });
 
-    it("can parse timestamp into Date", () => {
-      const timestamp = new Date().toISOString();
-      const date = new Date(timestamp);
+    it("returns 503 with degraded status when Redis fails", async () => {
+      // Mock successful DB check
+      (db.execute as Mock).mockResolvedValue([]);
 
-      expect(date).toBeInstanceOf(Date);
-      expect(date.getTime()).toBeGreaterThan(0);
+      // Mock Redis failure
+      const mockRedis = { ping: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")) };
+      (getRedisConnection as Mock).mockReturnValue(mockRedis);
+
+      const request = new Request("https://divestreams.com/api/health");
+      const response = await loader({ request, params: {}, context: {} } as any);
+
+      expect(response.status).toBe(503);
+
+      const data = await response.json();
+      expect(data.status).toBe("degraded");
+      expect(data.checks.database).toBe("ok");
+      expect(data.checks.redis).toBe("error");
+    });
+
+    it("returns 503 with degraded status when both services fail", async () => {
+      // Mock DB failure
+      (db.execute as Mock).mockRejectedValue(new Error("Connection refused"));
+
+      // Mock Redis failure
+      const mockRedis = { ping: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")) };
+      (getRedisConnection as Mock).mockReturnValue(mockRedis);
+
+      const request = new Request("https://divestreams.com/api/health");
+      const response = await loader({ request, params: {}, context: {} } as any);
+
+      expect(response.status).toBe(503);
+
+      const data = await response.json();
+      expect(data.status).toBe("degraded");
+      expect(data.checks.database).toBe("error");
+      expect(data.checks.redis).toBe("error");
+    });
+
+    it("includes ISO timestamp in response", async () => {
+      (db.execute as Mock).mockResolvedValue([]);
+      const mockRedis = { ping: vi.fn().mockResolvedValue("PONG") };
+      (getRedisConnection as Mock).mockReturnValue(mockRedis);
+
+      const before = new Date();
+      const request = new Request("https://divestreams.com/api/health");
+      const response = await loader({ request, params: {}, context: {} } as any);
+      const after = new Date();
+
+      const data = await response.json();
+      const timestamp = new Date(data.timestamp);
+
+      expect(timestamp.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
+    });
+
+    it("includes version field in response", async () => {
+      (db.execute as Mock).mockResolvedValue([]);
+      const mockRedis = { ping: vi.fn().mockResolvedValue("PONG") };
+      (getRedisConnection as Mock).mockReturnValue(mockRedis);
+
+      const request = new Request("https://divestreams.com/api/health");
+      const response = await loader({ request, params: {}, context: {} } as any);
+
+      const data = await response.json();
+      expect(data.version).toMatch(/^\d+\.\d+\.\d+$/);
+    });
+
+    it("executes SELECT 1 query for database health check", async () => {
+      const executeMock = vi.fn().mockResolvedValue([]);
+      (db.execute as Mock).mockImplementation(executeMock);
+
+      const mockRedis = { ping: vi.fn().mockResolvedValue("PONG") };
+      (getRedisConnection as Mock).mockReturnValue(mockRedis);
+
+      const request = new Request("https://divestreams.com/api/health");
+      await loader({ request, params: {}, context: {} } as any);
+
+      expect(executeMock).toHaveBeenCalled();
+    });
+
+    it("calls Redis ping for Redis health check", async () => {
+      (db.execute as Mock).mockResolvedValue([]);
+
+      const pingMock = vi.fn().mockResolvedValue("PONG");
+      const mockRedis = { ping: pingMock };
+      (getRedisConnection as Mock).mockReturnValue(mockRedis);
+
+      const request = new Request("https://divestreams.com/api/health");
+      await loader({ request, params: {}, context: {} } as any);
+
+      expect(pingMock).toHaveBeenCalled();
     });
   });
 });
