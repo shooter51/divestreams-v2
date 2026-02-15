@@ -198,6 +198,16 @@ jobs:
     runs-on: [self-hosted, linux, divestreams]
     environment: dev
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (for Pact recording)
+        run: npm ci --legacy-peer-deps
+
       - name: Deploy to Dev VPS
         run: |
           echo "Deploying to Dev VPS (${{ vars.DEV_VPS_ID }})"
@@ -229,6 +239,15 @@ jobs:
           fi
 
           echo "✅ Dev containers are running"
+
+      - name: Record deployment to dev environment
+        run: |
+          npx pact-broker record-deployment \
+            --pacticipant DiveStreamsAPI \
+            --version ${{ github.sha }} \
+            --environment dev \
+            --broker-base-url http://62.72.3.35:9292
+        continue-on-error: true # Don't fail deployment if Pact Broker recording fails
 
   # ─────────────────────────────────────────────
   # Build Test Docker Image (staging branch)
@@ -446,6 +465,15 @@ jobs:
 
           echo "✅ B2 storage configuration verified"
 
+      - name: Record deployment to test environment
+        run: |
+          npx pact-broker record-deployment \
+            --pacticipant DiveStreamsAPI \
+            --version ${{ github.sha }} \
+            --environment test \
+            --broker-base-url http://62.72.3.35:9292
+        continue-on-error: true # Don't fail deployment if Pact Broker recording fails
+
   # ─────────────────────────────────────────────
   # Smoke Tests (against live test environment)
   # ─────────────────────────────────────────────
@@ -483,10 +511,36 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────────
+  # Pact Can-I-Deploy Check (main branch only)
+  # Verifies all contract verifications passed
+  # ─────────────────────────────────────────────
+  pact-can-i-deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, divestreams]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Check deployment safety
+        run: npm run pact:can-deploy:production
+        env:
+          PACT_BROKER_BASE_URL: http://62.72.3.35:9292
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+  # ─────────────────────────────────────────────
   # Promote to Production (main branch only)
   # Retag :test → :latest and deploy
   # ─────────────────────────────────────────────
   promote-to-production:
+    needs: pact-can-i-deploy
     if: github.ref == 'refs/heads/main'
     runs-on: [self-hosted, linux, divestreams]
     environment: production
@@ -538,3 +592,12 @@ jobs:
           fi
 
           echo "✅ All containers are running in production"
+
+      - name: Record deployment to production environment
+        run: |
+          npx pact-broker record-deployment \
+            --pacticipant DiveStreamsAPI \
+            --version ${{ github.sha }} \
+            --environment production \
+            --broker-base-url http://62.72.3.35:9292
+        continue-on-error: true # Don't fail deployment if Pact Broker recording fails

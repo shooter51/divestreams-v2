@@ -62,11 +62,9 @@ jobs:
       - name: Publish contracts to Pact Broker
         run: npm run pact:publish
         env:
-          PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
-          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+          PACT_BROKER_BASE_URL: http://62.72.3.35:9292
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
-        continue-on-error: true # Don't fail CI if broker isn't configured yet
 
   provider-verification:
     name: Pact Provider Verification
@@ -146,10 +144,10 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Check can-i-deploy
-        run: npm run pact:can-deploy
+      - name: Check can-i-deploy to production
+        run: npm run pact:can-deploy:production
         env:
-          PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
-          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+          PACT_BROKER_BASE_URL: http://62.72.3.35:9292
           GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         continue-on-error: true # Don't block deployment if broker isn't configured

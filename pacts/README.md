@@ -50,16 +50,26 @@ Provider verification reads the contract files and validates the actual API resp
 
 ### Publishing Contracts
 
-Publish contracts to a Pact Broker (Pactflow or self-hosted):
+Publish contracts to the self-hosted Pact Broker:
 
 ```bash
-# Set environment variables
+# Self-hosted broker (no authentication)
+export PACT_BROKER_BASE_URL=http://62.72.3.35:9292
+npm run pact:publish
+
+# Or with Pactflow (requires token)
 export PACT_BROKER_BASE_URL=https://your-org.pactflow.io
 export PACT_BROKER_TOKEN=your-token-here
-
-# Publish contracts
 npm run pact:publish
 ```
+
+The publish script uses direct HTTP API calls to publish all 4 contracts:
+- DiveStreamsFrontend → DiveStreamsAPI
+- OAuthProvider → DiveStreamsAPI
+- Stripe → DiveStreamsAPI
+- Zapier → DiveStreamsAPI
+
+Contracts are automatically tagged with the branch name (`develop`, `staging`, `main`) and environment tag (`development` or `production`).
 
 ### Can-I-Deploy
 
@@ -71,26 +81,41 @@ npm run pact:can-deploy
 
 ## Pact Broker Setup
 
-### Option 1: Pactflow (Recommended for getting started)
+We use a **self-hosted Pact Broker** running on the Dev VPS:
 
-1. Sign up at https://pactflow.io (free tier available)
-2. Create a new application
-3. Get your broker URL and token from settings
-4. Set environment variables:
-   ```bash
-   export PACT_BROKER_BASE_URL=https://your-org.pactflow.io
-   export PACT_BROKER_TOKEN=your-token-here
-   ```
+- **URL:** http://62.72.3.35:9292
+- **Web UI:** http://pact.dev.divestreams.com (via Caddy reverse proxy)
+- **Authentication:** None (internal use only)
 
-### Option 2: Self-Hosted Pact Broker
+The broker is deployed using `docker-compose.pact-broker.yml` and runs alongside the Dev environment.
 
-Deploy your own Pact Broker using Docker:
+### Accessing the Broker
 
+View published contracts in the web UI:
 ```bash
-docker-compose -f pacts/docker-compose.pact-broker.yml up -d
+open http://pact.dev.divestreams.com
 ```
 
-See `pacts/docker-compose.pact-broker.yml` for configuration.
+Or query via API:
+```bash
+# List all pacticipants
+curl http://62.72.3.35:9292/pacticipants
+
+# List latest pacts
+curl http://62.72.3.35:9292/pacts/latest
+```
+
+### Alternative: Pactflow (Cloud-Hosted)
+
+For production use, consider migrating to Pactflow:
+
+1. Sign up at https://pactflow.io (free tier available)
+2. Get your broker URL and token
+3. Update CI/CD environment variables:
+   ```bash
+   PACT_BROKER_BASE_URL=https://your-org.pactflow.io
+   PACT_BROKER_TOKEN=your-token-here
+   ```
 
 ## Consumer Test Files
 

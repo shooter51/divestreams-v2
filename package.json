@@ -47,7 +47,10 @@
     "pact:provider": "vitest run tests/pact/provider",
     "pact:publish": "node scripts/publish-pacts.mjs",
     "pact:verify": "npm run pact:provider",
-    "pact:can-deploy": "npx pact-broker can-i-deploy --pacticipant DiveStreamsAPI --version ${GITHUB_SHA:-dev}"
+    "pact:can-deploy": "node scripts/can-i-deploy.mjs",
+    "pact:can-deploy:dev": "node scripts/can-i-deploy.mjs --environment dev",
+    "pact:can-deploy:test": "node scripts/can-i-deploy.mjs --environment test",
+    "pact:can-deploy:production": "node scripts/can-i-deploy.mjs --environment production"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",

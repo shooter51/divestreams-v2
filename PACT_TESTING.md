@@ -331,15 +331,254 @@ export PACT_BROKER_TOKEN=your-token-here
 - [Consumer-Driven Contracts](https://docs.pact.io/getting_started/how_pact_works)
 - [Pact v3 Matchers](https://github.com/pact-foundation/pact-js/tree/master/src/v3)
 
-## Next Steps
+## Deployment Safety with Can-I-Deploy
 
-1. ✅ **Consumer Tests** - Completed (22 tests, 4 contracts)
-2. ⏳ **Provider Verification** - Implement state handlers and run verification
-3. ⏳ **Pact Broker Setup** - Choose Pactflow or self-hosted and configure
-4. ⏳ **CI/CD Integration** - Add Pact tests to GitHub Actions workflow
-5. ⏳ **Can-I-Deploy** - Integrate deployment safety checks
+The **can-i-deploy** check is a critical safety gate that prevents deploying incompatible versions of the DiveStreams API. It queries the Pact Broker to verify that all consumer contracts have been successfully verified before allowing deployment.
+
+### How It Works
+
+```
+┌─────────────────┐
+│ Push to main    │
+└────────┬────────┘
+         │
+         v
+┌─────────────────────────────────────┐
+│ Pact Can-I-Deploy Check             │
+│ ─────────────────────────────────   │
+│ Query: Is version X safe to deploy  │
+│        to production?                │
+│                                      │
+│ Checks:                              │
+│  ✓ DiveStreamsFrontend verified?    │
+│  ✓ Zapier verified?                 │
+│  ✓ OAuthProvider verified?          │
+│  ✓ Stripe verified?                 │
+└─────────────────┬───────────────────┘
+                  │
+         ┌────────┴────────┐
+         │                 │
+    ✅ Safe           ❌ Unsafe
+         │                 │
+         v                 v
+   ┌─────────┐      ┌──────────────┐
+   │ Deploy  │      │ Block Deploy │
+   │ to Prod │      │ Fix Contracts│
+   └─────────┘      └──────────────┘
+```
+
+### NPM Scripts
+
+```bash
+# Check if current version is safe to deploy
+npm run pact:can-deploy
+
+# Check for specific environments
+npm run pact:can-deploy:dev          # Check for dev environment
+npm run pact:can-deploy:test         # Check for test environment
+npm run pact:can-deploy:production   # Check for production environment
+```
+
+### Environment Configuration
+
+The can-i-deploy check uses environment tags to determine deployment safety:
+
+| Environment | Tag         | Deployment Gate |
+|-------------|-------------|-----------------|
+| **dev**     | `dev`       | Warning only    |
+| **test**    | `test`      | Warning only    |
+| **production** | `production` | **BLOCKING** |
+
+- **Dev/Test:** Can-i-deploy failures only show warnings, deployment proceeds
+- **Production:** Can-i-deploy failures **block deployment** to prevent breaking changes
+
+### CI/CD Integration
+
+#### Deploy Workflow (`.github/workflows/deploy.yml`)
+
+```yaml
+# Before production deployment
+pact-can-i-deploy:
+  if: github.ref == 'refs/heads/main'
+  steps:
+    - name: Check deployment safety
+      run: npm run pact:can-deploy:production
+      env:
+        PACT_BROKER_BASE_URL: http://62.72.3.35:9292
+
+promote-to-production:
+  needs: pact-can-i-deploy  # Blocks if can-i-deploy fails
+  steps:
+    - name: Deploy to production
+      # ... deployment steps
+```
+
+#### Deployment Recording
+
+After each deployment, the version is recorded in the Pact Broker:
+
+```yaml
+- name: Record deployment to production environment
+  run: |
+    npx pact-broker record-deployment \
+      --pacticipant DiveStreamsAPI \
+      --version ${{ github.sha }} \
+      --environment production \
+      --broker-base-url http://62.72.3.35:9292
+```
+
+This allows future can-i-deploy checks to know what version is currently deployed.
+
+### Workflow Integration
+
+**Full CI/CD Pipeline with Can-I-Deploy:**
+
+```
+┌─────────────┐
+│ Push to     │
+│ main        │
+└──────┬──────┘
+       │
+       v
+┌─────────────────────────────────────┐
+│ 1. Consumer Tests                   │
+│    - Generate contracts             │
+│    - Upload artifacts               │
+└──────────────┬──────────────────────┘
+               │
+               v
+┌─────────────────────────────────────┐
+│ 2. Publish Contracts                │
+│    - Send to Pact Broker            │
+│    - Tag with version & branch      │
+└──────────────┬──────────────────────┘
+               │
+               v
+┌─────────────────────────────────────┐
+│ 3. Provider Verification            │
+│    - Verify against all contracts   │
+│    - Send results to broker         │
+└──────────────┬──────────────────────┘
+               │
+               v
+┌─────────────────────────────────────┐
+│ 4. Can-I-Deploy Check               │ ← DEPLOYMENT GATE
+│    - Query verification status      │
+│    - Check all consumers verified   │
+│    - BLOCK if any failures          │
+└──────────────┬──────────────────────┘
+               │
+          ✅ SAFE
+               │
+               v
+┌─────────────────────────────────────┐
+│ 5. Deploy to Production             │
+│    - Retag :test → :latest          │
+│    - Update VPS containers          │
+└──────────────┬──────────────────────┘
+               │
+               v
+┌─────────────────────────────────────┐
+│ 6. Record Deployment                │
+│    - Track version in environment   │
+└─────────────────────────────────────┘
+```
+
+### Troubleshooting
+
+#### Can-I-Deploy Fails
+
+```
+❌ NOT SAFE TO DEPLOY!
+
+One or more contract verifications have not passed.
+This means consumers are expecting contracts that this
+version of the provider has not verified.
+```
+
+**Solutions:**
+
+1. **Run provider verification locally:**
+   ```bash
+   npm run pact:provider
+   ```
+
+2. **Check Pact Broker for verification status:**
+   - Visit http://62.72.3.35:9292
+   - Find DiveStreamsAPI provider
+   - Check which consumer verifications failed
+
+3. **Fix provider to match contracts:**
+   - Update API endpoints to match consumer expectations
+   - Run provider verification again
+   - Re-publish verification results
+
+4. **Update consumer contracts if API changed:**
+   - Update consumer tests
+   - Re-publish contracts
+   - Run provider verification
+
+#### Deployment Blocked on Main
+
+If can-i-deploy blocks production deployment:
+
+1. **Don't force deploy** - This defeats the purpose of contract testing
+2. **Check which consumer failed verification**
+3. **Fix the incompatibility** in either provider or consumer
+4. **Re-run the pipeline** after fixes
+
+### Best Practices
+
+1. **Always run can-i-deploy before deploying to production**
+   - Prevents breaking changes
+   - Ensures all consumers are compatible
+
+2. **Record deployments after each deploy**
+   - Enables accurate can-i-deploy checks
+   - Tracks what's running in each environment
+
+3. **Never skip can-i-deploy on production**
+   - Dev/test can be flexible
+   - Production must be safe
+
+4. **Fix verification failures immediately**
+   - Don't let failed verifications linger
+   - Blocks future deployments until fixed
+
+5. **Use environment tags properly**
+   - `dev` for development versions
+   - `test` for staging/QA versions
+   - `production` for live versions
+
+### Pact Broker Configuration
+
+**Self-Hosted Broker URL:** http://62.72.3.35:9292
+
+This Pact Broker runs on the Dev VPS and is accessible to all CI/CD workflows.
+
+**No authentication required** - Self-hosted broker doesn't use tokens.
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `PACT_BROKER_BASE_URL` | Pact Broker URL | ✅ Yes |
+| `GITHUB_SHA` | Git commit SHA | ✅ Yes |
+| `GITHUB_REF_NAME` | Git branch name | ✅ Yes |
+| `PACT_ENVIRONMENT` | Target environment (dev/test/production) | For recording |
+| `RECORD_DEPLOYMENT` | Set to 'true' to record deployment | For recording |
 
 ---
 
-**Status:** Pact infrastructure and consumer contracts completed ✅
+## Next Steps
+
+1. ✅ **Consumer Tests** - Completed (22 tests, 4 contracts)
+2. ✅ **Pact Broker Setup** - Self-hosted broker deployed on Dev VPS
+3. ✅ **CI/CD Integration** - Pact tests integrated in GitHub Actions
+4. ✅ **Can-I-Deploy** - Deployment safety checks implemented
+5. ⏳ **Provider Verification** - Implement state handlers and run verification
+
+---
+
+**Status:** Pact infrastructure, contracts, and deployment safety checks completed ✅
 **Date:** 2026-02-15
