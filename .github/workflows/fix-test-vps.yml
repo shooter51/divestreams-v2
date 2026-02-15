@@ -1,0 +1,68 @@
+name: Fix Test VPS Project Name
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix-test-vps:
+    runs-on: [self-hosted, linux, divestreams]
+    environment: test
+
+    steps:
+      - name: Rename Docker project directory on Test VPS
+        env:
+          TEST_VPS_IP: 76.13.28.28
+          SSH_KEY: ${{ secrets.TEST_VPS_SSH_KEY }}
+        run: |
+          echo "Fixing Test VPS docker project name..."
+
+          # Create SSH key file
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/test_vps_key
+          chmod 600 ~/.ssh/test_vps_key
+
+          # SSH to Test VPS and rename project
+          ssh -i ~/.ssh/test_vps_key -o StrictHostKeyChecking=no root@$TEST_VPS_IP << 'ENDSSH'
+            set -e
+
+            echo "Current docker projects:"
+            ls -la /docker/
+
+            # Check if old project exists
+            if [ -d "/docker/divestreams-staging" ]; then
+              echo "Found old project at /docker/divestreams-staging"
+
+              # Stop old containers
+              cd /docker/divestreams-staging
+              docker compose -p divestreams-staging down || true
+
+              # Rename directory
+              cd /docker
+              mv divestreams-staging divestreams-test
+              echo "✅ Renamed project directory"
+
+              # Start with new name
+              cd /docker/divestreams-test
+              docker compose -f docker-compose.test.yml -p divestreams-test up -d
+              echo "✅ Started containers with new project name"
+            else
+              echo "Old project not found, checking for new project..."
+              if [ -d "/docker/divestreams-test" ]; then
+                echo "✅ New project already exists"
+              else
+                echo "❌ ERROR: No project found at expected locations"
+                exit 1
+              fi
+            fi
+
+            echo "Final docker projects:"
+            ls -la /docker/
+
+            echo "Running containers:"
+            docker ps | grep divestreams
+          ENDSSH
+
+          # Cleanup
+          rm -f ~/.ssh/test_vps_key
+
+          echo "✅ Test VPS fix complete!"
