@@ -232,7 +232,6 @@ export function CardModal({
     setStep("method-select");
     setError(null);
     setCardComplete(false);
-    setPaymentIntentId(null);
     setPendingPayment(null);
     onClose();
   }, [onClose]);
