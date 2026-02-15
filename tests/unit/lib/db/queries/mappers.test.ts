@@ -148,14 +148,14 @@ describe("mappers", () => {
       expect(result.country).toBeNull();
       expect(result.notes).toBeNull();
 
-      // Fields using || operator return undefined when both sides are null/undefined
-      expect([null, undefined]).toContain(result.dateOfBirth);
-      expect([null, undefined]).toContain(result.emergencyContactName);
-      expect([null, undefined]).toContain(result.emergencyContactPhone);
-      expect([null, undefined]).toContain(result.emergencyContactRelation);
-      expect([null, undefined]).toContain(result.medicalConditions);
-      expect([null, undefined]).toContain(result.postalCode);
-      expect([null, undefined]).toContain(result.lastDiveAt);
+      // Nullable fields preserve null with ?? operator
+      expect(result.dateOfBirth).toBeNull();
+      expect(result.emergencyContactName).toBeNull();
+      expect(result.emergencyContactPhone).toBeNull();
+      expect(result.emergencyContactRelation).toBeNull();
+      expect(result.medicalConditions).toBeNull();
+      expect(result.postalCode).toBeNull();
+      expect(result.lastDiveAt).toBeNull();
 
       // Fields with default values
       expect(result.tags).toEqual([]);
@@ -234,8 +234,7 @@ describe("mappers", () => {
       expect(result.minParticipants).toBe(2);
       expect(result.price).toBe(75);
       expect(result.includesEquipment).toBe(true);
-      // includesMeals is false, and false || undefined becomes undefined
-      expect([false, undefined]).toContain(result.includesMeals);
+      expect(result.includesMeals).toBe(false);
       expect(result.includesTransport).toBe(true);
       expect(result.minCertLevel).toBe("Open Water");
       expect(result.minAge).toBe(12);
@@ -323,9 +322,9 @@ describe("mappers", () => {
 
       const result = mapTour(row);
 
-      // Fields using || operator return undefined when both sides are null/undefined
-      expect([null, undefined]).toContain(result.minCertLevel);
-      expect([null, undefined]).toContain(result.minAge);
+      // Nullable fields preserve null with ?? operator
+      expect(result.minCertLevel).toBeNull();
+      expect(result.minAge).toBeNull();
       // Arrays default to []
       expect(result.inclusions).toEqual([]);
       expect(result.exclusions).toEqual([]);
@@ -454,12 +453,11 @@ describe("mappers", () => {
 
       const result = mapTrip(row);
 
-      // Fields using || operator return undefined when both sides are null/undefined
-      expect([null, undefined]).toContain(result.boatId);
-      expect([null, undefined]).toContain(result.endTime);
-      expect(result.price).toBeNull(); // price uses ternary operator
-      expect([null, undefined]).toContain(result.maxParticipants);
-      // weatherNotes uses complex || chain that ends with || null
+      // Nullable fields preserve null with ?? operator
+      expect(result.boatId).toBeNull();
+      expect(result.endTime).toBeNull();
+      expect(result.price).toBeNull();
+      expect(result.maxParticipants).toBeNull();
       expect(result.weatherNotes).toBeNull();
       expect(result.bookedParticipants).toBe(0);
     });
@@ -776,13 +774,13 @@ describe("mappers", () => {
 
       const result = mapEquipment(row);
 
-      // Fields using || operator return undefined when both sides are null/undefined
-      expect([null, undefined]).toContain(result.serialNumber);
+      // Nullable fields preserve null with ?? operator
+      expect(result.serialNumber).toBeNull();
       expect(result.rentalPrice).toBeNull();
       expect(result.purchasePrice).toBeNull();
-      expect([null, undefined]).toContain(result.lastServiceDate);
-      expect([null, undefined]).toContain(result.nextServiceDate);
-      expect([null, undefined]).toContain(result.serviceNotes);
+      expect(result.lastServiceDate).toBeNull();
+      expect(result.nextServiceDate).toBeNull();
+      expect(result.serviceNotes).toBeNull();
     });
 
     it("should default isPublic to false when missing", () => {
@@ -870,8 +868,7 @@ describe("mappers", () => {
       } as any;
 
       const result = mapBoat(row);
-      // registrationNumber uses || which may return undefined for null
-      expect([null, undefined]).toContain(result.registrationNumber);
+      expect(result.registrationNumber).toBeNull();
     });
   });
 
@@ -982,10 +979,9 @@ describe("mappers", () => {
 
       expect(result.latitude).toBeNull();
       expect(result.longitude).toBeNull();
-      // maxDepth and minDepth use || which may return undefined for null
-      expect([null, undefined]).toContain(result.maxDepth);
-      expect([null, undefined]).toContain(result.minDepth);
-      expect([null, undefined]).toContain(result.currentStrength);
+      expect(result.maxDepth).toBeNull();
+      expect(result.minDepth).toBeNull();
+      expect(result.currentStrength).toBeNull();
     });
   });
 
@@ -1118,8 +1114,7 @@ describe("mappers", () => {
       expect(result.description).toBeNull();
       expect(result.costPrice).toBeNull();
       expect(result.salePrice).toBeNull();
-      // imageUrl uses || operator which returns undefined for null
-      expect(result.imageUrl).toBeUndefined();
+      expect(result.imageUrl).toBeNull();
     });
 
     it("should use default values for missing fields", () => {
@@ -1169,8 +1164,7 @@ describe("mappers", () => {
       expect(result.taxRate).toBe(0);
       expect(result.salePrice).toBe(0);
       expect(result.stockQuantity).toBe(0);
-      // Note: lowStockThreshold defaults to 5 if value is falsy (0 || 5 = 5)
-      expect(result.lowStockThreshold).toBe(5);
+      expect(result.lowStockThreshold).toBe(0);
     });
   });
 });
