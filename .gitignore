@@ -32,6 +32,8 @@ yarn-debug.log*
 coverage/
 !tests/e2e/coverage/
 .nyc_output/
+test-results/
+playwright-report/
 
 # TypeScript
 *.tsbuildinfo
