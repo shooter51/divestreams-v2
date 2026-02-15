@@ -6,6 +6,7 @@ import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Forgot Password - DiveStreams" }];
@@ -43,6 +44,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!subdomain) {
     return redirect(getAppUrl());
+  }
+
+  // Rate limit password reset requests
+  const clientIp = getClientIp(request);
+  const rateLimitResult = checkRateLimit(`forgot-password:${clientIp}`, {
+    maxAttempts: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { success: true }; // Don't reveal rate limiting to prevent enumeration
   }
 
   const formData = await request.formData();

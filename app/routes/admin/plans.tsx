@@ -9,6 +9,8 @@ import { useToast } from "../../../lib/toast-context";
 export const meta: MetaFunction = () => [{ title: "Plans - DiveStreams Admin" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  await requirePlatformContext(request);
+
   const plans = await db
     .select()
     .from(subscriptionPlans)
@@ -18,6 +20,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  await requirePlatformContext(request);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
   const planId = formData.get("planId") as string;

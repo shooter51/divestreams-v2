@@ -75,6 +75,7 @@
     "postgres": "^3.4.7",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-joyride": "^2.9.3",
     "react-router": "7.12.0",
     "sharp": "^0.34.5",
     "stripe": "^20.0.0",

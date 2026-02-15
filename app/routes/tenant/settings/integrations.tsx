@@ -668,6 +668,23 @@ export default function IntegrationsPage() {
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher();
 
+  // OAuth configuration modal state
+  const [showGoogleOAuthModal, setShowGoogleOAuthModal] = useState(false);
+  const [googleClientId, setGoogleClientId] = useState("");
+  const [googleClientSecret, setGoogleClientSecret] = useState("");
+
+  const [showMailchimpOAuthModal, setShowMailchimpOAuthModal] = useState(false);
+  const [mailchimpClientId, setMailchimpClientId] = useState("");
+  const [mailchimpClientSecret, setMailchimpClientSecret] = useState("");
+
+  const [showQuickBooksOAuthModal, setShowQuickBooksOAuthModal] = useState(false);
+  const [quickBooksClientId, setQuickBooksClientId] = useState("");
+  const [quickBooksClientSecret, setQuickBooksClientSecret] = useState("");
+
+  const [showXeroOAuthModal, setShowXeroOAuthModal] = useState(false);
+  const [xeroClientId, setXeroClientId] = useState("");
+  const [xeroClientSecret, setXeroClientSecret] = useState("");
+
   // Success/error messages from URL params (OAuth callbacks)
   const urlSuccess = searchParams.get("success");
   const urlError = searchParams.get("error");
