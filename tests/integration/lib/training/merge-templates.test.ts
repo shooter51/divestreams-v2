@@ -6,9 +6,7 @@ import { organization } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { generateContentHash } from "../../../../lib/utils/content-hash.server";
 
-const hasDb = process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('divestreams:divestreams');
-
-describe.skipIf(!hasDb)("mergeTemplateUpdates", () => {
+describe("mergeTemplateUpdates", () => {
   let testOrgId: string;
   let testAgencyId: string;
   let testTemplateId: string;
