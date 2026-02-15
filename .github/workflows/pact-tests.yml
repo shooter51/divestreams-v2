@@ -1,0 +1,155 @@
+name: Pact Contract Tests
+
+on:
+  push:
+    branches: [develop, staging, main]
+  pull_request:
+    branches: [develop, staging, main]
+
+jobs:
+  consumer-tests:
+    name: Pact Consumer Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run consumer tests
+        run: npm run pact:consumer
+
+      - name: Upload pact contracts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pact-contracts
+          path: pacts/contracts/
+          retention-days: 7
+
+  publish-pacts:
+    name: Publish Pact Contracts
+    needs: consumer-tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download pact contracts
+        uses: actions/download-artifact@v4
+        with:
+          name: pact-contracts
+          path: pacts/contracts/
+
+      - name: Publish contracts to Pact Broker
+        run: npm run pact:publish
+        env:
+          PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        continue-on-error: true # Don't fail CI if broker isn't configured yet
+
+  provider-verification:
+    name: Pact Provider Verification
+    needs: publish-pacts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main')
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: divestreams_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download pact contracts
+        uses: actions/download-artifact@v4
+        with:
+          name: pact-contracts
+          path: pacts/contracts/
+
+      - name: Run provider verification
+        run: npm run pact:provider
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/divestreams_test
+          REDIS_URL: redis://localhost:6379
+          AUTH_SECRET: test-secret-key-for-ci
+          AUTH_URL: http://localhost:3000
+        continue-on-error: true # Provider verification is a work in progress
+
+  can-i-deploy:
+    name: Check Can I Deploy
+    needs: [consumer-tests, provider-verification]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check can-i-deploy
+        run: npm run pact:can-deploy
+        env:
+          PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+        continue-on-error: true # Don't block deployment if broker isn't configured
