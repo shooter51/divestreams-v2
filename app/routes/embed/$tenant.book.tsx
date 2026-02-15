@@ -176,7 +176,7 @@ export default function BookingFormPage() {
             <input type="hidden" name="tripId" value={trip.id} />
 
             {actionData?.errors?.form && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-danger-muted border border-danger text-danger px-4 py-3 rounded">
                 {actionData.errors.form}
               </div>
             )}
@@ -190,7 +190,7 @@ export default function BookingFormPage() {
                 name="participants"
                 value={participants}
                 onChange={(e) => setParticipants(parseInt(e.target.value, 10))}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               >
                 {Array.from({ length: Math.min(trip.availableSpots, 10) }, (_, i) => i + 1).map(
                   (num) => (
@@ -201,7 +201,7 @@ export default function BookingFormPage() {
                 )}
               </select>
               {actionData?.errors?.participants && (
-                <p className="text-red-600 text-sm mt-1">{actionData.errors.participants}</p>
+                <p className="text-danger text-sm mt-1">{actionData.errors.participants}</p>
               )}
             </div>
 
@@ -218,10 +218,10 @@ export default function BookingFormPage() {
                     type="text"
                     name="firstName"
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   {actionData?.errors?.firstName && (
-                    <p className="text-red-600 text-sm mt-1">{actionData.errors.firstName}</p>
+                    <p className="text-danger text-sm mt-1">{actionData.errors.firstName}</p>
                   )}
                 </div>
 
@@ -233,10 +233,10 @@ export default function BookingFormPage() {
                     type="text"
                     name="lastName"
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   {actionData?.errors?.lastName && (
-                    <p className="text-red-600 text-sm mt-1">{actionData.errors.lastName}</p>
+                    <p className="text-danger text-sm mt-1">{actionData.errors.lastName}</p>
                   )}
                 </div>
               </div>
@@ -250,10 +250,10 @@ export default function BookingFormPage() {
                     type="email"
                     name="email"
                     required
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                   {actionData?.errors?.email && (
-                    <p className="text-red-600 text-sm mt-1">{actionData.errors.email}</p>
+                    <p className="text-danger text-sm mt-1">{actionData.errors.email}</p>
                   )}
                 </div>
 
@@ -264,7 +264,7 @@ export default function BookingFormPage() {
                   <input
                     type="tel"
                     name="phone"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
                   />
                 </div>
               </div>
@@ -279,7 +279,7 @@ export default function BookingFormPage() {
                 name="specialRequests"
                 rows={3}
                 placeholder="Allergies, dietary requirements, accessibility needs, etc."
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand focus:border-brand"
               />
             </div>
 
@@ -351,7 +351,7 @@ export default function BookingFormPage() {
               <ul className="text-sm text-gray-600 space-y-1">
                 {trip.includesEquipment && (
                   <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     Equipment
@@ -359,7 +359,7 @@ export default function BookingFormPage() {
                 )}
                 {trip.includesMeals && (
                   <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     Meals
@@ -367,7 +367,7 @@ export default function BookingFormPage() {
                 )}
                 {trip.includesTransport && (
                   <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     Transport

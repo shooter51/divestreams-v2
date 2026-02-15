@@ -110,7 +110,7 @@ export default function FeaturesPage() {
       <section className="bg-brand text-white py-20 mt-16">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-xl mb-8 text-blue-100">
+          <p className="text-xl mb-8 text-white/80">
             Try DiveStreams free for 14 days. No credit card required.
           </p>
           <a

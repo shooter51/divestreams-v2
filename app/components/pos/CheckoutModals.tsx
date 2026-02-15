@@ -511,7 +511,7 @@ export function CashModal({ isOpen, onClose, total, onComplete }: CheckoutModalP
           <button
             onClick={() => onComplete([{ method: "cash", amount: total }])}
             disabled={tenderedAmount < total}
-            className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
+            className="flex-1 py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Complete Sale
           </button>
@@ -601,7 +601,7 @@ export function SplitModal({ isOpen, onClose, total, onComplete }: CheckoutModal
                   onClick={() => setCurrentMethod("cash")}
                   className={`flex-1 py-2 rounded-lg ${
                     currentMethod === "cash"
-                      ? "bg-green-600 text-white"
+                      ? "bg-success text-white"
                       : "bg-surface-inset hover:bg-surface-overlay"
                   }`}
                 >

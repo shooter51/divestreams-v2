@@ -187,10 +187,10 @@ export default function GalleryPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-16">
+      <div className="bg-gradient-to-r from-brand to-info text-white py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Photo Gallery</h1>
-          <p className="text-xl text-blue-100">
+          <p className="text-xl text-white/80">
             Explore our underwater adventures and dive experiences
           </p>
         </div>
@@ -207,7 +207,7 @@ export default function GalleryPage() {
                   key={album.id}
                   onClick={() => updateFilter("album", album.id)}
                   className={`group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ${
-                    filters.albumId === album.id ? "ring-4 ring-blue-500" : ""
+                    filters.albumId === album.id ? "ring-4 ring-brand" : ""
                   }`}
                 >
                   <div className="aspect-w-16 aspect-h-9 bg-gray-200">
@@ -224,7 +224,7 @@ export default function GalleryPage() {
                         className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-48 bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center">
+                      <div className="w-full h-48 bg-gradient-to-br from-brand to-info flex items-center justify-center">
                         <svg className="w-16 h-16 text-white opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
@@ -258,7 +258,7 @@ export default function GalleryPage() {
                   <select
                     value={filters.category || ""}
                     onChange={(e) => updateFilter("category", e.target.value || null)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
                   >
                     <option value="">All Categories</option>
                     {categories.map((cat) => (
@@ -289,7 +289,7 @@ export default function GalleryPage() {
                         }}
                         className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                           filters.tags?.includes(tag)
-                            ? "bg-blue-600 text-white"
+                            ? "bg-brand text-white"
                             : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                         }`}
                       >
@@ -305,7 +305,7 @@ export default function GalleryPage() {
             {hasFilters && (
               <button
                 onClick={clearFilters}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 whitespace-nowrap"
+                className="text-sm font-medium text-brand hover:text-brand-hover whitespace-nowrap"
               >
                 Clear All Filters
               </button>
@@ -350,7 +350,7 @@ export default function GalleryPage() {
                     </div>
                   </div>
                   {image.isFeatured && (
-                    <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
+                    <div className="absolute top-2 right-2 bg-warning text-white text-xs font-bold px-2 py-1 rounded">
                       Featured
                     </div>
                   )}
@@ -372,7 +372,7 @@ export default function GalleryPage() {
             {hasFilters && (
               <button
                 onClick={clearFilters}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand"
               >
                 Clear Filters
               </button>

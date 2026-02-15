@@ -67,7 +67,7 @@ export default function AdminLayout() {
             <div className="text-sm">
               <span className="text-gray-400">{user.email}</span>
               {isOwner && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-500/20 text-yellow-300 rounded">
+                <span className="ml-2 px-2 py-0.5 text-xs bg-warning/20 text-warning rounded">
                   Owner
                 </span>
               )}

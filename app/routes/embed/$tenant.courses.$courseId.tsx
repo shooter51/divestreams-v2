@@ -112,7 +112,7 @@ export default function CourseDetailPage() {
                 {course.agencyCode}
               </span>
             )}
-            <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded font-medium">
+            <span className="text-sm bg-brand-muted text-brand px-3 py-1 rounded font-medium">
               {course.levelName}
             </span>
           </div>
@@ -148,11 +148,11 @@ export default function CourseDetailPage() {
               </div>
             )}
             {totalDives > 0 && (
-              <div className="bg-cyan-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-cyan-700">
+              <div className="bg-info-muted rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-info">
                   {totalDives}
                 </div>
-                <div className="text-sm text-cyan-600">Open Water Dives</div>
+                <div className="text-sm text-info">Open Water Dives</div>
               </div>
             )}
           </div>
@@ -163,7 +163,7 @@ export default function CourseDetailPage() {
             <ul className="space-y-2">
               <li className="flex items-start gap-2 text-gray-600">
                 <svg
-                  className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                  className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -178,7 +178,7 @@ export default function CourseDetailPage() {
               {course.classroomHours > 0 && (
                 <li className="flex items-start gap-2 text-gray-600">
                   <svg
-                    className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -194,7 +194,7 @@ export default function CourseDetailPage() {
               {course.poolHours > 0 && (
                 <li className="flex items-start gap-2 text-gray-600">
                   <svg
-                    className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -210,7 +210,7 @@ export default function CourseDetailPage() {
               {totalDives > 0 && (
                 <li className="flex items-start gap-2 text-gray-600">
                   <svg
-                    className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -225,7 +225,7 @@ export default function CourseDetailPage() {
               )}
               <li className="flex items-start gap-2 text-gray-600">
                 <svg
-                  className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                  className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -269,8 +269,8 @@ export default function CourseDetailPage() {
                       <span
                         className={`text-sm px-2 py-1 rounded ${
                           session.availableSpots > 0
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                            ? "bg-success-muted text-success"
+                            : "bg-danger-muted text-danger"
                         }`}
                       >
                         {session.availableSpots > 0
@@ -294,8 +294,8 @@ export default function CourseDetailPage() {
           )}
 
           {course.upcomingSessions.length === 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-yellow-800">
+            <div className="bg-warning-muted border border-warning rounded-lg p-4">
+              <p className="text-warning">
                 No upcoming sessions scheduled at this time. Please contact us for
                 more information about future course dates.
               </p>
@@ -328,7 +328,7 @@ export default function CourseDetailPage() {
               <ul className="text-sm text-gray-600 space-y-1">
                 <li className="flex items-center gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -343,7 +343,7 @@ export default function CourseDetailPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -357,7 +357,7 @@ export default function CourseDetailPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -371,7 +371,7 @@ export default function CourseDetailPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <svg
-                    className="w-4 h-4 text-green-500"
+                    className="w-4 h-4 text-success"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >

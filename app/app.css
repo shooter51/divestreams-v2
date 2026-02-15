@@ -26,8 +26,10 @@
   --color-danger-hover: var(--danger-hover);
   --color-danger-muted: var(--danger-muted);
   --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
   --color-success-muted: var(--success-muted);
   --color-warning: var(--warning);
+  --color-warning-hover: var(--warning-hover);
   --color-warning-muted: var(--warning-muted);
 
   --color-accent: var(--accent);
@@ -72,8 +74,10 @@
   --danger-hover: #b91c1c;
   --danger-muted: #fef2f2;
   --success: #16a34a;
+  --success-hover: #15803d;
   --success-muted: #f0fdf4;
   --warning: #d97706;
+  --warning-hover: #b45309;
   --warning-muted: #fffbeb;
 
   /* Accent (orange) */
@@ -121,8 +125,10 @@
     --danger-hover: #dc2626;
     --danger-muted: #450a0a;
     --success: #22c55e;
+    --success-hover: #16a34a;
     --success-muted: #052e16;
     --warning: #f59e0b;
+    --warning-hover: #d97706;
     --warning-muted: #451a03;
 
     /* Accent (orange) */

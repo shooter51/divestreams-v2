@@ -244,7 +244,7 @@ function RentalCard({
       {!showDays ? (
         <button
           onClick={() => setShowDays(true)}
-          className="mt-2 w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+          className="mt-2 w-full py-2 bg-success text-white rounded-lg hover:bg-success-hover text-sm"
         >
           Add Rental
         </button>
@@ -271,7 +271,7 @@ function RentalCard({
               setShowDays(false);
               setDays(1);
             }}
-            className="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+            className="w-full py-2 bg-success text-white rounded-lg hover:bg-success-hover text-sm"
           >
             Add ${(Number(equipment.rentalPrice) * days).toFixed(2)}
           </button>

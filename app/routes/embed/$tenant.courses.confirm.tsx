@@ -120,24 +120,24 @@ export default function EnrollmentConfirmationPage() {
       </div>
 
       {/* Enrollment Reference */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div className="bg-brand-muted border border-brand rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-blue-600 font-medium">
+            <p className="text-sm text-brand font-medium">
               Enrollment Reference
             </p>
-            <p className="text-2xl font-mono font-bold text-blue-900">
+            <p className="text-2xl font-mono font-bold text-foreground">
               {enrollmentRef}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-blue-600">Status</p>
+            <p className="text-sm text-brand">Status</p>
             <span
               className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                 enrollment.status === "enrolled"
-                  ? "bg-green-100 text-green-700"
+                  ? "bg-success-muted text-success"
                   : enrollment.status === "pending"
-                    ? "bg-yellow-100 text-yellow-700"
+                    ? "bg-warning-muted text-warning"
                     : "bg-gray-100 text-gray-700"
               }`}
             >
@@ -159,7 +159,7 @@ export default function EnrollmentConfirmationPage() {
             <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded">
               {enrollment.course.agencyCode}
             </span>
-            <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded font-medium">
+            <span className="text-sm bg-brand-muted text-brand px-3 py-1 rounded font-medium">
               {enrollment.course.levelName}
             </span>
           </div>
@@ -342,10 +342,10 @@ export default function EnrollmentConfirmationPage() {
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 enrollment.paymentStatus === "paid"
-                  ? "bg-green-100 text-green-700"
+                  ? "bg-success-muted text-success"
                   : enrollment.paymentStatus === "partial"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-yellow-100 text-yellow-700"
+                    ? "bg-brand-muted text-brand"
+                    : "bg-warning-muted text-warning"
               }`}
             >
               {enrollment.paymentStatus.charAt(0).toUpperCase() +
@@ -360,10 +360,10 @@ export default function EnrollmentConfirmationPage() {
       </div>
 
       {/* What's Next Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-6 mb-6">
+      <div className="bg-gradient-to-br from-brand-muted to-info-muted rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <svg
-            className="w-5 h-5 text-blue-600"
+            className="w-5 h-5 text-brand"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -381,7 +381,7 @@ export default function EnrollmentConfirmationPage() {
         <ul className="space-y-3">
           <li className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+              className="w-5 h-5 text-success mt-0.5 flex-shrink-0"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -404,7 +404,7 @@ export default function EnrollmentConfirmationPage() {
 
           <li className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
+              className="w-5 h-5 text-brand mt-0.5 flex-shrink-0"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -454,7 +454,7 @@ export default function EnrollmentConfirmationPage() {
 
           <li className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-cyan-500 mt-0.5 flex-shrink-0"
+              className="w-5 h-5 text-info mt-0.5 flex-shrink-0"
               fill="currentColor"
               viewBox="0 0 20 20"
             >

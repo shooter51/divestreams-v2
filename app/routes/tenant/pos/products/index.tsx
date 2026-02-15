@@ -56,7 +56,7 @@ const categoryColors: Record<string, string> = {
   apparel: "bg-info-muted text-info",
   accessories: "bg-success-muted text-success",
   courses: "bg-accent-muted text-accent",
-  rental: "bg-cyan-100 text-cyan-700",
+  rental: "bg-accent-muted text-accent",
 };
 
 export default function ProductsPage() {

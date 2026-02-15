@@ -217,12 +217,12 @@ export default function SiteEquipmentDetailPage() {
   };
 
   const conditionBadgeColor = equipment.condition === "excellent"
-    ? "bg-green-100 text-green-700"
+    ? "bg-success-muted text-success"
     : equipment.condition === "good"
-    ? "bg-blue-100 text-blue-700"
+    ? "bg-brand-muted text-brand"
     : equipment.condition === "fair"
-    ? "bg-yellow-100 text-yellow-700"
-    : "bg-gray-100 text-gray-700";
+    ? "bg-warning-muted text-warning"
+    : "bg-surface-overlay text-foreground";
 
   const isAvailable = equipment.status === "available";
 
@@ -339,7 +339,7 @@ export default function SiteEquipmentDetailPage() {
               {/* Availability Status */}
               <div className="mb-4">
                 {isAvailable ? (
-                  <div className="flex items-center gap-2 text-green-700">
+                  <div className="flex items-center gap-2 text-success">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"
@@ -350,7 +350,7 @@ export default function SiteEquipmentDetailPage() {
                     <span className="font-medium">Available for Rent</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-red-700">
+                  <div className="flex items-center gap-2 text-danger">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"
@@ -434,8 +434,8 @@ export default function SiteEquipmentDetailPage() {
 
             {/* Service Notes (if applicable) */}
             {equipment.serviceNotes && (
-              <div className="bg-blue-50 rounded-xl p-6">
-                <h3 className="font-semibold mb-2 flex items-center gap-2 text-blue-900">
+              <div className="bg-brand-muted rounded-xl p-6">
+                <h3 className="font-semibold mb-2 flex items-center gap-2 text-brand">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
@@ -446,7 +446,7 @@ export default function SiteEquipmentDetailPage() {
                   </svg>
                   Service Information
                 </h3>
-                <p className="text-sm text-blue-800">{equipment.serviceNotes}</p>
+                <p className="text-sm text-brand">{equipment.serviceNotes}</p>
               </div>
             )}
 

@@ -115,7 +115,7 @@ function ImageGallery({ images }: { images: PublicTourDetail["images"] }) {
               key={img.id}
               onClick={() => setSelectedIndex(index)}
               className={`flex-shrink-0 w-16 h-16 rounded overflow-hidden border-2 ${
-                index === selectedIndex ? "border-blue-500" : "border-transparent"
+                index === selectedIndex ? "border-brand" : "border-transparent"
               }`}
             >
               <img
@@ -197,7 +197,7 @@ export default function TourDetailPage() {
                 <ul className="space-y-1">
                   {inclusions.map((inc, i) => (
                     <li key={i} className="flex items-center gap-2 text-gray-600">
-                      <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                       {inc}
@@ -251,7 +251,7 @@ export default function TourDetailPage() {
                     }
                     className={`block p-3 rounded-lg border transition-colors ${
                       trip.availableSpots > 0
-                        ? "hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+                        ? "hover:border-brand hover:bg-brand-muted cursor-pointer"
                         : "opacity-60 cursor-not-allowed bg-gray-100"
                     }`}
                   >
@@ -266,7 +266,7 @@ export default function TourDetailPage() {
                       <div className="text-right">
                         {trip.availableSpots > 0 ? (
                           <>
-                            <div className="text-sm font-medium text-green-600">
+                            <div className="text-sm font-medium text-success">
                               {trip.availableSpots} spot{trip.availableSpots !== 1 ? "s" : ""} left
                             </div>
                             <div className="text-sm text-gray-500">
@@ -274,7 +274,7 @@ export default function TourDetailPage() {
                             </div>
                           </>
                         ) : (
-                          <span className="text-sm font-medium text-red-500">
+                          <span className="text-sm font-medium text-danger">
                             Fully Booked
                           </span>
                         )}

@@ -500,10 +500,10 @@ function TripCard({ trip }: { trip: TripCard }) {
         <div
           className={`absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-medium ${
             isFull
-              ? "bg-red-100 text-red-700"
+              ? "bg-danger-muted text-danger"
               : trip.availableSpots <= 3
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-green-100 text-green-700"
+              ? "bg-warning-muted text-warning"
+              : "bg-success-muted text-success"
           }`}
         >
           {isFull ? "Sold Out" : `${trip.availableSpots} spots left`}
@@ -578,12 +578,12 @@ function TripCard({ trip }: { trip: TripCard }) {
         {/* Inclusions */}
         <div className="flex flex-wrap gap-2 mb-4">
           {trip.includesEquipment && (
-            <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">
+            <span className="text-xs px-2 py-1 bg-brand-muted text-brand rounded-full">
               Equipment
             </span>
           )}
           {trip.includesMeals && (
-            <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">
+            <span className="text-xs px-2 py-1 bg-success-muted text-success rounded-full">
               Meals
             </span>
           )}

@@ -67,7 +67,7 @@ function CourseCard({
             </span>
           )}
         </div>
-        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
+        <span className="text-xs bg-brand-muted text-brand px-2 py-1 rounded font-medium">
           {course.levelName}
         </span>
       </div>
@@ -126,7 +126,7 @@ function CourseCard({
             </span>
           )}
           {totalDives > 0 && (
-            <span className="text-xs bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded">
+            <span className="text-xs bg-info-muted text-info px-2 py-0.5 rounded">
               {totalDives} open water dive{totalDives !== 1 ? "s" : ""}
             </span>
           )}

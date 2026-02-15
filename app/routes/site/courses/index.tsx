@@ -273,12 +273,12 @@ function CourseCard({ course }: { course: Course }) {
         {/* Course Features */}
         <div className="flex flex-wrap gap-2 mb-4 text-xs">
           {course.materialsIncluded && (
-            <span className="px-2 py-1 bg-green-100 text-green-700 rounded">
+            <span className="px-2 py-1 bg-success-muted text-success rounded">
               Materials included
             </span>
           )}
           {course.equipmentIncluded && (
-            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+            <span className="px-2 py-1 bg-brand-muted text-brand rounded">
               Equipment included
             </span>
           )}

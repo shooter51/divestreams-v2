@@ -433,10 +433,10 @@ export default function SiteTripDetailPage() {
           <div
             className={`absolute top-4 right-4 px-4 py-2 rounded-full text-sm font-semibold ${
               isFull
-                ? "bg-red-500 text-white"
+                ? "bg-danger text-white"
                 : trip.availableSpots <= 3
-                ? "bg-yellow-400 text-yellow-900"
-                : "bg-green-500 text-white"
+                ? "bg-warning text-white"
+                : "bg-success text-white"
             }`}
           >
             {isFull ? "Sold Out" : `${trip.availableSpots} spots available`}
@@ -568,11 +568,11 @@ export default function SiteTripDetailPage() {
               <h2 className="text-xl font-semibold mb-4">What's Included</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-medium text-green-700 mb-3">Included</h3>
+                  <h3 className="text-sm font-medium text-success mb-3">Included</h3>
                   <ul className="space-y-2">
                     {trip.includesEquipment && (
                       <li className="flex items-center gap-2 text-sm">
-                        <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         Dive equipment rental
@@ -580,7 +580,7 @@ export default function SiteTripDetailPage() {
                     )}
                     {trip.includesMeals && (
                       <li className="flex items-center gap-2 text-sm">
-                        <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         Meals & refreshments
@@ -588,7 +588,7 @@ export default function SiteTripDetailPage() {
                     )}
                     {trip.includesTransport && (
                       <li className="flex items-center gap-2 text-sm">
-                        <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         Transportation
@@ -596,7 +596,7 @@ export default function SiteTripDetailPage() {
                     )}
                     {trip.inclusions.map((item, i) => (
                       <li key={i} className="flex items-center gap-2 text-sm">
-                        <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         {item}
@@ -655,7 +655,7 @@ export default function SiteTripDetailPage() {
                   )}
                   {trip.requirements.map((req, i) => (
                     <div key={i} className="flex items-start gap-3">
-                      <svg className="w-5 h-5 mt-0.5 flex-shrink-0 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-5 h-5 mt-0.5 flex-shrink-0 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                       </svg>
                       <p className="text-sm">{req}</p>
@@ -667,14 +667,14 @@ export default function SiteTripDetailPage() {
 
             {/* Weather Notes */}
             {trip.weatherNotes && (
-              <div className="bg-blue-50 rounded-xl p-6" style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}>
+              <div className="bg-brand-muted rounded-xl p-6" style={{ borderColor: "var(--accent-color)", borderWidth: "1px" }}>
                 <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 text-brand flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
                   </svg>
                   <div>
-                    <h3 className="font-semibold text-blue-900">Weather & Conditions</h3>
-                    <p className="text-sm text-blue-800 mt-1">{trip.weatherNotes}</p>
+                    <h3 className="font-semibold text-foreground">Weather & Conditions</h3>
+                    <p className="text-sm text-foreground mt-1">{trip.weatherNotes}</p>
                   </div>
                 </div>
               </div>
@@ -696,7 +696,7 @@ export default function SiteTripDetailPage() {
               <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: "var(--accent-color)" }}>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium">Availability</span>
-                  <span className={`text-sm font-semibold ${isFull ? "text-red-600" : "text-green-600"}`}>
+                  <span className={`text-sm font-semibold ${isFull ? "text-danger" : "text-success"}`}>
                     {isFull ? "Sold Out" : `${trip.availableSpots} spots left`}
                   </span>
                 </div>
@@ -754,10 +754,10 @@ export default function SiteTripDetailPage() {
                   <p className="text-xs font-medium opacity-60 mb-3">INCLUDED IN PRICE</p>
                   <div className="flex flex-wrap gap-2">
                     {trip.includesEquipment && (
-                      <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Equipment</span>
+                      <span className="text-xs px-2 py-1 bg-brand-muted text-brand rounded-full">Equipment</span>
                     )}
                     {trip.includesMeals && (
-                      <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Meals</span>
+                      <span className="text-xs px-2 py-1 bg-success-muted text-success rounded-full">Meals</span>
                     )}
                     {trip.includesTransport && (
                       <span className="text-xs px-2 py-1 bg-info-muted text-info rounded-full">Transport</span>

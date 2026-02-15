@@ -268,7 +268,7 @@ export default function PageEditPage() {
                 name="intent"
                 value="publish"
                 disabled={isSubmitting}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:bg-success-muted"
+                className="bg-success text-white px-6 py-2 rounded-lg hover:bg-success-hover disabled:bg-success-muted"
               >
                 Publish
               </button>

@@ -172,7 +172,7 @@ const categoryColors: Record<string, string> = {
   apparel: "bg-info-muted text-info",
   accessories: "bg-success-muted text-success",
   courses: "bg-accent-muted text-accent",
-  rental: "bg-cyan-100 text-cyan-700",
+  rental: "bg-accent-muted text-accent",
 };
 
 export default function POSPage() {
@@ -544,7 +544,7 @@ export default function POSPage() {
               <button
                 onClick={() => processPayment("cash")}
                 disabled={cart.length === 0 || fetcher.state !== "idle"}
-                className="py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-surface-overlay disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                className="py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-surface-overlay disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 <span>Cash</span>
               </button>

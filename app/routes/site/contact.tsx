@@ -453,7 +453,7 @@ export default function SiteContactPage() {
                   htmlFor="contact-name"
                   className="block text-sm font-medium mb-2"
                 >
-                  Name <span className="text-red-500">*</span>
+                  Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -477,7 +477,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.name && (
                   <p
                     id="name-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.name}
@@ -491,7 +491,7 @@ export default function SiteContactPage() {
                   htmlFor="contact-email"
                   className="block text-sm font-medium mb-2"
                 >
-                  Email <span className="text-red-500">*</span>
+                  Email <span className="text-danger">*</span>
                 </label>
                 <input
                   type="email"
@@ -515,7 +515,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.email && (
                   <p
                     id="email-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.email}
@@ -552,7 +552,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.phone && (
                   <p
                     id="phone-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.phone}
@@ -566,7 +566,7 @@ export default function SiteContactPage() {
                   htmlFor="contact-message"
                   className="block text-sm font-medium mb-2"
                 >
-                  Message <span className="text-red-500">*</span>
+                  Message <span className="text-danger">*</span>
                 </label>
                 <textarea
                   id="contact-message"
@@ -589,7 +589,7 @@ export default function SiteContactPage() {
                 {actionData?.errors?.message && (
                   <p
                     id="message-error"
-                    className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                    className="mt-1 text-sm text-danger flex items-center gap-1"
                   >
                     <ExclamationCircleIcon className="w-4 h-4" />
                     {actionData.errors.message}
@@ -599,7 +599,7 @@ export default function SiteContactPage() {
 
               {/* General Error */}
               {actionData?.error && (
-                <div className="p-4 rounded-lg bg-red-50 text-red-700 flex items-center gap-2">
+                <div className="p-4 rounded-lg bg-danger-muted text-danger flex items-center gap-2">
                   <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
                   <p>{actionData.error}</p>
                 </div>
