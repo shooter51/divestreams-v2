@@ -220,4 +220,151 @@ describe("Email Triggers", () => {
       );
     });
   });
+
+  describe("triggerCustomerWelcomeEmail", () => {
+    it("exports triggerCustomerWelcomeEmail function", async () => {
+      const triggersModule = await import("../../../../lib/email/triggers");
+      expect(typeof triggersModule.triggerCustomerWelcomeEmail).toBe("function");
+    });
+
+    it("calls sendEmail with customer-welcome type", async () => {
+      const { triggerCustomerWelcomeEmail } = await import("../../../../lib/email/triggers");
+
+      await triggerCustomerWelcomeEmail({
+        customerEmail: "customer@example.com",
+        customerName: "New Customer",
+        shopName: "Dive Shop",
+        subdomain: "diveshop",
+        tenantId: "tenant-7",
+      });
+
+      expect(mockSendEmail).toHaveBeenCalledTimes(1);
+      expect(mockSendEmail).toHaveBeenCalledWith(
+        "customer-welcome",
+        expect.objectContaining({
+          to: "customer@example.com",
+          tenantId: "tenant-7",
+          customerName: "New Customer",
+          shopName: "Dive Shop",
+        })
+      );
+    });
+
+    it("generates correct customer login URL from subdomain", async () => {
+      const { triggerCustomerWelcomeEmail } = await import("../../../../lib/email/triggers");
+
+      await triggerCustomerWelcomeEmail({
+        customerEmail: "customer@test.com",
+        customerName: "Customer",
+        shopName: "Test Shop",
+        subdomain: "testshop",
+        tenantId: "t8",
+      });
+
+      expect(mockSendEmail).toHaveBeenCalledWith(
+        "customer-welcome",
+        expect.objectContaining({
+          loginUrl: "https://testshop.divestreams.com/site/login",
+        })
+      );
+    });
+
+    it("uses customer portal path /site/login", async () => {
+      const { triggerCustomerWelcomeEmail } = await import("../../../../lib/email/triggers");
+
+      await triggerCustomerWelcomeEmail({
+        customerEmail: "customer@example.com",
+        customerName: "Customer",
+        shopName: "Shop",
+        subdomain: "shop",
+        tenantId: "t9",
+      });
+
+      const call = mockSendEmail.mock.calls[0];
+      expect(call[1].loginUrl).toContain("/site/login");
+    });
+  });
+
+  describe("triggerCustomerSetPassword", () => {
+    it("exports triggerCustomerSetPassword function", async () => {
+      const triggersModule = await import("../../../../lib/email/triggers");
+      expect(typeof triggersModule.triggerCustomerSetPassword).toBe("function");
+    });
+
+    it("calls sendEmail with customer-set-password type", async () => {
+      const { triggerCustomerSetPassword } = await import("../../../../lib/email/triggers");
+
+      await triggerCustomerSetPassword({
+        customerEmail: "newcustomer@example.com",
+        customerName: "New Customer",
+        shopName: "Ocean Divers",
+        subdomain: "oceandivers",
+        resetToken: "setpass123",
+        tenantId: "tenant-10",
+      });
+
+      expect(mockSendEmail).toHaveBeenCalledTimes(1);
+      expect(mockSendEmail).toHaveBeenCalledWith(
+        "customer-set-password",
+        expect.objectContaining({
+          to: "newcustomer@example.com",
+          tenantId: "tenant-10",
+          customerName: "New Customer",
+          shopName: "Ocean Divers",
+        })
+      );
+    });
+
+    it("generates correct set password URL with token", async () => {
+      const { triggerCustomerSetPassword } = await import("../../../../lib/email/triggers");
+
+      await triggerCustomerSetPassword({
+        customerEmail: "customer@test.com",
+        customerName: "Test Customer",
+        shopName: "Test Shop",
+        subdomain: "testshop",
+        resetToken: "token123",
+        tenantId: "t11",
+      });
+
+      expect(mockSendEmail).toHaveBeenCalledWith(
+        "customer-set-password",
+        expect.objectContaining({
+          setPasswordUrl: "https://testshop.divestreams.com/site/set-password?token=token123",
+        })
+      );
+    });
+
+    it("uses customer portal path /site/set-password", async () => {
+      const { triggerCustomerSetPassword } = await import("../../../../lib/email/triggers");
+
+      await triggerCustomerSetPassword({
+        customerEmail: "customer@example.com",
+        customerName: "Customer",
+        shopName: "Shop",
+        subdomain: "shop",
+        resetToken: "abc",
+        tenantId: "t12",
+      });
+
+      const call = mockSendEmail.mock.calls[0];
+      expect(call[1].setPasswordUrl).toContain("/site/set-password");
+    });
+
+    it("includes reset token in query string", async () => {
+      const { triggerCustomerSetPassword } = await import("../../../../lib/email/triggers");
+
+      await triggerCustomerSetPassword({
+        customerEmail: "customer@test.com",
+        customerName: "Test",
+        shopName: "Shop",
+        subdomain: "shop",
+        resetToken: "unique-token-xyz",
+        tenantId: "t13",
+      });
+
+      const call = mockSendEmail.mock.calls[0];
+      expect(call[1].setPasswordUrl).toContain("token=unique-token-xyz");
+    });
+  });
 });
