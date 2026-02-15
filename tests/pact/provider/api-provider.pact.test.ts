@@ -13,10 +13,14 @@ import { Verifier } from "@pact-foundation/pact";
 import path from "path";
 import { createHash } from "crypto";
 
-describe("DiveStreams API Provider Verification", () => {
-  const PORT = 5173; // Use default dev server port
-  let dbClient: any = null;
-  let redisClient: any = null;
+// Skip provider tests in CI - they require a running dev server
+// Provider verification happens in the pact-tests.yml workflow instead
+describe.skipIf(process.env.CI === "true")(
+  "DiveStreams API Provider Verification",
+  () => {
+    const PORT = 5173; // Use default dev server port
+    let dbClient: any = null;
+    let redisClient: any = null;
 
   beforeAll(async () => {
     console.log("[PACT] Preparing for provider verification...");
@@ -239,7 +243,8 @@ describe("DiveStreams API Provider Verification", () => {
       throw error;
     }
   }, 120000); // 120 second timeout for provider verification
-});
+  }
+);
 
 // =============================================================================
 // HELPER FUNCTIONS
