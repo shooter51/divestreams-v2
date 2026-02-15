@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, staging, develop]
   pull_request:
-    branches: [main]
+    branches: [main, staging, develop]
 
 env:
   REGISTRY: ghcr.io
@@ -13,7 +13,7 @@ env:
 jobs:
   # ─────────────────────────────────────────────
   # Unit & Integration Tests
-  # Runs on: staging, develop, PRs
+  # Runs on: staging, develop, and all PRs
   # ─────────────────────────────────────────────
   test:
     if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop' || github.event_name == 'pull_request'
@@ -37,11 +37,9 @@ jobs:
 
       - name: Run lint
         run: npm run lint
-        continue-on-error: true  # TODO: remove once lint errors are fixed
 
       - name: Run typecheck
         run: npm run typecheck
-        continue-on-error: true  # TODO: remove once type errors are fixed
 
       - name: Setup database schema
         run: npm run db:push
@@ -50,17 +48,16 @@ jobs:
 
       - name: Run unit and integration tests
         run: npm test -- --run
-        continue-on-error: true  # TODO: remove once test failures are fixed
         env:
           DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
 
   # ─────────────────────────────────────────────
-  # E2E Tests (staging + PRs only — not develop)
+  # E2E Tests (staging push + PRs to staging)
   # ─────────────────────────────────────────────
   e2e:
-    if: github.ref == 'refs/heads/staging' || github.event_name == 'pull_request'
+    if: github.ref == 'refs/heads/staging' || (github.event_name == 'pull_request' && github.base_ref == 'staging')
     runs-on: [self-hosted, linux, divestreams]
     steps:
       - uses: actions/checkout@v4
@@ -204,10 +201,11 @@ jobs:
   # Full test gate: unit + E2E
   # ─────────────────────────────────────────────
   build-test:
-    needs: [test]
+    needs: [test, e2e]
     if: |
       github.ref == 'refs/heads/staging' &&
-      needs.test.result == 'success'
+      needs.test.result == 'success' &&
+      needs.e2e.result == 'success'
     runs-on: [self-hosted, linux, divestreams]
     permissions:
       contents: read
@@ -441,7 +439,6 @@ jobs:
         run: npm run test:e2e -- --grep "@smoke"
         env:
           BASE_URL: https://test.divestreams.com
-        continue-on-error: true
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
