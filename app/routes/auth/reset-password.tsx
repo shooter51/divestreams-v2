@@ -7,6 +7,7 @@ import { auth } from "../../../lib/auth";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Reset Password - DiveStreams" }];
@@ -51,6 +52,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!subdomain) {
     return redirect(getAppUrl());
+  }
+
+  // Rate limit password reset attempts
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`reset-password:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { error: "Too many attempts. Please try again later." };
   }
 
   const formData = await request.formData();

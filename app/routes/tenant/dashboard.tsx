@@ -142,10 +142,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const bookingCountMap = new Map(bookingCounts.map(b => [b.tripId, Number(b.count) || 0]));
 
-  const upcomingTrips = upcomingTripsRaw.map(trip => ({
+  const formattedTrips = upcomingTripsRaw.map(trip => ({
     id: trip.id,
     name: trip.tourName,
-    date: trip.date,
+    date: formatDate(trip.date),
     time: trip.startTime,
     participants: bookingCountMap.get(trip.id) || 0,
     maxParticipants: trip.maxParticipants || 0,
@@ -157,19 +157,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     trip: b.tourName,
     amount: Number(b.total || 0).toFixed(2),
     status: b.status,
-    date: b.tripDate,
+    date: formatDate(b.tripDate),
   }));
 
-  // Format dates in trips and bookings
-  const formattedTrips = upcomingTrips.map((trip) => ({
-    ...trip,
-    date: formatDate(trip.date),
-  }));
-
-  const formattedBookings = recentBookings.map((booking) => ({
-    ...booking,
-    date: formatDate(booking.date),
-  }));
 
   // Get plan limits from subscription plan details or use defaults
   const planLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
@@ -180,7 +170,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return {
     stats,
     upcomingTrips: formattedTrips,
-    recentBookings: formattedBookings,
+    recentBookings: recentBookings,
     subscription: ctx.subscription,
     usage,
     planLimits,

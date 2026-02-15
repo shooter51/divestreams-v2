@@ -573,6 +573,8 @@ export async function cancelSubscription(orgId: string): Promise<boolean> {
     cancel_at_period_end: true,
   });
 
+  // Set status to "cancel_pending" — user keeps paid features until period end.
+  // The Stripe webhook (customer.subscription.deleted) will transition to "canceled".
   await db
     .update(subscription)
     .set({

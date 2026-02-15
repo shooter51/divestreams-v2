@@ -115,7 +115,16 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Handle "join" intent - user wants to join org as customer
   if (intent === "join") {
-    const userId = formData.get("userId");
+    // Get authenticated session - userId MUST come from session, not form data
+    const sessionData = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!sessionData?.user) {
+      return { error: "You must be logged in to join an organization" };
+    }
+
+    const userId = sessionData.user.id;
     const orgId = formData.get("orgId");
 
     // Null check before using
@@ -124,7 +133,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Verify session matches the userId to prevent unauthorized joins
-    const sessionData = await auth.api.getSession({ headers: request.headers });
+    // sessionData already fetched above at line 119
     if (!sessionData?.user || sessionData.user.id !== userId) {
       return { error: "Unauthorized: session mismatch" };
     }
@@ -165,6 +174,16 @@ export async function action({ request }: ActionFunctionArgs) {
   // Handle normal login
   const email = formData.get("email");
   const password = formData.get("password");
+
+  // Rate limit login attempts (clientIp already fetched above at line 101)
+  const rateLimitResult = await checkRateLimit(`tenant-login:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { error: "Too many login attempts. Please try again later." };
+  }
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {

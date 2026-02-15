@@ -9,6 +9,7 @@ const isServer = typeof process !== "undefined" && process.env?.DATABASE_URL;
 // Lazy initialization for server-side only
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 let _migrationDb: ReturnType<typeof drizzle> | null = null;
+let _queryClient: ReturnType<typeof postgres> | null = null;
 
 function getConnectionString(): string {
   const connectionString = process.env.DATABASE_URL;

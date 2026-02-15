@@ -2,13 +2,16 @@ import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { db } from "../../../lib/db";
 import { subscriptionPlans } from "../../../lib/db/schema";
+import { requirePlatformContext } from "../../../lib/auth/platform-context.server";
 import { eq } from "drizzle-orm";
 import { FEATURE_LABELS, type PlanFeaturesObject, type PlanFeatureKey, type PlanLimits } from "../../../lib/plan-features";
 import { createStripeProductAndPrices, updateStripeProductAndPrices } from "../../../lib/stripe/stripe-billing.server";
 
 export const meta: MetaFunction = () => [{ title: "Edit Plan - DiveStreams Admin" }];
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  await requirePlatformContext(request);
+
   const planId = params.id;
 
   // Handle "new" plan
@@ -31,6 +34,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  await requirePlatformContext(request);
+
   const planId = params.id;
   const formData = await request.formData();
 

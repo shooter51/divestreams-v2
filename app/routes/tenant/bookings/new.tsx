@@ -94,17 +94,25 @@ export async function action({ request }: ActionFunctionArgs) {
   const subtotal = pricePerPerson * participants;
   const total = subtotal; // Could add tax/discounts here
 
-  // Create the booking
-  const booking = await createBooking(organizationId, {
-    tripId: data.tripId,
-    customerId: data.customerId,
-    participants,
-    subtotal,
-    total,
-    currency: "USD", // Default currency - could be stored in organization settings
-    specialRequests: data.specialRequests,
-    source: data.source || "direct",
-  });
+  // Create the booking (transactional with availability check)
+  let booking;
+  try {
+    booking = await createBooking(organizationId, {
+      tripId: data.tripId,
+      customerId: data.customerId,
+      participants,
+      subtotal,
+      total,
+      currency: "USD",
+      specialRequests: data.specialRequests,
+      source: data.source || "direct",
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("spots")) {
+      return { errors: { tripId: error.message }, values: getFormValues(formData) };
+    }
+    throw error;
+  }
 
   // Queue confirmation email (don't fail booking if email fails)
   try {

@@ -292,6 +292,14 @@ export default function DiscountsPage() {
     }
   }, [fetcherData, showToast]);
 
+  // Close modal on successful create/update/delete
+  useEffect(() => {
+    if (fetcherData?.success) {
+      setShowForm(false);
+      setEditingDiscount(null);
+    }
+  }, [fetcherData?.success]);
+
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {
     const status = discountStatuses.get(d.id);

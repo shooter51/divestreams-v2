@@ -81,6 +81,12 @@ vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions) => ({ type: "and", conditions })),
 }));
 
+// Mock rate limiting
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockReturnValue({ allowed: true }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 import { auth } from "../../../../lib/auth";
 import { getSubdomainFromRequest, getOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
@@ -358,25 +364,41 @@ describe("tenant/login route", () => {
 
     describe("join intent", () => {
       it("adds user as customer to organization", async () => {
-        // Mock that user is not already a member
-        const mockMemberCheckQuery = {
+        // Mock authenticated session (userId now comes from session, not form)
+        (auth.api.getSession as Mock).mockResolvedValue({
+          user: { id: "user-1", email: "user@example.com" },
+        });
+
+        // Mock subdomain resolution returns "demo"
+        (getSubdomainFromRequest as Mock).mockReturnValue("demo");
+
+        // First select: org lookup by slug → returns org with matching id
+        // Second select: member check → returns empty (not a member)
+        const orgLookupQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([{ id: "org-1" }]),
+        };
+
+        const memberCheckQuery = {
           select: vi.fn().mockReturnThis(),
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           limit: vi.fn().mockResolvedValue([]),
         };
 
-        // db.insert(table).values({...}) - need to return object with values method
+        (db.select as Mock)
+          .mockReturnValueOnce(orgLookupQuery)
+          .mockReturnValueOnce(memberCheckQuery);
+
         const mockInsertChain = {
           values: vi.fn().mockResolvedValue([]),
         };
-
-        (db.select as Mock).mockReturnValue(mockMemberCheckQuery);
         (db.insert as Mock).mockReturnValue(mockInsertChain);
 
         const formData = new FormData();
         formData.append("intent", "join");
-        formData.append("userId", "user-1");
         formData.append("orgId", "org-1");
         formData.append("redirectTo", "/tenant");
 
@@ -387,14 +409,16 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        // redirect() returns a Response in React Router v7
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
         expect(getRedirectPathname((response as Response).headers.get("Location"))).toBe("/tenant");
         expect(db.insert).toHaveBeenCalled();
       });
 
-      it("returns error when userId is missing", async () => {
+      it("returns error when user is not logged in", async () => {
+        // No session = not logged in
+        (auth.api.getSession as Mock).mockResolvedValue(null);
+
         const formData = new FormData();
         formData.append("intent", "join");
         formData.append("orgId", "org-1");
@@ -410,9 +434,12 @@ describe("tenant/login route", () => {
       });
 
       it("returns error when orgId is missing", async () => {
+        (auth.api.getSession as Mock).mockResolvedValue({
+          user: { id: "user-1", email: "user@example.com" },
+        });
+
         const formData = new FormData();
         formData.append("intent", "join");
-        formData.append("userId", "user-1");
 
         const request = new Request("https://demo.divestreams.com/login", {
           method: "POST",
@@ -425,19 +452,33 @@ describe("tenant/login route", () => {
       });
 
       it("does not create duplicate membership", async () => {
-        // Mock that user is already a member
-        const mockMemberCheckQuery = {
+        (auth.api.getSession as Mock).mockResolvedValue({
+          user: { id: "user-1", email: "user@example.com" },
+        });
+        (getSubdomainFromRequest as Mock).mockReturnValue("demo");
+
+        // First select: org lookup → matching org
+        // Second select: member check → already a member
+        const orgLookupQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([{ id: "org-1" }]),
+        };
+
+        const memberCheckQuery = {
           select: vi.fn().mockReturnThis(),
           from: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
           limit: vi.fn().mockResolvedValue([{ userId: "user-1", organizationId: "org-1" }]),
         };
 
-        (db.select as Mock).mockReturnValue(mockMemberCheckQuery);
+        (db.select as Mock)
+          .mockReturnValueOnce(orgLookupQuery)
+          .mockReturnValueOnce(memberCheckQuery);
 
         const formData = new FormData();
         formData.append("intent", "join");
-        formData.append("userId", "user-1");
         formData.append("orgId", "org-1");
         formData.append("redirectTo", "/tenant");
 
@@ -448,7 +489,6 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        // redirect() returns a Response in React Router v7
         expect(response).toBeInstanceOf(Response);
         expect((response as Response).status).toBe(302);
 
