@@ -1,0 +1,41 @@
+version: '3.8'
+
+# Persistent CI services for GitHub Actions self-hosted runner
+# Deployed to Dev VPS (1296511) where the GitHub runner is hosted
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ci-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: testdb
+    volumes:
+      - ci-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ci-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ci-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ci-postgres-data:
+  ci-redis-data:
