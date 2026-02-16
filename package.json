@@ -50,7 +50,20 @@
     "pact:can-deploy": "node scripts/can-i-deploy.mjs",
     "pact:can-deploy:dev": "node scripts/can-i-deploy.mjs --environment dev",
     "pact:can-deploy:test": "node scripts/can-i-deploy.mjs --environment test",
-    "pact:can-deploy:production": "node scripts/can-i-deploy.mjs --environment production"
+    "pact:can-deploy:production": "node scripts/can-i-deploy.mjs --environment production",
+    "coverage:enforce": "tsx scripts/coverage-enforcer.ts",
+    "coverage:enforce:unit": "tsx scripts/coverage-enforcer.ts --type=unit",
+    "coverage:enforce:integration": "tsx scripts/coverage-enforcer.ts --type=integration",
+    "coverage:enforce:e2e": "tsx scripts/coverage-enforcer.ts --type=e2e",
+    "coverage:enforce:strict": "tsx scripts/coverage-enforcer.ts --strict",
+    "test:scaffold": "tsx scripts/generate-test-scaffold.ts",
+    "vibe:check": "tsx scripts/vibe-test-tracker.ts --check",
+    "vibe:track": "tsx scripts/vibe-test-tracker.ts --track",
+    "vibe:create-tests": "tsx scripts/vibe-test-tracker.ts --create-tests",
+    "hooks:install": "ln -sf ../../scripts/pre-commit-coverage.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
+    "setup:verify": "bash scripts/verify-coverage-setup.sh",
+    "validate:structure": "tsx scripts/validate-directory-structure.ts",
+    "cleanup:structure": "tsx scripts/cleanup-directory-structure.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
