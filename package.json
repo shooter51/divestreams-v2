@@ -66,7 +66,7 @@
     "vibe:check": "tsx scripts/vibe-test-tracker.ts --check",
     "vibe:track": "tsx scripts/vibe-test-tracker.ts --track",
     "vibe:create-tests": "tsx scripts/vibe-test-tracker.ts --create-tests",
-    "hooks:install": "ln -sf ../../scripts/pre-commit-coverage.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
+    "hooks:install": "bash scripts/install-hooks.sh",
     "setup:verify": "bash scripts/verify-coverage-setup.sh",
     "validate:structure": "tsx scripts/validate-directory-structure.ts",
     "cleanup:structure": "tsx scripts/cleanup-directory-structure.ts",
