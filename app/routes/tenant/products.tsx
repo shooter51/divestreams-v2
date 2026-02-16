@@ -4,7 +4,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, Form } from "react-router";
+import { useLoaderData, useFetcher, Form, useRouteLoaderData } from "react-router";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db/index";
@@ -14,6 +14,8 @@ import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
+import { CsrfInput } from "../../components/CsrfInput";
+import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -600,6 +602,8 @@ type ProductWithSaleFields = {
 export default function ProductsPage() {
   const { products } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
+  const csrfToken = layoutData?.csrfToken;
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithSaleFields | null>(null);
   const [stockAdjustment, setStockAdjustment] = useState<{ id: string; name: string; currentStock: number } | null>(null);
@@ -700,6 +704,7 @@ export default function ProductsPage() {
     formData.append("intent", "bulk-update-stock");
     formData.append("productIds", JSON.stringify(Array.from(selectedProducts)));
     formData.append("updateType", bulkUpdateType);
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
     fetcher.submit(formData, { method: "post" });
     setShowBulkUpdate(false);
     setSelectedProducts(new Set());
@@ -765,6 +770,7 @@ export default function ProductsPage() {
     const formData = new FormData();
     formData.append("intent", "import-csv");
     formData.append("csvData", text);
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "post" });
     setShowImportModal(false);
@@ -1076,6 +1082,7 @@ export default function ProductsPage() {
               </h2>
 
               <fetcher.Form method="post" className="space-y-4">
+                <CsrfInput />
                 <input type="hidden" name="intent" value={editingProduct ? "update" : "create"} />
                 {editingProduct && <input type="hidden" name="id" value={editingProduct.id} />}
 
@@ -1282,6 +1289,7 @@ export default function ProductsPage() {
                 {editingProduct && (
                   <div className="pt-4 border-t">
                     <fetcher.Form method="post">
+                      <CsrfInput />
                       <input type="hidden" name="intent" value="delete" />
                       <input type="hidden" name="id" value={editingProduct.id} />
                       <button
@@ -1316,6 +1324,7 @@ export default function ProductsPage() {
               onSubmit={() => setStockAdjustment(null)}
               className="space-y-4"
             >
+              <CsrfInput />
               <input type="hidden" name="intent" value="adjust-stock" />
               <input type="hidden" name="id" value={stockAdjustment.id} />
 

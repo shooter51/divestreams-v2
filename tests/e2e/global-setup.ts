@@ -8,6 +8,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { createTenant } from "../../lib/db/tenant.server";
 import { auth } from "../../lib/auth";
 import { seedDemoData } from "../../lib/db/seed-demo-data.server";
+import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../lib/plan-features";
 
 async function globalSetup(config: FullConfig) {
   // Load .env file
@@ -151,7 +152,17 @@ async function globalSetup(config: FullConfig) {
         throw error; // Don't swallow this error - it's critical for tests
       }
     } else {
-      console.log("✓ Demo member relationship already exists");
+      // Ensure role is "owner" (createTenant may have set a default role)
+      if (existingMember.role !== "owner") {
+        console.log(`Updating demo member role from "${existingMember.role}" to "owner"...`);
+        await db
+          .update(member)
+          .set({ role: "owner" })
+          .where(eq(member.id, existingMember.id));
+        console.log("✓ Demo member role updated to owner");
+      } else {
+        console.log("✓ Demo member relationship already exists (role: owner)");
+      }
     }
 
     // Upgrade demo org to ENTERPRISE plan for full feature access in E2E tests
@@ -171,6 +182,41 @@ async function globalSetup(config: FullConfig) {
         "   This will cause 40+ E2E test failures due to feature gate restrictions.\n" +
         "   Fix: Run 'npm run db:seed' or 'tsx scripts/seed.ts' to populate subscription_plans table."
       );
+    }
+
+    // Fix enterprise plan features: DB may have legacy string[] format (marketing text)
+    // but the app expects PlanFeaturesObject (boolean flags). Without this fix,
+    // the app falls back to DEFAULT_PLAN_FEATURES.free and shows all features as locked.
+    const planFeatures = enterprisePlan.features;
+    if (Array.isArray(planFeatures) || !planFeatures || typeof planFeatures !== "object") {
+      console.log("Fixing enterprise plan features format (legacy string[] → boolean flags)...");
+      await db
+        .update(subscriptionPlans)
+        .set({
+          features: DEFAULT_PLAN_FEATURES.enterprise,
+          limits: DEFAULT_PLAN_LIMITS.enterprise,
+        })
+        .where(eq(subscriptionPlans.id, enterprisePlan.id));
+      console.log("✓ Enterprise plan features updated to boolean flags format");
+    }
+
+    // Also fix all other plans in case they have the same issue
+    const allPlans = await db.select().from(subscriptionPlans);
+    for (const plan of allPlans) {
+      const planName = plan.name.toLowerCase();
+      if (planName !== "enterprise" && DEFAULT_PLAN_FEATURES[planName]) {
+        const pf = plan.features;
+        if (Array.isArray(pf) || !pf || typeof pf !== "object") {
+          console.log(`Fixing ${plan.name} plan features format...`);
+          await db
+            .update(subscriptionPlans)
+            .set({
+              features: DEFAULT_PLAN_FEATURES[planName],
+              limits: DEFAULT_PLAN_LIMITS[planName],
+            })
+            .where(eq(subscriptionPlans.id, plan.id));
+        }
+      }
     }
 
     await db
@@ -486,17 +532,22 @@ async function globalSetup(config: FullConfig) {
         throw error;
       }
     } else {
-      console.log("✓ E2E test member relationship already exists");
+      // Ensure role is "owner" (createTenant may have set it to a default role)
+      if (existingE2eMember.role !== "owner") {
+        console.log(`Updating e2etest member role from "${existingE2eMember.role}" to "owner"...`);
+        await db
+          .update(member)
+          .set({ role: "owner" })
+          .where(eq(member.id, existingE2eMember.id));
+        console.log("✓ E2E test member role updated to owner");
+      } else {
+        console.log("✓ E2E test member relationship already exists (role: owner)");
+      }
     }
 
-    // Upgrade e2etest org to PRO plan for feature access
-    const [proPlan] = await db
-      .select()
-      .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "pro"))
-      .limit(1);
-
-    if (proPlan) {
+    // Upgrade e2etest org to ENTERPRISE plan for full feature access
+    // PRO plan doesn't include Boats, Equipment, Products, Discounts, Training, Gallery
+    if (enterprisePlan) {
       // Check if subscription exists
       const [existingSub] = await db
         .select()
@@ -508,24 +559,24 @@ async function globalSetup(config: FullConfig) {
         await db
           .update(subscription)
           .set({
-            plan: "pro",
-            planId: proPlan.id,
+            plan: "enterprise",
+            planId: enterprisePlan.id,
             status: "active",
           })
           .where(eq(subscription.organizationId, e2eOrg.id));
       } else {
         await db.insert(subscription).values({
           organizationId: e2eOrg.id,
-          plan: "pro",
-          planId: proPlan.id,
+          plan: "enterprise",
+          planId: enterprisePlan.id,
           status: "active",
           createdAt: new Date(),
           updatedAt: new Date(),
         });
       }
-      console.log("✓ E2E test organization upgraded to PRO plan");
+      console.log("✓ E2E test organization upgraded to ENTERPRISE plan");
     } else {
-      console.warn("⚠️  Pro plan not found - e2etest org will use default plan");
+      console.warn("⚠️  Enterprise plan not found - e2etest org will use default plan");
     }
 
     // Seed training agencies for e2etest org
@@ -541,7 +592,7 @@ async function globalSetup(config: FullConfig) {
     console.log("  - Organization: e2etest.localhost:5173");
     console.log("  - Email: " + e2eUserEmail);
     console.log("  - Password: " + e2eUserPassword);
-    console.log("  - Plan: PRO (most features enabled)");
+    console.log("  - Plan: ENTERPRISE (all features enabled)");
 
   } catch (error) {
     console.error("Global setup failed:", error);

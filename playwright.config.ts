@@ -32,8 +32,8 @@ const workflowTestFiles = [
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  // Skip dev-specific tests in CI (they use remote dev URLs not available in CI)
-  testIgnore: process.env.CI ? ["**/*-dev*.spec.ts"] : [],
+  // Skip remote-environment tests (they use hardcoded dev/staging URLs not available locally or in CI)
+  testIgnore: ["**/*-dev*.spec.ts", "**/*-staging*.spec.ts"],
   // Enable parallel execution within projects (serial blocks still respected)
   fullyParallel: !collectCoverage,
   forbidOnly: !!process.env.CI,
