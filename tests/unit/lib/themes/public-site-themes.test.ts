@@ -205,7 +205,7 @@ describe("getThemeStyleTag", () => {
   it("should have proper indentation", () => {
     const styleTag = getThemeStyleTag("minimal");
 
-    expect(styleTag).toMatch(/^:root \{\n  /);
+    expect(styleTag).toMatch(/^:root \{\n {2}/);
     expect(styleTag).toMatch(/\n\}$/);
   });
 });
