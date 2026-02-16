@@ -3,6 +3,18 @@
 ## Project Overview
 Multi-tenant SaaS platform for dive shop and dive tour management. Built with React Router v7, PostgreSQL (multi-tenant with schema-per-tenant), Redis, and Caddy.
 
+## Directory Structure
+**IMPORTANT: Follow the directory structure policy when creating or organizing files.**
+
+- **Policy**: See `DIRECTORY_STRUCTURE_POLICY.md` for full details
+- **Quick Reference**: See `docs/guides/directory-structure-quick-reference.md`
+- **Validation**: Run `npm run validate:structure` before commits
+- **Key Rules**:
+  - Root directory: Config files only (no documentation)
+  - Documentation: Organized in `docs/` subdirectories
+  - File naming: Use kebab-case (e.g., `stripe-setup.md`)
+  - Tests: Mirror the structure of code they test
+
 ## Beads Issue Tracking - REQUIRED BEFORE CODE CHANGES
 
 **IMPORTANT: Always use Beads to track work before making code changes.**

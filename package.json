@@ -61,7 +61,9 @@
     "vibe:track": "tsx scripts/vibe-test-tracker.ts --track",
     "vibe:create-tests": "tsx scripts/vibe-test-tracker.ts --create-tests",
     "hooks:install": "ln -sf ../../scripts/pre-commit-coverage.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
-    "setup:verify": "bash scripts/verify-coverage-setup.sh"
+    "setup:verify": "bash scripts/verify-coverage-setup.sh",
+    "validate:structure": "tsx scripts/validate-directory-structure.ts",
+    "cleanup:structure": "tsx scripts/cleanup-directory-structure.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
