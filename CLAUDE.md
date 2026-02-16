@@ -210,6 +210,37 @@ echo "<GITHUB_PAT>" | docker login ghcr.io -u shooter51 --password-stdin
 - `staging` → Test VPS (human QA)
 - `main` → Production (live)
 
+### Branch Cleanup
+**Automated cleanup of stale branches to keep the repository clean.**
+
+**GitHub Action (Automatic):**
+- Runs weekly on Sundays at 2 AM UTC
+- Automatically deletes merged branches older than 30 days
+- Reports on unmerged stale branches for manual review
+- Manual trigger: Actions → "Cleanup Stale Branches" → Run workflow
+
+**Local Script (Manual):**
+```bash
+# Preview what would be deleted (dry run)
+./scripts/cleanup-branches.sh
+
+# Preview with custom stale threshold
+./scripts/cleanup-branches.sh --days 14
+
+# Actually delete branches
+./scripts/cleanup-branches.sh --live
+
+# Delete with custom threshold
+./scripts/cleanup-branches.sh --live --days 60
+```
+
+**What gets cleaned up:**
+1. **Merged & stale** (30+ days): Automatically deleted (safe)
+2. **Local-only branches**: Deleted if remote was already removed
+3. **Unmerged & stale**: Reported for manual review (requires human decision)
+
+**Protected branches:** `main`, `develop`, `staging` (never deleted)
+
 ### Branch Protection Rules
 All three branches are protected. Direct pushes are blocked — changes must go through PRs.
 
