@@ -253,7 +253,7 @@ jobs:
             --fail
 
       - name: Wait for deployment to stabilize
-        run: sleep 30
+        run: sleep 45
 
       - name: Verify containers are running
         run: |
@@ -268,8 +268,8 @@ jobs:
           RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
           echo "Running containers: $RUNNING_COUNT"
 
-          if [ "$RUNNING_COUNT" -lt 3 ]; then
-            echo "ERROR: Expected at least 3 containers running, found $RUNNING_COUNT"
+          if [ "$RUNNING_COUNT" -lt 4 ]; then
+            echo "ERROR: Expected at least 4 containers running (app, worker, db, redis), found $RUNNING_COUNT"
             exit 1
           fi
 
