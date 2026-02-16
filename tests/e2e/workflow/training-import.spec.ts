@@ -19,7 +19,7 @@ const testUser = {
 
 // Helper to select a supported agency (PADI, SSI, or NAUI have course templates)
 async function selectSupportedAgency(page: any) {
-  const agencyDropdown = page.locator('select[name="agencyId"]');
+  const agencyDropdown = page.locator('#agencySelect');
   // Try to select PADI first (most common), fall back to SSI, then NAUI
   const options = await agencyDropdown.locator('option').allTextContents();
   const padiOption = options.find((opt: string) => opt.includes('PADI'));
@@ -109,7 +109,7 @@ test.describe("Training Import Wizard", () => {
     await expect(step1).toBeVisible({ timeout: 8000 });
 
     // Verify agency dropdown exists
-    const agencyDropdown = page.locator('select[name="agencyId"]');
+    const agencyDropdown = page.locator('#agencySelect');
     await expect(agencyDropdown).toBeVisible({ timeout: 5000 });
 
     // Should have at least the placeholder option (and possibly agencies from seed data)
@@ -149,7 +149,7 @@ test.describe("Training Import Wizard", () => {
     await nextButton.click();
 
     // HTML5 validation should prevent submission
-    const agencyDropdown = page.locator('select[name="agencyId"]');
+    const agencyDropdown = page.locator('#agencySelect');
     await expect(agencyDropdown).toBeVisible({ timeout: 5000 });
     const isInvalid = await agencyDropdown.evaluate((el: any) => !el.validity.valid);
     expect(isInvalid).toBeTruthy();
@@ -433,7 +433,7 @@ test.describe("Training Import Wizard", () => {
     }
     await expect(step1Circle).toBeVisible({ timeout: 8000 });
     const step1Classes = await step1Circle.getAttribute('class');
-    expect(step1Classes).toContain('bg-blue-600');
+    expect(step1Classes).toContain('bg-brand');
 
     // Navigate to Step 2
     const selected = await selectSupportedAgency(page);
@@ -448,10 +448,10 @@ test.describe("Training Import Wizard", () => {
       const step1CompletedClasses = await step1Checkmark.getAttribute('class');
       expect(step1CompletedClasses).toContain('bg-green-600');
 
-      // Verify step 2 is active (blue circle with "2")
+      // Verify step 2 is active (brand-colored circle with "2")
       const step2Circle = page.locator('div.rounded-full:has-text("2")').first();
       const step2Classes = await step2Circle.getAttribute('class');
-      expect(step2Classes).toContain('bg-blue-600');
+      expect(step2Classes).toContain('bg-brand');
     } else {
       test.skip();
     }
