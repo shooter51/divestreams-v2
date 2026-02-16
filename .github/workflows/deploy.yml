@@ -49,12 +49,28 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
 
-      - name: Run unit and integration tests
-        run: npm test -- --run
+      - name: Run unit and integration tests with coverage
+        run: npm run test:coverage
         env:
           DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
+
+      - name: Run Pact consumer tests
+        run: npm run pact:consumer
+        env:
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+
+      - name: Enforce coverage thresholds
+        run: tsx scripts/coverage-enforcer.ts --type=unit
+
+      - name: Upload unit coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-unit
+          path: coverage/unit/
+          retention-days: 30
 
       # Note: Using persistent containers - no cleanup needed
 
@@ -115,15 +131,15 @@ jobs:
           lsof -ti:5173 | xargs kill -9 2>/dev/null || true
           sleep 2
 
-      - name: Run E2E tests
+      - name: Run E2E tests with coverage
         run: |
           COMMIT_MSG_FIRST_LINE=$(printf '%s\n' "$COMMIT_MESSAGE" | head -n 1)
           if echo "$COMMIT_MSG_FIRST_LINE" | grep -q "\[e2e:failing\]"; then
             echo "Running only failing E2E tests..."
-            npm run test:e2e:failing
+            E2E_COVERAGE=true npm run test:e2e:failing
           else
-            echo "Running all E2E tests..."
-            npx playwright test tests/e2e/
+            echo "Running all E2E tests with coverage..."
+            npm run test:coverage:e2e
           fi
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
@@ -132,6 +148,28 @@ jobs:
           AUTH_SECRET: test-secret-for-ci
           APP_URL: http://localhost:5173
           ADMIN_PASSWORD: DiveAdmin2026
+
+      - name: Merge coverage reports
+        run: npm run coverage:merge
+
+      - name: Enforce combined coverage thresholds
+        run: tsx scripts/coverage-enforcer.ts
+
+      - name: Upload E2E coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-e2e
+          path: coverage/e2e/
+          retention-days: 30
+
+      - name: Upload combined coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-combined
+          path: coverage/combined/
+          retention-days: 30
 
       - name: Cleanup E2E containers
         if: always()
