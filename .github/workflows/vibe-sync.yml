@@ -1,0 +1,101 @@
+name: Vibe Kanban Sync
+
+on:
+  push:
+    branches: [main, staging, develop]
+  pull_request:
+    types: [opened, closed]
+    branches: [main, staging, develop]
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types: [completed]
+
+jobs:
+  sync-status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract issue ID from branch name
+        id: extract-issue
+        run: |
+          # Extract VK issue ID from branch name (vk/844e-defect-integrati -> 844e...)
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+          if [[ "$BRANCH" =~ ^vk/([a-f0-9]{4}-[^-]+) ]]; then
+            ISSUE_ID="${BASH_REMATCH[1]}"
+            echo "issue_id=$ISSUE_ID" >> $GITHUB_OUTPUT
+            echo "✅ Found Vibe Kanban issue: $ISSUE_ID"
+          else
+            echo "⚠️ No VK issue ID found in branch name: $BRANCH"
+            echo "issue_id=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Vibe Kanban - Development Status
+        if: steps.extract-issue.outputs.issue_id != '' && github.ref == 'refs/heads/develop' && github.event_name == 'push'
+        env:
+          VK_ISSUE_ID: ${{ steps.extract-issue.outputs.issue_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          echo "🔄 Updating issue $VK_ISSUE_ID to 'In Development' status"
+          echo "📝 Commit: ${COMMIT_SHA:0:7} - $COMMIT_MSG"
+          # NOTE: This requires Vibe Kanban MCP server in CI environment
+          # TODO: Implement via API call or webhook
+          # curl -X POST https://vibe-kanban-api/issues/$VK_ISSUE_ID/status \
+          #   -H "Authorization: Bearer $VK_TOKEN" \
+          #   -d '{"status": "In Development", "comment": "Deployed to Dev VPS"}'
+
+      - name: Update Vibe Kanban - In Review Status
+        if: steps.extract-issue.outputs.issue_id != '' && github.event_name == 'pull_request' && github.event.action == 'opened' && github.base_ref == 'staging'
+        env:
+          VK_ISSUE_ID: ${{ steps.extract-issue.outputs.issue_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "🔄 Updating issue $VK_ISSUE_ID to 'In Review' status"
+          echo "🔗 PR #$PR_NUMBER: $PR_TITLE"
+          # TODO: Implement via API call or webhook
+          # curl -X POST https://vibe-kanban-api/issues/$VK_ISSUE_ID/status \
+          #   -H "Authorization: Bearer $VK_TOKEN" \
+          #   -d '{"status": "In Review", "comment": "PR #'"$PR_NUMBER"' created", "pr_url": "'"${{ github.event.pull_request.html_url }}"'"}'
+
+      - name: Update Vibe Kanban - QA Testing Status
+        if: steps.extract-issue.outputs.issue_id != '' && github.ref == 'refs/heads/staging' && github.event_name == 'push'
+        env:
+          VK_ISSUE_ID: ${{ steps.extract-issue.outputs.issue_id }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          echo "🔄 Updating issue $VK_ISSUE_ID to 'QA Testing' status"
+          echo "✅ Deployed to Test VPS (test.divestreams.com)"
+          # TODO: Implement via API call or webhook
+          # curl -X POST https://vibe-kanban-api/issues/$VK_ISSUE_ID/status \
+          #   -H "Authorization: Bearer $VK_TOKEN" \
+          #   -d '{"status": "QA Testing", "comment": "Deployed to Test VPS", "url": "https://test.divestreams.com"}'
+
+      - name: Update Vibe Kanban - Done Status
+        if: steps.extract-issue.outputs.issue_id != '' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          VK_ISSUE_ID: ${{ steps.extract-issue.outputs.issue_id }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          echo "✅ Updating issue $VK_ISSUE_ID to 'Done' status"
+          echo "🚀 Deployed to Production (divestreams.com)"
+          # TODO: Implement via API call or webhook
+          # curl -X POST https://vibe-kanban-api/issues/$VK_ISSUE_ID/status \
+          #   -H "Authorization: Bearer $VK_TOKEN" \
+          #   -d '{"status": "Done", "comment": "Deployed to Production", "url": "https://divestreams.com"}'
+
+      - name: Comment deployment status
+        if: steps.extract-issue.outputs.issue_id != ''
+        env:
+          VK_ISSUE_ID: ${{ steps.extract-issue.outputs.issue_id }}
+          BRANCH: ${{ steps.extract-issue.outputs.branch }}
+        run: |
+          echo "📝 Adding deployment comment to issue $VK_ISSUE_ID"
+          echo "Branch: $BRANCH"
+          echo "Event: ${{ github.event_name }}"
+          # TODO: Add comment with deployment details, test results, coverage reports
