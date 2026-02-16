@@ -15,39 +15,126 @@ Multi-tenant SaaS platform for dive shop and dive tour management. Built with Re
   - File naming: Use kebab-case (e.g., `stripe-setup.md`)
   - Tests: Mirror the structure of code they test
 
-## Beads Issue Tracking - REQUIRED BEFORE CODE CHANGES
+## Vibe Kanban Issue Tracking & Defect Repair Workflow
 
-**IMPORTANT: Always use Beads to track work before making code changes.**
+**IMPORTANT: All work must be tracked in vibe-kanban before making code changes.**
 
-### Before Starting Work
-```bash
-bd ready                    # Show issues ready to work on
-bd create --title "..."     # Create new issue for the task
-bd show DIVE-xxx            # View issue details
+### Defect Repair Workflow
+
+When a defect is found during development or testing:
+
+1. **Create Defect Issue**
+   - Use `mcp__vibe_kanban__create_issue` with title format: `[DEFECT] <description>`
+   - Include detailed description of the issue, steps to reproduce, and expected vs actual behavior
+   - If related to an active feature issue, note the parent issue ID in the description
+
+2. **Link to Workspace** (if applicable)
+   - Use `mcp__vibe_kanban__link_workspace` to associate the defect with current workspace
+
+3. **Fix the Defect**
+   - Write unit tests that reproduce the defect first (TDD approach)
+   - Fix the issue
+   - Ensure all unit tests pass: `npm test -- --run`
+   - Run lint and typecheck: `npm run lint && npm run typecheck`
+
+4. **Update Issue Status**
+   - Use `mcp__vibe_kanban__update_issue` to mark as completed
+   - Add summary of fix in issue description
+
+5. **Deploy Through CI/CD Pipeline**
+   - Push to feature branch → PR to `develop` → unit tests gate
+   - Merge to `develop` → auto-deploy to Dev VPS
+   - Create PR to `staging` → full E2E tests gate
+   - Merge to `staging` → auto-deploy to Test VPS for QA verification
+
+### Issue Management Commands
+
+```javascript
+// List all issues in project
+mcp__vibe_kanban__list_issues({ project_id: "<project-id>" })
+
+// Create new defect
+mcp__vibe_kanban__create_issue({
+  title: "[DEFECT] <description>",
+  description: "Steps to reproduce:\n1. ...\n\nExpected: ...\nActual: ...",
+  project_id: "<project-id>"
+})
+
+// Get issue details
+mcp__vibe_kanban__get_issue({ issue_id: "<issue-id>" })
+
+// Update issue status
+mcp__vibe_kanban__update_issue({
+  issue_id: "<issue-id>",
+  status: "Done"
+})
+
+// Link workspace to issue
+mcp__vibe_kanban__link_workspace({
+  workspace_id: "<workspace-id>",
+  issue_id: "<issue-id>"
+})
 ```
 
-### During Work
+### Defect Categories
+
+Tag defects with appropriate prefixes:
+- `[DEFECT] [CRITICAL]` - Production blocking, data loss, security issues
+- `[DEFECT] [HIGH]` - Major functionality broken, no workaround
+- `[DEFECT] [MEDIUM]` - Functionality broken but workaround exists
+- `[DEFECT] [LOW]` - Minor issues, cosmetic bugs, edge cases
+
+## Code Coverage & Testing - REQUIRED FOR ALL FEATURES
+
+**CRITICAL: No feature is complete until it has comprehensive test coverage.**
+
+### Coverage Requirements
+
+Every feature MUST have:
+- ✅ **Unit tests** (70% coverage minimum)
+- ✅ **Integration tests** (75% coverage minimum)
+- ✅ **E2E workflow tests** (60% coverage minimum)
+- ✅ **Pact contract tests** (for API routes, 100% coverage)
+- ✅ **Combined coverage** (80% minimum)
+
+### Quick Start
+
 ```bash
-bd update DIVE-xxx --status in-progress  # Mark as in progress
-bd comments DIVE-xxx --add "..."         # Add progress notes
+# Generate test scaffolding for a feature
+npm run test:scaffold -- --file=app/routes/tenant/boats.tsx
+
+# Check test status for your issue
+npm run vibe:check -- --issue=DIVE-1234
+
+# Run tests with coverage
+npm run test:coverage
+
+# Enforce coverage thresholds
+npm run coverage:enforce
 ```
 
-### After Completing Work
-```bash
-bd close DIVE-xxx           # Close the issue
-bd list                     # Verify status
-```
+### Enforcement Points
 
-### Key Commands
-```bash
-bd status                   # Overview of all issues
-bd list                     # List open issues
-bd search "keyword"         # Find issues
-bd graph                    # Show dependency graph
-```
+1. **Pre-commit hook** - Validates tests exist and pass
+2. **CI/CD pipeline** - Blocks deployment if coverage insufficient
+3. **Pull requests** - Requires coverage thresholds met
+4. **Vibe Kanban** - Tracks test completion per issue
 
-**Issue Prefix:** `DIVE-`
-**Sync Branch:** `beads-sync`
+### Complete Documentation
+
+See [TESTING.md](./TESTING.md) for:
+- Detailed testing workflow
+- Test type requirements
+- Coverage configuration
+- Troubleshooting guide
+- Best practices
+
+**Feature Definition of Done:**
+- [ ] All test types implemented
+- [ ] Coverage thresholds met
+- [ ] Pre-commit hook passes
+- [ ] CI/CD pipeline passes
+- [ ] Vibe issue marked complete
 
 ## Code Coverage & Testing - REQUIRED FOR ALL FEATURES
 
@@ -261,6 +348,37 @@ echo "<GITHUB_PAT>" | docker login ghcr.io -u shooter51 --password-stdin
 - `develop` → Dev VPS (AI agent work)
 - `staging` → Test VPS (human QA)
 - `main` → Production (live)
+
+### Branch Cleanup
+**Automated cleanup of stale branches to keep the repository clean.**
+
+**GitHub Action (Automatic):**
+- Runs weekly on Sundays at 2 AM UTC
+- Automatically deletes merged branches older than 30 days
+- Reports on unmerged stale branches for manual review
+- Manual trigger: Actions → "Cleanup Stale Branches" → Run workflow
+
+**Local Script (Manual):**
+```bash
+# Preview what would be deleted (dry run)
+./scripts/cleanup-branches.sh
+
+# Preview with custom stale threshold
+./scripts/cleanup-branches.sh --days 14
+
+# Actually delete branches
+./scripts/cleanup-branches.sh --live
+
+# Delete with custom threshold
+./scripts/cleanup-branches.sh --live --days 60
+```
+
+**What gets cleaned up:**
+1. **Merged & stale** (30+ days): Automatically deleted (safe)
+2. **Local-only branches**: Deleted if remote was already removed
+3. **Unmerged & stale**: Reported for manual review (requires human decision)
+
+**Protected branches:** `main`, `develop`, `staging` (never deleted)
 
 ### Branch Protection Rules
 All three branches are protected. Direct pushes are blocked — changes must go through PRs.

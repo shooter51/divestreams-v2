@@ -1,8 +1,19 @@
 import { defineConfig } from "vitest/config";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { config } from "dotenv";
+import { resolve } from "path";
+
+// Load .env.test if it exists (for integration tests)
+// Copy .env.test.example to .env.test and customize for your environment
+if (process.env.VITEST_INTEGRATION) {
+  config({ path: resolve(process.cwd(), ".env.test") });
+}
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
+  resolve: {
+    conditions: ["node"],
+  },
   test: {
     globals: true,
     environment: "happy-dom",

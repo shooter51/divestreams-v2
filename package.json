@@ -14,7 +14,13 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
+    "test:integration": "VITEST_INTEGRATION=true vitest run tests/integration",
+    "test:integration:watch": "VITEST_INTEGRATION=true vitest tests/integration",
+    "test:db:start": "bash scripts/setup-test-db.sh start",
+    "test:db:stop": "bash scripts/setup-test-db.sh stop",
+    "test:db:restart": "bash scripts/setup-test-db.sh restart",
+    "test:db:reset": "bash scripts/setup-test-db.sh reset",
+    "test:db:status": "bash scripts/setup-test-db.sh status",
     "test:e2e": "playwright test",
     "test:e2e:failing": "playwright test tests/e2e/workflow/public-site.spec.ts tests/e2e/workflow/customer-management.spec.ts",
     "test:e2e:jira": "playwright test && tsx scripts/jira-test-reporter.ts",
@@ -63,7 +69,9 @@
     "hooks:install": "ln -sf ../../scripts/pre-commit-coverage.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
     "setup:verify": "bash scripts/verify-coverage-setup.sh",
     "validate:structure": "tsx scripts/validate-directory-structure.ts",
-    "cleanup:structure": "tsx scripts/cleanup-directory-structure.ts"
+    "cleanup:structure": "tsx scripts/cleanup-directory-structure.ts",
+    "git:cleanup": "scripts/cleanup-branches.sh",
+    "git:cleanup:live": "scripts/cleanup-branches.sh --live"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
