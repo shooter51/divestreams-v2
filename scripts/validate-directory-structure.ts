@@ -80,6 +80,7 @@ const ALLOWED_ROOT_DIRS = new Set([
   'zapier-app',
   'build',
   '.cache',
+  '.react-router',
   'coverage',
 ]);
 
@@ -88,11 +89,6 @@ const ALLOWED_ROOT_PATTERNS = [
   /^docker-compose.*\.yml$/,  // All docker-compose variants
   /^\.env(\..*)?$/,            // .env files
 ];
-
-// Files that should be moved to docs/
-const DOCS_VIOLATIONS: string[] = [];
-const ROOT_VIOLATIONS: string[] = [];
-const NAMING_VIOLATIONS: string[] = [];
 
 interface ValidationResult {
   valid: boolean;
@@ -108,15 +104,10 @@ interface ValidationResult {
  */
 function isValidKebabCase(filename: string): boolean {
   // Exceptions: Standard files, config files, generated files
-  const exceptions = [
-    'README.md',
-    'CLAUDE.md',
-    'DIRECTORY_STRUCTURE_POLICY.md',
-    'Caddyfile',
-    'Dockerfile',
-  ];
-
-  if (exceptions.includes(filename)) return true;
+  // Standard files and config files with non-kebab naming conventions
+  if (/^(README|CLAUDE|DIRECTORY_STRUCTURE_POLICY)\.md$/.test(filename)) return true;
+  if (/^Caddyfile(\..+)?$/.test(filename)) return true;
+  if (/^Dockerfile(\..+)?$/.test(filename)) return true;
   if (filename.startsWith('.')) return true; // Hidden files exempt
   if (filename.includes('.')) {
     const nameWithoutExt = filename.split('.')[0];
@@ -132,7 +123,10 @@ function isValidKebabCase(filename: string): boolean {
 function shouldBeInDocs(filename: string): boolean {
   if (!filename.endsWith('.md')) return false;
 
-  const allowedMdFiles = ['README.md', 'CLAUDE.md', 'DIRECTORY_STRUCTURE_POLICY.md', 'plan.md'];
+  const allowedMdFiles = [
+    'README.md', 'CLAUDE.md', 'DIRECTORY_STRUCTURE_POLICY.md', 'plan.md',
+    'DIRECTORY_CLEANUP_SUMMARY.md', 'CLEANUP_EXECUTION_CHECKLIST.md',
+  ];
   if (allowedMdFiles.includes(filename)) return false;
 
   // Check if it's a guide, report, or documentation
@@ -168,6 +162,14 @@ function validateRootDirectory(): ValidationResult {
         violations.rootClutter.push(`Unexpected directory: ${entry}/`);
       }
     } else if (stat.isFile()) {
+      // .git can be a file in worktree setups — treat it like a directory
+      if (entry === '.git') {
+        if (!ALLOWED_ROOT_DIRS.has(entry)) {
+          violations.rootClutter.push(`Unexpected entry: ${entry}`);
+        }
+        continue;
+      }
+
       // Check file names
       let allowed = ALLOWED_ROOT_FILES.has(entry);
 
