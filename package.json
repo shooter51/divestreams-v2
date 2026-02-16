@@ -69,7 +69,9 @@
     "hooks:install": "ln -sf ../../scripts/pre-commit-coverage.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
     "setup:verify": "bash scripts/verify-coverage-setup.sh",
     "validate:structure": "tsx scripts/validate-directory-structure.ts",
-    "cleanup:structure": "tsx scripts/cleanup-directory-structure.ts"
+    "cleanup:structure": "tsx scripts/cleanup-directory-structure.ts",
+    "git:cleanup": "scripts/cleanup-branches.sh",
+    "git:cleanup:live": "scripts/cleanup-branches.sh --live"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
