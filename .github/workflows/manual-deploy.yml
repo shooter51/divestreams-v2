@@ -29,6 +29,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Fix Test VPS project name (one-time fix)
+        if: github.event.inputs.environment == 'test'
+        env:
+          TEST_VPS_IP: 76.13.28.28
+          SSH_KEY: ${{ secrets.TEST_VPS_SSH_KEY }}
+        run: |
+          echo "Checking and fixing Test VPS docker project name if needed..."
+
+          # Create SSH key file
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/test_vps_key
+          chmod 600 ~/.ssh/test_vps_key
+
+          # SSH to Test VPS and check/fix project name
+          ssh -i ~/.ssh/test_vps_key -o StrictHostKeyChecking=no root@$TEST_VPS_IP << 'ENDSSH'
+            set -e
+
+            if [ -d "/docker/divestreams-staging" ] && [ ! -d "/docker/divestreams-test" ]; then
+              echo "Found old project name, renaming..."
+              cd /docker/divestreams-staging
+              docker compose -p divestreams-staging down || true
+              cd /docker
+              mv divestreams-staging divestreams-test
+              echo "✅ Renamed /docker/divestreams-staging → /docker/divestreams-test"
+            else
+              echo "✅ Project name already correct (divestreams-test exists)"
+            fi
+          ENDSSH
+
+          # Cleanup
+          rm -f ~/.ssh/test_vps_key
+          echo "✅ VPS check complete"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
