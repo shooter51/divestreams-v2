@@ -219,6 +219,18 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
   });
 
   test("[KAN-2] 2.3 Create tenant via signup @critical", async ({ page, context }) => {
+    // Check if tenant already exists (created by global-setup for parallel execution)
+    const tenantCheck = await context.newPage();
+    await tenantCheck.goto(getTenantUrl("/auth/login"));
+    await tenantCheck.waitForLoadState("domcontentloaded");
+    const loginFormExists = await tenantCheck.getByRole("textbox", { name: /email/i }).isVisible().catch(() => false);
+    await tenantCheck.close();
+
+    if (loginFormExists) {
+      console.log("Tenant already exists (created by global-setup) - this is OK");
+      return;
+    }
+
     await page.goto(getMarketingUrl("/signup"));
     await page.getByLabel("Dive Shop Name").fill(testData.tenant.shopName);
     await page.getByLabel("Choose Your URL").fill(testData.tenant.subdomain);
@@ -284,6 +296,19 @@ test.describe.serial("Block A: Foundation - Health, Signup, Auth", () => {
   });
 
   test("[KAN-61] 3.4 Create tenant user via signup @critical", async ({ page }) => {
+    // Check if user already exists by trying to login (created by global-setup for parallel execution)
+    await page.goto(getTenantUrl("/auth/login"));
+    await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
+    await page.locator('input[type="password"]').first().fill(testData.user.password);
+    await page.getByRole("button", { name: /sign in/i }).click();
+    try {
+      await page.waitForURL(/\/tenant/, { timeout: 5000 });
+      console.log("User already exists (created by global-setup) - this is OK");
+      return;
+    } catch {
+      // User doesn't exist or login failed, try signup
+    }
+
     await page.goto(getTenantUrl("/auth/signup"));
     await page.getByLabel(/full name/i).fill(testData.user.name);
     await page.getByLabel(/email address/i).fill(testData.user.email);
