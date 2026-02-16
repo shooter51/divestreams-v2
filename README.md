@@ -3,6 +3,7 @@
 Multi-tenant dive shop management SaaS platform.
 
 <!-- CI/CD workflow test - 2026-02-16 -->
+<!-- Testing full pipeline after runner improvements -->
 
 ## Stack
 
