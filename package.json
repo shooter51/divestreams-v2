@@ -50,7 +50,9 @@
     "pact:can-deploy": "node scripts/can-i-deploy.mjs",
     "pact:can-deploy:dev": "node scripts/can-i-deploy.mjs --environment dev",
     "pact:can-deploy:test": "node scripts/can-i-deploy.mjs --environment test",
-    "pact:can-deploy:production": "node scripts/can-i-deploy.mjs --environment production"
+    "pact:can-deploy:production": "node scripts/can-i-deploy.mjs --environment production",
+    "validate:structure": "tsx scripts/validate-directory-structure.ts",
+    "cleanup:structure": "tsx scripts/cleanup-directory-structure.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
