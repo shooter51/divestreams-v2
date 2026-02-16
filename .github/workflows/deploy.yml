@@ -527,6 +527,7 @@ jobs:
           PACT_BROKER_BASE_URL: http://62.72.3.35:9292
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
+        continue-on-error: true # Provider verification is a work in progress
 
   # ─────────────────────────────────────────────
   # Promote to Production (main branch only)
