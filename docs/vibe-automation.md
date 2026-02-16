@@ -269,29 +269,47 @@ Edit `.github/workflows/vibe-sync.yml`:
     # Call Vibe Kanban API with custom status
 ```
 
-## API Integration (TODO)
+## API Integration
 
-Current implementation uses mock data and console logs. To enable full automation:
+### GitHub Secrets Required
 
-1. **Add Vibe Kanban API credentials** to GitHub Secrets
-   - `VK_API_URL`
-   - `VK_API_TOKEN`
+Add these to your GitHub repository secrets (Settings → Secrets and variables → Actions):
 
-2. **Implement API calls** in:
-   - `scripts/vibe-auto-workspace.ts` (lines with TODO comments)
-   - `.github/workflows/vibe-sync.yml` (status update steps)
+- `VK_API_URL` - Vibe Kanban API endpoint (e.g., `https://api.vibe-kanban.com/v1`)
+- `VK_API_TOKEN` - Authentication token for API access
 
-3. **Replace mock calls** with real MCP tool invocations:
-   ```typescript
-   // Current (mock)
-   log('⚠️', 'Mock update - replace with actual MCP call');
+### How It Works
 
-   // Future (real)
-   await mcp__vibe_kanban__update_issue({
-     issue_id: issueId,
-     status: 'In Progress'
-   });
-   ```
+1. **Workspace Context Files**
+   - `.vibe-context.json` - Full workspace context (created by Claude in workspace)
+   - `.vibe-issue-mapping.json` - Maps short IDs to full UUIDs (for CI/CD)
+
+2. **Status Update Script**
+   - `scripts/vibe-update-status.mjs` - Node.js script that calls Vibe Kanban API
+   - Called by GitHub Actions workflow with short issue ID
+   - Resolves full UUID from mapping file
+   - Makes API call to update status
+
+3. **CI/CD Workflow Integration**
+   - `.github/workflows/vibe-sync.yml` - Triggered on push/PR events
+   - Extracts issue ID from branch name (`vk/844e-defect` → `844e-defect`)
+   - Calls status update script with appropriate status
+   - Updates Vibe Kanban automatically on deployment
+
+### Setting Up API Access
+
+If `VK_API_URL` and `VK_API_TOKEN` are not set, the workflow will log what it *would* do but won't make actual API calls. This allows the automation to work in "dry-run" mode.
+
+To enable real API integration:
+
+```bash
+# Add GitHub secrets via CLI
+gh secret set VK_API_URL --body "https://api.vibe-kanban.com/v1"
+gh secret set VK_API_TOKEN --body "your-token-here"
+
+# Or via GitHub UI:
+# Repo → Settings → Secrets and variables → Actions → New repository secret
+```
 
 ## Benefits
 
@@ -303,10 +321,23 @@ Current implementation uses mock data and console logs. To enable full automatio
 ✅ **QA visibility** - automatic notifications on staging deployments
 ✅ **Safe deployments** - test gates at every stage
 
+## Files Overview
+
+| File | Purpose |
+|------|---------|
+| `scripts/post-commit-push.sh` | Git hook - auto-push after commit |
+| `scripts/install-hooks.sh` | Installs git hooks (handles worktrees) |
+| `scripts/vibe-auto-workspace.ts` | Workspace setup automation |
+| `scripts/vibe-save-context.ts` | Save Vibe context to files (run by Claude) |
+| `scripts/vibe-update-status.mjs` | Update issue status via API (run by CI/CD) |
+| `.github/workflows/vibe-sync.yml` | GitHub Actions workflow for status sync |
+| `.vibe-context.json` | Workspace context (created by Claude) |
+| `.vibe-issue-mapping.json` | Short ID → Full UUID mapping (for CI/CD) |
+
 ## Next Steps
 
 1. ✅ Install hooks: `npm run hooks:install`
 2. ✅ Try it: `npm run vibe:auto -- --issue-id=<your-issue>`
 3. ✅ Make a commit and watch it auto-push
 4. ✅ Verify CI/CD runs: `gh run list`
-5. 🔜 Implement real Vibe API calls (replace TODOs)
+5. 🔧 Add GitHub secrets for real API integration (optional - works in dry-run mode without them)

@@ -61,19 +61,38 @@ function exec(command: string, silent = false): string {
 function getIssueFromVibe(issueId: string): VibeIssue | null {
   log('🔍', `Fetching issue details for: ${issueId}`);
 
-  // TODO: Replace with actual Vibe Kanban MCP call
-  // For now, use mock data
-  // In production, this would call:
-  // mcp__vibe_kanban__get_issue({ issue_id: issueId })
+  // Note: This script runs locally, not in MCP context
+  // It expects to be run from within an active Vibe Kanban workspace
+  // The workspace context file should contain the issue details
 
-  log('⚠️', 'Using mock data - replace with actual MCP call');
+  const contextFile = '.vibe-context.json';
+  if (existsSync(contextFile)) {
+    try {
+      const context = JSON.parse(readFileSync(contextFile, 'utf-8'));
+      if (context.issue_id && context.issue_id.startsWith(issueId)) {
+        log('✅', `Found issue from workspace context`);
+        return {
+          id: context.issue_id,
+          title: context.issue_title || 'Issue from Vibe Kanban',
+          status: context.issue_status || 'Todo',
+          description: context.issue_description,
+          project_id: context.project_id
+        };
+      }
+    } catch (error) {
+      log('⚠️', 'Failed to read workspace context file');
+    }
+  }
+
+  log('⚠️', 'No workspace context found - using basic info');
+  log('💡', 'This script works best when run from an active Vibe Kanban workspace');
 
   return {
     id: issueId,
-    title: 'Defect Integration Test',
-    status: 'Todo',
-    description: 'Integration testing for defect workflow',
-    project_id: 'test-project-id'
+    title: 'Issue from Vibe Kanban',
+    status: 'In Progress',
+    description: 'Automated workspace setup',
+    project_id: 'unknown'
   };
 }
 
@@ -104,31 +123,43 @@ function createFeatureBranch(issueId: string, title: string): string {
 }
 
 function linkWorkspaceToIssue(issueId: string, branchName: string): string {
-  log('🔗', `Linking workspace to issue ${issueId}`);
+  log('🔗', `Workspace linking handled by Vibe Kanban`);
 
-  // TODO: Replace with actual Vibe Kanban MCP call
-  // mcp__vibe_kanban__link_workspace({
-  //   workspace_id: workspaceId,
-  //   issue_id: issueId
-  // })
+  // Note: Workspace linking is handled by Vibe Kanban when the workspace is created
+  // This script runs within an active workspace, so linking is already done
+  // We just need to ensure the branch name matches the expected pattern
 
-  const workspaceId = `ws-${Date.now()}`;
-  log('⚠️', `Mock workspace ID: ${workspaceId} - replace with actual MCP call`);
+  const contextFile = '.vibe-context.json';
+  if (existsSync(contextFile)) {
+    try {
+      const context = JSON.parse(readFileSync(contextFile, 'utf-8'));
+      log('✅', `Using existing workspace: ${context.workspace_id}`);
+      return context.workspace_id;
+    } catch (error) {
+      log('⚠️', 'Failed to read workspace context');
+    }
+  }
+
+  const workspaceId = `local-${Date.now()}`;
+  log('⚠️', `No Vibe workspace context found, using local ID: ${workspaceId}`);
 
   return workspaceId;
 }
 
 function updateIssueStatus(issueId: string, status: string, comment?: string) {
-  log('📝', `Updating issue ${issueId} to status: ${status}`);
+  log('📝', `Issue status updates handled by CI/CD pipeline`);
 
-  // TODO: Replace with actual Vibe Kanban MCP call
-  // mcp__vibe_kanban__update_issue({
-  //   issue_id: issueId,
-  //   status: status,
-  //   description: comment ? `${existingDescription}\n\n${comment}` : existingDescription
-  // })
+  // Note: Issue status updates are handled automatically by the CI/CD pipeline
+  // See .github/workflows/vibe-sync.yml for the automation
+  //
+  // Status transitions:
+  // - "In Progress" → when workspace is created
+  // - "In Development" → when pushed to develop branch
+  // - "In Review" → when PR is created to staging
+  // - "QA Testing" → when merged to staging
+  // - "Done" → when deployed to production
 
-  log('⚠️', 'Mock update - replace with actual MCP call');
+  log('✅', `Status will be updated to "${status}" by CI/CD automation`);
 }
 
 function installGitHooks() {
