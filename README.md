@@ -2,6 +2,8 @@
 
 Multi-tenant dive shop management SaaS platform.
 
+<!-- CI/CD workflow test - 2026-02-16 -->
+
 ## Stack
 
 - **Framework:** React Router v7 (Remix)
