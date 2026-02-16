@@ -411,7 +411,25 @@ export async function requireOrgContext(request: Request): Promise<OrgContext> {
       .limit(1);
 
     if (tenant && !tenant.isActive) {
-      // Tenant is deactivated - show error page
+      // Check if this is a data fetch request (React Router .data requests)
+      const url = new URL(request.url);
+      const isDataRequest = url.pathname.endsWith(".data") || request.headers.get("Accept")?.includes("application/json");
+
+      if (isDataRequest) {
+        // Return JSON response for data fetches
+        throw new Response(
+          JSON.stringify({
+            error: "Account Deactivated",
+            message: "This account has been deactivated and is no longer accessible. If you believe this is an error, please contact support@divestreams.com",
+          }),
+          {
+            status: 403,
+            headers: { "Content-Type": "application/json" }
+          }
+        );
+      }
+
+      // Return HTML response for page navigations
       throw new Response(
         `
         <!DOCTYPE html>

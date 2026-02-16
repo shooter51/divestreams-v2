@@ -50,7 +50,7 @@ test.describe('KAN-630: Album Image Upload', () => {
     await expect(page.getByRole('heading', { level: 1, name: /gallery/i })).toBeVisible();
 
     // Find an existing album or create one
-    const albumExists = await page.locator('a[href*="/tenant/gallery/"]').count() > 0;
+    const albumExists = await page.locator('a[href*="/tenant/gallery/"]:not([href$="/new"])').count() > 0;
 
     let albumId: string;
     if (!albumExists) {
@@ -65,7 +65,7 @@ test.describe('KAN-630: Album Image Upload', () => {
       albumId = page.url().split('/').pop() || '';
     } else {
       // Click first album
-      await page.locator('a[href*="/tenant/gallery/"]').first().click();
+      await page.locator('a[href*="/tenant/gallery/"]:not([href$="/new"])').first().click();
       await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
       albumId = page.url().split('/').pop() || '';
     }
@@ -122,7 +122,7 @@ test.describe('KAN-630: Album Image Upload', () => {
   test('should handle upload errors gracefully', async ({ page }) => {
     // Navigate to an album using tenant subdomain
     await albumPage.goto('/gallery');
-    const albumLink = page.locator('a[href*="/tenant/gallery/"]').first();
+    const albumLink = page.locator('a[href*="/tenant/gallery/"]:not([href$="/new"])').first();
 
     if (await albumLink.isVisible({ timeout: 2000 }).catch(() => false)) {
       await albumLink.click();
@@ -153,7 +153,7 @@ test.describe('KAN-630: Album Image Upload', () => {
     await albumPage.goto('/gallery');
 
     // Navigate to first album
-    const albumLink = page.locator('a[href*="/tenant/gallery/"]').first();
+    const albumLink = page.locator('a[href*="/tenant/gallery/"]:not([href$="/new"])').first();
     if (await albumLink.isVisible({ timeout: 2000 }).catch(() => false)) {
       await albumLink.click();
       await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);

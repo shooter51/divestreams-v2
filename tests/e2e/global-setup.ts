@@ -8,6 +8,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { createTenant } from "../../lib/db/tenant.server";
 import { auth } from "../../lib/auth";
 import { seedDemoData } from "../../lib/db/seed-demo-data.server";
+import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../lib/plan-features";
 
 async function globalSetup(config: FullConfig) {
   // Load .env file
@@ -151,7 +152,17 @@ async function globalSetup(config: FullConfig) {
         throw error; // Don't swallow this error - it's critical for tests
       }
     } else {
-      console.log("✓ Demo member relationship already exists");
+      // Ensure role is "owner" (createTenant may have set a default role)
+      if (existingMember.role !== "owner") {
+        console.log(`Updating demo member role from "${existingMember.role}" to "owner"...`);
+        await db
+          .update(member)
+          .set({ role: "owner" })
+          .where(eq(member.id, existingMember.id));
+        console.log("✓ Demo member role updated to owner");
+      } else {
+        console.log("✓ Demo member relationship already exists (role: owner)");
+      }
     }
 
     // Upgrade demo org to ENTERPRISE plan for full feature access in E2E tests
@@ -171,6 +182,41 @@ async function globalSetup(config: FullConfig) {
         "   This will cause 40+ E2E test failures due to feature gate restrictions.\n" +
         "   Fix: Run 'npm run db:seed' or 'tsx scripts/seed.ts' to populate subscription_plans table."
       );
+    }
+
+    // Fix enterprise plan features: DB may have legacy string[] format (marketing text)
+    // but the app expects PlanFeaturesObject (boolean flags). Without this fix,
+    // the app falls back to DEFAULT_PLAN_FEATURES.free and shows all features as locked.
+    const planFeatures = enterprisePlan.features;
+    if (Array.isArray(planFeatures) || !planFeatures || typeof planFeatures !== "object") {
+      console.log("Fixing enterprise plan features format (legacy string[] → boolean flags)...");
+      await db
+        .update(subscriptionPlans)
+        .set({
+          features: DEFAULT_PLAN_FEATURES.enterprise,
+          limits: DEFAULT_PLAN_LIMITS.enterprise,
+        })
+        .where(eq(subscriptionPlans.id, enterprisePlan.id));
+      console.log("✓ Enterprise plan features updated to boolean flags format");
+    }
+
+    // Also fix all other plans in case they have the same issue
+    const allPlans = await db.select().from(subscriptionPlans);
+    for (const plan of allPlans) {
+      const planName = plan.name.toLowerCase();
+      if (planName !== "enterprise" && DEFAULT_PLAN_FEATURES[planName]) {
+        const pf = plan.features;
+        if (Array.isArray(pf) || !pf || typeof pf !== "object") {
+          console.log(`Fixing ${plan.name} plan features format...`);
+          await db
+            .update(subscriptionPlans)
+            .set({
+              features: DEFAULT_PLAN_FEATURES[planName],
+              limits: DEFAULT_PLAN_LIMITS[planName],
+            })
+            .where(eq(subscriptionPlans.id, plan.id));
+        }
+      }
     }
 
     await db
@@ -351,6 +397,202 @@ async function globalSetup(config: FullConfig) {
       `);
       console.log("✓ Minimal test data inserted");
     }
+
+    // =====================================================
+    // Create E2ETEST tenant for workflow tests
+    // This allows workflow tests to run in parallel without
+    // depending on 00-full-workflow.spec.ts Block A
+    // =====================================================
+    console.log("\nChecking for e2etest organization...");
+
+    const [existingE2eOrg] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.slug, "e2etest"))
+      .limit(1);
+
+    let e2eOrg = existingE2eOrg;
+
+    if (!existingE2eOrg) {
+      console.log("Creating e2etest organization for workflow tests...");
+
+      await createTenant({
+        subdomain: "e2etest",
+        name: "E2E Test Shop",
+        email: "e2e@example.com",
+        phone: "+1-555-0200",
+        timezone: "America/Los_Angeles",
+        currency: "USD",
+      });
+
+      const [newE2eOrg] = await db
+        .select()
+        .from(organization)
+        .where(eq(organization.slug, "e2etest"))
+        .limit(1);
+
+      if (!newE2eOrg) {
+        throw new Error("Failed to create e2etest organization");
+      }
+
+      e2eOrg = newE2eOrg;
+      console.log("✓ E2E test organization created");
+    } else {
+      console.log("✓ E2E test organization already exists");
+    }
+
+    // Create e2etest user
+    const e2eUserEmail = "e2e-user@example.com";
+    const e2eUserPassword = "TestPass123!";
+
+    const [existingE2eUser] = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, e2eUserEmail))
+      .limit(1);
+
+    let e2eUserId: string;
+
+    if (!existingE2eUser) {
+      console.log("Creating e2etest user...");
+      try {
+        const e2eUserResult = await auth.api.signUpEmail({
+          body: {
+            email: e2eUserEmail,
+            password: e2eUserPassword,
+            name: "E2E Test User",
+          },
+        });
+
+        if (!e2eUserResult.user) {
+          throw new Error("Failed to create e2etest user");
+        }
+
+        e2eUserId = e2eUserResult.user.id;
+
+        // Verify email for E2E tests
+        await db
+          .update(user)
+          .set({ emailVerified: true })
+          .where(eq(user.id, e2eUserId));
+
+        console.log("✓ E2E test user created");
+      } catch (error) {
+        console.log("E2E user creation conflict detected, re-querying...");
+        const [newUser] = await db
+          .select()
+          .from(user)
+          .where(eq(user.email, e2eUserEmail))
+          .limit(1);
+
+        if (!newUser) {
+          throw new Error("Failed to create or find e2etest user after conflict");
+        }
+        e2eUserId = newUser.id;
+        console.log("✓ E2E test user exists (created by parallel worker)");
+      }
+    } else {
+      e2eUserId = existingE2eUser.id;
+
+      // Ensure email is verified
+      if (!existingE2eUser.emailVerified) {
+        await db
+          .update(user)
+          .set({ emailVerified: true })
+          .where(eq(user.id, e2eUserId));
+      }
+
+      console.log("✓ E2E test user already exists");
+    }
+
+    // Create e2etest member relationship
+    const [existingE2eMember] = await db
+      .select()
+      .from(member)
+      .where(and(
+        eq(member.userId, e2eUserId),
+        eq(member.organizationId, e2eOrg.id)
+      ))
+      .limit(1);
+
+    if (!existingE2eMember) {
+      console.log("Creating e2etest member relationship...");
+      try {
+        await db.insert(member).values({
+          id: crypto.randomUUID(),
+          organizationId: e2eOrg.id,
+          userId: e2eUserId,
+          role: "owner",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        console.log("✓ E2E test member relationship created");
+      } catch (error) {
+        console.error("❌ Failed to create e2etest member relationship:", error);
+        throw error;
+      }
+    } else {
+      // Ensure role is "owner" (createTenant may have set it to a default role)
+      if (existingE2eMember.role !== "owner") {
+        console.log(`Updating e2etest member role from "${existingE2eMember.role}" to "owner"...`);
+        await db
+          .update(member)
+          .set({ role: "owner" })
+          .where(eq(member.id, existingE2eMember.id));
+        console.log("✓ E2E test member role updated to owner");
+      } else {
+        console.log("✓ E2E test member relationship already exists (role: owner)");
+      }
+    }
+
+    // Upgrade e2etest org to ENTERPRISE plan for full feature access
+    // PRO plan doesn't include Boats, Equipment, Products, Discounts, Training, Gallery
+    if (enterprisePlan) {
+      // Check if subscription exists
+      const [existingSub] = await db
+        .select()
+        .from(subscription)
+        .where(eq(subscription.organizationId, e2eOrg.id))
+        .limit(1);
+
+      if (existingSub) {
+        await db
+          .update(subscription)
+          .set({
+            plan: "enterprise",
+            planId: enterprisePlan.id,
+            status: "active",
+          })
+          .where(eq(subscription.organizationId, e2eOrg.id));
+      } else {
+        await db.insert(subscription).values({
+          organizationId: e2eOrg.id,
+          plan: "enterprise",
+          planId: enterprisePlan.id,
+          status: "active",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+      console.log("✓ E2E test organization upgraded to ENTERPRISE plan");
+    } else {
+      console.warn("⚠️  Enterprise plan not found - e2etest org will use default plan");
+    }
+
+    // Seed training agencies for e2etest org
+    console.log("Seeding training agencies for e2etest...");
+    try {
+      await seedDemoData(e2eOrg.id);
+      console.log("✓ E2E test data seeded");
+    } catch (error) {
+      console.warn("⚠️  E2E test data seeding failed (tests will seed on demand):", error);
+    }
+
+    console.log("\n✓ E2E test environment ready for workflow tests");
+    console.log("  - Organization: e2etest.localhost:5173");
+    console.log("  - Email: " + e2eUserEmail);
+    console.log("  - Password: " + e2eUserPassword);
+    console.log("  - Plan: ENTERPRISE (all features enabled)");
 
   } catch (error) {
     console.error("Global setup failed:", error);

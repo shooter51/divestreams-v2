@@ -10,14 +10,35 @@ const baseURL = process.env.BASE_URL || "http://localhost:5173";
 // or when explicitly disabled via SKIP_WEB_SERVER (for prod-build smoke tests)
 const isRemoteTest = !baseURL.includes("localhost") || process.env.SKIP_WEB_SERVER === "true";
 
+// Parallel execution: use multiple workers unless collecting coverage
+// Coverage mode requires sequential execution (workers: 1) for accurate instrumentation
+const workers = collectCoverage ? 1 : process.env.CI ? 4 : ("50%" as const);
+
+// Workflow test files that depend on the e2etest tenant created by global-setup
+// These need the "setup" project (00-full-workflow) to run first since it creates
+// entity IDs (boats, tours, customers) that Block E depends on
+const workflowTestFiles = [
+  "**/workflow/customer-management.spec.ts",
+  "**/workflow/training-module.spec.ts",
+  "**/workflow/public-site.spec.ts",
+  "**/workflow/trips-scheduling.spec.ts",
+  "**/workflow/tours-management.spec.ts",
+  "**/workflow/regression-bugs.spec.ts",
+  "**/workflow/embed-courses.spec.ts",
+  "**/workflow/zz-embed-courses.spec.ts",
+  "**/workflow/training-import.spec.ts",
+  "**/workflow/stripe-integration.spec.ts",
+];
+
 export default defineConfig({
   testDir: "./tests/e2e",
-  // Skip dev-specific tests in CI (they use remote dev URLs not available in CI)
-  testIgnore: process.env.CI ? ["**/*-dev*.spec.ts"] : [],
-  fullyParallel: false, // Sequential for coverage collection
+  // Skip remote-environment tests (they use hardcoded dev/staging URLs not available locally or in CI)
+  testIgnore: ["**/*-dev*.spec.ts", "**/*-staging*.spec.ts"],
+  // Enable parallel execution within projects (serial blocks still respected)
+  fullyParallel: !collectCoverage,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: 1, // Single worker for coverage
+  workers,
   reporter: [
     ["html", { open: "never" }],
     ["list"],
@@ -44,19 +65,43 @@ export default defineConfig({
     navigationTimeout: 30000,
   },
   projects: [
+    // ─────────────────────────────────────────────────────────────────────
+    // Project 1: SETUP — Creates e2etest entities (boats, tours, etc.)
+    // Runs 00-full-workflow.spec.ts which has serial blocks that create
+    // entities needed by Block E (trips depend on boats/tours, etc.)
+    // ─────────────────────────────────────────────────────────────────────
     {
-      name: "chromium",
+      name: "setup",
+      testMatch: "**/workflow/00-full-workflow.spec.ts",
       use: { ...devices["Desktop Chrome"] },
     },
-    // Uncomment for cross-browser testing
-    // {
-    //   name: "firefox",
-    //   use: { ...devices["Desktop Firefox"] },
-    // },
-    // {
-    //   name: "webkit",
-    //   use: { ...devices["Desktop Safari"] },
-    // },
+    // ─────────────────────────────────────────────────────────────────────
+    // Project 2: INDEPENDENT — Bug fixes, admin, security, debug tests
+    // Uses "demo" tenant from global-setup or creates own data.
+    // Runs fully in parallel, no dependency on setup project.
+    // ─────────────────────────────────────────────────────────────────────
+    {
+      name: "independent",
+      testMatch: [
+        "**/bugs/**/*.spec.ts",
+        "**/admin-*.spec.ts",
+        "**/security-*.spec.ts",
+        "**/debug-*.spec.ts",
+      ],
+      use: { ...devices["Desktop Chrome"] },
+    },
+    // ─────────────────────────────────────────────────────────────────────
+    // Project 3: WORKFLOW — Depends on setup project completing first
+    // These tests use the e2etest tenant and may reference entities
+    // created by 00-full-workflow (e.g. training data seeded in Block A).
+    // Each file's internal serial blocks are preserved.
+    // ─────────────────────────────────────────────────────────────────────
+    {
+      name: "workflow",
+      testMatch: workflowTestFiles,
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
   // Only start local webServer when testing against localhost
   // For remote tests (smoke tests against staging), skip webServer
