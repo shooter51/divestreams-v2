@@ -3,39 +3,74 @@
 ## Project Overview
 Multi-tenant SaaS platform for dive shop and dive tour management. Built with React Router v7, PostgreSQL (multi-tenant with schema-per-tenant), Redis, and Caddy.
 
-## Beads Issue Tracking - REQUIRED BEFORE CODE CHANGES
+## Vibe Kanban Issue Tracking & Defect Repair Workflow
 
-**IMPORTANT: Always use Beads to track work before making code changes.**
+**IMPORTANT: All work must be tracked in vibe-kanban before making code changes.**
 
-### Before Starting Work
-```bash
-bd ready                    # Show issues ready to work on
-bd create --title "..."     # Create new issue for the task
-bd show DIVE-xxx            # View issue details
+### Defect Repair Workflow
+
+When a defect is found during development or testing:
+
+1. **Create Defect Issue**
+   - Use `mcp__vibe_kanban__create_issue` with title format: `[DEFECT] <description>`
+   - Include detailed description of the issue, steps to reproduce, and expected vs actual behavior
+   - If related to an active feature issue, note the parent issue ID in the description
+
+2. **Link to Workspace** (if applicable)
+   - Use `mcp__vibe_kanban__link_workspace` to associate the defect with current workspace
+
+3. **Fix the Defect**
+   - Write unit tests that reproduce the defect first (TDD approach)
+   - Fix the issue
+   - Ensure all unit tests pass: `npm test -- --run`
+   - Run lint and typecheck: `npm run lint && npm run typecheck`
+
+4. **Update Issue Status**
+   - Use `mcp__vibe_kanban__update_issue` to mark as completed
+   - Add summary of fix in issue description
+
+5. **Deploy Through CI/CD Pipeline**
+   - Push to feature branch → PR to `develop` → unit tests gate
+   - Merge to `develop` → auto-deploy to Dev VPS
+   - Create PR to `staging` → full E2E tests gate
+   - Merge to `staging` → auto-deploy to Test VPS for QA verification
+
+### Issue Management Commands
+
+```javascript
+// List all issues in project
+mcp__vibe_kanban__list_issues({ project_id: "<project-id>" })
+
+// Create new defect
+mcp__vibe_kanban__create_issue({
+  title: "[DEFECT] <description>",
+  description: "Steps to reproduce:\n1. ...\n\nExpected: ...\nActual: ...",
+  project_id: "<project-id>"
+})
+
+// Get issue details
+mcp__vibe_kanban__get_issue({ issue_id: "<issue-id>" })
+
+// Update issue status
+mcp__vibe_kanban__update_issue({
+  issue_id: "<issue-id>",
+  status: "Done"
+})
+
+// Link workspace to issue
+mcp__vibe_kanban__link_workspace({
+  workspace_id: "<workspace-id>",
+  issue_id: "<issue-id>"
+})
 ```
 
-### During Work
-```bash
-bd update DIVE-xxx --status in-progress  # Mark as in progress
-bd comments DIVE-xxx --add "..."         # Add progress notes
-```
+### Defect Categories
 
-### After Completing Work
-```bash
-bd close DIVE-xxx           # Close the issue
-bd list                     # Verify status
-```
-
-### Key Commands
-```bash
-bd status                   # Overview of all issues
-bd list                     # List open issues
-bd search "keyword"         # Find issues
-bd graph                    # Show dependency graph
-```
-
-**Issue Prefix:** `DIVE-`
-**Sync Branch:** `beads-sync`
+Tag defects with appropriate prefixes:
+- `[DEFECT] [CRITICAL]` - Production blocking, data loss, security issues
+- `[DEFECT] [HIGH]` - Major functionality broken, no workaround
+- `[DEFECT] [MEDIUM]` - Functionality broken but workaround exists
+- `[DEFECT] [LOW]` - Minor issues, cosmetic bugs, edge cases
 
 ## Deployment
 
