@@ -6,11 +6,12 @@
 
 import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, Link } from "react-router";
+import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { z } from "zod";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
+import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import {
   getPOSProducts,
@@ -317,6 +318,8 @@ export default function POSPage() {
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const { showToast } = useToast();
+  const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
+  const csrfToken = layoutData?.csrfToken;
 
   // State
   const [tab, setTab] = useState<"retail" | "rentals" | "trips">("retail");
@@ -475,21 +478,23 @@ export default function POSPage() {
       tax,
       total,
     }));
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "POST" });
 
     // Clear on success
     clearCart();
     setCheckoutMethod(null);
-  }, [cart, customer, subtotal, tax, total, fetcher, clearCart]);
+  }, [cart, customer, subtotal, tax, total, fetcher, clearCart, csrfToken]);
 
   // Customer search
   const handleCustomerSearch = useCallback((query: string) => {
     const formData = new FormData();
     formData.append("intent", "search-customers");
     formData.append("query", query);
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
     fetcher.submit(formData, { method: "POST" });
-  }, [fetcher]);
+  }, [fetcher, csrfToken]);
 
   // Barcode scanning
   const handleBarcodeScan = useCallback((barcode: string) => {
@@ -499,8 +504,9 @@ export default function POSPage() {
     const formData = new FormData();
     formData.append("intent", "scan-barcode");
     formData.append("barcode", barcode);
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
     fetcher.submit(formData, { method: "POST" });
-  }, [fetcher]);
+  }, [fetcher, csrfToken]);
 
   // Refund handling
   const handleTransactionFound = useCallback((transaction: typeof selectedTransaction) => {
@@ -520,9 +526,10 @@ export default function POSPage() {
       stripePaymentId: selectedTransaction.stripePaymentId,
       refundReason,
     }));
+    if (csrfToken) formData.append(CSRF_FIELD_NAME, csrfToken);
 
     fetcher.submit(formData, { method: "POST" });
-  }, [selectedTransaction, fetcher]);
+  }, [selectedTransaction, fetcher, csrfToken]);
 
   // Update search results and handle barcode results when fetcher returns
   useEffect(() => {

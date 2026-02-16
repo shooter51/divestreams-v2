@@ -3,6 +3,18 @@
 ## Project Overview
 Multi-tenant SaaS platform for dive shop and dive tour management. Built with React Router v7, PostgreSQL (multi-tenant with schema-per-tenant), Redis, and Caddy.
 
+## Directory Structure
+**IMPORTANT: Follow the directory structure policy when creating or organizing files.**
+
+- **Policy**: See `DIRECTORY_STRUCTURE_POLICY.md` for full details
+- **Quick Reference**: See `docs/guides/directory-structure-quick-reference.md`
+- **Validation**: Run `npm run validate:structure` before commits
+- **Key Rules**:
+  - Root directory: Config files only (no documentation)
+  - Documentation: Organized in `docs/` subdirectories
+  - File naming: Use kebab-case (e.g., `stripe-setup.md`)
+  - Tests: Mirror the structure of code they test
+
 ## Beads Issue Tracking - REQUIRED BEFORE CODE CHANGES
 
 **IMPORTANT: Always use Beads to track work before making code changes.**
@@ -36,6 +48,58 @@ bd graph                    # Show dependency graph
 
 **Issue Prefix:** `DIVE-`
 **Sync Branch:** `beads-sync`
+
+## Code Coverage & Testing - REQUIRED FOR ALL FEATURES
+
+**CRITICAL: No feature is complete until it has comprehensive test coverage.**
+
+### Coverage Requirements
+
+Every feature MUST have:
+- ✅ **Unit tests** (70% coverage minimum)
+- ✅ **Integration tests** (75% coverage minimum)
+- ✅ **E2E workflow tests** (60% coverage minimum)
+- ✅ **Pact contract tests** (for API routes, 100% coverage)
+- ✅ **Combined coverage** (80% minimum)
+
+### Quick Start
+
+```bash
+# Generate test scaffolding for a feature
+npm run test:scaffold -- --file=app/routes/tenant/boats.tsx
+
+# Check test status for your issue
+npm run vibe:check -- --issue=DIVE-1234
+
+# Run tests with coverage
+npm run test:coverage
+
+# Enforce coverage thresholds
+npm run coverage:enforce
+```
+
+### Enforcement Points
+
+1. **Pre-commit hook** - Validates tests exist and pass
+2. **CI/CD pipeline** - Blocks deployment if coverage insufficient
+3. **Pull requests** - Requires coverage thresholds met
+4. **Vibe Kanban** - Tracks test completion per issue
+
+### Complete Documentation
+
+See [TESTING.md](./TESTING.md) for:
+- Detailed testing workflow
+- Test type requirements
+- Coverage configuration
+- Troubleshooting guide
+- Best practices
+
+**Feature Definition of Done:**
+- [ ] All test types implemented
+- [ ] Coverage thresholds met
+- [ ] Pre-commit hook passes
+- [ ] CI/CD pipeline passes
+- [ ] Vibe issue marked complete
 
 ## Deployment
 

@@ -1,0 +1,273 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Coverage Configuration",
+  "description": "Configuration for code coverage enforcement in DiveStreams v2",
+  "type": "object",
+  "properties": {
+    "enforcement": {
+      "type": "object",
+      "description": "Coverage enforcement settings",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable coverage enforcement"
+        },
+        "blockDeployment": {
+          "type": "boolean",
+          "description": "Block deployment if coverage thresholds not met"
+        },
+        "blockCommit": {
+          "type": "boolean",
+          "description": "Block commits if tests missing (pre-commit hook)"
+        },
+        "blockPR": {
+          "type": "boolean",
+          "description": "Block pull requests if coverage insufficient"
+        }
+      },
+      "required": ["enabled", "blockDeployment", "blockCommit", "blockPR"]
+    },
+    "thresholds": {
+      "type": "object",
+      "description": "Coverage thresholds for each test type",
+      "properties": {
+        "unit": {
+          "$ref": "#/definitions/coverageThreshold",
+          "description": "Unit test coverage thresholds"
+        },
+        "integration": {
+          "$ref": "#/definitions/coverageThreshold",
+          "description": "Integration test coverage thresholds"
+        },
+        "e2e": {
+          "$ref": "#/definitions/coverageThreshold",
+          "description": "E2E test coverage thresholds"
+        },
+        "pact": {
+          "type": "object",
+          "description": "Pact contract test thresholds",
+          "properties": {
+            "contracts": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "verifications": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        },
+        "combined": {
+          "$ref": "#/definitions/coverageThreshold",
+          "description": "Combined coverage thresholds (all test types)"
+        }
+      },
+      "required": ["unit", "integration", "e2e", "pact", "combined"]
+    },
+    "coverage": {
+      "type": "object",
+      "description": "Coverage collection settings",
+      "properties": {
+        "reportFormats": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["text", "json", "lcov", "html", "text-summary"]
+          },
+          "description": "Coverage report formats to generate"
+        },
+        "reportsDirectory": {
+          "type": "string",
+          "description": "Base directory for coverage reports"
+        },
+        "mergedReportDirectory": {
+          "type": "string",
+          "description": "Directory for merged coverage reports"
+        },
+        "includePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File patterns to include in coverage"
+        },
+        "excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File patterns to exclude from coverage"
+        }
+      }
+    },
+    "testRequirements": {
+      "type": "object",
+      "description": "Required tests for different file types",
+      "properties": {
+        "unit": {
+          "$ref": "#/definitions/testRequirement",
+          "description": "Unit test requirements"
+        },
+        "integration": {
+          "$ref": "#/definitions/testRequirement",
+          "description": "Integration test requirements"
+        },
+        "e2e": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "patterns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "minimumWorkflowsPerFeature": {
+              "type": "number",
+              "minimum": 1
+            }
+          }
+        },
+        "pact": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "patterns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "requireConsumer": {
+              "type": "boolean"
+            },
+            "requireProvider": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "featureGates": {
+      "type": "object",
+      "description": "Feature toggles for coverage enforcement",
+      "properties": {
+        "autoGenerateTests": {
+          "type": "boolean",
+          "description": "Auto-generate test scaffolding"
+        },
+        "enforceTestUpdates": {
+          "type": "boolean",
+          "description": "Require test updates when code changes"
+        },
+        "requireTestsBeforeMerge": {
+          "type": "boolean",
+          "description": "Block PR merge without tests"
+        },
+        "blockIncompleteFeatures": {
+          "type": "boolean",
+          "description": "Block deployment if features incomplete"
+        }
+      }
+    },
+    "vibeKanban": {
+      "type": "object",
+      "description": "Vibe Kanban integration settings",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable Vibe Kanban integration"
+        },
+        "createTestTasks": {
+          "type": "boolean",
+          "description": "Auto-create test tasks for issues"
+        },
+        "trackCoverage": {
+          "type": "boolean",
+          "description": "Track coverage progress in issues"
+        },
+        "issuePrefix": {
+          "type": "string",
+          "description": "Issue ID prefix (e.g., DIVE-)"
+        },
+        "testLabels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Labels to apply to test-related issues"
+        },
+        "requiredTests": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["unit", "integration", "e2e", "pact"]
+          },
+          "description": "Test types required for feature completion"
+        }
+      }
+    }
+  },
+  "required": ["enforcement", "thresholds"],
+  "definitions": {
+    "coverageThreshold": {
+      "type": "object",
+      "properties": {
+        "lines": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Line coverage threshold percentage"
+        },
+        "functions": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Function coverage threshold percentage"
+        },
+        "branches": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Branch coverage threshold percentage"
+        },
+        "statements": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Statement coverage threshold percentage"
+        }
+      },
+      "required": ["lines", "functions", "branches", "statements"]
+    },
+    "testRequirement": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "description": "Whether this test type is required"
+        },
+        "patterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File patterns that require this test type"
+        },
+        "excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File patterns to exclude from this requirement"
+        }
+      }
+    }
+  }
+}
