@@ -1,0 +1,111 @@
+{
+  "$schema": "./schemas/coverage-config.schema.json",
+  "enforcement": {
+    "enabled": true,
+    "blockDeployment": true,
+    "blockCommit": false,
+    "blockPR": true
+  },
+  "thresholds": {
+    "unit": {
+      "lines": 70,
+      "functions": 65,
+      "branches": 65,
+      "statements": 70
+    },
+    "integration": {
+      "lines": 75,
+      "functions": 70,
+      "branches": 70,
+      "statements": 75
+    },
+    "e2e": {
+      "lines": 60,
+      "functions": 55,
+      "branches": 55,
+      "statements": 60
+    },
+    "pact": {
+      "contracts": 100,
+      "verifications": 100
+    },
+    "combined": {
+      "lines": 80,
+      "functions": 75,
+      "branches": 75,
+      "statements": 80
+    }
+  },
+  "coverage": {
+    "reportFormats": ["text", "json", "lcov", "html"],
+    "reportsDirectory": "./coverage",
+    "mergedReportDirectory": "./coverage/combined",
+    "includePatterns": [
+      "lib/**/*.ts",
+      "lib/**/*.tsx",
+      "app/routes/**/*.tsx",
+      "app/components/**/*.tsx"
+    ],
+    "excludePatterns": [
+      "**/*.d.ts",
+      "**/types.ts",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/node_modules/**",
+      ".react-router/**",
+      "lib/stubs/**"
+    ]
+  },
+  "testRequirements": {
+    "unit": {
+      "required": true,
+      "patterns": [
+        "lib/**/*.ts",
+        "app/components/**/*.tsx"
+      ],
+      "excludePatterns": [
+        "lib/integrations/**",
+        "lib/jobs/**",
+        "lib/storage/**",
+        "lib/middleware/**"
+      ]
+    },
+    "integration": {
+      "required": true,
+      "patterns": [
+        "app/routes/**/*.tsx",
+        "lib/integrations/**/*.ts",
+        "lib/jobs/**/*.ts"
+      ]
+    },
+    "e2e": {
+      "required": true,
+      "patterns": [
+        "app/routes/*/!(*.api).tsx"
+      ],
+      "minimumWorkflowsPerFeature": 1
+    },
+    "pact": {
+      "required": true,
+      "patterns": [
+        "app/routes/api/**/*.tsx"
+      ],
+      "requireConsumer": true,
+      "requireProvider": true
+    }
+  },
+  "featureGates": {
+    "autoGenerateTests": true,
+    "enforceTestUpdates": true,
+    "requireTestsBeforeMerge": true,
+    "blockIncompleteFeatures": true
+  },
+  "vibeKanban": {
+    "enabled": true,
+    "createTestTasks": true,
+    "trackCoverage": true,
+    "issuePrefix": "DIVE-",
+    "testLabels": ["tests", "coverage"],
+    "requiredTests": ["unit", "integration", "e2e", "pact"]
+  }
+}
