@@ -2,9 +2,26 @@
 
 ## Overview
 
-Complete end-to-end automation from dragging a task to "In Progress" through deployment to staging and production.
+Complete end-to-end automation from dragging a task to "In Progress" through deployment to production.
 
-**Zero manual git operations required** - everything happens automatically.
+**ZERO manual operations required** - just drag and drop in Vibe Kanban!
+
+## Two Automation Modes
+
+### Mode 1: Webhook Automation (Recommended - ZERO commands)
+Just drag a task to "In Progress" in Vibe Kanban and everything happens automatically via webhook.
+
+**Setup once:** Deploy webhook handler server
+**Daily use:** Drag task → Everything automated!
+
+📖 **[Full Webhook Setup Guide](./vibe-webhook-automation.md)**
+
+### Mode 2: CLI Automation (One command per task)
+Run one command when starting a task, then everything else is automated.
+
+**Daily use:** `npm run vibe:auto -- --issue-id=<id>` → Everything automated!
+
+This document covers Mode 2. For Mode 1, see [vibe-webhook-automation.md](./vibe-webhook-automation.md).
 
 ## Automated Workflow
 

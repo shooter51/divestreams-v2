@@ -67,6 +67,7 @@
     "vibe:track": "tsx scripts/vibe-test-tracker.ts --track",
     "vibe:create-tests": "tsx scripts/vibe-test-tracker.ts --create-tests",
     "vibe:auto": "tsx scripts/vibe-auto-workspace.ts",
+    "vibe:webhook": "node scripts/vibe-webhook-handler.mjs",
     "hooks:install": "bash scripts/install-hooks.sh",
     "setup:verify": "bash scripts/verify-coverage-setup.sh",
     "validate:structure": "tsx scripts/validate-directory-structure.ts",
