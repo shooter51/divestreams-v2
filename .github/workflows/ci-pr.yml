@@ -47,6 +47,7 @@ jobs:
         run: npm run test:coverage
         env:
           DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
+          REDIS_URL: redis://ci-redis:6379
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
 
