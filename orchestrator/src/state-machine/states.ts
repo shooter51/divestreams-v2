@@ -26,6 +26,7 @@ export const Trigger = {
   // PR lifecycle
   PR_OPENED: "PR_OPENED",
   PR_SYNCHRONIZED: "PR_SYNCHRONIZED",
+  PR_MERGED: "PR_MERGED",
 
   // Gate outcomes
   GATE_PASSED: "GATE_PASSED",
