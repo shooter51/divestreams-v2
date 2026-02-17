@@ -72,22 +72,23 @@ jobs:
       - name: Callback to orchestrator
         if: always()
         run: |
-          if [ -f test-results.json ]; then
-            RESULTS=$(cat test-results.json)
-          else
-            RESULTS='{"numTotalTests":0,"numPassedTests":0,"numFailedTests":1,"testResults":[]}'
+          if [ ! -f test-results.json ]; then
+            echo '{"numTotalTests":0,"numPassedTests":0,"numFailedTests":1,"testResults":[]}' > test-results.json
           fi
 
+          # Build compact summary to avoid argument-too-long errors
+          SUMMARY=$(jq '{numTotalTests: .numTotalTests, numPassedTests: .numPassedTests, numFailedTests: .numFailedTests, numPendingTests: .numPendingTests, failedTestNames: [.testResults[]? | select(.status == "failed") | .name] | .[0:50]}' test-results.json 2>/dev/null || echo '{"numTotalTests":0,"numPassedTests":0,"numFailedTests":1}')
+
+          jq -n \
+            --arg pid "${{ inputs.pipeline_id }}" \
+            --arg gn "${{ inputs.gate_name }}" \
+            --argjson wrid "${{ github.run_id }}" \
+            --argjson tr "$SUMMARY" \
+            '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "vitest"}' | \
           curl -s -X POST "${{ env.ORCHESTRATOR_URL }}/api/gate-complete" \
             -H "Authorization: Bearer ${{ secrets.ORCHESTRATOR_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg pid "${{ inputs.pipeline_id }}" \
-              --arg gn "${{ inputs.gate_name }}" \
-              --argjson wrid "${{ github.run_id }}" \
-              --argjson tr "$RESULTS" \
-              '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "vitest"}'
-            )" || echo "Orchestrator callback failed (non-fatal)"
+            -d @- || echo "Orchestrator callback failed (non-fatal)"
 
   # ─────────────────────────────────────────────
   # Integration gate
@@ -127,22 +128,22 @@ jobs:
       - name: Callback to orchestrator
         if: always()
         run: |
-          if [ -f test-results.json ]; then
-            RESULTS=$(cat test-results.json)
-          else
-            RESULTS='{"numTotalTests":0,"numPassedTests":0,"numFailedTests":1,"testResults":[]}'
+          if [ ! -f test-results.json ]; then
+            echo '{"numTotalTests":0,"numPassedTests":0,"numFailedTests":1,"testResults":[]}' > test-results.json
           fi
 
+          SUMMARY=$(jq '{numTotalTests: .numTotalTests, numPassedTests: .numPassedTests, numFailedTests: .numFailedTests, numPendingTests: .numPendingTests, failedTestNames: [.testResults[]? | select(.status == "failed") | .name] | .[0:50]}' test-results.json 2>/dev/null || echo '{"numTotalTests":0,"numPassedTests":0,"numFailedTests":1}')
+
+          jq -n \
+            --arg pid "${{ inputs.pipeline_id }}" \
+            --arg gn "${{ inputs.gate_name }}" \
+            --argjson wrid "${{ github.run_id }}" \
+            --argjson tr "$SUMMARY" \
+            '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "vitest"}' | \
           curl -s -X POST "${{ env.ORCHESTRATOR_URL }}/api/gate-complete" \
             -H "Authorization: Bearer ${{ secrets.ORCHESTRATOR_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg pid "${{ inputs.pipeline_id }}" \
-              --arg gn "${{ inputs.gate_name }}" \
-              --argjson wrid "${{ github.run_id }}" \
-              --argjson tr "$RESULTS" \
-              '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "vitest"}'
-            )" || echo "Orchestrator callback failed (non-fatal)"
+            -d @- || echo "Orchestrator callback failed (non-fatal)"
 
   # ─────────────────────────────────────────────
   # E2E gate
@@ -289,24 +290,24 @@ jobs:
           if [ "$SHARD_RESULT" = "success" ]; then
             RESULTS='{"stats":{"expected":1,"unexpected":0,"flaky":0,"skipped":0},"suites":[]}'
           else
-            # Try to read JSON results, fallback to synthetic failure
             if ls playwright-results-*.json 1>/dev/null 2>&1; then
-              RESULTS=$(cat playwright-results-core.json 2>/dev/null || cat playwright-results-independent.json 2>/dev/null || echo '{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0},"suites":[]}')
+              # Extract compact summary from playwright results
+              RESULTS=$(jq '{stats: .stats, failedTests: [.suites[]?.specs[]? | select(.ok == false) | .title] | .[0:50]}' playwright-results-core.json 2>/dev/null || jq '{stats: .stats}' playwright-results-independent.json 2>/dev/null || echo '{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0}}')
             else
-              RESULTS='{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0},"suites":[]}'
+              RESULTS='{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0}}'
             fi
           fi
 
+          jq -n \
+            --arg pid "${{ inputs.pipeline_id }}" \
+            --arg gn "e2e" \
+            --argjson wrid "${{ github.run_id }}" \
+            --argjson tr "$RESULTS" \
+            '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "playwright"}' | \
           curl -s -X POST "${{ env.ORCHESTRATOR_URL }}/api/gate-complete" \
             -H "Authorization: Bearer ${{ secrets.ORCHESTRATOR_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg pid "${{ inputs.pipeline_id }}" \
-              --arg gn "e2e" \
-              --argjson wrid "${{ github.run_id }}" \
-              --argjson tr "$RESULTS" \
-              '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "playwright"}'
-            )" || echo "Orchestrator callback failed (non-fatal)"
+            -d @- || echo "Orchestrator callback failed (non-fatal)"
 
   # ─────────────────────────────────────────────
   # Regression gate (runs against staging/test env)
@@ -338,22 +339,22 @@ jobs:
       - name: Callback to orchestrator
         if: always()
         run: |
-          if [ -f regression-results.json ]; then
-            RESULTS=$(cat regression-results.json)
-          else
-            RESULTS='{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0},"suites":[]}'
+          if [ ! -f regression-results.json ]; then
+            echo '{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0},"suites":[]}' > regression-results.json
           fi
 
+          SUMMARY=$(jq '{stats: .stats, failedTests: [.suites[]?.specs[]? | select(.ok == false) | .title] | .[0:50]}' regression-results.json 2>/dev/null || echo '{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0}}')
+
+          jq -n \
+            --arg pid "${{ inputs.pipeline_id }}" \
+            --arg gn "regression" \
+            --argjson wrid "${{ github.run_id }}" \
+            --argjson tr "$SUMMARY" \
+            '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "playwright"}' | \
           curl -s -X POST "${{ env.ORCHESTRATOR_URL }}/api/gate-complete" \
             -H "Authorization: Bearer ${{ secrets.ORCHESTRATOR_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg pid "${{ inputs.pipeline_id }}" \
-              --arg gn "regression" \
-              --argjson wrid "${{ github.run_id }}" \
-              --argjson tr "$RESULTS" \
-              '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "playwright"}'
-            )" || echo "Orchestrator callback failed (non-fatal)"
+            -d @- || echo "Orchestrator callback failed (non-fatal)"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
