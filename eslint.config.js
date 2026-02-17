@@ -15,6 +15,7 @@ export default tseslint.config(
       "test-results/**",
       "scripts/**", // Ignore scripts folder
       "public/**", // Ignore public assets (browser-compatible JS)
+      "orchestrator/**", // Separate project with own tsconfig
     ],
   },
   {

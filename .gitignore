@@ -55,5 +55,10 @@ temp/
 # Coverage artifacts
 coverage-summary.json
 
+# Orchestrator
+.env.orchestrator
+orchestrator/data/
+orchestrator/dist/
+
 # 1Password import files
 github-secrets-1password*.csv

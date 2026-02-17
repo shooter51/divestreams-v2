@@ -1,0 +1,65 @@
+name: CI PR
+
+# Lightweight check for branch protection — lint, typecheck, unit tests.
+# Provides the required "test" check name for develop/staging/main protection.
+# Full gate evaluation is handled by ci-gate.yml via orchestrator dispatch.
+
+on:
+  pull_request:
+    branches: [develop, staging, main]
+
+concurrency:
+  group: ci-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: [self-hosted, linux, divestreams]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup host.docker.internal for Linux runner
+        run: |
+          if ! grep -q "host.docker.internal" /etc/hosts 2>/dev/null; then
+            echo "172.17.0.1 host.docker.internal" | sudo tee -a /etc/hosts || true
+          fi
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Setup database schema
+        run: npm run db:push
+        env:
+          DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
+
+      - name: Run unit and integration tests with coverage
+        run: npm run test:coverage
+        env:
+          DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
+          REDIS_URL: redis://ci-redis:6379
+          ADMIN_PASSWORD: TestAdmin123
+          SESSION_SECRET: test-session-secret
+
+      - name: Run Pact consumer tests
+        run: npm run pact:consumer
+        env:
+          DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
+
+      - name: Upload unit coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-unit
+          path: coverage/unit/
+          retention-days: 30
