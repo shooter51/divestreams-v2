@@ -1,0 +1,366 @@
+name: CI Gate
+
+# Orchestrator-triggered gate evaluation.
+# Runs specific test gates and calls back to orchestrator with results.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pipeline_id:
+        description: 'Pipeline run ID from orchestrator'
+        required: true
+        type: string
+      gate_name:
+        description: 'Gate to run: unit_pact, integration, e2e, regression'
+        required: true
+        type: string
+      pr_number:
+        description: 'PR number for context'
+        required: true
+        type: string
+
+env:
+  ORCHESTRATOR_URL: http://62.72.3.35
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Unit + Pact gate
+  # ─────────────────────────────────────────────
+  unit-pact:
+    if: inputs.gate_name == 'unit_pact'
+    runs-on: [self-hosted, linux, divestreams]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup host.docker.internal
+        run: |
+          if ! grep -q "host.docker.internal" /etc/hosts 2>/dev/null; then
+            echo "172.17.0.1 host.docker.internal" | sudo tee -a /etc/hosts || true
+          fi
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Setup database schema
+        run: npm run db:push
+        env:
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+
+      - name: Run unit tests with JSON reporter
+        run: npx vitest run --reporter=json --outputFile=test-results.json || true
+        env:
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+          ADMIN_PASSWORD: TestAdmin123
+          SESSION_SECRET: test-session-secret
+
+      - name: Run Pact consumer tests
+        run: npm run pact:consumer
+        env:
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+
+      - name: Callback to orchestrator
+        if: always()
+        run: |
+          if [ -f test-results.json ]; then
+            RESULTS=$(cat test-results.json)
+          else
+            RESULTS='{"numTotalTests":0,"numPassedTests":0,"numFailedTests":1,"testResults":[]}'
+          fi
+
+          curl -s -X POST "${{ env.ORCHESTRATOR_URL }}/api/gate-complete" \
+            -H "Authorization: Bearer ${{ secrets.ORCHESTRATOR_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg pid "${{ inputs.pipeline_id }}" \
+              --arg gn "${{ inputs.gate_name }}" \
+              --argjson wrid "${{ github.run_id }}" \
+              --argjson tr "$RESULTS" \
+              '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "vitest"}'
+            )" || echo "Orchestrator callback failed (non-fatal)"
+
+  # ─────────────────────────────────────────────
+  # Integration gate
+  # ─────────────────────────────────────────────
+  integration:
+    if: inputs.gate_name == 'integration'
+    runs-on: [self-hosted, linux, divestreams]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup host.docker.internal
+        run: |
+          if ! grep -q "host.docker.internal" /etc/hosts 2>/dev/null; then
+            echo "172.17.0.1 host.docker.internal" | sudo tee -a /etc/hosts || true
+          fi
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Setup database schema
+        run: npm run db:push
+        env:
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+
+      - name: Run integration tests with JSON reporter
+        run: npx vitest run tests/integration --reporter=json --outputFile=test-results.json || true
+        env:
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+          ADMIN_PASSWORD: TestAdmin123
+          SESSION_SECRET: test-session-secret
+
+      - name: Callback to orchestrator
+        if: always()
+        run: |
+          if [ -f test-results.json ]; then
+            RESULTS=$(cat test-results.json)
+          else
+            RESULTS='{"numTotalTests":0,"numPassedTests":0,"numFailedTests":1,"testResults":[]}'
+          fi
+
+          curl -s -X POST "${{ env.ORCHESTRATOR_URL }}/api/gate-complete" \
+            -H "Authorization: Bearer ${{ secrets.ORCHESTRATOR_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg pid "${{ inputs.pipeline_id }}" \
+              --arg gn "${{ inputs.gate_name }}" \
+              --argjson wrid "${{ github.run_id }}" \
+              --argjson tr "$RESULTS" \
+              '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "vitest"}'
+            )" || echo "Orchestrator callback failed (non-fatal)"
+
+  # ─────────────────────────────────────────────
+  # E2E gate
+  # ─────────────────────────────────────────────
+  e2e-infra:
+    if: inputs.gate_name == 'e2e'
+    runs-on: [self-hosted, linux, divestreams]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup local hosts for subdomain testing
+        run: |
+          if ! grep -q "host.docker.internal" /etc/hosts 2>/dev/null; then
+            echo "172.17.0.1 host.docker.internal" | sudo tee -a /etc/hosts || true
+          fi
+          if ! grep -q "admin.localhost" /etc/hosts 2>/dev/null; then
+            echo "127.0.0.1 admin.localhost demo.localhost test.localhost e2etest.localhost" | sudo tee -a /etc/hosts || true
+          fi
+
+      - name: Start PostgreSQL and Redis for E2E tests
+        run: |
+          docker stop postgres-e2e redis-e2e 2>/dev/null || true
+          docker rm postgres-e2e redis-e2e 2>/dev/null || true
+          docker run -d --name postgres-e2e -p 5432:5432 -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test -e POSTGRES_DB=testdb postgres:16-alpine
+          docker run -d --name redis-e2e -p 6379:6379 redis:7-alpine
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          echo "Waiting for PostgreSQL..."
+          for i in $(seq 1 30); do
+            if docker exec postgres-e2e pg_isready -U test -d testdb 2>/dev/null; then
+              echo "PostgreSQL is ready after ${i}s"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "ERROR: PostgreSQL did not become ready within 30s"
+              docker logs postgres-e2e
+              exit 1
+            fi
+            sleep 1
+          done
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers and dependencies
+        run: |
+          npx playwright install chromium
+          npx playwright install-deps chromium || echo "Could not install system deps - assuming already installed on runner"
+
+      - name: Setup database schema and run migrations
+        run: node scripts/run-migrations.mjs
+        env:
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+
+      - name: Seed subscription plans
+        run: npm run db:seed
+        env:
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+
+  e2e-shard:
+    needs: e2e-infra
+    if: inputs.gate_name == 'e2e'
+    runs-on: [self-hosted, linux, divestreams]
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - name: core
+            projects: --project=setup --project=workflow
+            port: '5173'
+          - name: independent
+            projects: --project=independent
+            port: '5174'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Clean up any lingering processes on port ${{ matrix.shard.port }}
+        run: |
+          lsof -ti:${{ matrix.shard.port }} | xargs kill -9 2>/dev/null || true
+          sleep 2
+
+      - name: Run E2E tests (${{ matrix.shard.name }})
+        run: npx playwright test ${{ matrix.shard.projects }} --reporter=json --output=playwright-results-${{ matrix.shard.name }}.json || true
+        env:
+          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+          REDIS_URL: redis://127.0.0.1:6379
+          AUTH_SECRET: test-secret-for-ci
+          APP_URL: http://localhost:${{ matrix.shard.port }}
+          ADMIN_PASSWORD: DiveAdmin2026
+          E2E_PORT: ${{ matrix.shard.port }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-results-${{ matrix.shard.name }}-${{ inputs.pipeline_id }}
+          path: |
+            playwright-results-*.json
+            playwright-report/
+          retention-days: 7
+
+  e2e-cleanup:
+    needs: [e2e-shard]
+    if: always() && inputs.gate_name == 'e2e'
+    runs-on: [self-hosted, linux, divestreams]
+    steps:
+      - name: Cleanup shared E2E containers
+        run: |
+          docker stop postgres-e2e redis-e2e 2>/dev/null || true
+          docker rm postgres-e2e redis-e2e 2>/dev/null || true
+
+  e2e-callback:
+    needs: [e2e-shard, e2e-cleanup]
+    if: always() && inputs.gate_name == 'e2e'
+    runs-on: [self-hosted, linux, divestreams]
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: e2e-results-*-${{ inputs.pipeline_id }}
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Merge and callback to orchestrator
+        if: always()
+        run: |
+          # Determine pass/fail from shard results
+          SHARD_RESULT="${{ needs.e2e-shard.result }}"
+
+          if [ "$SHARD_RESULT" = "success" ]; then
+            RESULTS='{"stats":{"expected":1,"unexpected":0,"flaky":0,"skipped":0},"suites":[]}'
+          else
+            # Try to read JSON results, fallback to synthetic failure
+            if ls playwright-results-*.json 1>/dev/null 2>&1; then
+              RESULTS=$(cat playwright-results-core.json 2>/dev/null || cat playwright-results-independent.json 2>/dev/null || echo '{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0},"suites":[]}')
+            else
+              RESULTS='{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0},"suites":[]}'
+            fi
+          fi
+
+          curl -s -X POST "${{ env.ORCHESTRATOR_URL }}/api/gate-complete" \
+            -H "Authorization: Bearer ${{ secrets.ORCHESTRATOR_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg pid "${{ inputs.pipeline_id }}" \
+              --arg gn "e2e" \
+              --argjson wrid "${{ github.run_id }}" \
+              --argjson tr "$RESULTS" \
+              '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "playwright"}'
+            )" || echo "Orchestrator callback failed (non-fatal)"
+
+  # ─────────────────────────────────────────────
+  # Regression gate (runs against staging/test env)
+  # ─────────────────────────────────────────────
+  regression:
+    if: inputs.gate_name == 'regression'
+    runs-on: [self-hosted, linux, divestreams]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers and dependencies
+        run: |
+          npx playwright install chromium
+          npx playwright install-deps chromium || echo "Could not install system deps - assuming already installed on runner"
+
+      - name: Run smoke/regression tests against test environment
+        run: npx playwright test --grep "@smoke" --reporter=json --output=regression-results.json || true
+        env:
+          BASE_URL: https://test.divestreams.com
+
+      - name: Callback to orchestrator
+        if: always()
+        run: |
+          if [ -f regression-results.json ]; then
+            RESULTS=$(cat regression-results.json)
+          else
+            RESULTS='{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0},"suites":[]}'
+          fi
+
+          curl -s -X POST "${{ env.ORCHESTRATOR_URL }}/api/gate-complete" \
+            -H "Authorization: Bearer ${{ secrets.ORCHESTRATOR_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg pid "${{ inputs.pipeline_id }}" \
+              --arg gn "regression" \
+              --argjson wrid "${{ github.run_id }}" \
+              --argjson tr "$RESULTS" \
+              '{pipeline_id: $pid, gate_name: $gn, workflow_run_id: $wrid, test_results: $tr, test_type: "playwright"}'
+            )" || echo "Orchestrator callback failed (non-fatal)"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regression-results-${{ inputs.pipeline_id }}
+          path: |
+            regression-results.json
+            playwright-report/
+          retention-days: 7

@@ -142,21 +142,13 @@ See [TESTING.md](./TESTING.md) for:
 **IMPORTANT: NEVER deploy directly. ALWAYS use the CI/CD pipeline via git push.**
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│  develop    │───>│  Unit Tests │───>│  Build :dev │───>│  Deploy Dev │
-│  branch     │    │  (fast)     │    │   Docker    │    │    VPS      │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│  staging    │───>│ Tests + E2E │───>│ Build :test │───>│ Deploy Test │
-│  branch     │    │  (full)     │    │   Docker    │    │    VPS      │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-                                                                │
-                                                                v smoke tests
-┌─────────────┐                                         ┌─────────────┐
-│    main     │─────────────────────────────────────────>│   Deploy    │
-│   branch    │        (retag test → latest)             │ Production  │
-└─────────────┘                                         └─────────────┘
+Feature PR -> develop    ci.yml: lint + typecheck + unit ("test" check)
+                         merge
+develop push             deploy.yml: build :dev -> deploy Dev -> auto-create PR develop->staging
+                         ci.yml: test + e2e -> auto-merge
+staging push             deploy.yml: sanity -> build :test -> deploy Test -> smoke -> Release PR
+                         Tom approves + merges
+main push                deploy.yml: pact gate -> retag :test->:latest -> deploy Production
 ```
 
 ### Three Environments
@@ -167,31 +159,32 @@ See [TESTING.md](./TESTING.md) for:
 | **Test** | Human QA - manual product testing, feedback, QA tasks. Stable always-on instance. | Tom, QA team |
 | **Production** | Live production environment. | End users |
 
-### Deployment Workflow
+### Auto-Promotion Pipeline
 
-**To deploy to DEV (fast path - unit tests only):**
-```bash
-git checkout develop
-git merge <feature-branch>
-git push origin develop
-```
-This triggers: lint → typecheck → unit tests → build Docker `:dev` → deploy to Dev VPS
+The pipeline is fully automated from feature PR to production-ready, with a manual gate only at production.
 
-**To deploy to TEST (full test gate):**
-```bash
-git checkout staging
-git merge develop  # or feature branch
-git push origin staging
-```
-This triggers: lint → typecheck → unit tests → E2E tests → build Docker `:test` → deploy to Test VPS → smoke tests
+**1. Feature PR → develop** (developer action)
+- Open PR targeting `develop`
+- `ci.yml` runs: lint, typecheck, unit tests, pact consumer
+- Branch protection requires `test` check to pass
+- Developer merges PR
 
-**To deploy to PRODUCTION:**
-```bash
-git checkout main
-git merge staging
-git push origin main
-```
-This retags `ghcr.io/shooter51/divestreams-app:test` → `:latest` and deploys to production VPS.
+**2. develop → staging** (automatic)
+- `deploy.yml` builds `:dev` image, deploys to Dev VPS
+- Auto-creates PR `develop → staging` with auto-merge enabled
+- `ci.yml` runs on that PR: `test` + `e2e` (full suite)
+- Auto-merge fires when checks pass
+
+**3. staging → main** (automatic PR, manual merge)
+- `deploy.yml` runs sanity check, builds `:test`, deploys to Test VPS, runs smoke tests
+- Auto-creates Release PR `staging → main` with Tom as reviewer
+- Tom tests on test.divestreams.com, approves, and merges
+
+**4. main → production** (automatic)
+- Pact can-i-deploy hard gate
+- Retags `:test` → `:latest`, deploys to Production VPS
+
+**End-to-end timing:** ~35-45 min from feature merge to "ready for production"
 
 ### VPS Infrastructure
 
@@ -331,25 +324,32 @@ echo "<GITHUB_PAT>" | docker login ghcr.io -u shooter51 --password-stdin
 ### Branch Protection Rules
 All three branches are protected. Direct pushes are blocked — changes must go through PRs.
 
-| Branch | Required CI Checks | PR Required | Notes |
-|--------|-------------------|-------------|-------|
-| **develop** | `test` (lint + typecheck + unit tests) | Yes | Fast gate for AI agent work |
-| **staging** | `test` + `e2e` (full suite) | Yes | Full gate before human QA |
-| **main** | `test` + `e2e` (full suite) | Yes | Production gate |
+| Branch | Required CI Checks | PR Required | Approvals | Notes |
+|--------|-------------------|-------------|-----------|-------|
+| **develop** | `test` | Yes | 0 | Fast gate for AI agent work |
+| **staging** | `test` + `e2e` | Yes | 0 | Full gate, auto-merge from develop |
+| **main** | `test` + `e2e` | Yes | 1 (Tom) | Manual production gate |
 
-**All CI gates are enforced.** Lint errors, type errors, and test failures will block deployment. There are no `continue-on-error` flags in the pipeline.
+**All CI gates are enforced.** Lint errors, type errors, and test failures will block deployment.
 
 ### AI Agent Workflow (Vibe Coding)
 ```
-1. vibe-kanban creates workspace → feature branch (vk/xxxx-...)
-2. AI agent works on feature branch
-3. PR to develop → unit tests gate → merge
-4. develop auto-deploys to Dev VPS
-5. PR to staging → unit tests + E2E gate → merge
-6. staging auto-deploys to Test VPS → smoke tests
-7. Tom tests on Test VPS
-8. PR to main → merge → retag :test → :latest → deploy Prod
+1. Agent creates feature branch and opens PR to develop
+2. ci.yml runs test checks → merge PR
+3. deploy.yml: build + deploy Dev → auto-create PR to staging (auto-merge)
+4. ci.yml runs test + e2e on staging PR → auto-merge fires
+5. deploy.yml: sanity + build + deploy Test → smoke tests → auto-create Release PR
+6. Tom reviews on test.divestreams.com → approves + merges
+7. deploy.yml: pact gate → retag → deploy Production
 ```
+
+### Auto-Promotion Prerequisites
+Before the auto-promotion pipeline works, these GitHub settings must be configured:
+
+1. **PROMOTION_PAT secret** — Fine-grained PAT with Contents + Pull Requests read/write
+2. **Auto-merge enabled** — Settings → General → Pull Requests → Allow auto-merge
+3. **Main branch requires 1 approval** — Settings → Branches → main → Required approving reviews: 1
+4. **Labels** — `auto-promotion` (green) and `release` (red) — created automatically on first run
 
 ### Checking CI Failures
 ```bash
@@ -389,7 +389,7 @@ Set in `.env` files on each VPS:
 ### GitHub Repository Configuration
 **Environments:** `dev`, `test`, `production`
 **Environment Variables:** `DEV_VPS_ID`, `TEST_VPS_ID`, `PROD_VPS_ID`, `TEST_VPS_IP`
-**Secrets:** `HOSTINGER_API_TOKEN`, `TEST_VPS_SSH_KEY` (environment-level)
+**Secrets:** `HOSTINGER_API_TOKEN`, `TEST_VPS_SSH_KEY` (environment-level), `PROMOTION_PAT` (repo-level)
 
 ### Check VPS Status (Monitoring Only)
 ```
