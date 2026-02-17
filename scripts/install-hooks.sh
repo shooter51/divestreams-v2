@@ -1,50 +1,34 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Install git hooks - handles both regular repos and worktrees
+
 set -e
 
-# Script to install git hooks that works with both regular git repos and worktrees
+# Find the actual hooks directory
+if [ -f .git ]; then
+  # This is a worktree, read the gitdir
+  GITDIR=$(cat .git | sed 's/gitdir: //')
+  # For worktrees, hooks are in the main repo's .git/hooks
+  MAIN_GIT=$(echo "$GITDIR" | sed 's|/worktrees/.*||')
+  HOOKS_DIR="$MAIN_GIT/hooks"
+else
+  # Regular repo
+  HOOKS_DIR=".git/hooks"
+fi
 
-# Get the actual git directory (handles worktrees)
-GIT_DIR=$(git rev-parse --git-common-dir)
+echo "📍 Git hooks directory: $HOOKS_DIR"
 
-# Get the absolute path to the project root
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
+# Get absolute path to scripts directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Hooks to install
-HOOKS=(
-  "pre-commit:scripts/pre-commit-coverage.sh"
-)
+# Create symlinks
+echo "🔗 Installing pre-commit hook..."
+ln -sf "$SCRIPT_DIR/pre-commit-coverage.sh" "$HOOKS_DIR/pre-commit"
+chmod +x "$HOOKS_DIR/pre-commit"
 
-echo "Installing git hooks..."
-echo "Git directory: $GIT_DIR"
-echo "Project root: $PROJECT_ROOT"
+echo "🔗 Installing post-commit hook..."
+ln -sf "$SCRIPT_DIR/post-commit-push.sh" "$HOOKS_DIR/post-commit"
+chmod +x "$HOOKS_DIR/post-commit"
 
-# Create hooks directory if it doesn't exist
-mkdir -p "$GIT_DIR/hooks"
-
-# Install each hook
-for hook_spec in "${HOOKS[@]}"; do
-  IFS=':' read -r hook_name script_path <<< "$hook_spec"
-
-  hook_file="$GIT_DIR/hooks/$hook_name"
-  script_file="$PROJECT_ROOT/$script_path"
-
-  # Remove existing hook if it's a broken symlink or wrong target
-  if [ -L "$hook_file" ]; then
-    current_target=$(readlink "$hook_file")
-    if [ ! -f "$current_target" ] || [ "$current_target" != "$script_file" ]; then
-      echo "Removing old/broken symlink: $hook_file -> $current_target"
-      rm -f "$hook_file"
-    fi
-  elif [ -f "$hook_file" ]; then
-    echo "Warning: $hook_file exists and is not a symlink. Backing up to ${hook_file}.bak"
-    mv "$hook_file" "${hook_file}.bak"
-  fi
-
-  # Create symlink
-  echo "Installing $hook_name hook -> $script_path"
-  ln -sf "$script_file" "$hook_file"
-  chmod +x "$script_file"
-  chmod +x "$hook_file"
-done
-
-echo "✓ Git hooks installed successfully"
+echo "✅ Git hooks installed successfully!"
+echo "   - pre-commit: Test validation and coverage"
+echo "   - post-commit: Auto-push to remote (triggers CI/CD)"
