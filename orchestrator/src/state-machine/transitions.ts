@@ -25,15 +25,18 @@ export interface TransitionContext {
 export const transitions: TransitionDef[] = [
   // === Happy path ===
 
-  // PR opened → run unit+pact gate
+  // PR merged into develop → deploy to dev
+  // ci-pr.yml already ran lint/typecheck/unit tests before merge (branch protection).
+  // Post-merge, develop HEAD contains the merged code — deploy it, then run
+  // integration and e2e gates against the deployed code.
   {
     from: PipelineState.CREATED,
-    trigger: Trigger.PR_OPENED,
-    to: PipelineState.UNIT_PACT_GATE,
-    sideEffect: "dispatchUnitPactGate",
+    trigger: Trigger.PR_MERGED,
+    to: PipelineState.DEV_DEPLOYING,
+    sideEffect: "dispatchDevDeploy",
   },
 
-  // Unit+pact pass → deploy to dev
+  // Unit+pact pass → deploy to dev (kept for future direct-gate flows)
   {
     from: PipelineState.UNIT_PACT_GATE,
     trigger: Trigger.GATE_PASSED,
