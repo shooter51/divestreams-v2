@@ -11,3 +11,5 @@ export const logger = pino({
 export function createChildLogger(name: string) {
   return logger.child({ module: name });
 }
+
+export const VERSION = "1.0.0";
