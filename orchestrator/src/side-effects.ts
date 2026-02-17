@@ -24,8 +24,7 @@ export function registerSideEffects(
 ) {
   // --- Gate dispatch ---
   // NOTE: ci-gate.yml and deploy-env.yml only exist on develop/staging/main.
-  // Always dispatch on ctx.targetBranch (e.g. "develop"), never on the feature
-  // branch (ctx.branch), which may have been cut before these workflow files existed.
+  // Always dispatch on ctx.targetBranch, not ctx.branch (feature branch).
 
   engine.registerSideEffect(
     "dispatchUnitPactGate",
