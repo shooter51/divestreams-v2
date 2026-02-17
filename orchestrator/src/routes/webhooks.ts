@@ -8,6 +8,7 @@ import type { JudgeAgent } from "../agents/judge-agent.js";
 import type { VKClient } from "../integrations/vk.js";
 import { verifyWebhookSignature } from "../utils/crypto.js";
 import { Trigger, PipelineState } from "../state-machine/states.js";
+import type { PipelineStateType } from "../state-machine/states.js";
 import { createChildLogger } from "../utils/logger.js";
 import { eq } from "drizzle-orm";
 import { getDb } from "../db/client.js";
@@ -182,7 +183,7 @@ async function handlePullRequest(
     }
 
     // Don't double-deploy if already deploying or done
-    const nonDeployableStates = [
+    const nonDeployableStates: PipelineStateType[] = [
       PipelineState.DEV_DEPLOYING,
       PipelineState.DEV_DEPLOYED,
       PipelineState.INTEGRATION_GATE,
@@ -195,7 +196,7 @@ async function handlePullRequest(
       PipelineState.FAILED,
     ];
 
-    if (nonDeployableStates.includes(run.state as PipelineState)) {
+    if (nonDeployableStates.includes(run.state as PipelineStateType)) {
       log.info(
         { prNumber, state: run.state },
         "PR merged but pipeline already past deploy point — skipping"
