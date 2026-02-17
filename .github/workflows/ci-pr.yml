@@ -41,19 +41,19 @@ jobs:
       - name: Setup database schema
         run: npm run db:push
         env:
-          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+          DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
 
       - name: Run unit and integration tests with coverage
         run: npm run test:coverage
         env:
-          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+          DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
           ADMIN_PASSWORD: TestAdmin123
           SESSION_SECRET: test-session-secret
 
       - name: Run Pact consumer tests
         run: npm run pact:consumer
         env:
-          DATABASE_URL: postgresql://test:test@127.0.0.1:5432/testdb
+          DATABASE_URL: postgresql://test:test@ci-postgres:5432/testdb
 
       - name: Upload unit coverage report
         uses: actions/upload-artifact@v4
