@@ -101,6 +101,7 @@ async function handlePullRequest(
   const branch = (pr.head as Record<string, unknown>).ref as string;
   const targetBranch = (pr.base as Record<string, unknown>).ref as string;
   const commitSha = (pr.head as Record<string, unknown>).sha as string;
+  const merged = pr.merged as boolean | undefined;
 
   log.info({ action, prNumber, branch, targetBranch }, "PR event");
 
@@ -164,6 +165,60 @@ async function handlePullRequest(
 
       // The agent monitor will pick up the completion and trigger FIX_AGENT_PUSHED
     }
+  }
+
+  if (action === "closed" && merged === true && targetBranch === "develop") {
+    // PR was merged into develop. Find the pipeline run and trigger a dev deploy.
+    // This handles two cases:
+    // 1. Normal path: pipeline completed all gates and is waiting to deploy.
+    // 2. Recovery: pipeline got stuck (e.g. gate dispatch failed with 422) — the
+    //    CI PR check (branch protection) already validated the code, so we can
+    //    deploy directly without re-running gates.
+    const run = await deps.engine.getRunByPR(prNumber);
+    if (!run) {
+      log.info({ prNumber }, "PR merged but no pipeline run found — skipping");
+      return;
+    }
+
+    const nonDeployableStates: string[] = [
+      PipelineState.DEV_DEPLOYING,
+      PipelineState.DEV_DEPLOYED,
+      PipelineState.INTEGRATION_GATE,
+      PipelineState.E2E_GATE,
+      PipelineState.STAGING_PROMOTING,
+      PipelineState.STAGING_DEPLOYING,
+      PipelineState.STAGING_DEPLOYED,
+      PipelineState.REGRESSION_GATE,
+      PipelineState.READY_FOR_PROD,
+      PipelineState.PROD_DEPLOYING,
+      PipelineState.PROD_DEPLOYED,
+      PipelineState.DONE,
+    ];
+
+    if (nonDeployableStates.includes(run.state)) {
+      log.info(
+        { prNumber, state: run.state },
+        "PR merged but pipeline already past dev deploy — skipping"
+      );
+      return;
+    }
+
+    log.info(
+      { prNumber, pipelineRunId: run.id, state: run.state },
+      "PR merged into develop — dispatching dev deploy"
+    );
+
+    // Update commit SHA to the merge commit (the push event delivers this, but
+    // belt-and-suspenders here using the PR head SHA which is the last commit).
+    await deps.engine.updateCommitSha(run.id, commitSha);
+
+    // Dispatch deploy directly on develop (where deploy-env.yml lives)
+    await deps.github.dispatchWorkflow("deploy-env.yml", "develop", {
+      pipeline_id: run.id,
+      environment: "dev",
+      image_tag: "dev",
+      commit_sha: commitSha,
+    });
   }
 }
 
