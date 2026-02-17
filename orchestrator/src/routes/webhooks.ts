@@ -101,6 +101,7 @@ async function handlePullRequest(
   const branch = (pr.head as Record<string, unknown>).ref as string;
   const targetBranch = (pr.base as Record<string, unknown>).ref as string;
   const commitSha = (pr.head as Record<string, unknown>).sha as string;
+  const merged = (pr as Record<string, unknown>).merged as boolean | undefined;
 
   log.info({ action, prNumber, branch, targetBranch }, "PR event");
 
@@ -164,6 +165,58 @@ async function handlePullRequest(
 
       // The agent monitor will pick up the completion and trigger FIX_AGENT_PUSHED
     }
+  }
+
+  if (action === "closed" && merged === true && targetBranch === "develop") {
+    // PR merged into develop — dispatch dev deploy directly.
+    // This handles two cases:
+    // 1. Normal path: pipeline completed all gates and is ready to deploy.
+    // 2. Recovery: gate dispatch failed (e.g. 422 from wrong branch ref) so
+    //    the pipeline never advanced past UNIT_PACT_GATE. The CI PR check
+    //    (branch protection) already validated lint/typecheck/tests, so we
+    //    can safely deploy without re-running gates.
+    const run = await deps.engine.getRunByPR(prNumber);
+    if (!run) {
+      log.info({ prNumber }, "PR merged but no pipeline run found — skipping");
+      return;
+    }
+
+    // Don't double-deploy if already deploying or done
+    const nonDeployableStates = [
+      PipelineState.DEV_DEPLOYING,
+      PipelineState.DEV_DEPLOYED,
+      PipelineState.INTEGRATION_GATE,
+      PipelineState.E2E_GATE,
+      PipelineState.STAGING_DEPLOYING,
+      PipelineState.STAGING_DEPLOYED,
+      PipelineState.READY_FOR_PROD,
+      PipelineState.PROD_DEPLOYING,
+      PipelineState.DONE,
+      PipelineState.FAILED,
+    ];
+
+    if (nonDeployableStates.includes(run.state as PipelineState)) {
+      log.info(
+        { prNumber, state: run.state },
+        "PR merged but pipeline already past deploy point — skipping"
+      );
+      return;
+    }
+
+    log.info(
+      { prNumber, pipelineRunId: run.id, state: run.state },
+      "PR merged — dispatching dev deploy directly on develop"
+    );
+
+    // Update commit SHA to the merge commit
+    await deps.engine.updateCommitSha(run.id, commitSha);
+
+    await deps.github.dispatchWorkflow("deploy-env.yml", "develop", {
+      pipeline_id: run.id,
+      environment: "dev",
+      image_tag: "dev",
+      commit_sha: commitSha,
+    });
   }
 }
 

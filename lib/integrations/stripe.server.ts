@@ -620,8 +620,9 @@ export async function getStripeSettings(
   const result = await getIntegrationWithTokens(orgId, "stripe");
   const publishableKey = result?.refreshToken || null;
 
-  // Fetch current account status from Stripe to ensure accuracy
-  // Don't rely on cached settings.chargesEnabled which may be stale
+  // Fetch current account status from Stripe to ensure accuracy.
+  // Fall back to cached settings if the Stripe API call fails (network error, outage, etc.)
+  // to avoid incorrectly showing "Stripe Not Connected" when Stripe is properly configured.
   const accountInfo = await getStripeAccountInfo(orgId);
 
   return {
@@ -630,8 +631,8 @@ export async function getStripeSettings(
     accountName: integration.accountName,
     liveMode: (settings?.liveMode as boolean) ?? false,
     webhookConfigured: !!(settings?.webhookEndpointId),
-    chargesEnabled: accountInfo?.chargesEnabled ?? false,
-    payoutsEnabled: accountInfo?.payoutsEnabled ?? false,
+    chargesEnabled: accountInfo?.chargesEnabled ?? (settings?.chargesEnabled as boolean) ?? false,
+    payoutsEnabled: accountInfo?.payoutsEnabled ?? (settings?.payoutsEnabled as boolean) ?? false,
     publishableKeyPrefix: publishableKey ? publishableKey.slice(0, 12) + "..." : null,
   };
 }

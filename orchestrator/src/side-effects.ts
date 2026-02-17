@@ -23,11 +23,13 @@ export function registerSideEffects(
   config: Config
 ) {
   // --- Gate dispatch ---
+  // NOTE: ci-gate.yml and deploy-env.yml only exist on develop/staging/main.
+  // Always dispatch on ctx.targetBranch, not ctx.branch (feature branch).
 
   engine.registerSideEffect(
     "dispatchUnitPactGate",
     async (ctx: TransitionContext) => {
-      await github.dispatchWorkflow("ci-gate.yml", ctx.branch, {
+      await github.dispatchWorkflow("ci-gate.yml", ctx.targetBranch, {
         pipeline_id: ctx.pipelineRunId,
         gate_name: "unit_pact",
         pr_number: String(ctx.prNumber),
@@ -38,7 +40,7 @@ export function registerSideEffects(
   engine.registerSideEffect(
     "dispatchIntegrationGate",
     async (ctx: TransitionContext) => {
-      await github.dispatchWorkflow("ci-gate.yml", ctx.branch, {
+      await github.dispatchWorkflow("ci-gate.yml", ctx.targetBranch, {
         pipeline_id: ctx.pipelineRunId,
         gate_name: "integration",
         pr_number: String(ctx.prNumber),
@@ -49,7 +51,7 @@ export function registerSideEffects(
   engine.registerSideEffect(
     "dispatchE2eGate",
     async (ctx: TransitionContext) => {
-      await github.dispatchWorkflow("ci-gate.yml", ctx.branch, {
+      await github.dispatchWorkflow("ci-gate.yml", ctx.targetBranch, {
         pipeline_id: ctx.pipelineRunId,
         gate_name: "e2e",
         pr_number: String(ctx.prNumber),
@@ -73,7 +75,7 @@ export function registerSideEffects(
   engine.registerSideEffect(
     "dispatchDevDeploy",
     async (ctx: TransitionContext) => {
-      await github.dispatchWorkflow("deploy-env.yml", ctx.branch, {
+      await github.dispatchWorkflow("deploy-env.yml", ctx.targetBranch, {
         pipeline_id: ctx.pipelineRunId,
         environment: "dev",
         image_tag: "dev",
@@ -216,7 +218,7 @@ export function registerSideEffects(
     "createDefectAndDeployDev",
     async (ctx: TransitionContext) => {
       await createDefectFromLatestGate(ctx.pipelineRunId, ctx);
-      await github.dispatchWorkflow("deploy-env.yml", ctx.branch, {
+      await github.dispatchWorkflow("deploy-env.yml", ctx.targetBranch, {
         pipeline_id: ctx.pipelineRunId,
         environment: "dev",
         image_tag: "dev",
@@ -229,7 +231,7 @@ export function registerSideEffects(
     "createDefectAndDispatchE2e",
     async (ctx: TransitionContext) => {
       await createDefectFromLatestGate(ctx.pipelineRunId, ctx);
-      await github.dispatchWorkflow("ci-gate.yml", ctx.branch, {
+      await github.dispatchWorkflow("ci-gate.yml", ctx.targetBranch, {
         pipeline_id: ctx.pipelineRunId,
         gate_name: "e2e",
         pr_number: String(ctx.prNumber),
