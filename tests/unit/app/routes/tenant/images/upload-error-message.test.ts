@@ -276,7 +276,7 @@ describe("Image upload - file size validation and error message", () => {
       expect(json.error).toContain("Maximum 5 images allowed");
     });
 
-    it("handles processing errors (catch branch)", async () => {
+    it("handles sharp processing errors with user-friendly message", async () => {
       const file = new File([new Uint8Array([1])], "test.jpg", {
         type: "image/jpeg",
       });
@@ -287,10 +287,10 @@ describe("Image upload - file size validation and error message", () => {
       const json = await response.json();
 
       expect(response.status).toBe(500);
-      expect(json.error).toContain("Failed to upload image");
+      expect(json.error).toContain("Image processing failed");
     });
 
-    it("includes error details in development mode", async () => {
+    it("includes error details in development mode for non-sharp errors", async () => {
       const origEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = "development";
 
@@ -299,16 +299,30 @@ describe("Image upload - file size validation and error message", () => {
       });
       setupFullMocks();
       (processImage as MockFn).mockRejectedValue(
-        new Error("sharp: input buffer empty")
+        new Error("network timeout connecting to storage")
       );
 
       const response = await action(actionArgs(createUploadRequest(file)));
       const json = await response.json();
 
       expect(response.status).toBe(500);
-      expect(json.error).toContain("sharp: input buffer empty");
+      expect(json.error).toContain("network timeout connecting to storage");
 
       process.env.NODE_ENV = origEnv;
+    });
+
+    it("returns generic error for S3/B2 storage errors", async () => {
+      const file = new File([new Uint8Array([1])], "test.jpg", {
+        type: "image/jpeg",
+      });
+      setupFullMocks();
+      (processImage as MockFn).mockRejectedValue(new Error("S3 bucket not found"));
+
+      const response = await action(actionArgs(createUploadRequest(file)));
+      const json = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(json.error).toContain("Storage service unavailable");
     });
   });
 
