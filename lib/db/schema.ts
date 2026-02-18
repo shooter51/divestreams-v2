@@ -11,8 +11,9 @@ import {
   time,
   uniqueIndex,
   index,
+  check,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 // ============================================================================
 // RE-EXPORT AUTH, SUBSCRIPTION, AND INTEGRATIONS SCHEMAS
@@ -585,6 +586,7 @@ export const products = pgTable("products", {
   index("products_org_category_idx").on(table.organizationId, table.category),
   index("products_org_sku_idx").on(table.organizationId, table.sku),
   index("products_org_barcode_idx").on(table.organizationId, table.barcode),
+  check("stock_quantity_non_negative", sql`${table.stockQuantity} >= 0`),
 ]);
 
 // Discount codes for bookings
