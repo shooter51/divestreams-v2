@@ -9,6 +9,8 @@ import {
   updateGalleryImage,
   deleteGalleryImage,
 } from "../../../../lib/db/gallery.server";
+import { uploadToB2, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
+import { storageLogger } from "../../../../lib/logger";
 import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Album - DiveStreams" }];
@@ -52,13 +54,56 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const description = formData.get("description") as string;
     const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;
     const isPublic = formData.get("isPublic") === "true";
+    const removeCover = formData.get("removeCover") === "true";
 
-    await updateGalleryAlbum(organizationId, albumId, {
+    const updateData: Parameters<typeof updateGalleryAlbum>[2] = {
       name,
       description: description || null,
       sortOrder,
       isPublic,
-    });
+    };
+
+    // Handle cover image removal
+    if (removeCover) {
+      updateData.coverImageUrl = null;
+    }
+
+    // Handle cover image upload
+    const coverFile = formData.get("coverImage") as File | null;
+    if (coverFile && coverFile.size > 0) {
+      if (!isValidImageType(coverFile.type)) {
+        return { error: "Invalid image type. Allowed: JPEG, PNG, WebP, GIF" };
+      }
+
+      if (coverFile.size > 10 * 1024 * 1024) {
+        return { error: "Cover image must be under 10MB" };
+      }
+
+      const s3Client = getS3Client();
+      if (!s3Client) {
+        return { error: "Image storage is not configured. Contact support." };
+      }
+
+      try {
+        const arrayBuffer = await coverFile.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const processed = await processImage(buffer);
+
+        const timestamp = Date.now();
+        const safeFilename = coverFile.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const coverKey = `${ctx.org.slug}/gallery/covers/${timestamp}-${safeFilename}.webp`;
+
+        const uploadResult = await uploadToB2(coverKey, processed.original, getWebPMimeType());
+        if (uploadResult) {
+          updateData.coverImageUrl = uploadResult.cdnUrl;
+        }
+      } catch (error) {
+        storageLogger.error({ err: error, filename: coverFile.name }, "Failed to upload album cover image");
+        return { error: "Failed to upload cover image. Please try again." };
+      }
+    }
+
+    await updateGalleryAlbum(organizationId, albumId, updateData);
 
     return { updated: true };
   }
@@ -151,7 +196,7 @@ export default function AlbumDetailPage() {
         </div>
 
         {/* Edit Form */}
-        <fetcher.Form method="post" className="space-y-4">
+        <fetcher.Form method="post" encType="multipart/form-data" className="space-y-4">
           <input type="hidden" name="intent" value="update-album" />
 
           <div className="grid grid-cols-2 gap-4">
@@ -195,6 +240,50 @@ export default function AlbumDetailPage() {
               defaultValue={album.description || ""}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
             />
+          </div>
+
+          {/* Cover Image */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Cover Image</label>
+            {album.coverImageUrl && (
+              <div className="mb-3">
+                <div className="relative inline-block">
+                  <img
+                    src={album.coverImageUrl}
+                    alt={`${album.name} cover`}
+                    className="w-40 h-24 object-cover rounded-lg border"
+                  />
+                </div>
+                <label className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    name="removeCover"
+                    value="true"
+                    className="rounded"
+                  />
+                  <span className="text-sm text-foreground-muted">Remove current cover image</span>
+                </label>
+              </div>
+            )}
+            <input
+              type="file"
+              id="coverImage"
+              name="coverImage"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="block w-full text-sm text-foreground-muted
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-lg file:border-0
+                file:text-sm file:font-medium
+                file:bg-brand file:text-white
+                hover:file:bg-brand-hover
+                file:cursor-pointer cursor-pointer"
+            />
+            <p className="text-xs text-foreground-muted mt-1">
+              Upload a new cover image (JPEG, PNG, WebP, GIF). Max 10MB.
+            </p>
+            {fetcher.data?.error && (
+              <p className="text-danger text-sm mt-1">{fetcher.data.error}</p>
+            )}
           </div>
 
           <div>
