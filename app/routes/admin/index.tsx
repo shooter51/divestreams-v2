@@ -201,21 +201,21 @@ export default function AdminOrganizationsPage() {
       </form>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg border-2 border-gray-300 overflow-hidden">
+      <div className="bg-surface-raised rounded-xl shadow-sm overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-100 border-b-2 border-gray-300">
+          <thead className="bg-surface-inset border-b">
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Slug</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Name</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Owner</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Members</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Plan</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Status</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-800">Created</th>
-              <th className="text-right px-4 py-3 text-sm font-semibold text-gray-800">Actions</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Slug</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Name</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Owner</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Members</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Plan</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Status</th>
+              <th className="text-left px-4 py-3 text-sm font-medium text-foreground-muted">Created</th>
+              <th className="text-right px-4 py-3 text-sm font-medium text-foreground-muted">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-300 bg-white">
+          <tbody className="divide-y">
             {organizations.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-foreground-muted">
@@ -235,7 +235,7 @@ export default function AdminOrganizationsPage() {
                       {org.slug}
                     </a>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-foreground">
                     <div className="flex items-center gap-2">
                       {org.logo && (
                         <img
