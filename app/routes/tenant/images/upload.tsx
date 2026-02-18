@@ -63,7 +63,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return Response.json(
-        { error: "File too large. Maximum size: 10MB" },
+        { error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size: 10MB` },
         { status: 400 }
       );
     }
