@@ -305,9 +305,18 @@ export default function TransactionsPage() {
   // Monitor fetcher for toast notifications
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data) {
-      const data = fetcher.data as { success?: boolean; message?: string; error?: string };
+      const data = fetcher.data as { success?: boolean; message?: string; error?: string; refundId?: string; amount?: number };
 
-      if (data.success && data.message) {
+      // Handle refund success
+      if (data.success && data.refundId && data.amount != null) {
+        setToastMessage(`Refund processed successfully! $${data.amount.toFixed(2)} refunded.`);
+        setToastType("success");
+        setRefundModalOpen(false);
+        setSelectedTransaction(null);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+      // Handle email receipt success
+      else if (data.success && data.message) {
         setToastMessage(data.message);
         setToastType("success");
         setEmailModalOpen(false);
@@ -353,12 +362,16 @@ export default function TransactionsPage() {
   const handleRefundConfirm = (refundReason: string) => {
     if (!selectedTransaction) return;
 
-    // This would need to be implemented in the action
-    // For now, close the modal
-    setRefundModalOpen(false);
-    setToastMessage("Refund functionality needs to be integrated");
-    setToastType("error");
-    setTimeout(() => setToastMessage(null), 5000);
+    const formData = new FormData();
+    formData.append("intent", "process-refund");
+    formData.append("data", JSON.stringify({
+      originalTransactionId: selectedTransaction.id,
+      paymentMethod: selectedTransaction.paymentMethod || "cash",
+      stripePaymentId: selectedTransaction.stripePaymentId,
+      refundReason,
+    }));
+
+    fetcher.submit(formData, { method: "POST", action: "/tenant/pos" });
   };
 
   return (
