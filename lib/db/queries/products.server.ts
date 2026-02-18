@@ -76,6 +76,10 @@ export async function createProduct(organizationId: string, data: {
   lowStockThreshold?: number;
   imageUrl?: string;
 }): Promise<Product> {
+  if (data.stockQuantity !== undefined && data.stockQuantity < 0) {
+    throw new Error("Stock quantity cannot be negative");
+  }
+
   const [product] = await db
     .insert(schema.products)
     .values({
@@ -113,6 +117,10 @@ export async function updateProduct(organizationId: string, id: string, data: {
   imageUrl?: string;
   isActive?: boolean;
 }): Promise<Product | null> {
+  if (data.stockQuantity !== undefined && data.stockQuantity < 0) {
+    throw new Error("Stock quantity cannot be negative");
+  }
+
   const updateData: any = { updatedAt: new Date() };
   if (data.name !== undefined) updateData.name = data.name;
   if (data.sku !== undefined) updateData.sku = data.sku;
@@ -184,12 +192,12 @@ export async function createPOSTransaction(organizationId: string, data: {
     })
     .returning();
 
-  // Update product stock quantities
+  // Update product stock quantities (prevent negative stock)
   for (const item of data.items) {
     await db
       .update(schema.products)
       .set({
-        stockQuantity: sql`${schema.products.stockQuantity} - ${item.quantity}`,
+        stockQuantity: sql`GREATEST(0, ${schema.products.stockQuantity} - ${item.quantity})`,
       })
       .where(eq(schema.products.id, item.productId));
   }
