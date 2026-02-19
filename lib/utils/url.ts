@@ -74,13 +74,16 @@ export function getTenantUrl(subdomain: string, path = ""): string {
 
 /**
  * Get the admin URL for the current environment
- * @returns Admin URL like "https://admin.divestreams.com" or "https://admin.staging.divestreams.com"
+ * Derives from APP_URL to work across all environments:
+ * - Production: https://admin.divestreams.com
+ * - Test: https://admin.test.divestreams.com
+ * - Dev: https://admin.dev.divestreams.com
+ * - Localhost: https://admin.localhost:5173
  */
 export function getAdminUrl(path = ""): string {
-  if (isStaging()) {
-    return `https://admin.staging.divestreams.com${path}`;
-  }
-  return `https://admin.divestreams.com${path}`;
+  const appUrl = getBaseUrl();
+  const url = new URL(appUrl);
+  return `${url.protocol}//admin.${url.host}${path}`;
 }
 
 /**
