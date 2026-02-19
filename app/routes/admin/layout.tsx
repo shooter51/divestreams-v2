@@ -54,8 +54,8 @@ export default function AdminLayout() {
                       to={item.href}
                       className={`flex items-center gap-2 px-3 py-1 rounded transition-colors ${
                         isActive
-                          ? "bg-surface-raised text-white"
-                          : "text-foreground-muted hover:text-white hover:bg-surface-overlay"
+                          ? "bg-white/15 text-white"
+                          : "text-gray-400 hover:text-white hover:bg-white/10"
                       }`}
                     >
                       <span>{item.icon}</span>
@@ -67,7 +67,7 @@ export default function AdminLayout() {
             </div>
             <div className="flex items-center gap-4">
               <div className="text-sm">
-                <span className="text-foreground-subtle">{user.email}</span>
+                <span className="text-gray-400">{user.email}</span>
                 {isOwner && (
                   <span className="ml-2 px-2 py-0.5 text-xs bg-warning/20 text-warning rounded">
                     Owner
@@ -77,7 +77,7 @@ export default function AdminLayout() {
               <form action="/logout" method="post">
                 <button
                   type="submit"
-                  className="text-foreground-muted hover:text-white text-sm"
+                  className="text-gray-400 hover:text-white text-sm"
                 >
                   Logout
                 </button>
