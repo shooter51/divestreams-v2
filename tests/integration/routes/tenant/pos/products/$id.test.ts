@@ -3,10 +3,12 @@ import { getRedirectPathname } from "../../../../../helpers/redirect";
 import { loader, action } from "../../../../../../app/routes/tenant/pos/products/$id";
 import * as orgContext from "../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../lib/db/queries.server";
+import * as tenantServer from "../../../../../../lib/db/tenant.server";
 
 // Mock dependencies
 vi.mock("../../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../../lib/db/queries.server");
+vi.mock("../../../../../../lib/db/tenant.server");
 
 // Mock getTenantDb — the loader queries the images table directly
 const mockImagesQuery = {
@@ -50,6 +52,14 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     isActive: true,
   };
 
+  const mockSelect = vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        orderBy: vi.fn().mockResolvedValue([]),
+      }),
+    }),
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
@@ -59,6 +69,25 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       limits: { customers: 100 },
       isPremium: false,
     } as any);
+    vi.mocked(tenantServer.getTenantDb).mockReturnValue({
+      db: { select: mockSelect } as any,
+      schema: {
+        images: {
+          id: "id",
+          url: "url",
+          thumbnailUrl: "thumbnailUrl",
+          filename: "filename",
+          width: "width",
+          height: "height",
+          alt: "alt",
+          sortOrder: "sortOrder",
+          isPrimary: "isPrimary",
+          organizationId: "organizationId",
+          entityType: "entityType",
+          entityId: "entityId",
+        },
+      } as any,
+    });
   });
 
   describe("loader", () => {
