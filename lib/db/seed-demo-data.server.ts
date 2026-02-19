@@ -1060,7 +1060,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
     const siteImages = diveSites[siteIdx].images || [];
     siteImages.forEach((url, imgIdx) => {
       imageEntries.push({
-        entityType: "dive_site",
+        entityType: "dive-site",
         entityId: siteId,
         url,
         filename: `dive-site-${siteIdx + 1}-${imgIdx + 1}.jpg`,
