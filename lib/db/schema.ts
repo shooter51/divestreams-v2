@@ -654,7 +654,7 @@ export const customerCommunications = pgTable("customer_communications", {
 export const images = pgTable("images", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
-  entityType: text("entity_type").notNull(), // 'tour', 'dive_site', 'boat', 'equipment', 'staff'
+  entityType: text("entity_type").notNull(), // 'tour', 'dive-site', 'boat', 'equipment', 'staff', 'course', 'product'
   entityId: uuid("entity_id").notNull(),
 
   url: text("url").notNull(), // Full CDN URL
