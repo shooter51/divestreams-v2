@@ -73,17 +73,42 @@ export function getTenantUrl(subdomain: string, path = ""): string {
 }
 
 /**
- * Get the admin URL for the current environment
- * Derives from APP_URL to work across all environments:
- * - Production: https://admin.divestreams.com
- * - Test: https://admin.test.divestreams.com
- * - Dev: https://admin.dev.divestreams.com
- * - Localhost: https://admin.localhost:5173
+ * Get the admin URL for the current environment.
+ * Strips any tenant/instance subdomain and prepends "admin.":
+ * - Production: APP_URL=divestreams.com          → admin.divestreams.com
+ * - Tenant:     APP_URL=demo.divestreams.com     → admin.divestreams.com
+ * - Staging:    APP_URL=staging.divestreams.com   → admin.staging.divestreams.com
+ * - Test:       APP_URL=test.divestreams.com      → admin.test.divestreams.com
+ * - Dev:        APP_URL=default.dev.divestreams.com → admin.dev.divestreams.com
+ * - Localhost:  APP_URL=demo.localhost:5173       → admin.localhost:5173
  */
 export function getAdminUrl(path = ""): string {
   const appUrl = getBaseUrl();
   const url = new URL(appUrl);
-  return `${url.protocol}//admin.${url.host}${path}`;
+  const host = url.host;
+
+  // Localhost: always admin.localhost[:port]
+  if (host.includes("localhost")) {
+    const match = host.match(/(localhost(?::\d+)?)/);
+    return `${url.protocol}//admin.${match ? match[1] : "localhost"}${path}`;
+  }
+
+  // For divestreams.com domains, find the environment base
+  const parts = host.split(".");
+  const rootDomain = parts.slice(-2).join("."); // "divestreams.com"
+
+  // Check for known environment subdomain (dev, test, staging)
+  const envSubdomains = ["dev", "test", "staging"];
+  const subdomains = parts.slice(0, -2);
+
+  for (const env of envSubdomains) {
+    if (subdomains.includes(env)) {
+      return `${url.protocol}//admin.${env}.${rootDomain}${path}`;
+    }
+  }
+
+  // Production: admin.divestreams.com
+  return `${url.protocol}//admin.${rootDomain}${path}`;
 }
 
 /**
