@@ -63,7 +63,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return Response.json(
-        { error: "File too large. Maximum size: 10MB" },
+        { error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size: 10MB` },
         { status: 400 }
       );
     }
@@ -76,6 +76,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .from(schema.images)
       .where(
         and(
+          eq(schema.images.organizationId, organizationId),
           eq(schema.images.entityType, entityType),
           eq(schema.images.entityId, entityId)
         )
@@ -103,7 +104,7 @@ export async function action({ request }: ActionFunctionArgs) {
     if (!originalUpload) {
       storageLogger.error("B2 storage not configured - missing environment variables");
       return Response.json(
-        { error: "Image storage is not configured. Please contact support." },
+        { error: "Image storage is not configured. Contact your administrator." },
         { status: 503 }
       );
     }
@@ -158,10 +159,17 @@ export async function action({ request }: ActionFunctionArgs) {
   } catch (error) {
     storageLogger.error({ err: error }, "Image upload error");
 
-    // Provide more specific error message in development
-    const errorMessage = process.env.NODE_ENV === "development" && error instanceof Error
-      ? `Failed to upload image: ${error.message}`
-      : "Failed to upload image";
+    // Differentiate error types for better debugging
+    let errorMessage = "Failed to upload image";
+    if (error instanceof Error) {
+      if (error.name === "S3ServiceException" || error.message.includes("S3") || error.message.includes("bucket") || error.message.includes("AccessDenied")) {
+        errorMessage = "Storage service unavailable. Please check B2 configuration.";
+      } else if (error.message.includes("sharp") || error.message.includes("Sharp") || error.message.includes("Input buffer") || error.message.includes("unsupported image format")) {
+        errorMessage = "Image processing failed. The file may be corrupt.";
+      } else if (process.env.NODE_ENV === "development") {
+        errorMessage = `Failed to upload image: ${error.message}`;
+      }
+    }
 
     return Response.json(
       { error: errorMessage },

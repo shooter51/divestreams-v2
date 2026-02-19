@@ -275,6 +275,8 @@ export default function LoginPage() {
 
   const isSubmitting = navigation.state === "submitting";
   const redirectTo = searchParams.get("redirect") || "/tenant";
+  const isSignupSuccess = searchParams.get("signup") === "success";
+  const emailSkipped = searchParams.get("emailSkipped") === "true";
 
   // Show "Not a member" UI if user is authenticated but not a member of this org
   if (actionData?.notMember) {
@@ -382,6 +384,18 @@ export default function LoginPage() {
         )}
 
         <div className="bg-surface-raised py-8 px-4 shadow-sm rounded-xl sm:px-10">
+          {/* Signup Success Message */}
+          {isSignupSuccess && (
+            <div className="mb-4 p-3 bg-success-muted border border-success rounded-lg">
+              <p className="text-sm text-success font-medium">Account created successfully! Sign in below to get started.</p>
+              {emailSkipped && (
+                <p className="text-sm text-foreground-muted mt-1">
+                  If you don&apos;t receive a welcome email, don&apos;t worry — you can still log in with your password.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Error Message */}
           {actionData?.error && (
             <div className="mb-4 p-3 bg-danger-muted border border-danger rounded-lg">

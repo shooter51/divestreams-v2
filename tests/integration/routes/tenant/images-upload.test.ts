@@ -269,7 +269,7 @@ describe("tenant/images/upload route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toContain("File too large");
+      expect(data.error).toContain("too large");
     });
 
     it("returns error when max images reached", async () => {

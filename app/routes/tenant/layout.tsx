@@ -199,7 +199,8 @@ export default function TenantLayout() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{user?.name || "User"}</p>
-                  <p className="text-xs text-foreground-muted">{membership?.role || "Member"}</p>
+                  <p className="text-xs text-foreground-muted truncate">{user?.email}</p>
+                  <p className="text-xs text-foreground-muted capitalize">{membership?.role || "Member"}</p>
                 </div>
                 <form method="post" action="/auth/logout">
                   <button

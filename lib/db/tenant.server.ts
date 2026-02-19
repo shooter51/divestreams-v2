@@ -98,11 +98,19 @@ export async function createTenant(data: {
       .where(eq(subscriptionPlans.name, "free"))
       .limit(1);
 
+    if (!freePlan) {
+      console.warn(
+        `No "free" subscription plan found in subscriptionPlans table. ` +
+        `New tenant "${data.subdomain}" will have planId=null. ` +
+        `Ensure the "free" plan is seeded in the database.`
+      );
+    }
+
     // Create subscription record for the organization
     await db.insert(subscription).values({
       organizationId: orgId,
       plan: "free",
-      planId: freePlan?.id || null, // Set both plan and planId
+      planId: freePlan?.id ?? null,
       status: "trialing",
       createdAt: new Date(),
       updatedAt: new Date(),

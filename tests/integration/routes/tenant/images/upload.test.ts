@@ -153,7 +153,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
 
       expect(result.status).toBe(400);
       const json = await result.json();
-      expect(json.error).toContain("File too large");
+      expect(json.error).toContain("too large");
     });
 
     it("should return 400 if max images limit reached", async () => {

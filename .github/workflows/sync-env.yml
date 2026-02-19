@@ -1,0 +1,171 @@
+name: Sync Environment Secrets
+
+# Pushes GitHub secrets to VPS .env files and restarts containers.
+# Run manually when secrets change.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target environment(s)'
+        required: true
+        type: choice
+        options:
+          - all
+          - dev
+          - test
+          - production
+
+jobs:
+  sync-dev:
+    if: inputs.target == 'all' || inputs.target == 'dev'
+    runs-on: [self-hosted, linux, divestreams]
+    environment: dev
+    steps:
+      - name: Write .env to Dev VPS
+        run: |
+          cat > /docker/divestreams-dev/.env << 'ENVEOF'
+          DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}
+          REDIS_PASSWORD=${{ secrets.DEV_REDIS_PASSWORD }}
+          AUTH_SECRET=${{ secrets.DEV_AUTH_SECRET }}
+          BETTER_AUTH_SECRET=${{ secrets.DEV_BETTER_AUTH_SECRET }}
+          ADMIN_PASSWORD=${{ secrets.DEV_ADMIN_PASSWORD }}
+          PLATFORM_ADMIN_EMAIL=${{ secrets.PLATFORM_ADMIN_EMAIL }}
+          PLATFORM_ADMIN_PASSWORD=${{ secrets.DEV_PLATFORM_ADMIN_PASSWORD }}
+          PLATFORM_ADMIN_NAME=${{ secrets.PLATFORM_ADMIN_NAME }}
+          SMTP_HOST=${{ secrets.SMTP_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT }}
+          SMTP_USER=${{ secrets.SMTP_USER }}
+          SMTP_PASS=${{ secrets.SMTP_PASS }}
+          SMTP_FROM=${{ secrets.SMTP_FROM }}
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          B2_ENDPOINT=${{ secrets.B2_ENDPOINT }}
+          B2_REGION=${{ secrets.B2_REGION }}
+          B2_BUCKET=${{ secrets.B2_BUCKET }}
+          B2_KEY_ID=${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY=${{ secrets.B2_APP_KEY }}
+          CDN_URL=${{ secrets.CDN_URL }}
+          ENVEOF
+          # Remove leading whitespace from heredoc
+          sed -i 's/^          //' /docker/divestreams-dev/.env
+
+      - name: Restart Dev containers
+        run: |
+          cd /docker/divestreams-dev
+          docker compose up -d
+          echo "Waiting for containers..."
+          sleep 10
+          docker compose ps
+
+  sync-test:
+    if: inputs.target == 'all' || inputs.target == 'test'
+    runs-on: [self-hosted, linux, divestreams]
+    environment: test
+    steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.TEST_VPS_SSH_KEY }}" > ~/.ssh/test_key
+          chmod 600 ~/.ssh/test_key
+          ssh-keyscan -H ${{ vars.TEST_VPS_IP }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Write .env to Test VPS
+        run: |
+          ssh -i ~/.ssh/test_key -o StrictHostKeyChecking=no root@${{ vars.TEST_VPS_IP }} bash << 'SSHEOF'
+          cd /docker/divestreams-test
+          cp .env .env.backup-$(date +%Y%m%d-%H%M%S) 2>/dev/null || true
+          cat > .env << 'ENVEOF'
+          DB_PASSWORD=${{ secrets.TEST_DB_PASSWORD }}
+          REDIS_PASSWORD=${{ secrets.TEST_REDIS_PASSWORD }}
+          AUTH_SECRET=${{ secrets.TEST_AUTH_SECRET }}
+          BETTER_AUTH_SECRET=${{ secrets.TEST_BETTER_AUTH_SECRET }}
+          ADMIN_PASSWORD=${{ secrets.TEST_ADMIN_PASSWORD }}
+          PLATFORM_ADMIN_EMAIL=${{ secrets.PLATFORM_ADMIN_EMAIL }}
+          PLATFORM_ADMIN_PASSWORD=${{ secrets.TEST_PLATFORM_ADMIN_PASSWORD }}
+          PLATFORM_ADMIN_NAME=${{ secrets.PLATFORM_ADMIN_NAME }}
+          SMTP_HOST=${{ secrets.SMTP_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT }}
+          SMTP_USER=${{ secrets.SMTP_USER }}
+          SMTP_PASS=${{ secrets.SMTP_PASS }}
+          SMTP_FROM=${{ secrets.SMTP_FROM }}
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          B2_ENDPOINT=${{ secrets.B2_ENDPOINT }}
+          B2_REGION=${{ secrets.B2_REGION }}
+          B2_BUCKET=${{ secrets.B2_BUCKET }}
+          B2_KEY_ID=${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY=${{ secrets.B2_APP_KEY }}
+          CDN_URL=${{ secrets.CDN_URL }}
+          ENVEOF
+          sed -i 's/^          //' .env
+          SSHEOF
+
+      - name: Restart Test containers
+        run: |
+          curl -s -X POST \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/${{ vars.TEST_VPS_ID }}/docker/divestreams-test/update" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
+          echo "Test VPS restart triggered"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/test_key
+
+  sync-production:
+    if: inputs.target == 'all' || inputs.target == 'production'
+    runs-on: [self-hosted, linux, divestreams]
+    environment: production
+    steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_VPS_SSH_KEY }}" > ~/.ssh/prod_key
+          chmod 600 ~/.ssh/prod_key
+          ssh-keyscan -H ${{ vars.PROD_VPS_IP }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Write .env to Production VPS
+        run: |
+          ssh -i ~/.ssh/prod_key -o StrictHostKeyChecking=no root@${{ vars.PROD_VPS_IP }} bash << 'SSHEOF'
+          cd /docker/divestreams-prod
+          cp .env .env.backup-$(date +%Y%m%d-%H%M%S) 2>/dev/null || true
+          cat > .env << 'ENVEOF'
+          DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}
+          REDIS_PASSWORD=${{ secrets.PROD_REDIS_PASSWORD }}
+          AUTH_SECRET=${{ secrets.PROD_AUTH_SECRET }}
+          BETTER_AUTH_SECRET=${{ secrets.PROD_BETTER_AUTH_SECRET }}
+          ADMIN_PASSWORD=${{ secrets.PROD_ADMIN_PASSWORD }}
+          PLATFORM_ADMIN_EMAIL=${{ secrets.PLATFORM_ADMIN_EMAIL }}
+          PLATFORM_ADMIN_PASSWORD=${{ secrets.PROD_PLATFORM_ADMIN_PASSWORD }}
+          PLATFORM_ADMIN_NAME=${{ secrets.PLATFORM_ADMIN_NAME }}
+          SMTP_HOST=${{ secrets.SMTP_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT }}
+          SMTP_USER=${{ secrets.SMTP_USER }}
+          SMTP_PASS=${{ secrets.SMTP_PASS }}
+          SMTP_FROM=${{ secrets.SMTP_FROM }}
+          STRIPE_SECRET_KEY=${{ secrets.PROD_STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET=${{ secrets.PROD_STRIPE_WEBHOOK_SECRET }}
+          B2_ENDPOINT=${{ secrets.B2_ENDPOINT }}
+          B2_REGION=${{ secrets.B2_REGION }}
+          B2_BUCKET=${{ secrets.B2_BUCKET }}
+          B2_KEY_ID=${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY=${{ secrets.B2_APP_KEY }}
+          CDN_URL=${{ secrets.CDN_URL }}
+          ENVEOF
+          sed -i 's/^          //' .env
+          SSHEOF
+
+      - name: Restart Production containers
+        run: |
+          curl -s -X POST \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/${{ vars.PROD_VPS_ID }}/docker/divestreams-prod/update" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
+          echo "Production VPS restart triggered"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/prod_key
