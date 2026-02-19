@@ -1,9 +1,12 @@
 /**
  * URL utilities for multi-tenant subdomain routing
  *
- * Supports both production and staging environments:
+ * Supports all deployment environments:
  * - Production: divestreams.com, admin.divestreams.com, {tenant}.divestreams.com
- * - Staging: staging.divestreams.com, admin-staging.divestreams.com, {tenant}.staging.divestreams.com
+ * - Staging: staging.divestreams.com, admin.staging.divestreams.com, {tenant}.staging.divestreams.com
+ * - Test: test.divestreams.com, admin.test.divestreams.com, {tenant}.test.divestreams.com
+ * - Dev: dev.divestreams.com, admin.dev.divestreams.com, {tenant}.dev.divestreams.com
+ * - Localhost: localhost:5173, admin.localhost:5173, {tenant}.localhost:5173
  */
 
 /**
@@ -12,6 +15,9 @@
  */
 const PRODUCTION_URL = "https://divestreams.com";
 const STAGING_URL = "https://staging.divestreams.com";
+
+/** Known environment subdomains that are NOT tenant names */
+const ENV_SUBDOMAINS = ["dev", "test", "staging"];
 
 /**
  * Check if we're in staging environment based on APP_URL
@@ -52,35 +58,70 @@ function getBaseUrl(): string {
 }
 
 /**
+ * Extract the environment base domain from APP_URL.
+ * Strips any tenant/instance subdomain, keeping only the environment root.
+ *
+ * Examples:
+ *   divestreams.com                 → { protocol: "https:", baseDomain: "divestreams.com" }
+ *   demo.divestreams.com            → { protocol: "https:", baseDomain: "divestreams.com" }
+ *   staging.divestreams.com         → { protocol: "https:", baseDomain: "staging.divestreams.com" }
+ *   demo.staging.divestreams.com    → { protocol: "https:", baseDomain: "staging.divestreams.com" }
+ *   test.divestreams.com            → { protocol: "https:", baseDomain: "test.divestreams.com" }
+ *   default.dev.divestreams.com     → { protocol: "https:", baseDomain: "dev.divestreams.com" }
+ *   localhost:5173                  → { protocol: "https:", baseDomain: "localhost:5173" }
+ *   demo.localhost:5173             → { protocol: "https:", baseDomain: "localhost:5173" }
+ */
+function getEnvBase(): { protocol: string; baseDomain: string } {
+  const appUrl = getBaseUrl();
+  const url = new URL(appUrl);
+  const host = url.host;
+
+  // Localhost: strip any subdomain prefix
+  if (host.includes("localhost")) {
+    const match = host.match(/(localhost(?::\d+)?)/);
+    return { protocol: url.protocol, baseDomain: match ? match[1] : "localhost" };
+  }
+
+  // For divestreams.com domains
+  const parts = host.split(".");
+  const rootDomain = parts.slice(-2).join("."); // "divestreams.com"
+  const subdomains = parts.slice(0, -2);
+
+  // Find known environment subdomain (dev, test, staging)
+  for (const env of ENV_SUBDOMAINS) {
+    if (subdomains.includes(env)) {
+      return { protocol: url.protocol, baseDomain: `${env}.${rootDomain}` };
+    }
+  }
+
+  // Production
+  return { protocol: url.protocol, baseDomain: rootDomain };
+}
+
+/**
  * Get the full URL for a tenant subdomain
  *
  * @param subdomain - The tenant's subdomain (e.g., "demo")
  * @param path - Optional path to append (e.g., "/app")
- * @returns Full URL like "https://demo.divestreams.com/app" or "https://demo.staging.divestreams.com/app"
+ * @returns Full URL like "https://demo.divestreams.com/app" or "https://demo.dev.divestreams.com/app"
  */
 export function getTenantUrl(subdomain: string, path = ""): string {
-  const appUrl = getBaseUrl();
-
-  // Check if this is staging environment
-  if (appUrl.includes("staging.divestreams.com")) {
-    // Staging: tenant.staging.divestreams.com
-    return `https://${subdomain}.staging.divestreams.com${path}`;
-  }
-
-  // Production or localhost: tenant.{host}
-  const url = new URL(appUrl);
-  return `${url.protocol}//${subdomain}.${url.host}${path}`;
+  const { protocol, baseDomain } = getEnvBase();
+  return `${protocol}//${subdomain}.${baseDomain}${path}`;
 }
 
 /**
- * Get the admin URL for the current environment
- * @returns Admin URL like "https://admin.divestreams.com" or "https://admin.staging.divestreams.com"
+ * Get the admin URL for the current environment.
+ * Strips any tenant/instance subdomain and prepends "admin.":
+ * - Production: admin.divestreams.com
+ * - Staging:    admin.staging.divestreams.com
+ * - Test:       admin.test.divestreams.com
+ * - Dev:        admin.dev.divestreams.com
+ * - Localhost:  admin.localhost:5173
  */
 export function getAdminUrl(path = ""): string {
-  if (isStaging()) {
-    return `https://admin.staging.divestreams.com${path}`;
-  }
-  return `https://admin.divestreams.com${path}`;
+  const { protocol, baseDomain } = getEnvBase();
+  return `${protocol}//admin.${baseDomain}${path}`;
 }
 
 /**
@@ -92,17 +133,15 @@ export function getAppUrl(): string {
 }
 
 /**
- * Get the base domain from APP_URL
- * @returns Just the domain like "divestreams.com" or "staging.divestreams.com"
+ * Get the environment base domain (stripping any tenant/instance subdomain)
+ * @returns Domain like "divestreams.com", "dev.divestreams.com", "staging.divestreams.com"
  */
 export function getBaseDomain(): string {
-  const appUrl = getBaseUrl();
-  const url = new URL(appUrl);
-  return url.host;
+  return getEnvBase().baseDomain;
 }
 
 /**
- * Get the root domain (always divestreams.com regardless of staging)
+ * Get the root domain (always divestreams.com regardless of environment)
  * @returns "divestreams.com"
  */
 export function getRootDomain(): string {
