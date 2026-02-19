@@ -1,0 +1,52 @@
+# Dev VPS - Shared Infrastructure
+# Persistent PostgreSQL and Redis shared by all dev instances.
+# Started automatically by scripts/dev-instance.sh on first instance creation.
+#
+# Usage: docker compose -f docker-compose.dev-infra.yml -p dev-infra up -d
+
+services:
+  dev-postgres:
+    image: postgres:16-alpine
+    container_name: dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: divestreams
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-divestreams_dev}
+      POSTGRES_DB: divestreams
+    ports:
+      - "5432:5432"
+    volumes:
+      - dev-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U divestreams"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev-shared
+
+  dev-redis:
+    image: redis:7-alpine
+    container_name: dev-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme}
+    ports:
+      - "6379:6379"
+    volumes:
+      - dev-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev-shared
+
+networks:
+  dev-shared:
+    name: dev-shared
+    driver: bridge
+
+volumes:
+  dev-pgdata:
+  dev-redisdata:
