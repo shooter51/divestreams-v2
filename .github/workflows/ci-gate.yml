@@ -209,20 +209,10 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@postgres-e2e:5432/testdb
 
-  e2e-shard:
+  e2e-setup:
     needs: e2e-infra
     if: inputs.gate_name == 'e2e'
     runs-on: [self-hosted, linux, divestreams]
-    strategy:
-      fail-fast: false
-      matrix:
-        shard:
-          - name: core
-            projects: --project=setup --project=workflow
-            port: '5173'
-          - name: independent
-            projects: --project=independent
-            port: '5174'
     steps:
       - uses: actions/checkout@v4
 
@@ -234,33 +224,76 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Clean up any lingering processes on port ${{ matrix.shard.port }}
+      - name: Clean up any lingering processes on port 5173
         run: |
-          lsof -ti:${{ matrix.shard.port }} | xargs kill -9 2>/dev/null || true
+          lsof -ti:5173 | xargs kill -9 2>/dev/null || true
           sleep 2
 
-      - name: Run E2E tests (${{ matrix.shard.name }})
-        run: npx playwright test ${{ matrix.shard.projects }} --reporter=json --output=playwright-results-${{ matrix.shard.name }}.json || true
+      - name: Run E2E setup project (creates test entities)
+        run: npx playwright test --project=setup --reporter=json --output=playwright-results-setup.json || true
         env:
           DATABASE_URL: postgresql://test:test@postgres-e2e:5432/testdb
           REDIS_URL: redis://redis-e2e:6379
           AUTH_SECRET: test-secret-for-ci
-          APP_URL: http://localhost:${{ matrix.shard.port }}
+          APP_URL: http://localhost:5173
           ADMIN_PASSWORD: DiveAdmin2026
-          E2E_PORT: ${{ matrix.shard.port }}
+
+      - name: Upload setup results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-results-setup-${{ inputs.pipeline_id }}
+          path: |
+            playwright-results-*.json
+            playwright-report/
+          retention-days: 7
+
+  e2e-shard:
+    needs: e2e-setup
+    if: inputs.gate_name == 'e2e'
+    runs-on: [self-hosted, linux, divestreams]
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Clean up any lingering processes on port 5173
+        run: |
+          lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+          sleep 2
+
+      - name: Run E2E tests (shard ${{ matrix.shard }}/8)
+        run: npx playwright test --project=workflow --project=independent --shard=${{ matrix.shard }}/8 --reporter=json --output=playwright-results-shard-${{ matrix.shard }}.json || true
+        env:
+          DATABASE_URL: postgresql://test:test@postgres-e2e:5432/testdb
+          REDIS_URL: redis://redis-e2e:6379
+          AUTH_SECRET: test-secret-for-ci
+          APP_URL: http://localhost:5173
+          ADMIN_PASSWORD: DiveAdmin2026
+          SKIP_SETUP_DEPS: 'true'
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-results-${{ matrix.shard.name }}-${{ inputs.pipeline_id }}
+          name: e2e-results-shard-${{ matrix.shard }}-${{ inputs.pipeline_id }}
           path: |
             playwright-results-*.json
             playwright-report/
           retention-days: 7
 
   e2e-cleanup:
-    needs: [e2e-shard]
+    needs: [e2e-setup, e2e-shard]
     if: always() && inputs.gate_name == 'e2e'
     runs-on: [self-hosted, linux, divestreams]
     steps:
@@ -270,7 +303,7 @@ jobs:
           docker rm postgres-e2e redis-e2e 2>/dev/null || true
 
   e2e-callback:
-    needs: [e2e-shard, e2e-cleanup]
+    needs: [e2e-setup, e2e-shard, e2e-cleanup]
     if: always() && inputs.gate_name == 'e2e'
     runs-on: [self-hosted, linux, divestreams]
     steps:
@@ -284,15 +317,16 @@ jobs:
       - name: Merge and callback to orchestrator
         if: always()
         run: |
-          # Determine pass/fail from shard results
+          # Determine pass/fail from setup + shard results
+          SETUP_RESULT="${{ needs.e2e-setup.result }}"
           SHARD_RESULT="${{ needs.e2e-shard.result }}"
 
-          if [ "$SHARD_RESULT" = "success" ]; then
+          if [ "$SETUP_RESULT" = "success" ] && [ "$SHARD_RESULT" = "success" ]; then
             RESULTS='{"stats":{"expected":1,"unexpected":0,"flaky":0,"skipped":0},"suites":[]}'
           else
             if ls playwright-results-*.json 1>/dev/null 2>&1; then
-              # Extract compact summary from playwright results
-              RESULTS=$(jq '{stats: .stats, failedTests: [.suites[]?.specs[]? | select(.ok == false) | .title] | .[0:50]}' playwright-results-core.json 2>/dev/null || jq '{stats: .stats}' playwright-results-independent.json 2>/dev/null || echo '{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0}}')
+              # Merge results from all shard JSON files
+              RESULTS=$(jq -s '{stats: {expected: (map(.stats.expected // 0) | add), unexpected: (map(.stats.unexpected // 0) | add), flaky: (map(.stats.flaky // 0) | add), skipped: (map(.stats.skipped // 0) | add)}, failedTests: [.[].suites[]?.specs[]? | select(.ok == false) | .title] | .[0:50]}' playwright-results-*.json 2>/dev/null || echo '{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0}}')
             else
               RESULTS='{"stats":{"expected":0,"unexpected":1,"flaky":0,"skipped":0}}'
             fi

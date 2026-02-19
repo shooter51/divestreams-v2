@@ -10,35 +10,6 @@ vi.mock("../../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../../lib/db/queries.server");
 vi.mock("../../../../../../lib/db/tenant.server");
 
-// Mock getTenantDb — the loader queries the images table directly
-const mockImagesQuery = {
-  select: vi.fn().mockReturnThis(),
-  from: vi.fn().mockReturnThis(),
-  where: vi.fn().mockReturnThis(),
-  orderBy: vi.fn().mockResolvedValue([]),
-};
-vi.mock("../../../../../../lib/db/tenant.server", () => ({
-  getTenantDb: vi.fn(() => ({
-    db: mockImagesQuery,
-    schema: {
-      images: {
-        id: "id",
-        url: "url",
-        thumbnailUrl: "thumbnail_url",
-        filename: "filename",
-        width: "width",
-        height: "height",
-        alt: "alt",
-        sortOrder: "sort_order",
-        isPrimary: "is_primary",
-        organizationId: "organization_id",
-        entityType: "entity_type",
-        entityId: "entity_id",
-      },
-    },
-  })),
-}));
-
 describe("app/routes/tenant/pos/products/$id.tsx", () => {
   const mockOrganizationId = "org-123";
   const mockProduct = {
