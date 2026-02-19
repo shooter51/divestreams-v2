@@ -8,6 +8,7 @@ import type { JudgeAgent } from "../agents/judge-agent.js";
 import type { VKClient } from "../integrations/vk.js";
 import { verifyWebhookSignature } from "../utils/crypto.js";
 import { Trigger, PipelineState } from "../state-machine/states.js";
+import type { PipelineStateType } from "../state-machine/states.js";
 import { createChildLogger } from "../utils/logger.js";
 import { eq } from "drizzle-orm";
 import { getDb } from "../db/client.js";
@@ -105,8 +106,10 @@ async function handlePullRequest(
 
   log.info({ action, prNumber, branch, targetBranch }, "PR event");
 
+  // --- PR opened/reopened: create pipeline run in CREATED state ---
+  // ci-pr.yml handles branch protection (lint, typecheck, unit tests).
+  // We just track the PR — no workflow dispatch until merge.
   if (action === "opened" || action === "reopened") {
-    // Only handle PRs targeting develop
     if (targetBranch !== "develop") {
       log.info(
         { prNumber, targetBranch },
@@ -115,14 +118,12 @@ async function handlePullRequest(
       return;
     }
 
-    // Check for existing run
     const existingRun = await deps.engine.getRunByPR(prNumber);
     if (existingRun) {
       log.info({ prNumber }, "Pipeline run already exists for this PR");
       return;
     }
 
-    // Create pipeline run
     const run = await deps.engine.createRun({
       prNumber,
       branch,
@@ -131,20 +132,20 @@ async function handlePullRequest(
       maxFixCycles: deps.config.maxFixCycles,
     });
 
-    // Advance: CREATED → UNIT_PACT_GATE
-    await deps.engine.advance(run.id, Trigger.PR_OPENED);
+    log.info(
+      { prNumber, pipelineRunId: run.id },
+      "Pipeline run created in CREATED state — waiting for merge"
+    );
   }
 
+  // --- PR synchronize: update commit SHA, handle FIXING state ---
   if (action === "synchronize") {
-    // New push to PR branch — check if we're in FIXING state
     const run = await deps.engine.getRunByPR(prNumber);
     if (!run) return;
 
-    // Update commit SHA
     await deps.engine.updateCommitSha(run.id, commitSha);
 
     if (run.state === PipelineState.FIXING) {
-      // Mark the active agent session as completed
       const db = getDb();
       const activeSessions = await db.query.agentSessions.findMany({
         where: eq(agentSessions.pipelineRunId, run.id),
@@ -162,61 +163,66 @@ async function handlePullRequest(
           })
           .where(eq(agentSessions.id, activeSession.id));
       }
-
-      // The agent monitor will pick up the completion and trigger FIX_AGENT_PUSHED
     }
   }
 
+  // --- PR merged into develop: advance state machine ---
+  // CREATED → DEV_DEPLOYING via PR_MERGED trigger.
+  // The state machine's dispatchDevDeploy side effect handles the deploy.
   if (action === "closed" && merged === true && targetBranch === "develop") {
-    // PR merged into develop — dispatch dev deploy directly.
-    // This handles two cases:
-    // 1. Normal path: pipeline completed all gates and is ready to deploy.
-    // 2. Recovery: gate dispatch failed (e.g. 422 from wrong branch ref) so
-    //    the pipeline never advanced past UNIT_PACT_GATE. The CI PR check
-    //    (branch protection) already validated lint/typecheck/tests, so we
-    //    can safely deploy without re-running gates.
-    const run = await deps.engine.getRunByPR(prNumber);
+    let run = await deps.engine.getRunByPR(prNumber);
+
     if (!run) {
-      log.info({ prNumber }, "PR merged but no pipeline run found — skipping");
-      return;
+      // PR was opened before orchestrator was running — create run now
+      log.info(
+        { prNumber },
+        "PR merged but no pipeline run found — creating one"
+      );
+      run = await deps.engine.createRun({
+        prNumber,
+        branch,
+        targetBranch,
+        commitSha,
+        maxFixCycles: deps.config.maxFixCycles,
+      });
     }
 
-    // Don't double-deploy if already deploying or done
-    const nonDeployableStates = [
+    // Don't re-deploy if already past CREATED
+    const nonAdvanceableStates: PipelineStateType[] = [
       PipelineState.DEV_DEPLOYING,
       PipelineState.DEV_DEPLOYED,
       PipelineState.INTEGRATION_GATE,
       PipelineState.E2E_GATE,
+      PipelineState.STAGING_PROMOTING,
       PipelineState.STAGING_DEPLOYING,
       PipelineState.STAGING_DEPLOYED,
+      PipelineState.REGRESSION_GATE,
       PipelineState.READY_FOR_PROD,
       PipelineState.PROD_DEPLOYING,
+      PipelineState.PROD_DEPLOYED,
       PipelineState.DONE,
       PipelineState.FAILED,
     ];
 
-    if (nonDeployableStates.includes(run.state as PipelineState)) {
+    if (nonAdvanceableStates.includes(run.state as PipelineStateType)) {
       log.info(
         { prNumber, state: run.state },
-        "PR merged but pipeline already past deploy point — skipping"
+        "PR merged but pipeline already past CREATED — skipping"
       );
       return;
     }
 
-    log.info(
-      { prNumber, pipelineRunId: run.id, state: run.state },
-      "PR merged — dispatching dev deploy directly on develop"
-    );
-
     // Update commit SHA to the merge commit
     await deps.engine.updateCommitSha(run.id, commitSha);
 
-    await deps.github.dispatchWorkflow("deploy-env.yml", "develop", {
-      pipeline_id: run.id,
-      environment: "dev",
-      image_tag: "dev",
-      commit_sha: commitSha,
-    });
+    log.info(
+      { prNumber, pipelineRunId: run.id, state: run.state },
+      "PR merged — advancing CREATED → DEV_DEPLOYING"
+    );
+
+    // Advance through state machine: CREATED → DEV_DEPLOYING
+    // Side effect dispatchDevDeploy will dispatch deploy-env.yml
+    await deps.engine.advance(run.id, Trigger.PR_MERGED);
   }
 }
 
@@ -285,7 +291,6 @@ async function handlePullRequestReview(
   log.info({ prNumber }, "PR approved for production");
 
   // Find the pipeline run that created this release PR
-  // The release PR's source branch is staging, targeting main
   const db = getDb();
   const readyRuns = await db.query.pipelineRuns.findMany({
     where: eq(pipelineRuns.state, PipelineState.READY_FOR_PROD),

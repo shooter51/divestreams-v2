@@ -386,7 +386,7 @@ export default function SiteLoginPage() {
                   Password
                 </label>
                 <Link
-                  to="/site/forgot-password"
+                  to="/auth/forgot-password"
                   className="text-sm font-medium hover:opacity-80 transition-opacity"
                   style={{ color: "var(--primary-color)" }}
                 >

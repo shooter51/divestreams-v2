@@ -260,7 +260,12 @@ VPS IDs are stored as GitHub environment variables (`DEV_VPS_ID`, `TEST_VPS_ID`,
 
 ### Dev VPS - Multi-Instance Architecture
 
-The Dev VPS supports multiple simultaneous DiveStreams instances for AI agent use. Each instance is fully isolated with its own app, worker, database, and Redis.
+The Dev VPS supports multiple simultaneous DiveStreams instances for AI agent use. Shared `dev-postgres` and `dev-redis` containers provide infrastructure, while each instance gets its own app + worker containers and its own database within the shared PostgreSQL.
+
+**Shared Infrastructure:**
+- `dev-postgres` (port 5432) — shared PostgreSQL, each instance gets its own database (`ds_<name>`)
+- `dev-redis` (port 6379) — shared Redis
+- Started automatically on first `create`, or manually with `infra-up`
 
 **Instance Management (run on Dev VPS):**
 ```bash
@@ -270,6 +275,8 @@ scripts/dev-instance.sh list                                # List all instances
 scripts/dev-instance.sh logs <name> [--follow]              # View logs
 scripts/dev-instance.sh status <name>                       # Show status
 scripts/dev-instance.sh pull [--tag <image-tag>]            # Pull latest image
+scripts/dev-instance.sh infra-up                            # Start shared postgres + redis
+scripts/dev-instance.sh infra-down                          # Stop shared infra (no instances running)
 ```
 
 **Examples:**
@@ -287,7 +294,8 @@ Max ~8 simultaneous instances (depends on VPS RAM).
 |------|-------------|-------|
 | `docker-compose.prod.yml` | Production VPS | Pre-built `:latest` image |
 | `docker-compose.test.yml` | Test VPS | Pre-built `:test` image |
-| `docker-compose.dev-vps.yml` | Dev VPS | Parameterized template for multi-instance |
+| `docker-compose.dev-infra.yml` | Dev VPS | Shared postgres + redis infrastructure |
+| `docker-compose.dev-vps.yml` | Dev VPS | Per-instance app + worker template |
 | `docker-compose.yml` | Local | Builds from Dockerfile |
 | `docker-compose.dev.yml` | Local | Infrastructure only (postgres, redis, minio) |
 

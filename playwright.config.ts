@@ -99,7 +99,7 @@ export default defineConfig({
     {
       name: "workflow",
       testMatch: workflowTestFiles,
-      dependencies: ["setup"],
+      dependencies: process.env.SKIP_SETUP_DEPS ? [] : ["setup"],
       use: { ...devices["Desktop Chrome"] },
     },
   ],

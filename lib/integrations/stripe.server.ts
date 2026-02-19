@@ -149,8 +149,8 @@ async function validateStripeCredentials(
         liveMode: !secretKey.startsWith("sk_test_"),
         country: account.country || null,
         defaultCurrency: account.default_currency || null,
-        chargesEnabled: account.charges_enabled || false,
-        payoutsEnabled: account.payouts_enabled || false,
+        chargesEnabled: account.charges_enabled ?? true,
+        payoutsEnabled: account.payouts_enabled ?? true,
       },
     };
   } catch (error) {
@@ -225,8 +225,8 @@ export async function getStripeAccountInfo(
       liveMode: (settings?.liveMode as boolean) ?? !account.id.includes("test"),
       country: account.country || null,
       defaultCurrency: account.default_currency || null,
-      chargesEnabled: account.charges_enabled || false,
-      payoutsEnabled: account.payouts_enabled || false,
+      chargesEnabled: account.charges_enabled ?? true,
+      payoutsEnabled: account.payouts_enabled ?? true,
     };
   } catch (error) {
     await logSyncOperation(integration.id, "get_account_info", "failed", {
@@ -630,7 +630,7 @@ export async function getStripeSettings(
     accountId: integration.accountId,
     accountName: integration.accountName,
     liveMode: (settings?.liveMode as boolean) ?? false,
-    webhookConfigured: !!(settings?.webhookEndpointId),
+    webhookConfigured: !!(settings?.webhookEndpointId || settings?.webhookSecret),
     chargesEnabled: accountInfo?.chargesEnabled ?? (settings?.chargesEnabled as boolean) ?? false,
     payoutsEnabled: accountInfo?.payoutsEnabled ?? (settings?.payoutsEnabled as boolean) ?? false,
     publishableKeyPrefix: publishableKey ? publishableKey.slice(0, 12) + "..." : null,

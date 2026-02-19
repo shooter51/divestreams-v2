@@ -446,6 +446,12 @@ export async function action({ request }: ActionFunctionArgs) {
         errors.push(`Row ${i + 1}: "${row.name}" has an invalid category. Valid categories are: ${validCategories.join(", ")}. Setting to "other".`);
       }
 
+      const parsedStock = parseInt(row.stockquantity);
+      if (parsedStock < 0) {
+        errors.push(`Row ${i + 1}: "${row.name}" has a negative stock quantity (${parsedStock}). Stock must be 0 or greater.`);
+        continue;
+      }
+
       try {
         await db.insert(tables.products).values({
           organizationId, // Use actual organization UUID
@@ -454,7 +460,7 @@ export async function action({ request }: ActionFunctionArgs) {
           category: validCategories.includes(category) ? category : "other",
           price: row.price,
           costPrice: row.costprice || null,
-          stockQuantity: parseInt(row.stockquantity),
+          stockQuantity: parsedStock,
           lowStockThreshold: row.lowstockthreshold ? parseInt(row.lowstockthreshold) : 5,
           description: row.description || null,
           isActive: row.isactive?.toLowerCase() !== "false",
