@@ -35,7 +35,7 @@ echo "Ensuring all user emails are verified..."
 node -e "
 const postgres = require('postgres');
 const sql = postgres(process.env.DATABASE_URL);
-sql\`UPDATE \"user\" SET \"emailVerified\" = true WHERE \"emailVerified\" = false OR \"emailVerified\" IS NULL\`
+sql\`UPDATE \"user\" SET \"email_verified\" = true WHERE \"email_verified\" = false OR \"email_verified\" IS NULL\`
   .then(result => { console.log('  Updated', result.count, 'users'); return sql.end(); })
   .catch(err => { console.error('  Warning:', err.message); return sql.end(); });
 "
