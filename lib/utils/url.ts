@@ -131,7 +131,6 @@ export function getAdminUrl(path = ""): string {
 export function getAppUrl(): string {
   return getBaseUrl();
 }
-
 /**
  * Get the environment base domain (stripping any tenant/instance subdomain)
  * @returns Domain like "divestreams.com", "dev.divestreams.com", "staging.divestreams.com"
