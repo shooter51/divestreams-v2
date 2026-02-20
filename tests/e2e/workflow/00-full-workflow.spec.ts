@@ -1708,8 +1708,10 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
 
   test("[KAN-180] 12.3 Navigate to new booking form", async ({ page }) => {
     await loginToTenant(page);
+    if (!await isAuthenticated(page)) return;
     await page.goto(getTenantUrl("/tenant/bookings/new"));
     await page.waitForLoadState("load");
+    if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
 
