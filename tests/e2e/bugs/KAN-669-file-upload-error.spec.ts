@@ -143,7 +143,7 @@ test.describe("KAN-669: File upload error specifies filename", () => {
             }
 
             // Should not show error
-            await page.waitForLoadState('networkidle');
+            await page.waitForLoadState('load');
             const errorAlert = page
               .locator('[role="alert"]:has-text("too large")')
               .first();

@@ -93,7 +93,7 @@ async function loginToTenant(page: Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -372,7 +372,7 @@ test.describe.serial("Block B: Course CRUD Operations", () => {
     // Submit form
     await Promise.all([
       page.getByRole("button", { name: /create|save|add/i }).click(),
-      page.waitForLoadState("networkidle").catch(() => {}),
+      page.waitForLoadState("load").catch(() => {}),
     ]).catch(() => null);
 
     const redirectedToList =

@@ -57,7 +57,7 @@ test.describe("Training Import Wizard", () => {
     // Go to training dashboard
     await page.goto(getTenantUrl("/tenant/training"));
     await page.waitForLoadState("load");
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Check if we were redirected to dashboard (feature gate)
     if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
@@ -71,7 +71,7 @@ test.describe("Training Import Wizard", () => {
     if (!(await importButton.isVisible().catch(() => false))) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
     await expect(importButton).toBeVisible({ timeout: 10000 });
 

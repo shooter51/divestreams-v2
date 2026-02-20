@@ -16,7 +16,7 @@ test.describe('Debug POS Page Load', () => {
 
     // Navigate to POS
     await page.goto(getTenantUrl('demo', '/tenant/pos'));
-    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForLoadState('load', { timeout: 15000 });
 
     // Take screenshot
     await page.screenshot({ path: 'test-results/pos-debug.png', fullPage: true });

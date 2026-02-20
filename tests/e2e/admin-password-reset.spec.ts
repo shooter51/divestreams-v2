@@ -19,7 +19,7 @@ test.describe("Admin Password Reset", () => {
     await page.goto(getAdminUrl("/settings/team"));
 
     // Wait for page to load
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Find a non-owner team member's reset button
     const memberRows = page.locator('tr').filter({ hasNot: page.locator('text="Owner"') });
@@ -51,7 +51,7 @@ test.describe("Admin Password Reset", () => {
     await page.goto(getAdminUrl("/settings/team"));
 
     // Wait for page to load
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Find owner row and try to reset
     const ownerRow = page.locator('tr:has-text("Owner")');
