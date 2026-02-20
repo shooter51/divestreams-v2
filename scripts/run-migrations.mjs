@@ -2,16 +2,27 @@
 /**
  * Run Database Migrations
  *
- * Executes SQL migration files in order against the database.
- * Used by the Docker entrypoint to initialize the database schema.
+ * Uses Drizzle ORM's official migrate() function with bootstrap logic
+ * for existing databases that have never tracked migrations.
+ *
+ * Bootstrap behavior:
+ * - If the `organization` table exists but `drizzle.__drizzle_migrations` is empty,
+ *   this is an existing DB. Pre-seed all migration records so migrate() skips them.
+ * - If `organization` does not exist, this is a fresh DB. migrate() applies everything.
  */
 
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import postgres from 'postgres';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const migrationsFolder = path.join(__dirname, '..', 'drizzle');
+
+const MIGRATION_LOCK_ID = 123456789;
 
 async function runMigrations() {
   const connectionString = process.env.DATABASE_URL;
@@ -19,70 +30,89 @@ async function runMigrations() {
     throw new Error('DATABASE_URL environment variable not set');
   }
 
+  // postgres-js instance for raw queries (advisory lock, bootstrap)
   const sql = postgres(connectionString);
+  // Separate connection for drizzle migrate() - must use max:1 for migrate
+  const migrateSql = postgres(connectionString, { max: 1 });
+  const db = drizzle(migrateSql);
 
   try {
-    // Get migration files from the drizzle directory
-    const migrationsDir = path.join(__dirname, '..', 'drizzle');
-
-    if (!fs.existsSync(migrationsDir)) {
-      console.log('No drizzle migrations directory found, skipping...');
-      return;
-    }
-
-    const migrationFiles = fs.readdirSync(migrationsDir)
-      .filter(f => f.endsWith('.sql'))
-      .sort();
-
-    console.log(`Found ${migrationFiles.length} migration files`);
-
     // Acquire advisory lock to prevent concurrent migration runs
-    const MIGRATION_LOCK_ID = 123456789;
     console.log('Acquiring migration advisory lock...');
     await sql`SELECT pg_advisory_lock(${MIGRATION_LOCK_ID})`;
-    console.log('Lock acquired, running migrations...');
+    console.log('Lock acquired.');
 
     try {
-    for (const file of migrationFiles) {
-      console.log(`Running migration: ${file}`);
+      // Bootstrap: detect existing DB that has never used drizzle migrations
+      const hasOrgTable = await sql`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables
+          WHERE table_schema = 'public' AND table_name = 'organization'
+        ) AS exists
+      `;
 
-      const filePath = path.join(migrationsDir, file);
-      const sqlContent = fs.readFileSync(filePath, 'utf-8');
+      if (hasOrgTable[0].exists) {
+        // Existing DB - check if drizzle migrations table exists and has records
+        await sql`CREATE SCHEMA IF NOT EXISTS drizzle`;
+        await sql`
+          CREATE TABLE IF NOT EXISTS drizzle."__drizzle_migrations" (
+            id SERIAL PRIMARY KEY,
+            hash TEXT NOT NULL,
+            created_at BIGINT
+          )
+        `;
 
-      // Split by statement breakpoint marker used by Drizzle
-      const statements = sqlContent.split('--> statement-breakpoint')
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
+        const migrationCount = await sql`
+          SELECT COUNT(*)::int AS count FROM drizzle."__drizzle_migrations"
+        `;
 
-      for (const statement of statements) {
-        try {
-          await sql.unsafe(statement);
-        } catch (err) {
-          // Ignore "already exists" errors for idempotency
-          if (err.code === '42P07' || // duplicate_table
-              err.code === '42710' || // duplicate_object
-              err.code === '42P16' || // invalid_table_definition (constraint already exists)
-              err.code === '42701') { // duplicate_column
-            console.log(`  Skipping (already exists): ${statement.slice(0, 50)}...`);
-          } else {
-            throw err;
-          }
+        if (migrationCount[0].count === 0) {
+          console.log('Existing DB detected with no migration records. Bootstrapping...');
+          await bootstrapExistingDb(sql);
+          console.log('Bootstrap complete. All existing migrations marked as applied.');
+        } else {
+          console.log(`Found ${migrationCount[0].count} existing migration records.`);
         }
+      } else {
+        console.log('Fresh database detected. Will apply all migrations.');
       }
 
-      console.log(`  Completed: ${file}`);
-    }
-
-    console.log('All migrations completed successfully!');
+      // Run drizzle migrate() - applies any unapplied migrations
+      console.log('Running drizzle migrate()...');
+      await migrate(db, { migrationsFolder });
+      console.log('All migrations completed successfully!');
 
     } finally {
       // Release advisory lock
       await sql`SELECT pg_advisory_unlock(${MIGRATION_LOCK_ID})`;
-      console.log('Migration lock released');
+      console.log('Migration lock released.');
     }
 
   } finally {
+    await migrateSql.end();
     await sql.end();
+  }
+}
+
+/**
+ * Pre-seed the __drizzle_migrations table with records for all existing migrations.
+ * This tells migrate() that everything is already applied.
+ */
+async function bootstrapExistingDb(sql) {
+  const journalPath = path.join(migrationsFolder, 'meta', '_journal.json');
+  const journal = JSON.parse(fs.readFileSync(journalPath, 'utf-8'));
+
+  for (const entry of journal.entries) {
+    const migrationPath = path.join(migrationsFolder, `${entry.tag}.sql`);
+    const content = fs.readFileSync(migrationPath, 'utf-8');
+    const hash = crypto.createHash('sha256').update(content).digest('hex');
+
+    await sql`
+      INSERT INTO drizzle."__drizzle_migrations" (hash, created_at)
+      VALUES (${hash}, ${entry.when})
+    `;
+
+    console.log(`  Bootstrapped: ${entry.tag}`);
   }
 }
 
