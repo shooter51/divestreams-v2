@@ -39,7 +39,12 @@ export async function checkRateLimit(
   // from parallel workers all sharing the same IP.
   // PLAYWRIGHT_TEST_BASE_URL: set by local Playwright webServer config
   // DISABLE_RATE_LIMIT: set on test VPS for remote E2E tests
-  if (process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.DISABLE_RATE_LIMIT === "true") {
+  // APP_URL containing "test.": auto-detect test environment
+  if (
+    process.env.PLAYWRIGHT_TEST_BASE_URL ||
+    process.env.DISABLE_RATE_LIMIT === "true" ||
+    (process.env.APP_URL && process.env.APP_URL.includes("test."))
+  ) {
     return { allowed: true, remaining: config.maxAttempts, resetAt: Date.now() + config.windowMs };
   }
 

@@ -121,6 +121,7 @@ jobs:
           npx playwright install-deps chromium || true
 
       - name: Flush rate limit keys on test VPS
+        continue-on-error: true
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.TEST_VPS_SSH_KEY }}" | tr -d '\r' > ~/.ssh/test_vps_key
