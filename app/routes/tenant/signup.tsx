@@ -4,7 +4,7 @@ import { useState } from "react";
 import { auth } from "../../../lib/auth";
 import { getSubdomainFromRequest } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
-import { organization, member } from "../../../lib/db/schema/auth";
+import { organization, member, user } from "../../../lib/db/schema/auth";
 import { eq, and } from "drizzle-orm";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
@@ -177,6 +177,13 @@ export async function action({ request }: ActionFunctionArgs) {
           }
         }
       }
+    }
+
+    // Mark email as verified for tenant signup - user is signing up directly
+    // on a known subdomain, so email verification is unnecessary.
+    // This matches admin-created accounts which are also set emailVerified: true.
+    if (responseData?.user?.id) {
+      await db.update(user).set({ emailVerified: true }).where(eq(user.id, responseData.user.id));
     }
 
     // Create redirect response with auth cookies
