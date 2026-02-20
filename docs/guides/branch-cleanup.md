@@ -156,17 +156,6 @@ git merge <branch-name>
 git push
 ```
 
-## Integration with Vibe Kanban
-
-When Vibe Kanban creates workspaces:
-1. Creates feature branch (`vk/xxxx-...`)
-2. AI agent works on branch
-3. PR merged to `develop` or `staging`
-4. Branch becomes stale after 30 days
-5. Automated cleanup removes it
-
-**Best Practice**: Close Vibe Kanban issues when work is complete so branches get merged promptly.
-
 ## Troubleshooting
 
 ### "Failed to delete branch"

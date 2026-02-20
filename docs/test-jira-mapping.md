@@ -181,7 +181,7 @@ Posted: 2024-01-19T10:30:00Z
 ## Naming Conventions
 
 ### Jira Project Keys
-- `KAN` - Kanban project (current pilot)
+- `KAN` - Jira project (current pilot)
 - `DIVE` - DiveStreams main project (future)
 - Use consistent project key across all test cases
 

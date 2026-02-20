@@ -50,7 +50,6 @@ check_file ".coverage-config.json"
 check_file "schemas/coverage-config.schema.json"
 check_file "scripts/coverage-enforcer.ts"
 check_file "scripts/generate-test-scaffold.ts"
-check_file "scripts/vibe-test-tracker.ts"
 check_file "scripts/pre-commit-coverage.sh"
 
 # Documentation
@@ -94,8 +93,6 @@ check_script() {
 check_script "coverage:enforce"
 check_script "coverage:enforce:unit"
 check_script "test:scaffold"
-check_script "vibe:check"
-check_script "vibe:track"
 check_script "hooks:install"
 
 # Check pre-commit hook
@@ -178,14 +175,6 @@ if npx tsx scripts/generate-test-scaffold.ts 2>&1 | grep -q "Error: Must specify
   echo -e "  ${GREEN}✓${NC} generate-test-scaffold.ts runs"
 else
   echo -e "  ${YELLOW}⚠${NC} generate-test-scaffold.ts may have issues"
-  WARNINGS=$((WARNINGS + 1))
-fi
-
-# Test vibe tracker
-if npx tsx scripts/vibe-test-tracker.ts 2>&1 | grep -q "Error: Must specify"; then
-  echo -e "  ${GREEN}✓${NC} vibe-test-tracker.ts runs"
-else
-  echo -e "  ${YELLOW}⚠${NC} vibe-test-tracker.ts may have issues"
   WARNINGS=$((WARNINGS + 1))
 fi
 

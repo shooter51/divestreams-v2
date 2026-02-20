@@ -13,11 +13,6 @@ export interface Config {
   // Orchestrator auth
   orchestratorToken: string;
 
-  // VK (Vibe Kanban)
-  vkBaseUrl: string;
-  vkProjectId: string;
-  vkRepoId: string;
-
   // Hostinger
   hostingerApiToken: string;
   devVpsId: number;
@@ -66,19 +61,6 @@ export function loadConfig(): Config {
     githubRepo: optional("GITHUB_REPO", "divestreams-v2"),
 
     orchestratorToken: required("ORCHESTRATOR_TOKEN"),
-
-    vkBaseUrl: optional(
-      "VK_BASE_URL",
-      "https://toms-mac-studio-1.taile2f004.ts.net:9090"
-    ),
-    vkProjectId: optional(
-      "VK_PROJECT_ID",
-      "500e93c8-662d-4f9e-8745-ac4c259ead3c"
-    ),
-    vkRepoId: optional(
-      "VK_REPO_ID",
-      "2e2baa81-971b-4735-a0cc-d445d4338e00"
-    ),
 
     hostingerApiToken: required("HOSTINGER_API_TOKEN"),
     devVpsId: optionalInt("DEV_VPS_ID", 1296511),

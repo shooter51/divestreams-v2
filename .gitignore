@@ -48,10 +48,6 @@ temp/
 .worktrees/
 .mcp.json
 
-# Vibe Kanban workspace context (local only)
-.vibe-workspace.json
-.vibe-context.json
-
 # Coverage artifacts
 coverage-summary.json
 

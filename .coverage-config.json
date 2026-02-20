@@ -99,13 +99,5 @@
     "enforceTestUpdates": true,
     "requireTestsBeforeMerge": true,
     "blockIncompleteFeatures": true
-  },
-  "vibeKanban": {
-    "enabled": true,
-    "createTestTasks": true,
-    "trackCoverage": true,
-    "issuePrefix": "DIVE-",
-    "testLabels": ["tests", "coverage"],
-    "requiredTests": ["unit", "integration", "e2e", "pact"]
   }
 }

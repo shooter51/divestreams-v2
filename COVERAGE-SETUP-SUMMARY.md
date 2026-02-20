@@ -13,8 +13,6 @@ Defines:
 - Coverage thresholds for each test type (unit, integration, E2E, Pact)
 - Enforcement settings (block deployment, block PR, etc.)
 - Test requirements per file type
-- Vibe Kanban integration settings
-
 **Schema:** `schemas/coverage-config.schema.json` (for IDE validation)
 
 ### 2. Coverage Enforcement Script
@@ -66,24 +64,7 @@ Features:
 npm run hooks:install
 ```
 
-### 5. Vibe Kanban Integration
-**File:** `scripts/vibe-test-tracker.ts`
-
-Features:
-- Tracks test status per Vibe issue
-- Checks if feature is ready for merge
-- Lists blockers (missing/failing tests)
-- Auto-creates test scaffolding for issues
-- Updates issue with coverage status
-
-**Usage:**
-```bash
-npm run vibe:check -- --issue=DIVE-1234
-npm run vibe:track -- --issue=DIVE-1234
-npm run vibe:create-tests -- --issue=DIVE-1234
-```
-
-### 6. GitHub Actions Integration
+### 5. GitHub Actions Integration
 **File:** `.github/workflows/deploy.yml` (modified)
 
 Changes:
@@ -119,9 +100,9 @@ Coverage artifacts uploaded:
 
 ### New Feature Workflow
 
-1. **Create feature branch** (Vibe auto-creates)
+1. **Create feature branch**
    ```bash
-   git checkout vk/1234-new-feature
+   git checkout -b feature/new-feature
    ```
 
 2. **Implement feature**
@@ -145,14 +126,9 @@ Coverage artifacts uploaded:
    npm run coverage:enforce
    ```
 
-6. **Check Vibe issue status**
+6. **Commit (pre-commit hook runs)**
    ```bash
-   npm run vibe:check -- --issue=DIVE-1234
-   ```
-
-7. **Commit (pre-commit hook runs)**
-   ```bash
-   git commit -m "feat: add feature (DIVE-1234)"
+   git commit -m "feat: add feature"
    ```
 
 8. **Create PR (CI checks run)**
@@ -183,13 +159,6 @@ Coverage artifacts uploaded:
 
 **Status:** ✅ Enabled (`blockDeployment: true`)
 
-### 4. Vibe Kanban Tracking (Enabled)
-- Tracks test completion per issue
-- Shows blockers (missing/failing tests)
-- Marks features incomplete until tests done
-
-**Status:** ✅ Enabled (`vibeKanban.enabled: true`)
-
 ## 📦 NPM Scripts Added
 
 ```json
@@ -201,10 +170,6 @@ Coverage artifacts uploaded:
   "coverage:enforce:strict": "Strict mode (fail on any miss)",
 
   "test:scaffold": "Generate test scaffolding for file",
-
-  "vibe:check": "Check test status for Vibe issue",
-  "vibe:track": "Update Vibe issue with test status",
-  "vibe:create-tests": "Create all test scaffolding for issue",
 
   "hooks:install": "Install pre-commit coverage hook"
 }
@@ -349,8 +314,7 @@ CI=true npm run test:e2e
 1. ✅ **Generate scaffolding first** - Saves time, ensures consistency
 2. ✅ **Run coverage locally before pushing** - Catch issues early
 3. ✅ **Write tests as you code** - Don't leave them for later
-4. ✅ **Check Vibe status regularly** - Track your progress
-5. ✅ **Review coverage reports** - Understand what's not covered
+4. ✅ **Review coverage reports** - Understand what's not covered
 6. ❌ **Never lower thresholds to pass** - Fix coverage instead
 7. ❌ **Never skip tests** - They're part of the feature
 8. ❌ **Never commit without tests** - Pre-commit hook helps
@@ -374,20 +338,6 @@ open coverage/unit/index.html
 
 Coverage reports are retained for 30 days in GitHub Actions artifacts.
 
-### Vibe Kanban Integration
-
-Track test completion per issue:
-```bash
-npm run vibe:check -- --issue=DIVE-1234
-```
-
-Output shows:
-- Modified files
-- Test status (exists, passing)
-- Coverage percentages
-- Blockers
-- Ready status
-
 ## 🚀 Next Steps
 
 ### For AI Agents
@@ -410,12 +360,6 @@ Output shows:
 
    # Run coverage
    npm run coverage:enforce:unit
-   ```
-
-3. **Update Vibe issues** with test requirements:
-   ```bash
-   npm run vibe:check -- --issue=DIVE-1220
-   npm run vibe:track -- --issue=DIVE-1220
    ```
 
 ### For Team
@@ -443,7 +387,6 @@ Output shows:
 - `scripts/coverage-enforcer.ts` - Enforcement script
 - `scripts/generate-test-scaffold.ts` - Test generator
 - `scripts/pre-commit-coverage.sh` - Pre-commit hook
-- `scripts/vibe-test-tracker.ts` - Vibe integration
 - `TESTING.md` - Complete testing guide
 - `COVERAGE-QUICK-START.md` - Quick reference
 - `COVERAGE-SETUP-SUMMARY.md` - This file
@@ -464,7 +407,6 @@ Before marking feature complete:
 - [ ] Coverage thresholds met (`npm run coverage:enforce`)
 - [ ] Pre-commit hook passes (if enabled)
 - [ ] CI pipeline passes
-- [ ] Vibe issue updated (`npm run vibe:track`)
 - [ ] Code reviewed and approved
 - [ ] Documentation updated
 
@@ -478,7 +420,6 @@ A comprehensive code coverage enforcement system is now in place for DiveStreams
 ✅ **Coverage enforcement** - Block deployment if thresholds not met
 ✅ **Pre-commit validation** - Catch issues before they reach CI
 ✅ **CI/CD integration** - Automated checks in pipeline
-✅ **Vibe Kanban tracking** - Monitor test progress per issue
 ✅ **Complete documentation** - Quick start and detailed guides
 
 **Result:** No feature can be deployed without comprehensive test coverage.

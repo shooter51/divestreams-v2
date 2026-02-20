@@ -22,10 +22,7 @@ npm run test:coverage
 # 3. Check coverage enforcement
 npm run coverage:enforce
 
-# 4. Check Vibe issue status
-npm run vibe:check -- --issue=DIVE-1234
-
-# 5. Install pre-commit hook
+# 4. Install pre-commit hook
 npm run hooks:install
 ```
 
@@ -33,8 +30,7 @@ npm run hooks:install
 
 ### 1. Start Feature
 ```bash
-# Vibe creates branch: vk/1234-feature-name
-git checkout vk/1234-feature-name
+git checkout -b feature/feature-name
 ```
 
 ### 2. Write Code
@@ -69,13 +65,13 @@ npm run coverage:enforce    # Must pass!
 ### 7. Commit
 ```bash
 git add .
-git commit -m "feat: add boat creation (DIVE-1234)"
+git commit -m "feat: add boat creation"
 # Pre-commit hook runs automatically
 ```
 
 ### 8. Create PR
 ```bash
-git push origin vk/1234-feature-name
+git push origin feature/feature-name
 gh pr create
 # CI checks coverage automatically
 ```
@@ -155,8 +151,6 @@ npm run test:scaffold -- --feature=trip-scheduling
 # 4. Generate tests for individual files
 npm run test:scaffold -- --file=<each-modified-file>
 
-# 5. Check issue status
-npm run vibe:check -- --issue=DIVE-1234
 ```
 
 ## Coverage Thresholds
@@ -293,11 +287,6 @@ npm run coverage:enforce          # Check thresholds
 npm run test:scaffold -- --file=<path>       # Generate for file
 npm run test:scaffold -- --feature=<name>    # Generate for feature
 
-# Vibe Kanban
-npm run vibe:check -- --issue=DIVE-XXX       # Check issue status
-npm run vibe:track -- --issue=DIVE-XXX       # Update issue
-npm run vibe:create-tests -- --issue=DIVE-XXX # Generate all tests
-
 # Hooks
 npm run hooks:install             # Install pre-commit hook
 ```
@@ -307,7 +296,7 @@ npm run hooks:install             # Install pre-commit hook
 1. **Read full docs:** [TESTING.md](./TESTING.md)
 2. **Check examples:** Look at existing tests in `tests/`
 3. **Check CI logs:** View GitHub Actions for specific errors
-4. **Ask team:** Create Vibe issue or ask in chat
+4. **Ask team:** Ask in chat
 
 ## Remember
 

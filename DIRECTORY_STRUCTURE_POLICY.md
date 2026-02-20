@@ -135,7 +135,6 @@ divestreams-v2/
 │   └── migrations/           # Manual migration scripts
 ├── tests/                     # All tests (see below for structure)
 ├── tools/                     # Development tools
-│   └── kanban/               # Kanban integration tools
 └── zapier-app/                # Zapier integration app
     ├── actions/              # Zapier action definitions
     └── triggers/             # Zapier trigger definitions

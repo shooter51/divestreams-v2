@@ -176,43 +176,6 @@
         }
       }
     },
-    "vibeKanban": {
-      "type": "object",
-      "description": "Vibe Kanban integration settings",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable Vibe Kanban integration"
-        },
-        "createTestTasks": {
-          "type": "boolean",
-          "description": "Auto-create test tasks for issues"
-        },
-        "trackCoverage": {
-          "type": "boolean",
-          "description": "Track coverage progress in issues"
-        },
-        "issuePrefix": {
-          "type": "string",
-          "description": "Issue ID prefix (e.g., DIVE-)"
-        },
-        "testLabels": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Labels to apply to test-related issues"
-        },
-        "requiredTests": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["unit", "integration", "e2e", "pact"]
-          },
-          "description": "Test types required for feature completion"
-        }
-      }
-    }
   },
   "required": ["enforcement", "thresholds"],
   "definitions": {

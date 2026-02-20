@@ -21,8 +21,6 @@ DiveStreams v2 enforces comprehensive code coverage across all test types. **No 
 1. **Pre-commit hook** - Validates tests exist for modified files
 2. **Pull Request** - Blocks PRs with insufficient coverage
 3. **CI/CD Pipeline** - Blocks deployment if coverage thresholds not met
-4. **Vibe Kanban** - Tracks test completion status per issue
-
 ## Test Types
 
 ### 1. Unit Tests (Vitest)
@@ -191,8 +189,7 @@ npm run pact:provider           # Provider verification
 ### Step 1: Create Feature Branch
 
 ```bash
-# Vibe Kanban creates branch automatically
-git checkout vk/1234-new-feature
+git checkout -b feature/new-feature
 ```
 
 ### Step 2: Implement Feature
@@ -244,17 +241,7 @@ npm run test:coverage
 npm run coverage:enforce
 ```
 
-### Step 6: Check Vibe Kanban Status
-
-```bash
-# Check test status for your issue
-npm run vibe:check -- --issue=DIVE-1234
-
-# Update Vibe issue with test status
-npm run vibe:track -- --issue=DIVE-1234
-```
-
-### Step 7: Commit Changes
+### Step 6: Commit Changes
 
 The pre-commit hook automatically:
 - Validates tests exist for modified files
@@ -263,7 +250,7 @@ The pre-commit hook automatically:
 
 ```bash
 git add .
-git commit -m "feat: add boat management (DIVE-1234)"
+git commit -m "feat: add boat management"
 # Pre-commit hook runs automatically
 ```
 
@@ -272,14 +259,14 @@ To bypass (not recommended):
 git commit --no-verify
 ```
 
-### Step 8: Create Pull Request
+### Step 7: Create Pull Request
 
 ```bash
 # Push to remote
-git push origin vk/1234-new-feature
+git push origin feature/new-feature
 
 # Create PR (CI checks will run)
-gh pr create --title "Add boat management" --body "Closes DIVE-1234"
+gh pr create --title "Add boat management"
 ```
 
 CI will:
@@ -290,7 +277,7 @@ CI will:
 5. Run E2E tests (on staging PRs)
 6. Block merge if coverage insufficient
 
-### Step 9: Deploy
+### Step 8: Deploy
 
 Merging to `develop` → deploys to Dev VPS
 Merging to `staging` → deploys to Test VPS (requires all tests + E2E)
@@ -324,19 +311,6 @@ npm run test:scaffold -- --file=app/routes/api/bookings.tsx
 
 # Generate E2E workflow for feature
 npm run test:scaffold -- --feature=booking-management
-```
-
-### Vibe Kanban Integration
-
-```bash
-# Check test status for issue
-npm run vibe:check -- --issue=DIVE-1234
-
-# Track and update issue
-npm run vibe:track -- --issue=DIVE-1234
-
-# Create all test scaffolding for issue
-npm run vibe:create-tests -- --issue=DIVE-1234
 ```
 
 ## Git Hooks
@@ -376,12 +350,6 @@ Edit `.coverage-config.json` to customize:
     "e2e": { "lines": 60, "functions": 55, ... },
     "combined": { "lines": 80, "functions": 75, ... }
   },
-  "vibeKanban": {
-    "enabled": true,
-    "createTestTasks": true,
-    "trackCoverage": true,
-    "requiredTests": ["unit", "integration", "e2e", "pact"]
-  }
 }
 ```
 
@@ -502,7 +470,6 @@ Before marking a feature as "done":
 - [ ] Coverage thresholds met (check with `npm run coverage:enforce`)
 - [ ] Pre-commit hook passes
 - [ ] CI pipeline passes
-- [ ] Vibe issue updated with test status (`npm run vibe:track`)
 - [ ] Code reviewed and approved
 - [ ] Documentation updated (if needed)
 
@@ -523,4 +490,4 @@ For issues or questions about the testing setup:
 1. Check this documentation
 2. Review example tests in `tests/` directory
 3. Check CI logs for specific errors
-4. Ask in team chat or create a Vibe issue
+4. Ask in team chat
