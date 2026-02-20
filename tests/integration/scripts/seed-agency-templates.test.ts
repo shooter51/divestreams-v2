@@ -67,7 +67,7 @@ describe("seed-agency-templates script", () => {
     }
   });
 
-  it("should load PADI courses from catalog", { timeout: 120_000 }, async () => {
+  it("should load PADI courses from catalog", async () => {
     // Run the seed script
     await execAsync("npx tsx scripts/seed-agency-templates.ts");
 
