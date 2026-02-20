@@ -287,13 +287,13 @@ CI will:
 2. Run unit + integration tests with coverage
 3. Run Pact tests
 4. Enforce coverage thresholds
-5. Run E2E tests (on staging PRs)
+5. Run E2E tests (on test PRs)
 6. Block merge if coverage insufficient
 
 ### Step 9: Deploy
 
 Merging to `develop` → deploys to Dev VPS
-Merging to `staging` → deploys to Test VPS (requires all tests + E2E)
+Merging to `test` → deploys to Test VPS (requires all tests + E2E)
 Merging to `main` → deploys to Production
 
 ## Coverage Enforcement Scripts
@@ -398,7 +398,7 @@ The CI/CD pipeline enforces coverage at multiple stages:
    - Coverage enforcement
    - Deploy to Dev VPS
 
-2. **staging branch** (full gate):
+2. **test branch** (full gate):
    - Lint + typecheck
    - Unit + integration tests with coverage
    - Pact tests

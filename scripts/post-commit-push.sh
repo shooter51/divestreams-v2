@@ -13,7 +13,7 @@ if [ "$BRANCH" = "HEAD" ]; then
 fi
 
 # Skip protected branches (these should only be updated via PR merges)
-if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" || "$BRANCH" == "staging" ]]; then
+if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" || "$BRANCH" == "test" ]]; then
   echo "⚠️  Skipping auto-push on protected branch: $BRANCH"
   echo "Protected branches should only be updated via PR merges"
   exit 0
