@@ -6,4 +6,4 @@
 -- at signup time (not via email link). This migration fixes existing
 -- users created before the signup.tsx fix was deployed.
 
-UPDATE "user" SET "emailVerified" = true WHERE "emailVerified" = false OR "emailVerified" IS NULL;
+UPDATE "user" SET "email_verified" = true WHERE "email_verified" = false OR "email_verified" IS NULL;
