@@ -10,7 +10,7 @@ import { redirect } from "react-router";
 export const meta: MetaFunction = () => [{ title: "Change Password - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const ctx = await requireOrgContext(request);
+  await requireOrgContext(request);
   const url = new URL(request.url);
   const forced = url.searchParams.get("forced") === "true";
 

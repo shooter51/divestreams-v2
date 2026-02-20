@@ -4,7 +4,7 @@
  * All tour-related database operations including CRUD, stats, and dive site associations.
  */
 
-import { desc, eq, gte, and, sql, asc, inArray } from "drizzle-orm";
+import { eq, gte, and, sql, inArray } from "drizzle-orm";
 import { db } from "../index";
 import * as schema from "../schema";
 import { mapTour } from "./mappers";

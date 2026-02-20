@@ -103,7 +103,7 @@ describe("Tenant Isolation", () => {
       const customerId = "customer-123";
       const mockTable = { organizationId: "organizationId", id: "id" };
 
-      const conditions = and(
+      and(
         eq(mockTable.organizationId, orgId),
         eq(mockTable.id, customerId)
       );

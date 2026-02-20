@@ -140,7 +140,7 @@ describe("site/set-password route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Password is required");
+      expect((result as unknown).error).toBe("Password is required");
     });
 
     it("validates password minimum length", async () => {
@@ -162,7 +162,7 @@ describe("site/set-password route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Password must be at least 8 characters long");
+      expect((result as unknown).error).toBe("Password must be at least 8 characters long");
     });
 
     it("validates passwords match", async () => {
@@ -184,7 +184,7 @@ describe("site/set-password route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Passwords do not match");
+      expect((result as unknown).error).toBe("Passwords do not match");
     });
 
     it("redirects to login on successful password set", async () => {
@@ -237,7 +237,7 @@ describe("site/set-password route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("No password reset token provided");
+      expect((result as unknown).error).toBe("No password reset token provided");
     });
   });
 });

@@ -56,23 +56,11 @@ vi.mock("../../../../lib/db", () => {
   };
 });
 
-import { action, loader } from "../../../../app/routes/tenant/customers/new";
+import { action } from "../../../../app/routes/tenant/customers/new";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createCustomer } from "../../../../lib/db/queries.server";
 
 describe("tenant/customers/new route", () => {
-  const mockTenantContext = {
-    tenant: {
-      id: "tenant-1",
-      subdomain: "demo",
-      schemaName: "tenant_demo",
-      name: "Demo Dive Shop",
-      subscriptionStatus: "active",
-      trialEndsAt: null,
-    },
-    organizationId: "org-uuid-123",
-  };
-
   const mockOrgContext = {
     user: { id: "user-1", name: "Test User", email: "test@example.com" },
     session: { id: "session-1" },

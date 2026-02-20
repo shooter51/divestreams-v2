@@ -4,15 +4,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mock setup
 // ============================================================================
 
-const mockReturning = vi.fn();
-const mockLimit = vi.fn();
-const mockOffset = vi.fn();
-const mockOrderBy = vi.fn();
-const mockWhere = vi.fn();
-const mockLeftJoin = vi.fn();
-const mockGroupBy = vi.fn();
-const mockFrom = vi.fn();
-const mockSet = vi.fn();
+vi.fn();
+vi.fn();
+vi.fn();
+vi.fn();
+vi.fn();
+vi.fn();
+vi.fn();
+vi.fn();
+vi.fn();
 
 // Chain builders
 const buildSelectChain = () => ({
@@ -214,7 +214,7 @@ describe("gallery.server", () => {
       const result = await createGalleryImage("org-1", {
         title: "Test Image",
         imageUrl: "https://example.com/img.jpg",
-      } as any);
+      } as unknown);
       expect(result).toBeDefined();
       expect(result.id).toBe("img-1");
     });
@@ -288,7 +288,7 @@ describe("gallery.server", () => {
       const result = await createGalleryAlbum("org-1", {
         name: "Test Album",
         slug: "test-album",
-      } as any);
+      } as unknown);
       expect(result).toBeDefined();
       expect(result.id).toBe("album-1");
     });

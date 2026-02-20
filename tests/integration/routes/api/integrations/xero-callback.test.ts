@@ -32,7 +32,7 @@ describe("api/integrations/xero/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/xero/callback?error=access_denied"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("error=");
@@ -43,7 +43,7 @@ describe("api/integrations/xero/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/xero/callback?state=test"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("error=");
@@ -53,7 +53,7 @@ describe("api/integrations/xero/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/xero/callback?code=test"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("error=");
@@ -66,7 +66,7 @@ describe("api/integrations/xero/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/xero/callback?code=auth-code&state=valid-state"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("success=");
@@ -80,7 +80,7 @@ describe("api/integrations/xero/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/xero/callback?code=code-xyz&state=state-123"
     );
-    await loader({ request, params: {}, context: {} } as any);
+    await loader({ request, params: {}, context: {} } as unknown);
 
     expect(handleXeroCallback).toHaveBeenCalledWith("code-xyz", "org-abc", "test-org");
   });
@@ -92,7 +92,7 @@ describe("api/integrations/xero/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/xero/callback?code=c&state=s"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("error=");

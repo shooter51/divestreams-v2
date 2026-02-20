@@ -300,7 +300,7 @@ describe("formatters", () => {
     });
 
     it("should handle non-string input by converting to string", () => {
-      expect(formatTime("invalid" as any)).toBeTruthy();
+      expect(formatTime("invalid" as unknown)).toBeTruthy();
     });
 
     it("should handle edge cases", () => {
@@ -369,7 +369,7 @@ describe("formatters", () => {
     });
 
     it("should convert non-date/non-string to string", () => {
-      const result = formatDateString(12345 as any);
+      const result = formatDateString(12345 as unknown);
       expect(result).toBe("12345");
     });
   });
@@ -412,7 +412,7 @@ describe("formatters", () => {
     });
 
     it("should convert non-string to string", () => {
-      const result = formatTimeString(1234 as any);
+      const result = formatTimeString(1234 as unknown);
       expect(result).toBe("1234");
     });
 

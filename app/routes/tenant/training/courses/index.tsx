@@ -72,7 +72,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function CoursesIndexPage() {
   const { courses, agencies, total, search, agencyFilter, statusFilter } =
     useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
 
   // Show notifications from URL params
   useNotification();

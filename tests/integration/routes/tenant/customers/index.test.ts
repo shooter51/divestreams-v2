@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/customers/index";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
@@ -54,9 +53,9 @@ describe("app/routes/tenant/customers/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -66,7 +65,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         usage: { customers: 0 },
         limits: { customers: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {} });
@@ -81,7 +80,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
     });
 
     it("should filter customers by search query", async () => {
-      const mockCustomers: any[] = [];
+      const mockCustomers: unknown[] = [];
       const mockCount = [{ value: 0 }];
 
       const mockSelectBuilder = {
@@ -101,9 +100,9 @@ describe("app/routes/tenant/customers/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -113,7 +112,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         usage: { customers: 0 },
         limits: { customers: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/customers?search=john");
       const result = await loader({ request, params: {}, context: {} });
@@ -123,7 +122,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
     });
 
     it("should handle pagination correctly", async () => {
-      const mockCustomers: any[] = [];
+      const mockCustomers: unknown[] = [];
       const mockCount = [{ value: 50 }];
 
       const mockSelectBuilder = {
@@ -143,9 +142,9 @@ describe("app/routes/tenant/customers/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -155,7 +154,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         usage: { customers: 0 },
         limits: { customers: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/customers?page=2");
       const result = await loader({ request, params: {}, context: {} });
@@ -167,7 +166,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
 
 
     it("should handle freemium limits", async () => {
-      const mockCustomers: any[] = [];
+      const mockCustomers: unknown[] = [];
       const mockCount = [{ value: 0 }];
       const mockMonthlyCount = [{ value: 95 }];
 
@@ -193,11 +192,11 @@ describe("app/routes/tenant/customers/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else if (selectCallCount === 2) {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         } else {
-          return mockMonthlyCountBuilder as any;
+          return mockMonthlyCountBuilder as unknown;
         }
       });
 
@@ -207,7 +206,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         usage: { customers: 95 },
         limits: { customers: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {} });
@@ -252,9 +251,9 @@ describe("app/routes/tenant/customers/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -264,7 +263,7 @@ describe("app/routes/tenant/customers/index.tsx", () => {
         usage: { customers: 0 },
         limits: { customers: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/customers");
       const result = await loader({ request, params: {}, context: {} });

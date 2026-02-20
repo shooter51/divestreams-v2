@@ -80,10 +80,10 @@ describe("Gallery Album Cover Image", () => {
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
-      } as any);
+      } as unknown);
 
       vi.mocked(isValidImageType).mockReturnValue(true);
-      vi.mocked(getS3Client).mockReturnValue({} as any);
+      vi.mocked(getS3Client).mockReturnValue({} as unknown);
       vi.mocked(processImage).mockResolvedValue({
         original: Buffer.from("processed-image"),
         thumbnail: Buffer.from("thumbnail"),
@@ -130,7 +130,7 @@ describe("Gallery Album Cover Image", () => {
         request,
         params: {},
         context: {},
-      } as any);
+      } as unknown);
 
       // Should redirect on success
       expect(response).toBeInstanceOf(Response);
@@ -169,7 +169,7 @@ describe("Gallery Album Cover Image", () => {
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
-      } as any);
+      } as unknown);
 
       vi.mocked(createGalleryAlbum).mockResolvedValue({
         id: "album-2",
@@ -201,7 +201,7 @@ describe("Gallery Album Cover Image", () => {
         request,
         params: {},
         context: {},
-      } as any);
+      } as unknown);
 
       expect(response).toBeInstanceOf(Response);
       expect((response as Response).status).toBe(302);
@@ -227,7 +227,7 @@ describe("Gallery Album Cover Image", () => {
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
-      } as any);
+      } as unknown);
 
       vi.mocked(isValidImageType).mockReturnValue(false);
 
@@ -250,11 +250,11 @@ describe("Gallery Album Cover Image", () => {
         request,
         params: {},
         context: {},
-      } as any);
+      } as unknown);
 
       // Should return errors, not redirect
       expect(result).toHaveProperty("errors");
-      expect((result as any).errors.coverImage).toContain("Invalid image type");
+      expect((result as unknown).errors.coverImage).toContain("Invalid image type");
     });
 
     it("should reject oversized cover image", async () => {
@@ -268,7 +268,7 @@ describe("Gallery Album Cover Image", () => {
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
-      } as any);
+      } as unknown);
 
       vi.mocked(isValidImageType).mockReturnValue(true);
 
@@ -296,10 +296,10 @@ describe("Gallery Album Cover Image", () => {
         request,
         params: {},
         context: {},
-      } as any);
+      } as unknown);
 
       expect(result).toHaveProperty("errors");
-      expect((result as any).errors.coverImage).toContain("under 10MB");
+      expect((result as unknown).errors.coverImage).toContain("under 10MB");
     });
 
     it("should return error when storage is not configured", async () => {
@@ -313,7 +313,7 @@ describe("Gallery Album Cover Image", () => {
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
-      } as any);
+      } as unknown);
 
       vi.mocked(isValidImageType).mockReturnValue(true);
       vi.mocked(getS3Client).mockReturnValue(null);
@@ -337,10 +337,10 @@ describe("Gallery Album Cover Image", () => {
         request,
         params: {},
         context: {},
-      } as any);
+      } as unknown);
 
       expect(result).toHaveProperty("errors");
-      expect((result as any).errors.coverImage).toContain("not configured");
+      expect((result as unknown).errors.coverImage).toContain("not configured");
     });
   });
 
@@ -349,18 +349,17 @@ describe("Gallery Album Cover Image", () => {
       const { requireOrgContext } = await import(
         "../../../../../../lib/auth/org-context.server"
       );
-      const { getGalleryAlbum, updateGalleryAlbum, getAllGalleryImages } =
-        await import("../../../../../../lib/db/gallery.server");
+      const { updateGalleryAlbum } = await import("../../../../../../lib/db/gallery.server");
       const { uploadToB2, processImage, isValidImageType, getS3Client } =
         await import("../../../../../../lib/storage");
 
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
-      } as any);
+      } as unknown);
 
       vi.mocked(isValidImageType).mockReturnValue(true);
-      vi.mocked(getS3Client).mockReturnValue({} as any);
+      vi.mocked(getS3Client).mockReturnValue({} as unknown);
       vi.mocked(processImage).mockResolvedValue({
         original: Buffer.from("new-processed"),
         thumbnail: Buffer.from("new-thumb"),
@@ -412,7 +411,7 @@ describe("Gallery Album Cover Image", () => {
         request,
         params: { id: "album-1" },
         context: {},
-      } as any);
+      } as unknown);
 
       expect(result).toEqual({ updated: true });
 
@@ -438,7 +437,7 @@ describe("Gallery Album Cover Image", () => {
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
-      } as any);
+      } as unknown);
 
       vi.mocked(updateGalleryAlbum).mockResolvedValue({
         id: "album-1",
@@ -471,7 +470,7 @@ describe("Gallery Album Cover Image", () => {
         request,
         params: { id: "album-1" },
         context: {},
-      } as any);
+      } as unknown);
 
       expect(result).toEqual({ updated: true });
 
@@ -495,7 +494,7 @@ describe("Gallery Album Cover Image", () => {
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: "org-1", slug: "test-shop" },
         user: { id: "user-1" },
-      } as any);
+      } as unknown);
 
       vi.mocked(updateGalleryAlbum).mockResolvedValue({
         id: "album-1",
@@ -527,7 +526,7 @@ describe("Gallery Album Cover Image", () => {
         request,
         params: { id: "album-1" },
         context: {},
-      } as any);
+      } as unknown);
 
       expect(result).toEqual({ updated: true });
 

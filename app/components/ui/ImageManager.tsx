@@ -5,7 +5,6 @@
  */
 
 import { useState, useCallback, useRef } from "react";
-import { useFetcher } from "react-router";
 import { Button } from "./Button";
 
 export interface Image {
@@ -40,10 +39,6 @@ export function ImageManager({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const uploadFetcher = useFetcher();
-  const deleteFetcher = useFetcher();
-  const reorderFetcher = useFetcher();
 
   const handleUpload = useCallback(async (file: File) => {
     if (images.length >= maxImages) {

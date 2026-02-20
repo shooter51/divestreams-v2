@@ -78,14 +78,14 @@ describe("tenant/training/courses/new route", () => {
   describe("loader", () => {
     it("requires organization context", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses/new");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns agencies and levels", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses/new");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.agencies).toEqual(mockAgencies);
       expect(result.levels).toEqual(mockLevels);
@@ -98,7 +98,7 @@ describe("tenant/training/courses/new route", () => {
       (getLevels as Mock).mockResolvedValue([]);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/courses/new");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.agencies).toEqual([]);
       expect(result.levels).toEqual([]);
@@ -115,7 +115,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -129,7 +129,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.name).toBe("Course name is required");
       expect(createCourse).not.toHaveBeenCalled();
@@ -144,7 +144,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.name).toBe("Course name is required");
       expect(createCourse).not.toHaveBeenCalled();
@@ -159,7 +159,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.price).toBe("Valid price is required");
       expect(createCourse).not.toHaveBeenCalled();
@@ -174,7 +174,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.price).toBe("Valid price is required");
       expect(createCourse).not.toHaveBeenCalled();
@@ -189,7 +189,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.price).toBe("Price cannot be negative");
       expect(createCourse).not.toHaveBeenCalled();
@@ -204,7 +204,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       // Should not return errors - should redirect
       expect(result).toBeInstanceOf(Response);
@@ -220,7 +220,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.name).toBeDefined();
       expect(result.errors.price).toBeDefined();
@@ -238,7 +238,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.values).toBeDefined();
       expect(result.values.price).toBe("100");
@@ -269,7 +269,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(createCourse).toHaveBeenCalledWith({
         organizationId: "org-uuid",
@@ -305,7 +305,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(createCourse).toHaveBeenCalledWith(
         expect.objectContaining({ name: "Open Water Diver" })
@@ -321,7 +321,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(createCourse).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -355,7 +355,7 @@ describe("tenant/training/courses/new route", () => {
         body: formData,
       });
 
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(redirect).toHaveBeenCalledWith(
         expect.stringContaining("Rescue%20Diver")

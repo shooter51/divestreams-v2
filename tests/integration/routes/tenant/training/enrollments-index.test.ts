@@ -44,7 +44,7 @@ describe("tenant/training/enrollments/index route", () => {
   describe("loader", () => {
     it("requires organization context", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -73,7 +73,7 @@ describe("tenant/training/enrollments/index route", () => {
       (getEnrollments as Mock).mockResolvedValue(mockEnrollments);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.enrollments).toHaveLength(1);
       expect(result.enrollments[0]).toMatchObject({
@@ -106,7 +106,7 @@ describe("tenant/training/enrollments/index route", () => {
       (getSessions as Mock).mockResolvedValue(mockSessions);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.sessions).toEqual(mockSessions);
       expect(getSessions).toHaveBeenCalledWith("org-uuid");
@@ -114,7 +114,7 @@ describe("tenant/training/enrollments/index route", () => {
 
     it("filters by status query param", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments?status=completed");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(getEnrollments).toHaveBeenCalledWith("org-uuid", {
         status: "completed",
@@ -125,7 +125,7 @@ describe("tenant/training/enrollments/index route", () => {
 
     it("filters by sessionId query param", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments?sessionId=session-1");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(getEnrollments).toHaveBeenCalledWith("org-uuid", {
         status: undefined,
@@ -136,7 +136,7 @@ describe("tenant/training/enrollments/index route", () => {
 
     it("passes both filters when both are provided", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments?status=enrolled&sessionId=session-1");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(getEnrollments).toHaveBeenCalledWith("org-uuid", {
         status: "enrolled",
@@ -155,7 +155,7 @@ describe("tenant/training/enrollments/index route", () => {
       (getEnrollments as Mock).mockResolvedValue(mockEnrollments);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.stats).toEqual({
         enrolled: 2,
@@ -168,7 +168,7 @@ describe("tenant/training/enrollments/index route", () => {
 
     it("returns zero stats when no enrollments", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.stats).toEqual({
         enrolled: 0,
@@ -202,7 +202,7 @@ describe("tenant/training/enrollments/index route", () => {
       (getEnrollments as Mock).mockResolvedValue(mockEnrollments);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.enrollments[0]).toMatchObject({
         student: {

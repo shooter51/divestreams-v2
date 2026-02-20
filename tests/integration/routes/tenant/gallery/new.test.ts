@@ -19,7 +19,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("action", () => {
@@ -30,7 +30,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
         slug: "great-barrier-reef-2024",
       };
 
-      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as any);
+      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as unknown);
 
       const formData = new FormData();
       formData.append("name", "Great Barrier Reef 2024");
@@ -81,7 +81,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
 
     it("should auto-generate slug from name if not provided", async () => {
       const mockAlbum = { id: "album-123", slug: "coral-sea-adventure" };
-      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as any);
+      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as unknown);
 
       const formData = new FormData();
       formData.append("name", "Coral Sea Adventure");
@@ -104,7 +104,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
 
     it("should handle optional fields correctly", async () => {
       const mockAlbum = { id: "album-123", slug: "simple-album" };
-      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as any);
+      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as unknown);
 
       const formData = new FormData();
       formData.append("name", "Simple Album");
@@ -130,7 +130,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
 
     it("should sanitize slug from name", async () => {
       const mockAlbum = { id: "album-123", slug: "amazing-dive-trip-2024" };
-      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as any);
+      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as unknown);
 
       const formData = new FormData();
       formData.append("name", "Amazing Dive Trip! 2024");
@@ -152,7 +152,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
 
     it("should handle custom slug", async () => {
       const mockAlbum = { id: "album-123", slug: "custom-slug-here" };
-      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as any);
+      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as unknown);
 
       const formData = new FormData();
       formData.append("name", "Album Name");
@@ -175,7 +175,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
 
     it("should parse sortOrder as number", async () => {
       const mockAlbum = { id: "album-123", slug: "sorted-album" };
-      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as any);
+      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as unknown);
 
       const formData = new FormData();
       formData.append("name", "Sorted Album");
@@ -198,7 +198,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
 
     it("should handle isPublic checkbox", async () => {
       const mockAlbum = { id: "album-123", slug: "public-album" };
-      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as any);
+      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as unknown);
 
       const formData = new FormData();
       formData.append("name", "Public Album");
@@ -221,7 +221,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
 
     it("should handle empty description as null", async () => {
       const mockAlbum = { id: "album-123", slug: "no-description" };
-      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as any);
+      vi.mocked(gallery.createGalleryAlbum).mockResolvedValue(mockAlbum as unknown);
 
       const formData = new FormData();
       formData.append("name", "No Description");

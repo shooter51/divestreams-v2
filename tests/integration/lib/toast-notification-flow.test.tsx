@@ -8,10 +8,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, act, fireEvent } from "@testing-library/react";
+import { render, screen, act, fireEvent } from "@testing-library/react";
 import { ToastProvider, useToast } from "../../../lib/toast-context";
 import { redirectWithNotification } from "../../../lib/use-notification";
-import type { ReactNode } from "react";
 
 describe("Toast Notification Component Integration", () => {
   beforeEach(() => {

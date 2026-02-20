@@ -36,7 +36,7 @@ describe("KAN-669: File upload error specifies which file is too large", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireOrgContext).mockResolvedValue(mockOrgContext as any);
+    vi.mocked(requireOrgContext).mockResolvedValue(mockOrgContext as unknown);
     vi.mocked(storage.isValidImageType).mockReturnValue(true);
   });
 
@@ -48,7 +48,7 @@ describe("KAN-669: File upload error specifies which file is too large", () => {
   }
 
   function callAction(request: Request) {
-    return action({ request, params: {}, context: {} } as any);
+    return action({ request, params: {}, context: {} } as unknown);
   }
 
   describe("file size validation error messages", () => {
@@ -206,7 +206,7 @@ describe("KAN-669: File upload error specifies which file is too large", () => {
           insert: vi.fn().mockReturnValue(mockInsertBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       vi.mocked(storage.processImage).mockResolvedValue({
         original: Buffer.from("processed"),
@@ -277,7 +277,7 @@ describe("KAN-669: File upload error specifies which file is too large", () => {
           insert: vi.fn().mockReturnValue(mockInsertBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       vi.mocked(storage.processImage).mockResolvedValue({
         original: Buffer.from("processed"),

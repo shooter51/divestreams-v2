@@ -4,9 +4,9 @@ import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
 import { subscriptionPlans } from "../../../lib/db/schema";
-import { eq, ilike, or, desc, sql, count, ne } from "drizzle-orm";
+import { eq, ilike, desc, sql, count, ne } from "drizzle-orm";
 import { requirePlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
-import { getTenantUrl, getBaseDomain } from "../../../lib/utils/url";
+import { getTenantUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Organizations - DiveStreams Admin" }];
 

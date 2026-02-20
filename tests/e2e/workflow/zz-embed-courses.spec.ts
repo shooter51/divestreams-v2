@@ -1,5 +1,4 @@
 import { test, expect } from "../fixtures/subdomain-page";
-import type { Page } from "@playwright/test";
 
 /**
  * Embed Courses Widget E2E Tests - DiveStreams

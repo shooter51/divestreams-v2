@@ -471,7 +471,7 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
 
   // Update subscription with plan reference
   try {
-    const result = await db
+    await db
       .update(subscription)
       .set({
         stripeSubscriptionId: stripeSubscription.id,

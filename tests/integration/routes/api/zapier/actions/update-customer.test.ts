@@ -33,7 +33,7 @@ describe("api/zapier/actions/update-customer route", () => {
       const request = new Request("https://divestreams.com/api/zapier/actions/update-customer", {
         method: "GET",
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(405);
 
@@ -46,7 +46,7 @@ describe("api/zapier/actions/update-customer route", () => {
         method: "POST",
         body: JSON.stringify({ email: "test@example.com" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -62,7 +62,7 @@ describe("api/zapier/actions/update-customer route", () => {
         headers: { "x-api-key": "invalid-key" },
         body: JSON.stringify({ email: "test@example.com" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -78,7 +78,7 @@ describe("api/zapier/actions/update-customer route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({ first_name: "John" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(400);
 
@@ -102,7 +102,7 @@ describe("api/zapier/actions/update-customer route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({ email: "nonexistent@example.com" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(404);
 
@@ -152,7 +152,7 @@ describe("api/zapier/actions/update-customer route", () => {
           phone: "+1234567890",
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(200);
 
@@ -203,7 +203,7 @@ describe("api/zapier/actions/update-customer route", () => {
           emergency_phone: "+0987654321",
         }),
       });
-      await action({ request, params: {}, context: {} } as any);
+      await action({ request, params: {}, context: {} } as unknown);
 
       expect(updateSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -251,7 +251,7 @@ describe("api/zapier/actions/update-customer route", () => {
           certification_level: "Advanced Open Water",
         }),
       });
-      await action({ request, params: {}, context: {} } as any);
+      await action({ request, params: {}, context: {} } as unknown);
 
       expect(updateSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -301,7 +301,7 @@ describe("api/zapier/actions/update-customer route", () => {
           notes: "VIP customer - prefers morning dives",
         }),
       });
-      await action({ request, params: {}, context: {} } as any);
+      await action({ request, params: {}, context: {} } as unknown);
 
       expect(updateSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -350,7 +350,7 @@ describe("api/zapier/actions/update-customer route", () => {
           phone: "+1111111111",
         }),
       });
-      await action({ request, params: {}, context: {} } as any);
+      await action({ request, params: {}, context: {} } as unknown);
 
       const updateCall = updateSpy.mock.calls[0][0];
       expect(updateCall.phone).toBe("+1111111111");
@@ -374,7 +374,7 @@ describe("api/zapier/actions/update-customer route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({ email: "test@example.com", first_name: "Test" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(500);
 

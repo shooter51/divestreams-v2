@@ -10,12 +10,11 @@
  * Verification: Trigger CI/CD for staging baseline test validation
  */
 
-import { useState } from "react";
 import { Link, useLoaderData, useSearchParams } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { db } from "../../../../lib/db";
 import { bookings, trips, tours } from "../../../../lib/db/schema";
-import { eq, and, gte, lt, desc, sql } from "drizzle-orm";
+import { eq, and, gte, desc, sql } from "drizzle-orm";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui/Badge";
 
@@ -240,7 +239,6 @@ export default function AccountBookings() {
 // ============================================================================
 
 function BookingCard({ booking }: { booking: BookingItem }) {
-  const isUpcoming = new Date(booking.trip.date) >= new Date(new Date().toISOString().split("T")[0]);
   const isCancelled = booking.status === "canceled" || booking.status === "no_show";
 
   return (

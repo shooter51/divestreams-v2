@@ -18,7 +18,7 @@ const testUser = {
 };
 
 // Helper to select a supported agency (PADI, SSI, or NAUI have course templates)
-async function selectSupportedAgency(page: any) {
+async function selectSupportedAgency(page: import("@playwright/test").Page) {
   const agencyDropdown = page.locator('#agencySelect');
   // Try to select PADI first (most common), fall back to SSI, then NAUI
   const options = await agencyDropdown.locator('option').allTextContents();
@@ -40,7 +40,7 @@ async function selectSupportedAgency(page: any) {
 }
 
 // Helper function to login
-async function loginToTenant(page: any) {
+async function loginToTenant(page: import("@playwright/test").Page) {
   await page.goto(getTenantUrl("/auth/login"));
   await page.fill('input[name="email"]', testUser.email);
   await page.fill('input[name="password"]', testUser.password);
@@ -151,7 +151,7 @@ test.describe("Training Import Wizard", () => {
     // HTML5 validation should prevent submission
     const agencyDropdown = page.locator('#agencySelect');
     await expect(agencyDropdown).toBeVisible({ timeout: 5000 });
-    const isInvalid = await agencyDropdown.evaluate((el: any) => !el.validity.valid);
+    const isInvalid = await agencyDropdown.evaluate((el: HTMLSelectElement) => !el.validity.valid);
     expect(isInvalid).toBeTruthy();
   });
 

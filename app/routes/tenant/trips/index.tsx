@@ -3,7 +3,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { trips as tripsTable, tours, boats, bookings } from "../../../../lib/db/schema";
-import { eq, and, gte, or, sql, lt } from "drizzle-orm";
+import { eq, and, gte, sql, lt } from "drizzle-orm";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";
 
@@ -71,7 +71,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Filter by view and transform
   const trips = rawTrips
     .filter((t) => {
-      const bookedParticipants = bookingCountMap.get(t.id) || 0;
       if (view === "upcoming" && (t.status === "completed" || t.status === "cancelled")) return false;
       if (view === "past" && t.status !== "completed" && t.status !== "cancelled") return false;
       return true;
@@ -127,7 +126,7 @@ function mapTripStatus(status: string): BadgeStatus {
 export default function TripsPage() {
   useNotification();
 
-  const { trips, tripsByDate, total, view, tourId } = useLoaderData<typeof loader>();
+  const { trips, tripsByDate, total, view } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const setView = (newView: string) => {

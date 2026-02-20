@@ -27,10 +27,6 @@ vi.mock("../../../../lib/auth/auth.server", () => ({
   },
 }));
 
-import { db } from "../../../../lib/db/index";
-
-type MockFn = ReturnType<typeof vi.fn>;
-
 describe("createTenant free plan handling (KAN-592)", () => {
   beforeEach(() => {
     vi.clearAllMocks();

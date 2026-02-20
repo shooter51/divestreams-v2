@@ -1,8 +1,7 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "react-router";
 import { Form, Link, useActionData, useNavigation, redirect } from "react-router";
-import { useState } from "react";
+
 import { auth } from "../../../lib/auth";
-import { getSubdomainFromRequest } from "../../../lib/auth/org-context.server";
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,7 +33,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     // Get the subdomain to construct the redirect URL
-    const subdomain = getSubdomainFromRequest(request);
     const url = new URL(request.url);
     const baseUrl = `${url.protocol}//${url.host}`;
     const redirectTo = `${baseUrl}/auth/reset-password`;
@@ -60,8 +58,6 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function ForgotPasswordPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const [emailSent, setEmailSent] = useState(false);
-
   const isSubmitting = navigation.state === "submitting";
 
   // Show success state after form submission

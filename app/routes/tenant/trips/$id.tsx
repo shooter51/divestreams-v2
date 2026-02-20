@@ -11,7 +11,7 @@ import {
 } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
 import { customerCommunications, trips } from "../../../../lib/db/schema";
-import { eq, and, or } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import {
   getRecurringSeriesInstances,
   cancelRecurringSeries,

@@ -29,7 +29,7 @@ vi.mock("@tiptap/react", () => ({
     isActive: () => false,
     getHTML: () => "<p></p>",
   }),
-  EditorContent: ({ editor }: any) => (
+  EditorContent: () => (
     <div data-testid="editor-content" />
   ),
 }));

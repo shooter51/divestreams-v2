@@ -21,14 +21,14 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("action", () => {
     it("should create equipment and redirect", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       vi.mocked(queries.createEquipment).mockResolvedValue({
@@ -36,7 +36,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
         name: "BCD Pro",
         category: "bcd",
         organizationId: mockOrganizationId,
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("name", "BCD Pro");
@@ -140,7 +140,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
     it("should handle optional fields correctly", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       vi.mocked(queries.createEquipment).mockResolvedValue(undefined);
@@ -174,7 +174,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
     it("should parse numeric rentalPrice correctly", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       vi.mocked(queries.createEquipment).mockResolvedValue(undefined);
@@ -259,7 +259,7 @@ describe("app/routes/tenant/equipment/new.tsx", () => {
     it("should handle size field", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       vi.mocked(queries.createEquipment).mockResolvedValue(undefined);

@@ -12,7 +12,7 @@ const mockIORedisInstance = {
 };
 
 // Create a mock class that can be used with `new`
-const MockIORedisClass = vi.fn().mockImplementation(function (this: any) {
+const MockIORedisClass = vi.fn().mockImplementation(function (this: Record<string, unknown>) {
   Object.assign(this, mockIORedisInstance);
   return this;
 });

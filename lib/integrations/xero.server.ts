@@ -691,7 +691,8 @@ export async function getXeroInvoices(
  */
 export async function getXeroContacts(
   orgId: string,
-  options?: { modifiedAfter?: Date }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _options?: { modifiedAfter?: Date }
 ): Promise<XeroContact[] | null> {
   const auth = await getValidAccessToken(orgId);
   if (!auth) return null;

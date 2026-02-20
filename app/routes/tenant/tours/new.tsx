@@ -104,9 +104,10 @@ export async function action({ request }: ActionFunctionArgs) {
       minCertLevel: (formData.get("minCertLevel") as string) || undefined,
       minAge: formData.get("minAge") ? Number(formData.get("minAge")) : undefined,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle unique constraint violation
-    if (error?.code === "23505" || error?.message?.includes("duplicate") || error?.message?.includes("unique")) {
+    const err = error as { code?: string; message?: string };
+    if (err?.code === "23505" || err?.message?.includes("duplicate") || err?.message?.includes("unique")) {
       return {
         errors: { name: "A tour with this name already exists" },
         values: getFormValues(formData)

@@ -5,7 +5,7 @@
  * All functions accept an organizationId and filter data accordingly.
  */
 
-import { desc, eq, asc, count, and, sql, gte, lte, ilike, or } from "drizzle-orm";
+import { desc, eq, asc, count, and, sql, gte, lte } from "drizzle-orm";
 import { db } from "./index";
 import * as schema from "./schema";
 
@@ -192,7 +192,8 @@ export async function deleteLevel(organizationId: string, levelId: string) {
 
 export async function getCourses(
   organizationId: string,
-  options?: {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _options?: {
     search?: string;
     agencyId?: string;
     levelId?: string;

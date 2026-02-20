@@ -121,7 +121,7 @@ export async function updateProduct(organizationId: string, id: string, data: {
     throw new Error("Stock quantity cannot be negative");
   }
 
-  const updateData: any = { updatedAt: new Date() };
+  const updateData: Record<string, unknown> = { updatedAt: new Date() };
   if (data.name !== undefined) updateData.name = data.name;
   if (data.sku !== undefined) updateData.sku = data.sku;
   if (data.category !== undefined) updateData.category = data.category;

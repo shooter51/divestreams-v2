@@ -68,7 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
     await auth.api.requestPasswordReset({
       body: { email, redirectTo: "/auth/reset-password" },
     });
-  } catch (error) {
+  } catch {
     // Don't reveal if email exists - always show success
   }
 

@@ -102,14 +102,14 @@ describe("tenant/training/courses/index route", () => {
   describe("loader", () => {
     it("requires organization context", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns courses list and agencies", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(3);
       expect(result.agencies).toEqual(mockAgencies);
@@ -120,16 +120,16 @@ describe("tenant/training/courses/index route", () => {
 
     it("filters courses by search term matching name", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses?search=open+water");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(2);
-      expect(result.courses.map((c: any) => c.id)).toEqual(["course-1", "course-2"]);
+      expect(result.courses.map((c: Record<string, unknown>) => c.id)).toEqual(["course-1", "course-2"]);
       expect(result.search).toBe("open water");
     });
 
     it("filters courses by search term matching code", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses?search=DM");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(1);
       expect(result.courses[0].id).toBe("course-3");
@@ -137,7 +137,7 @@ describe("tenant/training/courses/index route", () => {
 
     it("filters courses by search term matching description", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses?search=professional");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(1);
       expect(result.courses[0].id).toBe("course-3");
@@ -145,7 +145,7 @@ describe("tenant/training/courses/index route", () => {
 
     it("filters courses by agency", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses?agency=agency-2");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(1);
       expect(result.courses[0].id).toBe("course-3");
@@ -154,16 +154,16 @@ describe("tenant/training/courses/index route", () => {
 
     it("filters courses by active status", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses?status=active");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(2);
-      expect(result.courses.every((c: any) => c.isActive)).toBe(true);
+      expect(result.courses.every((c: Record<string, unknown>) => c.isActive)).toBe(true);
       expect(result.statusFilter).toBe("active");
     });
 
     it("filters courses by inactive status", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses?status=inactive");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(1);
       expect(result.courses[0].isActive).toBe(false);
@@ -172,10 +172,10 @@ describe("tenant/training/courses/index route", () => {
 
     it("combines multiple filters", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses?search=open&agency=agency-1&status=active");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toHaveLength(2);
-      expect(result.courses.map((c: any) => c.id)).toEqual(["course-1", "course-2"]);
+      expect(result.courses.map((c: Record<string, unknown>) => c.id)).toEqual(["course-1", "course-2"]);
     });
 
     it("transforms courses with default values for missing fields", async () => {
@@ -200,7 +200,7 @@ describe("tenant/training/courses/index route", () => {
       (getCourses as Mock).mockResolvedValue(coursesWithNulls);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/courses");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses[0]).toMatchObject({
         id: "course-4",
@@ -221,7 +221,7 @@ describe("tenant/training/courses/index route", () => {
 
     it("transforms courses with first image as imageUrl", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses[0].imageUrl).toBe("https://example.com/owd.jpg");
       expect(result.courses[1].imageUrl).toBeNull();
@@ -230,7 +230,7 @@ describe("tenant/training/courses/index route", () => {
 
     it("formats price as two decimal places", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses[0].price).toBe("399.00");
       expect(result.courses[1].price).toBe("299.50");
@@ -239,7 +239,7 @@ describe("tenant/training/courses/index route", () => {
 
     it("returns empty courses when none match filters", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses?search=nonexistent");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toEqual([]);
       expect(result.total).toBe(0);
@@ -247,7 +247,7 @@ describe("tenant/training/courses/index route", () => {
 
     it("returns empty search params when not provided", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.search).toBe("");
       expect(result.agencyFilter).toBe("");

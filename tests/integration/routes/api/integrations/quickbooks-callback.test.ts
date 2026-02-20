@@ -32,7 +32,7 @@ describe("api/integrations/quickbooks/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/quickbooks/callback?error=access_denied"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("error=");
@@ -43,7 +43,7 @@ describe("api/integrations/quickbooks/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/quickbooks/callback?state=test&realmId=123"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("error=");
@@ -53,7 +53,7 @@ describe("api/integrations/quickbooks/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/quickbooks/callback?code=test&realmId=123"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("error=");
@@ -63,7 +63,7 @@ describe("api/integrations/quickbooks/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/quickbooks/callback?code=test&state=test"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("error=");
@@ -76,7 +76,7 @@ describe("api/integrations/quickbooks/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/quickbooks/callback?code=auth&state=valid&realmId=realm123"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("success=");
@@ -90,7 +90,7 @@ describe("api/integrations/quickbooks/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/quickbooks/callback?code=code123&state=state456&realmId=realm789"
     );
-    await loader({ request, params: {}, context: {} } as any);
+    await loader({ request, params: {}, context: {} } as unknown);
 
     expect(handleQuickBooksCallback).toHaveBeenCalledWith(
       "code123",
@@ -107,7 +107,7 @@ describe("api/integrations/quickbooks/callback route", () => {
     const request = new Request(
       "https://test-org.divestreams.com/api/integrations/quickbooks/callback?code=c&state=s&realmId=r"
     );
-    const response = await loader({ request, params: {}, context: {} } as any);
+    const response = await loader({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toContain("error=");

@@ -52,7 +52,6 @@ test.describe('KAN-630: Album Image Upload', () => {
     // Find an existing album or create one
     const albumExists = await page.locator('a[href*="/tenant/gallery/"]:not([href$="/new"])').count() > 0;
 
-    let albumId: string;
     if (!albumExists) {
       // Create a test album if none exists
       await albumPage.goto('/gallery');
@@ -62,12 +61,12 @@ test.describe('KAN-630: Album Image Upload', () => {
       await page.fill('input[name="description"]', 'Test album description');
       await page.click('button[type="submit"]');
       await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
-      albumId = page.url().split('/').pop() || '';
+      // albumId available from URL if needed
     } else {
       // Click first album
       await page.locator('a[href*="/tenant/gallery/"]:not([href$="/new"])').first().click();
       await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
-      albumId = page.url().split('/').pop() || '';
+      // albumId available from URL if needed
     }
 
     // Now on album detail page

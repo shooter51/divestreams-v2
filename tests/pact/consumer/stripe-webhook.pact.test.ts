@@ -9,7 +9,7 @@ import { describe, it, expect } from "vitest";
 import { PactV3, MatchersV3 } from "@pact-foundation/pact";
 import path from "path";
 
-const { like, eachLike, iso8601DateTime } = MatchersV3;
+const { like, eachLike } = MatchersV3;
 
 const provider = new PactV3({
   consumer: "Stripe",

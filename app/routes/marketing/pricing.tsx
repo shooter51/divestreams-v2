@@ -2,7 +2,7 @@ import type { MetaFunction } from "react-router";
 import { useLoaderData } from "react-router";
 import { useState } from "react";
 import { db } from "../../../lib/db";
-import { subscriptionPlans, type SubscriptionPlan } from "../../../lib/db/schema";
+import { subscriptionPlans } from "../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export const meta: MetaFunction = () => {

@@ -42,7 +42,7 @@ vi.mock("../../../../lib/auth/session-management.server", () => ({
 }));
 
 describe("Admin Password Reset Module", () => {
-  let db: any;
+  let db: Record<string, unknown>;
 
   // Helper to setup database mocks for a successful password reset
   const setupSuccessfulMocks = () => {

@@ -70,7 +70,7 @@ describe("tenant/settings/public-site.general route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
       expect(updatePublicSiteSettings).toHaveBeenCalledWith("org-uuid", {
@@ -98,7 +98,7 @@ describe("tenant/settings/public-site.general route", () => {
         method: "POST",
         body: formData,
       });
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       // customDomain changed from null to "www.mydiveshop.com", so db.update should be called
       expect(db.update).toHaveBeenCalled();
@@ -114,7 +114,7 @@ describe("tenant/settings/public-site.general route", () => {
         method: "POST",
         body: formData,
       });
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       // customDomain is null in both org context and form, so db.update should NOT be called
       expect(db.update).not.toHaveBeenCalled();
@@ -128,7 +128,7 @@ describe("tenant/settings/public-site.general route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toBeNull();
     });
@@ -142,7 +142,7 @@ describe("tenant/settings/public-site.general route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(updatePublicSiteSettings).toHaveBeenCalledWith("org-uuid", {
         enabled: false,

@@ -63,7 +63,7 @@ const categoryColors: Record<string, string> = {
 
 export default function ProductsPage() {
   const { products, categories } = useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const currentCategory = searchParams.get("category") || "";
   const currentSearch = searchParams.get("search") || "";

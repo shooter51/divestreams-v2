@@ -43,7 +43,7 @@ describe("tenant/settings/public-site route", () => {
       (getPublicSiteSettings as Mock).mockResolvedValue(null);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -52,7 +52,7 @@ describe("tenant/settings/public-site route", () => {
       (getPublicSiteSettings as Mock).mockResolvedValue(null);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.settings.enabled).toBe(false);
       expect(result.settings.theme).toBe("ocean");
@@ -87,7 +87,7 @@ describe("tenant/settings/public-site route", () => {
       (getPublicSiteSettings as Mock).mockResolvedValue(mockSettings);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.settings).toEqual(mockSettings);
     });
@@ -96,7 +96,7 @@ describe("tenant/settings/public-site route", () => {
       (getPublicSiteSettings as Mock).mockResolvedValue(null);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.orgSlug).toBe("demo");
       expect(result.baseDomain).toBe("divestreams.com");
@@ -114,7 +114,7 @@ describe("tenant/settings/public-site route", () => {
       (getPublicSiteSettings as Mock).mockResolvedValue(null);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.customDomain).toBe("www.example.com");
     });

@@ -141,8 +141,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       const siteName = site?.name || "Dive site";
       await deleteDiveSite(organizationId, siteId);
       return redirect(redirectWithNotification("/tenant/dive-sites", `${siteName} has been successfully deleted`, "success"));
-    } catch (error: any) {
-      return { deleteError: error.message || "Failed to delete dive site" };
+    } catch (error: unknown) {
+      return { deleteError: error instanceof Error ? error.message : "Failed to delete dive site" };
     }
   }
 

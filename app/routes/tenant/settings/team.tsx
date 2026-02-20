@@ -2,7 +2,8 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import type { ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
 import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { useState, useEffect } from "react";
-import { PremiumGate } from "../../../components/ui/UpgradePrompt";
+
+
 import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
 import { CsrfInput } from "../../../components/CsrfInput";
 
@@ -419,7 +420,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TeamPage() {
-  const { team, pendingInvites, roles, planLimit, limitRemaining, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
+  const { team, pendingInvites, roles, planLimit, limitRemaining, canInviteTeamMembers } = useLoaderData<typeof loader>();
   const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const csrfToken = layoutData?.csrfToken;
   const fetcher = useFetcher();

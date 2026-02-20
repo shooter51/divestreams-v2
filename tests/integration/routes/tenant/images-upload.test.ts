@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
-import { getRedirectPathname } from "../../../helpers/redirect";
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({

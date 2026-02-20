@@ -4,7 +4,7 @@
  * Additional tests for org-context.server functions not covered in tenant-auth.test.ts
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   isAdminSubdomain,
   getSubdomainFromRequest,
@@ -25,10 +25,10 @@ describe("org-context.server - extended tests", () => {
   // Helper to create mock context
   function createMockContext(overrides: Partial<OrgContext> = {}): OrgContext {
     return {
-      user: { id: "user-1", name: "Test", email: "test@example.com" } as any,
-      session: { id: "session-1" } as any,
-      org: { id: "org-1", name: "Test Org", slug: "test" } as any,
-      membership: { role: "owner" } as any,
+      user: { id: "user-1", name: "Test", email: "test@example.com" } as Record<string, unknown>,
+      session: { id: "session-1" } as Record<string, unknown>,
+      org: { id: "org-1", name: "Test Org", slug: "test" } as Record<string, unknown>,
+      membership: { role: "owner" } as Record<string, unknown>,
       subscription: null,
       limits: FREE_TIER_LIMITS,
       usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
@@ -69,22 +69,22 @@ describe("org-context.server - extended tests", () => {
 
   describe("requireRole", () => {
     it("allows owner when owner is permitted", () => {
-      const context = createMockContext({ membership: { role: "owner" } as any });
+      const context = createMockContext({ membership: { role: "owner" } as unknown });
       expect(() => requireRole(context, ["owner"])).not.toThrow();
     });
 
     it("allows admin when admin is permitted", () => {
-      const context = createMockContext({ membership: { role: "admin" } as any });
+      const context = createMockContext({ membership: { role: "admin" } as unknown });
       expect(() => requireRole(context, ["admin", "owner"])).not.toThrow();
     });
 
     it("allows staff when staff is permitted", () => {
-      const context = createMockContext({ membership: { role: "staff" } as any });
+      const context = createMockContext({ membership: { role: "staff" } as unknown });
       expect(() => requireRole(context, ["staff", "admin", "owner"])).not.toThrow();
     });
 
     it("throws 403 when role is not permitted", () => {
-      const context = createMockContext({ membership: { role: "staff" } as any });
+      const context = createMockContext({ membership: { role: "staff" } as unknown });
 
       try {
         requireRole(context, ["owner", "admin"]);
@@ -97,7 +97,7 @@ describe("org-context.server - extended tests", () => {
     });
 
     it("throws with appropriate error message", async () => {
-      const context = createMockContext({ membership: { role: "customer" } as any });
+      const context = createMockContext({ membership: { role: "customer" } as unknown });
 
       try {
         requireRole(context, ["owner"]);
@@ -110,7 +110,7 @@ describe("org-context.server - extended tests", () => {
     });
 
     it("allows multiple roles", () => {
-      const context = createMockContext({ membership: { role: "admin" } as any });
+      const context = createMockContext({ membership: { role: "admin" } as unknown });
       expect(() => requireRole(context, ["owner", "admin", "staff"])).not.toThrow();
     });
   });
@@ -477,7 +477,7 @@ describe("org-context.server - extended tests", () => {
     it("recognizes all valid roles", () => {
       const roles: OrgRole[] = ["owner", "admin", "staff", "customer"];
       roles.forEach((role) => {
-        const context = createMockContext({ membership: { role } as any });
+        const context = createMockContext({ membership: { role } as unknown });
         expect(context.membership.role).toBe(role);
       });
     });

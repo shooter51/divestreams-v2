@@ -104,7 +104,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function BookingWidgetPage() {
-  const { settings, embedUrl, orgSlug, orgName } = useLoaderData<typeof loader>();
+  const { settings, embedUrl, orgName } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success?: boolean }>();
   const isSubmitting = fetcher.state === "submitting";
   const [copied, setCopied] = useState(false);

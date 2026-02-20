@@ -78,7 +78,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.firstName).toBe("First name is required");
+      expect((result as unknown).errors?.firstName).toBe("First name is required");
     });
 
     it("validates first name max length", async () => {
@@ -89,7 +89,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.firstName).toBe("First name must be 100 characters or less");
+      expect((result as unknown).errors?.firstName).toBe("First name must be 100 characters or less");
     });
 
     it("validates required last name", async () => {
@@ -100,7 +100,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.lastName).toBe("Last name is required");
+      expect((result as unknown).errors?.lastName).toBe("Last name is required");
     });
 
     it("validates email format", async () => {
@@ -111,7 +111,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.email).toBe("Please enter a valid email address");
+      expect((result as unknown).errors?.email).toBe("Please enter a valid email address");
     });
 
     it("validates email max length", async () => {
@@ -122,7 +122,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.email).toBe("Email must be 255 characters or less");
+      expect((result as unknown).errors?.email).toBe("Email must be 255 characters or less");
     });
 
     it("validates phone format when provided", async () => {
@@ -133,7 +133,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.phone).toBe("Please enter a valid phone number");
+      expect((result as unknown).errors?.phone).toBe("Please enter a valid phone number");
     });
 
     it("validates password requirements - minimum length", async () => {
@@ -144,7 +144,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.password).toContain("at least 8 characters");
+      expect((result as unknown).errors?.password).toContain("at least 8 characters");
     });
 
     it("validates password requirements - uppercase", async () => {
@@ -155,7 +155,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.password).toContain("one uppercase letter");
+      expect((result as unknown).errors?.password).toContain("one uppercase letter");
     });
 
     it("validates password requirements - number", async () => {
@@ -166,7 +166,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.password).toContain("one number");
+      expect((result as unknown).errors?.password).toContain("one number");
     });
 
     it("validates confirm password matches", async () => {
@@ -177,7 +177,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.confirmPassword).toBe("Passwords do not match");
+      expect((result as unknown).errors?.confirmPassword).toBe("Passwords do not match");
     });
 
     it("validates terms acceptance", async () => {
@@ -188,7 +188,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.terms).toBe("You must accept the Terms of Service");
+      expect((result as unknown).errors?.terms).toBe("You must accept the Terms of Service");
     });
 
     it("registers customer and auto-logs in on success", async () => {
@@ -228,7 +228,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).errors?.email).toContain("already registered");
+      expect((result as unknown).errors?.email).toContain("already registered");
     });
 
     it("handles generic registration errors", async () => {
@@ -241,7 +241,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Database error");
+      expect((result as unknown).error).toBe("Database error");
     });
 
     it("returns error when no subdomain can be determined", async () => {
@@ -257,7 +257,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Unable to determine organization");
+      expect((result as unknown).error).toBe("Unable to determine organization");
     });
 
     it("returns error when organization not found", async () => {
@@ -270,7 +270,7 @@ describe("site/register route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Organization not found");
+      expect((result as unknown).error).toBe("Organization not found");
     });
 
     it("redirects to login if auto-login fails after registration", async () => {

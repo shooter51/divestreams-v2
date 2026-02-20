@@ -141,6 +141,7 @@ export default function ZapierIntegrationSettings() {
           </p>
         ) : (
           <div className="space-y-3">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {data.apiKeys.map((key: any) => (
               <div
                 key={key.id}
@@ -255,6 +256,7 @@ export default function ZapierIntegrationSettings() {
           <div>
             <h3 className="font-semibold mb-3">Recent Deliveries</h3>
             <div className="space-y-2">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {data.webhookStats.recentDeliveries.map((delivery: any) => (
                 <div
                   key={delivery.id}

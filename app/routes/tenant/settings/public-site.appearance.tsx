@@ -95,7 +95,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function PublicSiteAppearanceSettings() {
-  const { settings, orgSlug, publicSiteUrl } = useOutletContext<OutletContextType>();
+  const { settings, publicSiteUrl } = useOutletContext<OutletContextType>();
   const fetcher = useFetcher<{ success?: boolean; message?: string; error?: string }>();
   const isSubmitting = fetcher.state === "submitting";
 

@@ -13,7 +13,6 @@ import {
   type PageContentRow,
   type NewPageContent,
   type PageContent,
-  type ContentBlock,
 } from "./schema/page-content";
 
 // ============================================================================

@@ -28,7 +28,7 @@ vi.mock("../../lib/db/tenant.server", () => ({
 const { dbMock, getMockResolveValue, setMockResolveValue } = vi.hoisted(() => {
   let _mockResolveValue: unknown[] = [];
   const createChainableDb = () => {
-    const chain: Record<string, any> = {};
+    const chain: Record<string, unknown> = {};
     chain.then = (resolve: (value: unknown[]) => void) => {
       resolve(_mockResolveValue);
       return chain;

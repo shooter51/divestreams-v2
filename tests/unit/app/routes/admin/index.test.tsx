@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
 // Mock react-router hooks before importing the component
 vi.mock("react-router", () => ({
@@ -91,7 +91,7 @@ describe("AdminOrganizationsPage - Semantic Token Migration (KAN-670)", () => {
 
   describe("table body uses semantic tokens", () => {
     it("uses text-foreground for org name cells", () => {
-      const { container } = render(<AdminOrganizationsPage />);
+      render(<AdminOrganizationsPage />);
       // Find org name cells - they contain the org name text
       const nameCell = screen.getByText("Ocean Blue Diving").closest("td");
       expect(nameCell).toHaveClass("text-foreground");
@@ -208,7 +208,7 @@ describe("AdminOrganizationsPage - Semantic Token Migration (KAN-670)", () => {
         search: "",
         error: "Database error occurred",
       });
-      const { container } = render(<AdminOrganizationsPage />);
+      render(<AdminOrganizationsPage />);
       const errorDiv = screen.getByText("Database error occurred").closest("div");
       expect(errorDiv).toHaveClass("bg-danger-muted", "border-danger", "text-danger");
     });

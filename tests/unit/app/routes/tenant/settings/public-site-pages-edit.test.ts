@@ -27,14 +27,14 @@ describe('Public Site Page Edit', () => {
       vi.mocked(requireOrgContext).mockResolvedValue({
         org: { id: 'org-1', slug: 'test-org' },
         user: { id: 'user-1' },
-      } as any);
+      } as unknown);
 
       vi.mocked(restorePageContentVersion).mockResolvedValue({
         id: 'page-1',
         pageId: 'about',
         version: 3,
         content: { blocks: [] },
-      } as any);
+      } as unknown);
 
       // Verify the mock was set up correctly
       expect(restorePageContentVersion).toBeDefined();

@@ -50,7 +50,7 @@ export function getS3Client(): S3Client | null {
   if (!s3Client) {
     // For AWS S3, don't set endpoint - SDK uses default AWS endpoints
     // For B2/R2, set endpoint to their S3-compatible API
-    const clientConfig: any = {
+    const clientConfig: Record<string, unknown> = {
       region: B2_REGION,
       credentials: {
         accessKeyId: B2_KEY_ID,
