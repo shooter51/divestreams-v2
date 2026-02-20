@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures/subdomain-page";
 import type { Page } from "@playwright/test";
+import { getTenantUrl as _getTenantUrl } from "../helpers/urls";
 
 /**
  * Public Site E2E Workflow Tests - DiveStreams
@@ -46,7 +47,7 @@ test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage();
   try {
     // Login with shared test user (created by 00-full-workflow.spec.ts)
-    await page.goto(`http://e2etest.localhost:5173/auth/login`, { timeout: 30000, waitUntil: 'domcontentloaded' });
+    await page.goto(_getTenantUrl("e2etest", "/auth/login"), { timeout: 30000, waitUntil: 'domcontentloaded' });
 
     // Wait for page to fully load
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
@@ -82,7 +83,7 @@ test.beforeAll(async ({ browser }) => {
     }
 
     // Navigate to public site settings
-    await page.goto(`http://e2etest.localhost:5173/tenant/settings/public-site`, { timeout: 15000 });
+    await page.goto(_getTenantUrl("e2etest", "/tenant/settings/public-site"), { timeout: 15000 });
     await page.waitForLoadState('domcontentloaded');
     await page.waitForLoadState("load"); // Give time for form to hydrate
 
@@ -146,7 +147,7 @@ test.beforeAll(async ({ browser }) => {
     }
 
     // Final verification: Try to access the public site
-    await page.goto(`http://e2etest.localhost:5173/site/`, { timeout: 10000 });
+    await page.goto(_getTenantUrl("e2etest", "/site/"), { timeout: 10000 });
     await page.waitForLoadState("domcontentloaded");
 
     // Check if we got redirected to disabled page
@@ -202,13 +203,13 @@ const publicSiteTestData = {
  * Get tenant URL for standard app pages
  */
 const getTenantUrl = (path: string = "/") =>
-  `http://${testData.tenant.subdomain}.localhost:5173${path}`;
+  _getTenantUrl(testData.tenant.subdomain, path);
 
 /**
  * Get public site URL (routes under /site)
  */
 const getPublicSiteUrl = (path: string = "") =>
-  `http://${testData.tenant.subdomain}.localhost:5173/site${path}`;
+  _getTenantUrl(testData.tenant.subdomain, "/site" + path);
 
 /**
  * Login to tenant admin panel

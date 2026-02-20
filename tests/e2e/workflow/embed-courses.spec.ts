@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures/subdomain-page";
+import { getEmbedUrl as _getEmbedUrl } from "../helpers/urls";
 
 /**
  * Embed Courses Widget E2E Tests - DiveStreams
@@ -59,7 +60,7 @@ const testData = {
  * Get embed widget URL
  */
 const getEmbedUrl = (path: string = "/courses") =>
-  `http://localhost:5173/embed/${testData.tenant.subdomain}${path}`;
+  _getEmbedUrl(testData.tenant.subdomain, path);
 
 /**
  * Extract course ID from URL

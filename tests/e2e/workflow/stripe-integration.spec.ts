@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import postgres from "postgres";
+import { getTenantUrl as _getTenantUrl } from "../helpers/urls";
 
 // CI/CD Stability Test - Pass 3 of 3 (Final)
 // Test data
@@ -14,7 +15,7 @@ const testData = {
 };
 
 function getTenantUrl(path: string) {
-  return `http://${testData.tenant.subdomain}.localhost:5173${path}`;
+  return _getTenantUrl(testData.tenant.subdomain, path);
 }
 
 async function loginToTenant(page: import("@playwright/test").Page) {

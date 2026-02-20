@@ -13,6 +13,7 @@
 
 import { test, expect } from "@playwright/test";
 import { LoginPage } from "../page-objects/auth.page";
+import { getTenantUrl } from "../helpers/urls";
 
 test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () => {
   const tenantSlug = "demo";
@@ -24,7 +25,7 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     await loginPage.login("owner@demo.com", "demo1234");
 
     // Navigate to products page
-    await page.goto(`http://${tenantSlug}.localhost:5173/tenant/products`);
+    await page.goto(getTenantUrl(tenantSlug, "/tenant/products"));
     await page.waitForLoadState("networkidle");
 
     // Wait for products table to render with checkboxes (critical for reliable tests)
