@@ -66,6 +66,21 @@ export default defineConfig({
   },
   projects: [
     // ─────────────────────────────────────────────────────────────────────
+    // Project 0: BOOTSTRAP — Creates demo tenant for independent tests
+    // On remote environments (test.divestreams.com), global-setup is skipped
+    // so this project creates the demo tenant via admin UI and signup flow.
+    // On localhost, global-setup handles this via direct DB access.
+    // ─────────────────────────────────────────────────────────────────────
+    ...(isRemoteTest
+      ? [
+          {
+            name: "bootstrap",
+            testMatch: "**/bootstrap/**/*.spec.ts",
+            use: { ...devices["Desktop Chrome"] },
+          },
+        ]
+      : []),
+    // ─────────────────────────────────────────────────────────────────────
     // Project 1: SETUP — Creates e2etest entities (boats, tours, etc.)
     // Runs 00-full-workflow.spec.ts which has serial blocks that create
     // entities needed by Block E (trips depend on boats/tours, etc.)
@@ -77,8 +92,7 @@ export default defineConfig({
     },
     // ─────────────────────────────────────────────────────────────────────
     // Project 2: INDEPENDENT — Bug fixes, admin, security, debug tests
-    // Uses "demo" tenant from global-setup or creates own data.
-    // Runs fully in parallel, no dependency on setup project.
+    // Uses "demo" tenant. Depends on bootstrap (remote) or global-setup (local).
     // ─────────────────────────────────────────────────────────────────────
     {
       name: "independent",
@@ -88,6 +102,7 @@ export default defineConfig({
         "**/security-*.spec.ts",
         "**/debug-*.spec.ts",
       ],
+      dependencies: isRemoteTest ? ["bootstrap"] : [],
       use: { ...devices["Desktop Chrome"] },
     },
     // ─────────────────────────────────────────────────────────────────────

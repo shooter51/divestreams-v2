@@ -258,7 +258,7 @@ test.describe.serial("Block B: Course Detail", () => {
       // Store session ID from href for later tests
       const href = await enrollButton.getAttribute("href");
       if (href) {
-        const sessionId = extractSessionId(`http://localhost${href}`);
+        const sessionId = extractSessionId(new URL(href, page.url()).toString());
         testData.createdIds.sessionId = sessionId;
       }
     } else {
