@@ -27,6 +27,19 @@ echo "Running database migrations..."
 node /app/scripts/run-migrations.mjs
 echo "Migrations complete!"
 
+# Ensure all existing users have emailVerified=true
+# Better Auth's requireEmailVerification blocks login for unverified users.
+# Tenant signup sets this automatically, but users created via admin panel
+# or older code paths may have emailVerified=false/NULL.
+echo "Ensuring all user emails are verified..."
+node -e "
+const postgres = require('postgres');
+const sql = postgres(process.env.DATABASE_URL);
+sql\`UPDATE \"user\" SET \"emailVerified\" = true WHERE \"emailVerified\" = false OR \"emailVerified\" IS NULL\`
+  .then(result => { console.log('  Updated', result.count, 'users'); return sql.end(); })
+  .catch(err => { console.error('  Warning:', err.message); return sql.end(); });
+"
+
 # Create platform admin if PLATFORM_ADMIN_EMAIL is set
 if [ -n "$PLATFORM_ADMIN_EMAIL" ] && [ -n "$PLATFORM_ADMIN_PASSWORD" ]; then
   echo "Checking for platform admin setup..."
