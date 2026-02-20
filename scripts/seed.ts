@@ -37,7 +37,7 @@ async function main() {
           displayName: config.displayName,
           monthlyPrice: config.monthlyPrice,
           yearlyPrice: config.yearlyPrice,
-          features: config.features,
+          features: { ...config.planFeatures, descriptions: config.features },
           limits: config.limits,
           updatedAt: new Date(),
         })
@@ -51,7 +51,7 @@ async function main() {
         displayName: config.displayName,
         monthlyPrice: config.monthlyPrice,
         yearlyPrice: config.yearlyPrice,
-        features: config.features,
+        features: { ...config.planFeatures, descriptions: config.features },
         limits: config.limits,
       });
       console.log(`  ✓ Created ${config.displayName}: $${config.monthlyPrice/100}/mo`);

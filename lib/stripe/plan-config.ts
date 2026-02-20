@@ -16,13 +16,16 @@
  * - Seed scripts
  */
 
+import { DEFAULT_PLAN_FEATURES, type PlanFeaturesObject } from "../plan-features";
+
 export interface PlanConfig {
   name: string;
   displayName: string;
   monthlyPrice: number; // in cents
   yearlyPrice: number; // in cents
   description: string;
-  features: string[];
+  features: string[]; // Marketing descriptions for pricing page
+  planFeatures: PlanFeaturesObject; // Boolean flags for feature gating
   limits: {
     users: number; // -1 = unlimited
     customers: number; // -1 = unlimited
@@ -50,6 +53,7 @@ export const PLAN_CONFIGS: Record<string, PlanConfig> = {
       "5 tours per month",
       "Community support",
     ],
+    planFeatures: DEFAULT_PLAN_FEATURES.free,
     limits: {
       users: 1,
       customers: 50,
@@ -72,6 +76,7 @@ export const PLAN_CONFIGS: Record<string, PlanConfig> = {
       "Basic reporting",
       "Email support",
     ],
+    planFeatures: DEFAULT_PLAN_FEATURES.starter,
     limits: {
       users: 3,
       customers: 500,
@@ -97,6 +102,7 @@ export const PLAN_CONFIGS: Record<string, PlanConfig> = {
       "Priority support",
       "API access",
     ],
+    planFeatures: DEFAULT_PLAN_FEATURES.pro,
     limits: {
       users: 10,
       customers: 5000,
@@ -120,6 +126,7 @@ export const PLAN_CONFIGS: Record<string, PlanConfig> = {
       "White-label options",
       "SLA guarantee",
     ],
+    planFeatures: DEFAULT_PLAN_FEATURES.enterprise,
     limits: {
       users: -1, // unlimited
       customers: -1, // unlimited

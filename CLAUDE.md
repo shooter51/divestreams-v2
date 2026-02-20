@@ -438,7 +438,7 @@ Set in `.env` files on each VPS:
 - `PLATFORM_ADMIN_EMAIL` / `PLATFORM_ADMIN_PASSWORD` - Platform admin setup
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` - Stripe integration (test keys for Test, live for Prod)
 - `SMTP_*` - Email configuration
-- `B2_ENDPOINT` / `B2_REGION` / `B2_BUCKET` / `B2_KEY_ID` / `B2_APP_KEY` - Object storage
+- `S3_ENDPOINT` / `S3_REGION` / `S3_BUCKET` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` - Object storage
 - `CDN_URL` - CDN URL for images
 
 ### GitHub Repository Configuration

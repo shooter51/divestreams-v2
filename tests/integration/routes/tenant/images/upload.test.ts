@@ -201,7 +201,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       });
       vi.mocked(storage.getImageKey).mockReturnValue("test/tour/123/test.jpg");
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
-      vi.mocked(storage.uploadToB2).mockResolvedValue(null); // Upload failed
+      vi.mocked(storage.uploadToS3).mockResolvedValue(null); // Upload failed
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -242,7 +242,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       });
       vi.mocked(storage.getImageKey).mockReturnValue("test/tour/123/test.jpg");
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
-      vi.mocked(storage.uploadToB2).mockResolvedValue({
+      vi.mocked(storage.uploadToS3).mockResolvedValue({
         cdnUrl: "https://cdn.divestreams.com/test/tour/123/test.webp",
         b2Url: "https://s3.backblazeb2.com/test/tour/123/test.webp",
       });
@@ -285,7 +285,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       const result = await action({ request, params: {}, context: {} });
 
       expect(storage.processImage).toHaveBeenCalled();
-      expect(storage.uploadToB2).toHaveBeenCalledTimes(2); // Original + thumbnail
+      expect(storage.uploadToS3).toHaveBeenCalledTimes(2); // Original + thumbnail
 
       expect(result.status).toBe(200);
       const json = await result.json();
@@ -310,7 +310,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       });
       vi.mocked(storage.getImageKey).mockReturnValue("test/tour/123/test.jpg");
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
-      vi.mocked(storage.uploadToB2).mockResolvedValue({
+      vi.mocked(storage.uploadToS3).mockResolvedValue({
         cdnUrl: "https://cdn.divestreams.com/test/tour/123/test.webp",
         b2Url: "https://s3.backblazeb2.com/test/tour/123/test.webp",
       });
@@ -374,7 +374,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       });
       vi.mocked(storage.getImageKey).mockReturnValue("test/tour/123/test.jpg");
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
-      vi.mocked(storage.uploadToB2).mockResolvedValue({
+      vi.mocked(storage.uploadToS3).mockResolvedValue({
         cdnUrl: "https://cdn.divestreams.com/test/tour/123/test.webp",
         b2Url: "https://s3.backblazeb2.com/test/tour/123/test.webp",
       });

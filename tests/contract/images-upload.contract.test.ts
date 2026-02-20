@@ -13,7 +13,7 @@ vi.mock("../../lib/auth/org-context.server", () => ({
 }));
 
 vi.mock("../../lib/storage", () => ({
-  uploadToB2: vi.fn(),
+  uploadToS3: vi.fn(),
   getImageKey: vi.fn(
     (slug: string, entityType: string, entityId: string, filename: string) =>
       `${slug}/${entityType}/${entityId}/${filename}`
@@ -34,7 +34,7 @@ vi.mock("../../lib/logger", () => ({
 import { action } from "../../app/routes/tenant/images/upload";
 import { requireOrgContext } from "../../lib/auth/org-context.server";
 import {
-  uploadToB2,
+  uploadToS3,
   processImage,
   isValidImageType,
 } from "../../lib/storage";
@@ -167,7 +167,7 @@ describe("Contract: POST /tenant/images/upload", () => {
 
   describe("Success response shape", () => {
     it("returns { success: true, image: {...} } with status 200", async () => {
-      (uploadToB2 as MockFn).mockResolvedValue({
+      (uploadToS3 as MockFn).mockResolvedValue({
         cdnUrl: "https://cdn.example.com/image.webp",
       });
       mockDb.returning.mockResolvedValue([
@@ -217,7 +217,7 @@ describe("Contract: POST /tenant/images/upload", () => {
 
   describe("Storage unavailable response shape", () => {
     it("returns { error: string } with status 503 when B2 not configured", async () => {
-      (uploadToB2 as MockFn).mockResolvedValue(null);
+      (uploadToS3 as MockFn).mockResolvedValue(null);
 
       const formData = new FormData();
       formData.append(

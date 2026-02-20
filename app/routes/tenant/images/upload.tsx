@@ -8,7 +8,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, count } from "drizzle-orm";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
-import { uploadToB2, getImageKey, getWebPMimeType } from "../../../../lib/storage";
+import { uploadToS3, getImageKey, getWebPMimeType } from "../../../../lib/storage";
 import { processImage, isValidImageType } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { storageLogger } from "../../../../lib/logger";
@@ -100,7 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const thumbnailKey = `${baseKey}-thumb.webp`;
 
     // Upload to B2
-    const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+    const originalUpload = await uploadToS3(originalKey, processed.original, getWebPMimeType());
     if (!originalUpload) {
       storageLogger.error("B2 storage not configured - missing environment variables");
       return Response.json(
@@ -109,7 +109,7 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+    const thumbnailUpload = await uploadToS3(thumbnailKey, processed.thumbnail, getWebPMimeType());
 
     // Determine sort order (next available)
     const nextOrder = countResult.count;

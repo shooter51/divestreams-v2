@@ -9,7 +9,7 @@ import {
   updateGalleryImage,
   deleteGalleryImage,
 } from "../../../../lib/db/gallery.server";
-import { uploadToB2, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
+import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { storageLogger } from "../../../../lib/logger";
 import { useNotification } from "../../../../lib/use-notification";
 
@@ -93,7 +93,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const safeFilename = coverFile.name.replace(/[^a-zA-Z0-9.-]/g, "_");
         const coverKey = `${ctx.org.slug}/gallery/covers/${timestamp}-${safeFilename}.webp`;
 
-        const uploadResult = await uploadToB2(coverKey, processed.original, getWebPMimeType());
+        const uploadResult = await uploadToS3(coverKey, processed.original, getWebPMimeType());
         if (uploadResult) {
           updateData.coverImageUrl = uploadResult.cdnUrl;
         }

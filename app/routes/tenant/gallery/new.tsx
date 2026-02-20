@@ -2,7 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createGalleryAlbum } from "../../../../lib/db/gallery.server";
-import { uploadToB2, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
+import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { storageLogger } from "../../../../lib/logger";
 
 export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
@@ -55,7 +55,7 @@ export async function action({ request }: ActionFunctionArgs) {
       const safeFilename = coverFile.name.replace(/[^a-zA-Z0-9.-]/g, "_");
       const coverKey = `${ctx.org.slug}/gallery/covers/${timestamp}-${safeFilename}.webp`;
 
-      const uploadResult = await uploadToB2(coverKey, processed.original, getWebPMimeType());
+      const uploadResult = await uploadToS3(coverKey, processed.original, getWebPMimeType());
       if (uploadResult) {
         coverImageUrl = uploadResult.cdnUrl;
       }
