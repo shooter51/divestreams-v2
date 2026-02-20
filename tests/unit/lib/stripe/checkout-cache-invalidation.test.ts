@@ -13,7 +13,6 @@ describe("Checkout Cache Invalidation", () => {
     // When a subscription is upgraded using a saved payment method,
     // the cache MUST be invalidated so the user sees the updated plan immediately
 
-    const orgId = "test-org-123";
 
     // Mock the cache invalidation module
     const mockInvalidate = vi.fn().mockResolvedValue(undefined);
@@ -21,8 +20,8 @@ describe("Checkout Cache Invalidation", () => {
       invalidateSubscriptionCache: mockInvalidate,
     }));
 
-    // Import the function being tested
-    const { createCheckoutSession } = await import("../../../../lib/stripe/index");
+    // Import the module being tested
+    await import("../../../../lib/stripe/index");
 
     // This test will fail until we add the cache invalidation call
     // Expected: mockInvalidate to be called with orgId

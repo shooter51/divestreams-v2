@@ -47,12 +47,6 @@ describe("Tenant Action Isolation", () => {
     membership: { role: "owner" },
   };
 
-  const tenantB = {
-    user: { id: "user-b", email: "admin@tenant-b.com" },
-    org: { id: "org-b-uuid-456", name: "Dive Shop B", slug: "shop-b" },
-    membership: { role: "owner" },
-  };
-
   const mockTenantContextA = {
     tenant: {
       id: "org-a-uuid-123",

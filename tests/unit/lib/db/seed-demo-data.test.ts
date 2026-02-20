@@ -39,7 +39,7 @@ describe("seedDemoData", () => {
     // First call: organization lookup (should return the org)
     // Second call: customer existence check (should return empty to allow seeding)
     let selectCallCount = 0;
-    const mockLimit = vi.fn().mockImplementation((limitValue) => {
+    const mockLimit = vi.fn().mockImplementation(() => {
       selectCallCount++;
       if (selectCallCount === 1) {
         // First call: organization lookup
@@ -115,7 +115,7 @@ describe("seedDemoData", () => {
       expect(valuesCalls.length).toBeGreaterThan(0);
 
       // Filter to entity tables (those with expected entity fields)
-      const entityInserts = valuesCalls.filter(([values]: [any]) => {
+      const entityInserts = valuesCalls.filter(([values]: [unknown]) => {
         if (typeof values !== 'object' || values === null) return false;
         // Entity tables have at least one of these fields
         return values.name || values.email || values.latitude || values.category;
@@ -124,7 +124,7 @@ describe("seedDemoData", () => {
       expect(entityInserts.length).toBeGreaterThan(0);
 
       // All entity inserts should have organizationId
-      entityInserts.forEach(([values]: [any]) => {
+      entityInserts.forEach(([values]: [unknown]) => {
         expect(values).toHaveProperty('organizationId', mockOrganizationId);
       });
     });
@@ -139,13 +139,13 @@ describe("seedDemoData", () => {
 
       // Find customer inserts (by checking for email field)
       const customerInserts = insertMock.values.mock.calls.filter(
-        ([values]: [any]) => values && typeof values.email === 'string'
+        ([values]: [unknown]) => values && typeof values.email === 'string'
       );
 
       expect(customerInserts.length).toBeGreaterThan(0);
 
       // All customer inserts should have organizationId
-      customerInserts.forEach(([values]: [any]) => {
+      customerInserts.forEach(([values]: [unknown]) => {
         expect(values.organizationId).toBe(mockOrganizationId);
       });
     });
@@ -160,13 +160,13 @@ describe("seedDemoData", () => {
 
       // Find dive site inserts (by checking for latitude field)
       const diveSiteInserts = insertMock.values.mock.calls.filter(
-        ([values]: [any]) => values && typeof values.latitude === 'string'
+        ([values]: [unknown]) => values && typeof values.latitude === 'string'
       );
 
       expect(diveSiteInserts.length).toBeGreaterThan(0);
 
       // All dive site inserts should have organizationId
-      diveSiteInserts.forEach(([values]: [any]) => {
+      diveSiteInserts.forEach(([values]: [unknown]) => {
         expect(values.organizationId).toBe(mockOrganizationId);
       });
     });
@@ -181,13 +181,13 @@ describe("seedDemoData", () => {
 
       // Find equipment inserts (by checking for rentalPrice field)
       const equipmentInserts = insertMock.values.mock.calls.filter(
-        ([values]: [any]) => values && typeof values.rentalPrice === 'string'
+        ([values]: [unknown]) => values && typeof values.rentalPrice === 'string'
       );
 
       expect(equipmentInserts.length).toBeGreaterThan(0);
 
       // All equipment inserts should have organizationId and isPublic: false
-      equipmentInserts.forEach(([values]: [any]) => {
+      equipmentInserts.forEach(([values]: [unknown]) => {
         expect(values.organizationId).toBe(mockOrganizationId);
         expect(values.isPublic).toBe(false);
       });
@@ -203,13 +203,13 @@ describe("seedDemoData", () => {
 
       // Find trip inserts (by checking for tourId field)
       const tripInserts = insertMock.values.mock.calls.filter(
-        ([values]: [any]) => values && values.tourId && values.date
+        ([values]: [unknown]) => values && values.tourId && values.date
       );
 
       expect(tripInserts.length).toBeGreaterThan(0);
 
       // All trip inserts should have organizationId and isPublic: false
-      tripInserts.forEach(([values]: [any]) => {
+      tripInserts.forEach(([values]: [unknown]) => {
         expect(values.organizationId).toBe(mockOrganizationId);
         expect(values.isPublic).toBe(false);
       });

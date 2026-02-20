@@ -1,5 +1,4 @@
 import { test, expect } from "../fixtures/subdomain-page";
-import type { Page } from "@playwright/test";
 
 /**
  * Embed Courses Widget E2E Tests - DiveStreams
@@ -94,7 +93,7 @@ function extractEnrollmentId(url: string): string | null {
 test.describe.serial("Block A: Course Listing", () => {
   test("[KAN-555] A.1 Course listing page loads @smoke", async ({ page }) => {
     await page.goto(getEmbedUrl("/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Should load the courses listing page
     expect(page.url()).toContain("/embed/");
@@ -107,7 +106,7 @@ test.describe.serial("Block A: Course Listing", () => {
 
   test("[KAN-556] A.2 Course listing shows course cards or empty state", async ({ page }) => {
     await page.goto(getEmbedUrl("/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Should show either course cards or an empty state
     const hasCourseCards = await page.locator("[class*='card'], [class*='grid'] a").first().isVisible().catch(() => false);
@@ -119,7 +118,7 @@ test.describe.serial("Block A: Course Listing", () => {
 
   test("[KAN-557] A.3 Course cards show agency and level badges", async ({ page }) => {
     await page.goto(getEmbedUrl("/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     const firstCourseCard = page.locator("[class*='card'], [class*='grid'] a").first();
     const hasCourseCards = await firstCourseCard.isVisible().catch(() => false);
@@ -137,14 +136,14 @@ test.describe.serial("Block A: Course Listing", () => {
 
   test("[KAN-558] A.4 Course cards link to detail pages", async ({ page }) => {
     await page.goto(getEmbedUrl("/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     const firstCourseCard = page.locator("a[href*='/courses/']").first();
     const hasCourseCards = await firstCourseCard.isVisible().catch(() => false);
 
     if (hasCourseCards) {
       await firstCourseCard.click();
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState('networkidle');
 
       // Should navigate to course detail page
       expect(page.url()).toMatch(/\/courses\/[a-f0-9-]+/);
@@ -166,14 +165,14 @@ test.describe.serial("Block B: Course Detail", () => {
   test("[KAN-559] B.1 Course detail page loads", async ({ page }) => {
     // First go to listing to find a course
     await page.goto(getEmbedUrl("/courses"));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     const firstCourseCard = page.locator("a[href*='/courses/']").first();
     const hasCourseCards = await firstCourseCard.isVisible().catch(() => false);
 
     if (hasCourseCards) {
       await firstCourseCard.click();
-      await page.waitForTimeout(1500);
+      await page.waitForLoadState('networkidle');
 
       // Should be on course detail page
       expect(page.url()).toMatch(/\/courses\/[a-f0-9-]+/);
@@ -193,7 +192,7 @@ test.describe.serial("Block B: Course Detail", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Should show agency badge/name
     const hasAgencyInfo = await page.locator("img[alt*='PAD'], img[alt*='SSI'], span").first().isVisible().catch(() => false);
@@ -209,7 +208,7 @@ test.describe.serial("Block B: Course Detail", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Check for course stats
     const hasDays = await page.getByText(/\d+\s*day/i).isVisible().catch(() => false);
@@ -227,7 +226,7 @@ test.describe.serial("Block B: Course Detail", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Check for sessions section
     const hasSessionsHeader = await page.getByRole("heading", { name: /training session|available session/i }).isVisible().catch(() => false);
@@ -244,7 +243,7 @@ test.describe.serial("Block B: Course Detail", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Look for enroll button on sessions
     const enrollButton = page.getByRole("link", { name: /enroll/i }).first();
@@ -283,7 +282,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
 
     // Try to access enrollment without sessionId
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}/enroll`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Should show error or redirect back
     const hasError = await page.getByText(/no.*session|session.*required/i).isVisible().catch(() => false);
@@ -299,7 +298,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}/enroll?sessionId=${testData.createdIds.sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Should be on enrollment form
     expect(page.url()).toContain("/enroll");
@@ -317,7 +316,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}/enroll?sessionId=${testData.createdIds.sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Check for required fields
     const hasFirstName = await page.getByLabel(/first name/i).isVisible().catch(() => false);
@@ -334,7 +333,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}/enroll?sessionId=${testData.createdIds.sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Check for optional fields
     const hasPhone = await page.getByLabel(/phone/i).isVisible().catch(() => false);
@@ -352,7 +351,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}/enroll?sessionId=${testData.createdIds.sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Check for enrollment summary section
     const hasSummary = await page.getByText(/enrollment summary|training session/i).isVisible().catch(() => false);
@@ -368,7 +367,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}/enroll?sessionId=${testData.createdIds.sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Try to submit without filling required fields
     const submitButton = page.getByRole("button", { name: /enroll/i });
@@ -376,7 +375,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
 
     if (hasSubmitButton) {
       await submitButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('networkidle');
 
       // Should stay on form page - validation prevents submission
       expect(page.url()).toContain("/enroll");
@@ -390,7 +389,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}/enroll?sessionId=${testData.createdIds.sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Fill with invalid email
     await page.getByLabel(/first name/i).fill("Test");
@@ -400,7 +399,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     const submitButton = page.getByRole("button", { name: /enroll/i });
     if (await submitButton.isVisible().catch(() => false)) {
       await submitButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('networkidle');
 
       // Should show error or stay on page
       const hasError = await page.locator("[class*='error'], [class*='text-red']").isVisible().catch(() => false);
@@ -417,7 +416,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/${testData.createdIds.courseId}/enroll?sessionId=${testData.createdIds.sessionId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Fill out enrollment form
     await page.getByLabel(/first name/i).fill(testData.enrollment.firstName);
@@ -443,7 +442,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     // Submit form
     const submitButton = page.getByRole("button", { name: /enroll/i });
     await submitButton.click();
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
 
     // Should redirect to confirmation page
     const redirectedToConfirm = page.url().includes("/confirm");
@@ -471,7 +470,7 @@ test.describe.serial("Block D: Confirmation Page", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/confirm?enrollmentId=${testData.createdIds.enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Should be on confirmation page
     expect(page.url()).toContain("/confirm");
@@ -485,7 +484,7 @@ test.describe.serial("Block D: Confirmation Page", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/confirm?enrollmentId=${testData.createdIds.enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Check for success indicators
     const hasSuccessMessage = await page.getByText(/confirmed|success|thank you/i).isVisible().catch(() => false);
@@ -501,7 +500,7 @@ test.describe.serial("Block D: Confirmation Page", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/confirm?enrollmentId=${testData.createdIds.enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Check for enrollment info
     const hasCourseName = await page.locator("h2, h3, h4").first().isVisible().catch(() => false);
@@ -518,7 +517,7 @@ test.describe.serial("Block D: Confirmation Page", () => {
     }
 
     await page.goto(getEmbedUrl(`/courses/confirm?enrollmentId=${testData.createdIds.enrollmentId}`));
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
 
     // Check for action buttons
     const hasBackButton = await page.getByRole("link", { name: /browse|back|courses/i }).isVisible().catch(() => false);

@@ -3,7 +3,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { diveSites as diveSitesTable } from "../../../../lib/db/schema";
-import { eq, ilike, and, inArray, or } from "drizzle-orm";
+import { eq, ilike, and, or } from "drizzle-orm";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { useNotification } from "../../../../lib/use-notification";
 

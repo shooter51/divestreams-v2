@@ -3,39 +3,190 @@
 ## Project Overview
 Multi-tenant SaaS platform for dive shop and dive tour management. Built with React Router v7, PostgreSQL (multi-tenant with schema-per-tenant), Redis, and Caddy.
 
-## Beads Issue Tracking - REQUIRED BEFORE CODE CHANGES
+## Directory Structure
+**IMPORTANT: Follow the directory structure policy when creating or organizing files.**
 
-**IMPORTANT: Always use Beads to track work before making code changes.**
+- **Policy**: See `DIRECTORY_STRUCTURE_POLICY.md` for full details
+- **Quick Reference**: See `docs/guides/directory-structure-quick-reference.md`
+- **Validation**: Run `npm run validate:structure` before commits
+- **Key Rules**:
+  - Root directory: Config files only (no documentation)
+  - Documentation: Organized in `docs/` subdirectories
+  - File naming: Use kebab-case (e.g., `stripe-setup.md`)
+  - Tests: Mirror the structure of code they test
 
-### Before Starting Work
-```bash
-bd ready                    # Show issues ready to work on
-bd create --title "..."     # Create new issue for the task
-bd show DIVE-xxx            # View issue details
+## Vibe Kanban Issue Tracking & Defect Repair Workflow
+
+**IMPORTANT: All work must be tracked in vibe-kanban before making code changes.**
+
+### Defect Repair Workflow
+
+When a defect is found during development or testing:
+
+1. **Create Defect Issue**
+   - Use `mcp__vibe_kanban__create_issue` with title format: `[DEFECT] <description>`
+   - Include detailed description of the issue, steps to reproduce, and expected vs actual behavior
+   - If related to an active feature issue, note the parent issue ID in the description
+
+2. **Link to Workspace** (if applicable)
+   - Use `mcp__vibe_kanban__link_workspace` to associate the defect with current workspace
+
+3. **Fix the Defect**
+   - Write unit tests that reproduce the defect first (TDD approach)
+   - Fix the issue
+   - Ensure all unit tests pass: `npm test -- --run`
+   - Run lint and typecheck: `npm run lint && npm run typecheck`
+
+4. **Update Issue Status**
+   - Use `mcp__vibe_kanban__update_issue` to mark as completed
+   - Add summary of fix in issue description
+
+5. **Deploy Through CI/CD Pipeline**
+   - Push to feature branch → PR to `develop` → unit tests gate
+   - Merge to `develop` → auto-deploy to Dev VPS
+   - Create PR to `staging` → full E2E tests gate
+   - Merge to `staging` → auto-deploy to Test VPS for QA verification
+
+### Issue Management Commands
+
+```javascript
+// List all issues in project
+mcp__vibe_kanban__list_issues({ project_id: "<project-id>" })
+
+// Create new defect
+mcp__vibe_kanban__create_issue({
+  title: "[DEFECT] <description>",
+  description: "Steps to reproduce:\n1. ...\n\nExpected: ...\nActual: ...",
+  project_id: "<project-id>"
+})
+
+// Get issue details
+mcp__vibe_kanban__get_issue({ issue_id: "<issue-id>" })
+
+// Update issue status
+mcp__vibe_kanban__update_issue({
+  issue_id: "<issue-id>",
+  status: "Done"
+})
+
+// Link workspace to issue
+mcp__vibe_kanban__link_workspace({
+  workspace_id: "<workspace-id>",
+  issue_id: "<issue-id>"
+})
 ```
 
-### During Work
+### Defect Categories
+
+Tag defects with appropriate prefixes:
+- `[DEFECT] [CRITICAL]` - Production blocking, data loss, security issues
+- `[DEFECT] [HIGH]` - Major functionality broken, no workaround
+- `[DEFECT] [MEDIUM]` - Functionality broken but workaround exists
+- `[DEFECT] [LOW]` - Minor issues, cosmetic bugs, edge cases
+
+## Code Coverage & Testing - REQUIRED FOR ALL FEATURES
+
+**CRITICAL: No feature is complete until it has comprehensive test coverage.**
+
+### Coverage Requirements
+
+Every feature MUST have:
+- ✅ **Unit tests** (70% coverage minimum)
+- ✅ **Integration tests** (75% coverage minimum)
+- ✅ **E2E workflow tests** (60% coverage minimum)
+- ✅ **Pact contract tests** (for API routes, 100% coverage)
+- ✅ **Combined coverage** (80% minimum)
+
+### Quick Start
+
 ```bash
-bd update DIVE-xxx --status in-progress  # Mark as in progress
-bd comments DIVE-xxx --add "..."         # Add progress notes
+# Generate test scaffolding for a feature
+npm run test:scaffold -- --file=app/routes/tenant/boats.tsx
+
+# Check test status for your issue
+npm run vibe:check -- --issue=DIVE-1234
+
+# Run tests with coverage
+npm run test:coverage
+
+# Enforce coverage thresholds
+npm run coverage:enforce
 ```
 
-### After Completing Work
+### Enforcement Points
+
+1. **Pre-commit hook** - Validates tests exist and pass
+2. **CI/CD pipeline** - Blocks deployment if coverage insufficient
+3. **Pull requests** - Requires coverage thresholds met
+4. **Vibe Kanban** - Tracks test completion per issue
+
+### Complete Documentation
+
+See [TESTING.md](./TESTING.md) for:
+- Detailed testing workflow
+- Test type requirements
+- Coverage configuration
+- Troubleshooting guide
+- Best practices
+
+**Feature Definition of Done:**
+- [ ] All test types implemented
+- [ ] Coverage thresholds met
+- [ ] Pre-commit hook passes
+- [ ] CI/CD pipeline passes
+- [ ] Vibe issue marked complete
+
+## Code Coverage & Testing - REQUIRED FOR ALL FEATURES
+
+**CRITICAL: No feature is complete until it has comprehensive test coverage.**
+
+### Coverage Requirements
+
+Every feature MUST have:
+- ✅ **Unit tests** (70% coverage minimum)
+- ✅ **Integration tests** (75% coverage minimum)
+- ✅ **E2E workflow tests** (60% coverage minimum)
+- ✅ **Pact contract tests** (for API routes, 100% coverage)
+- ✅ **Combined coverage** (80% minimum)
+
+### Quick Start
+
 ```bash
-bd close DIVE-xxx           # Close the issue
-bd list                     # Verify status
+# Generate test scaffolding for a feature
+npm run test:scaffold -- --file=app/routes/tenant/boats.tsx
+
+# Check test status for your issue
+npm run vibe:check -- --issue=DIVE-1234
+
+# Run tests with coverage
+npm run test:coverage
+
+# Enforce coverage thresholds
+npm run coverage:enforce
 ```
 
-### Key Commands
-```bash
-bd status                   # Overview of all issues
-bd list                     # List open issues
-bd search "keyword"         # Find issues
-bd graph                    # Show dependency graph
-```
+### Enforcement Points
 
-**Issue Prefix:** `DIVE-`
-**Sync Branch:** `beads-sync`
+1. **Pre-commit hook** - Validates tests exist and pass
+2. **CI/CD pipeline** - Blocks deployment if coverage insufficient
+3. **Pull requests** - Requires coverage thresholds met
+4. **Vibe Kanban** - Tracks test completion per issue
+
+### Complete Documentation
+
+See [TESTING.md](./TESTING.md) for:
+- Detailed testing workflow
+- Test type requirements
+- Coverage configuration
+- Troubleshooting guide
+- Best practices
+
+**Feature Definition of Done:**
+- [ ] All test types implemented
+- [ ] Coverage thresholds met
+- [ ] Pre-commit hook passes
+- [ ] CI/CD pipeline passes
+- [ ] Vibe issue marked complete
 
 ## Deployment
 
@@ -43,21 +194,12 @@ bd graph                    # Show dependency graph
 **IMPORTANT: NEVER deploy directly. ALWAYS use the CI/CD pipeline via git push.**
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│  develop    │───>│  Unit Tests │───>│  Build :dev │───>│  Deploy Dev │
-│  branch     │    │  (fast)     │    │   Docker    │    │    VPS      │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│  staging    │───>│ Tests + E2E │───>│ Build :test │───>│ Deploy Test │
-│  branch     │    │  (full)     │    │   Docker    │    │    VPS      │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-                                                                │
-                                                                v smoke tests
-┌─────────────┐                                         ┌─────────────┐
-│    main     │─────────────────────────────────────────>│   Deploy    │
-│   branch    │        (retag test → latest)             │ Production  │
-└─────────────┘                                         └─────────────┘
+Feature PR → develop     ci-pr.yml: lint + typecheck + unit (no DB) + pact consumer + build check → auto-merge
+Push to develop          deploy-dev.yml: build :dev → deploy Dev VPS → create PR develop→test
+PR to test               ci-test.yml: lint + typecheck + unit + integration (DB) + pact consumer+provider → auto-merge
+Push to test             deploy-test.yml: build :test → deploy Test VPS → E2E against test.divestreams.com
+Manual PR test→main      No automated tests (Tom reviews on test.divestreams.com)
+Push to main             deploy-prod.yml: retag :test→:latest → deploy Production VPS
 ```
 
 ### Three Environments
@@ -68,31 +210,28 @@ bd graph                    # Show dependency graph
 | **Test** | Human QA - manual product testing, feedback, QA tasks. Stable always-on instance. | Tom, QA team |
 | **Production** | Live production environment. | End users |
 
-### Deployment Workflow
+### Auto-Promotion Pipeline
 
-**To deploy to DEV (fast path - unit tests only):**
-```bash
-git checkout develop
-git merge <feature-branch>
-git push origin develop
-```
-This triggers: lint → typecheck → unit tests → build Docker `:dev` → deploy to Dev VPS
+The pipeline is fully automated from feature PR to test, with a manual gate at production.
 
-**To deploy to TEST (full test gate):**
-```bash
-git checkout staging
-git merge develop  # or feature branch
-git push origin staging
-```
-This triggers: lint → typecheck → unit tests → E2E tests → build Docker `:test` → deploy to Test VPS → smoke tests
+**1. Feature PR → develop** (developer action)
+- Open PR targeting `develop`
+- `ci-pr.yml` runs: lint, typecheck, unit tests, pact consumer, Docker build check
+- Branch protection requires `test` check to pass
+- Auto-merge enabled on pass
 
-**To deploy to PRODUCTION:**
-```bash
-git checkout main
-git merge staging
-git push origin main
-```
-This retags `ghcr.io/shooter51/divestreams-app:test` → `:latest` and deploys to production VPS.
+**2. develop → test** (automatic)
+- `deploy-dev.yml` builds `:dev` image, deploys to Dev VPS
+- Auto-creates PR `develop → test` with auto-merge enabled
+- `ci-test.yml` runs full suite: lint, typecheck, unit+integration (with DB), pact consumer+provider
+- Auto-merge fires when checks pass
+
+**3. test → main** (manual)
+- Tom creates PR `test → main` after QA on test.divestreams.com
+- No automated checks required — Tom reviews and merges
+
+**4. main → production** (automatic)
+- `deploy-prod.yml` retags `:test` → `:latest`, deploys to Production VPS
 
 ### VPS Infrastructure
 
@@ -116,7 +255,12 @@ VPS IDs are stored as GitHub environment variables (`DEV_VPS_ID`, `TEST_VPS_ID`,
 
 ### Dev VPS - Multi-Instance Architecture
 
-The Dev VPS supports multiple simultaneous DiveStreams instances for AI agent use. Each instance is fully isolated with its own app, worker, database, and Redis.
+The Dev VPS supports multiple simultaneous DiveStreams instances for AI agent use. Shared `dev-postgres` and `dev-redis` containers provide infrastructure, while each instance gets its own app + worker containers and its own database within the shared PostgreSQL.
+
+**Shared Infrastructure:**
+- `dev-postgres` (port 5432) — shared PostgreSQL, each instance gets its own database (`ds_<name>`)
+- `dev-redis` (port 6379) — shared Redis
+- Started automatically on first `create`, or manually with `infra-up`
 
 **Instance Management (run on Dev VPS):**
 ```bash
@@ -126,6 +270,8 @@ scripts/dev-instance.sh list                                # List all instances
 scripts/dev-instance.sh logs <name> [--follow]              # View logs
 scripts/dev-instance.sh status <name>                       # Show status
 scripts/dev-instance.sh pull [--tag <image-tag>]            # Pull latest image
+scripts/dev-instance.sh infra-up                            # Start shared postgres + redis
+scripts/dev-instance.sh infra-down                          # Stop shared infra (no instances running)
 ```
 
 **Examples:**
@@ -143,7 +289,8 @@ Max ~8 simultaneous instances (depends on VPS RAM).
 |------|-------------|-------|
 | `docker-compose.prod.yml` | Production VPS | Pre-built `:latest` image |
 | `docker-compose.test.yml` | Test VPS | Pre-built `:test` image |
-| `docker-compose.dev-vps.yml` | Dev VPS | Parameterized template for multi-instance |
+| `docker-compose.dev-infra.yml` | Dev VPS | Shared postgres + redis infrastructure |
+| `docker-compose.dev-vps.yml` | Dev VPS | Per-instance app + worker template |
 | `docker-compose.yml` | Local | Builds from Dockerfile |
 | `docker-compose.dev.yml` | Local | Infrastructure only (postgres, redis, minio) |
 
@@ -195,31 +342,69 @@ echo "<GITHUB_PAT>" | docker login ghcr.io -u shooter51 --password-stdin
 
 ### Branch Strategy
 - `develop` → Dev VPS (AI agent work)
-- `staging` → Test VPS (human QA)
+- `test` → Test VPS (human QA)
 - `main` → Production (live)
+
+### Branch Cleanup
+**Automated cleanup of stale branches to keep the repository clean.**
+
+**GitHub Action (Automatic):**
+- Runs weekly on Sundays at 2 AM UTC
+- Automatically deletes merged branches older than 30 days
+- Reports on unmerged stale branches for manual review
+- Manual trigger: Actions → "Cleanup Stale Branches" → Run workflow
+
+**Local Script (Manual):**
+```bash
+# Preview what would be deleted (dry run)
+./scripts/cleanup-branches.sh
+
+# Preview with custom stale threshold
+./scripts/cleanup-branches.sh --days 14
+
+# Actually delete branches
+./scripts/cleanup-branches.sh --live
+
+# Delete with custom threshold
+./scripts/cleanup-branches.sh --live --days 60
+```
+
+**What gets cleaned up:**
+1. **Merged & stale** (30+ days): Automatically deleted (safe)
+2. **Local-only branches**: Deleted if remote was already removed
+3. **Unmerged & stale**: Reported for manual review (requires human decision)
+
+**Protected branches:** `main`, `develop`, `test` (never deleted)
 
 ### Branch Protection Rules
 All three branches are protected. Direct pushes are blocked — changes must go through PRs.
 
-| Branch | Required CI Checks | PR Required | Notes |
-|--------|-------------------|-------------|-------|
-| **develop** | `test` (lint + typecheck + unit tests) | Yes | Fast gate for AI agent work |
-| **staging** | `test` + `e2e` (full suite) | Yes | Full gate before human QA |
-| **main** | `test` + `e2e` (full suite) | Yes | Production gate |
+| Branch | Required CI Checks | PR Required | Approvals | Notes |
+|--------|-------------------|-------------|-----------|-------|
+| **develop** | `test` | Yes | 0 | Fast gate for AI agent work |
+| **test** | `test` | Yes | 0 | Full gate, auto-merge from develop |
+| **main** | None | Yes | 1 (Tom) | Manual production gate |
 
-**All CI gates are enforced.** Lint errors, type errors, and test failures will block deployment. There are no `continue-on-error` flags in the pipeline.
+**All CI gates are enforced.** Lint errors, type errors, and test failures will block deployment.
 
 ### AI Agent Workflow (Vibe Coding)
 ```
-1. vibe-kanban creates workspace → feature branch (vk/xxxx-...)
-2. AI agent works on feature branch
-3. PR to develop → unit tests gate → merge
-4. develop auto-deploys to Dev VPS
-5. PR to staging → unit tests + E2E gate → merge
-6. staging auto-deploys to Test VPS → smoke tests
-7. Tom tests on Test VPS
-8. PR to main → merge → retag :test → :latest → deploy Prod
+1. Agent creates feature branch and opens PR to develop
+2. ci-pr.yml runs: lint, typecheck, unit, pact consumer, build check → auto-merge
+3. deploy-dev.yml: build :dev + deploy Dev → auto-create PR develop→test
+4. ci-test.yml runs full suite on test PR → auto-merge
+5. deploy-test.yml: build :test + deploy Test → E2E runs (non-blocking)
+6. Tom creates PR test→main, reviews on test.divestreams.com → merges
+7. deploy-prod.yml: retag :test→:latest → deploy Production
 ```
+
+### Auto-Promotion Prerequisites
+Before the auto-promotion pipeline works, these GitHub settings must be configured:
+
+1. **PROMOTION_PAT secret** — Fine-grained PAT with Contents + Pull Requests read/write
+2. **Auto-merge enabled** — Settings → General → Pull Requests → Allow auto-merge
+3. **Main branch requires 1 approval** — Settings → Branches → main → Required approving reviews: 1
+4. **Labels** — `auto-promotion` label created for auto-promotion PRs
 
 ### Checking CI Failures
 ```bash
@@ -259,7 +444,7 @@ Set in `.env` files on each VPS:
 ### GitHub Repository Configuration
 **Environments:** `dev`, `test`, `production`
 **Environment Variables:** `DEV_VPS_ID`, `TEST_VPS_ID`, `PROD_VPS_ID`, `TEST_VPS_IP`
-**Secrets:** `HOSTINGER_API_TOKEN`, `TEST_VPS_SSH_KEY` (environment-level)
+**Secrets:** `HOSTINGER_API_TOKEN`, `TEST_VPS_SSH_KEY` (environment-level), `PROMOTION_PAT` (repo-level)
 
 ### Check VPS Status (Monitoring Only)
 ```

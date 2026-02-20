@@ -30,7 +30,8 @@ export interface PaginationOptions {
   page?: number;
 }
 
-export interface PaginatedResult<T> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export interface PaginatedResult<_T = unknown> {
   total: number;
 }
 

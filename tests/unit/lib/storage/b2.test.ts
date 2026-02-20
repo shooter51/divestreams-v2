@@ -7,14 +7,14 @@ const mockSend = vi.fn().mockResolvedValue({});
 vi.mock("@aws-sdk/client-s3", () => {
   return {
     S3Client: class MockS3Client {
-      constructor(public config: any) {}
+      constructor(public config: unknown) {}
       send = mockSend;
     },
     PutObjectCommand: class MockPutObjectCommand {
-      constructor(public input: any) {}
+      constructor(public input: unknown) {}
     },
     DeleteObjectCommand: class MockDeleteObjectCommand {
-      constructor(public input: any) {}
+      constructor(public input: unknown) {}
     },
   };
 });
@@ -59,7 +59,7 @@ describe.skip("B2 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
       const client = getS3Client();
 
       expect(client).not.toBeNull();
-      expect((client as any).config).toEqual({
+      expect((client as unknown).config).toEqual({
         endpoint: "https://s3.us-west-000.backblazeb2.com",
         region: "us-west-000",
         credentials: {

@@ -358,7 +358,7 @@ export default function SiteContactPage() {
     );
   }
 
-  const { contactInfo, organization } = loaderData;
+  const { contactInfo } = loaderData;
 
   // Parse business hours into array for display
   const parseHours = (hoursString: string | null | undefined): string[] => {
@@ -444,7 +444,7 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.name
                       ? "#ef4444"
                       : "var(--accent-color)",
-                    // @ts-ignore
+                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.name ? "true" : undefined}
@@ -483,7 +483,7 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.email
                       ? "#ef4444"
                       : "var(--accent-color)",
-                    // @ts-ignore
+                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.email ? "true" : undefined}
@@ -521,7 +521,7 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.phone
                       ? "#ef4444"
                       : "var(--accent-color)",
-                    // @ts-ignore
+                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.phone ? "true" : undefined}
@@ -559,7 +559,7 @@ export default function SiteContactPage() {
                     borderColor: actionData?.errors?.message
                       ? "#ef4444"
                       : "var(--accent-color)",
-                    // @ts-ignore
+                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
                   }}
                   aria-invalid={actionData?.errors?.message ? "true" : undefined}

@@ -29,39 +29,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Fix Test VPS project name (one-time fix)
-        if: github.event.inputs.environment == 'test'
-        env:
-          TEST_VPS_IP: 76.13.28.28
-          SSH_KEY: ${{ secrets.TEST_VPS_SSH_KEY }}
-        run: |
-          echo "Checking and fixing Test VPS docker project name if needed..."
-
-          # Create SSH key file
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/test_vps_key
-          chmod 600 ~/.ssh/test_vps_key
-
-          # SSH to Test VPS and check/fix project name
-          ssh -i ~/.ssh/test_vps_key -o StrictHostKeyChecking=no root@$TEST_VPS_IP << 'ENDSSH'
-            set -e
-
-            if [ -d "/docker/divestreams-staging" ] && [ ! -d "/docker/divestreams-test" ]; then
-              echo "Found old project name, renaming..."
-              cd /docker/divestreams-staging
-              docker compose -p divestreams-staging down || true
-              cd /docker
-              mv divestreams-staging divestreams-test
-              echo "✅ Renamed /docker/divestreams-staging → /docker/divestreams-test"
-            else
-              echo "✅ Project name already correct (divestreams-test exists)"
-            fi
-          ENDSSH
-
-          # Cleanup
-          rm -f ~/.ssh/test_vps_key
-          echo "✅ VPS check complete"
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -120,28 +87,39 @@ jobs:
             -H "Content-Type: application/json" \
             --fail
 
-      - name: Wait for deployment to stabilize
-        run: sleep 45
-
-      - name: Verify containers are running
+      - name: Wait for containers to start (retry up to 120s)
         run: |
-          echo "Checking container status..."
-          RESPONSE=$(curl -s -X GET \
-            "https://developers.hostinger.com/api/vps/v1/virtual-machines/${{ steps.config.outputs.vps_id }}/docker/${{ steps.config.outputs.project }}/containers" \
-            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
-            -H "Content-Type: application/json")
+          EXPECTED=${{ steps.config.outputs.min_containers }}
+          VPS_ID=${{ steps.config.outputs.vps_id }}
+          PROJECT=${{ steps.config.outputs.project }}
+          MAX_ATTEMPTS=12
+          WAIT=10
 
-          echo "$RESPONSE" | jq .
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Check $i/$MAX_ATTEMPTS (waiting ${WAIT}s between checks)..."
+            RESPONSE=$(curl -s -X GET \
+              "https://developers.hostinger.com/api/vps/v1/virtual-machines/${VPS_ID}/docker/${PROJECT}/containers" \
+              -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+              -H "Content-Type: application/json")
 
-          RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
-          echo "Running containers: $RUNNING_COUNT"
+            RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
+            TOTAL_COUNT=$(echo "$RESPONSE" | jq 'length')
+            echo "  Containers: $RUNNING_COUNT/$TOTAL_COUNT running (need $EXPECTED)"
 
-          if [ "$RUNNING_COUNT" -lt ${{ steps.config.outputs.min_containers }} ]; then
-            echo "ERROR: Expected ${{ steps.config.outputs.min_containers }} containers running, found $RUNNING_COUNT"
-            exit 1
-          fi
+            if [ "$RUNNING_COUNT" -ge "$EXPECTED" ]; then
+              echo "$RESPONSE" | jq .
+              echo "✅ All containers are running"
+              exit 0
+            fi
 
-          echo "✅ All containers are running"
+            if [ "$i" -eq "$MAX_ATTEMPTS" ]; then
+              echo "$RESPONSE" | jq .
+              echo "ERROR: Expected $EXPECTED containers running, found $RUNNING_COUNT after $((MAX_ATTEMPTS * WAIT))s"
+              exit 1
+            fi
+
+            sleep $WAIT
+          done
 
       - name: Deployment Summary
         run: |

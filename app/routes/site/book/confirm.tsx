@@ -16,7 +16,12 @@ import { useLoaderData, Link } from "react-router";
 import { eq } from "drizzle-orm";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
-import { getBookingDetails, type BookingDetails } from "../../../../lib/db/mutations.public";
+import {
+  getBookingDetails,
+  type BookingDetails,
+  getEnrollmentDetails,
+  type EnrollmentDetails,
+} from "../../../../lib/db/mutations.public";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
 import { StatusBadge, type BadgeStatus, Badge } from "../../../components/ui";
@@ -26,7 +31,11 @@ import { StatusBadge, type BadgeStatus, Badge } from "../../../components/ui";
 // ============================================================================
 
 interface LoaderData {
-  booking: BookingDetails;
+  confirmationType: "booking" | "enrollment";
+  booking?: BookingDetails;
+  enrollment?: EnrollmentDetails;
+  bookingRef?: string;
+  participants?: number;
   organizationName: string;
   isLoggedIn: boolean;
 }
@@ -38,9 +47,14 @@ interface LoaderData {
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: "Booking Confirmation" }];
 
+  const ref = data.confirmationType === "enrollment"
+    ? data.bookingRef || "Enrollment"
+    : data.booking?.bookingNumber || "";
+  const label = data.confirmationType === "enrollment" ? "Enrollment" : "Booking";
+
   return [
-    { title: `Booking Confirmed - ${data.booking.bookingNumber}` },
-    { name: "description", content: `Your booking ${data.booking.bookingNumber} has been confirmed` },
+    { title: `${label} Confirmed - ${ref}` },
+    { name: "description", content: `Your ${label.toLowerCase()} ${ref} has been confirmed` },
   ];
 };
 
@@ -53,10 +67,11 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
   const host = url.host;
   const subdomain = getSubdomainFromHost(host);
 
+  const confirmationType = (url.searchParams.get("type") as "enrollment") || "booking";
   const bookingId = url.searchParams.get("id");
   const bookingRef = url.searchParams.get("ref");
 
-  if (!bookingId || !bookingRef) {
+  if (!bookingId) {
     throw new Response("Missing booking information", { status: 400 });
   }
 
@@ -77,13 +92,6 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
     throw new Response("Organization not found", { status: 404 });
   }
 
-  // Get booking details
-  const booking = await getBookingDetails(org.id, bookingId, bookingRef);
-
-  if (!booking) {
-    throw new Response("Booking not found", { status: 404 });
-  }
-
   // Check if customer is logged in
   const cookieHeader = request.headers.get("Cookie") || "";
   const cookies = Object.fromEntries(
@@ -98,7 +106,36 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
   const sessionToken = cookies["customer_session"];
   const customer = sessionToken ? await getCustomerBySession(sessionToken) : null;
 
+  if (confirmationType === "enrollment") {
+    // Training course enrollment confirmation
+    const enrollment = await getEnrollmentDetails(org.id, bookingId);
+
+    if (!enrollment) {
+      throw new Response("Enrollment not found", { status: 404 });
+    }
+
+    return {
+      confirmationType: "enrollment",
+      enrollment,
+      bookingRef: bookingRef || undefined,
+      organizationName: org.name,
+      isLoggedIn: !!customer,
+    };
+  }
+
+  // Standard booking confirmation
+  if (!bookingRef) {
+    throw new Response("Missing booking reference", { status: 400 });
+  }
+
+  const booking = await getBookingDetails(org.id, bookingId, bookingRef);
+
+  if (!booking) {
+    throw new Response("Booking not found", { status: 404 });
+  }
+
   return {
+    confirmationType: "booking",
     booking,
     organizationName: org.name,
     isLoggedIn: !!customer,
@@ -110,7 +147,71 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
 // ============================================================================
 
 export default function BookingConfirmationPage() {
-  const { booking, organizationName, isLoggedIn } = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>();
+  const { organizationName, isLoggedIn } = data;
+
+  // Derive display values based on confirmation type
+  const isEnrollment = data.confirmationType === "enrollment";
+  const booking = data.booking;
+  const enrollment = data.enrollment;
+
+  const displayRef = isEnrollment
+    ? data.bookingRef || "Enrolled"
+    : booking?.bookingNumber || "";
+
+  const displayStatus = isEnrollment
+    ? enrollment!.status
+    : booking!.status;
+
+  const displayPaymentStatus = isEnrollment
+    ? enrollment!.paymentStatus
+    : booking!.paymentStatus;
+
+  const displayCustomer = isEnrollment
+    ? enrollment!.customer
+    : booking!.customer;
+
+  const displayItemName = isEnrollment
+    ? enrollment!.course.name
+    : booking!.trip.tourName;
+
+  const displayDate = isEnrollment
+    ? enrollment!.session.startDate
+    : booking!.trip.date;
+
+  const displayStartTime = isEnrollment
+    ? enrollment!.session.startTime || ""
+    : booking!.trip.startTime;
+
+  const displayEndTime = isEnrollment
+    ? enrollment!.session.endDate || null
+    : booking!.trip.endTime;
+
+  const displayTotal = isEnrollment
+    ? enrollment!.price
+    : booking!.total;
+
+  const displayCurrency = isEnrollment
+    ? enrollment!.currency
+    : booking!.currency;
+
+  const displaySubtotal = isEnrollment
+    ? enrollment!.price
+    : booking!.subtotal;
+
+  const displayTax = isEnrollment ? "0" : booking!.tax;
+
+  const displaySpecialRequests = isEnrollment
+    ? enrollment!.notes
+    : booking!.specialRequests;
+
+  const displayCreatedAt = isEnrollment
+    ? enrollment!.enrolledAt
+    : booking!.createdAt;
+
+  const displayParticipants = isEnrollment
+    ? 1
+    : booking!.participants;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--background-color)" }}>
@@ -125,9 +226,11 @@ export default function BookingConfirmationPage() {
               <CheckIcon className="w-8 h-8" />
             </div>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">Booking Confirmed!</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">
+            {isEnrollment ? "Enrollment Confirmed!" : "Booking Confirmed!"}
+          </h1>
           <p className="opacity-90">
-            Thank you for your booking with {organizationName}
+            Thank you for your {isEnrollment ? "enrollment" : "booking"} with {organizationName}
           </p>
         </div>
       </div>
@@ -143,12 +246,14 @@ export default function BookingConfirmationPage() {
           }}
         >
           <div className="text-center mb-6 pb-6 border-b" style={{ borderColor: "var(--color-border)" }}>
-            <p className="text-sm opacity-75 mb-1">Booking Reference</p>
+            <p className="text-sm opacity-75 mb-1">
+              {isEnrollment ? "Enrollment Reference" : "Booking Reference"}
+            </p>
             <p
               className="text-3xl font-bold font-mono tracking-wider"
               style={{ color: "var(--primary-color)" }}
             >
-              {booking.bookingNumber}
+              {displayRef}
             </p>
             <p className="text-sm opacity-60 mt-2">
               Please save this reference for your records
@@ -157,47 +262,59 @@ export default function BookingConfirmationPage() {
 
           {/* Booking Status */}
           <div className="flex items-center justify-center gap-4 mb-6">
-            <StatusBadge status={booking.status as BadgeStatus} size="md" />
-            <PaymentBadge status={booking.paymentStatus} />
+            <StatusBadge status={displayStatus as BadgeStatus} size="md" />
+            <PaymentBadge status={displayPaymentStatus} />
           </div>
 
-          {/* Trip Details */}
+          {/* Details */}
           <div className="space-y-4">
             <h2 className="font-semibold text-lg" style={{ color: "var(--text-color)" }}>
-              Booking Details
+              {isEnrollment ? "Course Details" : "Booking Details"}
             </h2>
 
-            {/* Trip Info */}
+            {/* Item Info */}
             <div
               className="p-4 rounded-lg flex gap-4"
               style={{ backgroundColor: "var(--accent-color)" }}
             >
-              {booking.trip.primaryImage && (
+              {!isEnrollment && booking?.trip.primaryImage && (
                 <img
                   src={booking.trip.primaryImage}
-                  alt={booking.trip.tourName}
+                  alt={displayItemName}
                   className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
                 />
               )}
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-lg" style={{ color: "var(--text-color)" }}>
-                  {booking.trip.tourName}
+                  {displayItemName}
                 </h3>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm opacity-75">
                   <span className="flex items-center gap-1.5">
                     <CalendarIcon className="w-4 h-4" />
-                    {formatDate(booking.trip.date)}
+                    {formatDate(displayDate)}
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <ClockIcon className="w-4 h-4" />
-                    {formatTime(booking.trip.startTime)}
-                    {booking.trip.endTime && ` - ${formatTime(booking.trip.endTime)}`}
-                  </span>
+                  {displayStartTime && (
+                    <span className="flex items-center gap-1.5">
+                      <ClockIcon className="w-4 h-4" />
+                      {formatTime(displayStartTime)}
+                      {displayEndTime && ` - ${formatTime(displayEndTime)}`}
+                    </span>
+                  )}
                   <span className="flex items-center gap-1.5">
                     <UsersIcon className="w-4 h-4" />
-                    {booking.participants} participant{booking.participants > 1 ? "s" : ""}
+                    {displayParticipants} participant{displayParticipants > 1 ? "s" : ""}
                   </span>
                 </div>
+                {isEnrollment && enrollment?.session.location && (
+                  <p className="text-sm opacity-75 mt-1">
+                    Location: {enrollment.session.location}
+                  </p>
+                )}
+                {isEnrollment && enrollment?.session.instructorName && (
+                  <p className="text-sm opacity-75 mt-1">
+                    Instructor: {enrollment.session.instructorName}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -206,30 +323,30 @@ export default function BookingConfirmationPage() {
               <div>
                 <p className="opacity-60 mb-1">Booked By</p>
                 <p className="font-medium">
-                  {booking.customer.firstName} {booking.customer.lastName}
+                  {displayCustomer.firstName} {displayCustomer.lastName}
                 </p>
               </div>
               <div>
                 <p className="opacity-60 mb-1">Email</p>
-                <p className="font-medium">{booking.customer.email}</p>
+                <p className="font-medium">{displayCustomer.email}</p>
               </div>
-              {booking.customer.phone && (
+              {displayCustomer.phone && (
                 <div>
                   <p className="opacity-60 mb-1">Phone</p>
-                  <p className="font-medium">{booking.customer.phone}</p>
+                  <p className="font-medium">{displayCustomer.phone}</p>
                 </div>
               )}
               <div>
-                <p className="opacity-60 mb-1">Booking Date</p>
-                <p className="font-medium">{formatDateTime(booking.createdAt)}</p>
+                <p className="opacity-60 mb-1">{isEnrollment ? "Enrollment Date" : "Booking Date"}</p>
+                <p className="font-medium">{formatDateTime(displayCreatedAt)}</p>
               </div>
             </div>
 
             {/* Special Requests */}
-            {booking.specialRequests && (
+            {displaySpecialRequests && (
               <div className="text-sm">
-                <p className="opacity-60 mb-1">Special Requests</p>
-                <p className="font-medium">{booking.specialRequests}</p>
+                <p className="opacity-60 mb-1">{isEnrollment ? "Notes" : "Special Requests"}</p>
+                <p className="font-medium">{displaySpecialRequests}</p>
               </div>
             )}
 
@@ -241,18 +358,18 @@ export default function BookingConfirmationPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="opacity-75">Subtotal</span>
-                  <span>{formatCurrency(booking.subtotal, booking.currency)}</span>
+                  <span>{formatCurrency(displaySubtotal, displayCurrency)}</span>
                 </div>
-                {parseFloat(booking.tax) > 0 && (
+                {parseFloat(displayTax) > 0 && (
                   <div className="flex justify-between">
                     <span className="opacity-75">Tax</span>
-                    <span>{formatCurrency(booking.tax, booking.currency)}</span>
+                    <span>{formatCurrency(displayTax, displayCurrency)}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-semibold text-lg pt-2 border-t" style={{ borderColor: "var(--color-border)" }}>
                   <span>Total</span>
                   <span style={{ color: "var(--primary-color)" }}>
-                    {formatCurrency(booking.total, booking.currency)}
+                    {formatCurrency(displayTotal, displayCurrency)}
                   </span>
                 </div>
               </div>
@@ -281,8 +398,8 @@ export default function BookingConfirmationPage() {
             </h3>
             <p className="text-sm opacity-75">
               A confirmation email has been sent to{" "}
-              <span className="font-medium">{booking.customer.email}</span>. Please check your inbox
-              (and spam folder) for your booking details.
+              <span className="font-medium">{displayCustomer.email}</span>. Please check your inbox
+              (and spam folder) for your {isEnrollment ? "enrollment" : "booking"} details.
             </p>
           </div>
         </div>
@@ -307,17 +424,21 @@ export default function BookingConfirmationPage() {
             />
             <NextStep
               number={2}
-              title="Prepare for Your Trip"
-              description="Review any equipment or documentation requirements before your booking date."
+              title={isEnrollment ? "Prepare for Your Course" : "Prepare for Your Trip"}
+              description={isEnrollment
+                ? "Review any prerequisites, equipment, or documentation requirements before your course start date."
+                : "Review any equipment or documentation requirements before your booking date."}
             />
-            <NextStep
-              number={3}
-              title="Arrive On Time"
-              description={`Please arrive at least 15 minutes before your scheduled time of ${formatTime(booking.trip.startTime)}.`}
-            />
-            {booking.paymentStatus === "pending" && (
+            {displayStartTime && (
               <NextStep
-                number={4}
+                number={3}
+                title="Arrive On Time"
+                description={`Please arrive at least 15 minutes before your scheduled time of ${formatTime(displayStartTime)}.`}
+              />
+            )}
+            {displayPaymentStatus === "pending" && (
+              <NextStep
+                number={displayStartTime ? 4 : 3}
                 title="Complete Payment"
                 description="Payment will be collected on-site. Please bring a valid payment method."
               />
@@ -338,7 +459,7 @@ export default function BookingConfirmationPage() {
             </Link>
           ) : (
             <Link
-              to={`/site/register?email=${encodeURIComponent(booking.customer.email)}`}
+              to={`/site/register?email=${encodeURIComponent(displayCustomer.email)}`}
               className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "var(--primary-color)" }}
             >

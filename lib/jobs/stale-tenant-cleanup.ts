@@ -20,7 +20,7 @@ import {
   subscription,
 } from "../db/schema";
 import { sendEmail } from "../email";
-import { eq, and, lt, sql, isNull, inArray } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { getEmailQueue } from "./index";
 import { jobLogger } from "../logger";
 
@@ -477,7 +477,7 @@ export async function cleanupStaleTenants(): Promise<{
  * Schedule the cleanup job to run daily
  */
 export async function scheduleStaleTenantCleanup(): Promise<void> {
-  const queue = getEmailQueue(); // Re-use maintenance queue via email queue pattern
+  getEmailQueue(); // Re-use maintenance queue via email queue pattern
 
   // We'll add to the maintenance queue in the index.ts
   jobLogger.info("Stale tenant cleanup job registered");

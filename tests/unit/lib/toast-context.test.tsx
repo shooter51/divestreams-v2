@@ -9,13 +9,25 @@
  * - Callback functionality
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { render, screen } from "@testing-library/react";
 import { renderHook, act } from "@testing-library/react";
 import { ToastProvider, useToast } from "../../../lib/toast-context";
 import type { ReactNode } from "react";
 
 describe("Toast Context", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    // Flush all pending timers before environment teardown
+    act(() => {
+      vi.runAllTimers();
+    });
+    vi.useRealTimers();
+  });
+
   describe("ToastProvider", () => {
     it("renders children correctly", () => {
       render(
@@ -134,10 +146,9 @@ describe("Toast Context", () => {
       });
 
       expect(screen.getByText("Custom duration")).toBeInTheDocument();
-      // Duration is passed to the Toast component, which is tested in Toast.test.tsx
     });
 
-    it("dismissToast removes a specific toast", async () => {
+    it("dismissToast removes a specific toast", () => {
       const { result } = renderHook(() => useToast(), { wrapper });
 
       // Add two toasts
@@ -155,7 +166,12 @@ describe("Toast Context", () => {
         dismissButtons[0].click();
       });
 
-      // First toast should start exit animation, second should still be visible
+      // Advance past the 300ms dismiss animation timer
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+
+      // Second toast should still be visible
       expect(screen.getByText("Toast 2")).toBeInTheDocument();
     });
 
@@ -236,6 +252,11 @@ describe("Toast Context", () => {
         dismissButtons[0].click();
       });
 
+      // Advance past dismiss animation
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+
       // Second toast should still be visible
       expect(screen.getByText("Toast B")).toBeInTheDocument();
     });
@@ -259,8 +280,10 @@ describe("Toast Context", () => {
         dismissButtons.forEach((button) => button.click());
       });
 
-      // All toasts should enter exit animation (still in DOM but fading out)
-      // After animation completes, they would be removed
+      // Advance past all dismiss animation timers
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
     });
   });
 

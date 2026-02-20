@@ -1,5 +1,5 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
+import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { useState } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { boatSchema, validateFormData, getFormValues } from "../../../../lib/validation";
@@ -41,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const validation = validateFormData(formData, boatSchema);
-  console.log("[boats/new] Validation result:", validation.success, validation.success ? "" : JSON.stringify((validation as any).errors));
+  console.log("[boats/new] Validation result:", validation.success, validation.success ? "" : JSON.stringify((validation as { errors: unknown }).errors));
 
   if (!validation.success) {
     console.log("[boats/new] Validation failed, returning errors");

@@ -14,7 +14,7 @@
  * - Creates booking with status "pending_payment"
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type {
   LoaderFunctionArgs,
   ActionFunctionArgs,
@@ -24,7 +24,6 @@ import {
   useLoaderData,
   useActionData,
   useNavigation,
-  useSearchParams,
   Form,
   Link,
   redirect,
@@ -40,6 +39,7 @@ import {
   organization,
   trainingCourses,
   trainingSessions,
+  trainingEnrollments,
 } from "../../../../lib/db/schema";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
@@ -333,7 +333,9 @@ export async function loader({
     };
   } else {
     // Load course details - first try training_courses, then fall back to tours
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let courseData: any = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let sessionsData: any[] = [];
     let isTrainingCourse = false;
 
@@ -589,6 +591,188 @@ export async function action({
     };
   }
 
+  // For courses, check if this is a training course (session from trainingSessions table)
+  // vs a tours-based course (session from trips table)
+  if (type === "course" && sessionId) {
+    const [trainingSession] = await db
+      .select({
+        id: trainingSessions.id,
+        courseId: trainingSessions.courseId,
+        startDate: trainingSessions.startDate,
+        startTime: trainingSessions.startTime,
+        maxStudents: trainingSessions.maxStudents,
+        status: trainingSessions.status,
+      })
+      .from(trainingSessions)
+      .where(
+        and(
+          eq(trainingSessions.organizationId, org.id),
+          eq(trainingSessions.id, sessionId),
+          eq(trainingSessions.status, "scheduled")
+        )
+      )
+      .limit(1);
+
+    if (trainingSession) {
+      // This is a training course - use enrollment flow
+      // Find or create customer
+      let enrollCustomerId = customerId;
+
+      if (!customerId) {
+        const [existingCustomer] = await db
+          .select({ id: customers.id })
+          .from(customers)
+          .where(
+            and(
+              eq(customers.organizationId, org.id),
+              eq(customers.email, email!)
+            )
+          )
+          .limit(1);
+
+        if (existingCustomer) {
+          await db
+            .update(customers)
+            .set({
+              firstName: firstName!,
+              lastName: lastName!,
+              phone,
+              updatedAt: new Date(),
+            })
+            .where(eq(customers.id, existingCustomer.id));
+          enrollCustomerId = existingCustomer.id;
+        } else {
+          const [newCustomer] = await db
+            .insert(customers)
+            .values({
+              organizationId: org.id,
+              email: email!,
+              firstName: firstName!,
+              lastName: lastName!,
+              phone,
+            })
+            .returning({ id: customers.id });
+          enrollCustomerId = newCustomer.id;
+        }
+      }
+
+      // Get course details for pricing
+      const [courseData] = await db
+        .select({
+          id: trainingCourses.id,
+          name: trainingCourses.name,
+          price: trainingCourses.price,
+          currency: trainingCourses.currency,
+          maxStudents: trainingCourses.maxStudents,
+        })
+        .from(trainingCourses)
+        .where(eq(trainingCourses.id, trainingSession.courseId))
+        .limit(1);
+
+      if (!courseData) {
+        return { errors: { _form: "Course not found" } };
+      }
+
+      // Check capacity
+      const [enrollmentCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(trainingEnrollments)
+        .where(
+          and(
+            eq(trainingEnrollments.organizationId, org.id),
+            eq(trainingEnrollments.sessionId, sessionId),
+            sql`${trainingEnrollments.status} NOT IN ('dropped', 'failed')`
+          )
+        );
+
+      const maxStudents =
+        trainingSession.maxStudents || courseData.maxStudents;
+      const currentEnrollments = Number(enrollmentCount?.count || 0);
+
+      if (participants > maxStudents - currentEnrollments) {
+        return {
+          errors: {
+            participants: `Only ${maxStudents - currentEnrollments} spots available`,
+          },
+        };
+      }
+
+      // Check session is in the future
+      const sessionDate = new Date(trainingSession.startDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (sessionDate < today) {
+        return { errors: { _form: "Cannot book past sessions" } };
+      }
+
+      // Create enrollment(s) - one per participant
+      const enrollmentIds: string[] = [];
+      for (let i = 0; i < participants; i++) {
+        const [enrollment] = await db
+          .insert(trainingEnrollments)
+          .values({
+            organizationId: org.id,
+            sessionId,
+            customerId: enrollCustomerId,
+            status: "enrolled",
+            paymentStatus: "pending",
+            amountPaid: "0",
+            notes: specialRequests || null,
+          })
+          .returning({ id: trainingEnrollments.id });
+        enrollmentIds.push(enrollment.id);
+      }
+
+      // Update enrolled count on session
+      await db
+        .update(trainingSessions)
+        .set({
+          enrolledCount: sql`${trainingSessions.enrolledCount} + ${participants}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(trainingSessions.id, sessionId));
+
+      // Generate a booking reference for the confirmation page
+      const bookingRef = generateBookingNumber();
+
+      // Queue confirmation email (fire-and-forget)
+      try {
+        const { getEmailQueue } = await import("../../../../lib/jobs");
+        const emailQueue = getEmailQueue();
+        await emailQueue.add(
+          "booking-confirmation",
+          {
+            to: email || "",
+            customerName: `${firstName || ""} ${lastName || ""}`.trim(),
+            tripName: courseData.name,
+            tripDate: trainingSession.startDate,
+            tripTime: trainingSession.startTime || "",
+            participants,
+            total: (parseFloat(courseData.price) * participants).toFixed(2),
+            bookingNumber: bookingRef,
+            shopName: org.name,
+            tenantId: org.id,
+          },
+          {
+            attempts: 3,
+            backoff: { type: "exponential", delay: 1000 },
+          }
+        );
+      } catch (emailError) {
+        console.error(
+          "Failed to queue enrollment confirmation email:",
+          emailError
+        );
+      }
+
+      // Redirect to confirmation page with enrollment info
+      return redirect(
+        `/site/book/confirm?type=enrollment&id=${enrollmentIds[0]}&ref=${bookingRef}`
+      );
+    }
+  }
+
   // Determine the trip ID to book
   const tripId = type === "trip" ? id! : sessionId;
 
@@ -766,6 +950,7 @@ export async function action({
           paymentStatus: "pending",
           specialRequests: specialRequests || null,
           equipmentRental:
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             equipmentRental.length > 0 ? (equipmentRental as any) : null,
           source: "website",
         })
@@ -840,8 +1025,6 @@ export default function BookingPage() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const [searchParams] = useSearchParams();
-
   const isSubmitting = navigation.state === "submitting";
 
   const [participants, setParticipants] = useState(1);

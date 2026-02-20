@@ -98,6 +98,7 @@ test.describe("KAN-594: Admin Subscription Upgrade", () => {
     await page.click('button:has-text("Confirm")'); // If confirmation dialog exists
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   test("database verification: planId is not NULL after upgrade", async ({ page }) => {
     // This test would require database access
     // In a real implementation, this would query the database directly
@@ -106,7 +107,7 @@ test.describe("KAN-594: Admin Subscription Upgrade", () => {
     test.skip(true, "Requires direct database access or API endpoint");
   });
 
-  test("cache invalidation: tenant sees changes immediately", async ({ page, browser }) => {
+  test("cache invalidation: tenant sees changes immediately", async ({ page }) => {
     // Step 1: Login as tenant with free plan
     const tenantSlug = "demo"; // Use existing demo tenant
     await page.goto(`https://${tenantSlug}.divestreams.com/auth/login`);
@@ -122,6 +123,7 @@ test.describe("KAN-594: Admin Subscription Upgrade", () => {
 });
 
 test.describe("KAN-594: Migration Verification", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   test("verify no NULL planIds exist after migration", async ({ request }) => {
     // This would call an admin API endpoint that checks database state
     test.skip(true, "Requires admin API endpoint for database verification");

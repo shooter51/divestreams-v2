@@ -25,13 +25,13 @@ describe("requirePlatformAdmin", () => {
         id: "user-1",
         name: "Platform Admin",
         email: "admin@divestreams.com",
-      } as any,
-      session: { id: "session-1" } as any,
+      } as Record<string, unknown>,
+      session: { id: "session-1" } as Record<string, unknown>,
       membership: {
         role: role,
         userId: "user-1",
         organizationId: "platform-org-id",
-      } as any,
+      } as Record<string, unknown>,
       isOwner,
       isAdmin,
     };
@@ -191,9 +191,9 @@ describe("requirePlatformAdmin", () => {
   describe("Edge cases", () => {
     it("should handle context with false isAdmin explicitly", () => {
       const context: PlatformContext = {
-        user: { id: "user-1", name: "Test", email: "test@example.com" } as any,
-        session: { id: "session-1" } as any,
-        membership: { role: "staff" } as any,
+        user: { id: "user-1", name: "Test", email: "test@example.com" } as Record<string, unknown>,
+        session: { id: "session-1" } as Record<string, unknown>,
+        membership: { role: "staff" } as Record<string, unknown>,
         isOwner: false,
         isAdmin: false,
       };
@@ -203,9 +203,9 @@ describe("requirePlatformAdmin", () => {
 
     it("should handle context with true isAdmin explicitly", () => {
       const context: PlatformContext = {
-        user: { id: "user-1", name: "Test", email: "test@example.com" } as any,
-        session: { id: "session-1" } as any,
-        membership: { role: "admin" } as any,
+        user: { id: "user-1", name: "Test", email: "test@example.com" } as Record<string, unknown>,
+        session: { id: "session-1" } as Record<string, unknown>,
+        membership: { role: "admin" } as Record<string, unknown>,
         isOwner: false,
         isAdmin: true,
       };
@@ -215,17 +215,17 @@ describe("requirePlatformAdmin", () => {
 
     it("should work regardless of isOwner if isAdmin is true", () => {
       const contextOwner: PlatformContext = {
-        user: { id: "user-1", name: "Test", email: "test@example.com" } as any,
-        session: { id: "session-1" } as any,
-        membership: { role: "owner" } as any,
+        user: { id: "user-1", name: "Test", email: "test@example.com" } as Record<string, unknown>,
+        session: { id: "session-1" } as Record<string, unknown>,
+        membership: { role: "owner" } as Record<string, unknown>,
         isOwner: true,
         isAdmin: true,
       };
 
       const contextAdmin: PlatformContext = {
-        user: { id: "user-2", name: "Test", email: "test@example.com" } as any,
-        session: { id: "session-2" } as any,
-        membership: { role: "admin" } as any,
+        user: { id: "user-2", name: "Test", email: "test@example.com" } as Record<string, unknown>,
+        session: { id: "session-2" } as Record<string, unknown>,
+        membership: { role: "admin" } as Record<string, unknown>,
         isOwner: false,
         isAdmin: true,
       };

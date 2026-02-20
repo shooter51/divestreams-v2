@@ -4,7 +4,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, Form, useRouteLoaderData } from "react-router";
+import { useLoaderData, useFetcher, useRouteLoaderData } from "react-router";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db/index";
@@ -446,6 +446,12 @@ export async function action({ request }: ActionFunctionArgs) {
         errors.push(`Row ${i + 1}: "${row.name}" has an invalid category. Valid categories are: ${validCategories.join(", ")}. Setting to "other".`);
       }
 
+      const parsedStock = parseInt(row.stockquantity);
+      if (parsedStock < 0) {
+        errors.push(`Row ${i + 1}: "${row.name}" has a negative stock quantity (${parsedStock}). Stock must be 0 or greater.`);
+        continue;
+      }
+
       try {
         await db.insert(tables.products).values({
           organizationId, // Use actual organization UUID
@@ -454,7 +460,7 @@ export async function action({ request }: ActionFunctionArgs) {
           category: validCategories.includes(category) ? category : "other",
           price: row.price,
           costPrice: row.costprice || null,
-          stockQuantity: parseInt(row.stockquantity),
+          stockQuantity: parsedStock,
           lowStockThreshold: row.lowstockthreshold ? parseInt(row.lowstockthreshold) : 5,
           description: row.description || null,
           isActive: row.isactive?.toLowerCase() !== "false",
@@ -549,23 +555,6 @@ function isOnSale(
   if (product.saleStartDate && new Date(product.saleStartDate) > now) return false;
   if (product.saleEndDate && new Date(product.saleEndDate) < now) return false;
   return true;
-}
-
-// Helper to get the effective price (sale price if on sale, otherwise regular price)
-// Pass current time as parameter to avoid hydration mismatch
-function getEffectivePrice(
-  product: {
-    price: string;
-    salePrice?: string | null;
-    saleStartDate?: Date | string | null;
-    saleEndDate?: Date | string | null;
-  },
-  now: Date
-): number {
-  if (isOnSale(product, now)) {
-    return Number(product.salePrice);
-  }
-  return Number(product.price);
 }
 
 // Helper to format date for datetime-local input

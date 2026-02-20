@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/gallery/index";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as gallery from "../../../../../lib/db/gallery.server";
@@ -19,7 +18,7 @@ describe("app/routes/tenant/gallery/index.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -51,7 +50,7 @@ describe("app/routes/tenant/gallery/index.tsx", () => {
         },
       ];
 
-      vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue(mockAlbums as any);
+      vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue(mockAlbums as unknown);
 
       const request = new Request("http://test.com/tenant/gallery");
       const result = await loader({ request, params: {}, context: {} });
@@ -85,7 +84,7 @@ describe("app/routes/tenant/gallery/index.tsx", () => {
         },
       ];
 
-      vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue(mockAlbums as any);
+      vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue(mockAlbums as unknown);
 
       const request = new Request("http://test.com/tenant/gallery");
       const result = await loader({ request, params: {}, context: {} });
@@ -100,7 +99,7 @@ describe("app/routes/tenant/gallery/index.tsx", () => {
         { id: "album-2", name: "Private Album", isPublic: false, imageCount: 5 },
       ];
 
-      vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue(mockAlbums as any);
+      vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue(mockAlbums as unknown);
 
       const request = new Request("http://test.com/tenant/gallery");
       const result = await loader({ request, params: {}, context: {} });

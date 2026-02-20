@@ -72,7 +72,7 @@ test.beforeAll(async ({ browser }) => {
     // Wait for login to complete with proper error handling
     try {
       await page.waitForURL(/\/tenant/, { timeout: 15000 });
-    } catch (error) {
+    } catch {
       // Check if we got an error message
       const errorMessage = await page.locator("[class*='bg-red'], [class*='text-red'], [class*='error']").textContent().catch(() => "");
       throw new Error(
@@ -578,7 +578,6 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
     await page.waitForLoadState("domcontentloaded");
 
     // Check for password requirements text or validation
-    const hasPasswordReqs = await page.getByText(/character|uppercase|lowercase|number|password must/i).isVisible().catch(() => false);
     const hasPasswordField = await page.locator("input[type='password']").first().isVisible().catch(() => false);
 
     // At minimum should have password field

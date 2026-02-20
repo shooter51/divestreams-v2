@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import sharp from "sharp";
 import {
   processImage,
@@ -7,17 +7,6 @@ import {
 } from "../../../../lib/storage/image-processor";
 
 // Create a simple test image buffer
-function createTestImageBuffer(width = 100, height = 100): Buffer {
-  // Create a simple raw pixel buffer (RGBA)
-  const pixels = Buffer.alloc(width * height * 4);
-  for (let i = 0; i < pixels.length; i += 4) {
-    pixels[i] = 255;     // R
-    pixels[i + 1] = 0;   // G
-    pixels[i + 2] = 0;   // B
-    pixels[i + 3] = 255; // A
-  }
-  return pixels;
-}
 
 describe("Image Processor", () => {
   describe("isValidImageType", () => {

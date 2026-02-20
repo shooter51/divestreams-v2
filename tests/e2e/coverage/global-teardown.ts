@@ -5,7 +5,8 @@ import * as path from "path";
 
 const coverageDir = path.join(process.cwd(), ".nyc_output");
 
-async function globalTeardown(config: FullConfig) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function globalTeardown(_config: FullConfig) {
   console.log("E2E Coverage Global Teardown starting...");
 
   // Try to collect coverage from a final page load
@@ -19,8 +20,8 @@ async function globalTeardown(config: FullConfig) {
 
     // Collect coverage data
     const coverage = await page.evaluate(() => {
-      // @ts-ignore - Istanbul injects this global
-      return (window as any).__coverage__;
+      // @ts-expect-error -- Istanbul injects this global
+      return (window as { __coverage__?: Record<string, unknown> }).__coverage__;
     }).catch(() => null);
 
     if (coverage) {

@@ -25,7 +25,7 @@ import {
   syncBookingToQuickBooks,
 } from "../../../../../lib/integrations/quickbooks.server";
 import { db } from "../../../../../lib/db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { integrationSyncLog } from "../../../../../lib/db/schema/integrations";
 
 export const meta: MetaFunction = () => [
@@ -123,7 +123,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function QuickBooksSettings() {
-  const { integration, status, items, accounts, syncLogs, settings } = useLoaderData<typeof loader>();
+  const { status, items, syncLogs, settings } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const [showSyncHistory, setShowSyncHistory] = useState(false);
 

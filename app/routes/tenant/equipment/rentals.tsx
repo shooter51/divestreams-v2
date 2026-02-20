@@ -4,14 +4,13 @@
  * View and manage active equipment rentals.
  */
 
-import { useState } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams, redirect } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
-import { eq, and, or, gte, lte, desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { useNotification } from "../../../../lib/use-notification";
 
 export const meta: MetaFunction = () => [{ title: "Manage Rentals - DiveStreams" }];
@@ -167,7 +166,7 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function RentalsPage() {
   useNotification();
 
-  const { rentals, stats, status: activeStatus, isPremium } = useLoaderData<typeof loader>();
+  const { rentals, stats, status: activeStatus } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const setFilter = (value: string) => {

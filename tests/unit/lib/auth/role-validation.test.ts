@@ -19,10 +19,10 @@ describe("requireRole", () => {
   // Helper to create mock context
   function createMockContext(role: OrgRole): OrgContext {
     return {
-      user: { id: "user-1", name: "Test", email: "test@example.com" } as any,
-      session: { id: "session-1" } as any,
-      org: { id: "org-1", name: "Test Org", slug: "test" } as any,
-      membership: { role: role } as any,
+      user: { id: "user-1", name: "Test", email: "test@example.com" } as Record<string, unknown>,
+      session: { id: "session-1" } as Record<string, unknown>,
+      org: { id: "org-1", name: "Test Org", slug: "test" } as Record<string, unknown>,
+      membership: { role: role } as Record<string, unknown>,
       subscription: null,
       limits: FREE_TIER_LIMITS,
       usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
@@ -288,7 +288,7 @@ describe("requireRole", () => {
     it("should be case-sensitive for role matching", () => {
       const context = {
         ...createMockContext("owner"),
-        membership: { role: "OWNER" as OrgRole } as any,
+        membership: { role: "OWNER" as OrgRole } as Record<string, unknown>,
       };
 
       // Role should match exactly
@@ -305,10 +305,10 @@ describe("requirePremium", () => {
   // Helper to create mock context
   function createMockContext(isPremium: boolean): OrgContext {
     return {
-      user: { id: "user-1", name: "Test", email: "test@example.com" } as any,
-      session: { id: "session-1" } as any,
-      org: { id: "org-1", name: "Test Org", slug: "test" } as any,
-      membership: { role: "owner" } as any,
+      user: { id: "user-1", name: "Test", email: "test@example.com" } as Record<string, unknown>,
+      session: { id: "session-1" } as Record<string, unknown>,
+      org: { id: "org-1", name: "Test Org", slug: "test" } as Record<string, unknown>,
+      membership: { role: "owner" } as Record<string, unknown>,
       subscription: null,
       limits: FREE_TIER_LIMITS,
       usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },
@@ -544,7 +544,7 @@ describe("requirePremium", () => {
       roles.forEach(role => {
         const context = {
           ...createMockContext(false),
-          membership: { role } as any,
+          membership: { role } as Record<string, unknown>,
         };
 
         expect(() => requirePremium(context, "pos")).toThrow(Response);

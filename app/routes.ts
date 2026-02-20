@@ -55,6 +55,8 @@ export default [
 
     // Tenant login (outside layout - no auth required)
     route("login", "routes/tenant/login.tsx"),
+    route("forgot-password", "routes/tenant/forgot-password.tsx"),
+    route("reset-password", "routes/tenant/reset-password.tsx"),
 
     // Tenant dashboard layout
     layout("routes/tenant/layout.tsx", [

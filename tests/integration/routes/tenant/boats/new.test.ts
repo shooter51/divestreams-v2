@@ -21,18 +21,18 @@ describe("app/routes/tenant/boats/new.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("action", () => {
     it("should create boat and redirect", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       const mockBoat = { id: "boat-123", name: "Sea Explorer" };
-      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as unknown);
 
       const formData = new FormData();
       formData.append("name", "Sea Explorer");
@@ -138,11 +138,11 @@ describe("app/routes/tenant/boats/new.tsx", () => {
     it("should handle optional fields correctly", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       const mockBoat = { id: "boat-456", name: "Simple Boat" };
-      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as unknown);
 
       const formData = new FormData();
       formData.append("name", "Simple Boat");
@@ -172,11 +172,11 @@ describe("app/routes/tenant/boats/new.tsx", () => {
     it("should parse amenities from JSON array correctly", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       const mockBoat = { id: "boat-789", name: "Amenity Boat" };
-      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as unknown);
 
       const formData = new FormData();
       formData.append("name", "Amenity Boat");
@@ -202,11 +202,11 @@ describe("app/routes/tenant/boats/new.tsx", () => {
     it("should parse numeric capacity correctly", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       const mockBoat = { id: "boat-101", name: "Large Boat" };
-      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as unknown);
 
       const formData = new FormData();
       formData.append("name", "Large Boat");
@@ -260,11 +260,11 @@ describe("app/routes/tenant/boats/new.tsx", () => {
     it("should handle isActive checkbox", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       const mockBoat = { id: "boat-202", name: "Active Boat" };
-      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as unknown);
 
       const formData = new FormData();
       formData.append("name", "Active Boat");
@@ -289,11 +289,11 @@ describe("app/routes/tenant/boats/new.tsx", () => {
     it("should handle empty amenities string", async () => {
       vi.mocked(validation.validateFormData).mockReturnValue({
         success: true,
-        data: {} as any,
+        data: {} as unknown,
       });
 
       const mockBoat = { id: "boat-303", name: "No Amenities Boat" };
-      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.createBoat).mockResolvedValue(mockBoat as unknown);
 
       const formData = new FormData();
       formData.append("name", "No Amenities Boat");

@@ -199,11 +199,6 @@ describe("Custom Domain Middleware", () => {
 
   describe("Tenant Lookup Logic", () => {
     it("should setup database query for subdomain lookup", () => {
-      const mockTenant = {
-        id: "tenant-123",
-        slug: "demo",
-        name: "Demo Dive Shop",
-      };
 
       expect(mockDb.select).toBeDefined();
       expect(mockDb.from).toBeDefined();
@@ -223,7 +218,7 @@ describe("Custom Domain Middleware", () => {
     });
 
     it("should return empty array for non-existent tenant", () => {
-      const emptyResult: any[] = [];
+      const emptyResult: unknown[] = [];
 
       // Verify mock can return empty results
       expect(Array.isArray(emptyResult)).toBe(true);
@@ -278,7 +273,7 @@ describe("Custom Domain Middleware", () => {
 
   describe("Middleware Flow", () => {
     it("should process request through middleware chain", () => {
-      const middleware = vi.fn((req: Request) => {
+      const middleware = vi.fn(() => {
         return new Response("OK");
       });
 
@@ -291,7 +286,7 @@ describe("Custom Domain Middleware", () => {
 
     it("should pass request to next handler", () => {
       const next = vi.fn(() => new Response("Next"));
-      const middleware = vi.fn((req: Request) => {
+      const middleware = vi.fn(() => {
         return next();
       });
 
@@ -302,7 +297,7 @@ describe("Custom Domain Middleware", () => {
     });
 
     it("should modify request before passing to next", () => {
-      const next = vi.fn((req: Request) => new Response("Next"));
+      const next = vi.fn(() => new Response("Next"));
       const middleware = vi.fn((req: Request) => {
         const headers = new Headers(req.headers);
         headers.set("X-Tenant-Id", "tenant-123");
@@ -325,10 +320,10 @@ describe("Custom Domain Middleware", () => {
 
   describe("Error Handling", () => {
     it("should catch and handle errors", () => {
-      const middleware = vi.fn((req: Request) => {
+      const middleware = vi.fn(() => {
         try {
           throw new Error("Test error");
-        } catch (error) {
+        } catch {
           return new Response("Error handled", { status: 500 });
         }
       });
@@ -340,10 +335,10 @@ describe("Custom Domain Middleware", () => {
     });
 
     it("should handle async errors", async () => {
-      const middleware = async (req: Request) => {
+      const middleware = async () => {
         try {
           await Promise.reject(new Error("Async error"));
-        } catch (error) {
+        } catch {
           return new Response("Async error handled", { status: 500 });
         }
       };

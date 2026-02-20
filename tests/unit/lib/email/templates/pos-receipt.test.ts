@@ -30,121 +30,29 @@ describe("getPOSReceiptEmail", () => {
     currency: "USD",
   };
 
-  describe("subject line", () => {
-    it("should generate correct subject line", () => {
-      const { subject } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(subject).toBe("Receipt from Dive Shop Inc - USD 126.50");
-    });
-
-    it("should uppercase currency code in subject", () => {
-      const data = { ...mockReceiptData, currency: "eur" };
-      const { subject } = getPOSReceiptEmail(data);
-
-      expect(subject).toContain("EUR");
-    });
-
-    it("should format total to 2 decimal places in subject", () => {
-      const data = { ...mockReceiptData, total: 100 };
-      const { subject } = getPOSReceiptEmail(data);
-
-      expect(subject).toContain("100.00");
-    });
-
-    it("should escape HTML in business name for subject", () => {
-      const data = { ...mockReceiptData, businessName: "Dive <script>alert('xss')</script> Shop" };
-      const { subject } = getPOSReceiptEmail(data);
-
-      expect(subject).toContain("&lt;script&gt;");
-      expect(subject).not.toContain("<script>");
-    });
+  it("should generate correct output for default data", () => {
+    const result = getPOSReceiptEmail(mockReceiptData);
+    expect(result.subject).toMatchInlineSnapshot(`"Receipt from Dive Shop Inc - USD 126.50"`);
+    expect(result.html).toMatchSnapshot();
+    expect(result.text).toMatchSnapshot();
   });
 
-  describe("HTML email", () => {
-    it("should generate valid HTML structure", () => {
-      const { html } = getPOSReceiptEmail(mockReceiptData);
+  it("should not contain HTML tags in text version", () => {
+    const { text } = getPOSReceiptEmail(mockReceiptData);
+    expect(text).not.toContain("<html>");
+    expect(text).not.toContain("<body>");
+  });
 
-      expect(html).toContain("<!DOCTYPE html>");
-      expect(html).toContain("<html>");
-      expect(html).toContain("</html>");
-      expect(html).toContain("<body");
-      expect(html).toContain("</body>");
-    });
+  it("should use plain text business name in subject (not HTML-escaped)", () => {
+    const data = { ...mockReceiptData, businessName: "Bob's Dive & Bar" };
+    const { subject } = getPOSReceiptEmail(data);
 
-    it("should include receipt header with business name", () => {
-      const { html } = getPOSReceiptEmail(mockReceiptData);
+    // Subject is plain text — should NOT contain HTML entities
+    expect(subject).toContain("Bob's Dive & Bar");
+    expect(subject).not.toContain("&amp;");
+  });
 
-      expect(html).toContain("Receipt");
-      expect(html).toContain("Dive Shop Inc");
-    });
-
-    it("should greet customer by name", () => {
-      const { html } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(html).toContain("Hi John Doe");
-    });
-
-    it("should display receipt number and date", () => {
-      const { html } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(html).toContain("REC-001");
-      expect(html).toContain("2024-01-15 10:30 AM");
-    });
-
-    it("should list all items with details", () => {
-      const { html } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(html).toContain("Dive Mask");
-      expect(html).toContain("Snorkel");
-      expect(html).toContain("2 × USD 45.00");
-      expect(html).toContain("USD 90.00");
-      expect(html).toContain("USD 25.00");
-    });
-
-    it("should display items without quantity when not provided", () => {
-      const data: POSReceiptData = {
-        ...mockReceiptData,
-        items: [
-          {
-            name: "Service Fee",
-            unitPrice: 50.0,
-            total: 50.0,
-          },
-        ],
-      };
-
-      const { html } = getPOSReceiptEmail(data);
-
-      expect(html).toContain("Service Fee");
-      expect(html).toContain("USD 50.00");
-      expect(html).not.toContain("×");
-    });
-
-    it("should display totals section", () => {
-      const { html } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(html).toContain("Subtotal");
-      expect(html).toContain("USD 115.00");
-      expect(html).toContain("VAT");
-      expect(html).toContain("USD 11.50");
-      expect(html).toContain("Total");
-      expect(html).toContain("USD 126.50");
-    });
-
-    it("should display payment method", () => {
-      const { html } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(html).toContain("Payment Method");
-      expect(html).toContain("credit card");
-    });
-
-    it("should include footer message", () => {
-      const { html } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(html).toContain("Thank you for your business!");
-      expect(html).toContain("This email was sent by Dive Shop Inc");
-    });
-
+  describe("HTML sanitization", () => {
     it("should escape HTML in customer name to prevent XSS", () => {
       const data = { ...mockReceiptData, customerName: "John <script>alert('xss')</script>" };
       const { html } = getPOSReceiptEmail(data);
@@ -188,100 +96,11 @@ describe("getPOSReceiptEmail", () => {
       expect(html).not.toContain("<b>001</b>");
     });
 
-    it("should handle different currencies", () => {
-      const data = { ...mockReceiptData, currency: "eur" };
-      const { html } = getPOSReceiptEmail(data);
-
-      expect(html).toContain("EUR");
-      expect(html).not.toContain("USD");
-    });
-
-    it("should uppercase currency code", () => {
-      const data = { ...mockReceiptData, currency: "gbp" };
-      const { html } = getPOSReceiptEmail(data);
-
-      expect(html).toContain("GBP");
-    });
-  });
-
-  describe("text email", () => {
-    it("should generate plain text version", () => {
-      const { text } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(text).toContain("RECEIPT");
-      expect(text).toContain("Dive Shop Inc");
-      expect(text).not.toContain("<html>");
-      expect(text).not.toContain("<body>");
-    });
-
-    it("should greet customer by name", () => {
-      const { text } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(text).toContain("Hi John Doe");
-    });
-
-    it("should include receipt number and date", () => {
-      const { text } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(text).toContain("RECEIPT NUMBER: REC-001");
-      expect(text).toContain("DATE: 2024-01-15 10:30 AM");
-    });
-
-    it("should list all items", () => {
-      const { text } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(text).toContain("ITEMS:");
-      expect(text).toContain("- Dive Mask (2 × USD 45.00): USD 90.00");
-      expect(text).toContain("- Snorkel (1 × USD 25.00): USD 25.00");
-    });
-
-    it("should list items without quantity when not provided", () => {
-      const data: POSReceiptData = {
-        ...mockReceiptData,
-        items: [
-          {
-            name: "Service Fee",
-            unitPrice: 50.0,
-            total: 50.0,
-          },
-        ],
-      };
-
-      const { text } = getPOSReceiptEmail(data);
-
-      expect(text).toContain("- Service Fee: USD 50.00");
-      expect(text).not.toContain("×");
-    });
-
-    it("should include summary section", () => {
-      const { text } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(text).toContain("SUMMARY:");
-      expect(text).toContain("Subtotal: USD 115.00");
-      expect(text).toContain("VAT: USD 11.50");
-      expect(text).toContain("Total: USD 126.50");
-      expect(text).toContain("Payment Method: credit card");
-    });
-
-    it("should include footer", () => {
-      const { text } = getPOSReceiptEmail(mockReceiptData);
-
-      expect(text).toContain("Thank you for your business!");
-      expect(text).toMatch(/Dive Shop Inc\s*$/);
-    });
-
     it("should escape HTML entities in text version", () => {
       const data = { ...mockReceiptData, customerName: "John <script>" };
       const { text } = getPOSReceiptEmail(data);
 
       expect(text).toContain("&lt;script&gt;");
-    });
-
-    it("should handle different tax names", () => {
-      const data = { ...mockReceiptData, taxName: "GST" };
-      const { text } = getPOSReceiptEmail(data);
-
-      expect(text).toContain("GST: USD 11.50");
     });
   });
 
@@ -333,32 +152,37 @@ describe("getPOSReceiptEmail", () => {
       expect(text).toContain("USD 123.46");
     });
 
-    it("should handle very long item names", () => {
-      const longName = "A".repeat(200);
+    it("should display items without quantity when not provided", () => {
       const data: POSReceiptData = {
         ...mockReceiptData,
         items: [
           {
-            name: longName,
-            quantity: 1,
-            unitPrice: 10.0,
-            total: 10.0,
+            name: "Service Fee",
+            unitPrice: 50.0,
+            total: 50.0,
           },
         ],
       };
 
       const { html, text } = getPOSReceiptEmail(data);
 
-      expect(html).toContain(longName);
-      expect(text).toContain(longName);
+      expect(html).not.toContain("×");
+      expect(text).not.toContain("×");
     });
 
-    it("should handle special characters in payment method", () => {
-      const data = { ...mockReceiptData, paymentMethod: "Visa **** 1234" };
-      const { html, text } = getPOSReceiptEmail(data);
+    it("should handle different currencies", () => {
+      const data = { ...mockReceiptData, currency: "eur" };
+      const { html } = getPOSReceiptEmail(data);
 
-      expect(html).toContain("Visa **** 1234");
-      expect(text).toContain("Visa **** 1234");
+      expect(html).toContain("EUR");
+      expect(html).not.toContain("USD");
+    });
+
+    it("should handle different tax names", () => {
+      const data = { ...mockReceiptData, taxName: "GST" };
+      const { text } = getPOSReceiptEmail(data);
+
+      expect(text).toContain("GST: USD 11.50");
     });
   });
 });

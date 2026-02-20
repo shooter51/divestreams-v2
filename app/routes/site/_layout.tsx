@@ -8,7 +8,7 @@
 import { Outlet, Link, useLoaderData, useLocation, Form, isRouteErrorResponse, useRouteError } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization, type PublicSiteSettings } from "../../../lib/db/schema/auth";
 import type { Customer } from "../../../lib/db/schema";

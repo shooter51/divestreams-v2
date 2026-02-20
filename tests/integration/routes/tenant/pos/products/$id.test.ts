@@ -3,10 +3,12 @@ import { getRedirectPathname } from "../../../../../helpers/redirect";
 import { loader, action } from "../../../../../../app/routes/tenant/pos/products/$id";
 import * as orgContext from "../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../lib/db/queries.server";
+import * as tenantServer from "../../../../../../lib/db/tenant.server";
 
 // Mock dependencies
 vi.mock("../../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../../lib/db/queries.server");
+vi.mock("../../../../../../lib/db/tenant.server");
 
 describe("app/routes/tenant/pos/products/$id.tsx", () => {
   const mockOrganizationId = "org-123";
@@ -21,6 +23,14 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
     isActive: true,
   };
 
+  const mockSelect = vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        orderBy: vi.fn().mockResolvedValue([]),
+      }),
+    }),
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
@@ -29,12 +39,31 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
+    vi.mocked(tenantServer.getTenantDb).mockReturnValue({
+      db: { select: mockSelect } as unknown,
+      schema: {
+        images: {
+          id: "id",
+          url: "url",
+          thumbnailUrl: "thumbnailUrl",
+          filename: "filename",
+          width: "width",
+          height: "height",
+          alt: "alt",
+          sortOrder: "sortOrder",
+          isPrimary: "isPrimary",
+          organizationId: "organizationId",
+          entityType: "entityType",
+          entityId: "entityId",
+        },
+      } as unknown,
+    });
   });
 
   describe("loader", () => {
     it("should fetch product by ID", async () => {
-      vi.mocked(queries.getProductById).mockResolvedValue(mockProduct as any);
+      vi.mocked(queries.getProductById).mockResolvedValue(mockProduct as unknown);
 
       const request = new Request("http://test.com/tenant/pos/products/prod-1");
       const result = await loader({ request, params: { id: "prod-1" }, context: {} });
@@ -122,9 +151,9 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: { id: "prod-1" }, context: {} });
+      await action({ request, params: { id: "prod-1" }, context: {} });
 
-      // parseInt("invalid") = NaN, still calls function with NaN      expect(result.success).toBe(true);
+      // parseInt("invalid") = NaN, still calls function with NaN
     });
 
     it("should handle zero adjustment", async () => {
@@ -139,7 +168,7 @@ describe("app/routes/tenant/pos/products/$id.tsx", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: { id: "prod-1" }, context: {} });
+      await action({ request, params: { id: "prod-1" }, context: {} });
 
       expect(queries.adjustProductStock).toHaveBeenCalledWith(mockOrganizationId, "prod-1", 0);
     });

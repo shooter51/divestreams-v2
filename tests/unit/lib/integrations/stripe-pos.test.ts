@@ -170,7 +170,7 @@ describe("Stripe POS Functions", () => {
       expect(result).toBeNull();
     });
 
-    it.skip("returns settings when integration is active (TODO: fix mock for getStripeAccountInfo)", async () => {
+    it("returns settings when integration is active with live Stripe data", async () => {
       const integrationData = {
         id: "int-1",
         isActive: true,
@@ -180,23 +180,21 @@ describe("Stripe POS Functions", () => {
         settings: {
           liveMode: false,
           webhookEndpointId: "we_123",
-          chargesEnabled: false, // Cached value (ignored by getStripeSettings)
-          payoutsEnabled: false, // Cached value (ignored by getStripeSettings)
+          chargesEnabled: false, // Cached value (overridden by live Stripe API response)
+          payoutsEnabled: false, // Cached value (overridden by live Stripe API response)
         },
       };
 
-      // Mock will be called multiple times (once for getStripeSettings, once for getStripeAccountInfo)
       mockGetIntegration.mockResolvedValue(integrationData);
       mockGetIntegrationWithTokens.mockResolvedValue({
+        integration: integrationData,
         accessToken: "sk_test_123",
         refreshToken: "pk_test_456",
       });
-      // Mock Stripe API to return fresh account data (retrieve is called without params)
+      // Stripe API returns fresh account data (retrieve is called with no params)
       mockAccountsRetrieve.mockResolvedValue({
         id: "acct_123",
-        business_profile: {
-          name: "Demo Shop",
-        },
+        business_profile: { name: "Demo Shop" },
         email: "demo@example.com",
         country: "US",
         default_currency: "usd",
@@ -214,14 +212,80 @@ describe("Stripe POS Functions", () => {
         accountName: "Demo Shop",
         liveMode: false,
         webhookConfigured: true,
-        chargesEnabled: true, // From Stripe API (not cached settings)
-        payoutsEnabled: true, // From Stripe API (not cached settings)
+        chargesEnabled: true, // From live Stripe API
+        payoutsEnabled: true, // From live Stripe API
       });
+    });
 
-      // Verify Stripe API was called for real-time account data
-      expect(mockAccountsRetrieve).toHaveBeenCalledWith("acct_123");
-      // getIntegration called multiple times (once for getStripeSettings, once for getStripeAccountInfo → getStripeClient)
-      expect(mockGetIntegration).toHaveBeenCalled();
+    it("falls back to cached chargesEnabled when Stripe API call fails", async () => {
+      // This is the bug fix: when Stripe API is unreachable, POS should still show as connected
+      // if Stripe was previously confirmed to have charges enabled.
+      const integrationData = {
+        id: "int-1",
+        isActive: true,
+        provider: "stripe" as const,
+        accountId: "acct_123",
+        accountName: "Demo Shop",
+        settings: {
+          liveMode: true,
+          webhookEndpointId: "we_123",
+          chargesEnabled: true,  // Cached from last successful sync
+          payoutsEnabled: true,  // Cached from last successful sync
+        },
+      };
+
+      mockGetIntegration.mockResolvedValue(integrationData);
+      mockGetIntegrationWithTokens.mockResolvedValue({
+        integration: integrationData,
+        accessToken: "sk_live_123",
+        refreshToken: "pk_live_456",
+      });
+      // Simulate Stripe API failure (network error, outage, etc.)
+      mockAccountsRetrieve.mockRejectedValue(new Error("Network error"));
+      mockLogSyncOperation.mockResolvedValue(undefined);
+
+      const { getStripeSettings } = await import("../../../../lib/integrations/stripe.server");
+      const result = await getStripeSettings("org-1");
+
+      // Should still return connected with cached values, not show "Stripe Not Connected"
+      expect(result).toMatchObject({
+        connected: true,
+        liveMode: true,
+        chargesEnabled: true,  // Falls back to cached settings.chargesEnabled
+        payoutsEnabled: true,  // Falls back to cached settings.payoutsEnabled
+      });
+    });
+
+    it("returns chargesEnabled false when Stripe API fails and no cached value exists", async () => {
+      const integrationData = {
+        id: "int-1",
+        isActive: true,
+        provider: "stripe" as const,
+        accountId: "acct_123",
+        accountName: "Demo Shop",
+        settings: {
+          liveMode: true,
+          // No cached chargesEnabled or payoutsEnabled
+        },
+      };
+
+      mockGetIntegration.mockResolvedValue(integrationData);
+      mockGetIntegrationWithTokens.mockResolvedValue({
+        integration: integrationData,
+        accessToken: "sk_live_123",
+        refreshToken: "pk_live_456",
+      });
+      mockAccountsRetrieve.mockRejectedValue(new Error("Network error"));
+      mockLogSyncOperation.mockResolvedValue(undefined);
+
+      const { getStripeSettings } = await import("../../../../lib/integrations/stripe.server");
+      const result = await getStripeSettings("org-1");
+
+      expect(result).toMatchObject({
+        connected: true,
+        chargesEnabled: false,
+        payoutsEnabled: false,
+      });
     });
   });
 

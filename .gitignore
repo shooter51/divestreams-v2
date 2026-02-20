@@ -12,6 +12,7 @@ dist/
 .env
 .env.local
 .env.*.local
+.env.test
 
 # IDE
 .idea/
@@ -47,8 +48,17 @@ temp/
 .worktrees/
 .mcp.json
 
+# Vibe Kanban workspace context (local only)
+.vibe-workspace.json
+.vibe-context.json
+
 # Coverage artifacts
 coverage-summary.json
+
+# Orchestrator
+.env.orchestrator
+orchestrator/data/
+orchestrator/dist/
 
 # 1Password import files
 github-secrets-1password*.csv

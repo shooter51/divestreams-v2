@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/bookings/index";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
@@ -61,9 +60,9 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -72,7 +71,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         canAddBooking: true,
         limits: { bookingsPerMonth: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
@@ -88,7 +87,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
     });
 
     it("should filter bookings by status", async () => {
-      const mockBookings: any[] = [];
+      const mockBookings: unknown[] = [];
       const mockCount = [{ value: 0 }];
 
       const mockSelectBuilder = {
@@ -109,9 +108,9 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -120,7 +119,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         canAddBooking: true,
         limits: { bookingsPerMonth: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/bookings?status=confirmed");
       const result = await loader({ request, params: {}, context: {} });
@@ -130,7 +129,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
     });
 
     it("should handle pagination correctly", async () => {
-      const mockBookings: any[] = [];
+      const mockBookings: unknown[] = [];
       const mockCount = [{ value: 50 }];
 
       const mockSelectBuilder = {
@@ -151,9 +150,9 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -162,7 +161,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         canAddBooking: true,
         limits: { bookingsPerMonth: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/bookings?page=2");
       const result = await loader({ request, params: {}, context: {} });
@@ -173,7 +172,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
     });
 
     it("should include search parameter in results", async () => {
-      const mockBookings: any[] = [];
+      const mockBookings: unknown[] = [];
       const mockCount = [{ value: 0 }];
 
       const mockSelectBuilder = {
@@ -194,9 +193,9 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -205,7 +204,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         canAddBooking: true,
         limits: { bookingsPerMonth: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/bookings?search=john");
       const result = await loader({ request, params: {}, context: {} });
@@ -214,7 +213,6 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
     });
 
     it("should calculate stats correctly", async () => {
-      const today = new Date().toLocaleDateString();
       const mockBookings = [
         {
           id: "booking-1",
@@ -272,9 +270,9 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -283,7 +281,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         canAddBooking: true,
         limits: { bookingsPerMonth: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
@@ -293,7 +291,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
     });
 
     it("should handle freemium limits", async () => {
-      const mockBookings: any[] = [];
+      const mockBookings: unknown[] = [];
       const mockCount = [{ value: 0 }];
       const mockMonthlyCount = [{ value: 95 }];
 
@@ -320,11 +318,11 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else if (selectCallCount === 2) {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         } else {
-          return mockMonthlyCountBuilder as any;
+          return mockMonthlyCountBuilder as unknown;
         }
       });
 
@@ -333,7 +331,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         canAddBooking: false,
         limits: { bookingsPerMonth: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });
@@ -385,9 +383,9 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
         if (selectCallCount === 1) {
-          return mockSelectBuilder as any;
+          return mockSelectBuilder as unknown;
         } else {
-          return mockCountBuilder as any;
+          return mockCountBuilder as unknown;
         }
       });
 
@@ -396,7 +394,7 @@ describe("app/routes/tenant/bookings/index.tsx", () => {
         canAddBooking: true,
         limits: { bookingsPerMonth: 100 },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/bookings");
       const result = await loader({ request, params: {}, context: {} });

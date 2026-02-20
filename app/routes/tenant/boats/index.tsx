@@ -5,7 +5,7 @@ import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { boats as boatsTable, trips } from "../../../../lib/db/schema";
-import { eq, ilike, sql, count, and } from "drizzle-orm";
+import { eq, ilike, count, and } from "drizzle-orm";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { useNotification } from "../../../../lib/use-notification";
 

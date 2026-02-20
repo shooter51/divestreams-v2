@@ -20,5 +20,19 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+/**
+ * Creates a Request with Cookie headers that work in happy-dom.
+ * happy-dom strips Cookie headers during Request construction,
+ * so we append them after creation.
+ */
+export function createRequest(url: string, init?: RequestInit & { cookies?: string }): Request {
+  const { cookies, ...requestInit } = init || {};
+  const request = new Request(url, requestInit);
+  if (cookies) {
+    request.headers.append("Cookie", cookies);
+  }
+  return request;
+}
+
 // Export test utilities
 export { vi };

@@ -70,9 +70,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Calculate stats
   const stats = {
     total: allMessages.length,
-    new: allMessages.filter((m: any) => m.status === "new").length,
-    read: allMessages.filter((m: any) => m.status === "read").length,
-    replied: allMessages.filter((m: any) => m.status === "replied").length,
+    new: allMessages.filter((m: { status: string }) => m.status === "new").length,
+    read: allMessages.filter((m: { status: string }) => m.status === "read").length,
+    replied: allMessages.filter((m: { status: string }) => m.status === "replied").length,
   };
 
   return {
@@ -214,7 +214,7 @@ export default function AdminContactMessagesPage() {
               </tr>
             </thead>
             <tbody className="bg-surface-raised divide-y divide-border">
-              {messages.map((msg: any) => (
+              {messages.map((msg: LoaderData["messages"][number]) => (
                 <tr
                   key={msg.id}
                   className={msg.status === "new" ? "bg-brand-muted" : ""}

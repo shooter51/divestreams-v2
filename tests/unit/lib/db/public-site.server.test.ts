@@ -330,7 +330,7 @@ describe("Public Site Server Functions Module", () => {
       mockLimit.mockResolvedValue([]);
 
       const { getPublicTrips } = await import("../../../../lib/db/public-site.server");
-      const result = await getPublicTrips("org-1");
+      await getPublicTrips("org-1");
 
       expect(dbMock.where).toHaveBeenCalled();
     });
@@ -368,7 +368,7 @@ describe("Public Site Server Functions Module", () => {
       mockLimit.mockResolvedValue([]);
 
       const { getPublicCourses } = await import("../../../../lib/db/public-site.server");
-      const result = await getPublicCourses("org-1");
+      await getPublicCourses("org-1");
 
       expect(dbMock.where).toHaveBeenCalled();
     });
@@ -407,7 +407,7 @@ describe("Public Site Server Functions Module", () => {
       mockLimit.mockResolvedValue([]);
 
       const { getPublicEquipment } = await import("../../../../lib/db/public-site.server");
-      const result = await getPublicEquipment("org-1");
+      await getPublicEquipment("org-1");
 
       expect(dbMock.where).toHaveBeenCalled();
     });

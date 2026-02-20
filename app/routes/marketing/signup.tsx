@@ -7,7 +7,7 @@ import { hashPassword } from "../../../lib/auth/password.server";
 import { db } from "../../../lib/db";
 import { user, account, member, organization } from "../../../lib/db/schema/auth";
 import { customers } from "../../../lib/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import { CsrfTokenInput } from "../../components/CsrfInput";
@@ -194,7 +194,8 @@ export async function action({ request }: ActionFunctionArgs) {
       });
     });
 
-    // Queue welcome email
+    // Queue welcome email (best-effort — signup succeeds even if email fails)
+    let emailQueued = false;
     try {
       await triggerWelcomeEmail({
         userEmail: email,
@@ -203,12 +204,16 @@ export async function action({ request }: ActionFunctionArgs) {
         subdomain: tenant.subdomain,
         tenantId: tenant.id,
       });
+      emailQueued = true;
     } catch (emailError) {
       console.error("Failed to queue welcome email:", emailError);
     }
 
     // Redirect to the new tenant's login page so user can sign in
-    return redirect(getTenantUrl(tenant.subdomain, "/auth/login"));
+    // Include signup=success param so login page can show a welcome message
+    const loginUrl = getTenantUrl(tenant.subdomain, "/auth/login");
+    const separator = loginUrl.includes("?") ? "&" : "?";
+    return redirect(`${loginUrl}${separator}signup=success${emailQueued ? "" : "&emailSkipped=true"}`);
   } catch (error) {
     console.error("Failed to create account:", error);
     return {

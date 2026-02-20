@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/reports/export.pdf";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
@@ -20,7 +19,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireOrgContext).mockResolvedValue(mockOrgContext as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue(mockOrgContext as unknown);
   });
 
   describe("loader", () => {
@@ -33,7 +32,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       // Mock the various select queries
       mockSelectBuilder.limit
@@ -79,7 +78,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       mockSelectBuilder.limit
         .mockResolvedValueOnce([{ total: 3000 }])
@@ -107,7 +106,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       mockSelectBuilder.limit
         .mockResolvedValueOnce([{ total: 5000 }])
@@ -136,7 +135,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       mockSelectBuilder.limit
         .mockResolvedValueOnce([{ total: 0 }])
@@ -163,7 +162,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         limit: vi.fn().mockRejectedValue(new Error("Database error")),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/reports/export/pdf");
       const result = await loader({ request, params: {}, context: {} });
@@ -184,7 +183,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         limit: vi.fn(),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       // Create 25 bookings but only 20 should be included
       const mockBookings = Array.from({ length: 25 }, (_, i) => ({
@@ -222,7 +221,7 @@ describe("app/routes/tenant/reports/export.pdf.tsx", () => {
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       mockSelectBuilder.limit
         .mockResolvedValueOnce([{ total: 1000 }])

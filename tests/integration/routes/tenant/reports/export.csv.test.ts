@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/reports/export.csv";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
@@ -13,7 +12,7 @@ vi.mock("../../../../../lib/db", () => ({
 }));
 
 // Helper to create thenable mock builder
-function createMockBuilder(results: any[]) {
+function createMockBuilder(results: unknown[]) {
   let callCount = 0;
   return {
     from: vi.fn().mockReturnThis(),
@@ -36,7 +35,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(orgContext.requireOrgContext).mockResolvedValue(mockOrgContext as any);
+    vi.mocked(orgContext.requireOrgContext).mockResolvedValue(mockOrgContext as unknown);
   });
 
   describe("loader", () => {
@@ -58,7 +57,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
             createdAt: new Date("2024-01-15"),
           },
         ], // Recent bookings
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
@@ -87,7 +86,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
         [{ count: 100 }],
         [{ count: 5 }],
         [],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request(
         "http://test.com/tenant/reports/export/csv?startDate=2024-01-01&endDate=2024-01-31"
@@ -108,7 +107,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
         [{ count: 150 }],
         [{ count: 10 }],
         [],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
@@ -126,7 +125,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
         [{ count: 0 }],
         [{ count: 0 }],
         [],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
@@ -148,7 +147,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
           return Promise.reject(new Error("Database error"));
         }),
       };
-      vi.mocked(db.select).mockReturnValue(mockBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
@@ -177,7 +176,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
             createdAt: new Date("2024-01-15"),
           },
         ],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });
@@ -196,7 +195,7 @@ describe("app/routes/tenant/reports/export.csv.tsx", () => {
         [{ count: 120 }],
         [{ count: 15 }],
         [],
-      ]) as any);
+      ]) as unknown);
 
       const request = new Request("http://test.com/tenant/reports/export/csv");
       const result = await loader({ request, params: {}, context: {} });

@@ -116,7 +116,7 @@ if [ "$run_review" = true ]; then
     echo -e "${GREEN}After review completes:${NC}"
     echo "  - Fix any critical blockers"
     echo "  - Re-run peer review to verify"
-    echo "  - Push to staging when APPROVED"
+    echo "  - Push to test when APPROVED"
     echo ""
 else
     echo ""

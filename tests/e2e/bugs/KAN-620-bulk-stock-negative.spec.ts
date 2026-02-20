@@ -83,7 +83,7 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     await expect(page.locator(`text=/current: ${currentStock}/i`).first()).toBeVisible();
 
     // Close modal (wait for it to close automatically or press Escape)
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
 
     // Stock should not have changed - verify by reloading and checking
     await page.reload();
@@ -94,7 +94,6 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
   test('should allow "Adjust by amount" when result stays positive', async ({ page }) => {
     // Find a product with stock >= 10
     const firstProduct = page.locator('table tbody tr').first();
-    const productName = await firstProduct.locator('td').nth(1).textContent();
     const stockText = await firstProduct.locator('td').nth(4).textContent();
     const currentStock = parseInt(stockText?.trim() || "0");
 
@@ -148,7 +147,7 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     await valueInput.fill("-5");
 
     // Check HTML5 validation prevents submission
-    const isInvalid = await valueInput.evaluate((el: any) => !el.validity.valid);
+    const isInvalid = await valueInput.evaluate((el: HTMLInputElement) => !el.validity.valid);
     expect(isInvalid).toBeTruthy();
   });
 
@@ -193,7 +192,6 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
   test("single product adjustment should validate negative stock", async ({ page }) => {
     // Get first product
     const firstProduct = page.locator('table tbody tr').first();
-    const productName = await firstProduct.locator('td').nth(1).textContent();
     const stockText = await firstProduct.locator('td').nth(4).textContent();
     const currentStock = parseInt(stockText?.trim() || "0");
 

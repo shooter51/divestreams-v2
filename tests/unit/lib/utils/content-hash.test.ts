@@ -70,8 +70,8 @@ describe("generateContentHash", () => {
       name: "Test",
     };
 
-    const hash1 = generateContentHash(fields as any);
-    const hash2 = generateContentHash(reversed as any);
+    const hash1 = generateContentHash(fields as unknown);
+    const hash2 = generateContentHash(reversed as unknown);
 
     expect(hash1).toBe(hash2);
   });

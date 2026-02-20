@@ -23,7 +23,6 @@ import {
 import {
   setupGoogleApiMock,
   restoreGoogleApiMock,
-  expectGoogleApiCalled,
 } from "../../../mocks/google-api";
 
 describe("Google Calendar Integration (Integration)", () => {
@@ -180,7 +179,7 @@ describe("Google Calendar Integration (Integration)", () => {
       await insertTestOrganization(testOrganization);
       await insertTestIntegration(testExpiredGoogleCalendarIntegration);
 
-      const mockFetch = setupGoogleApiMock({
+      setupGoogleApiMock({
         tokenExchange: 'success',
         calendarCreate: 'success',
       });

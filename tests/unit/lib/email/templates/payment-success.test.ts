@@ -1,71 +1,85 @@
-import { describe, it, expect } from 'vitest';
-import { getPaymentSuccessEmail, type PaymentSuccessData } from '../../../../../lib/email/templates/payment-success';
+import { describe, it, expect } from "vitest";
+import {
+  getPaymentSuccessEmail,
+  type PaymentSuccessData,
+} from "../../../../../lib/email/templates/payment-success";
 
-describe('Payment Success Email Template', () => {
-  const baseData: PaymentSuccessData = {
-    customerName: 'John Doe',
-    customerEmail: 'john@example.com',
-    amount: '99.99',
-    currency: 'usd',
-    paymentDate: 'January 23, 2026',
-    organizationName: 'Ocean Dive Shop',
+describe("getPaymentSuccessEmail", () => {
+  const defaultData: PaymentSuccessData = {
+    customerName: "John Doe",
+    customerEmail: "john@example.com",
+    amount: "99.99",
+    currency: "usd",
+    paymentDate: "January 23, 2026",
+    organizationName: "Ocean Dive Shop",
   };
 
-  it('should generate email with correct subject', () => {
-    const { subject } = getPaymentSuccessEmail(baseData);
-
-    expect(subject).toBe('Payment Confirmed - 99.99 USD');
+  it("should generate correct output for default data", () => {
+    const result = getPaymentSuccessEmail(defaultData);
+    expect(result.subject).toMatchInlineSnapshot(
+      `"Payment Confirmed - 99.99 USD"`
+    );
+    expect(result.html).toMatchSnapshot();
+    expect(result.text).toMatchSnapshot();
   });
 
-  it('should include customer name in HTML', () => {
-    const { html } = getPaymentSuccessEmail(baseData);
-
-    expect(html).toContain('Hi John Doe');
+  it("should generate correct output with invoice number", () => {
+    const result = getPaymentSuccessEmail({
+      ...defaultData,
+      invoiceNumber: "INV-12345",
+    });
+    expect(result.html).toMatchSnapshot();
+    expect(result.text).toMatchSnapshot();
   });
 
-  it('should include amount and currency in HTML', () => {
-    const { html } = getPaymentSuccessEmail(baseData);
-
-    expect(html).toContain('99.99 USD');
+  it("should generate correct output with invoice URL", () => {
+    const result = getPaymentSuccessEmail({
+      ...defaultData,
+      invoiceUrl: "https://stripe.com/invoice/123",
+    });
+    expect(result.html).toMatchSnapshot();
+    expect(result.text).toMatchSnapshot();
   });
 
-  it('should include invoice number when provided', () => {
-    const data: PaymentSuccessData = {
-      ...baseData,
-      invoiceNumber: 'INV-12345',
-    };
-
-    const { html, text } = getPaymentSuccessEmail(data);
-
-    expect(html).toContain('INV-12345');
-    expect(text).toContain('INV-12345');
+  it("should not contain HTML tags in text version", () => {
+    const result = getPaymentSuccessEmail(defaultData);
+    expect(result.text).not.toContain("<html>");
+    expect(result.text).not.toContain("<div>");
   });
 
-  it('should include invoice URL when provided', () => {
-    const data: PaymentSuccessData = {
-      ...baseData,
-      invoiceUrl: 'https://stripe.com/invoice/123',
-    };
+  describe("HTML sanitization", () => {
+    it("should escape HTML in customer name", () => {
+      const result = getPaymentSuccessEmail({
+        ...defaultData,
+        customerName: "<script>alert('xss')</script>",
+      });
+      expect(result.html).not.toContain("<script>");
+      expect(result.html).toContain("&lt;script&gt;");
+    });
 
-    const { html } = getPaymentSuccessEmail(data);
+    it("should escape HTML in organization name", () => {
+      const result = getPaymentSuccessEmail({
+        ...defaultData,
+        organizationName: "<img src=x onerror=alert(1)>",
+      });
+      expect(result.html).not.toContain("<img");
+    });
 
-    // HTML version has escaped URLs for security (/ becomes &#x2F;)
-    expect(html).toContain('https:&#x2F;&#x2F;stripe.com&#x2F;invoice&#x2F;123');
-    expect(html).toContain('View Receipt');
-  });
+    it("should escape HTML in amount", () => {
+      const result = getPaymentSuccessEmail({
+        ...defaultData,
+        amount: "<b>99.99</b>",
+      });
+      expect(result.html).not.toContain("<b>99.99</b>");
+      expect(result.html).toContain("&lt;b&gt;");
+    });
 
-  it('should include organization name', () => {
-    const { html, text } = getPaymentSuccessEmail(baseData);
-
-    expect(html).toContain('Ocean Dive Shop');
-    expect(text).toContain('Ocean Dive Shop');
-  });
-
-  it('should generate valid text version', () => {
-    const { text } = getPaymentSuccessEmail(baseData);
-
-    expect(text).toContain('Payment Confirmed');
-    expect(text).toContain('John Doe');
-    expect(text).toContain('99.99 USD');
+    it("should escape HTML in invoice number", () => {
+      const result = getPaymentSuccessEmail({
+        ...defaultData,
+        invoiceNumber: "INV<script>alert(1)</script>",
+      });
+      expect(result.html).not.toContain("<script>");
+    });
   });
 });

@@ -5,7 +5,7 @@
  * AWS SDK v3 has known incompatibilities with B2's S3-compatible API.
  */
 
-// @ts-ignore - backblaze-b2 doesn't have type definitions
+// @ts-expect-error -- backblaze-b2 doesn't have type definitions
 import B2 from 'backblaze-b2';
 
 // B2 configuration from environment
@@ -154,7 +154,7 @@ export async function uploadToB2(
       url: downloadUrl,
       cdnUrl
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`❌ B2 upload failed:`, error);
 
     // Reset upload credentials on error (may be expired)
@@ -182,7 +182,7 @@ export async function deleteFromB2(key: string): Promise<boolean> {
       return false;
     }
 
-    const file = listResponse.data.files.find((f: any) => f.fileName === key);
+    const file = listResponse.data.files.find((f: { fileName: string }) => f.fileName === key);
     if (!file) {
       console.error(`File not found in B2: ${key}`);
       return false;

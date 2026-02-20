@@ -12,8 +12,8 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { bookings, customers, tours, equipment } from "../../../../lib/db/schema";
-import { eq, gte, and, sql, count, sum, lte } from "drizzle-orm";
+import { bookings, customers } from "../../../../lib/db/schema";
+import { eq, gte, and, sql, count, lte } from "drizzle-orm";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
 import { useState, useRef, useEffect } from "react";
 
@@ -323,7 +323,7 @@ function DateRangeSelector({
   currentStart?: string;
   currentEnd?: string;
 }) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [showCustom, setShowCustom] = useState(currentPreset === "custom");
   const [customStartDate, setCustomStartDate] = useState(currentStart || "");
@@ -594,7 +594,7 @@ export default function ReportsPage() {
             {revenueData.length > 0 ? (
               <div className="h-48">
                 <div className="flex items-end justify-between h-full gap-1">
-                  {revenueData.map((data, index) => (
+                  {revenueData.map((data) => (
                     <div
                       key={data.period}
                       className="flex-1 flex flex-col items-center group relative"

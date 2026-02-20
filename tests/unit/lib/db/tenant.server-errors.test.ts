@@ -37,14 +37,13 @@ import {
   getTenantBySubdomain,
   getTenantById,
   createTenant,
-  deleteTenant,
   updateTenant,
   listTenants,
 } from "../../../../lib/db/tenant.server";
 import { db } from "../../../../lib/db/index";
 
 // Get reference to mocked db for type-safe usage
-const mockDb = db as any;
+const mockDb = db as unknown;
 
 describe("Tenant Server Module - Error Paths", () => {
   beforeEach(() => {
@@ -56,7 +55,7 @@ describe("Tenant Server Module - Error Paths", () => {
     const mockWhere = vi.fn().mockReturnThis();
     const mockLimit = vi.fn().mockResolvedValue([{ id: "free-plan-id" }]);
 
-    (mockDb.select as any).mockReturnValue({
+    (mockDb.select as unknown as Mock).mockReturnValue({
       from: mockFrom,
     });
     mockFrom.mockReturnValue({
@@ -81,7 +80,7 @@ describe("Tenant Server Module - Error Paths", () => {
         throw new Error("Connection refused");
       });
 
-      (mockDb.select as any).mockReturnValue({
+      (mockDb.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
 
@@ -93,7 +92,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockRejectedValue(new Error("Query timeout"));
 
-      (mockDb.select as any).mockReturnValue({
+      (mockDb.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -110,7 +109,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockValues = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockRejectedValue(new Error("Deadlock detected"));
 
-      (mockDb.insert as any).mockReturnValue({
+      (mockDb.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -138,7 +137,7 @@ describe("Tenant Server Module - Error Paths", () => {
         new Error("duplicate key value violates unique constraint")
       );
 
-      (mockDb.insert as any).mockReturnValue({
+      (mockDb.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -160,7 +159,7 @@ describe("Tenant Server Module - Error Paths", () => {
         new Error("violates foreign key constraint")
       );
 
-      (mockDb.insert as any).mockReturnValue({
+      (mockDb.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -184,7 +183,7 @@ describe("Tenant Server Module - Error Paths", () => {
         new Error("violates check constraint")
       );
 
-      (mockDb.update as any).mockReturnValue({
+      (mockDb.update as unknown as Mock).mockReturnValue({
         set: mockSet,
       });
       mockSet.mockReturnValue({
@@ -216,7 +215,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockValues = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([mockTenant]);
 
-      (mockDb.insert as any).mockReturnValue({
+      (mockDb.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -227,7 +226,7 @@ describe("Tenant Server Module - Error Paths", () => {
       mockClient.unsafe.mockRejectedValueOnce(new Error("Permission denied: cannot create schema"));
 
       const mockDeleteWhere = vi.fn().mockResolvedValue([]);
-      (mockDb.delete as any).mockReturnValue({
+      (mockDb.delete as unknown as Mock).mockReturnValue({
         where: mockDeleteWhere,
       });
 
@@ -256,7 +255,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockValues = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([mockTenant]);
 
-      (mockDb.insert as any).mockReturnValue({
+      (mockDb.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -269,7 +268,7 @@ describe("Tenant Server Module - Error Paths", () => {
         .mockRejectedValueOnce(new Error("Insufficient disk space")); // CREATE TABLE fails
 
       const mockDeleteWhere = vi.fn().mockResolvedValue([]);
-      (mockDb.delete as any).mockReturnValue({
+      (mockDb.delete as unknown as Mock).mockReturnValue({
         where: mockDeleteWhere,
       });
 
@@ -286,7 +285,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockValues = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockRejectedValue(new Error("Insert failed"));
 
-      (mockDb.insert as any).mockReturnValue({
+      (mockDb.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -297,7 +296,7 @@ describe("Tenant Server Module - Error Paths", () => {
       mockClient.unsafe.mockRejectedValue(new Error("DROP SCHEMA failed"));
 
       const mockDeleteWhere = vi.fn().mockRejectedValue(new Error("DELETE failed"));
-      (mockDb.delete as any).mockReturnValue({
+      (mockDb.delete as unknown as Mock).mockReturnValue({
         where: mockDeleteWhere,
       });
 
@@ -322,7 +321,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockRejectedValue(new Error("ECONNREFUSED"));
 
-      (mockDb.select as any).mockReturnValue({
+      (mockDb.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -338,7 +337,7 @@ describe("Tenant Server Module - Error Paths", () => {
     it("should handle connection timeout", async () => {
       const mockFrom = vi.fn().mockRejectedValue(new Error("Connection timeout after 30s"));
 
-      (mockDb.select as any).mockReturnValue({
+      (mockDb.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
 
@@ -358,7 +357,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
       const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
 
-      (mockDb.select as any).mockReturnValue({
+      (mockDb.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
 
@@ -373,7 +372,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (mockDb.select as any).mockReturnValue({
+      (mockDb.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -394,7 +393,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockRejectedValue(new Error("value too long"));
 
-      (mockDb.select as any).mockReturnValue({
+      (mockDb.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -419,7 +418,7 @@ describe("Tenant Server Module - Error Paths", () => {
         .mockRejectedValueOnce(new Error("deadlock detected"))
         .mockResolvedValueOnce([{ id: "uuid-123", subdomain: "test" }]);
 
-      (mockDb.insert as any).mockReturnValue({
+      (mockDb.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -443,7 +442,7 @@ describe("Tenant Server Module - Error Paths", () => {
         new Error("could not obtain lock on row")
       );
 
-      (mockDb.update as any).mockReturnValue({
+      (mockDb.update as unknown as Mock).mockReturnValue({
         set: mockSet,
       });
       mockSet.mockReturnValue({
@@ -467,7 +466,7 @@ describe("Tenant Server Module - Error Paths", () => {
     it("should handle out of memory error", async () => {
       const mockFrom = vi.fn().mockRejectedValue(new Error("out of memory"));
 
-      (mockDb.select as any).mockReturnValue({
+      (mockDb.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
 
@@ -480,7 +479,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockValues = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([mockTenant]);
 
-      (mockDb.insert as any).mockReturnValue({
+      (mockDb.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -490,7 +489,7 @@ describe("Tenant Server Module - Error Paths", () => {
       mockClient.unsafe.mockRejectedValueOnce(new Error("No space left on device"));
 
       const mockDeleteWhere = vi.fn().mockResolvedValue([]);
-      (mockDb.delete as any).mockReturnValue({
+      (mockDb.delete as unknown as Mock).mockReturnValue({
         where: mockDeleteWhere,
       });
 
@@ -510,7 +509,7 @@ describe("Tenant Server Module - Error Paths", () => {
       const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
       const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
 
-      (mockDb.select as any).mockReturnValue({
+      (mockDb.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
 

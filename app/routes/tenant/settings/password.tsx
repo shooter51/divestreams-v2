@@ -1,16 +1,16 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useActionData, Form, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { auth } from "../../../../lib/auth";
 import { db } from "../../../../lib/db";
 import { account } from "../../../../lib/db/schema";
-import { hashPassword } from "../../../../lib/auth/password.server";
 import { eq } from "drizzle-orm";
 import { redirect } from "react-router";
 
 export const meta: MetaFunction = () => [{ title: "Change Password - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const ctx = await requireOrgContext(request);
+  await requireOrgContext(request);
   const url = new URL(request.url);
   const forced = url.searchParams.get("forced") === "true";
 
@@ -51,28 +51,54 @@ export async function action({ request }: ActionFunctionArgs) {
     return { error: "Current password is required" };
   }
 
-  // TODO: Verify current password if not forced
-  // This would require Better Auth password verification
-
-  // Update password using Better Auth format
   try {
-    // Hash new password
-    const hashedPassword = await hashPassword(newPassword);
+    if (forced) {
+      // For forced password changes (admin-initiated reset), use Better Auth's
+      // changePassword with the temporary password. The forcePasswordChange flag
+      // is already set on the account, and we need to clear it after success.
+      // Since the user may not know the current password (admin-generated),
+      // we use the direct API approach with session context.
+      await auth.api.changePassword({
+        body: {
+          newPassword,
+          currentPassword: currentPassword || newPassword, // For forced, current may be empty
+          revokeOtherSessions: false,
+        },
+        headers: request.headers,
+      });
 
-    // Update in database
-    await db
-      .update(account)
-      .set({
-        password: hashedPassword,
-        forcePasswordChange: false, // Clear the flag
-        updatedAt: new Date(),
-      })
-      .where(eq(account.userId, ctx.user.id));
+      // Clear forcePasswordChange flag after successful password change
+      await db
+        .update(account)
+        .set({
+          forcePasswordChange: false,
+          updatedAt: new Date(),
+        })
+        .where(eq(account.userId, ctx.user.id));
+    } else {
+      // Normal password change - Better Auth verifies the current password
+      await auth.api.changePassword({
+        body: {
+          newPassword,
+          currentPassword,
+          revokeOtherSessions: false,
+        },
+        headers: request.headers,
+      });
+    }
 
     return redirect("/tenant/dashboard?message=Password updated successfully");
   } catch (error) {
+    // Re-throw Response objects (redirects) so React Router can handle them
+    if (error instanceof Response) {
+      throw error;
+    }
     console.error("Password update error:", error);
-    return { error: "Failed to update password" };
+    // Better Auth throws if current password is incorrect
+    if (!forced) {
+      return { error: "Current password is incorrect" };
+    }
+    return { error: "Failed to update password. Please try again." };
   }
 }
 

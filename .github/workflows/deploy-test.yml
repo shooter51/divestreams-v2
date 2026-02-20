@@ -1,0 +1,134 @@
+name: Deploy Test
+
+# On push to test: build + deploy to Test VPS, then run E2E.
+
+on:
+  push:
+    branches: [test]
+
+concurrency:
+  group: deploy-test
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: shooter51/divestreams-app
+
+jobs:
+  build-deploy:
+    runs-on: [self-hosted, linux, divestreams]
+    environment: test
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Test VPS
+        run: |
+          echo "Deploying to Test VPS (${{ vars.TEST_VPS_ID }})"
+          curl -X POST \
+            "https://developers.hostinger.com/api/vps/v1/virtual-machines/${{ vars.TEST_VPS_ID }}/docker/divestreams-test/update" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
+
+      - name: Wait for containers to start
+        run: |
+          EXPECTED=4
+          VPS_ID=${{ vars.TEST_VPS_ID }}
+          MAX_ATTEMPTS=12
+          WAIT=10
+
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Check $i/$MAX_ATTEMPTS..."
+            RESPONSE=$(curl -s -X GET \
+              "https://developers.hostinger.com/api/vps/v1/virtual-machines/${VPS_ID}/docker/divestreams-test/containers" \
+              -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+              -H "Content-Type: application/json")
+            RUNNING_COUNT=$(echo "$RESPONSE" | jq '[.[] | select(.state == "running")] | length')
+            echo "  Running: $RUNNING_COUNT/$EXPECTED"
+
+            if [ "$RUNNING_COUNT" -ge "$EXPECTED" ]; then
+              echo "All containers running"
+              exit 0
+            fi
+
+            if [ "$i" -eq "$MAX_ATTEMPTS" ]; then
+              echo "ERROR: Expected $EXPECTED containers, found $RUNNING_COUNT after $((MAX_ATTEMPTS * WAIT))s"
+              exit 1
+            fi
+            sleep $WAIT
+          done
+
+  e2e:
+    needs: build-deploy
+    runs-on: [self-hosted, linux, divestreams]
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install chromium
+          npx playwright install-deps chromium || true
+
+      - name: Run E2E tests against test.divestreams.com
+        id: e2e
+        run: npx playwright test
+        env:
+          BASE_URL: https://test.divestreams.com
+          SKIP_WEB_SERVER: 'true'
+
+      - name: Upload E2E report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Create issue on E2E failure
+        if: failure() && steps.e2e.outcome == 'failure'
+        run: |
+          gh issue create \
+            --title "E2E failure on test deploy (${{ github.sha }})" \
+            --body "E2E tests failed after deploying to test.divestreams.com.
+
+          **Commit:** ${{ github.sha }}
+          **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          This does not block deployment — the code is already live on test for QA." \
+            --label "bug"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

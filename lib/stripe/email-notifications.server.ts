@@ -20,7 +20,7 @@ export async function sendPaymentSuccessEmail(
   // Extract customer info
   const customerEmail = invoice.customer_email;
   const customerName = invoice.customer_name ||
-    (invoice.customer && typeof invoice.customer === 'object' && 'name' in invoice.customer ? (invoice.customer as any).name : null) ||
+    (invoice.customer && typeof invoice.customer === 'object' && 'name' in invoice.customer ? (invoice.customer as { name?: string }).name : null) ||
     'Valued Customer';
 
   if (!customerEmail) {
@@ -71,7 +71,7 @@ export async function sendPaymentFailedEmail(
   // Extract customer info
   const customerEmail = invoice.customer_email;
   const customerName = invoice.customer_name ||
-    (invoice.customer && typeof invoice.customer === 'object' && 'name' in invoice.customer ? (invoice.customer as any).name : null) ||
+    (invoice.customer && typeof invoice.customer === 'object' && 'name' in invoice.customer ? (invoice.customer as { name?: string }).name : null) ||
     'Valued Customer';
 
   if (!customerEmail) {
@@ -84,6 +84,7 @@ export async function sendPaymentFailedEmail(
 
   // Get failure reason from charge
   let failureReason: string | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const charge = (invoice as any).charge;
   if (charge && typeof charge === 'object') {
     failureReason = charge.failure_code || charge.failure_message || undefined;
@@ -119,7 +120,8 @@ export async function sendPaymentFailedEmail(
 
 // Helper functions
 
-function formatAmount(amountInCents: number, currency: string): string {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function formatAmount(amountInCents: number, _currency: string): string {
   const amount = amountInCents / 100;
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,

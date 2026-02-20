@@ -1,0 +1,165 @@
+name: Cleanup Stale Branches
+
+on:
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (preview only, no deletions)'
+        required: false
+        type: boolean
+        default: true
+      stale_days:
+        description: 'Days since last commit to consider stale'
+        required: false
+        type: number
+        default: 30
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Cleanup stale branches
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'true' }}
+          STALE_DAYS: ${{ github.event.inputs.stale_days || '30' }}
+        run: |
+          echo "🧹 Stale Branch Cleanup"
+          echo "Mode: $([ "$DRY_RUN" = "true" ] && echo "DRY RUN (preview only)" || echo "LIVE (will delete)")"
+          echo "Stale threshold: ${STALE_DAYS} days"
+          echo ""
+
+          # Protected branches that should never be deleted
+          PROTECTED_BRANCHES="main|develop|test|HEAD"
+
+          # Calculate cutoff date
+          CUTOFF_DATE=$(date -d "${STALE_DAYS} days ago" +%s 2>/dev/null || date -v-${STALE_DAYS}d +%s)
+
+          # Find stale branches
+          STALE_BRANCHES=()
+          MERGED_BRANCHES=()
+
+          echo "📋 Analyzing branches..."
+          echo ""
+
+          # Get all remote branches except protected ones
+          for branch in $(git branch -r --format='%(refname:short)' | grep -vE "($PROTECTED_BRANCHES)"); do
+            # Skip if not origin
+            if [[ ! "$branch" =~ ^origin/ ]]; then
+              continue
+            fi
+
+            # Extract branch name without origin/
+            branch_name="${branch#origin/}"
+
+            # Get last commit date (Unix timestamp)
+            last_commit=$(git log -1 --format=%ct "$branch")
+            days_old=$(( ($(date +%s) - last_commit) / 86400 ))
+
+            # Check if merged into main
+            is_merged=$(git branch -r --merged origin/main | grep -q "^[[:space:]]*$branch$" && echo "yes" || echo "no")
+
+            if [ $days_old -ge $STALE_DAYS ]; then
+              if [ "$is_merged" = "yes" ]; then
+                MERGED_BRANCHES+=("$branch_name:$days_old")
+                echo "🟢 MERGED & STALE: $branch_name (${days_old} days old)"
+              else
+                STALE_BRANCHES+=("$branch_name:$days_old")
+                echo "🟡 STALE (not merged): $branch_name (${days_old} days old)"
+              fi
+            fi
+          done
+
+          echo ""
+          echo "📊 Summary:"
+          echo "  Merged & stale: ${#MERGED_BRANCHES[@]} branches"
+          echo "  Stale (not merged): ${#STALE_BRANCHES[@]} branches"
+          echo ""
+
+          # Delete merged branches (safe to delete)
+          if [ ${#MERGED_BRANCHES[@]} -gt 0 ]; then
+            echo "🗑️  Deleting merged stale branches..."
+            for entry in "${MERGED_BRANCHES[@]}"; do
+              branch_name="${entry%%:*}"
+              days_old="${entry##*:}"
+
+              if [ "$DRY_RUN" = "true" ]; then
+                echo "  [DRY RUN] Would delete: $branch_name (${days_old} days old)"
+              else
+                echo "  Deleting: $branch_name (${days_old} days old)"
+                git push origin --delete "$branch_name" || echo "    ⚠️  Failed to delete $branch_name"
+              fi
+            done
+          fi
+
+          # Report on unmerged stale branches (manual review needed)
+          if [ ${#STALE_BRANCHES[@]} -gt 0 ]; then
+            echo ""
+            echo "⚠️  Unmerged stale branches (manual review recommended):"
+            for entry in "${STALE_BRANCHES[@]}"; do
+              branch_name="${entry%%:*}"
+              days_old="${entry##*:}"
+              echo "  - $branch_name (${days_old} days old)"
+            done
+            echo ""
+            echo "To delete these, run:"
+            echo "  git push origin --delete <branch-name>"
+          fi
+
+          echo ""
+          echo "✅ Cleanup complete!"
+
+      - name: Create cleanup report
+        if: github.event_name == 'schedule' || github.event.inputs.dry_run != 'true'
+        run: |
+          echo "# Branch Cleanup Report" > cleanup-report.md
+          echo "" >> cleanup-report.md
+          echo "**Date:** $(date)" >> cleanup-report.md
+          echo "**Mode:** $([ "$DRY_RUN" = "true" ] && echo "Dry Run" || echo "Live")" >> cleanup-report.md
+          echo "**Stale Threshold:** ${STALE_DAYS} days" >> cleanup-report.md
+          echo "" >> cleanup-report.md
+
+          if [ ${#MERGED_BRANCHES[@]} -gt 0 ]; then
+            echo "## Deleted Branches" >> cleanup-report.md
+            for entry in "${MERGED_BRANCHES[@]}"; do
+              branch_name="${entry%%:*}"
+              days_old="${entry##*:}"
+              echo "- \`$branch_name\` (${days_old} days old)" >> cleanup-report.md
+            done
+            echo "" >> cleanup-report.md
+          fi
+
+          if [ ${#STALE_BRANCHES[@]} -gt 0 ]; then
+            echo "## Unmerged Stale Branches" >> cleanup-report.md
+            echo "These require manual review:" >> cleanup-report.md
+            for entry in "${STALE_BRANCHES[@]}"; do
+              branch_name="${entry%%:*}"
+              days_old="${entry##*:}"
+              echo "- \`$branch_name\` (${days_old} days old)" >> cleanup-report.md
+            done
+          fi
+
+          cat cleanup-report.md
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cleanup-report
+          path: cleanup-report.md
+          retention-days: 90
