@@ -321,7 +321,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
-    const boatSelect = await page.getByLabel(/boat/i).isVisible().catch(() => false);
+    const boatSelect = await page.getByLabel(/select boat/i).isVisible().catch(() => false);
     expect(boatSelect || page.url().includes("/trips")).toBeTruthy();
   });
 
