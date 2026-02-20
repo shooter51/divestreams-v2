@@ -97,7 +97,7 @@ Work through bugs one at a time. Best for:
 └────────┬────────┘
          │
 ┌────────▼────────┐
-│ 7. Push, Merge  │  Deploy to staging via CI/CD
+│ 7. Push, Merge  │  Deploy to test via CI/CD
 │    Monitor      │  Watch logs, check health
 └────────┬────────┘
          │
@@ -497,7 +497,7 @@ Skill(skill: "peer-review-and-fix")
 
 ## Phase 7: Push, Merge, Monitor
 
-**Objective:** Deploy to staging and verify in production-like environment
+**Objective:** Deploy to test and verify in production-like environment
 
 ### 7.1 Commit Changes
 
@@ -534,9 +534,9 @@ Fixes: KAN-XXX
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ```
 
-### 7.2 Push to Staging Branch
+### 7.2 Push to Test Branch
 ```bash
-git push origin staging
+git push origin test
 ```
 
 **NEVER use --no-verify unless peer review is complete**
@@ -554,7 +554,7 @@ gh run view --log
 - ✅ E2E tests pass (80 tests)
 - ✅ Build succeeds
 - ✅ Docker image builds
-- ✅ Deploy to staging succeeds
+- ✅ Deploy to test succeeds
 
 **If CI/CD fails:**
 - ⚠️ STOP - Don't transition Jira
@@ -563,14 +563,14 @@ gh run view --log
 - Push again
 - Wait for green
 
-### 7.4 Verify on Staging VPS
+### 7.4 Verify on Test VPS
 
 **Check deployment status:**
 ```bash
 # Via MCP
 mcp__hostinger-mcp__VPS_getProjectContainersV1(
   virtualMachineId: 1271895,
-  projectName: "divestreams-staging"
+  projectName: "divestreams-test"
 )
 
 # Expected: All containers "Up"
@@ -580,7 +580,7 @@ mcp__hostinger-mcp__VPS_getProjectContainersV1(
 ```bash
 mcp__hostinger-mcp__VPS_getProjectLogsV1(
   virtualMachineId: 1271895,
-  projectName: "divestreams-staging"
+  projectName: "divestreams-test"
 )
 
 # Look for:
@@ -591,9 +591,9 @@ mcp__hostinger-mcp__VPS_getProjectLogsV1(
 
 ### 7.5 Manual Verification (Quick Smoke Test)
 
-**Navigate to staging:**
+**Navigate to test:**
 ```
-https://staging.divestreams.com
+https://test.divestreams.com
 ```
 
 **Perform quick verification:**
@@ -651,7 +651,7 @@ mcp__atlassian__jira_transition_issue(
 
 **Deployment:**
 - Commit: [hash]
-- Branch: staging
+- Branch: test
 - CI/CD: ✅ Passed
 - Staging VPS: ✅ Deployed and verified
 - Manual smoke test: ✅ Passed
@@ -662,7 +662,7 @@ mcp__atlassian__jira_transition_issue(
 3. Verify [expected behavior]
 4. Check [related areas for regressions]
 
-**Ready for QA verification on staging.divestreams.com**"
+**Ready for QA verification on test.divestreams.com**"
 )
 ```
 
@@ -709,9 +709,9 @@ TodoWrite({
 
 ✅ **Deployment:**
 - [ ] Committed with comprehensive message
-- [ ] Pushed to staging branch
+- [ ] Pushed to test branch
 - [ ] CI/CD pipeline passed
-- [ ] Deployed to staging VPS
+- [ ] Deployed to test VPS
 - [ ] Containers healthy
 - [ ] Manual smoke test passed
 
@@ -819,10 +819,10 @@ Complete Fix:
 → Simple bugs often have hidden complexity
 
 ❌ "Tests pass, I'll push directly"
-→ Always verify on staging first
+→ Always verify on test first
 
 ❌ "I'll transition to Dev Review now, QA can verify later"
-→ Only transition after staging verification
+→ Only transition after test verification
 
 ❌ "This affects other places but I'll fix them later"
 → Fix all similar instances NOW (completeness)
@@ -866,7 +866,7 @@ User: "Fix the Jira bugs"
 - Peer review completeness < 70%
 - CI/CD pipeline failures
 - Staging deployment errors
-- Bug still reproduces on staging
+- Bug still reproduces on test
 
 ---
 
@@ -979,7 +979,7 @@ git commit -m "fix: batch bug fixes (KAN-638, KAN-637, KAN-636, KAN-635, KAN-634
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 "
 
-git push origin staging
+git push origin test
 ```
 
 ### Step 8: Batch Transition to DEV REVIEW (You)
@@ -991,7 +991,7 @@ git push origin staging
   mcp__atlassian__jira_transition_issue(
     issue_key: "KAN-638",
     transition_id: "2",  // DEV REVIEW
-    comment: "Fixed and deployed to staging.\n\n**Root Cause:** ...\n**Fix:** ...\n**Testing:** ✅ ...\n**Deployment:** Commit: xxx, Branch: staging"
+    comment: "Fixed and deployed to test.\n\n**Root Cause:** ...\n**Fix:** ...\n**Testing:** ✅ ...\n**Deployment:** Commit: xxx, Branch: test"
   )
   mcp__atlassian__jira_transition_issue(key: "KAN-637", transition_id: "2", comment: "...")
   mcp__atlassian__jira_transition_issue(key: "KAN-636", transition_id: "2", comment: "...")
@@ -1001,7 +1001,7 @@ git push origin staging
 
 **Comment Template:**
 ```
-Fixed and deployed to staging.
+Fixed and deployed to test.
 
 **Root Cause:** [What was broken and why]
 
@@ -1019,7 +1019,7 @@ Fixed and deployed to staging.
 
 **Deployment:**
 - Commit: [hash]
-- Branch: staging
+- Branch: test
 - Ready for QA verification
 ```
 
@@ -1065,9 +1065,9 @@ Phase 6: Peer Review
 → Verdict: APPROVED
 
 Phase 7: Deploy
-→ Pushed to staging
+→ Pushed to test
 → CI/CD: ✅ All checks passed
-→ Staging: ✅ Deployed successfully
+→ Test: ✅ Deployed successfully
 → Manual: ✅ Booking works
 
 Phase 8: Transition
@@ -1079,7 +1079,7 @@ Repeat for KAN-637 and KAN-636...
 Session Complete:
 ✅ 3 bugs fixed
 ✅ 9 integration tests added
-✅ All deployed to staging
+✅ All deployed to test
 ✅ All in DEV REVIEW for QA
 ```
 
@@ -1091,7 +1091,7 @@ Session Complete:
 - **Always do root cause:** Don't just fix symptoms
 - **Always search for similar:** Fix all instances, not just reported one
 - **Always peer review:** 5 independent reviewers catch what you miss
-- **Always verify on staging:** Before transitioning to DEV REVIEW
+- **Always verify on test:** Before transitioning to DEV REVIEW
 - **Always document:** Comprehensive Jira comments for QA
 
 **This workflow ensures:**
@@ -1099,4 +1099,4 @@ Session Complete:
 2. Fixes are complete (peer review verifies)
 3. No regressions (all tests pass)
 4. QA has context (comprehensive documentation)
-5. Deployment works (staging verification)
+5. Deployment works (test verification)

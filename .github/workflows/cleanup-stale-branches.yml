@@ -45,7 +45,7 @@ jobs:
           echo ""
 
           # Protected branches that should never be deleted
-          PROTECTED_BRANCHES="main|develop|staging|HEAD"
+          PROTECTED_BRANCHES="main|develop|test|HEAD"
 
           # Calculate cutoff date
           CUTOFF_DATE=$(date -d "${STALE_DAYS} days ago" +%s 2>/dev/null || date -v-${STALE_DAYS}d +%s)
