@@ -174,27 +174,29 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     console.log(`Signup error: ${errorText || "none visible"}`);
     console.log(`Page text (first 500 chars): ${bodyText.substring(0, 500)}`);
 
-    // If user already exists, try login again (maybe with corrected state)
-    if (
-      errorText?.toLowerCase().includes("already") ||
-      errorText?.toLowerCase().includes("exists") ||
-      bodyText.toLowerCase().includes("already registered")
-    ) {
-      console.log("User already exists - retrying login...");
-      await page.goto(getTenantUrl("demo", "/auth/login"));
-      await page.waitForLoadState("domcontentloaded");
-      await page.getByRole("textbox", { name: /email/i }).fill(testUser.email);
-      await page.locator('input[type="password"]').first().fill(testUser.password);
-      await page.getByRole("button", { name: /sign in/i }).click();
+    // Always retry login after failed signup redirect — the user may already exist
+    // (Better Auth returns 200 with error data when user exists, but the error
+    // may not render visibly due to page re-render timing)
+    console.log("Signup did not redirect - retrying login (user may already exist)...");
+    await page.goto(getTenantUrl("demo", "/auth/login"));
+    await page.waitForLoadState("domcontentloaded");
+    await page.getByRole("textbox", { name: /email/i }).fill(testUser.email);
+    await page.locator('input[type="password"]').first().fill(testUser.password);
+    await page.getByRole("button", { name: /sign in/i }).click();
 
-      await page.waitForURL(/\/tenant/, { timeout: 15000 });
-      console.log("Login succeeded after signup conflict - user exists with correct password");
+    const retryLoginSuccess = await page
+      .waitForURL(/\/tenant/, { timeout: 15000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (retryLoginSuccess) {
+      console.log("Login succeeded on retry - user exists with correct password");
       return;
     }
 
     // Hard fail - independent tests need this user
     throw new Error(
-      `Failed to create test user. URL: ${currentUrl}, Error: ${errorText || "none"}`
+      `Failed to create test user. Login retry also failed. URL: ${page.url()}, Signup error: ${errorText || "none"}`
     );
   });
 });
