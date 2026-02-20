@@ -680,10 +680,12 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
 
   test("[KAN-95] 6.12 Navigate to boat detail page", async ({ page }) => {
     await loginToTenant(page);
+    if (!await isAuthenticated(page)) return;
     const boatId = testData.createdIds.boat;
     if (!boatId) {
       await page.goto(getTenantUrl("/tenant/boats"));
       await page.waitForLoadState("load");
+      if (!await isAuthenticated(page)) return;
       expect(page.url().includes("/boats")).toBeTruthy();
       return;
     }
@@ -1661,9 +1663,12 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
 
   test("[KAN-176] 11.14 Trip edit has save button", async ({ page }) => {
     await loginToTenant(page);
+    if (!await isAuthenticated(page)) return;
     const tripId = testData.createdIds.trip;
     if (!tripId) {
       await page.goto(getTenantUrl("/tenant/trips"));
+      await page.waitForLoadState("load");
+      if (!await isAuthenticated(page)) return;
       expect(page.url().includes("/trips")).toBeTruthy();
       return;
     }

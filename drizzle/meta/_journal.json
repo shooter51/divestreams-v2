@@ -46,6 +46,7 @@
     { "idx": 41, "version": "7", "when": 1768187107666, "tag": "0041_add_plan_id_not_null_constraint", "breakpoints": true },
     { "idx": 42, "version": "7", "when": 1768187107667, "tag": "0042_add_row_level_security", "breakpoints": true },
     { "idx": 43, "version": "7", "when": 1768187107668, "tag": "0043_add_stock_quantity_check", "breakpoints": true },
-    { "idx": 44, "version": "7", "when": 1768187107669, "tag": "0044_fix_dive_site_entity_type", "breakpoints": true }
+    { "idx": 44, "version": "7", "when": 1768187107669, "tag": "0044_fix_dive_site_entity_type", "breakpoints": true },
+    { "idx": 45, "version": "7", "when": 1768187107670, "tag": "0045_verify_all_user_emails", "breakpoints": true }
   ]
 }
