@@ -155,7 +155,7 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default: returning a valid product
-    (mockReturning as any)._resolveValue = Promise.resolve([{
+    (mockReturning as unknown)._resolveValue = Promise.resolve([{
       id: "prod-1",
       organizationId: "org-123",
       name: "Test Product",
@@ -173,7 +173,7 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     }]);
-    (mockLimit as any)._resolveValue = Promise.resolve([]);
+    (mockLimit as unknown)._resolveValue = Promise.resolve([]);
   });
 
   describe("createProduct - negative stock validation", () => {
@@ -285,7 +285,7 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
 
   describe("adjustProductStock - prevents negative result", () => {
     it("returns error when adjustment would make stock negative", async () => {
-      (mockLimit as any)._resolveValue = Promise.resolve([
+      (mockLimit as unknown)._resolveValue = Promise.resolve([
         { name: "Dive Mask", stockQuantity: 5 },
       ]);
 
@@ -298,7 +298,7 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
     });
 
     it("includes current stock in error message", async () => {
-      (mockLimit as any)._resolveValue = Promise.resolve([
+      (mockLimit as unknown)._resolveValue = Promise.resolve([
         { name: "Regulator", stockQuantity: 3 },
       ]);
 
@@ -309,11 +309,11 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
     });
 
     it("allows adjustment that brings stock exactly to 0", async () => {
-      (mockLimit as any)._resolveValue = Promise.resolve([
+      (mockLimit as unknown)._resolveValue = Promise.resolve([
         { name: "Fins", stockQuantity: 5 },
       ]);
       // After adjustment, db.update is called
-      (mockReturning as any)._resolveValue = Promise.resolve([]);
+      (mockReturning as unknown)._resolveValue = Promise.resolve([]);
 
       const result = await adjustProductStock("org-123", "prod-1", -5);
 
@@ -322,7 +322,7 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
     });
 
     it("allows positive adjustment (restocking)", async () => {
-      (mockLimit as any)._resolveValue = Promise.resolve([
+      (mockLimit as unknown)._resolveValue = Promise.resolve([
         { name: "Wetsuit", stockQuantity: 2 },
       ]);
 
@@ -333,7 +333,7 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
     });
 
     it("returns error when product not found", async () => {
-      (mockLimit as any)._resolveValue = Promise.resolve([]);
+      (mockLimit as unknown)._resolveValue = Promise.resolve([]);
 
       const result = await adjustProductStock("org-123", "nonexistent", -1);
 
@@ -342,7 +342,7 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
     });
 
     it("does not update database when adjustment would go negative", async () => {
-      (mockLimit as any)._resolveValue = Promise.resolve([
+      (mockLimit as unknown)._resolveValue = Promise.resolve([
         { name: "BCD", stockQuantity: 2 },
       ]);
 
@@ -352,7 +352,7 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
     });
 
     it("error message format: includes adjustment, resulting quantity, and current stock", async () => {
-      (mockLimit as any)._resolveValue = Promise.resolve([
+      (mockLimit as unknown)._resolveValue = Promise.resolve([
         { name: "Tank", stockQuantity: 3 },
       ]);
 
@@ -379,7 +379,7 @@ describe("KAN-620: Stock validation prevents negative inventory", () => {
     });
 
     it("adjustProductStock: allows adjustment of 0 (no-op)", async () => {
-      (mockLimit as any)._resolveValue = Promise.resolve([
+      (mockLimit as unknown)._resolveValue = Promise.resolve([
         { name: "Test", stockQuantity: 5 },
       ]);
 

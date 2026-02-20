@@ -5,7 +5,7 @@
  * for the health check endpoint.
  */
 
-import { describe, it, beforeAll, afterAll, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { PactV3, MatchersV3 } from "@pact-foundation/pact";
 import path from "path";
 

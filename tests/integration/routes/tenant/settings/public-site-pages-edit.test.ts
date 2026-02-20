@@ -67,7 +67,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
       (getPageContentHistory as Mock).mockResolvedValue([]);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/pages/about/edit");
-      await loader({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -76,7 +76,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/pages//edit");
 
       await expect(
-        loader({ request, params: {}, context: {}, unstable_pattern: "" } as any)
+        loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown)
       ).rejects.toThrow();
     });
 
@@ -86,7 +86,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/pages/nonexistent/edit");
 
       await expect(
-        loader({ request, params: { pageId: "nonexistent" }, context: {}, unstable_pattern: "" } as any)
+        loader({ request, params: { pageId: "nonexistent" }, context: {}, unstable_pattern: "" } as unknown)
       ).rejects.toThrow();
     });
 
@@ -109,7 +109,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
       (getPageContentHistory as Mock).mockResolvedValue(mockHistory);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/pages/about/edit");
-      const result = await loader({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.page).toEqual(mockPage);
       expect(result.history).toEqual(mockHistory);
@@ -135,7 +135,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(updatePageContent).toHaveBeenCalledWith("org-uuid", "about", {
           content: { blocks: [{ type: "paragraph", text: "Updated content" }] },
@@ -157,7 +157,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(updatePageContent).toHaveBeenCalledWith("org-uuid", "about", expect.objectContaining({
           content: { blocks: [] },
@@ -177,7 +177,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(publishPageContent).toHaveBeenCalledWith("org-uuid", "about", "user-1");
         expect(result).toEqual({ success: true, message: "Page published successfully" });
@@ -195,7 +195,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(unpublishPageContent).toHaveBeenCalledWith("org-uuid", "about", "user-1");
         expect(result).toEqual({ success: true, message: "Page unpublished successfully" });
@@ -214,7 +214,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(restorePageContentVersion).toHaveBeenCalledWith("org-uuid", "about", 2, "user-1");
         expect(result).toEqual({ success: true, message: "Restored to version 2" });
@@ -228,7 +228,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.success).toBe(false);
         expect(result.error).toContain("Version number is required");
@@ -243,7 +243,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.success).toBe(false);
         expect(result.error).toContain("Invalid version number");
@@ -260,7 +260,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.success).toBe(false);
         expect(result.error).toContain("Failed to restore version");
@@ -277,7 +277,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
       });
 
       await expect(
-        action({ request, params: {}, context: {}, unstable_pattern: "" } as any)
+        action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown)
       ).rejects.toThrow();
     });
 
@@ -289,7 +289,7 @@ describe("tenant/settings/public-site.pages.$pageId.edit route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: { pageId: "about" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toBeNull();
     });

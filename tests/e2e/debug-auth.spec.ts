@@ -2,7 +2,7 @@
  * Debug test to check authentication
  */
 
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { LoginPage } from './page-objects/auth.page';
 
 test.describe('Debug Authentication', () => {

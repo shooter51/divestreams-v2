@@ -87,7 +87,7 @@ export default function EnrollmentsPage() {
 
   const { enrollments, sessions, total, status, sessionId, stats } =
     useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
 
   const handleFilter = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

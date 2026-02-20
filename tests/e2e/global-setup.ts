@@ -10,7 +10,8 @@ import { auth } from "../../lib/auth";
 import { seedDemoData } from "../../lib/db/seed-demo-data.server";
 import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../lib/plan-features";
 
-async function globalSetup(config: FullConfig) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function globalSetup(_config: FullConfig) {
   // Load .env file
   const envPath = path.join(process.cwd(), ".env");
   dotenv.config({ path: envPath });
@@ -96,7 +97,7 @@ async function globalSetup(config: FullConfig) {
           .where(eq(user.id, demoUserId));
 
         console.log("✓ Demo owner user created");
-      } catch (error) {
+      } catch {
         // Race condition: user may have been created by another worker between check and create
         console.log("User creation conflict detected, re-querying...");
         const [newUser] = await db
@@ -313,7 +314,7 @@ async function globalSetup(config: FullConfig) {
           .where(eq(user.id, platformAdminUserId));
 
         console.log("✓ Platform admin user created");
-      } catch (error) {
+      } catch {
         // Race condition handling
         console.log("Admin user creation conflict detected, re-querying...");
         const [newAdmin] = await db
@@ -477,7 +478,7 @@ async function globalSetup(config: FullConfig) {
           .where(eq(user.id, e2eUserId));
 
         console.log("✓ E2E test user created");
-      } catch (error) {
+      } catch {
         console.log("E2E user creation conflict detected, re-querying...");
         const [newUser] = await db
           .select()

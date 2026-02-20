@@ -3,7 +3,7 @@ import { Link, useLoaderData, useFetcher } from "react-router";
 import { useEffect } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { member, customers, certificationAgencies, certificationLevels, tenants, organization } from "../../../../lib/db/schema";
+import { member, customers, certificationAgencies, certificationLevels, tenants } from "../../../../lib/db/schema";
 import { eq, count, and } from "drizzle-orm";
 import { seedDemoData } from "../../../../lib/db/seed-demo-data.server";
 import { sendEmail } from "../../../../lib/email/email.server";

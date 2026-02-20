@@ -10,7 +10,7 @@ import { action } from "../../../../app/routes/tenant/products";
 import * as orgContext from "../../../../lib/auth/org-context.server";
 import * as tenantDb from "../../../../lib/db/tenant.server";
 import * as dbIndex from "../../../../lib/db/index";
-import { eq, and } from "drizzle-orm";
+import "drizzle-orm";
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server");
@@ -28,8 +28,8 @@ describe.skip("app/routes/tenant/products.tsx - Bulk Stock Update", () => {
     { id: "prod-3", name: "Snorkel", stockQuantity: 30, organizationId: mockOrganizationId },
   ];
 
-  let mockDb: any;
-  let mockTables: any;
+  let mockDb: unknown;
+  let mockTables: unknown;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -38,7 +38,7 @@ describe.skip("app/routes/tenant/products.tsx - Bulk Stock Update", () => {
     vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
       org: { id: mockOrganizationId, name: "Test Org" },
       subscription: { planDetails: { features: { hasPos: true } } },
-    } as any);
+    } as unknown);
 
     // Mock tables
     mockTables = {
@@ -79,7 +79,7 @@ describe.skip("app/routes/tenant/products.tsx - Bulk Stock Update", () => {
 
     // Mock db object by replacing properties directly
     Object.defineProperty(dbIndex, 'db', { value: mockDb, writable: true });
-    vi.mocked(tenantDb.getTenantDb).mockReturnValue({ db: mockDb, schema: mockTables } as any);
+    vi.mocked(tenantDb.getTenantDb).mockReturnValue({ db: mockDb, schema: mockTables } as unknown);
   });
 
   describe('Bulk Update - "Set to value" mode', () => {

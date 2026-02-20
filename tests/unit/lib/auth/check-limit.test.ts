@@ -18,10 +18,10 @@ describe("checkLimit", () => {
   // Helper to create mock context
   function createMockContext(overrides: Partial<OrgContext> = {}): OrgContext {
     return {
-      user: { id: "user-1", name: "Test", email: "test@example.com" } as any,
-      session: { id: "session-1" } as any,
-      org: { id: "org-1", name: "Test Org", slug: "test" } as any,
-      membership: { role: "owner" } as any,
+      user: { id: "user-1", name: "Test", email: "test@example.com" } as Record<string, unknown>,
+      session: { id: "session-1" } as Record<string, unknown>,
+      org: { id: "org-1", name: "Test Org", slug: "test" } as Record<string, unknown>,
+      membership: { role: "owner" } as Record<string, unknown>,
       subscription: null,
       limits: FREE_TIER_LIMITS,
       usage: { customers: 0, tours: 0, bookingsThisMonth: 0 },

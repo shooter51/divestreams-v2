@@ -17,7 +17,7 @@ function getTenantUrl(path: string) {
   return `http://${testData.tenant.subdomain}.localhost:5173${path}`;
 }
 
-async function loginToTenant(page: any) {
+async function loginToTenant(page: import("@playwright/test").Page) {
   await page.goto(getTenantUrl("/auth/login"));
   await page.getByRole("textbox", { name: /email/i }).fill(testData.user.email);
   await page.locator('input[type="password"]').first().fill(testData.user.password);

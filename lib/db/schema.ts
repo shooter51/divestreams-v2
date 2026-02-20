@@ -92,6 +92,7 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   // [KAN-627] Stores Stripe product ID and other integration metadata
   metadata: jsonb("metadata").$type<{
     stripeProductId?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   }>(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -509,6 +510,7 @@ export const transactions = pgTable("transactions", {
   notes: text("notes"),
 
   // Refund tracking
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   refundedTransactionId: uuid("refunded_transaction_id").references((): any => transactions.id, { onDelete: "set null" }),
   refundReason: text("refund_reason"),
 

@@ -68,14 +68,14 @@ describe("tenant/training/sessions/new route", () => {
   describe("loader", () => {
     it("requires organization context", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/sessions/new");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("returns courses list", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/sessions/new");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.courses).toEqual(mockCourses);
       expect(getCourses).toHaveBeenCalledWith("org-uuid");
@@ -83,7 +83,7 @@ describe("tenant/training/sessions/new route", () => {
 
     it("returns selectedCourse as null when no courseId provided", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/sessions/new");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.selectedCourse).toBeNull();
       expect(result.courseId).toBeNull();
@@ -92,7 +92,7 @@ describe("tenant/training/sessions/new route", () => {
 
     it("returns selectedCourse when courseId query param is provided", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/sessions/new?courseId=course-1");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.selectedCourse).toEqual(mockSelectedCourse);
       expect(result.courseId).toBe("course-1");
@@ -111,7 +111,7 @@ describe("tenant/training/sessions/new route", () => {
         body: formData,
       });
 
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -125,7 +125,7 @@ describe("tenant/training/sessions/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toEqual({ errors: { courseId: "Please select a course" } });
       expect(createSession).not.toHaveBeenCalled();
@@ -140,7 +140,7 @@ describe("tenant/training/sessions/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toEqual({ errors: { startDate: "Start date is required" } });
       expect(createSession).not.toHaveBeenCalled();
@@ -154,7 +154,7 @@ describe("tenant/training/sessions/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toEqual({
         errors: {
@@ -182,7 +182,7 @@ describe("tenant/training/sessions/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(createSession).toHaveBeenCalledWith({
         organizationId: "org-uuid",
@@ -211,7 +211,7 @@ describe("tenant/training/sessions/new route", () => {
         body: formData,
       });
 
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(createSession).toHaveBeenCalledWith({
         organizationId: "org-uuid",
@@ -239,7 +239,7 @@ describe("tenant/training/sessions/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect((result as Response).status).toBe(302);
     });

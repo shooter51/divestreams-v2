@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../../helpers/redirect";
 import { loader, action } from "../../../../../../app/routes/tenant/pos/products/index";
 import * as orgContext from "../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../lib/db/queries.server";
@@ -38,12 +37,12 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
     it("should fetch all products and categories", async () => {
-      vi.mocked(queries.getProducts).mockResolvedValue(mockProducts as any);
+      vi.mocked(queries.getProducts).mockResolvedValue(mockProducts as unknown);
       vi.mocked(queries.getProductCategories).mockResolvedValue(mockCategories);
 
       const request = new Request("http://test.com/tenant/pos/products");
@@ -60,7 +59,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
 
     it("should filter products by category", async () => {
       const filteredProducts = [mockProducts[0]];
-      vi.mocked(queries.getProducts).mockResolvedValue(filteredProducts as any);
+      vi.mocked(queries.getProducts).mockResolvedValue(filteredProducts as unknown);
       vi.mocked(queries.getProductCategories).mockResolvedValue(mockCategories);
 
       const request = new Request("http://test.com/tenant/pos/products?category=equipment");
@@ -75,7 +74,7 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
 
     it("should filter products by search query", async () => {
       const filteredProducts = [mockProducts[0]];
-      vi.mocked(queries.getProducts).mockResolvedValue(filteredProducts as any);
+      vi.mocked(queries.getProducts).mockResolvedValue(filteredProducts as unknown);
       vi.mocked(queries.getProductCategories).mockResolvedValue(mockCategories);
 
       const request = new Request("http://test.com/tenant/pos/products?search=mask");
@@ -89,11 +88,11 @@ describe("app/routes/tenant/pos/products/index.tsx", () => {
     });
 
     it("should filter by both category and search", async () => {
-      vi.mocked(queries.getProducts).mockResolvedValue([mockProducts[0]] as any);
+      vi.mocked(queries.getProducts).mockResolvedValue([mockProducts[0]] as unknown);
       vi.mocked(queries.getProductCategories).mockResolvedValue(mockCategories);
 
       const request = new Request("http://test.com/tenant/pos/products?category=equipment&search=mask");
-      const result = await loader({ request, params: {}, context: {} });
+      await loader({ request, params: {}, context: {} });
 
       expect(queries.getProducts).toHaveBeenCalledWith(
         mockOrganizationId,

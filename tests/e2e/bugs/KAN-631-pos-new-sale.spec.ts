@@ -47,6 +47,7 @@ test.describe('KAN-631: POS New Sale Button @critical @pos', () => {
     expect(boundingBox!.height).toBeGreaterThan(0);
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   test('KAN-631.2: New Sale button should clear cart when clicked (single product)', async ({ page }) => {
     // Add a product to cart
     await posPage.addProductByIndex(0);
@@ -65,6 +66,7 @@ test.describe('KAN-631: POS New Sale Button @critical @pos', () => {
     await posPage.expectCartEmpty();
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   test('KAN-631.3: New Sale button should clear cart with multiple items', async ({ page }) => {
     // Add multiple products to cart
     await posPage.addProductByIndex(0);
@@ -84,6 +86,7 @@ test.describe('KAN-631: POS New Sale Button @critical @pos', () => {
     await posPage.expectCartEmpty();
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   test('KAN-631.4: New Sale button should work multiple times in succession', async ({ page }) => {
     // First sale - add and clear
     await posPage.addProductByIndex(0);
@@ -133,6 +136,7 @@ test.describe('KAN-631: POS New Sale Button @critical @pos', () => {
     expect(isDisabled).toBe(false);
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   test('KAN-631.6: New Sale button should clear cart with different item quantities', async ({ page }) => {
     // Add product and increase quantity
     await posPage.addProductByIndex(0);

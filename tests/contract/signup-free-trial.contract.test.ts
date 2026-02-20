@@ -34,7 +34,6 @@ describe("Contract: Free Trial Signup Flow (KAN-592)", () => {
     it("handles login URLs with existing query params", () => {
       const loginUrl = "https://demo.divestreams.com/auth/login?ref=promo";
       const separator = loginUrl.includes("?") ? "&" : "?";
-      const emailQueued = true;
       const redirectUrl = `${loginUrl}${separator}signup=success`;
 
       expect(redirectUrl).toBe(

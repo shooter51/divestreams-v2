@@ -6,7 +6,7 @@ import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { equipment } from "../../../../lib/db/schema";
-import { eq, or, ilike, sql, count, and } from "drizzle-orm";
+import { eq, or, ilike, sql, and } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
 import { useNotification } from "../../../../lib/use-notification";

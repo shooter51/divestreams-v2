@@ -9,8 +9,6 @@ const isServer = typeof process !== "undefined" && process.env?.DATABASE_URL;
 // Lazy initialization for server-side only
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 let _migrationDb: ReturnType<typeof drizzle> | null = null;
-let _queryClient: ReturnType<typeof postgres> | null = null;
-
 function getConnectionString(): string {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
@@ -20,6 +18,7 @@ function getConnectionString(): string {
 }
 
 // No-op proxy for client-side - does nothing but doesn't throw
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const clientSafeProxy = new Proxy({} as any, {
   get() {
     // Return a function that returns a proxy (for chained calls like db.select().from())
@@ -44,6 +43,7 @@ export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
       });
       _db = drizzle(queryClient, { schema });
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (_db as any)[prop];
   },
 });
@@ -61,6 +61,7 @@ export const migrationDb = new Proxy({} as ReturnType<typeof drizzle>, {
       const migrationClient = postgres(connectionString, { max: 1 });
       _migrationDb = drizzle(migrationClient);
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (_migrationDb as any)[prop];
   },
 });

@@ -1,7 +1,6 @@
-import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { eq, sql } from "drizzle-orm";
-import { db, migrationDb } from "./index";
+import { eq } from "drizzle-orm";
+import { db } from "./index";
 import { tenants, subscriptionPlans, type Tenant } from "./schema";
 import { organization } from "./schema/auth";
 import { subscription } from "./schema/subscription";
@@ -26,6 +25,7 @@ export async function getTenantById(id: string): Promise<Tenant | null> {
 // Note: With the new organization-based architecture, all tenants share the same schema
 // The schemaName parameter is kept for backwards compatibility but queries should
 // filter by organizationId instead of using separate schemas
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getTenantDb(_schemaName: string) {
   // Return the shared schema - organization filtering is done at query level
   return {

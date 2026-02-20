@@ -215,7 +215,7 @@ export async function action({ request }: ActionFunctionArgs) {
         "Set-Cookie": cookieValue,
       },
     });
-  } catch (error) {
+  } catch {
     // Login failed
     const loginErrors: ActionErrors = { form: "Invalid email or password" };
     return {

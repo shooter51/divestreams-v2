@@ -264,7 +264,7 @@ describe("require-feature.server", () => {
         users: 2,
       };
 
-      vi.mocked(usageModule.getUsage).mockResolvedValue(mockUsage as any);
+      vi.mocked(usageModule.getUsage).mockResolvedValue(mockUsage as unknown);
 
       const limits: PlanLimits = {
         customers: 100,

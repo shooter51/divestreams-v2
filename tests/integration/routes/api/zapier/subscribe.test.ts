@@ -31,7 +31,7 @@ describe("api/zapier/subscribe route", () => {
         method: "POST",
         body: JSON.stringify({ event_type: "booking.created", target_url: "https://hooks.zapier.com/123" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -47,7 +47,7 @@ describe("api/zapier/subscribe route", () => {
         headers: { "x-api-key": "invalid-key" },
         body: JSON.stringify({ event_type: "booking.created", target_url: "https://hooks.zapier.com/123" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -63,7 +63,7 @@ describe("api/zapier/subscribe route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({ target_url: "https://hooks.zapier.com/123" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(400);
 
@@ -79,7 +79,7 @@ describe("api/zapier/subscribe route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({ event_type: "booking.created" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(400);
 
@@ -104,7 +104,7 @@ describe("api/zapier/subscribe route", () => {
           target_url: "https://hooks.zapier.com/123",
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(200);
 
@@ -132,7 +132,7 @@ describe("api/zapier/subscribe route", () => {
           target_url: "https://hooks.zapier.com/456",
         }),
       });
-      await action({ request, params: {}, context: {} } as any);
+      await action({ request, params: {}, context: {} } as unknown);
 
       expect(subscribeWebhook).toHaveBeenCalledWith(
         "org-abc",
@@ -153,7 +153,7 @@ describe("api/zapier/subscribe route", () => {
           target_url: "https://hooks.zapier.com/123",
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(500);
 
@@ -168,7 +168,7 @@ describe("api/zapier/subscribe route", () => {
         method: "DELETE",
         body: JSON.stringify({ target_url: "https://hooks.zapier.com/123" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -184,7 +184,7 @@ describe("api/zapier/subscribe route", () => {
         headers: { "x-api-key": "invalid-key" },
         body: JSON.stringify({ target_url: "https://hooks.zapier.com/123" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -200,7 +200,7 @@ describe("api/zapier/subscribe route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({}),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(400);
 
@@ -217,7 +217,7 @@ describe("api/zapier/subscribe route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({ target_url: "https://hooks.zapier.com/123" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(200);
 
@@ -237,7 +237,7 @@ describe("api/zapier/subscribe route", () => {
           event_type: "trip.scheduled",
         }),
       });
-      await action({ request, params: {}, context: {} } as any);
+      await action({ request, params: {}, context: {} } as unknown);
 
       expect(unsubscribeWebhook).toHaveBeenCalledWith(
         "org-xyz",
@@ -255,7 +255,7 @@ describe("api/zapier/subscribe route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({ target_url: "https://hooks.zapier.com/nonexistent" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(404);
 
@@ -272,7 +272,7 @@ describe("api/zapier/subscribe route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({ target_url: "https://hooks.zapier.com/123" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(500);
 
@@ -289,7 +289,7 @@ describe("api/zapier/subscribe route", () => {
         method: "GET",
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(405);
 
@@ -305,7 +305,7 @@ describe("api/zapier/subscribe route", () => {
         headers: { "x-api-key": "valid-key" },
         body: JSON.stringify({ event_type: "booking.created", target_url: "https://hooks.zapier.com/123" }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(405);
 

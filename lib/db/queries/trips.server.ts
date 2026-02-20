@@ -5,7 +5,7 @@
  * revenue calculations, and participant counts.
  */
 
-import { desc, eq, gte, lte, and, sql, inArray } from "drizzle-orm";
+import { eq, gte, lte, and, sql, inArray } from "drizzle-orm";
 import { db } from "../index";
 import * as schema from "../schema";
 import { dbLogger } from "../../logger";
@@ -273,6 +273,7 @@ export async function createTrip(organizationId: string, data: {
   import("../../integrations/google-calendar.server")
     .then(({ syncTripToCalendar }) => {
       const org = getOrganizationById(organizationId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const timezone = org.then((o: any) => o?.timezone || "UTC");
       timezone.then((tz: string) =>
         syncTripToCalendar(organizationId, trip.id, tz).catch((error) =>
@@ -300,6 +301,7 @@ export async function updateTripStatus(organizationId: string, id: string, statu
     import("../../integrations/google-calendar.server")
       .then(({ syncTripToCalendar }) => {
         const org = getOrganizationById(organizationId);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const timezone = org.then((o: any) => o?.timezone || "UTC");
         timezone.then((tz: string) =>
           syncTripToCalendar(organizationId, trip.id, tz).catch((error) =>

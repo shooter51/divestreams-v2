@@ -26,7 +26,7 @@ describe("api/auth.$ route", () => {
       (auth.handler as Mock).mockResolvedValue(mockResponse);
 
       const request = new Request("https://divestreams.com/api/auth/session");
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(auth.handler).toHaveBeenCalledWith(request);
       expect(response).toBe(mockResponse);
@@ -41,7 +41,7 @@ describe("api/auth.$ route", () => {
       const request = new Request("https://divestreams.com/api/auth/sign-in", {
         method: "POST",
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(auth.handler).toHaveBeenCalledWith(request);
       expect(response).toBe(mockResponse);

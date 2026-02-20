@@ -22,7 +22,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -49,7 +49,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
         },
       };
 
-      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as any);
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as unknown);
 
       const request = new Request("http://test.com/tenant/bookings/booking-456/edit");
       const result = await loader({ request, params: { id: mockBookingId }, context: {} });
@@ -121,7 +121,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
         },
       };
 
-      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as any);
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as unknown);
 
       const request = new Request("http://test.com/tenant/bookings/booking-456/edit");
       const result = await loader({ request, params: { id: mockBookingId }, context: {} });
@@ -149,7 +149,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("participants", "3");
@@ -218,7 +218,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("participants", "invalid");
@@ -231,7 +231,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: { id: mockBookingId }, context: {} });
+      await action({ request, params: { id: mockBookingId }, context: {} });
 
       expect(mockDb.set).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -257,7 +257,7 @@ describe("app/routes/tenant/bookings/$id/edit.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: mockSchema,
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("participants", "2");

@@ -93,7 +93,7 @@ describe("tenant/training/courses/$id/edit route", () => {
       (getLevels as Mock).mockResolvedValue([]);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/courses/course-1/edit");
-      await loader({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -102,7 +102,7 @@ describe("tenant/training/courses/$id/edit route", () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses//edit");
 
       await expect(
-        loader({ request, params: {}, context: {}, unstable_pattern: "" } as any)
+        loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown)
       ).rejects.toThrow();
     });
 
@@ -114,7 +114,7 @@ describe("tenant/training/courses/$id/edit route", () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/courses/nonexistent/edit");
 
       await expect(
-        loader({ request, params: { id: "nonexistent" }, context: {}, unstable_pattern: "" } as any)
+        loader({ request, params: { id: "nonexistent" }, context: {}, unstable_pattern: "" } as unknown)
       ).rejects.toThrow();
     });
 
@@ -133,7 +133,7 @@ describe("tenant/training/courses/$id/edit route", () => {
       (getLevels as Mock).mockResolvedValue(mockLevels);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/courses/course-1/edit");
-      const result = await loader({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.course).toEqual(mockCourse);
       expect(result.agencies).toEqual(mockAgencies);
@@ -154,7 +154,7 @@ describe("tenant/training/courses/$id/edit route", () => {
       });
 
       await expect(
-        action({ request, params: {}, context: {}, unstable_pattern: "" } as any)
+        action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown)
       ).rejects.toThrow();
     });
 
@@ -167,7 +167,7 @@ describe("tenant/training/courses/$id/edit route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors).toBeDefined();
       expect(result.errors.name).toBeDefined();
@@ -182,7 +182,7 @@ describe("tenant/training/courses/$id/edit route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors).toBeDefined();
       expect(result.errors.price).toBeDefined();
@@ -197,7 +197,7 @@ describe("tenant/training/courses/$id/edit route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors).toBeDefined();
       expect(result.errors.price).toBeDefined();
@@ -219,7 +219,7 @@ describe("tenant/training/courses/$id/edit route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: { id: "course-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(updateCourse).toHaveBeenCalledWith("org-uuid", "course-1", expect.objectContaining({
         name: "Open Water Diver",

@@ -43,7 +43,6 @@ vi.mock("bcryptjs", () => ({
 
 import { db } from "../../../../../lib/db";
 import { getCustomerBySession, logoutCustomer } from "../../../../../lib/auth/customer-auth.server";
-import bcrypt from "bcryptjs";
 import { loader, action } from "../../../../../app/routes/site/account/profile";
 
 describe("site/account/profile route", () => {
@@ -118,8 +117,8 @@ describe("site/account/profile route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).success).toBe(true);
-      expect((result as any).type).toBe("profile");
+      expect((result as unknown).success).toBe(true);
+      expect((result as unknown).type).toBe("profile");
     });
 
     it("validates required first name for profile update", async () => {
@@ -140,8 +139,8 @@ describe("site/account/profile route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("First name is required");
-      expect((result as any).field).toBe("firstName");
+      expect((result as unknown).error).toBe("First name is required");
+      expect((result as unknown).field).toBe("firstName");
     });
 
     it("validates required last name for profile update", async () => {
@@ -162,7 +161,7 @@ describe("site/account/profile route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Last name is required");
+      expect((result as unknown).error).toBe("Last name is required");
     });
 
     it("validates password change - requires current password", async () => {
@@ -184,7 +183,7 @@ describe("site/account/profile route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Current password is required");
+      expect((result as unknown).error).toBe("Current password is required");
     });
 
     it("validates password change - minimum length", async () => {
@@ -206,7 +205,7 @@ describe("site/account/profile route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Password must be at least 8 characters");
+      expect((result as unknown).error).toBe("Password must be at least 8 characters");
     });
 
     it("validates password change - passwords must match", async () => {
@@ -228,7 +227,7 @@ describe("site/account/profile route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Passwords do not match");
+      expect((result as unknown).error).toBe("Passwords do not match");
     });
 
     it("handles logout intent", async () => {
@@ -280,7 +279,7 @@ describe("site/account/profile route", () => {
         context: {},
       } as Parameters<typeof action>[0]);
 
-      expect((result as any).error).toBe("Not authenticated");
+      expect((result as unknown).error).toBe("Not authenticated");
     });
   });
 });

@@ -175,8 +175,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const isSubmitting = navigation.state === "submitting";
 
-  // Preserve form values on error
-  const formData = navigation.formData;
 
   return (
     <div className="min-h-screen bg-surface-inset flex items-center justify-center">

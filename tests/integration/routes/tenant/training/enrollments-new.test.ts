@@ -80,7 +80,7 @@ describe("tenant/training/enrollments/new route", () => {
   describe("loader", () => {
     it("requires organization context", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/enrollments/new");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -88,7 +88,7 @@ describe("tenant/training/enrollments/new route", () => {
     describe("with sessionId query param (pre-selected mode)", () => {
       it("returns session and customers", async () => {
         const request = new Request("https://demo.divestreams.com/tenant/training/enrollments/new?sessionId=session-1");
-        const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.session).toEqual(mockSessionDetail);
         expect(result.sessions).toBeNull();
@@ -98,7 +98,7 @@ describe("tenant/training/enrollments/new route", () => {
 
       it("fetches session by id", async () => {
         const request = new Request("https://demo.divestreams.com/tenant/training/enrollments/new?sessionId=session-1");
-        await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(getSessionById).toHaveBeenCalledWith("org-uuid", "session-1");
         expect(getSessions).not.toHaveBeenCalled();
@@ -110,7 +110,7 @@ describe("tenant/training/enrollments/new route", () => {
         const request = new Request("https://demo.divestreams.com/tenant/training/enrollments/new?sessionId=non-existent");
 
         try {
-          await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+          await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
           expect.fail("Should have thrown");
         } catch (error) {
           expect((error as Response).status).toBe(404);
@@ -121,7 +121,7 @@ describe("tenant/training/enrollments/new route", () => {
     describe("without sessionId query param (select-session mode)", () => {
       it("returns sessions and customers", async () => {
         const request = new Request("https://demo.divestreams.com/tenant/training/enrollments/new");
-        const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.session).toBeNull();
         expect(result.sessions).toEqual(mockSessions);
@@ -131,7 +131,7 @@ describe("tenant/training/enrollments/new route", () => {
 
       it("fetches all sessions instead of a specific session", async () => {
         const request = new Request("https://demo.divestreams.com/tenant/training/enrollments/new");
-        await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(getSessions).toHaveBeenCalledWith("org-uuid");
         expect(getSessionById).not.toHaveBeenCalled();
@@ -150,7 +150,7 @@ describe("tenant/training/enrollments/new route", () => {
         body: formData,
       });
 
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -164,7 +164,7 @@ describe("tenant/training/enrollments/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.sessionId).toBe("Session is required");
       expect(createEnrollment).not.toHaveBeenCalled();
@@ -179,7 +179,7 @@ describe("tenant/training/enrollments/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.customerId).toBe("Customer is required");
       expect(createEnrollment).not.toHaveBeenCalled();
@@ -193,7 +193,7 @@ describe("tenant/training/enrollments/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.sessionId).toBe("Session is required");
       expect(result.errors.customerId).toBe("Customer is required");
@@ -210,7 +210,7 @@ describe("tenant/training/enrollments/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.amountPaid).toBe("Amount cannot be negative");
       expect(createEnrollment).not.toHaveBeenCalled();
@@ -227,7 +227,7 @@ describe("tenant/training/enrollments/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.amountPaid).toBe("Amount paid must be at least $1 (or $0 for free enrollment)");
     });
@@ -243,7 +243,7 @@ describe("tenant/training/enrollments/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.errors.amountPaid).toBe("Amount must be a valid number");
     });
@@ -260,7 +260,7 @@ describe("tenant/training/enrollments/new route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(createEnrollment).toHaveBeenCalledWith({
         organizationId: "org-uuid",
@@ -282,7 +282,7 @@ describe("tenant/training/enrollments/new route", () => {
         body: formData,
       });
 
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(createEnrollment).toHaveBeenCalledWith({
         organizationId: "org-uuid",
@@ -306,7 +306,7 @@ describe("tenant/training/enrollments/new route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.errors.form).toBe("This customer is already enrolled in this session");
       });
@@ -323,7 +323,7 @@ describe("tenant/training/enrollments/new route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.errors.form).toBe("Training session not found");
       });
@@ -340,7 +340,7 @@ describe("tenant/training/enrollments/new route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.errors.form).toBe("Cannot enroll in a cancelled session");
       });
@@ -357,7 +357,7 @@ describe("tenant/training/enrollments/new route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.errors.form).toBe("Session is full (8/8 enrolled)");
       });
@@ -374,7 +374,7 @@ describe("tenant/training/enrollments/new route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.errors.customerId).toBe("Selected customer not found");
       });
@@ -391,7 +391,7 @@ describe("tenant/training/enrollments/new route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.errors.form).toBe("Database connection failed");
       });
@@ -410,7 +410,7 @@ describe("tenant/training/enrollments/new route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.values).toEqual({
           sessionId: "session-1",

@@ -21,7 +21,7 @@ import {
 } from "./index.server";
 import { db } from "../db";
 import { eq, and, gte, lte } from "drizzle-orm";
-import { trips, bookings, tours, customers } from "../db/schema";
+import { trips, tours } from "../db/schema";
 
 // ============================================================================
 // CONSTANTS

@@ -32,7 +32,7 @@ vi.mock("better-auth/client/plugins", () => ({
 describe("Auth Client Module", () => {
   beforeAll(() => {
     // Set up window mock
-    (global as any).window = mockWindow;
+    (global as unknown).window = mockWindow;
   });
 
   describe("Module exports", () => {

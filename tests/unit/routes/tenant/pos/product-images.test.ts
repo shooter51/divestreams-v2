@@ -8,7 +8,7 @@
  * - Reorder images action handler works
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -298,26 +298,6 @@ describe("ImageManager Component", () => {
 // =============================================================================
 // Delete Image Action Handler - Functional Tests
 // =============================================================================
-
-// Mock all dependencies for actual action testing
-const mockDeleteFromB2 = vi.fn().mockResolvedValue(undefined);
-const mockRequireOrgContext = vi.fn();
-const mockDbSelect = vi.fn();
-const mockDbDelete = vi.fn();
-const mockDbUpdate = vi.fn();
-
-const createMockDb = () => {
-  const chain: any = {};
-  chain.select = vi.fn(() => chain);
-  chain.from = vi.fn(() => chain);
-  chain.where = vi.fn(() => chain);
-  chain.orderBy = vi.fn(() => chain);
-  chain.limit = vi.fn(() => chain);
-  chain.delete = vi.fn(() => chain);
-  chain.update = vi.fn(() => chain);
-  chain.set = vi.fn(() => chain);
-  return chain;
-};
 
 describe("Delete Image Action - Functional", () => {
   it("returns 400 when imageId is missing from form data", async () => {

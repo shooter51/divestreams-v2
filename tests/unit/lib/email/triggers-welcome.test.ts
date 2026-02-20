@@ -5,7 +5,7 @@
  * and still attempts to send (best-effort).
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("../../../../lib/jobs/index", () => ({
   sendEmail: vi.fn(),

@@ -2,7 +2,7 @@
  * Debug test to see what's actually on the POS page
  */
 
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { LoginPage } from './page-objects/auth.page';
 
 test.describe('Debug POS Page Load', () => {

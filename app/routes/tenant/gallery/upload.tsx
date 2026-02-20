@@ -11,7 +11,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
-import { uploadToB2, getImageKey, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
+import { uploadToB2, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { createGalleryImage } from "../../../../lib/db/gallery.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { storageLogger } from "../../../../lib/logger";

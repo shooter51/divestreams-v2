@@ -14,8 +14,6 @@
  * This ensures we never accidentally use localhost in production builds
  */
 const PRODUCTION_URL = "https://divestreams.com";
-const STAGING_URL = "https://staging.divestreams.com";
-
 /** Known environment subdomains that are NOT tenant names */
 const ENV_SUBDOMAINS = ["dev", "test", "staging"];
 

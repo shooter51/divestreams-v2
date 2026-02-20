@@ -87,7 +87,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const enrollment = await createEnrollment({
+    await createEnrollment({
       organizationId: ctx.org.id,
       sessionId,
       customerId,

@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, useNavigate, redirect } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import {
@@ -109,9 +109,8 @@ const enrollmentStatusColors: Record<string, string> = {
 export default function SessionDetailPage() {
   useNotification();
 
-  const { session, enrollments, courses } = useLoaderData<typeof loader>();
+  const { session, enrollments } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ error?: string }>();
-  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 

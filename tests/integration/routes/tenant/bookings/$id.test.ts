@@ -20,7 +20,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -83,8 +83,8 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
         },
       ];
 
-      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as any);
-      vi.mocked(queries.getPaymentsByBookingId).mockResolvedValue(mockPayments as any);
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as unknown);
+      vi.mocked(queries.getPaymentsByBookingId).mockResolvedValue(mockPayments as unknown);
 
       const request = new Request("http://test.com/tenant/bookings/booking-456");
       const result = await loader({ request, params: { id: mockBookingId }, context: {} });
@@ -165,7 +165,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
         equipmentRental: [],
       };
 
-      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as any);
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue(mockBooking as unknown);
       vi.mocked(queries.getPaymentsByBookingId).mockResolvedValue([]);
 
       const request = new Request("http://test.com/tenant/bookings/booking-456");

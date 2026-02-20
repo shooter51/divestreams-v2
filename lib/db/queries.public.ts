@@ -173,7 +173,7 @@ export async function getPublicTrips(
     limit?: number;
   } = {}
 ): Promise<PublicTrip[]> {
-  const { tourId, fromDate, toDate, limit = 30 } = options;
+  const { tourId, fromDate, limit = 30 } = options;
 
   // Default to today if no fromDate
   const startDate = fromDate || new Date().toISOString().split("T")[0];

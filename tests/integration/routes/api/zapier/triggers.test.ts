@@ -21,7 +21,7 @@ vi.mock("../../../../../lib/integrations/zapier.server", () => ({
     "trip.scheduled": "Triggered when a new trip is scheduled",
   },
   getSampleTriggerData: vi.fn((trigger) => {
-    const samples: Record<string, any> = {
+    const samples: Record<string, Record<string, unknown>> = {
       "booking.created": {
         id: 123,
         booking_number: "BK001",
@@ -62,7 +62,7 @@ describe("api/zapier/triggers route", () => {
   describe("GET /api/zapier/triggers", () => {
     it("returns 401 when X-API-Key header is missing", async () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers");
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -76,7 +76,7 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "invalid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -90,7 +90,7 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(200);
 
@@ -105,7 +105,7 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
       const trigger = data.triggers[0];
@@ -122,10 +122,10 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
-      const bookingTrigger = data.triggers.find((t: any) => t.key === "booking.created");
+      const bookingTrigger = data.triggers.find((t: Record<string, unknown>) => t.key === "booking.created");
 
       expect(bookingTrigger.name).toBe("Booking Created");
     });
@@ -136,10 +136,10 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
-      const bookingTrigger = data.triggers.find((t: any) => t.key === "booking.created");
+      const bookingTrigger = data.triggers.find((t: Record<string, unknown>) => t.key === "booking.created");
 
       expect(bookingTrigger.sample).toBeDefined();
       expect(bookingTrigger.sample).toHaveProperty("id");
@@ -152,10 +152,10 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
-      const bookingTrigger = data.triggers.find((t: any) => t.key === "booking.created");
+      const bookingTrigger = data.triggers.find((t: Record<string, unknown>) => t.key === "booking.created");
 
       expect(bookingTrigger.description).toBe("Triggered when a new booking is created");
     });
@@ -166,7 +166,7 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "valid-key" },
       });
-      await loader({ request, params: {}, context: {} } as any);
+      await loader({ request, params: {}, context: {} } as unknown);
 
       expect(getSampleTriggerData).toHaveBeenCalledWith("booking.created");
       expect(getSampleTriggerData).toHaveBeenCalledWith("customer.created");
@@ -179,7 +179,7 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
       expect(data.count).toBe(data.triggers.length);
@@ -192,7 +192,7 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "test-key-456" },
       });
-      await loader({ request, params: {}, context: {} } as any);
+      await loader({ request, params: {}, context: {} } as unknown);
 
       expect(validateMock).toHaveBeenCalledWith("test-key-456");
     });
@@ -203,10 +203,10 @@ describe("api/zapier/triggers route", () => {
       const request = new Request("https://divestreams.com/api/zapier/triggers", {
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
-      const triggerKeys = data.triggers.map((t: any) => t.key);
+      const triggerKeys = data.triggers.map((t: Record<string, unknown>) => t.key);
 
       expect(triggerKeys).toContain("booking.created");
       expect(triggerKeys).toContain("customer.created");

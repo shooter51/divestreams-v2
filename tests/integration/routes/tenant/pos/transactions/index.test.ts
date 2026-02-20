@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../../helpers/redirect";
 import { loader } from "../../../../../../app/routes/tenant/pos/transactions/index";
 import * as orgContext from "../../../../../../lib/auth/org-context.server";
 import * as queries from "../../../../../../lib/db/queries.server";
@@ -31,7 +30,7 @@ describe("app/routes/tenant/pos/transactions/index.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -57,8 +56,8 @@ describe("app/routes/tenant/pos/transactions/index.tsx", () => {
         limit: vi.fn().mockResolvedValue(mockDbTransactions),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
-      vi.mocked(queries.getPOSSummary).mockResolvedValue(mockSummary as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
+      vi.mocked(queries.getPOSSummary).mockResolvedValue(mockSummary as unknown);
 
       const request = new Request("http://test.com/tenant/pos/transactions");
       const result = await loader({ request, params: {}, context: {} });
@@ -78,8 +77,8 @@ describe("app/routes/tenant/pos/transactions/index.tsx", () => {
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
-      vi.mocked(queries.getPOSSummary).mockResolvedValue(mockSummary as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
+      vi.mocked(queries.getPOSSummary).mockResolvedValue(mockSummary as unknown);
 
       const request = new Request(
         "http://test.com/tenant/pos/transactions?dateFrom=2024-01-01&dateTo=2024-01-31"
@@ -98,13 +97,13 @@ describe("app/routes/tenant/pos/transactions/index.tsx", () => {
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
       vi.mocked(queries.getPOSSummary).mockResolvedValue({
         totalSales: 0,
         totalRefunds: 0,
         netRevenue: 0,
         transactionCount: 0,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/pos/transactions");
       const result = await loader({ request, params: {}, context: {} });

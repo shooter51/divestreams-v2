@@ -1,10 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock the database
-const mockSelect = vi.fn();
 const mockFrom = vi.fn();
 const mockWhere = vi.fn();
-const mockDelete = vi.fn();
 
 vi.mock("../../../../lib/db", () => ({
   db: {

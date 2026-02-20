@@ -228,9 +228,9 @@ describe("platform-context.server", () => {
   describe("requirePlatformAdmin", () => {
     function createMockPlatformContext(overrides: Partial<PlatformContext> = {}): PlatformContext {
       return {
-        user: { id: "user-1", name: "Admin", email: "admin@example.com" } as any,
-        session: { id: "session-1" } as any,
-        membership: { role: "admin" } as any,
+        user: { id: "user-1", name: "Admin", email: "admin@example.com" } as unknown,
+        session: { id: "session-1" } as unknown,
+        membership: { role: "admin" } as unknown,
         isOwner: false,
         isAdmin: true,
         ...overrides,

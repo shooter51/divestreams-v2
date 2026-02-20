@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { member, bookings, subscriptionPlans } from "../../../../lib/db/schema";
-import { eq, sql, count, gte, and, asc } from "drizzle-orm";
+import { eq, count, gte, and, asc } from "drizzle-orm";
 import {
   createCheckoutSession,
   cancelSubscription,
@@ -331,8 +331,6 @@ export default function BillingPage() {
   } | null>(null);
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("yearly");
 
-  // Find current plan data for features display
-  const currentPlanData = plans.find((p) => p.id === billing.currentPlan);
   const isTrialing = billing.subscriptionStatus === "trialing";
   // Use pre-calculated trialDaysLeft from loader to avoid hydration mismatch
   const trialDaysLeft = billing.trialDaysLeft;

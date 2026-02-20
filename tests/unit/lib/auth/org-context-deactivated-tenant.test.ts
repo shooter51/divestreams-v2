@@ -9,8 +9,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { tenants } from "../../../../lib/db/schema";
-import { eq } from "drizzle-orm";
 
 // Mock database
 vi.mock("../../../../lib/db", () => ({

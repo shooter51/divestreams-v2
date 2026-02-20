@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { GoogleCalendarIntegration } from "../../../../../app/components/integrations/GoogleCalendarIntegration";
 
 vi.mock("react-router", () => ({
@@ -7,9 +7,9 @@ vi.mock("react-router", () => ({
     state: "idle",
     data: null,
     submit: vi.fn(),
-    Form: ({ children, ...props }: any) => <form {...props}>{children}</form>,
+    Form: ({ children, ...props }: Record<string, unknown>) => <form {...props}>{children}</form>,
   }),
-  Link: ({ to, children, ...props }: any) => <a href={to} {...props}>{children}</a>,
+  Link: ({ to, children, ...props }: Record<string, unknown>) => <a href={to} {...props}>{children}</a>,
 }));
 
 vi.mock("../../../../../app/components/integrations/Icons", () => ({

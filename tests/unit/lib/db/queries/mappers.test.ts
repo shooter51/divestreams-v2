@@ -90,7 +90,7 @@ describe("mappers", () => {
         created_at: new Date("2023-01-01"),
         updated_at: new Date("2024-01-01"),
         organization_id: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapCustomer(row);
 
@@ -134,7 +134,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapCustomer(row);
 
@@ -175,7 +175,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapCustomer(row);
       expect(result.totalSpent).toBe(2500.50);
@@ -192,7 +192,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapCustomer(row);
       expect(result.totalSpent).toBe(0);
@@ -223,7 +223,7 @@ describe("mappers", () => {
         createdAt: new Date("2023-01-01"),
         updatedAt: new Date("2024-01-01"),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapTour(row);
 
@@ -263,7 +263,7 @@ describe("mappers", () => {
         created_at: new Date("2023-01-01"),
         updated_at: new Date("2024-01-01"),
         organization_id: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapTour(row);
 
@@ -288,7 +288,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapTour(row);
       expect(result.price).toBe(99.99);
@@ -318,7 +318,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapTour(row);
 
@@ -395,7 +395,7 @@ describe("mappers", () => {
         created_at: new Date("2023-01-01"),
         updated_at: new Date("2024-01-01"),
         organization_id: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapTrip(row);
 
@@ -424,7 +424,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapTrip(row);
       expect(result.price).toBe(85.50);
@@ -449,7 +449,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapTrip(row);
 
@@ -472,7 +472,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapTrip(row);
       expect(result.isPublic).toBe(false);
@@ -507,7 +507,7 @@ describe("mappers", () => {
         createdAt: new Date("2023-01-01"),
         updatedAt: new Date("2024-01-01"),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapBooking(row);
 
@@ -557,7 +557,7 @@ describe("mappers", () => {
         created_at: new Date("2023-01-01"),
         updated_at: new Date("2024-01-01"),
         organization_id: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapBooking(row);
 
@@ -596,7 +596,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapBooking(row);
 
@@ -627,7 +627,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapBooking(row);
 
@@ -655,7 +655,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapBooking(row);
 
@@ -731,7 +731,7 @@ describe("mappers", () => {
         created_at: new Date("2023-01-01"),
         updated_at: new Date("2024-01-01"),
         organization_id: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapEquipment(row);
 
@@ -770,7 +770,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapEquipment(row);
 
@@ -795,7 +795,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapEquipment(row);
       expect(result.isPublic).toBe(false);
@@ -843,7 +843,7 @@ describe("mappers", () => {
         created_at: new Date("2023-01-01"),
         updated_at: new Date("2024-01-01"),
         organization_id: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapBoat(row);
 
@@ -865,7 +865,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapBoat(row);
       expect(result.registrationNumber).toBeNull();
@@ -924,7 +924,7 @@ describe("mappers", () => {
         created_at: new Date("2023-01-01"),
         updated_at: new Date("2024-01-01"),
         organization_id: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapDiveSite(row);
 
@@ -946,7 +946,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapDiveSite(row);
 
@@ -973,7 +973,7 @@ describe("mappers", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         organizationId: "org-123",
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapDiveSite(row);
 
@@ -1045,7 +1045,7 @@ describe("mappers", () => {
         organization_id: "org-123",
         created_at: new Date(),
         updated_at: new Date(),
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapProduct(row);
 
@@ -1076,7 +1076,7 @@ describe("mappers", () => {
         organizationId: "org-123",
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapProduct(row);
 
@@ -1106,7 +1106,7 @@ describe("mappers", () => {
         organizationId: "org-123",
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapProduct(row);
 
@@ -1128,7 +1128,7 @@ describe("mappers", () => {
         organizationId: "org-123",
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapProduct(row);
 
@@ -1155,7 +1155,7 @@ describe("mappers", () => {
         organizationId: "org-123",
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any;
+      } as Record<string, unknown>;
 
       const result = mapProduct(row);
 

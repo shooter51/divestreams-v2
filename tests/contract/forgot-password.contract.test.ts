@@ -12,7 +12,7 @@ import routes from "../../app/routes";
 
 // Helper to flatten nested route config and extract all routes
 function flattenRoutes(
-  routeConfig: any[],
+  routeConfig: Array<Record<string, unknown>>,
   parentPath = ""
 ): Array<{ path: string; file: string }> {
   const result: Array<{ path: string; file: string }> = [];

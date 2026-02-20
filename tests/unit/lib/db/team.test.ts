@@ -184,7 +184,7 @@ describe("team.server", () => {
       const result = await createTeamMember("org-1", {
         name: "John",
         role: "Instructor",
-      } as any);
+      } as unknown);
       expect(result).toEqual(newMember);
     });
   });

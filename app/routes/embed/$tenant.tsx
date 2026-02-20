@@ -34,7 +34,7 @@ const defaultWidgetSettings: WidgetSettings = {
   maxTripsShown: 6,
 };
 
-export async function loader({ params, request }: LoaderFunctionArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
   const subdomain = params.tenant;
   if (!subdomain) {
     throw new Response("Shop not found", { status: 404 });

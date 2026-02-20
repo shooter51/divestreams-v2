@@ -143,7 +143,7 @@ test.describe("KAN-669: File upload error specifies filename", () => {
             }
 
             // Should not show error
-            await page.waitForTimeout(2000);
+            await page.waitForLoadState('networkidle');
             const errorAlert = page
               .locator('[role="alert"]:has-text("too large")')
               .first();
@@ -166,9 +166,6 @@ test.describe("KAN-669: File upload error specifies filename", () => {
     formData.append("entityId", "tour-1");
 
     // Make API request directly (as authenticated user via cookies)
-    const cookies = await page.context().cookies();
-    const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join("; ");
-
     const baseUrl = uploadPage["tenantUrl"];
     const response = await page.request.post(
       `${baseUrl}/tenant/images/upload`,

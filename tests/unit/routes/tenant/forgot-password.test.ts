@@ -109,7 +109,7 @@ import {
 } from "../../../../app/routes/auth/forgot-password";
 
 const makeArgs = (request: Request) =>
-  ({ request, params: {}, context: {}, unstable_pattern: "" }) as any;
+  ({ request, params: {}, context: {}, unstable_pattern: "" }) as unknown;
 
 describe("Tenant Forgot Password Route", () => {
   beforeEach(() => {
@@ -159,7 +159,7 @@ describe("Tenant Forgot Password Route", () => {
 
       const result = await tenantForgotAction(makeArgs(request));
       expect(result).toHaveProperty("error");
-      expect((result as any).error).toContain("valid email");
+      expect((result as unknown).error).toContain("valid email");
     });
 
     it("returns error when email format is invalid", async () => {
@@ -173,7 +173,7 @@ describe("Tenant Forgot Password Route", () => {
 
       const result = await tenantForgotAction(makeArgs(request));
       expect(result).toHaveProperty("error");
-      expect((result as any).error).toContain("valid email");
+      expect((result as unknown).error).toContain("valid email");
     });
 
     it("returns success for valid email (calls requestPasswordReset)", async () => {
@@ -189,8 +189,8 @@ describe("Tenant Forgot Password Route", () => {
       });
 
       const result = await tenantForgotAction(makeArgs(request));
-      expect((result as any).success).toBe(true);
-      expect((result as any).email).toBe("user@example.com");
+      expect((result as unknown).success).toBe(true);
+      expect((result as unknown).email).toBe("user@example.com");
       expect(auth.api.requestPasswordReset).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({ email: "user@example.com" }),
@@ -214,7 +214,7 @@ describe("Tenant Forgot Password Route", () => {
 
       const result = await tenantForgotAction(makeArgs(request));
       // Should still return success to prevent email enumeration
-      expect((result as any).success).toBe(true);
+      expect((result as unknown).success).toBe(true);
 
       consoleSpy.mockRestore();
     });
@@ -252,8 +252,8 @@ describe("Tenant Reset Password Route", () => {
       const request = new Request("https://demo.divestreams.com/tenant/reset-password?token=valid-token");
       const result = await tenantResetLoader(makeArgs(request));
 
-      expect((result as any).hasToken).toBe(true);
-      expect((result as any).email).toBe("user@example.com");
+      expect((result as unknown).hasToken).toBe(true);
+      expect((result as unknown).email).toBe("user@example.com");
     });
 
     it("redirects when already logged in with token", async () => {
@@ -287,7 +287,7 @@ describe("Tenant Reset Password Route", () => {
       });
 
       const result = await tenantResetAction(makeArgs(request));
-      expect((result as any).errors?.form).toContain("Invalid or missing reset token");
+      expect((result as unknown).errors?.form).toContain("Invalid or missing reset token");
     });
 
     it("returns error when password is too short", async () => {
@@ -302,7 +302,7 @@ describe("Tenant Reset Password Route", () => {
       });
 
       const result = await tenantResetAction(makeArgs(request));
-      expect((result as any).errors?.password).toContain("at least 8 characters");
+      expect((result as unknown).errors?.password).toContain("at least 8 characters");
     });
 
     it("returns error when password has no uppercase", async () => {
@@ -317,7 +317,7 @@ describe("Tenant Reset Password Route", () => {
       });
 
       const result = await tenantResetAction(makeArgs(request));
-      expect((result as any).errors?.password).toContain("uppercase");
+      expect((result as unknown).errors?.password).toContain("uppercase");
     });
 
     it("returns error when password has no lowercase", async () => {
@@ -332,7 +332,7 @@ describe("Tenant Reset Password Route", () => {
       });
 
       const result = await tenantResetAction(makeArgs(request));
-      expect((result as any).errors?.password).toContain("lowercase");
+      expect((result as unknown).errors?.password).toContain("lowercase");
     });
 
     it("returns error when password has no number", async () => {
@@ -347,7 +347,7 @@ describe("Tenant Reset Password Route", () => {
       });
 
       const result = await tenantResetAction(makeArgs(request));
-      expect((result as any).errors?.password).toContain("number");
+      expect((result as unknown).errors?.password).toContain("number");
     });
 
     it("returns error when passwords do not match", async () => {
@@ -362,7 +362,7 @@ describe("Tenant Reset Password Route", () => {
       });
 
       const result = await tenantResetAction(makeArgs(request));
-      expect((result as any).errors?.confirmPassword).toContain("do not match");
+      expect((result as unknown).errors?.confirmPassword).toContain("do not match");
     });
 
     it("returns success when password reset succeeds (no auto-login)", async () => {
@@ -381,7 +381,7 @@ describe("Tenant Reset Password Route", () => {
       });
 
       const result = await tenantResetAction(makeArgs(request));
-      expect((result as any).success).toBe(true);
+      expect((result as unknown).success).toBe(true);
     });
 
     it("returns error when reset API fails", async () => {
@@ -400,7 +400,7 @@ describe("Tenant Reset Password Route", () => {
       });
 
       const result = await tenantResetAction(makeArgs(request));
-      expect((result as any).errors?.form).toBeDefined();
+      expect((result as unknown).errors?.form).toBeDefined();
     });
 
     it("handles unexpected errors gracefully", async () => {
@@ -419,7 +419,7 @@ describe("Tenant Reset Password Route", () => {
       });
 
       const result = await tenantResetAction(makeArgs(request));
-      expect((result as any).errors?.form).toContain("error occurred");
+      expect((result as unknown).errors?.form).toContain("error occurred");
 
       consoleSpy.mockRestore();
     });
@@ -483,7 +483,7 @@ describe("Auth Forgot Password Route", () => {
       const request = new Request("https://demo.divestreams.com/auth/forgot-password");
       const result = await authForgotLoader(makeArgs(request));
 
-      expect((result as any).tenantName).toBe("Demo Dive Shop");
+      expect((result as unknown).tenantName).toBe("Demo Dive Shop");
     });
   });
 
@@ -516,7 +516,7 @@ describe("Auth Forgot Password Route", () => {
       });
 
       const result = await authForgotAction(makeArgs(request));
-      expect((result as any).error).toBe("Email is required");
+      expect((result as unknown).error).toBe("Email is required");
     });
 
     it("returns success for valid email", async () => {
@@ -532,7 +532,7 @@ describe("Auth Forgot Password Route", () => {
       });
 
       const result = await authForgotAction(makeArgs(request));
-      expect((result as any).success).toBe(true);
+      expect((result as unknown).success).toBe(true);
     });
 
     it("returns success even when API throws (email enumeration protection)", async () => {
@@ -549,7 +549,7 @@ describe("Auth Forgot Password Route", () => {
 
       const result = await authForgotAction(makeArgs(request));
       // Always shows success to prevent email enumeration
-      expect((result as any).success).toBe(true);
+      expect((result as unknown).success).toBe(true);
     });
 
     it("returns success when rate limited (does not reveal rate limiting)", async () => {
@@ -566,7 +566,7 @@ describe("Auth Forgot Password Route", () => {
 
       const result = await authForgotAction(makeArgs(request));
       // Rate limiting is hidden - shows success to prevent enumeration
-      expect((result as any).success).toBe(true);
+      expect((result as unknown).success).toBe(true);
     });
   });
 });

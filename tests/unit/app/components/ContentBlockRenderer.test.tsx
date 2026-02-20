@@ -81,7 +81,7 @@ describe("ContentBlockRenderer", () => {
   describe("renders empty when blocks array is empty", () => {
     it("renders a container with no child block content", () => {
       const { container } = render(
-        <ContentBlockRenderer blocks={[] as any} />,
+        <ContentBlockRenderer blocks={[] as unknown[]} />,
       );
       // The outer div is rendered but has no meaningful children
       expect(container.firstChild).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe("ContentBlockRenderer", () => {
           content: `Heading Level ${level}`,
         };
 
-        render(<ContentBlockRenderer blocks={[block] as any} />);
+        render(<ContentBlockRenderer blocks={[block] as unknown[]} />);
 
         const heading = screen.getByRole("heading", {
           level,
@@ -119,7 +119,7 @@ describe("ContentBlockRenderer", () => {
         level: 1,
         content: "Big Heading",
       };
-      render(<ContentBlockRenderer blocks={[block] as any} />);
+      render(<ContentBlockRenderer blocks={[block] as unknown[]} />);
       const heading = screen.getByRole("heading", { level: 1 });
       expect(heading).toHaveClass("text-4xl");
     });
@@ -131,7 +131,7 @@ describe("ContentBlockRenderer", () => {
         level: 3,
         content: "Mid Heading",
       };
-      render(<ContentBlockRenderer blocks={[block] as any} />);
+      render(<ContentBlockRenderer blocks={[block] as unknown[]} />);
       const heading = screen.getByRole("heading", { level: 3 });
       expect(heading).toHaveClass("text-2xl");
     });
@@ -146,7 +146,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       const prose = container.querySelector(".prose");
@@ -162,7 +162,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       const el = container.querySelector(".prose");
@@ -179,7 +179,7 @@ describe("ContentBlockRenderer", () => {
         alt: "A beautiful dive site",
       };
 
-      render(<ContentBlockRenderer blocks={[block] as any} />);
+      render(<ContentBlockRenderer blocks={[block] as unknown[]} />);
 
       const img = screen.getByRole("img", { name: "A beautiful dive site" });
       expect(img).toBeInTheDocument();
@@ -195,7 +195,7 @@ describe("ContentBlockRenderer", () => {
         caption: "Great Barrier Reef",
       };
 
-      render(<ContentBlockRenderer blocks={[block] as any} />);
+      render(<ContentBlockRenderer blocks={[block] as unknown[]} />);
 
       expect(screen.getByText("Great Barrier Reef")).toBeInTheDocument();
     });
@@ -209,7 +209,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       expect(container.querySelector("figcaption")).not.toBeInTheDocument();
@@ -225,7 +225,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       // The spacer is an unstyled div with only inline style
@@ -243,7 +243,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       const spacerDiv = container.querySelector(
@@ -261,7 +261,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       const hr = container.querySelector("hr");
@@ -275,7 +275,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       const hr = container.querySelector("hr");
@@ -290,7 +290,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       const hr = container.querySelector("hr");
@@ -305,7 +305,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       const hr = container.querySelector("hr");
@@ -323,7 +323,7 @@ describe("ContentBlockRenderer", () => {
         buttonUrl: "https://example.com/signup",
       };
 
-      render(<ContentBlockRenderer blocks={[block] as any} />);
+      render(<ContentBlockRenderer blocks={[block] as unknown[]} />);
 
       expect(screen.getByText("Join Us Today")).toBeInTheDocument();
     });
@@ -337,7 +337,7 @@ describe("ContentBlockRenderer", () => {
         buttonUrl: "https://example.com/book",
       };
 
-      render(<ContentBlockRenderer blocks={[block] as any} />);
+      render(<ContentBlockRenderer blocks={[block] as unknown[]} />);
 
       const link = screen.getByRole("link", { name: "Reserve Your Spot" });
       expect(link).toBeInTheDocument();
@@ -354,7 +354,7 @@ describe("ContentBlockRenderer", () => {
         description: "Beginner-friendly courses available",
       };
 
-      render(<ContentBlockRenderer blocks={[block] as any} />);
+      render(<ContentBlockRenderer blocks={[block] as unknown[]} />);
 
       expect(
         screen.getByText("Beginner-friendly courses available"),
@@ -370,7 +370,7 @@ describe("ContentBlockRenderer", () => {
       };
 
       const { container } = render(
-        <ContentBlockRenderer blocks={[block] as any} />,
+        <ContentBlockRenderer blocks={[block] as unknown[]} />,
       );
 
       // Outer wrapper div is present but contains no rendered output
@@ -391,7 +391,7 @@ describe("ContentBlockRenderer", () => {
         },
       ];
 
-      render(<ContentBlockRenderer blocks={blocks as any} />);
+      render(<ContentBlockRenderer blocks={blocks as unknown} />);
 
       expect(
         screen.getByRole("heading", { level: 1, name: "Title" }),

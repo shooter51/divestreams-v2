@@ -1,6 +1,6 @@
 import { db } from "./index";
 import * as schema from "./schema";
-import { eq, sql, and } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { organization } from "./schema/auth";
 
 // ============================================================================
@@ -852,7 +852,9 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         total: total.toFixed(2),
         paymentStatus: booking.paymentStatus,
         paidAmount: paidAmount.toFixed(2),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         depositAmount: (booking as any).depositAmount || null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         depositPaidAt: (booking as any).depositPaidAt ? new Date((booking as any).depositPaidAt) : null,
         equipmentRental: booking.equipmentRental,
         waiverSignedAt: booking.waiverSignedAt ? new Date(booking.waiverSignedAt) : null,
@@ -1037,6 +1039,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         paymentMethod: txn.method,
         items: txn.items,
         notes: txn.notes,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         refundReason: (txn as any).refundReason || null,
       });
   }
@@ -1290,7 +1293,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         .returning();
 
       // Seed PADI certification levels
-      const [openWaterLevel] = await db
+      await db
         .insert(schema.certificationLevels)
         .values({
           organizationId,
@@ -1304,7 +1307,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         })
         .returning();
 
-      const [advancedLevel] = await db
+      await db
         .insert(schema.certificationLevels)
         .values({
           organizationId,
@@ -1636,7 +1639,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
       // Create 2-3 sessions per course (mix of scheduled and open status)
       for (const course of courses) {
         // Session 1: Near future (2 weeks out) - scheduled
-        const [session1] = await db
+        await db
           .insert(schema.trainingSessions)
           .values({
             organizationId,
@@ -1654,7 +1657,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
         sessionsSeeded++;
 
         // Session 2: Next month - open for enrollment
-        const [session2] = await db
+        await db
           .insert(schema.trainingSessions)
           .values({
             organizationId,
@@ -1672,7 +1675,7 @@ export async function seedDemoData(organizationId: string): Promise<void> {
 
         // Session 3: Weekend session (if not specialty course)
         if (course.durationDays > 1) {
-          const [session3] = await db
+          await db
             .insert(schema.trainingSessions)
             .values({
               organizationId,

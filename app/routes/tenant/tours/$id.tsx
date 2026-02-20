@@ -147,8 +147,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
       const tourName = tour?.name || "Tour";
       await deleteTour(organizationId, tourId);
       return redirect(redirectWithNotification("/tenant/tours", `${tourName} has been successfully deleted`, "success"));
-    } catch (error: any) {
-      return { deleteError: error.message || "Failed to delete tour" };
+    } catch (error: unknown) {
+      return { deleteError: error instanceof Error ? error.message : "Failed to delete tour" };
     }
   }
 

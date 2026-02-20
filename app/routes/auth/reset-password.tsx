@@ -79,7 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
 
     return redirect("/auth/login?reset=success");
-  } catch (error) {
+  } catch {
     return { error: "Invalid or expired reset token" };
   }
 }

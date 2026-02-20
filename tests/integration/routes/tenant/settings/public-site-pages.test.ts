@@ -38,7 +38,7 @@ describe("tenant/settings/public-site.pages route", () => {
       (listPageContent as Mock).mockResolvedValue([]);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/pages");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -65,7 +65,7 @@ describe("tenant/settings/public-site.pages route", () => {
       (listPageContent as Mock).mockResolvedValue(mockPages);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/pages");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.pages).toEqual(mockPages);
       expect(result.pages).toHaveLength(2);
@@ -75,7 +75,7 @@ describe("tenant/settings/public-site.pages route", () => {
       (listPageContent as Mock).mockResolvedValue([]);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/pages");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.orgSlug).toBe("demo");
     });
@@ -84,7 +84,7 @@ describe("tenant/settings/public-site.pages route", () => {
       (listPageContent as Mock).mockResolvedValue([]);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/pages");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.pages).toEqual([]);
     });

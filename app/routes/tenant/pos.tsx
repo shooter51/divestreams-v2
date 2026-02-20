@@ -459,7 +459,8 @@ export default function POSPage() {
     setCheckoutMethod(method);
   }, [hasRentals, showRentalAgreement]);
 
-  const handleRentalAgreementConfirm = useCallback((_staffName: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleRentalAgreementConfirm = useCallback((staffName: string) => {
     setShowRentalAgreement(false);
     if (pendingCheckout) {
       setCheckoutMethod(pendingCheckout);

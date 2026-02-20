@@ -6,7 +6,7 @@
  */
 
 import { test, expect } from "@playwright/test";
-import { loginAsAdmin, loginAsCustomer, seedDemoData } from "../helpers/index.ts";
+import { loginAsAdmin, seedDemoData } from "../helpers/index.ts";
 
 test.describe("XSS Prevention Security", () => {
   // Skip: These tests require platform admin login which isn't seeded in CI environment.

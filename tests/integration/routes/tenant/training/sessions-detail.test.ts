@@ -86,7 +86,7 @@ describe("tenant/training/sessions/$id route", () => {
   describe("loader", () => {
     it("requires organization context", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/sessions/session-1");
-      await loader({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -95,11 +95,11 @@ describe("tenant/training/sessions/$id route", () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/sessions/");
 
       await expect(
-        loader({ request, params: {}, context: {}, unstable_pattern: "" } as any)
+        loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown)
       ).rejects.toThrow();
 
       try {
-        await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
       } catch (error) {
         expect((error as Response).status).toBe(400);
       }
@@ -111,7 +111,7 @@ describe("tenant/training/sessions/$id route", () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/sessions/non-existent");
 
       try {
-        await loader({ request, params: { id: "non-existent" }, context: {}, unstable_pattern: "" } as any);
+        await loader({ request, params: { id: "non-existent" }, context: {}, unstable_pattern: "" } as unknown);
         expect.fail("Should have thrown");
       } catch (error) {
         expect((error as Response).status).toBe(404);
@@ -128,7 +128,7 @@ describe("tenant/training/sessions/$id route", () => {
       (getCourses as Mock).mockResolvedValue(mockCourses);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/sessions/session-1");
-      const result = await loader({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.session).toEqual(mockSession);
       expect(result.enrollments).toEqual(mockEnrollments);
@@ -138,7 +138,7 @@ describe("tenant/training/sessions/$id route", () => {
 
     it("fetches enrollments filtered by sessionId", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training/sessions/session-1");
-      await loader({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(getEnrollments).toHaveBeenCalledWith("org-uuid", { sessionId: "session-1" });
     });
@@ -156,7 +156,7 @@ describe("tenant/training/sessions/$id route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(updateSession).toHaveBeenCalledWith("org-uuid", "session-1", { status: "in_progress" });
         expect((result as Response).status).toBe(302);
@@ -171,7 +171,7 @@ describe("tenant/training/sessions/$id route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(updateSession).not.toHaveBeenCalled();
         expect(result).toEqual({ error: "Status is required" });
@@ -197,7 +197,7 @@ describe("tenant/training/sessions/$id route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(updateSession).toHaveBeenCalledWith("org-uuid", "session-1", {
           startDate: "2026-04-01",
@@ -230,7 +230,7 @@ describe("tenant/training/sessions/$id route", () => {
           body: formData,
         });
 
-        await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as any);
+        await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(updateSession).toHaveBeenCalledWith("org-uuid", "session-1", expect.objectContaining({
           startDate: "2026-04-01",
@@ -255,7 +255,7 @@ describe("tenant/training/sessions/$id route", () => {
           body: formData,
         });
 
-        const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
         expect(deleteSession).toHaveBeenCalledWith("org-uuid", "session-1");
         expect((result as Response).status).toBe(302);
@@ -271,7 +271,7 @@ describe("tenant/training/sessions/$id route", () => {
         body: formData,
       });
 
-      const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: { id: "session-1" }, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toBeNull();
     });

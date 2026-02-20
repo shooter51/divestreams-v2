@@ -7,7 +7,6 @@ import { verification } from "../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 
 // Email validation regex
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type ActionData = {
   errors?: Record<string, string>;

@@ -8,8 +8,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { sql as drizzleSql } from "drizzle-orm";
 import {
-  setupTestDatabase,
-  teardownTestDatabase,
   createTestTenantSchema,
   cleanupTestTenantSchema,
   useTestDatabase,

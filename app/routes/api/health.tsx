@@ -1,6 +1,4 @@
-import type { LoaderFunctionArgs } from "react-router";
-
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader() {
   const checks: Record<string, string> = {};
   let healthy = true;
 
@@ -10,7 +8,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const { sql } = await import("drizzle-orm");
     await db.execute(sql`SELECT 1`);
     checks.database = "ok";
-  } catch (error) {
+  } catch {
     checks.database = "error";
     healthy = false;
   }
@@ -21,7 +19,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const redis = getRedisConnection();
     await redis.ping();
     checks.redis = "ok";
-  } catch (error) {
+  } catch {
     checks.redis = "error";
     healthy = false;
   }

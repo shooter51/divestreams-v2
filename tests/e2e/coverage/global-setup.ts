@@ -5,7 +5,8 @@ import * as path from "path";
 
 const coverageDir = path.join(process.cwd(), ".nyc_output");
 
-async function globalSetup(config: FullConfig) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function globalSetup(_config: FullConfig) {
   // Load .env file
   const envPath = path.join(process.cwd(), ".env");
   dotenv.config({ path: envPath });

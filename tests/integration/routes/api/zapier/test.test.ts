@@ -30,7 +30,7 @@ describe("api/zapier/test route", () => {
   describe("GET /api/zapier/test", () => {
     it("returns 401 when X-API-Key header is missing", async () => {
       const request = new Request("https://divestreams.com/api/zapier/test");
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -44,7 +44,7 @@ describe("api/zapier/test route", () => {
       const request = new Request("https://divestreams.com/api/zapier/test", {
         headers: { "x-api-key": "invalid-key-123" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -66,7 +66,7 @@ describe("api/zapier/test route", () => {
       const request = new Request("https://divestreams.com/api/zapier/test", {
         headers: { "x-api-key": "valid-key-123" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(404);
 
@@ -94,7 +94,7 @@ describe("api/zapier/test route", () => {
       const request = new Request("https://divestreams.com/api/zapier/test", {
         headers: { "x-api-key": "valid-key-123" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(200);
 
@@ -123,7 +123,7 @@ describe("api/zapier/test route", () => {
       const request = new Request("https://divestreams.com/api/zapier/test", {
         headers: { "x-api-key": "my-api-key" },
       });
-      await loader({ request, params: {}, context: {} } as any);
+      await loader({ request, params: {}, context: {} } as unknown);
 
       expect(validateMock).toHaveBeenCalledWith("my-api-key");
     });
@@ -142,7 +142,7 @@ describe("api/zapier/test route", () => {
       const request = new Request("https://divestreams.com/api/zapier/test", {
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
       const after = new Date();
 
       const data = await response.json();
@@ -166,7 +166,7 @@ describe("api/zapier/test route", () => {
       const request = new Request("https://divestreams.com/api/zapier/test", {
         headers: { "X-API-Key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(200);
     });
@@ -190,7 +190,7 @@ describe("api/zapier/test route", () => {
       const request = new Request("https://divestreams.com/api/zapier/test", {
         headers: { "x-api-key": "valid-key" },
       });
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
       expect(data.organization).toHaveProperty("id");

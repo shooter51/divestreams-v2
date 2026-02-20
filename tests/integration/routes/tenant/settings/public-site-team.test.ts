@@ -48,7 +48,7 @@ describe("tenant/settings/public-site.team route", () => {
       (getAllTeamMembers as Mock).mockResolvedValue([]);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/team");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -77,7 +77,7 @@ describe("tenant/settings/public-site.team route", () => {
       (getAllTeamMembers as Mock).mockResolvedValue(mockMembers);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/team");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.teamMembers).toEqual(mockMembers);
       expect(result.teamMembers).toHaveLength(2);
@@ -87,7 +87,7 @@ describe("tenant/settings/public-site.team route", () => {
       (getAllTeamMembers as Mock).mockResolvedValue([]);
 
       const request = new Request("https://demo.divestreams.com/tenant/settings/public-site/team");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.teamMembers).toEqual([]);
     });
@@ -114,7 +114,7 @@ describe("tenant/settings/public-site.team route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(createTeamMember).toHaveBeenCalledWith("org-uuid", {
           name: "John Smith",
@@ -147,7 +147,7 @@ describe("tenant/settings/public-site.team route", () => {
           method: "POST",
           body: formData,
         });
-        await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(createTeamMember).toHaveBeenCalledWith("org-uuid", expect.objectContaining({
           certifications: [],
@@ -176,7 +176,7 @@ describe("tenant/settings/public-site.team route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(updateTeamMember).toHaveBeenCalledWith("org-uuid", "member-1", {
           name: "John Smith Updated",
@@ -206,7 +206,7 @@ describe("tenant/settings/public-site.team route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(deleteTeamMember).toHaveBeenCalledWith("org-uuid", "member-1");
         expect(result).toEqual({ success: true, message: "Team member deleted successfully" });
@@ -225,7 +225,7 @@ describe("tenant/settings/public-site.team route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(reorderTeamMembers).toHaveBeenCalledWith("org-uuid", ["member-3", "member-1", "member-2"]);
         expect(result).toEqual({ success: true, message: "Team members reordered successfully" });
@@ -240,7 +240,7 @@ describe("tenant/settings/public-site.team route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toBeNull();
     });

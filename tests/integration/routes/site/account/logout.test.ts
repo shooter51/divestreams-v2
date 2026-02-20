@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { Mock } from "vitest";
+
 
 vi.mock("../../../../../lib/auth/customer-auth.server", () => ({
   logoutCustomer: vi.fn().mockResolvedValue(undefined),

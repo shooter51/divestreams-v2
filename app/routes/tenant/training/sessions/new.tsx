@@ -54,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Create the session
-  const session = await createSession({
+  await createSession({
     organizationId: ctx.org.id,
     courseId,
     startDate,
