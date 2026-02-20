@@ -13,10 +13,10 @@ import { getAdminUrl, getTenantUrl } from "../helpers/urls";
  */
 
 const adminPassword = process.env.ADMIN_PASSWORD || "DiveAdmin2026";
-const demoCredentials = {
-  email: "owner@demo.com",
+const testUser = {
+  email: "e2e-tester@demo.com",
   password: "DemoPass1234",
-  name: "Demo Owner",
+  name: "E2E Test User",
 };
 
 test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
@@ -89,9 +89,9 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     }
 
     // Fill owner account details
-    await page.locator("#ownerEmail").fill(demoCredentials.email);
-    await page.locator("#ownerName").fill(demoCredentials.name);
-    await page.locator("#ownerPassword").fill(demoCredentials.password);
+    await page.locator("#ownerEmail").fill(testUser.email);
+    await page.locator("#ownerName").fill(testUser.name);
+    await page.locator("#ownerPassword").fill(testUser.password);
 
     // Submit form
     await page.getByRole("button", { name: /create/i }).click();
@@ -134,10 +134,10 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       return;
     }
 
-    await page.getByLabel(/full name/i).fill(demoCredentials.name);
-    await page.getByLabel(/email address/i).fill(demoCredentials.email);
-    await page.locator("#password").fill(demoCredentials.password);
-    await page.locator("#confirmPassword").fill(demoCredentials.password);
+    await page.getByLabel(/full name/i).fill(testUser.name);
+    await page.getByLabel(/email address/i).fill(testUser.email);
+    await page.locator("#password").fill(testUser.password);
+    await page.locator("#confirmPassword").fill(testUser.password);
     await page.getByRole("button", { name: /create account/i }).click();
 
     await page

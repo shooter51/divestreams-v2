@@ -12,7 +12,7 @@ test.describe('Debug POS Page Load', () => {
 
     // Login
     await loginPage.goto();
-    await loginPage.login('owner@demo.com', 'demo1234');
+    await loginPage.login('e2e-tester@demo.com', 'DemoPass1234');
 
     // Navigate to POS
     await page.goto(getTenantUrl('demo', '/tenant/pos'));

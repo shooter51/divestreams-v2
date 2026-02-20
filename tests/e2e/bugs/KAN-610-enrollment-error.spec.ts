@@ -46,8 +46,8 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
     await page.waitForLoadState("load");
 
     // Fill in login credentials using accessibility-based selectors
-    await page.getByRole("textbox", { name: /email/i }).fill("owner@demo.com");
-    await page.locator('input[type="password"]').first().fill("demo1234");
+    await page.getByRole("textbox", { name: /email/i }).fill("e2e-tester@demo.com");
+    await page.locator('input[type="password"]').first().fill("DemoPass1234");
     await page.getByRole("button", { name: /sign in/i }).click();
 
     // Wait for redirect to tenant dashboard after successful login

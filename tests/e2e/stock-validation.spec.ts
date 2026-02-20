@@ -19,7 +19,7 @@ test.describe("Stock Validation E2E @inventory @critical", () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page, tenantSlug);
     await loginPage.goto();
-    await loginPage.login("owner@demo.com", "demo1234");
+    await loginPage.login("e2e-tester@demo.com", "DemoPass1234");
 
     await page.goto(getTenantUrl(tenantSlug, "/tenant/products"));
     await page.waitForLoadState("load");

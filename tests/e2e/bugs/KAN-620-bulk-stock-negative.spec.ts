@@ -22,7 +22,7 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     // Login to demo tenant
     const loginPage = new LoginPage(page, tenantSlug);
     await loginPage.goto();
-    await loginPage.login("owner@demo.com", "demo1234");
+    await loginPage.login("e2e-tester@demo.com", "DemoPass1234");
 
     // Navigate to products page
     await page.goto(getTenantUrl(tenantSlug, "/tenant/products"));
