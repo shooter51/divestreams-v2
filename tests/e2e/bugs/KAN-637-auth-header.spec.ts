@@ -29,12 +29,11 @@ test.describe("KAN-637: Auth header state after login @bug", () => {
   let sitePage: PublicSitePage;
 
   test.beforeEach(async ({ page }) => {
-    sitePage = new PublicSitePage(page, "e2etest");
+    sitePage = new PublicSitePage(page, "demo");
   });
 
   // Helper function to create a test customer via API
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async function createTestCustomer(page: Page, sitePage: PublicSitePage, _email: string, _password: string) {
+  async function createTestCustomer(page: Page, sitePage: PublicSitePage, email: string, password: string) {
     // Use cookies to simulate customer login for testing
     // This bypasses the registration UI and focuses on the header bug
 
@@ -47,7 +46,7 @@ test.describe("KAN-637: Auth header state after login @bug", () => {
 
     if (!isRegisterPageAvailable) {
       // Public site might not be enabled - skip this test
-      test.skip(true, "Public site not enabled for e2etest tenant");
+      test.skip(true, "Public site not enabled for demo tenant");
       return false;
     }
 

@@ -125,9 +125,8 @@ export abstract class TenantBasePage extends BasePage {
   }
 
   protected get tenantUrl(): string {
-    // Extract host from baseUrl (e.g., "http://localhost:5173" -> "localhost:5173")
-    const baseUrlHost = this.baseUrl.replace(/^https?:\/\//, '');
-    return `http://${this.tenantSubdomain}.${baseUrlHost}`;
+    const url = new URL(this.baseUrl);
+    return `${url.protocol}//${this.tenantSubdomain}.${url.host}`;
   }
 
   /**
@@ -160,9 +159,8 @@ export abstract class TenantBasePage extends BasePage {
  */
 export abstract class AdminBasePage extends BasePage {
   protected get adminUrl(): string {
-    // Extract host from baseUrl (e.g., "http://localhost:5173" -> "localhost:5173")
-    const baseUrlHost = this.baseUrl.replace(/^https?:\/\//, '');
-    return `http://demo.${baseUrlHost}/tenant`;
+    const url = new URL(this.baseUrl);
+    return `${url.protocol}//admin.${url.host}`;
   }
 
   /**
