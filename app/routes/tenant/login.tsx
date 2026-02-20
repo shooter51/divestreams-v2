@@ -101,7 +101,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const clientIp = getClientIp(request);
   const loginEmail = formData.get("email") as string;
   if (intent !== "join" && loginEmail) {
-    const rateLimit = await checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
+    const rateLimit = await checkRateLimit(`login:${clientIp}:${loginEmail}`, { maxAttempts: 30, windowMs: 15 * 60 * 1000 });
     if (!rateLimit.allowed) {
       return { error: "Too many login attempts. Please try again later." };
     }
@@ -175,15 +175,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email");
   const password = formData.get("password");
 
-  // Rate limit login attempts (clientIp already fetched above at line 101)
-  const rateLimitResult = await checkRateLimit(`tenant-login:${clientIp}`, {
-    maxAttempts: 10,
-    windowMs: 15 * 60 * 1000,
-  });
-
-  if (!rateLimitResult.allowed) {
-    return { error: "Too many login attempts. Please try again later." };
-  }
+  // Per-email rate limit is already checked above (line 103-108).
+  // Removed per-IP-only limit: it blocked all users behind the same NAT/proxy.
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {
