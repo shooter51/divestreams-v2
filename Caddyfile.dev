@@ -1,10 +1,5 @@
 # Dev VPS - System-level Caddy configuration
-# Routes *.dev.divestreams.com to Docker instances by subdomain.
-# Updated dynamically by scripts/dev-instance.sh.
-#
-# Wildcard *.dev.divestreams.com catches tenant subdomains (demo.dev.divestreams.com)
-# and routes them to the default instance (port 3001).
-# Specific instance entries (e.g. default.dev.divestreams.com) take precedence.
+# Routes *.dev.divestreams.com to the app on port 3001.
 
 {
     email admin@divestreams.com
@@ -21,14 +16,13 @@
     }
 }
 
-# Landing page for dev.divestreams.com
+# Base domain — routes to the app
 dev.divestreams.com {
     import security_headers
-    respond "DiveStreams Dev VPS - use <instance>.dev.divestreams.com" 200
+    reverse_proxy localhost:3001
 }
 
-# Wildcard catch-all for tenant subdomains (demo.dev.divestreams.com, admin.dev.divestreams.com, etc.)
-# Routes to the default instance on port 3001
+# Wildcard for tenant subdomains (demo.dev.divestreams.com, admin.dev.divestreams.com, etc.)
 *.dev.divestreams.com {
     tls {
         on_demand
@@ -36,11 +30,3 @@ dev.divestreams.com {
     import security_headers
     reverse_proxy localhost:3001
 }
-
-# Instance routes — managed by dev-instance.sh
-# BEGIN INSTANCES
-default.dev.divestreams.com {
-    import security_headers
-    reverse_proxy localhost:3001
-}
-# END INSTANCES
