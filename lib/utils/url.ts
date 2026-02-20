@@ -125,15 +125,11 @@ export function getAdminUrl(path = ""): string {
 }
 
 /**
- * Get the base app URL (environment root, without instance prefixes).
- *
- * Returns e.g. "https://dev.divestreams.com" even if APP_URL is
- * "https://default.dev.divestreams.com". This ensures links in emails,
- * redirects, and auth URLs never contain the Docker instance name.
+ * Get the base app URL
+ * @returns The APP_URL if set, otherwise production URL
  */
 export function getAppUrl(): string {
-  const { protocol, baseDomain } = getEnvBase();
-  return `${protocol}//${baseDomain}`;
+  return getBaseUrl();
 }
 
 /**

@@ -12,11 +12,10 @@ import {
   invitation,
 } from "../db/schema";
 import { sendEmail } from "../email";
-import { getAppUrl } from "../utils/url";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
-  baseURL: getAppUrl(),
+  baseURL: (process.env.AUTH_URL || process.env.APP_URL || "http://localhost:3000") + "/api/auth",
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
