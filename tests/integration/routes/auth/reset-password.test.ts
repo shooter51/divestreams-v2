@@ -58,14 +58,13 @@ describe("auth/reset-password route", () => {
   });
 
   describe("loader", () => {
-    it("redirects when no subdomain", async () => {
+    it("returns token and default tenantName when no subdomain", async () => {
       (getSubdomainFromRequest as Mock).mockReturnValue(null);
 
       const request = new Request("https://divestreams.com/auth/reset-password?token=abc");
-      const response = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(response).toBeInstanceOf(Response);
-      expect((response as Response).status).toBe(302);
+      expect(result).toEqual({ token: "abc", tenantName: "DiveStreams" });
     });
 
     it("redirects to /tenant when already logged in", async () => {
@@ -105,18 +104,18 @@ describe("auth/reset-password route", () => {
   });
 
   describe("action", () => {
-    it("redirects when no subdomain", async () => {
+    it("returns error when no password provided without subdomain", async () => {
       (getSubdomainFromRequest as Mock).mockReturnValue(null);
 
       const formData = new FormData();
+      formData.append("token", "abc");
       const request = new Request("https://divestreams.com/auth/reset-password", {
         method: "POST",
         body: formData,
       });
-      const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-      expect(response).toBeInstanceOf(Response);
-      expect((response as Response).status).toBe(302);
+      expect(result).toEqual({ error: "Password must be at least 8 characters" });
     });
 
     it("returns error when rate limited", async () => {
