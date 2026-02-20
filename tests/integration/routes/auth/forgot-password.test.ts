@@ -166,7 +166,7 @@ describe("auth/forgot-password route", () => {
 
       expect(result).toEqual({ success: true });
       expect(auth.api.requestPasswordReset).toHaveBeenCalledWith({
-        body: { email: "user@example.com", redirectTo: "/auth/reset-password" },
+        body: { email: "user@example.com", redirectTo: "https://demo.divestreams.com/auth/reset-password" },
       });
     });
 
