@@ -26,7 +26,7 @@ async function loginToTenant(page: import("@playwright/test").Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -86,7 +86,7 @@ test.describe("Stripe Integration", () => {
 
     // Wait for page to load
     await page.waitForLoadState("load");
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Find the Stripe integration card by its unique structure
     const stripeCard = page.locator('div.bg-surface-raised.rounded-xl:has(h3:text-is("Stripe"))').first();
@@ -94,7 +94,7 @@ test.describe("Stripe Integration", () => {
     if (!(await stripeCard.isVisible().catch(() => false))) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
     await expect(stripeCard).toBeVisible({ timeout: 8000 });
 

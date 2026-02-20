@@ -32,8 +32,8 @@ test.describe("KAN-669: File upload error specifies filename", () => {
     await uploadPage.gotoLogin();
     await page.waitForLoadState("load");
 
-    await page.getByRole("textbox", { name: /email/i }).fill("owner@demo.com");
-    await page.locator('input[type="password"]').first().fill("demo1234");
+    await page.getByRole("textbox", { name: /email/i }).fill("e2e-tester@demo.com");
+    await page.locator('input[type="password"]').first().fill("DemoPass1234");
     await page.getByRole("button", { name: /sign in/i }).click();
 
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
@@ -143,7 +143,7 @@ test.describe("KAN-669: File upload error specifies filename", () => {
             }
 
             // Should not show error
-            await page.waitForLoadState('networkidle');
+            await page.waitForLoadState('load');
             const errorAlert = page
               .locator('[role="alert"]:has-text("too large")')
               .first();

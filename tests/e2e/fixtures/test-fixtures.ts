@@ -9,8 +9,8 @@ export const testConfig = {
   adminEmail: "admin@divestreams.com",
   tenantSubdomain: "demo",
   tenantCredentials: {
-    email: "owner@demo.com",
-    password: "demo1234",
+    email: "e2e-tester@demo.com",
+    password: "DemoPass1234",
   },
   testUser: {
     email: `test${Date.now()}@example.com`,
@@ -40,8 +40,8 @@ export async function loginToTenant(
   await page.locator('input[type="password"]').first().fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
 
-  // Wait for redirect to app
-  await page.waitForURL(/\/tenant/, { timeout: 10000 });
+  // Wait for redirect to app (longer timeout for remote environments)
+  await page.waitForURL(/\/tenant/, { timeout: 15000 });
 }
 
 /**

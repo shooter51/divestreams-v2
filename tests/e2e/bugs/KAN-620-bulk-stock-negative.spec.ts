@@ -22,11 +22,11 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     // Login to demo tenant
     const loginPage = new LoginPage(page, tenantSlug);
     await loginPage.goto();
-    await loginPage.login("owner@demo.com", "demo1234");
+    await loginPage.login("e2e-tester@demo.com", "DemoPass1234");
 
     // Navigate to products page
     await page.goto(getTenantUrl(tenantSlug, "/tenant/products"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Wait for products table to render with checkboxes (critical for reliable tests)
     await page.waitForSelector('table tbody tr', { timeout: 10000 });
@@ -84,7 +84,7 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     await expect(page.locator(`text=/current: ${currentStock}/i`).first()).toBeVisible();
 
     // Close modal (wait for it to close automatically or press Escape)
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Stock should not have changed - verify by reloading and checking
     await page.reload();
@@ -187,7 +187,7 @@ test.describe("KAN-620: Bulk Stock Update Validation @critical @inventory", () =
     await page.getByLabel(/set to value/i).check();
     await page.fill('input[name="value"]', originalStock?.trim() || "10");
     await page.click('button:has-text("Update Stock")');
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   });
 
   test("single product adjustment should validate negative stock", async ({ page }) => {

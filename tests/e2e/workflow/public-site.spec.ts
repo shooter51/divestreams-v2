@@ -50,7 +50,7 @@ test.beforeAll(async ({ browser }) => {
     await page.goto(_getTenantUrl("e2etest", "/auth/login"), { timeout: 30000, waitUntil: 'domcontentloaded' });
 
     // Wait for page to fully load
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+    await page.waitForLoadState('load', { timeout: 10000 }).catch(() => {
       // Network idle may not be reached, continue anyway
     });
 
@@ -101,7 +101,7 @@ test.beforeAll(async ({ browser }) => {
     if (checkboxCount === 0) {
       await page.reload();
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
       checkboxCount = await enabledCheckbox.count();
     }
 
@@ -222,7 +222,7 @@ async function loginToTenant(page: Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -244,7 +244,7 @@ async function loginCustomer(page: Page) {
   try {
     await page.waitForURL(/\/site\/account/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -471,7 +471,7 @@ test.describe.serial("Block B: Customer Registration & Login", () => {
 
     // Submit
     await page.getByRole("button", { name: /create account|register|sign up/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Should redirect to account or show success
     const redirectedToAccount = page.url().includes("/account");
