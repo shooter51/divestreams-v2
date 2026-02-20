@@ -443,7 +443,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     // Submit form
     const submitButton = page.getByRole("button", { name: /enroll/i });
     await submitButton.click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Should redirect to confirmation page
     const redirectedToConfirm = page.url().includes("/confirm");

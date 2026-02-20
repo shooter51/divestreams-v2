@@ -19,10 +19,10 @@ test.describe("Stock Validation E2E @inventory @critical", () => {
   test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page, tenantSlug);
     await loginPage.goto();
-    await loginPage.login("owner@demo.com", "demo1234");
+    await loginPage.login("e2e-tester@demo.com", "DemoPass1234");
 
     await page.goto(getTenantUrl(tenantSlug, "/tenant/products"));
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     await page.waitForSelector("table tbody tr", { timeout: 10000 });
     await page.waitForSelector('table tbody tr input[type="checkbox"]', {
       state: "visible",
@@ -95,7 +95,7 @@ test.describe("Stock Validation E2E @inventory @critical", () => {
     await setRadio2.click();
     await page.fill('input[name="value"]', originalStock?.trim() || "10");
     await page.click('button:has-text("Update Stock")');
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   });
 
   test("create product form enforces min=0 on stock quantity field", async ({

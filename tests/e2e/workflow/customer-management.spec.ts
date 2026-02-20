@@ -70,7 +70,7 @@ async function loginToTenant(page: Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -219,7 +219,7 @@ test.describe.serial("Block A: Navigation & List View", () => {
     const customersLink = page.getByRole("link", { name: /customer/i }).first();
     if (await customersLink.isVisible().catch(() => false)) {
       await customersLink.click();
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
       expect(page.url()).toContain("/customers");
     } else {
       await page.goto(getTenantUrl("/tenant/customers"));
@@ -357,7 +357,7 @@ test.describe.serial("Block B: Create Customer Flow", () => {
 
     // Submit form
     await page.getByRole("button", { name: /create|save|add/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     const redirectedToList = page.url().includes("/tenant/customers") && !page.url().includes("/new");
     const hasSuccessMessage = await page.getByText(/success|created|added/i).isVisible().catch(() => false);
@@ -500,7 +500,7 @@ test.describe.serial("Block C: Edit Customer Flow", () => {
     const saveBtn = page.getByRole("button", { name: /save|update/i });
     if (await saveBtn.isVisible().catch(() => false)) {
       await saveBtn.click();
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
 
     const redirected = page.url().includes("/tenant/customers") && !page.url().includes("/edit");
@@ -762,7 +762,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
     const searchField = page.getByPlaceholder(/search/i).or(page.locator("input[type='search']")).first();
     if (await searchField.isVisible().catch(() => false)) {
       await searchField.fill("Test");
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
       const hasResults = await page.getByText(/Test/).isVisible().catch(() => false);
       expect(hasResults || page.url().includes("/customers")).toBeTruthy();
     }
@@ -776,7 +776,7 @@ test.describe.serial("Block E: Customer History & Activity", () => {
     const searchField = page.getByPlaceholder(/search/i).or(page.locator("input[type='search']")).first();
     if (await searchField.isVisible().catch(() => false)) {
       await searchField.fill("@example.com");
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
     expect(page.url()).toContain("/customers");
   });

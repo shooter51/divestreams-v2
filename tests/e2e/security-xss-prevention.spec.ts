@@ -203,7 +203,7 @@ test.describe("XSS Prevention Security", () => {
         await page.click('button:has-text("Save Theme")');
 
         // Should show error or sanitize to #000000
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('load');
         const value = await page
           .locator('input[name="primaryColor"]')
           .inputValue();

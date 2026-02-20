@@ -102,7 +102,7 @@ async function loginToTenant(page: Page) {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
     // Fallback: wait for page to stabilize if URL doesn't change
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -188,20 +188,20 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
 
     // Submit
     await page.getByRole("button", { name: /create|save|add/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
     await page.waitForLoadState("load");
 
     // Extract customer ID - navigate to list and wait for full load
     await page.goto(getTenantUrl("/tenant/customers"));
     await page.waitForLoadState("load");
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
     let customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
 
     // Retry once if not found (race condition mitigation)
     if (!customerId) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
       customerId = await extractEntityId(page, testData.customer.lastName, "/tenant/customers");
     }
     if (customerId) testData.createdIds.customer = customerId;
@@ -239,7 +239,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     const submitBtn = page.getByRole("button", { name: /create|save|book/i });
     if (await submitBtn.isVisible().catch(() => false)) {
       await submitBtn.click();
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
 
     // Extract booking ID
@@ -332,7 +332,7 @@ test.describe.serial("Block A: Customer & Booking Deletion", () => {
     const searchField = page.getByPlaceholder(/search/i).or(page.locator("input[type='search']")).first();
     if (await searchField.isVisible().catch(() => false)) {
       await searchField.fill(testData.customer.lastName);
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
 
       // Should find no results
       const hasResults = await page
@@ -389,7 +389,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
 
     // Submit
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // CRITICAL: Modal should close after successful creation
     const modalStillVisible = await modal.isVisible().catch(() => false);
@@ -437,7 +437,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
 
     // Submit
     await page.getByRole("button", { name: /update|save/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // CRITICAL: Modal should close after successful update
     const modalStillVisible = await modal.isVisible().catch(() => false);
@@ -483,7 +483,7 @@ test.describe.serial("Block B: Discount Code Modal Issues", () => {
 
     // Click delete
     await deleteBtn.click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // CRITICAL: Modal should close after successful deletion
     const modalStillVisible = await modal.isVisible().catch(() => false);
@@ -531,7 +531,7 @@ test.describe.serial("Block C: Product Modal Issues", () => {
 
     // Submit
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Extract product ID
     const productId = await extractEntityId(page, testData.product.name, "/tenant/products");
@@ -579,7 +579,7 @@ test.describe.serial("Block C: Product Modal Issues", () => {
 
     // Click delete
     await deleteBtn.click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // CRITICAL: Modal should close after successful deletion
     const modalStillVisible = await modal.isVisible().catch(() => false);
@@ -617,7 +617,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
     }
 
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Extract boat ID
     await page.goto(getTenantUrl("/tenant/boats"));
@@ -664,7 +664,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
     }
 
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Extract dive site ID
     await page.goto(getTenantUrl("/tenant/dive-sites"));
@@ -711,7 +711,7 @@ test.describe.serial("Block D: Entity Deletion", () => {
     }
 
     await page.getByRole("button", { name: /create|save/i }).click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Extract tour ID
     await page.goto(getTenantUrl("/tenant/tours"));
@@ -935,7 +935,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     const saveBtn = page.getByRole("button", { name: /save|update/i });
     if (await saveBtn.isVisible().catch(() => false)) {
       await saveBtn.click();
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
 
     // Navigate to general settings - should not crash with undefined pages error
@@ -1007,7 +1007,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     // Submit the form
     const submitButton = page.getByRole("button", { name: /send.*invitation|invite/i });
     await submitButton.click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // CRITICAL: Error message should be displayed and visible
     const errorMessage = page.getByText(/this email is already a team member/i);
@@ -1049,7 +1049,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
 
     const submitButton = page.getByRole("button", { name: /send.*invitation|invite/i });
     await submitButton.click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Now try to invite the same email again
     await inviteButton.click();
@@ -1061,7 +1061,7 @@ test.describe.serial("Block F: Public Site Settings", () => {
     }
 
     await submitButton.click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // CRITICAL: Error message should be displayed and visible
     const errorMessage = page.getByText(/this email already has a pending invitation/i);

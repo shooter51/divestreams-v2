@@ -315,7 +315,7 @@ test.describe('KAN-639: Trip Booking Flow', () => {
     await expect(page.locator('h1:has-text("Booking Confirmed")')).toBeVisible();
 
     // Wait a bit for email logs
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Verify email-related logs exist (email service logs to console in dev)
     const hasEmailLog = consoleLogs.some(log =>

@@ -33,8 +33,8 @@ test.describe('KAN-630: Album Image Upload', () => {
     await page.waitForLoadState("load");
 
     // Fill in login credentials using accessibility-based selectors
-    await page.getByRole("textbox", { name: /email/i }).fill("owner@demo.com");
-    await page.locator('input[type="password"]').first().fill("demo1234");
+    await page.getByRole("textbox", { name: /email/i }).fill("e2e-tester@demo.com");
+    await page.locator('input[type="password"]').first().fill("DemoPass1234");
     await page.getByRole("button", { name: /sign in/i }).click();
 
     // Wait for redirect to tenant dashboard after successful login
@@ -104,7 +104,7 @@ test.describe('KAN-630: Album Image Upload', () => {
     }
 
     // Wait for upload to complete
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Verify upload succeeded - should show image in album
     const imageGrid = page.locator('div[class*="grid"]').filter({ has: page.locator('img') });

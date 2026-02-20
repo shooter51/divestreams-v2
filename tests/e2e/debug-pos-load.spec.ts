@@ -12,11 +12,11 @@ test.describe('Debug POS Page Load', () => {
 
     // Login
     await loginPage.goto();
-    await loginPage.login('owner@demo.com', 'demo1234');
+    await loginPage.login('e2e-tester@demo.com', 'DemoPass1234');
 
     // Navigate to POS
     await page.goto(getTenantUrl('demo', '/tenant/pos'));
-    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForLoadState('load', { timeout: 15000 });
 
     // Take screenshot
     await page.screenshot({ path: 'test-results/pos-debug.png', fullPage: true });

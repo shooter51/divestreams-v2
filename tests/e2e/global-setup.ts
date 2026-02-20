@@ -229,10 +229,74 @@ async function globalSetup(_config: FullConfig) {
       })
       .where(eq(subscription.organizationId, demoOrg.id));
 
+    // Create dedicated E2E test user (separate from owner, with form-compliant password)
+    // This matches the user created by bootstrap on remote environments via signup form
+    const e2eTesterEmail = "e2e-tester@demo.com";
+    const [existingTester] = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, e2eTesterEmail))
+      .limit(1);
+
+    if (!existingTester) {
+      console.log("Creating E2E tester user...");
+      try {
+        const testerResult = await auth.api.signUpEmail({
+          body: {
+            email: e2eTesterEmail,
+            password: "DemoPass1234",
+            name: "E2E Test User",
+          },
+        });
+
+        if (testerResult.user) {
+          await db
+            .update(user)
+            .set({ emailVerified: true })
+            .where(eq(user.id, testerResult.user.id));
+
+          // Add as member of demo org
+          await db.insert(member).values({
+            id: crypto.randomUUID(),
+            organizationId: demoOrg.id,
+            userId: testerResult.user.id,
+            role: "owner",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+          console.log("✓ E2E tester user created");
+        }
+      } catch {
+        console.log("E2E tester user already exists or conflict — OK");
+      }
+    } else {
+      // Ensure member relationship exists
+      const [testerMember] = await db
+        .select()
+        .from(member)
+        .where(and(
+          eq(member.userId, existingTester.id),
+          eq(member.organizationId, demoOrg.id)
+        ))
+        .limit(1);
+
+      if (!testerMember) {
+        await db.insert(member).values({
+          id: crypto.randomUUID(),
+          organizationId: demoOrg.id,
+          userId: existingTester.id,
+          role: "owner",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+      console.log("✓ E2E tester user already exists");
+    }
+
     console.log("✓ Demo environment ready for E2E tests");
     console.log(`  - Organization: demo.${(process.env.BASE_URL || "http://localhost:5173").replace(/^https?:\/\//, "")}`);
-    console.log("  - Email: owner@demo.com");
-    console.log("  - Password: demo1234");
+    console.log("  - Owner: owner@demo.com / demo1234");
+    console.log("  - E2E Tester: e2e-tester@demo.com / DemoPass1234");
     console.log("  - Plan: ENTERPRISE (all features enabled)");
 
     // =====================================================

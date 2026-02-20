@@ -70,7 +70,7 @@ async function loginToTenant(page: Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -374,7 +374,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     // Submit form
     await Promise.all([
       page.getByRole("button", { name: /create|save|schedule/i }).click(),
-      page.waitForLoadState("networkidle").catch(() => {}),
+      page.waitForLoadState("load").catch(() => {}),
     ]).catch(() => null);
 
     const redirectedToList = page.url().includes("/tenant/trips") && !page.url().includes("/new");
@@ -567,7 +567,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     const saveBtn = page.getByRole("button", { name: /save|update/i });
     if (await saveBtn.isVisible().catch(() => false)) {
       await saveBtn.click();
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
 
     const redirected = page.url().includes("/tenant/trips") && !page.url().includes("/edit");
