@@ -104,7 +104,7 @@ test.describe('KAN-634: POS Split Payment', () => {
     await expect(page.locator('.flex.justify-between').filter({ hasText: /remaining/i })).toContainText(`$${remaining.toFixed(2)}`);
 
     // Add second payment (remaining amount)
-    await page.getByRole('button', { name: /rest/i }).click(); // Use "Rest" button
+    await page.getByRole('button', { name: /remaining/i }).click(); // Use "Remaining" button
     await page.getByRole('button', { name: /add.*payment/i }).click();
 
     // Complete sale button should be enabled
