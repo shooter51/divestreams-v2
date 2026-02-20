@@ -1,15 +1,15 @@
-import { test } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { getAdminUrl, getTenantUrl } from "../helpers/urls";
 
 /**
- * Bootstrap: Create "demo" tenant for independent E2E tests
+ * Bootstrap: Create "demo" tenant and test user for independent E2E tests
  *
  * This runs before the "independent" project (bug regression specs, debug tests, etc.)
- * to ensure the "demo" tenant exists with the expected credentials and seed data.
+ * to ensure the "demo" tenant exists with a working test user account.
  *
- * On local dev, global-setup.ts creates the demo tenant via direct DB access.
+ * On local dev, global-setup.ts creates everything via direct DB access.
  * On remote environments (test.divestreams.com), global-setup is skipped,
- * so this spec creates the demo tenant via the admin UI.
+ * so this spec ensures the demo tenant + test user exist.
  */
 
 const adminPassword = process.env.ADMIN_PASSWORD || "DiveAdmin2026";
@@ -21,7 +21,7 @@ const testUser = {
 
 test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
   test("Ensure demo tenant exists", async ({ page }) => {
-    // First check if demo tenant already exists by visiting its login page
+    // Check if demo tenant already exists by visiting its login page
     const tenantLoginUrl = getTenantUrl("demo", "/auth/login");
     await page.goto(tenantLoginUrl);
     await page.waitForLoadState("domcontentloaded");
@@ -41,7 +41,6 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.goto(getAdminUrl("/login"));
     await page.waitForLoadState("domcontentloaded");
 
-    // Login to admin panel
     const emailField = await page
       .getByRole("textbox", { name: /email/i })
       .isVisible({ timeout: 5000 })
@@ -52,19 +51,14 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     }
     await page.locator('input[type="password"]').first().fill(adminPassword);
     await page.getByRole("button", { name: /sign in/i }).click();
-
-    // Wait for admin dashboard
     await page.waitForURL(/\/(dashboard|tenants)/, { timeout: 15000 });
 
-    // Navigate to create tenant page
     await page.goto(getAdminUrl("/tenants/new"));
     await page.waitForLoadState("domcontentloaded");
 
-    // Fill in tenant creation form
     await page.locator("#slug").fill("demo");
     await page.locator("#name").fill("Demo Dive Shop");
 
-    // Select highest plan (Enterprise) for all features
     const planSelect = page.locator("#plan");
     if (await planSelect.isVisible().catch(() => false)) {
       const options = await planSelect.locator("option").allTextContents();
@@ -74,13 +68,11 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       }
     }
 
-    // Enable demo data seeding (populates products, tours, courses, etc.)
     const demoDataCheckbox = page.locator("#seedDemoData");
     if (await demoDataCheckbox.isVisible().catch(() => false)) {
       await demoDataCheckbox.check();
     }
 
-    // Create owner account checkbox (should be checked by default)
     const createOwnerCheckbox = page.locator("#createOwnerAccount");
     if (await createOwnerCheckbox.isVisible().catch(() => false)) {
       if (!(await createOwnerCheckbox.isChecked())) {
@@ -88,23 +80,17 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       }
     }
 
-    // Fill owner account details
     await page.locator("#ownerEmail").fill(testUser.email);
     await page.locator("#ownerName").fill(testUser.name);
     await page.locator("#ownerPassword").fill(testUser.password);
 
-    // Submit form
     await page.getByRole("button", { name: /create/i }).click();
-
-    // Wait for success (redirect back to dashboard) - seeding demo data can take a while
     await page.waitForURL(/\/(dashboard|tenants)/, { timeout: 60000 });
-    console.log("Demo tenant created with owner account and demo data");
+    console.log("Demo tenant created with test user account and demo data");
   });
 
-  test("Verify demo tenant is accessible", async ({ page }) => {
-    // Verify the demo tenant login page loads. We don't require specific credentials
-    // to work since the tenant may exist from a previous deployment with different
-    // owner credentials. Independent tests handle their own auth.
+  test("Ensure test user can login @critical", async ({ page }) => {
+    // Step 1: Try logging in with test credentials
     await page.goto(getTenantUrl("demo", "/auth/login"));
     await page.waitForLoadState("domcontentloaded");
 
@@ -114,13 +100,26 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       .catch(() => false);
 
     if (!loginForm) {
-      console.log("WARNING: Demo tenant login page not available");
+      throw new Error("Demo tenant login page not available - cannot proceed");
+    }
+
+    await page.getByRole("textbox", { name: /email/i }).fill(testUser.email);
+    await page.locator('input[type="password"]').first().fill(testUser.password);
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    const loginSuccess = await page
+      .waitForURL(/\/tenant/, { timeout: 15000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (loginSuccess) {
+      console.log("Test user login successful");
       return;
     }
 
-    console.log("Demo tenant login page is accessible");
+    console.log(`Login failed (URL: ${page.url()}) - creating test user via signup...`);
 
-    // Best-effort: ensure an owner account exists via signup (non-fatal)
+    // Step 2: Login failed - create the user via signup
     await page.goto(getTenantUrl("demo", "/auth/signup"));
     await page.waitForLoadState("domcontentloaded");
 
@@ -130,28 +129,72 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       .catch(() => false);
 
     if (!signupForm) {
-      console.log("Signup page not available - skipping owner creation");
-      return;
+      throw new Error("Signup page not available - cannot create test user");
     }
 
     await page.getByLabel(/full name/i).fill(testUser.name);
     await page.getByLabel(/email address/i).fill(testUser.email);
     await page.locator("#password").fill(testUser.password);
     await page.locator("#confirmPassword").fill(testUser.password);
+
+    // Listen for the navigation response to debug
+    const responsePromise = page.waitForResponse(
+      (resp) => resp.url().includes("/auth/signup") && resp.request().method() === "POST",
+      { timeout: 15000 }
+    ).catch(() => null);
+
     await page.getByRole("button", { name: /create account/i }).click();
 
-    await page
-      .waitForURL(/\/tenant/, { timeout: 10000 })
-      .then(() => console.log("Demo owner account created successfully"))
-      .catch(async () => {
-        const error = await page
-          .locator('[class*="bg-danger"], [class*="text-danger"]')
-          .first()
-          .textContent()
-          .catch(() => null);
-        console.log(
-          `Demo owner signup: ${error || "did not redirect (owner may already exist)"}`
-        );
-      });
+    const response = await responsePromise;
+    if (response) {
+      console.log(`Signup response: ${response.status()} ${response.url()}`);
+    }
+
+    // Wait for redirect
+    const signupSuccess = await page
+      .waitForURL(/\/tenant/, { timeout: 15000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (signupSuccess) {
+      console.log("Test user created via signup successfully");
+      return;
+    }
+
+    // Signup didn't redirect - check what happened
+    const currentUrl = page.url();
+    const bodyText = await page.locator("body").innerText().catch(() => "");
+    const errorText = await page
+      .locator('[class*="bg-danger"], [class*="text-danger"], [role="alert"]')
+      .first()
+      .textContent()
+      .catch(() => null);
+
+    console.log(`Signup result - URL: ${currentUrl}`);
+    console.log(`Signup error: ${errorText || "none visible"}`);
+    console.log(`Page text (first 500 chars): ${bodyText.substring(0, 500)}`);
+
+    // If user already exists, try login again (maybe with corrected state)
+    if (
+      errorText?.toLowerCase().includes("already") ||
+      errorText?.toLowerCase().includes("exists") ||
+      bodyText.toLowerCase().includes("already registered")
+    ) {
+      console.log("User already exists - retrying login...");
+      await page.goto(getTenantUrl("demo", "/auth/login"));
+      await page.waitForLoadState("domcontentloaded");
+      await page.getByRole("textbox", { name: /email/i }).fill(testUser.email);
+      await page.locator('input[type="password"]').first().fill(testUser.password);
+      await page.getByRole("button", { name: /sign in/i }).click();
+
+      await page.waitForURL(/\/tenant/, { timeout: 15000 });
+      console.log("Login succeeded after signup conflict - user exists with correct password");
+      return;
+    }
+
+    // Hard fail - independent tests need this user
+    throw new Error(
+      `Failed to create test user. URL: ${currentUrl}, Error: ${errorText || "none"}`
+    );
   });
 });
