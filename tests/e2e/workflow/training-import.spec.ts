@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { getTenantUrl as _getTenantUrl } from "../helpers/urls";
 
 /**
  * Training Import Wizard E2E Tests
@@ -8,8 +9,7 @@ import { test, expect } from "@playwright/test";
  * - Run 00-full-workflow.spec.ts first if tests fail due to missing user
  */
 
-const BASE_URL = process.env.BASE_URL || "http://e2etest.localhost:5173";
-const getTenantUrl = (path: string) => `${BASE_URL}${path}`;
+const getTenantUrl = (path: string) => _getTenantUrl("e2etest", path);
 
 // Shared test data (consistent with other test files)
 const testUser = {

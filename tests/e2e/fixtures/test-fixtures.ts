@@ -1,4 +1,5 @@
 import { test as base, type Page } from "@playwright/test";
+import { getTenantUrl, getAdminUrl } from "../helpers/urls";
 
 /**
  * Test credentials and configuration
@@ -28,7 +29,7 @@ export async function loginToTenant(
   email: string = testConfig.tenantCredentials.email,
   password: string = testConfig.tenantCredentials.password
 ): Promise<void> {
-  await page.goto(`http://${subdomain}.localhost:5173/auth/login`);
+  await page.goto(getTenantUrl(subdomain, "/auth/login"));
 
   // Check if already logged in
   if (page.url().includes("/tenant")) {
@@ -52,7 +53,7 @@ export async function loginToAdmin(
   email: string = testConfig.adminEmail,
   password: string = testConfig.adminPassword
 ): Promise<void> {
-  await page.goto("http://admin.localhost:5173/login");
+  await page.goto(getAdminUrl("/login"));
 
   // Admin login requires BOTH email and password (use getByRole for accessibility)
   await page.getByRole("textbox", { name: /email/i }).fill(email);

@@ -4,6 +4,7 @@
 
 import { test } from '@playwright/test';
 import { LoginPage } from './page-objects/auth.page';
+import { getTenantUrl } from './helpers/urls';
 
 test.describe('Debug POS Page Load', () => {
   test('Check what appears on POS page', async ({ page }) => {
@@ -14,7 +15,7 @@ test.describe('Debug POS Page Load', () => {
     await loginPage.login('owner@demo.com', 'demo1234');
 
     // Navigate to POS
-    await page.goto('http://demo.localhost:5173/tenant/pos');
+    await page.goto(getTenantUrl('demo', '/tenant/pos'));
     await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Take screenshot
