@@ -38,7 +38,7 @@ test.describe("KAN-664: Forgot Password 404 Fix @bug", () => {
   let page: ForgotPasswordTestPage;
 
   test.beforeEach(async ({ page: p }) => {
-    page = new ForgotPasswordTestPage(p, "e2etest");
+    page = new ForgotPasswordTestPage(p, "demo");
   });
 
   test.describe("Tenant forgot-password route", () => {

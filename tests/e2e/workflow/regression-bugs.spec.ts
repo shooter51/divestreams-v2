@@ -918,8 +918,9 @@ test.describe.serial("Block F: Public Site Settings", () => {
 
     const href = await previewLink.getAttribute("href");
 
-    // CRITICAL: Should link to https://e2etest.divestreams.com NOT /site
-    expect(href).toContain("e2etest.divestreams.com");
+    // CRITICAL: Should link to the tenant's public site (e.g. e2etest.divestreams.com
+    // or e2etest.localhost:5173), NOT a relative /site path
+    expect(href).toContain("e2etest.");
     expect(href).not.toContain("/site"); // Bug was linking to /site which 404'd
   });
 
