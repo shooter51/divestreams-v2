@@ -103,6 +103,25 @@ jobs:
           npx playwright install chromium
           npx playwright install-deps chromium || true
 
+      - name: Wait for app to be ready
+        run: |
+          MAX_ATTEMPTS=30
+          WAIT=10
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Health check $i/$MAX_ATTEMPTS..."
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 https://test.divestreams.com/api/health 2>/dev/null || echo "000")
+            echo "  HTTP status: $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "App is ready!"
+              exit 0
+            fi
+            if [ "$i" -eq "$MAX_ATTEMPTS" ]; then
+              echo "ERROR: App not ready after $((MAX_ATTEMPTS * WAIT))s"
+              exit 1
+            fi
+            sleep $WAIT
+          done
+
       - name: Run E2E tests against test.divestreams.com
         id: e2e
         run: npx playwright test
