@@ -46,6 +46,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Sync compose and config files to VPS
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.TEST_VPS_SSH_KEY }}" > ~/.ssh/test_vps_key
+          chmod 600 ~/.ssh/test_vps_key
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/test_vps_key \
+            docker-compose.test.yml \
+            root@${{ vars.TEST_VPS_IP }}:/docker/divestreams-test/docker-compose.yml
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/test_vps_key \
+            Caddyfile.test \
+            root@${{ vars.TEST_VPS_IP }}:/docker/divestreams-test/Caddyfile.test
+          rm -f ~/.ssh/test_vps_key
+          echo "Synced compose and Caddyfile to VPS"
+
       - name: Deploy to Test VPS
         run: |
           echo "Deploying to Test VPS (${{ vars.TEST_VPS_ID }})"
@@ -102,6 +116,28 @@ jobs:
         run: |
           npx playwright install chromium
           npx playwright install-deps chromium || true
+
+      - name: Flush rate limit keys on test VPS
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.TEST_VPS_SSH_KEY }}" > ~/.ssh/test_vps_key
+          chmod 600 ~/.ssh/test_vps_key
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/test_vps_key root@${{ vars.TEST_VPS_IP }} '
+            REDIS_CONTAINER=$(docker ps --filter name=redis --format "{{.Names}}" | head -1)
+            if [ -n "$REDIS_CONTAINER" ]; then
+              REDIS_PASS=$(grep "^REDIS_PASSWORD=" /docker/divestreams-test/.env 2>/dev/null | cut -d= -f2 || echo "changeme")
+              [ -z "$REDIS_PASS" ] && REDIS_PASS="changeme"
+              DELETED=$(docker exec "$REDIS_CONTAINER" redis-cli -a "$REDIS_PASS" --no-auth-warning EVAL "
+                local keys = redis.call(\"KEYS\", \"ratelimit:*\")
+                for i, key in ipairs(keys) do redis.call(\"DEL\", key) end
+                return #keys
+              " 0 2>/dev/null || echo "0")
+              echo "Flushed $DELETED rate limit keys from Redis"
+            else
+              echo "Redis container not found - skipping"
+            fi
+          ' || echo "SSH rate limit flush failed (non-fatal)"
+          rm -f ~/.ssh/test_vps_key
 
       - name: Wait for app to be ready
         run: |

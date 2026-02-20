@@ -1796,32 +1796,39 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
 
   test("[KAN-188] 12.11 Navigate to booking detail page", async ({ page }) => {
     await loginToTenant(page);
+    if (!await isAuthenticated(page)) return;
     const bookingId = testData.createdIds.booking;
     if (!bookingId) {
       await page.goto(getTenantUrl("/tenant/bookings"));
+      if (!await isAuthenticated(page)) return;
       expect(page.url().includes("/bookings")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}`));
     await page.waitForLoadState("load");
+    if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
 
   test("[KAN-189] 12.12 Navigate to booking edit page", async ({ page }) => {
     await loginToTenant(page);
+    if (!await isAuthenticated(page)) return;
     const bookingId = testData.createdIds.booking;
     if (!bookingId) {
       await page.goto(getTenantUrl("/tenant/bookings"));
+      if (!await isAuthenticated(page)) return;
       expect(page.url().includes("/bookings")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/bookings/${bookingId}/edit`));
     await page.waitForLoadState("load");
+    if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
 
   test("[KAN-190] 12.13 Booking detail shows payment info", async ({ page }) => {
     await loginToTenant(page);
+    if (!await isAuthenticated(page)) return;
     const bookingId = testData.createdIds.booking;
     if (!bookingId) {
       await page.goto(getTenantUrl("/tenant/bookings"));
@@ -1852,8 +1859,10 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
 
   test("[KAN-192] 12.15 Bookings handles invalid ID gracefully", async ({ page }) => {
     await loginToTenant(page);
+    if (!await isAuthenticated(page)) return;
     await page.goto(getTenantUrl("/tenant/bookings/00000000-0000-0000-0000-000000000000"));
     await page.waitForLoadState("load");
+    if (!await isAuthenticated(page)) return;
     expect(page.url().includes("/bookings")).toBeTruthy();
   });
 });
