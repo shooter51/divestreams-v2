@@ -47,9 +47,12 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Sync compose and config files to VPS
+        continue-on-error: true
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.TEST_VPS_SSH_KEY }}" > ~/.ssh/test_vps_key
+          # Write SSH key with proper format (strip carriage returns, ensure trailing newline)
+          echo "${{ secrets.TEST_VPS_SSH_KEY }}" | tr -d '\r' > ~/.ssh/test_vps_key
+          echo "" >> ~/.ssh/test_vps_key
           chmod 600 ~/.ssh/test_vps_key
           scp -o StrictHostKeyChecking=no -i ~/.ssh/test_vps_key \
             docker-compose.test.yml \
@@ -100,6 +103,7 @@ jobs:
   e2e:
     needs: build-deploy
     runs-on: [self-hosted, linux, divestreams]
+    environment: test
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -120,7 +124,8 @@ jobs:
       - name: Flush rate limit keys on test VPS
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.TEST_VPS_SSH_KEY }}" > ~/.ssh/test_vps_key
+          echo "${{ secrets.TEST_VPS_SSH_KEY }}" | tr -d '\r' > ~/.ssh/test_vps_key
+          echo "" >> ~/.ssh/test_vps_key
           chmod 600 ~/.ssh/test_vps_key
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/test_vps_key root@${{ vars.TEST_VPS_IP }} '
             REDIS_CONTAINER=$(docker ps --filter name=redis --format "{{.Names}}" | head -1)
