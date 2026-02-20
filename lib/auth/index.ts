@@ -13,6 +13,9 @@ import {
 } from "../db/schema";
 import { sendEmail } from "../email";
 
+const isTestEnv = process.env.SKIP_VERIFICATION_EMAIL === "true" ||
+  (process.env.APP_URL || "").includes("test.");
+
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
   baseURL: (process.env.AUTH_URL || process.env.APP_URL || "http://localhost:3000") + "/api/auth",
@@ -32,6 +35,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     sendVerificationEmail: async ({ user, url }: { user: { email: string; name: string | null }; url: string }) => {
+      if (isTestEnv) return;
       await sendEmail({
         to: user.email,
         subject: "Verify your DiveStreams email",
