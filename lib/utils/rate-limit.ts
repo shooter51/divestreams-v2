@@ -36,8 +36,10 @@ export async function checkRateLimit(
   config: RateLimitConfig = { maxAttempts: 5, windowMs: 15 * 60 * 1000 }
 ): Promise<RateLimitResult> {
   // Skip rate limiting during E2E/Playwright tests to avoid false failures
-  // from parallel workers all sharing the same localhost IP
-  if (process.env.PLAYWRIGHT_TEST_BASE_URL) {
+  // from parallel workers all sharing the same IP.
+  // PLAYWRIGHT_TEST_BASE_URL: set by local Playwright webServer config
+  // DISABLE_RATE_LIMIT: set on test VPS for remote E2E tests
+  if (process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.DISABLE_RATE_LIMIT === "true") {
     return { allowed: true, remaining: config.maxAttempts, resetAt: Date.now() + config.windowMs };
   }
 
