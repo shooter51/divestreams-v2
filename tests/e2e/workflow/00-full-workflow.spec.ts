@@ -560,12 +560,22 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await page.waitForLoadState("load");
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
+    // Feature gate may redirect to /tenant?upgrade=has_equipment_boats if plan lacks boats feature
+    if (!page.url().includes("/boats")) {
+      console.log("Boats feature not available (redirected by feature gate) - skipping");
+      return;
+    }
     const addLink = page.getByRole("link", { name: /add boat/i });
     // Retry with reload if not found (Vite dep optimization can cause page reloads)
     if (!(await addLink.isVisible().catch(() => false))) {
       await page.reload();
       await page.waitForLoadState("load");
       await page.waitForLoadState("load");
+      // Check again after reload in case feature gate redirected
+      if (!page.url().includes("/boats")) {
+        console.log("Boats feature not available after reload - skipping");
+        return;
+      }
     }
     await expect(addLink).toBeVisible({ timeout: 8000 });
   });
@@ -1543,7 +1553,10 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
-    const boatSelector = await page.getByLabel(/boat/i).isVisible().catch(() => false);
+    // Use specific label text "Select Boat" to avoid matching sidebar's
+    // aria-label="Boats - locked feature, click to upgrade" which causes
+    // strict mode violations when the boats feature is locked
+    const boatSelector = await page.getByLabel(/select boat/i).isVisible().catch(() => false);
     expect(boatSelector).toBeTruthy();
   });
 
@@ -1557,8 +1570,8 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
       await page.getByLabel(/date/i).fill(testData.trip.date);
       const tourSelect = await page.getByLabel(/tour/i).isVisible().catch(() => false);
       if (tourSelect) await page.getByLabel(/tour/i).selectOption({ index: 1 }).catch(() => null);
-      const boatSelect = await page.getByLabel(/boat/i).isVisible().catch(() => false);
-      if (boatSelect) await page.getByLabel(/boat/i).selectOption({ index: 1 }).catch(() => null);
+      const boatSelect = await page.getByLabel(/select boat/i).isVisible().catch(() => false);
+      if (boatSelect) await page.getByLabel(/select boat/i).selectOption({ index: 1 }).catch(() => null);
       await Promise.all([
         page.getByRole("button", { name: /schedule|create|save/i }).click(),
         page.waitForLoadState("load").catch(() => {})
@@ -1909,7 +1922,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
     await page.goto(getTenantUrl("/tenant/pos"));
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
-    const paymentButton = await page.getByRole("button", { name: /pay|checkout|complete/i }).isVisible().catch(() => false);
+    const paymentButton = await page.getByRole("button", { name: /card|cash|split/i }).first().isVisible().catch(() => false);
     expect(paymentButton || page.url().includes("/pos")).toBeTruthy();
   });
 
