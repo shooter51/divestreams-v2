@@ -230,7 +230,7 @@ async function globalSetup(_config: FullConfig) {
       .where(eq(subscription.organizationId, demoOrg.id));
 
     console.log("✓ Demo environment ready for E2E tests");
-    console.log("  - Organization: demo.localhost:5173");
+    console.log(`  - Organization: demo.${(process.env.BASE_URL || "http://localhost:5173").replace(/^https?:\/\//, "")}`);
     console.log("  - Email: owner@demo.com");
     console.log("  - Password: demo1234");
     console.log("  - Plan: ENTERPRISE (all features enabled)");
@@ -374,7 +374,7 @@ async function globalSetup(_config: FullConfig) {
     }
 
     console.log("✓ Platform admin environment ready for E2E tests");
-    console.log("  - Admin URL: admin.localhost:5173");
+    console.log(`  - Admin URL: admin.${(process.env.BASE_URL || "http://localhost:5173").replace(/^https?:\/\//, "")}`);
     console.log("  - Email: " + platformAdminEmail);
     console.log("  - Password: " + platformAdminPassword);
 
@@ -590,7 +590,7 @@ async function globalSetup(_config: FullConfig) {
     }
 
     console.log("\n✓ E2E test environment ready for workflow tests");
-    console.log("  - Organization: e2etest.localhost:5173");
+    console.log(`  - Organization: e2etest.${(process.env.BASE_URL || "http://localhost:5173").replace(/^https?:\/\//, "")}`);
     console.log("  - Email: " + e2eUserEmail);
     console.log("  - Password: " + e2eUserPassword);
     console.log("  - Plan: ENTERPRISE (all features enabled)");

@@ -18,6 +18,7 @@
 
 import { test, expect } from "@playwright/test";
 import { TenantBasePage } from "../page-objects/base.page";
+import { getTenantUrl } from "../helpers/urls";
 
 // Helper page object for tenant navigation
 class TrainingPage extends TenantBasePage {
@@ -136,7 +137,7 @@ test.describe("KAN-610: New Enrollment Button Error", () => {
   test("should still work with sessionId query parameter (existing flow)", async ({ page }) => {
     // Create a test session first
     // This assumes there's at least one session available
-    await page.goto("http://demo.localhost:5173/tenant/training/sessions");
+    await page.goto(getTenantUrl("demo", "/tenant/training/sessions"));
     await page.waitForLoadState("load");
 
     // Wait for sessions page to load

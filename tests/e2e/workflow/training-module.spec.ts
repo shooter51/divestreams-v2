@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { getTenantUrl as _getTenantUrl } from "../helpers/urls";
 
 /**
  * Dive Training Module E2E Tests
@@ -78,9 +79,9 @@ const trainingTestData = {
   },
 };
 
-// Helper to get tenant URL
+// URL helper - bind subdomain for convenience
 const getTenantUrl = (path: string = "/") =>
-  `http://${trainingTestData.tenant.subdomain}.localhost:5173${path}`;
+  _getTenantUrl(trainingTestData.tenant.subdomain, path);
 
 // Helper to login to tenant
 async function loginToTenant(page: Page) {

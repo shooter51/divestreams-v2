@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { getTenantUrl as _getTenantUrl, getAdminUrl as _getAdminUrl, getBaseUrl, getEmbedUrl as _getEmbedUrl } from "../helpers/urls";
 
 /**
  * Full E2E Workflow Tests - DiveStreams
@@ -100,21 +101,18 @@ const testData = {
   },
 };
 
-// Helper to get tenant URL
+// URL helpers - bind subdomain for convenience
 const getTenantUrl = (path: string = "/") =>
-  `http://${testData.tenant.subdomain}.localhost:5173${path}`;
+  _getTenantUrl(testData.tenant.subdomain, path);
 
-// Helper to get admin URL
 const getAdminUrl = (path: string = "/") =>
-  `http://admin.localhost:5173${path}`;
+  _getAdminUrl(path);
 
-// Helper to get marketing URL
 const getMarketingUrl = (path: string = "/") =>
-  `http://localhost:5173${path}`;
+  getBaseUrl(path);
 
-// Helper to get embed widget URL (path-based tenant, not subdomain)
 const getEmbedUrl = (path: string = "") =>
-  `http://localhost:5173/embed/${testData.tenant.subdomain}${path}`;
+  _getEmbedUrl(testData.tenant.subdomain, path);
 
 // Helper to login to tenant
 async function loginToTenant(page: Page) {
@@ -2327,7 +2325,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
   });
 
   test("[KAN-243] 18.8 Embed widget handles missing tenant", async ({ page }) => {
-    await page.goto("http://localhost:5173/embed/nonexistent");
+    await page.goto(getBaseUrl("/embed/nonexistent"));
     await page.waitForLoadState("load");
     // Should show 404 or error for non-existent tenant
     const notFoundText = await page.getByText(/not found|404|error|shop not found/i).first().isVisible().catch(() => false);
