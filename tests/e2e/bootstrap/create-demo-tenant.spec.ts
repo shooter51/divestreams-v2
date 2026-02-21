@@ -19,9 +19,74 @@ const testUser = {
   name: "E2E Test User",
 };
 
+/** Log in to admin panel. Returns true on success, false on failure. */
+async function adminLogin(page: import("@playwright/test").Page): Promise<boolean> {
+  await page.goto(getAdminUrl("/login"));
+  await page.waitForLoadState("domcontentloaded");
+
+  const emailField = await page
+    .getByRole("textbox", { name: /email/i })
+    .isVisible({ timeout: 5000 })
+    .catch(() => false);
+
+  if (emailField) {
+    await page.getByRole("textbox", { name: /email/i }).fill("admin@divestreams.com");
+  }
+  await page.locator('input[type="password"]').first().fill(adminPassword);
+  await page.getByRole("button", { name: /sign in/i }).click();
+
+  return page
+    .waitForURL(/\/(dashboard|tenants)/, { timeout: 15000 })
+    .then(() => true)
+    .catch(() => false);
+}
+
+/** Upgrade the demo tenant to pro plan via admin panel. Assumes admin is already logged in. */
+async function upgradeDemoToPro(page: import("@playwright/test").Page): Promise<void> {
+  await page.goto(getAdminUrl("/tenants/demo"));
+  await page.waitForLoadState("domcontentloaded");
+
+  const planSelect = page.locator("#planId");
+  if (!(await planSelect.isVisible({ timeout: 5000 }).catch(() => false))) {
+    console.log("Plan select not found on tenant detail page — skipping plan upgrade");
+    return;
+  }
+
+  const selectedOption = await planSelect.locator("option:checked").textContent().catch(() => "");
+  if (/pro/i.test(selectedOption || "")) {
+    console.log(`Demo tenant already on pro plan: "${selectedOption}"`);
+    return;
+  }
+
+  const options = await planSelect.locator("option").allTextContents();
+  const proOption = options.find((o) => /^pro\b/i.test(o));
+  if (!proOption) {
+    console.log(`Could not find pro plan option. Available: ${options.join(", ")}`);
+    return;
+  }
+
+  await planSelect.selectOption({ label: proOption });
+  console.log(`Upgrading demo tenant to plan: ${proOption}`);
+
+  const statusSelect = page.locator("#status");
+  if (await statusSelect.isVisible().catch(() => false)) {
+    await statusSelect.selectOption("active");
+  }
+
+  const updateButton = page.getByRole("button", { name: /update subscription/i });
+  if (await updateButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await updateButton.click();
+    await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
+    console.log("Demo tenant plan upgraded to pro");
+  } else {
+    console.log("Update Subscription button not found — plan may not have been saved");
+  }
+}
+
 test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
-  test("Ensure demo tenant exists", async ({ page }) => {
+  test("Ensure demo tenant exists and is on pro plan", async ({ page }) => {
     test.setTimeout(90000);
+
     // Check if demo tenant already exists by visiting its login page
     const tenantLoginUrl = getTenantUrl("demo", "/auth/login");
     await page.goto(tenantLoginUrl);
@@ -33,132 +98,62 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       .catch(() => false);
 
     if (loginFormExists) {
-      console.log("Demo tenant already exists - skipping creation");
-      return;
-    }
-
-    // Demo tenant doesn't exist - create it via admin panel
-    console.log("Creating demo tenant via admin panel...");
-    await page.goto(getAdminUrl("/login"));
-    await page.waitForLoadState("domcontentloaded");
-
-    const emailField = await page
-      .getByRole("textbox", { name: /email/i })
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-
-    if (emailField) {
-      await page.getByRole("textbox", { name: /email/i }).fill("admin@divestreams.com");
-    }
-    await page.locator('input[type="password"]').first().fill(adminPassword);
-    await page.getByRole("button", { name: /sign in/i }).click();
-    await page.waitForURL(/\/(dashboard|tenants)/, { timeout: 15000 });
-
-    await page.goto(getAdminUrl("/tenants/new"));
-    await page.waitForLoadState("domcontentloaded");
-
-    await page.locator("#slug").fill("demo");
-    await page.locator("#name").fill("Demo Dive Shop");
-
-    // Select "pro" plan (options are "Standard - $30.00/mo", "Pro - $100.00/mo")
-    const planSelect = page.locator("#plan");
-    if (await planSelect.isVisible().catch(() => false)) {
-      const options = await planSelect.locator("option").allTextContents();
-      const proOption = options.find((o) => /^pro\b/i.test(o));
-      if (proOption) {
-        await planSelect.selectOption({ label: proOption });
-        console.log(`Selected plan: ${proOption}`);
-      } else {
-        console.log(`Available plan options: ${options.join(", ")} — could not find pro plan`);
-      }
-    }
-
-    const demoDataCheckbox = page.locator("#seedDemoData");
-    if (await demoDataCheckbox.isVisible().catch(() => false)) {
-      await demoDataCheckbox.check();
-    }
-
-    const createOwnerCheckbox = page.locator("#createOwnerAccount");
-    if (await createOwnerCheckbox.isVisible().catch(() => false)) {
-      if (!(await createOwnerCheckbox.isChecked())) {
-        await createOwnerCheckbox.check();
-      }
-    }
-
-    await page.locator("#ownerEmail").fill(testUser.email);
-    await page.locator("#ownerName").fill(testUser.name);
-    await page.locator("#ownerPassword").fill(testUser.password);
-
-    await page.getByRole("button", { name: /create/i }).click();
-    await page.waitForURL(/\/(dashboard|tenants)/, { timeout: 60000 });
-    console.log("Demo tenant created with test user account and demo data");
-  });
-
-  test("Ensure demo tenant is on pro plan", async ({ page }) => {
-    test.setTimeout(60000);
-
-    // Log in to admin panel
-    await page.goto(getAdminUrl("/login"));
-    await page.waitForLoadState("domcontentloaded");
-
-    const emailField = await page
-      .getByRole("textbox", { name: /email/i })
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-
-    if (emailField) {
-      await page.getByRole("textbox", { name: /email/i }).fill("admin@divestreams.com");
-    }
-    await page.locator('input[type="password"]').first().fill(adminPassword);
-    await page.getByRole("button", { name: /sign in/i }).click();
-    await page.waitForURL(/\/(dashboard|tenants)/, { timeout: 15000 });
-
-    // Navigate to demo tenant detail page (URL uses slug)
-    await page.goto(getAdminUrl("/tenants/demo"));
-    await page.waitForLoadState("domcontentloaded");
-
-    // Check if the plan select exists (subscription section)
-    const planSelect = page.locator("#planId");
-    if (!(await planSelect.isVisible({ timeout: 5000 }).catch(() => false))) {
-      console.log("Plan select not found on tenant detail page — skipping plan upgrade");
-      return;
-    }
-
-    // Check if already on pro plan
-    const selectedOption = await planSelect.locator("option:checked").textContent().catch(() => "");
-    if (/pro/i.test(selectedOption || "")) {
-      console.log(`Demo tenant already on pro plan: "${selectedOption}"`);
-      return;
-    }
-
-    // Find and select the pro plan option (format: "Pro ($100.00/mo)")
-    const options = await planSelect.locator("option").allTextContents();
-    const proOption = options.find((o) => /^pro\b/i.test(o));
-    if (!proOption) {
-      console.log(`Could not find pro plan option. Available: ${options.join(", ")}`);
-      return;
-    }
-
-    await planSelect.selectOption({ label: proOption });
-    console.log(`Upgrading demo tenant to plan: ${proOption}`);
-
-    // Also set status to active
-    const statusSelect = page.locator("#status");
-    if (await statusSelect.isVisible().catch(() => false)) {
-      await statusSelect.selectOption("active");
-    }
-
-    // Submit the subscription update form
-    const updateButton = page.getByRole("button", { name: /update subscription/i });
-    if (await updateButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await updateButton.click();
+      console.log("Demo tenant already exists — checking plan via admin...");
     } else {
-      // Fallback: submit the form containing the planId field
-      await planSelect.press("Enter");
+      console.log("Creating demo tenant via admin panel...");
     }
 
-    await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
-    console.log("Demo tenant plan upgraded to pro");
+    // Log in to admin for both creation and plan upgrade
+    const loggedIn = await adminLogin(page);
+    if (!loggedIn) {
+      console.log(`WARNING: Admin login failed (URL: ${page.url()}) — cannot set pro plan`);
+      return;
+    }
+
+    if (!loginFormExists) {
+      // Create the tenant
+      await page.goto(getAdminUrl("/tenants/new"));
+      await page.waitForLoadState("domcontentloaded");
+
+      await page.locator("#slug").fill("demo");
+      await page.locator("#name").fill("Demo Dive Shop");
+
+      // Select "pro" plan (options are "Standard - $30.00/mo", "Pro - $100.00/mo")
+      const planSelect = page.locator("#plan");
+      if (await planSelect.isVisible().catch(() => false)) {
+        const options = await planSelect.locator("option").allTextContents();
+        const proOption = options.find((o) => /^pro\b/i.test(o));
+        if (proOption) {
+          await planSelect.selectOption({ label: proOption });
+          console.log(`Selected plan: ${proOption}`);
+        } else {
+          console.log(`Available plan options: ${options.join(", ")} — could not find pro plan`);
+        }
+      }
+
+      const demoDataCheckbox = page.locator("#seedDemoData");
+      if (await demoDataCheckbox.isVisible().catch(() => false)) {
+        await demoDataCheckbox.check();
+      }
+
+      const createOwnerCheckbox = page.locator("#createOwnerAccount");
+      if (await createOwnerCheckbox.isVisible().catch(() => false)) {
+        if (!(await createOwnerCheckbox.isChecked())) {
+          await createOwnerCheckbox.check();
+        }
+      }
+
+      await page.locator("#ownerEmail").fill(testUser.email);
+      await page.locator("#ownerName").fill(testUser.name);
+      await page.locator("#ownerPassword").fill(testUser.password);
+
+      await page.getByRole("button", { name: /create/i }).click();
+      await page.waitForURL(/\/(dashboard|tenants)/, { timeout: 60000 });
+      console.log("Demo tenant created with test user account and demo data");
+    }
+
+    // Always ensure demo tenant is on pro plan (covers existing and newly created tenants)
+    await upgradeDemoToPro(page);
   });
 
   test("Ensure test user can login @critical", async ({ page }) => {
@@ -182,7 +177,10 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
 
     // Use a stricter pattern to avoid matching /tenant/login on auth failure
     const loginSuccess = await page
-      .waitForURL((url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"), { timeout: 15000 })
+      .waitForURL(
+        (url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"),
+        { timeout: 15000 }
+      )
       .then(() => true)
       .catch(() => false);
 
@@ -211,10 +209,12 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.locator("#password").fill(testUser.password);
     await page.locator("#confirmPassword").fill(testUser.password);
 
-    const responsePromise = page.waitForResponse(
-      (resp) => resp.url().includes("/auth/signup") && resp.request().method() === "POST",
-      { timeout: 15000 }
-    ).catch(() => null);
+    const responsePromise = page
+      .waitForResponse(
+        (resp) => resp.url().includes("/auth/signup") && resp.request().method() === "POST",
+        { timeout: 15000 }
+      )
+      .catch(() => null);
 
     await page.getByRole("button", { name: /create account/i }).click();
 
@@ -224,7 +224,10 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     }
 
     const signupSuccess = await page
-      .waitForURL((url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"), { timeout: 15000 })
+      .waitForURL(
+        (url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"),
+        { timeout: 15000 }
+      )
       .then(() => true)
       .catch(() => false);
 
@@ -252,7 +255,10 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.getByRole("button", { name: /sign in/i }).click();
 
     const retryLoginSuccess = await page
-      .waitForURL((url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"), { timeout: 15000 })
+      .waitForURL(
+        (url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"),
+        { timeout: 15000 }
+      )
       .then(() => true)
       .catch(() => false);
 
