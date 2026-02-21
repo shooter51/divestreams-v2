@@ -13,7 +13,7 @@ vi.mock("../../../../../../lib/auth/org-context.server", () => ({
 }));
 
 vi.mock("../../../../../../lib/storage", () => ({
-  uploadToB2: vi.fn(),
+  uploadToS3: vi.fn(),
   getImageKey: vi.fn(
     (slug: string, entityType: string, entityId: string, filename: string) =>
       `${slug}/${entityType}/${entityId}/${filename}`
@@ -36,7 +36,7 @@ import { requireOrgContext } from "../../../../../../lib/auth/org-context.server
 import {
   isValidImageType,
   processImage,
-  uploadToB2,
+  uploadToS3,
 } from "../../../../../../lib/storage";
 import { getTenantDb } from "../../../../../../lib/db/tenant.server";
 
@@ -73,7 +73,7 @@ function setupFullMocks() {
     width: 800,
     height: 600,
   });
-  (uploadToB2 as MockFn).mockResolvedValue({
+  (uploadToS3 as MockFn).mockResolvedValue({
     cdnUrl: "https://cdn.example.com/image.webp",
   });
   (getTenantDb as MockFn).mockReturnValue({

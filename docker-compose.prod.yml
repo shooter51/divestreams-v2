@@ -23,11 +23,11 @@ services:
       - PLATFORM_ADMIN_EMAIL=${PLATFORM_ADMIN_EMAIL}
       - PLATFORM_ADMIN_PASSWORD=${PLATFORM_ADMIN_PASSWORD}
       - PLATFORM_ADMIN_NAME=${PLATFORM_ADMIN_NAME:-Platform Admin}
-      - B2_ENDPOINT=${B2_ENDPOINT}
-      - B2_REGION=${B2_REGION:-us-west-004}
-      - B2_BUCKET=${B2_BUCKET:-divestreams-images}
-      - B2_KEY_ID=${B2_KEY_ID}
-      - B2_APP_KEY=${B2_APP_KEY}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION:-us-west-004}
+      - S3_BUCKET=${S3_BUCKET:-divestreams-images}
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
       - CDN_URL=${CDN_URL}
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
@@ -38,8 +38,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
-          cpus: '1.0'
+          memory: 2048M
+          cpus: '4.0'
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,11 +66,11 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM:-noreply@divestreams.com}
-      - B2_ENDPOINT=${B2_ENDPOINT}
-      - B2_REGION=${B2_REGION:-us-west-004}
-      - B2_BUCKET=${B2_BUCKET:-divestreams-images}
-      - B2_KEY_ID=${B2_KEY_ID}
-      - B2_APP_KEY=${B2_APP_KEY}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION:-us-west-004}
+      - S3_BUCKET=${S3_BUCKET:-divestreams-images}
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
       - CDN_URL=${CDN_URL}
     healthcheck:
       test: ["CMD", "node", "-e", "const r=require('ioredis');const c=new r(process.env.REDIS_URL);c.ping().then(()=>{c.disconnect();process.exit(0)}).catch(()=>process.exit(1))"]

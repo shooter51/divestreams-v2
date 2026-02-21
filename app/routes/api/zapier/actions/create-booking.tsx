@@ -52,7 +52,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .where(eq(subscription.organizationId, orgId))
       .limit(1);
 
-    const planName = sub?.plan || "free";
+    const planName = sub?.plan || "standard";
     let planDetails;
     if (sub?.planId) {
       [planDetails] = await db
@@ -89,7 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
       const currentCount = bookingCount?.count ?? 0;
       // Use DB plan limits as source of truth, fall back to plan-features defaults
       const dbLimits = planDetails?.limits as { toursPerMonth?: number } | undefined;
-      const limit = dbLimits?.toursPerMonth ?? DEFAULT_PLAN_LIMITS.free.toursPerMonth;
+      const limit = dbLimits?.toursPerMonth ?? DEFAULT_PLAN_LIMITS.standard.toursPerMonth;
 
       if (currentCount >= limit) {
         return Response.json(

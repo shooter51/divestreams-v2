@@ -243,11 +243,11 @@ describe("org-context.server - extended tests", () => {
       expect(FREE_TIER_LIMITS.hasEmailNotifications).toBe(false);
     });
 
-    it("FREE_TIER_LIMITS matches DEFAULT_PLAN_LIMITS.free", () => {
-      expect(FREE_TIER_LIMITS.customers).toBe(DEFAULT_PLAN_LIMITS.free.customers);
-      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
-      expect(FREE_TIER_LIMITS.tours).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
-      expect(FREE_TIER_LIMITS.teamMembers).toBe(DEFAULT_PLAN_LIMITS.free.users);
+    it("FREE_TIER_LIMITS matches DEFAULT_PLAN_LIMITS.standard values", () => {
+      expect(FREE_TIER_LIMITS.customers).toBe(DEFAULT_PLAN_LIMITS.standard.customers);
+      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(DEFAULT_PLAN_LIMITS.standard.toursPerMonth);
+      expect(FREE_TIER_LIMITS.tours).toBe(DEFAULT_PLAN_LIMITS.standard.toursPerMonth);
+      expect(FREE_TIER_LIMITS.teamMembers).toBe(DEFAULT_PLAN_LIMITS.standard.users);
     });
 
     it("PREMIUM_LIMITS has unlimited numeric values", () => {
@@ -305,12 +305,12 @@ describe("org-context.server - extended tests", () => {
     });
 
     it("produces same output as FREE_TIER_LIMITS when given free plan defaults", () => {
-      const result = buildTierLimits(DEFAULT_PLAN_LIMITS.free, DEFAULT_PLAN_FEATURES.free);
+      const result = buildTierLimits(DEFAULT_PLAN_LIMITS.standard, DEFAULT_PLAN_FEATURES.standard);
       expect(result).toEqual(FREE_TIER_LIMITS);
     });
 
-    it("produces same output as PREMIUM_LIMITS when given enterprise plan defaults", () => {
-      const result = buildTierLimits(DEFAULT_PLAN_LIMITS.enterprise, DEFAULT_PLAN_FEATURES.enterprise);
+    it("produces same output as PREMIUM_LIMITS when given pro plan defaults", () => {
+      const result = buildTierLimits(DEFAULT_PLAN_LIMITS.pro, DEFAULT_PLAN_FEATURES.pro);
       expect(result).toEqual(PREMIUM_LIMITS);
     });
   });

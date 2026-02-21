@@ -36,10 +36,10 @@ describe.skipIf(!hasDb)("Subscription Plan Persistence (DIVE-166)", () => {
       // Seed the test plans if they don't exist
       await db.insert(subscriptionPlans).values([
         {
-          name: "free",
-          displayName: "Free",
-          monthlyPrice: 0,
-          yearlyPrice: 0,
+          name: "standard",
+          displayName: "Standard",
+          monthlyPrice: 3000,
+          yearlyPrice: 28800,
           features: {
             has_tours_bookings: true,
             has_equipment_boats: false,
@@ -51,10 +51,10 @@ describe.skipIf(!hasDb)("Subscription Plan Persistence (DIVE-166)", () => {
             has_api_access: false,
           },
           limits: {
-            users: 1,
-            customers: 50,
-            toursPerMonth: 5,
-            storageGb: 0.5,
+            users: 3,
+            customers: 500,
+            toursPerMonth: 25,
+            storageGb: 5,
           },
         },
         {
@@ -62,8 +62,8 @@ describe.skipIf(!hasDb)("Subscription Plan Persistence (DIVE-166)", () => {
           displayName: "Pro",
           monthlyPriceId: "price_test_pro_monthly",
           yearlyPriceId: "price_test_pro_yearly",
-          monthlyPrice: 9900,
-          yearlyPrice: 95000,
+          monthlyPrice: 10000,
+          yearlyPrice: 96000,
           features: {
             has_tours_bookings: true,
             has_equipment_boats: true,
@@ -71,14 +71,14 @@ describe.skipIf(!hasDb)("Subscription Plan Persistence (DIVE-166)", () => {
             has_pos: true,
             has_public_site: true,
             has_advanced_notifications: true,
-            has_integrations: false,
-            has_api_access: false,
+            has_integrations: true,
+            has_api_access: true,
           },
           limits: {
-            users: 10,
-            customers: 5000,
-            toursPerMonth: 100,
-            storageGb: 25,
+            users: -1,
+            customers: -1,
+            toursPerMonth: -1,
+            storageGb: 100,
           },
         },
       ]);
@@ -121,18 +121,18 @@ describe.skipIf(!hasDb)("Subscription Plan Persistence (DIVE-166)", () => {
     testPlanId = plan.id;
     testPriceId = plan.monthlyPriceId!; // We know it exists from the query
 
-    // Get free plan for initial subscription (required for NOT NULL constraint)
-    const [freePlan] = await db
+    // Get standard plan for initial subscription (required for NOT NULL constraint)
+    const [standardPlan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "free"))
+      .where(eq(subscriptionPlans.name, "standard"))
       .limit(1);
 
-    // Create a test subscription (starting as free with proper planId)
+    // Create a test subscription (starting as standard with proper planId)
     await db.insert(subscription).values({
       organizationId: testOrgId,
-      plan: "free",
-      planId: freePlan?.id, // Required after migration 0035 adds NOT NULL constraint
+      plan: "standard",
+      planId: standardPlan?.id, // Required after migration 0035 adds NOT NULL constraint
       status: "active",
     });
   });
@@ -298,8 +298,8 @@ describe.skipIf(!hasDb)("Subscription Plan Persistence (DIVE-166)", () => {
       .where(eq(subscription.organizationId, testOrgId))
       .limit(1);
 
-    // Should fall back to free if price not found
+    // Should fall back to standard if price not found
     expect(updatedSub.planId).toBeNull();
-    expect(updatedSub.plan).toBe("free");
+    expect(updatedSub.plan).toBe("standard");
   });
 });

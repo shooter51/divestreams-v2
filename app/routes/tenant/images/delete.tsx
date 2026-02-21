@@ -8,7 +8,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and } from "drizzle-orm";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
-import { deleteFromB2 } from "../../../../lib/storage";
+import { deleteFromS3 } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -61,10 +61,10 @@ export async function action({ request }: ActionFunctionArgs) {
     const thumbnailKey = image.thumbnailUrl ? extractKey(image.thumbnailUrl) : null;
 
     if (originalKey) {
-      await deleteFromB2(originalKey);
+      await deleteFromS3(originalKey);
     }
     if (thumbnailKey && thumbnailKey !== originalKey) {
-      await deleteFromB2(thumbnailKey);
+      await deleteFromS3(thumbnailKey);
     }
 
     // Delete from database

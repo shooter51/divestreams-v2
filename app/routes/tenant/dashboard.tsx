@@ -162,7 +162,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 
   // Get plan limits from subscription plan details or use defaults
-  const planLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
+  const planLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
 
   // Calculate limit checks using centralized function
   const limitChecks = checkAllLimits(usage, planLimits);
@@ -231,7 +231,7 @@ export default function DashboardPage() {
                 ? "bg-brand-muted text-brand"
                 : "bg-warning-muted text-warning"
             }`}>
-              {subscription?.plan || "free"} - {subscription?.status || "active"}
+              {subscription?.plan || "standard"} - {subscription?.status || "active"}
             </span>
           </div>
           {!isPremium && (

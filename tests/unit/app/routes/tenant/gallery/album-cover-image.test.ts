@@ -16,7 +16,7 @@ vi.mock("../../../../../../lib/db/gallery.server", () => ({
 }));
 
 vi.mock("../../../../../../lib/storage", () => ({
-  uploadToB2: vi.fn(),
+  uploadToS3: vi.fn(),
   getWebPMimeType: vi.fn().mockReturnValue("image/webp"),
   processImage: vi.fn(),
   isValidImageType: vi.fn(),
@@ -74,7 +74,7 @@ describe("Gallery Album Cover Image", () => {
       const { createGalleryAlbum } = await import(
         "../../../../../../lib/db/gallery.server"
       );
-      const { uploadToB2, processImage, isValidImageType, getS3Client } =
+      const { uploadToS3, processImage, isValidImageType, getS3Client } =
         await import("../../../../../../lib/storage");
 
       vi.mocked(requireOrgContext).mockResolvedValue({
@@ -92,7 +92,7 @@ describe("Gallery Album Cover Image", () => {
         thumbnailWidth: 200,
         thumbnailHeight: 200,
       });
-      vi.mocked(uploadToB2).mockResolvedValue({
+      vi.mocked(uploadToS3).mockResolvedValue({
         key: "test-shop/gallery/covers/12345-cover.jpg.webp",
         url: "https://s3.example.com/test-shop/gallery/covers/12345-cover.jpg.webp",
         cdnUrl: "https://cdn.example.com/test-shop/gallery/covers/12345-cover.jpg.webp",
@@ -139,8 +139,8 @@ describe("Gallery Album Cover Image", () => {
       // Verify processImage was called
       expect(processImage).toHaveBeenCalled();
 
-      // Verify uploadToB2 was called with correct params
-      expect(uploadToB2).toHaveBeenCalledWith(
+      // Verify uploadToS3 was called with correct params
+      expect(uploadToS3).toHaveBeenCalledWith(
         expect.stringContaining("test-shop/gallery/covers/"),
         expect.any(Buffer),
         "image/webp"
@@ -350,7 +350,7 @@ describe("Gallery Album Cover Image", () => {
         "../../../../../../lib/auth/org-context.server"
       );
       const { updateGalleryAlbum } = await import("../../../../../../lib/db/gallery.server");
-      const { uploadToB2, processImage, isValidImageType, getS3Client } =
+      const { uploadToS3, processImage, isValidImageType, getS3Client } =
         await import("../../../../../../lib/storage");
 
       vi.mocked(requireOrgContext).mockResolvedValue({
@@ -368,7 +368,7 @@ describe("Gallery Album Cover Image", () => {
         thumbnailWidth: 200,
         thumbnailHeight: 200,
       });
-      vi.mocked(uploadToB2).mockResolvedValue({
+      vi.mocked(uploadToS3).mockResolvedValue({
         key: "test-shop/gallery/covers/99999-new-cover.jpg.webp",
         url: "https://s3.example.com/test-shop/gallery/covers/99999-new-cover.jpg.webp",
         cdnUrl:

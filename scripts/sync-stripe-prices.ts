@@ -41,8 +41,8 @@ async function auditPrices(): Promise<PriceMismatch[]> {
   const mismatches: PriceMismatch[] = [];
 
   for (const plan of plans) {
-    if (plan.name === "free" || plan.monthlyPrice === 0) {
-      console.log(`⊘ Skipping free plan: ${plan.displayName}`);
+    if (plan.monthlyPrice === 0) {
+      console.log(`⊘ Skipping ${plan.displayName} (no price)`);
       continue;
     }
 

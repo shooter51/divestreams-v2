@@ -470,7 +470,7 @@ export default function LoginPage() {
 
               <div className="text-sm">
                 <Link
-                  to="/forgot-password"
+                  to="/tenant/forgot-password"
                   className="font-medium text-brand hover:text-brand"
                 >
                   Forgot your password?

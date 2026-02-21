@@ -344,7 +344,7 @@ export async function cleanupStaleTenants(): Promise<{
       .from(organization)
       .leftJoin(subscription, eq(organization.id, subscription.organizationId))
       .where(
-        sql`(${subscription.plan} = 'free' OR ${subscription.plan} IS NULL)`
+        sql`(${subscription.plan} = 'standard' OR ${subscription.plan} IS NULL)`
       );
 
     jobLogger.info({ count: freeOrgs.length }, "Found free-tier organizations to check");

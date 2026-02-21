@@ -70,18 +70,18 @@ export async function createStripeCustomer(orgId: string): Promise<string | null
       .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
       .where(eq(subscription.organizationId, orgId));
   } else {
-    // Look up the free plan to get its ID
-    const [freePlan] = await db
+    // Look up the standard plan to get its ID
+    const [standardPlan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "free"))
+      .where(eq(subscriptionPlans.name, "standard"))
       .limit(1);
 
     // Create a new subscription record if none exists
     await db.insert(subscription).values({
       organizationId: orgId,
-      plan: "free",
-      planId: freePlan?.id || null, // Set both plan and planId
+      plan: "standard",
+      planId: standardPlan?.id || null, // Set both plan and planId
       status: "active",
       stripeCustomerId: customer.id,
     });
@@ -93,7 +93,7 @@ export async function createStripeCustomer(orgId: string): Promise<string | null
 // Create a checkout session for subscription
 export async function createCheckoutSession(
   orgId: string,
-  planName: "starter" | "pro" | "enterprise",
+  planName: "standard" | "pro",
   billingPeriod: "monthly" | "yearly",
   successUrl: string,
   cancelUrl: string
@@ -446,7 +446,7 @@ export async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subsc
 
   // Look up the plan by matching the price ID (monthly or yearly)
   let planId: string | null = null;
-  let planName = "free";
+  let planName = "standard";
 
   if (priceId) {
     const [matchedPlan] = await db

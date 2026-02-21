@@ -20,9 +20,8 @@ function formatPrice(cents: number): string {
 // Helper to get description based on plan name
 function getPlanDescription(name: string): string {
   const descriptions: Record<string, string> = {
-    starter: "Perfect for small dive shops getting started",
-    pro: "For growing shops that need more power",
-    enterprise: "For large operations and multiple locations",
+    standard: "Perfect for dive shops running tours",
+    pro: "Everything you need to run your dive business",
   };
   return descriptions[name.toLowerCase()] || "A great plan for your dive shop";
 }
@@ -33,8 +32,8 @@ function isPlanPopular(name: string): boolean {
 }
 
 // Helper to get CTA text
-function getPlanCta(name: string): string {
-  return name.toLowerCase() === "enterprise" ? "Contact Sales" : "Start Free Trial";
+function getPlanCta(_name: string): string {
+  return "Start Free Trial";
 }
 
 // Default fallback plans if database is unavailable
@@ -47,16 +46,17 @@ const DEFAULT_PLANS: Array<{
   features: string[];
 }> = [
   {
-    id: "default-starter",
-    name: "starter",
-    displayName: "Starter",
-    monthlyPrice: 4900,
-    yearlyPrice: 47000,
+    id: "default-standard",
+    name: "standard",
+    displayName: "Standard",
+    monthlyPrice: 3000,
+    yearlyPrice: 28800,
     features: [
       "Up to 3 users",
-      "1,000 customers",
-      "Booking management",
-      "Basic reporting",
+      "500 customers",
+      "Tours & booking management",
+      "Stripe payments",
+      "25 tours per month",
       "Email support",
     ],
   },
@@ -64,32 +64,17 @@ const DEFAULT_PLANS: Array<{
     id: "default-pro",
     name: "pro",
     displayName: "Pro",
-    monthlyPrice: 9900,
-    yearlyPrice: 95000,
-    features: [
-      "Up to 10 users",
-      "Unlimited customers",
-      "Online booking widget",
-      "Equipment tracking",
-      "Advanced reporting",
-      "Priority support",
-      "API access",
-    ],
-  },
-  {
-    id: "default-enterprise",
-    name: "enterprise",
-    displayName: "Enterprise",
-    monthlyPrice: 19900,
-    yearlyPrice: 191000,
+    monthlyPrice: 10000,
+    yearlyPrice: 96000,
     features: [
       "Unlimited users",
       "Unlimited customers",
-      "Multi-location support",
-      "Custom integrations",
-      "Dedicated support",
-      "White-label options",
-      "SLA guarantee",
+      "Equipment & rental tracking",
+      "Training management",
+      "Point of Sale",
+      "All integrations",
+      "API access",
+      "Priority support",
     ],
   },
 ];

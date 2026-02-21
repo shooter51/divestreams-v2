@@ -37,7 +37,7 @@ export const subscription = pgTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
-    plan: text("plan").notNull().default("free"), // free, premium (legacy field - kept for backwards compatibility)
+    plan: text("plan").notNull().default("standard"), // standard, pro (legacy field - kept for backwards compatibility)
     // [KAN-594 FIX] planId is the authoritative field for premium checks
     // Migration 0034 backfills NULL values. Migration 0035 adds NOT NULL constraint.
     planId: uuid("plan_id").references(() => subscriptionPlans.id), // Links to subscription_plans table

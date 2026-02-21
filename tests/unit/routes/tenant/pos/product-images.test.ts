@@ -159,7 +159,7 @@ describe("Delete Image API Route", () => {
   });
 
   it("deletes from B2 storage", () => {
-    expect(deleteSource).toContain("deleteFromB2");
+    expect(deleteSource).toContain("deleteFromS3");
   });
 
   it("deletes from database", () => {
@@ -342,8 +342,8 @@ describe("Delete Image Action - Functional", () => {
     // Verify it extracts keys from both url and thumbnailUrl
     expect(deleteSource).toContain("originalKey");
     expect(deleteSource).toContain("thumbnailKey");
-    expect(deleteSource).toContain("deleteFromB2(originalKey)");
-    expect(deleteSource).toContain("deleteFromB2(thumbnailKey)");
+    expect(deleteSource).toContain("deleteFromS3(originalKey)");
+    expect(deleteSource).toContain("deleteFromS3(thumbnailKey)");
   });
 });
 

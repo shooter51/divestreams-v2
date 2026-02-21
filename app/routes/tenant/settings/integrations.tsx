@@ -176,7 +176,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   // Get current plan name and features from subscription
-  const currentPlan = ctx.subscription?.plan || "free";
+  const currentPlan = ctx.subscription?.plan || "standard";
   const planFeatures = ctx.subscription?.planDetails?.features || {};
 
   // Load all active plans to determine which plan is required for each integration
