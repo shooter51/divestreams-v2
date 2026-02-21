@@ -5,11 +5,11 @@ import { getAdminUrl, getTenantUrl } from "../helpers/urls";
  * Bootstrap: Create "demo" tenant and test user for independent E2E tests
  *
  * This runs before the "independent" project (bug regression specs, debug tests, etc.)
- * to ensure the "demo" tenant exists with a working test user account.
+ * to ensure the "demo" tenant exists with a working test user account on the pro plan.
  *
  * On local dev, global-setup.ts creates everything via direct DB access.
  * On remote environments (test.divestreams.com), global-setup is skipped,
- * so this spec ensures the demo tenant + test user exist.
+ * so this spec ensures the demo tenant + test user exist with correct plan.
  */
 
 const adminPassword = process.env.ADMIN_PASSWORD || "DiveAdmin2026";
@@ -21,7 +21,7 @@ const testUser = {
 
 test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
   test("Ensure demo tenant exists", async ({ page }) => {
-    test.setTimeout(90000); // Extended timeout: admin login + tenant creation can take time
+    test.setTimeout(90000);
     // Check if demo tenant already exists by visiting its login page
     const tenantLoginUrl = getTenantUrl("demo", "/auth/login");
     await page.goto(tenantLoginUrl);
@@ -60,12 +60,16 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.locator("#slug").fill("demo");
     await page.locator("#name").fill("Demo Dive Shop");
 
+    // Select "pro" plan (options are "Standard - $30.00/mo", "Pro - $100.00/mo")
     const planSelect = page.locator("#plan");
     if (await planSelect.isVisible().catch(() => false)) {
       const options = await planSelect.locator("option").allTextContents();
-      const enterpriseOption = options.find((o) => /enterprise/i.test(o));
-      if (enterpriseOption) {
-        await planSelect.selectOption({ label: enterpriseOption });
+      const proOption = options.find((o) => /^pro\b/i.test(o));
+      if (proOption) {
+        await planSelect.selectOption({ label: proOption });
+        console.log(`Selected plan: ${proOption}`);
+      } else {
+        console.log(`Available plan options: ${options.join(", ")} — could not find pro plan`);
       }
     }
 
@@ -90,8 +94,75 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     console.log("Demo tenant created with test user account and demo data");
   });
 
+  test("Ensure demo tenant is on pro plan", async ({ page }) => {
+    test.setTimeout(60000);
+
+    // Log in to admin panel
+    await page.goto(getAdminUrl("/login"));
+    await page.waitForLoadState("domcontentloaded");
+
+    const emailField = await page
+      .getByRole("textbox", { name: /email/i })
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
+
+    if (emailField) {
+      await page.getByRole("textbox", { name: /email/i }).fill("admin@divestreams.com");
+    }
+    await page.locator('input[type="password"]').first().fill(adminPassword);
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await page.waitForURL(/\/(dashboard|tenants)/, { timeout: 15000 });
+
+    // Navigate to demo tenant detail page (URL uses slug)
+    await page.goto(getAdminUrl("/tenants/demo"));
+    await page.waitForLoadState("domcontentloaded");
+
+    // Check if the plan select exists (subscription section)
+    const planSelect = page.locator("#planId");
+    if (!(await planSelect.isVisible({ timeout: 5000 }).catch(() => false))) {
+      console.log("Plan select not found on tenant detail page — skipping plan upgrade");
+      return;
+    }
+
+    // Check if already on pro plan
+    const selectedOption = await planSelect.locator("option:checked").textContent().catch(() => "");
+    if (/pro/i.test(selectedOption || "")) {
+      console.log(`Demo tenant already on pro plan: "${selectedOption}"`);
+      return;
+    }
+
+    // Find and select the pro plan option (format: "Pro ($100.00/mo)")
+    const options = await planSelect.locator("option").allTextContents();
+    const proOption = options.find((o) => /^pro\b/i.test(o));
+    if (!proOption) {
+      console.log(`Could not find pro plan option. Available: ${options.join(", ")}`);
+      return;
+    }
+
+    await planSelect.selectOption({ label: proOption });
+    console.log(`Upgrading demo tenant to plan: ${proOption}`);
+
+    // Also set status to active
+    const statusSelect = page.locator("#status");
+    if (await statusSelect.isVisible().catch(() => false)) {
+      await statusSelect.selectOption("active");
+    }
+
+    // Submit the subscription update form
+    const updateButton = page.getByRole("button", { name: /update subscription/i });
+    if (await updateButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await updateButton.click();
+    } else {
+      // Fallback: submit the form containing the planId field
+      await planSelect.press("Enter");
+    }
+
+    await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
+    console.log("Demo tenant plan upgraded to pro");
+  });
+
   test("Ensure test user can login @critical", async ({ page }) => {
-    test.setTimeout(90000); // Extended timeout: login + signup + retry login each need up to 15s
+    test.setTimeout(90000);
     // Step 1: Try logging in with test credentials
     await page.goto(getTenantUrl("demo", "/auth/login"));
     await page.waitForLoadState("domcontentloaded");
@@ -109,8 +180,9 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.locator('input[type="password"]').first().fill(testUser.password);
     await page.getByRole("button", { name: /sign in/i }).click();
 
+    // Use a stricter pattern to avoid matching /tenant/login on auth failure
     const loginSuccess = await page
-      .waitForURL(/\/tenant/, { timeout: 15000 })
+      .waitForURL((url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"), { timeout: 15000 })
       .then(() => true)
       .catch(() => false);
 
@@ -139,7 +211,6 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.locator("#password").fill(testUser.password);
     await page.locator("#confirmPassword").fill(testUser.password);
 
-    // Listen for the navigation response to debug
     const responsePromise = page.waitForResponse(
       (resp) => resp.url().includes("/auth/signup") && resp.request().method() === "POST",
       { timeout: 15000 }
@@ -152,9 +223,8 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       console.log(`Signup response: ${response.status()} ${response.url()}`);
     }
 
-    // Wait for redirect
     const signupSuccess = await page
-      .waitForURL(/\/tenant/, { timeout: 15000 })
+      .waitForURL((url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"), { timeout: 15000 })
       .then(() => true)
       .catch(() => false);
 
@@ -163,9 +233,7 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       return;
     }
 
-    // Signup didn't redirect - check what happened
     const currentUrl = page.url();
-    const bodyText = await page.locator("body").innerText().catch(() => "");
     const errorText = await page
       .locator('[class*="bg-danger"], [class*="text-danger"], [role="alert"]')
       .first()
@@ -174,12 +242,9 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
 
     console.log(`Signup result - URL: ${currentUrl}`);
     console.log(`Signup error: ${errorText || "none visible"}`);
-    console.log(`Page text (first 500 chars): ${bodyText.substring(0, 500)}`);
 
-    // Always retry login after failed signup redirect — the user may already exist
-    // (Better Auth returns 200 with error data when user exists, but the error
-    // may not render visibly due to page re-render timing)
-    console.log("Signup did not redirect - retrying login (user may already exist)...");
+    // Retry login — user may already exist
+    console.log("Retrying login (user may already exist)...");
     await page.goto(getTenantUrl("demo", "/auth/login"));
     await page.waitForLoadState("domcontentloaded");
     await page.getByRole("textbox", { name: /email/i }).fill(testUser.email);
@@ -187,7 +252,7 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.getByRole("button", { name: /sign in/i }).click();
 
     const retryLoginSuccess = await page
-      .waitForURL(/\/tenant/, { timeout: 15000 })
+      .waitForURL((url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"), { timeout: 15000 })
       .then(() => true)
       .catch(() => false);
 
@@ -196,8 +261,6 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       return;
     }
 
-    // Soft fail - independent tests have their own login handling
-    // Hard-failing here blocks ALL independent tests rather than letting them try individually
     console.log(
       `WARNING: Could not create/login test user. URL: ${page.url()}, Signup error: ${errorText || "none"}`
     );
