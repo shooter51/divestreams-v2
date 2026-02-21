@@ -19,7 +19,7 @@ export const test = base.extend<{ coveragePage: Page }>({
     // After the test, collect coverage from the browser
     try {
       const coverage = await page.evaluate(() => {
-        // @ts-ignore - Istanbul injects this global
+        // @ts-expect-error -- Istanbul injects this global
         return window.__coverage__;
       });
 

@@ -137,12 +137,12 @@ describe("Tenant Management Business Logic", () => {
   describe("isSubdomainAvailable", () => {
     it("should return true when subdomain is available", async () => {
       // Mock tenant lookup returning no results
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -160,7 +160,7 @@ describe("Tenant Management Business Logic", () => {
 
     it("should return false when subdomain exists in tenants table", async () => {
       // Mock tenant lookup returning a tenant
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn();
@@ -170,7 +170,7 @@ describe("Tenant Management Business Logic", () => {
         .mockResolvedValueOnce([{ id: "tenant-1", subdomain: "existingshop" }])
         .mockResolvedValueOnce([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -186,12 +186,12 @@ describe("Tenant Management Business Logic", () => {
     });
 
     it("should normalize subdomain to lowercase", async () => {
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -208,7 +208,7 @@ describe("Tenant Management Business Logic", () => {
     });
 
     it("should return false when subdomain exists in organization table", async () => {
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn();
@@ -218,7 +218,7 @@ describe("Tenant Management Business Logic", () => {
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([{ id: "org-1", slug: "existingorg" }]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -251,12 +251,12 @@ describe("Tenant Management Business Logic", () => {
         currency: "USD",
       };
 
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([mockTenant]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -273,12 +273,12 @@ describe("Tenant Management Business Logic", () => {
     });
 
     it("should return null when tenant not found", async () => {
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -305,12 +305,12 @@ describe("Tenant Management Business Logic", () => {
         isActive: true,
       };
 
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([mockTenant]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -326,12 +326,12 @@ describe("Tenant Management Business Logic", () => {
     });
 
     it("should return null when tenant ID not found", async () => {
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -362,12 +362,12 @@ describe("Tenant Management Business Logic", () => {
         updatedAt: new Date(),
       };
 
-      const mockUpdate = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockSet = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([updatedTenant]);
 
-      (db.update as any).mockReturnValue({
+      (db.update as unknown as Mock).mockReturnValue({
         set: mockSet,
       });
       mockSet.mockReturnValue({
@@ -398,12 +398,12 @@ describe("Tenant Management Business Logic", () => {
     });
 
     it("should throw error when tenant not found", async () => {
-      const mockUpdate = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockSet = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([]);
 
-      (db.update as any).mockReturnValue({
+      (db.update as unknown as Mock).mockReturnValue({
         set: mockSet,
       });
       mockSet.mockReturnValue({
@@ -431,12 +431,12 @@ describe("Tenant Management Business Logic", () => {
         updatedAt: new Date(),
       };
 
-      const mockUpdate = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockSet = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([updatedTenant]);
 
-      (db.update as any).mockReturnValue({
+      (db.update as unknown as Mock).mockReturnValue({
         set: mockSet,
       });
       mockSet.mockReturnValue({

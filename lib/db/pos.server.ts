@@ -103,7 +103,8 @@ export async function getPOSEquipment(tables: TenantTables, organizationId: stri
 /**
  * Get today's and future trips with availability
  */
-export async function getPOSTrips(tables: TenantTables, organizationId: string, _timezone: string) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getPOSTrips(tables: TenantTables, organizationId: string, _timezone?: string) {
   const today = new Date().toISOString().split("T")[0];
 
   const trips = await db

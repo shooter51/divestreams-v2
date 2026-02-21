@@ -8,7 +8,7 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "react-router";
 import { useLoaderData, useOutletContext, Form, useActionData, useNavigation, Link } from "react-router";
 import { redirect } from "react-router";
-import { getOrganizationBySlug, getPublicTripById, type PublicTripDetail } from "../../../lib/db/queries.public";
+import { getOrganizationBySlug, getPublicTripById } from "../../../lib/db/queries.public";
 import { createWidgetBooking } from "../../../lib/db/mutations.public";
 import { triggerBookingConfirmation } from "../../../lib/email/triggers";
 import { useState } from "react";

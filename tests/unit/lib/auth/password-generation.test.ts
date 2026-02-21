@@ -244,7 +244,6 @@ describe("generateRandomPassword", () => {
     it("should have sufficient entropy for 16-char password", () => {
       // 54 possible characters (A-Z minus I,O + a-z minus l + 2-9)
       // 16 characters => log2(54^16) = ~92 bits of entropy
-      const password = generateRandomPassword(16);
 
       // Check that it uses the full character set over multiple generations
       const passwords = Array.from({ length: 100 }, () => generateRandomPassword(16));

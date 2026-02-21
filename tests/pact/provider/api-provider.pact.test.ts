@@ -19,8 +19,9 @@ describe.skipIf(process.env.CI === "true")(
   "DiveStreams API Provider Verification",
   () => {
     const PORT = 5173; // Use default dev server port
-    let dbClient: any = null;
-    let redisClient: any = null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    let _dbClient: unknown = null;
+    let redisClient: { quit: () => Promise<void> } | null = null;
 
   beforeAll(async () => {
     console.log("[PACT] Preparing for provider verification...");
@@ -29,7 +30,7 @@ describe.skipIf(process.env.CI === "true")(
     const { db } = await import("../../../lib/db");
     const { getRedisConnection } = await import("../../../lib/redis.server");
 
-    dbClient = db;
+    _dbClient = db;
     redisClient = getRedisConnection();
 
     // Wait for server to be ready (poll health endpoint)
@@ -52,7 +53,7 @@ describe.skipIf(process.env.CI === "true")(
     if (redisClient) {
       try {
         await redisClient.quit();
-      } catch (err) {
+      } catch {
         // Ignore errors on cleanup
       }
     }
@@ -263,7 +264,7 @@ async function waitForServer(url: string, timeout: number): Promise<void> {
         // Server is running (even if degraded)
         return;
       }
-    } catch (error) {
+    } catch {
       // Server not ready yet, keep polling
     }
 

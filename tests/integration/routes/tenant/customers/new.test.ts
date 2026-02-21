@@ -46,7 +46,7 @@ describe("app/routes/tenant/customers/new.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 50 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("action", () => {

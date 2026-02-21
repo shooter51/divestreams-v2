@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { getTenantUrl as _getTenantUrl } from "../helpers/urls";
 
 /**
  * Trips Scheduling E2E Workflow Tests
@@ -56,9 +57,9 @@ const testData = {
   },
 };
 
-// Helper to get tenant URL
+// URL helper - bind subdomain for convenience
 const getTenantUrl = (path: string = "/") =>
-  `http://${testData.tenant.subdomain}.localhost:5173${path}`;
+  _getTenantUrl(testData.tenant.subdomain, path);
 
 // Helper to login to tenant
 async function loginToTenant(page: Page) {
@@ -69,7 +70,7 @@ async function loginToTenant(page: Page) {
   try {
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
   } catch {
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
   }
 }
 
@@ -320,7 +321,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForLoadState("load");
     if (!(await isAuthenticated(page))) return;
-    const boatSelect = await page.getByLabel(/boat/i).isVisible().catch(() => false);
+    const boatSelect = await page.getByLabel(/select boat/i).isVisible().catch(() => false);
     expect(boatSelect || page.url().includes("/trips")).toBeTruthy();
   });
 
@@ -373,7 +374,7 @@ test.describe.serial("Block B: Create Trip Flow", () => {
     // Submit form
     await Promise.all([
       page.getByRole("button", { name: /create|save|schedule/i }).click(),
-      page.waitForLoadState("networkidle").catch(() => {}),
+      page.waitForLoadState("load").catch(() => {}),
     ]).catch(() => null);
 
     const redirectedToList = page.url().includes("/tenant/trips") && !page.url().includes("/new");
@@ -566,7 +567,7 @@ test.describe.serial("Block C: Edit Trip Flow", () => {
     const saveBtn = page.getByRole("button", { name: /save|update/i });
     if (await saveBtn.isVisible().catch(() => false)) {
       await saveBtn.click();
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
 
     const redirected = page.url().includes("/tenant/trips") && !page.url().includes("/edit");

@@ -23,7 +23,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -102,10 +102,10 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
         },
       ];
 
-      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as any);
-      vi.mocked(queries.getBoatRecentTrips).mockResolvedValue(mockRecentTrips as any);
-      vi.mocked(queries.getBoatUpcomingTrips).mockResolvedValue(mockUpcomingTrips as any);
-      vi.mocked(queries.getBoatStats).mockResolvedValue(mockStats as any);
+      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as unknown);
+      vi.mocked(queries.getBoatRecentTrips).mockResolvedValue(mockRecentTrips as unknown);
+      vi.mocked(queries.getBoatUpcomingTrips).mockResolvedValue(mockUpcomingTrips as unknown);
+      vi.mocked(queries.getBoatStats).mockResolvedValue(mockStats as unknown);
 
       const mockImagesBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -132,7 +132,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
           images: {},
           maintenanceLogs: {},
         },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/boats/boat-456");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
@@ -189,10 +189,10 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
         updatedAt: new Date("2024-06-01T14:20:00Z"),
       };
 
-      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as unknown);
       vi.mocked(queries.getBoatRecentTrips).mockResolvedValue([]);
       vi.mocked(queries.getBoatUpcomingTrips).mockResolvedValue([]);
-      vi.mocked(queries.getBoatStats).mockResolvedValue({ totalTrips: 0 } as any);
+      vi.mocked(queries.getBoatStats).mockResolvedValue({ totalTrips: 0 } as unknown);
 
       const mockImagesBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -216,7 +216,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: mockSelectFn },
         schema: { images: {}, maintenanceLogs: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/boats/boat-456");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
@@ -247,10 +247,10 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
         },
       ];
 
-      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as unknown);
       vi.mocked(queries.getBoatRecentTrips).mockResolvedValue([]);
       vi.mocked(queries.getBoatUpcomingTrips).mockResolvedValue([]);
-      vi.mocked(queries.getBoatStats).mockResolvedValue({ totalTrips: 0 } as any);
+      vi.mocked(queries.getBoatStats).mockResolvedValue({ totalTrips: 0 } as unknown);
 
       const mockImagesBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -274,7 +274,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: mockSelectFn },
         schema: { images: {}, maintenanceLogs: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/boats/boat-456");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
@@ -298,10 +298,10 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as unknown);
       vi.mocked(queries.getBoatRecentTrips).mockResolvedValue([]);
       vi.mocked(queries.getBoatUpcomingTrips).mockResolvedValue([]);
-      vi.mocked(queries.getBoatStats).mockResolvedValue({ totalTrips: 0 } as any);
+      vi.mocked(queries.getBoatStats).mockResolvedValue({ totalTrips: 0 } as unknown);
 
       const mockImagesBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -325,7 +325,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: mockSelectFn },
         schema: { images: {}, maintenanceLogs: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/boats/boat-456");
       const result = await loader({ request, params: { id: mockBoatId }, context: {} });
@@ -344,7 +344,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
         isActive: true,
       };
 
-      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as any);
+      vi.mocked(queries.getBoatById).mockResolvedValue(mockBoat as unknown);
       vi.mocked(queries.updateBoatActiveStatus).mockResolvedValue(undefined);
 
       const formData = new FormData();
@@ -378,7 +378,7 @@ describe("app/routes/tenant/boats/$id.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: mockDb,
         schema: { maintenanceLogs: {} },
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("intent", "log-maintenance");

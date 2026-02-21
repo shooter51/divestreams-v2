@@ -300,7 +300,7 @@ export default function CalendarPage() {
   }, []);
 
   // Custom event content renderer
-  const renderEventContent = useCallback((eventInfo: any) => {
+  const renderEventContent = useCallback((eventInfo: { event: { extendedProps: { capacityColor: string; booked: number; max: number }; title: string }; timeText: string }) => {
     const { capacityColor, booked, max } = eventInfo.event.extendedProps;
     const timeText = eventInfo.timeText;
 

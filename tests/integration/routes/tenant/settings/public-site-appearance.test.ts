@@ -47,7 +47,7 @@ describe("tenant/settings/public-site.appearance route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("Invalid color format");
@@ -66,7 +66,7 @@ describe("tenant/settings/public-site.appearance route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("Invalid color format");
@@ -84,7 +84,7 @@ describe("tenant/settings/public-site.appearance route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("Invalid theme");
@@ -102,7 +102,7 @@ describe("tenant/settings/public-site.appearance route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("Invalid font family");
@@ -120,7 +120,7 @@ describe("tenant/settings/public-site.appearance route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.success).toBe(true);
       expect(result.message).toBe("Appearance settings updated successfully");
@@ -141,7 +141,7 @@ describe("tenant/settings/public-site.appearance route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.success).toBe(true);
       expect(updatePublicSiteSettings).toHaveBeenCalledWith("org-uuid", {
@@ -160,7 +160,7 @@ describe("tenant/settings/public-site.appearance route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toBeNull();
     });
@@ -182,7 +182,7 @@ describe("tenant/settings/public-site.appearance route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.success).toBe(true);
       }
@@ -205,7 +205,7 @@ describe("tenant/settings/public-site.appearance route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.success).toBe(true);
       }

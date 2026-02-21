@@ -27,10 +27,6 @@ vi.mock("../../../../lib/auth/auth.server", () => ({
   },
 }));
 
-import { db } from "../../../../lib/db/index";
-
-type MockFn = ReturnType<typeof vi.fn>;
-
 describe("createTenant free plan handling (KAN-592)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -64,14 +60,14 @@ describe("createTenant free plan handling (KAN-592)", () => {
 
     if (!freePlan) {
       console.warn(
-        `No "free" subscription plan found in subscriptionPlans table. ` +
+        `No "standard" subscription plan found in subscriptionPlans table. ` +
         `New tenant "${subdomain}" will have planId=null. ` +
-        `Ensure the "free" plan is seeded in the database.`
+        `Ensure the "standard" plan is seeded in the database.`
       );
     }
 
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("No \"free\" subscription plan found")
+      expect.stringContaining("No \"standard\" subscription plan found")
     );
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining("test-shop")

@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { action } from "../../../../../app/routes/tenant/images/reorder";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as tenantServer from "../../../../../lib/db/tenant.server";
@@ -9,7 +8,6 @@ vi.mock("../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../lib/db/tenant.server");
 
 describe("app/routes/tenant/images/reorder.tsx", () => {
-  const mockTenant = { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -19,7 +17,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("action", () => {
@@ -76,7 +74,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",
@@ -121,7 +119,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
           update: mockUpdateFn,
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",
@@ -166,7 +164,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
           update: vi.fn().mockReturnValue(mockUpdateBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",
@@ -209,7 +207,7 @@ describe("app/routes/tenant/images/reorder.tsx", () => {
           update: vi.fn().mockReturnValue(mockUpdateBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images/reorder", {
         method: "POST",

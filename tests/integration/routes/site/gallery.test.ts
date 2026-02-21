@@ -36,7 +36,7 @@ vi.mock("../../../../lib/db/gallery.server", () => ({
 
 import { db } from "../../../../lib/db";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
-import { getPublicGalleryImages, getPublicGalleryAlbums } from "../../../../lib/db/gallery.server";
+import { getPublicGalleryImages } from "../../../../lib/db/gallery.server";
 import { loader } from "../../../../app/routes/site/gallery";
 
 describe("site/gallery route", () => {

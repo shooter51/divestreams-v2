@@ -6,18 +6,18 @@
  * Those tests should be handled in integration tests.
  */
 
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 // Create a proper class mock for Queue
 class MockQueue {
   add = vi.fn().mockResolvedValue({ id: "job-1" });
-  constructor(_name: string, _opts: any) {}
+  constructor() {}
 }
 
 // Create a proper class mock for IORedis
 class MockIORedis {
   status = "ready";
-  constructor(_url: string, _opts?: any) {}
+  constructor() {}
   quit = vi.fn();
 }
 

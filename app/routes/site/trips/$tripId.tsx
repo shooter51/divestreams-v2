@@ -343,7 +343,7 @@ function formatPrice(price: string, currency: string): string {
 // ============================================================================
 
 export default function SiteTripDetailPage() {
-  const { trip, images, diveSites, organizationName, organizationSlug } = useLoaderData<typeof loader>();
+  const { trip, images, diveSites, organizationSlug } = useLoaderData<typeof loader>();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
 

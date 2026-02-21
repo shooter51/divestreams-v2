@@ -82,7 +82,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Rate limit login attempts
   const clientIp = getClientIp(request);
   const rateLimitResult = await checkRateLimit(`login:${clientIp}`, {
-    maxAttempts: 10,
+    maxAttempts: 30,
     windowMs: 15 * 60 * 1000,
   });
 
@@ -175,8 +175,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const isSubmitting = navigation.state === "submitting";
 
-  // Preserve form values on error
-  const formData = navigation.formData;
 
   return (
     <div className="min-h-screen bg-surface-inset flex items-center justify-center">

@@ -62,14 +62,14 @@ describe("tenant/training/index route", () => {
   describe("loader", () => {
     it("requires organization context", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
 
     it("calls requireFeature with subscription features", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireFeature).toHaveBeenCalledWith({}, "has_training");
     });
@@ -86,7 +86,7 @@ describe("tenant/training/index route", () => {
       (requireOrgContext as Mock).mockResolvedValue(ctxWithSub);
 
       const request = new Request("https://demo.divestreams.com/tenant/training");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireFeature).toHaveBeenCalledWith({ has_training: true }, "has_training");
     });
@@ -101,7 +101,7 @@ describe("tenant/training/index route", () => {
       (getTrainingDashboardStats as Mock).mockResolvedValue(mockStats);
 
       const request = new Request("https://demo.divestreams.com/tenant/training");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.stats).toEqual(mockStats);
       expect(getTrainingDashboardStats).toHaveBeenCalledWith("org-uuid");
@@ -133,7 +133,7 @@ describe("tenant/training/index route", () => {
       (getUpcomingTrainingSessions as Mock).mockResolvedValue(mockSessions);
 
       const request = new Request("https://demo.divestreams.com/tenant/training");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.upcomingSessions).toHaveLength(2);
       expect(result.upcomingSessions[0].startDate).toBe("2026-03-15");
@@ -157,7 +157,7 @@ describe("tenant/training/index route", () => {
       (getUpcomingTrainingSessions as Mock).mockResolvedValue(mockSessions);
 
       const request = new Request("https://demo.divestreams.com/tenant/training");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.upcomingSessions[0].startDate).toBe("2026-06-20");
     });
@@ -184,7 +184,7 @@ describe("tenant/training/index route", () => {
       (getRecentEnrollments as Mock).mockResolvedValue(mockEnrollments);
 
       const request = new Request("https://demo.divestreams.com/tenant/training");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.recentEnrollments).toHaveLength(2);
       expect(result.recentEnrollments[0].enrolledAt).toBe("2026-02-10");
@@ -194,14 +194,14 @@ describe("tenant/training/index route", () => {
 
     it("returns orgName from context", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.orgName).toBe("Demo Dive Shop");
     });
 
     it("returns empty arrays when no sessions or enrollments exist", async () => {
       const request = new Request("https://demo.divestreams.com/tenant/training");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.upcomingSessions).toEqual([]);
       expect(result.recentEnrollments).toEqual([]);

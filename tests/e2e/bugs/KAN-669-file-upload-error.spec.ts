@@ -5,6 +5,9 @@
  *   "File too large. Maximum size: 10MB"
  * Fix: Error now includes the filename and actual size:
  *   '"big-photo.jpg" is too large (15.0MB). Maximum size: 10MB'
+ *
+ * The improved error format is in /tenant/images/upload (entity-based uploads).
+ * Gallery uploads (/tenant/gallery/upload) use redirect notifications with filename.
  */
 
 import { test, expect } from "@playwright/test";
@@ -32,8 +35,8 @@ test.describe("KAN-669: File upload error specifies filename", () => {
     await uploadPage.gotoLogin();
     await page.waitForLoadState("load");
 
-    await page.getByRole("textbox", { name: /email/i }).fill("owner@demo.com");
-    await page.locator('input[type="password"]').first().fill("demo1234");
+    await page.getByRole("textbox", { name: /email/i }).fill("e2e-tester@demo.com");
+    await page.locator('input[type="password"]').first().fill("DemoPass1234");
     await page.getByRole("button", { name: /sign in/i }).click();
 
     await page.waitForURL(/\/tenant/, { timeout: 10000 });
@@ -44,131 +47,89 @@ test.describe("KAN-669: File upload error specifies filename", () => {
   }) => {
     test.setTimeout(30000);
 
-    // Navigate to gallery
-    await uploadPage.goto("/gallery");
+    // Test the /tenant/images/upload API endpoint directly — this is the route
+    // that was fixed to include filename in the error message.
+    // Using page.request preserves the authenticated session cookies.
+    const baseUrl = uploadPage["tenantUrl"];
 
-    // Find or enter an album
-    const albumLink = page.locator('a[href*="/tenant/gallery/"]').first();
-    if (await albumLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await albumLink.click();
-      await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
-    } else {
-      // If no albums, try to find any upload form elsewhere (tours, etc.)
-      await uploadPage.goto("/tours");
-      const tourLink = page.locator('a[href*="/tenant/tours/"]').first();
-      if (await tourLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await tourLink.click();
-        await page.waitForLoadState("load");
+    const response = await page.request.post(
+      `${baseUrl}/tenant/images/upload`,
+      {
+        multipart: {
+          file: {
+            name: "oversized-test-image.jpg",
+            mimeType: "image/jpeg",
+            buffer: Buffer.alloc(11 * 1024 * 1024),
+          },
+          entityType: "tour",
+          entityId: "test-entity-1",
+        },
       }
-    }
+    );
 
-    // Look for file upload input
-    const fileInput = page.locator('input[type="file"]');
-    if (await fileInput.isVisible({ timeout: 5000 }).catch(() => false)) {
-      // Create a temporary oversized file (11MB)
-      const tmpDir = path.join(__dirname, "../../fixtures");
-      const tmpFile = path.join(tmpDir, "oversized-test-image.jpg");
-
-      // Create an 11MB file for testing
-      const oversizedBuffer = Buffer.alloc(11 * 1024 * 1024, 0xff);
-      // Add JPEG header so it looks like a real JPEG
-      oversizedBuffer[0] = 0xff;
-      oversizedBuffer[1] = 0xd8;
-      oversizedBuffer[2] = 0xff;
-      oversizedBuffer[3] = 0xe0;
-      fs.writeFileSync(tmpFile, oversizedBuffer);
-
-      try {
-        await fileInput.setInputFiles(tmpFile);
-
-        // Wait for the error message to appear
-        // The error should contain the filename
-        const errorText = page
-          .locator(
-            'text=/oversized-test-image.*too large/i, [role="alert"]:has-text("oversized-test-image")'
-          )
-          .first();
-        await expect(errorText).toBeVisible({ timeout: 10000 });
-      } finally {
-        // Clean up temp file
-        if (fs.existsSync(tmpFile)) {
-          fs.unlinkSync(tmpFile);
-        }
-      }
-    } else {
-      // If no file input found, skip gracefully
-      test.skip(true, "No file upload input found on accessible pages");
-    }
+    // The API should return 400 with the improved error message
+    expect(response.status()).toBe(400);
+    const json = await response.json();
+    expect(json.error).toContain("oversized-test-image.jpg");
+    expect(json.error).toContain("too large");
+    expect(json.error).toContain("Maximum size: 10MB");
   });
 
   test("valid file upload succeeds without error", async ({ page }) => {
     test.setTimeout(30000);
 
-    // Navigate to gallery
+    // Navigate to gallery and find an album to test upload flow
     await uploadPage.goto("/gallery");
 
-    const albumLink = page.locator('a[href*="/tenant/gallery/"]').first();
-    if (await albumLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await albumLink.click();
-      await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
-
-      const uploadButton = page.locator('a:has-text("Upload")').first();
-      if (
-        await uploadButton.isVisible({ timeout: 3000 }).catch(() => false)
-      ) {
-        await uploadButton.click();
-        await page.waitForLoadState("load");
-
-        const fileInput = page.locator('input[type="file"]');
-        if (
-          await fileInput.isVisible({ timeout: 3000 }).catch(() => false)
-        ) {
-          const testImagePath = path.join(
-            __dirname,
-            "../../fixtures/test-image.jpg"
-          );
-          if (fs.existsSync(testImagePath)) {
-            await fileInput.setInputFiles(testImagePath);
-
-            // Submit if there's a submit button
-            const submitBtn = page
-              .locator(
-                'button[type="submit"]:has-text("Upload"), button:has-text("Save")'
-              )
-              .first();
-            if (
-              await submitBtn.isVisible({ timeout: 2000 }).catch(() => false)
-            ) {
-              await submitBtn.click();
-            }
-
-            // Should not show error
-            await page.waitForTimeout(2000);
-            const errorAlert = page
-              .locator('[role="alert"]:has-text("too large")')
-              .first();
-            await expect(errorAlert).not.toBeVisible();
-          }
-        }
-      }
+    const albumLink = page
+      .locator('a[href*="/tenant/gallery/"]:not([href$="/new"]):not([href$="/upload"]):not([href*="/upload-images"])')
+      .first();
+    if (!(await albumLink.isVisible({ timeout: 3000 }).catch(() => false))) {
+      test.skip(true, "No albums available for upload test");
+      return;
     }
+
+    await albumLink.click();
+    await page.waitForURL(/\/tenant\/gallery\/[a-f0-9-]+/);
+
+    const uploadLink = page.getByRole("link", { name: /upload images/i }).first();
+    if (!(await uploadLink.isVisible({ timeout: 3000 }).catch(() => false))) {
+      test.skip(true, "Upload link not found on album page");
+      return;
+    }
+
+    await uploadLink.click();
+    await page.waitForURL(/\/tenant\/gallery\/upload-images/);
+
+    const fileInput = page.locator('input[type="file"][name="file"]');
+    if (!(await fileInput.isVisible({ timeout: 3000 }).catch(() => false))) {
+      test.skip(true, "File input not found on upload page");
+      return;
+    }
+
+    const testImagePath = path.join(__dirname, "../../fixtures/test-image.jpg");
+    if (!fs.existsSync(testImagePath)) {
+      test.skip(true, "Test image fixture not found");
+      return;
+    }
+
+    await fileInput.setInputFiles(testImagePath);
+
+    // Submit the upload form
+    await page.getByRole("button", { name: /upload/i }).click();
+
+    // Wait for redirect back to gallery after upload
+    await page.waitForURL(/\/tenant\/gallery/, { timeout: 15000 });
+
+    // Should not show "too large" error — either success or storage-not-configured
+    const pageContent = await page.content();
+    expect(pageContent).not.toContain("too large");
   });
 
-  test("error message is visible in the UI", async ({ page }) => {
+  test("error message includes filename via API", async ({ page }) => {
     test.setTimeout(30000);
 
     // Use API route directly to verify error format
-    const formData = new FormData();
-    const oversizedContent = new Uint8Array(11 * 1024 * 1024);
-    const blob = new Blob([oversizedContent], { type: "image/jpeg" });
-    formData.append("file", blob, "test-visible-error.jpg");
-    formData.append("entityType", "tour");
-    formData.append("entityId", "tour-1");
-
-    // Make API request directly (as authenticated user via cookies)
-    const cookies = await page.context().cookies();
-    const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join("; ");
-
     const baseUrl = uploadPage["tenantUrl"];
     const response = await page.request.post(
       `${baseUrl}/tenant/images/upload`,
@@ -185,14 +146,11 @@ test.describe("KAN-669: File upload error specifies filename", () => {
       }
     );
 
-    // Verify the API returns the improved error message
-    if (response.status() === 400) {
-      const json = await response.json();
-      expect(json.error).toContain("test-visible-error.jpg");
-      expect(json.error).toContain("too large");
-      expect(json.error).toContain("Maximum size: 10MB");
-    }
-    // If we get a different status (e.g., 401/403 due to auth),
-    // the test is still valid - it tested what it could
+    // Verify the API returns the improved error message with filename
+    expect(response.status()).toBe(400);
+    const json = await response.json();
+    expect(json.error).toContain("test-visible-error.jpg");
+    expect(json.error).toContain("too large");
+    expect(json.error).toContain("Maximum size: 10MB");
   });
 });

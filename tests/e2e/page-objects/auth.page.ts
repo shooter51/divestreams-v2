@@ -1,5 +1,6 @@
 import { type Page, expect } from "@playwright/test";
 import { TenantBasePage } from "./base.page";
+import { getBaseUrl } from "../helpers/urls";
 
 /**
  * Tenant Login Page Object
@@ -102,7 +103,7 @@ export class SignupPage {
   constructor(protected readonly page: Page) {}
 
   async goto(): Promise<void> {
-    await this.page.goto("http://localhost:5173/signup");
+    await this.page.goto(getBaseUrl("/signup"));
   }
 
   async fillForm(data: {

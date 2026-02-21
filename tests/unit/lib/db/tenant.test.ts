@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
-  testTenant,
-  testCustomers,
 } from "../../../fixtures/test-data";
 
 // Mock the database module
@@ -54,7 +52,7 @@ describe("Tenant Server Module", () => {
     const mockWhere = vi.fn().mockReturnThis();
     const mockLimit = vi.fn().mockResolvedValue([{ id: "free-plan-id" }]);
 
-    (db.select as any).mockReturnValue({
+    (db.select as unknown as Mock).mockReturnValue({
       from: mockFrom,
     });
     mockFrom.mockReturnValue({
@@ -125,12 +123,12 @@ describe("Tenant Server Module", () => {
         isActive: true,
       };
 
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([mockTenant]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -147,12 +145,12 @@ describe("Tenant Server Module", () => {
     });
 
     it("should return null when tenant not found", async () => {
-      const mockSelect = vi.fn().mockReturnThis();
+      vi.fn().mockReturnThis();
       const mockFrom = vi.fn().mockReturnThis();
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -172,7 +170,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -204,7 +202,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([mockTenant]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -224,7 +222,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -311,7 +309,7 @@ describe("Tenant Server Module", () => {
       const mockValues = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([mockTenant]);
 
-      (db.insert as any).mockReturnValue({
+      (db.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -344,7 +342,7 @@ describe("Tenant Server Module", () => {
       const mockValues = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([mockTenant]);
 
-      (db.insert as any).mockReturnValue({
+      (db.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -369,7 +367,7 @@ describe("Tenant Server Module", () => {
       const mockValues = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockRejectedValue(new Error("Insert failed"));
 
-      (db.insert as any).mockReturnValue({
+      (db.insert as unknown as Mock).mockReturnValue({
         values: mockValues,
       });
       mockValues.mockReturnValue({
@@ -377,7 +375,7 @@ describe("Tenant Server Module", () => {
       });
 
       const mockWhere = vi.fn().mockResolvedValue([]);
-      (db.delete as any).mockReturnValue({
+      (db.delete as unknown as Mock).mockReturnValue({
         where: mockWhere,
       });
 
@@ -401,7 +399,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -426,7 +424,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([mockTenant]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -454,7 +452,7 @@ describe("Tenant Server Module", () => {
       const mockLimit = vi.fn().mockResolvedValue([mockTenant]);
       const mockDeleteWhere = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -464,7 +462,7 @@ describe("Tenant Server Module", () => {
         limit: mockLimit,
       });
 
-      (db.delete as any).mockReturnValue({
+      (db.delete as unknown as Mock).mockReturnValue({
         where: mockDeleteWhere,
       });
 
@@ -492,7 +490,7 @@ describe("Tenant Server Module", () => {
 
       const mockFrom = vi.fn().mockResolvedValue(mockTenants);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
 
@@ -509,7 +507,7 @@ describe("Tenant Server Module", () => {
 
       const mockFrom = vi.fn().mockResolvedValue(mockTenants);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
 
@@ -526,7 +524,7 @@ describe("Tenant Server Module", () => {
 
       const mockFrom = vi.fn().mockResolvedValue(mockTenants);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
 
@@ -542,7 +540,7 @@ describe("Tenant Server Module", () => {
 
       const mockFrom = vi.fn().mockResolvedValue(mockTenants);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
 
@@ -568,7 +566,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([updatedTenant]);
 
-      (db.update as any).mockReturnValue({
+      (db.update as unknown as Mock).mockReturnValue({
         set: mockSet,
       });
       mockSet.mockReturnValue({
@@ -588,7 +586,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([]);
 
-      (db.update as any).mockReturnValue({
+      (db.update as unknown as Mock).mockReturnValue({
         set: mockSet,
       });
       mockSet.mockReturnValue({
@@ -617,7 +615,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([updatedTenant]);
 
-      (db.update as any).mockReturnValue({
+      (db.update as unknown as Mock).mockReturnValue({
         set: mockSet,
       });
       mockSet.mockReturnValue({
@@ -649,7 +647,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockReturning = vi.fn().mockResolvedValue([updatedTenant]);
 
-      (db.update as any).mockReturnValue({
+      (db.update as unknown as Mock).mockReturnValue({
         set: mockSet,
       });
       mockSet.mockReturnValue({
@@ -675,7 +673,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -695,7 +693,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([{ id: "1", subdomain: "taken" }]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({
@@ -715,7 +713,7 @@ describe("Tenant Server Module", () => {
       const mockWhere = vi.fn().mockReturnThis();
       const mockLimit = vi.fn().mockResolvedValue([]);
 
-      (db.select as any).mockReturnValue({
+      (db.select as unknown as Mock).mockReturnValue({
         from: mockFrom,
       });
       mockFrom.mockReturnValue({

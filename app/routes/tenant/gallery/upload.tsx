@@ -11,7 +11,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
-import { uploadToB2, getImageKey, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
+import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { createGalleryImage } from "../../../../lib/db/gallery.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { storageLogger } from "../../../../lib/logger";
@@ -92,13 +92,13 @@ export async function action({ request }: ActionFunctionArgs) {
       const thumbnailKey = `${baseKey}-thumb.webp`;
 
       // Upload to B2
-      const originalUpload = await uploadToB2(originalKey, processed.original, getWebPMimeType());
+      const originalUpload = await uploadToS3(originalKey, processed.original, getWebPMimeType());
       if (!originalUpload) {
         failedFiles.push(`${file.name} (storage error)`);
         continue;
       }
 
-      const thumbnailUpload = await uploadToB2(thumbnailKey, processed.thumbnail, getWebPMimeType());
+      const thumbnailUpload = await uploadToS3(thumbnailKey, processed.thumbnail, getWebPMimeType());
 
       // Save to gallery_images table
       await createGalleryImage(ctx.org.id, {

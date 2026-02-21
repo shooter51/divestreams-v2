@@ -6,12 +6,12 @@
  * and ARIA dialog attributes.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { UpgradeModal } from "../../../../app/components/upgrade-modal";
 
 vi.mock("react-router", () => ({
-  Link: ({ to, children, ...props }: any) => (
+  Link: ({ to, children, ...props }: Record<string, unknown>) => (
     <a href={to} {...props}>
       {children}
     </a>
@@ -59,7 +59,7 @@ describe("UpgradeModal", () => {
       render(
         <UpgradeModal
           {...baseProps}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );
@@ -71,7 +71,7 @@ describe("UpgradeModal", () => {
       render(
         <UpgradeModal
           {...baseProps}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );
@@ -83,7 +83,7 @@ describe("UpgradeModal", () => {
       render(
         <UpgradeModal
           {...baseProps}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );
@@ -126,7 +126,7 @@ describe("UpgradeModal", () => {
       render(
         <UpgradeModal
           {...baseProps}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );
@@ -142,7 +142,7 @@ describe("UpgradeModal", () => {
       render(
         <UpgradeModal
           {...baseProps}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );
@@ -158,7 +158,7 @@ describe("UpgradeModal", () => {
         <UpgradeModal
           {...baseProps}
           onClose={onClose}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );
@@ -176,7 +176,7 @@ describe("UpgradeModal", () => {
         <UpgradeModal
           {...baseProps}
           onClose={onClose}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );
@@ -192,7 +192,7 @@ describe("UpgradeModal", () => {
         <UpgradeModal
           {...baseProps}
           onClose={onClose}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );
@@ -209,7 +209,7 @@ describe("UpgradeModal", () => {
       render(
         <UpgradeModal
           {...baseProps}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );
@@ -221,7 +221,7 @@ describe("UpgradeModal", () => {
       render(
         <UpgradeModal
           {...baseProps}
-          feature={"testFeature" as any}
+          feature={"testFeature" as unknown}
           limitType={null}
         />,
       );

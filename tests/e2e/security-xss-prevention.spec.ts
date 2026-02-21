@@ -6,7 +6,7 @@
  */
 
 import { test, expect } from "@playwright/test";
-import { loginAsAdmin, loginAsCustomer, seedDemoData } from "../helpers/index.ts";
+import { loginAsAdmin, seedDemoData } from "../helpers/index.ts";
 
 test.describe("XSS Prevention Security", () => {
   // Skip: These tests require platform admin login which isn't seeded in CI environment.
@@ -203,7 +203,7 @@ test.describe("XSS Prevention Security", () => {
         await page.click('button:has-text("Save Theme")');
 
         // Should show error or sanitize to #000000
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('load');
         const value = await page
           .locator('input[name="primaryColor"]')
           .inputValue();

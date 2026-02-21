@@ -118,21 +118,21 @@ describe("Tour and Trip Management Logic", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset chain mocks - where() returns db for chaining by default
-    (db.select as any).mockReturnValue(db);
-    (db.from as any).mockReturnValue(db);
-    (db.where as any).mockReturnValue(db); // Default: return db for chaining
-    (db.innerJoin as any).mockReturnValue(db);
-    (db.leftJoin as any).mockReturnValue(db);
-    (db.insert as any).mockReturnValue(db);
-    (db.values as any).mockReturnValue(db);
-    (db.update as any).mockReturnValue(db);
-    (db.set as any).mockReturnValue(db);
-    (db.delete as any).mockReturnValue(db);
-    (db.groupBy as any).mockReturnValue(db);
-    (db.orderBy as any).mockResolvedValue([]);
-    (db.limit as any).mockResolvedValue([]);
-    (db.offset as any).mockResolvedValue([]);
-    (db.returning as any).mockResolvedValue([]);
+    (db.select as unknown as Mock).mockReturnValue(db);
+    (db.from as unknown as Mock).mockReturnValue(db);
+    (db.where as unknown as Mock).mockReturnValue(db); // Default: return db for chaining
+    (db.innerJoin as unknown as Mock).mockReturnValue(db);
+    (db.leftJoin as unknown as Mock).mockReturnValue(db);
+    (db.insert as unknown as Mock).mockReturnValue(db);
+    (db.values as unknown as Mock).mockReturnValue(db);
+    (db.update as unknown as Mock).mockReturnValue(db);
+    (db.set as unknown as Mock).mockReturnValue(db);
+    (db.delete as unknown as Mock).mockReturnValue(db);
+    (db.groupBy as unknown as Mock).mockReturnValue(db);
+    (db.orderBy as unknown as Mock).mockResolvedValue([]);
+    (db.limit as unknown as Mock).mockResolvedValue([]);
+    (db.offset as unknown as Mock).mockResolvedValue([]);
+    (db.returning as unknown as Mock).mockResolvedValue([]);
   });
 
   // ============================================================================
@@ -162,8 +162,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours);
-      (db.groupBy as any).mockResolvedValueOnce([]);
+      (db.orderBy as unknown as Mock).mockResolvedValueOnce(mockTours);
+      (db.groupBy as unknown as Mock).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId);
 
@@ -185,8 +185,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours);
-      (db.groupBy as any).mockResolvedValueOnce([]);
+      (db.orderBy as unknown as Mock).mockResolvedValueOnce(mockTours);
+      (db.groupBy as unknown as Mock).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId, { activeOnly: true });
 
@@ -207,8 +207,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours);
-      (db.groupBy as any).mockResolvedValueOnce([]);
+      (db.orderBy as unknown as Mock).mockResolvedValueOnce(mockTours);
+      (db.groupBy as unknown as Mock).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId, { type: "shore" });
 
@@ -229,8 +229,8 @@ describe("Tour and Trip Management Logic", () => {
         },
       ];
 
-      (db.orderBy as any).mockResolvedValueOnce(mockTours);
-      (db.groupBy as any).mockResolvedValueOnce([]);
+      (db.orderBy as unknown as Mock).mockResolvedValueOnce(mockTours);
+      (db.groupBy as unknown as Mock).mockResolvedValueOnce([]);
 
       const result = await getTours(testOrgId, { search: "Night" });
 
@@ -239,7 +239,7 @@ describe("Tour and Trip Management Logic", () => {
     });
 
     it("should return empty array when no tours match filters", async () => {
-      (db.orderBy as any).mockResolvedValue([]);
+      (db.orderBy as unknown as Mock).mockResolvedValue([]);
 
       const result = await getTours(testOrgId, { search: "nonexistent" });
 
@@ -254,7 +254,7 @@ describe("Tour and Trip Management Logic", () => {
         { id: "tour-2", name: "Wreck Dive" },
       ];
 
-      (db.orderBy as any).mockResolvedValue(mockTours);
+      (db.orderBy as unknown as Mock).mockResolvedValue(mockTours);
 
       const result = await getAllTours(testOrgId);
 
@@ -285,7 +285,7 @@ describe("Tour and Trip Management Logic", () => {
         isActive: true,
       };
 
-      (db.limit as any).mockResolvedValue([mockTour]);
+      (db.limit as unknown as Mock).mockResolvedValue([mockTour]);
 
       const result = await getTourById(testOrgId, "tour-123");
 
@@ -295,7 +295,7 @@ describe("Tour and Trip Management Logic", () => {
     });
 
     it("should return null when tour not found", async () => {
-      (db.limit as any).mockResolvedValue([]);
+      (db.limit as unknown as Mock).mockResolvedValue([]);
 
       const result = await getTourById(testOrgId, "nonexistent-id");
 
@@ -324,7 +324,7 @@ describe("Tour and Trip Management Logic", () => {
         isActive: true,
       };
 
-      (db.returning as any).mockResolvedValue([newTour]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTour]);
 
       const result = await createTour(testOrgId, {
         name: "Basic Reef Dive",
@@ -335,7 +335,7 @@ describe("Tour and Trip Management Logic", () => {
 
       expect(result.name).toBe("Basic Reef Dive");
       expect(result.type).toBe("boat");
-      expect((db.insert as any)).toHaveBeenCalled();
+      expect(db.insert).toHaveBeenCalled();
     });
 
     it("should create tour with all optional fields", async () => {
@@ -358,7 +358,7 @@ describe("Tour and Trip Management Logic", () => {
         isActive: true,
       };
 
-      (db.returning as any).mockResolvedValue([fullTour]);
+      (db.returning as unknown as Mock).mockResolvedValue([fullTour]);
 
       const result = await createTour(testOrgId, {
         name: "Premium Dive Experience",
@@ -393,7 +393,7 @@ describe("Tour and Trip Management Logic", () => {
         currency: "USD",
       };
 
-      (db.returning as any).mockResolvedValue([newTour]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTour]);
 
       const result = await createTour(testOrgId, {
         name: "Test Tour",
@@ -416,7 +416,7 @@ describe("Tour and Trip Management Logic", () => {
         currency: "USD",
       };
 
-      (db.returning as any).mockResolvedValue([newTour]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTour]);
 
       const result = await createTour(testOrgId, {
         name: "Test Tour",
@@ -443,12 +443,12 @@ describe("Tour and Trip Management Logic", () => {
         updatedAt: new Date(),
       };
 
-      (db.returning as any).mockResolvedValue([updatedTour]);
+      (db.returning as unknown as Mock).mockResolvedValue([updatedTour]);
 
       const result = await updateTourActiveStatus(testOrgId, "tour-123", true);
 
       expect(result?.isActive).toBe(true);
-      expect((db.update as any)).toHaveBeenCalled();
+      expect(db.update).toHaveBeenCalled();
     });
 
     it("should deactivate active tour", async () => {
@@ -461,7 +461,7 @@ describe("Tour and Trip Management Logic", () => {
         updatedAt: new Date(),
       };
 
-      (db.returning as any).mockResolvedValue([updatedTour]);
+      (db.returning as unknown as Mock).mockResolvedValue([updatedTour]);
 
       const result = await updateTourActiveStatus(testOrgId, "tour-123", false);
 
@@ -469,7 +469,7 @@ describe("Tour and Trip Management Logic", () => {
     });
 
     it("should return null when tour not found", async () => {
-      (db.returning as any).mockResolvedValue([]);
+      (db.returning as unknown as Mock).mockResolvedValue([]);
 
       const result = await updateTourActiveStatus(testOrgId, "nonexistent-id", true);
 
@@ -481,7 +481,7 @@ describe("Tour and Trip Management Logic", () => {
     it("should delete tour and related trips", async () => {
       // Mock the count query chain to return 0 trips (allow deletion)
       let whereCallCount = 0;
-      (db.where as any) = vi.fn().mockImplementation(() => {
+      (db.where as unknown as Mock) = vi.fn().mockImplementation(() => {
         whereCallCount++;
         if (whereCallCount === 1) {
           // First call: trip count check - return array with count
@@ -495,7 +495,7 @@ describe("Tour and Trip Management Logic", () => {
       const result = await deleteTour(testOrgId, "tour-123");
 
       expect(result).toBe(true);
-      expect((db.delete as any)).toHaveBeenCalled();
+      expect(db.delete).toHaveBeenCalled();
     });
   });
 
@@ -515,7 +515,7 @@ describe("Tour and Trip Management Logic", () => {
         isPublic: false,
       };
 
-      (db.returning as any).mockResolvedValue([newTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTrip]);
 
       const result = await createTrip(testOrgId, {
         tourId: "tour-123",
@@ -539,7 +539,7 @@ describe("Tour and Trip Management Logic", () => {
         status: "scheduled",
       };
 
-      (db.returning as any).mockResolvedValue([newTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTrip]);
 
       const result = await createTrip(testOrgId, {
         tourId: "tour-123",
@@ -562,7 +562,7 @@ describe("Tour and Trip Management Logic", () => {
         status: "scheduled",
       };
 
-      (db.returning as any).mockResolvedValue([newTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTrip]);
 
       const result = await createTrip(testOrgId, {
         tourId: "tour-123",
@@ -585,7 +585,7 @@ describe("Tour and Trip Management Logic", () => {
         status: "scheduled",
       };
 
-      (db.returning as any).mockResolvedValue([newTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTrip]);
 
       const result = await createTrip(testOrgId, {
         tourId: "tour-123",
@@ -608,7 +608,7 @@ describe("Tour and Trip Management Logic", () => {
         status: "scheduled",
       };
 
-      (db.returning as any).mockResolvedValue([newTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTrip]);
 
       const result = await createTrip(testOrgId, {
         tourId: "tour-123",
@@ -631,7 +631,7 @@ describe("Tour and Trip Management Logic", () => {
         status: "scheduled",
       };
 
-      (db.returning as any).mockResolvedValue([newTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTrip]);
 
       const result = await createTrip(testOrgId, {
         tourId: "tour-123",
@@ -654,7 +654,7 @@ describe("Tour and Trip Management Logic", () => {
         status: "scheduled",
       };
 
-      (db.returning as any).mockResolvedValue([newTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([newTrip]);
 
       const result = await createTrip(testOrgId, {
         tourId: "tour-123",
@@ -683,7 +683,7 @@ describe("Tour and Trip Management Logic", () => {
         updatedAt: new Date(),
       };
 
-      (db.returning as any).mockResolvedValue([updatedTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([updatedTrip]);
 
       const result = await updateTripStatus(testOrgId, "trip-123", "in_progress");
 
@@ -701,7 +701,7 @@ describe("Tour and Trip Management Logic", () => {
         updatedAt: new Date(),
       };
 
-      (db.returning as any).mockResolvedValue([updatedTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([updatedTrip]);
 
       const result = await updateTripStatus(testOrgId, "trip-123", "completed");
 
@@ -719,7 +719,7 @@ describe("Tour and Trip Management Logic", () => {
         updatedAt: new Date(),
       };
 
-      (db.returning as any).mockResolvedValue([updatedTrip]);
+      (db.returning as unknown as Mock).mockResolvedValue([updatedTrip]);
 
       const result = await updateTripStatus(testOrgId, "trip-123", "cancelled");
 
@@ -727,7 +727,7 @@ describe("Tour and Trip Management Logic", () => {
     });
 
     it("should return null when trip not found", async () => {
-      (db.returning as any).mockResolvedValue([]);
+      (db.returning as unknown as Mock).mockResolvedValue([]);
 
       const result = await updateTripStatus(testOrgId, "nonexistent-id", "completed");
 

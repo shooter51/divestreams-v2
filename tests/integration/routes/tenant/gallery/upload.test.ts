@@ -20,7 +20,7 @@ vi.mock("../../../../../lib/auth/org-context.server", () => ({
 }));
 
 vi.mock("../../../../../lib/storage", () => ({
-  uploadToB2: vi.fn((key: string, buffer: Buffer, mimeType: string) =>
+  uploadToS3: vi.fn((key: string) =>
     Promise.resolve({
       cdnUrl: `https://cdn.example.com/${key}`,
       key,
@@ -56,15 +56,15 @@ describe("Gallery Upload Route", () => {
     vi.clearAllMocks();
 
     // Reset mock implementations that may have been changed by previous tests
-    const { isValidImageType, uploadToB2, getS3Client } = await import("../../../../../lib/storage");
+    const { isValidImageType, uploadToS3, getS3Client } = await import("../../../../../lib/storage");
     vi.mocked(isValidImageType).mockImplementation((type: string) => type.startsWith("image/"));
-    vi.mocked(uploadToB2).mockImplementation((key: string, buffer: Buffer, mimeType: string) =>
+    vi.mocked(uploadToS3).mockImplementation((key: string) =>
       Promise.resolve({
         cdnUrl: `https://cdn.example.com/${key}`,
         key,
       })
     );
-    vi.mocked(getS3Client).mockReturnValue({ config: {} } as any);
+    vi.mocked(getS3Client).mockReturnValue({ config: {} } as unknown);
   });
 
   it("should upload gallery image successfully", async () => {
@@ -84,7 +84,7 @@ describe("Gallery Upload Route", () => {
       body: formData,
     });
 
-    const response = await action({ request, params: {}, context: {} } as any);
+    const response = await action({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     const location = response.headers.get("Location");
@@ -101,7 +101,7 @@ describe("Gallery Upload Route", () => {
       body: formData,
     });
 
-    const response = await action({ request, params: {}, context: {} } as any);
+    const response = await action({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     const location = response.headers.get("Location");
@@ -125,7 +125,7 @@ describe("Gallery Upload Route", () => {
       body: formData,
     });
 
-    const response = await action({ request, params: {}, context: {} } as any);
+    const response = await action({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     const location = response.headers.get("Location");
@@ -151,7 +151,7 @@ describe("Gallery Upload Route", () => {
       body: formData,
     });
 
-    const response = await action({ request, params: {}, context: {} } as any);
+    const response = await action({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302); // Redirect
     const location = response.headers.get("Location");
@@ -175,7 +175,7 @@ describe("Gallery Upload Route", () => {
       body: formData,
     });
 
-    await action({ request, params: {}, context: {} } as any);
+    await action({ request, params: {}, context: {} } as unknown);
 
     expect(createGalleryImage).toHaveBeenCalledWith(
       "test-org-id",
@@ -201,7 +201,7 @@ describe("Gallery Upload Route", () => {
       body: formData,
     });
 
-    const response = await action({ request, params: {}, context: {} } as any);
+    const response = await action({ request, params: {}, context: {} } as unknown);
 
     expect(response.status).toBe(302);
     const location = response.headers.get("Location");

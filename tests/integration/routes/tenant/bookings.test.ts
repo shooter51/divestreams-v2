@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
-import { getRedirectPathname } from "../../../helpers/redirect";
 import { loader } from "../../../../app/routes/tenant/bookings/index";
 
 // Mock the org-context module

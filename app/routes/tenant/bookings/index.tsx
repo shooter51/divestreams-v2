@@ -3,7 +3,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
-import { eq, or, ilike, sql, count, and, gte } from "drizzle-orm";
+import { eq, sql, count, and, gte } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";

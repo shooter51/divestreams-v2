@@ -65,10 +65,14 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
+    // Build full redirectTo URL from request to preserve tenant subdomain
+    const url = new URL(request.url);
+    const redirectTo = `${url.protocol}//${url.host}/auth/reset-password`;
+
     await auth.api.requestPasswordReset({
-      body: { email, redirectTo: "/auth/reset-password" },
+      body: { email, redirectTo },
     });
-  } catch (error) {
+  } catch {
     // Don't reveal if email exists - always show success
   }
 

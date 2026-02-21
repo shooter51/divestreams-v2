@@ -16,8 +16,6 @@ import {
   zapierWebhookDeliveryLog,
   zapierApiKeys,
   type ZapierWebhookSubscription,
-  type NewZapierWebhookSubscription,
-  type ZapierApiKey,
 } from "../db/schema/zapier";
 import { Queue, type ConnectionOptions } from "bullmq";
 import Redis from "ioredis";

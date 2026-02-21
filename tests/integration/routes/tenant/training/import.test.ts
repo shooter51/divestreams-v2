@@ -79,7 +79,7 @@ describe("tenant/training/import route", () => {
       (getAvailableAgencies as Mock).mockResolvedValue([]);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/import");
-      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });
@@ -92,7 +92,7 @@ describe("tenant/training/import route", () => {
       (getAvailableAgencies as Mock).mockResolvedValue(mockAgencies);
 
       const request = new Request("https://demo.divestreams.com/tenant/training/import");
-      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.agencies).toEqual(mockAgencies);
       expect(getAvailableAgencies).toHaveBeenCalled();
@@ -111,7 +111,7 @@ describe("tenant/training/import route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.error).toBeDefined();
         expect(result.fieldErrors?.agency).toBeDefined();
@@ -146,7 +146,7 @@ describe("tenant/training/import route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.success).toBe(true);
         expect(result.step).toBe("select-courses");
@@ -168,7 +168,7 @@ describe("tenant/training/import route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.error).toBeDefined();
         expect(result.error).toContain("Unknown Agency");
@@ -187,7 +187,7 @@ describe("tenant/training/import route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.error).toBeDefined();
         expect(result.fieldErrors?.courses).toBeDefined();
@@ -210,7 +210,7 @@ describe("tenant/training/import route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.success).toBe(true);
         expect(result.step).toBe("preview");
@@ -259,7 +259,7 @@ describe("tenant/training/import route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.success).toBe(true);
         expect(result.step).toBe("complete");
@@ -293,7 +293,7 @@ describe("tenant/training/import route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.error).toBeDefined();
         expect(result.detailedErrors).toHaveLength(1);
@@ -309,7 +309,7 @@ describe("tenant/training/import route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.error).toBeDefined();
       });
@@ -324,7 +324,7 @@ describe("tenant/training/import route", () => {
           method: "POST",
           body: formData,
         });
-        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
         expect(result.error).toBeDefined();
         expect(result.error).toContain("No CSV file");

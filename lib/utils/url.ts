@@ -14,8 +14,6 @@
  * This ensures we never accidentally use localhost in production builds
  */
 const PRODUCTION_URL = "https://divestreams.com";
-const STAGING_URL = "https://staging.divestreams.com";
-
 /** Known environment subdomains that are NOT tenant names */
 const ENV_SUBDOMAINS = ["dev", "test", "staging"];
 
@@ -67,7 +65,7 @@ function getBaseUrl(): string {
  *   staging.divestreams.com         → { protocol: "https:", baseDomain: "staging.divestreams.com" }
  *   demo.staging.divestreams.com    → { protocol: "https:", baseDomain: "staging.divestreams.com" }
  *   test.divestreams.com            → { protocol: "https:", baseDomain: "test.divestreams.com" }
- *   default.dev.divestreams.com     → { protocol: "https:", baseDomain: "dev.divestreams.com" }
+ *   demo.dev.divestreams.com        → { protocol: "https:", baseDomain: "dev.divestreams.com" }
  *   localhost:5173                  → { protocol: "https:", baseDomain: "localhost:5173" }
  *   demo.localhost:5173             → { protocol: "https:", baseDomain: "localhost:5173" }
  */

@@ -7,7 +7,7 @@ import { hashPassword } from "../../../lib/auth/password.server";
 import { db } from "../../../lib/db";
 import { user, account, member, organization } from "../../../lib/db/schema/auth";
 import { customers } from "../../../lib/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
 import { CsrfTokenInput } from "../../components/CsrfInput";

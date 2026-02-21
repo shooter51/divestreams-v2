@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { action } from "../../../../../app/routes/tenant/images/upload";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as tenantServer from "../../../../../lib/db/tenant.server";
@@ -11,7 +10,6 @@ vi.mock("../../../../../lib/db/tenant.server");
 vi.mock("../../../../../lib/storage");
 
 describe("app/routes/tenant/images/upload.tsx", () => {
-  const mockTenant = { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,7 +19,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("action", () => {
@@ -173,7 +171,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
@@ -203,7 +201,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       });
       vi.mocked(storage.getImageKey).mockReturnValue("test/tour/123/test.jpg");
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
-      vi.mocked(storage.uploadToB2).mockResolvedValue(null); // Upload failed
+      vi.mocked(storage.uploadToS3).mockResolvedValue(null); // Upload failed
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
@@ -213,7 +211,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
@@ -244,7 +242,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       });
       vi.mocked(storage.getImageKey).mockReturnValue("test/tour/123/test.jpg");
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
-      vi.mocked(storage.uploadToB2).mockResolvedValue({
+      vi.mocked(storage.uploadToS3).mockResolvedValue({
         cdnUrl: "https://cdn.divestreams.com/test/tour/123/test.webp",
         b2Url: "https://s3.backblazeb2.com/test/tour/123/test.webp",
       });
@@ -277,7 +275,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
           insert: vi.fn().mockReturnValue(mockInsertBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
@@ -287,7 +285,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       const result = await action({ request, params: {}, context: {} });
 
       expect(storage.processImage).toHaveBeenCalled();
-      expect(storage.uploadToB2).toHaveBeenCalledTimes(2); // Original + thumbnail
+      expect(storage.uploadToS3).toHaveBeenCalledTimes(2); // Original + thumbnail
 
       expect(result.status).toBe(200);
       const json = await result.json();
@@ -312,7 +310,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       });
       vi.mocked(storage.getImageKey).mockReturnValue("test/tour/123/test.jpg");
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
-      vi.mocked(storage.uploadToB2).mockResolvedValue({
+      vi.mocked(storage.uploadToS3).mockResolvedValue({
         cdnUrl: "https://cdn.divestreams.com/test/tour/123/test.webp",
         b2Url: "https://s3.backblazeb2.com/test/tour/123/test.webp",
       });
@@ -348,7 +346,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
           insert: vi.fn().mockReturnValue(mockInsertBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",
@@ -376,7 +374,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       });
       vi.mocked(storage.getImageKey).mockReturnValue("test/tour/123/test.jpg");
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
-      vi.mocked(storage.uploadToB2).mockResolvedValue({
+      vi.mocked(storage.uploadToS3).mockResolvedValue({
         cdnUrl: "https://cdn.divestreams.com/test/tour/123/test.webp",
         b2Url: "https://s3.backblazeb2.com/test/tour/123/test.webp",
       });
@@ -412,7 +410,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
           insert: vi.fn().mockReturnValue(mockInsertBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/images/upload", {
         method: "POST",

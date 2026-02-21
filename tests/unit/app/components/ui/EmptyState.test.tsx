@@ -58,7 +58,6 @@ describe("EmptyState Component", () => {
 
     it("does not render description paragraph when not provided", () => {
       render(<EmptyState title="No description" />);
-      const paragraphs = screen.queryAllByText(/./);
       // Only the title text should be present, no description paragraph
       expect(screen.queryByText("This is the description")).not.toBeInTheDocument();
     });

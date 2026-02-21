@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
+import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createEquipment } from "../../../../lib/db/queries.server";

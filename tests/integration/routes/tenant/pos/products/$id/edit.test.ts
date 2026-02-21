@@ -32,7 +32,7 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
 
     // Mock getTenantDb for loader (which fetches product images)
     const mockSelectBuilder = {
@@ -58,12 +58,12 @@ describe("app/routes/tenant/pos/products/$id/edit.tsx", () => {
           entityId: "entity_id",
         },
       },
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
     it("should fetch product", async () => {
-      vi.mocked(queries.getProductById).mockResolvedValue(mockProduct as any);
+      vi.mocked(queries.getProductById).mockResolvedValue(mockProduct as unknown);
 
       const request = new Request(`http://test.com/tenant/pos/products/${mockProductId}/edit`);
       const result = await loader({ request, params: { id: mockProductId }, context: {} });

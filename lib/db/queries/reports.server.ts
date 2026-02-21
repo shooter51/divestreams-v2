@@ -161,7 +161,8 @@ export async function getTeamMemberCount(organizationId: string) {
 // Billing Queries
 // ============================================================================
 
-export async function getBillingHistory(organizationId: string, limit = 10) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getBillingHistory(_organizationId: string, _limit = 10) {
   // For now return empty - billing is handled by Stripe
   return [];
 }
@@ -176,7 +177,8 @@ export async function getBillingHistory(organizationId: string, limit = 10) {
  */
 export async function getStaff(
   organizationId: string,
-  options: { activeOnly?: boolean } = {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _options: { activeOnly?: boolean } = {}
 ) {
   const members = await db
     .select({

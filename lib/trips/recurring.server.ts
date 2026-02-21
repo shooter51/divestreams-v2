@@ -77,12 +77,6 @@ function isDateBefore(date1: string, date2: string): boolean {
   return date1 <= date2;
 }
 
-/**
- * Check if date1 is after date2
- */
-function isDateAfter(date1: string, date2: string): boolean {
-  return date1 > date2;
-}
 
 // ============================================================================
 // Core Functions
@@ -148,8 +142,6 @@ export function calculateOccurrences(
           // For biweekly with specific days, we need to track week parity
           const startWeek = Math.floor(new Date(startDate + "T00:00:00").getTime() / (7 * 24 * 60 * 60 * 1000));
           const currentWeek = Math.floor(new Date(currentDate + "T00:00:00").getTime() / (7 * 24 * 60 * 60 * 1000));
-          const isCorrectWeek = (currentWeek - startWeek) % 2 === 0;
-
           currentDate = addDays(currentDate, 1);
 
           // If we just moved to a new week, check if it's a biweekly week
@@ -403,7 +395,7 @@ export async function updateRecurringTrip(
   const today = new Date().toISOString().split("T")[0];
 
   // Build update object
-  const updateData: any = { updatedAt: new Date() };
+  const updateData: Record<string, unknown> = { updatedAt: new Date() };
   if (updates.tourId !== undefined) updateData.tourId = updates.tourId;
   if (updates.boatId !== undefined) updateData.boatId = updates.boatId;
   if (updates.startTime !== undefined) updateData.startTime = updates.startTime;
@@ -432,7 +424,7 @@ export async function updateRecurringTrip(
   // Update future instances if requested
   if (updateFutureInstances) {
     // Only update fields that make sense for instances (not recurrence settings)
-    const instanceUpdateData: any = { updatedAt: new Date() };
+    const instanceUpdateData: Record<string, unknown> = { updatedAt: new Date() };
     if (updates.tourId !== undefined) instanceUpdateData.tourId = updates.tourId;
     if (updates.boatId !== undefined) instanceUpdateData.boatId = updates.boatId;
     if (updates.startTime !== undefined) instanceUpdateData.startTime = updates.startTime;
@@ -443,7 +435,7 @@ export async function updateRecurringTrip(
     if (updates.staffIds !== undefined) instanceUpdateData.staffIds = updates.staffIds;
     if (updates.weatherNotes !== undefined) instanceUpdateData.weatherNotes = updates.weatherNotes;
 
-    const result = await db
+    await db
       .update(trips)
       .set(instanceUpdateData)
       .where(and(

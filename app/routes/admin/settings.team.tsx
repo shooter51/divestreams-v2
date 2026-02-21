@@ -6,7 +6,7 @@ import { db } from "../../../lib/db";
 import { member, user, invitation, organization } from "../../../lib/db/schema/auth";
 import { eq, and, desc } from "drizzle-orm";
 import { sendEmail } from "../../../lib/email";
-import { getAppUrl, getAdminUrl } from "../../../lib/utils/url";
+import { getAdminUrl } from "../../../lib/utils/url";
 import { resetUserPassword, type ResetPasswordParams } from "../../../lib/auth/admin-password-reset.server";
 import { ResetPasswordModal } from "../../components/settings/ResetPasswordModal";
 

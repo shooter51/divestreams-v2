@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { Mock } from "vitest";
 
 /**
  * Unit Tests for Tenant Password Change Route (KAN-613)
@@ -9,13 +8,11 @@ import type { Mock } from "vitest";
  */
 
 // Mock react-router redirect
-let redirectUrl: string | null = null;
 vi.mock("react-router", async () => {
   const actual = await vi.importActual("react-router");
   return {
     ...actual,
     redirect: (url: string) => {
-      redirectUrl = url;
       throw new Response(null, {
         status: 302,
         headers: { Location: url },
@@ -67,6 +64,8 @@ vi.mock("drizzle-orm", () => ({
 
 import { action } from "../../../../../app/routes/tenant/settings/password";
 
+let redirectUrl: string | null = null;
+
 const mockOrgContext = {
   user: { id: "user-123", email: "staff@example.com", name: "Staff Member" },
   session: { id: "session-123" },
@@ -75,7 +74,7 @@ const mockOrgContext = {
 };
 
 const makeArgs = (request: Request) =>
-  ({ request, params: {}, context: {}, unstable_pattern: "" }) as any;
+  ({ request, params: {}, context: {}, unstable_pattern: "" }) as unknown;
 
 function makeFormRequest(
   fields: Record<string, string>,
@@ -445,7 +444,7 @@ describe("Password Change Route - User Profile Action", () => {
 
       const result = await action(makeArgs(request));
       expect(result).toHaveProperty("error");
-      expect(typeof (result as any).error).toBe("string");
+      expect(typeof (result as unknown).error).toBe("string");
     });
 
     it("validation error does not include sensitive data", async () => {

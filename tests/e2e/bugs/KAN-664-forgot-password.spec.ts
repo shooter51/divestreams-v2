@@ -38,7 +38,7 @@ test.describe("KAN-664: Forgot Password 404 Fix @bug", () => {
   let page: ForgotPasswordTestPage;
 
   test.beforeEach(async ({ page: p }) => {
-    page = new ForgotPasswordTestPage(p, "e2etest");
+    page = new ForgotPasswordTestPage(p, "demo");
   });
 
   test.describe("Tenant forgot-password route", () => {
@@ -158,8 +158,11 @@ test.describe("KAN-664: Forgot Password 404 Fix @bug", () => {
         await forgotLink.click();
         await p.waitForLoadState("load");
 
-        const pageContent = await p.content();
-        expect(pageContent).not.toContain("404");
+        // Should navigate to forgot-password page, not a 404
+        expect(p.url()).toContain("forgot-password");
+        // Should show the forgot password form (email input)
+        const hasEmailInput = await p.getByRole("textbox", { name: /email/i }).isVisible({ timeout: 5000 }).catch(() => false);
+        expect(hasEmailInput).toBeTruthy();
       }
     });
   });

@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { action } from "../../../../../app/routes/tenant/images/delete";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as tenantServer from "../../../../../lib/db/tenant.server";
@@ -11,7 +10,6 @@ vi.mock("../../../../../lib/db/tenant.server");
 vi.mock("../../../../../lib/storage");
 
 describe("app/routes/tenant/images/delete.tsx", () => {
-  const mockTenant = { id: "tenant-123", subdomain: "test", name: "Test Org", createdAt: new Date() };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,7 +19,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("action", () => {
@@ -61,7 +59,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
       vi.mocked(tenantServer.getTenantDb).mockReturnValue({
         db: { select: vi.fn().mockReturnValue(mockSelectBuilder) },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
       const formData = new FormData();
       formData.append("imageId", "nonexistent");
@@ -103,9 +101,9 @@ describe("app/routes/tenant/images/delete.tsx", () => {
           delete: vi.fn().mockReturnValue(mockDeleteBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
-      vi.mocked(storage.deleteFromB2).mockResolvedValue(undefined);
+      vi.mocked(storage.deleteFromS3).mockResolvedValue(undefined);
 
       const formData = new FormData();
       formData.append("imageId", "img-123");
@@ -117,7 +115,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
 
       const result = await action({ request, params: {}, context: {} });
 
-      expect(storage.deleteFromB2).toHaveBeenCalledTimes(2); // Original + thumbnail
+      expect(storage.deleteFromS3).toHaveBeenCalledTimes(2); // Original + thumbnail
       expect(result.status).toBe(200);
       const json = await result.json();
       expect(json.success).toBe(true);
@@ -174,9 +172,9 @@ describe("app/routes/tenant/images/delete.tsx", () => {
           update: vi.fn().mockReturnValue(mockUpdateBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
-      vi.mocked(storage.deleteFromB2).mockResolvedValue(undefined);
+      vi.mocked(storage.deleteFromS3).mockResolvedValue(undefined);
 
       const formData = new FormData();
       formData.append("imageId", "img-123");
@@ -218,9 +216,9 @@ describe("app/routes/tenant/images/delete.tsx", () => {
           delete: vi.fn().mockReturnValue(mockDeleteBuilder),
         },
         schema: { images: {} },
-      } as any);
+      } as unknown);
 
-      vi.mocked(storage.deleteFromB2).mockResolvedValue(undefined);
+      vi.mocked(storage.deleteFromS3).mockResolvedValue(undefined);
 
       const formData = new FormData();
       formData.append("imageId", "img-123");

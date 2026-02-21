@@ -26,7 +26,7 @@ describe("admin/layout loader", () => {
         request: new Request("https://demo.divestreams.com/dashboard"),
         params: {},
         context: {},
-      } as any)
+      } as unknown)
     ).rejects.toEqual(expect.objectContaining({ status: 302 }));
   });
 
@@ -42,7 +42,7 @@ describe("admin/layout loader", () => {
       request: new Request("https://admin.divestreams.com/dashboard"),
       params: {},
       context: {},
-    } as any);
+    } as unknown);
 
     expect(result.user).toEqual({ name: "Admin", email: "admin@test.com" });
     expect(result.isOwner).toBe(true);

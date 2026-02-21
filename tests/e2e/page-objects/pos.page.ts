@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type Locator } from "@playwright/test";
 import { TenantBasePage } from "./base.page";
 
 /**
@@ -445,7 +445,7 @@ export class POSPage extends TenantBasePage {
 
   async waitForCartUpdate(): Promise<void> {
     // Wait for any pending network requests to complete
-    await this.page.waitForLoadState("networkidle").catch(() => {
+    await this.page.waitForLoadState("load").catch(() => {
       // Network idle may not be reached in some cases, fall back to domcontentloaded
     });
     await this.page.waitForLoadState("domcontentloaded");

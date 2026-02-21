@@ -1,7 +1,6 @@
-import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { eq, sql } from "drizzle-orm";
-import { db, migrationDb } from "./index";
+import { eq } from "drizzle-orm";
+import { db } from "./index";
 import { tenants, subscriptionPlans, type Tenant } from "./schema";
 import { organization } from "./schema/auth";
 import { subscription } from "./schema/subscription";
@@ -26,6 +25,7 @@ export async function getTenantById(id: string): Promise<Tenant | null> {
 // Note: With the new organization-based architecture, all tenants share the same schema
 // The schemaName parameter is kept for backwards compatibility but queries should
 // filter by organizationId instead of using separate schemas
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getTenantDb(_schemaName: string) {
   // Return the shared schema - organization filtering is done at query level
   return {
@@ -91,26 +91,26 @@ export async function createTenant(data: {
       updatedAt: new Date(),
     });
 
-    // Look up the free plan to get its ID
-    const [freePlan] = await db
+    // Look up the standard plan to get its ID
+    const [standardPlan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "free"))
+      .where(eq(subscriptionPlans.name, "standard"))
       .limit(1);
 
-    if (!freePlan) {
+    if (!standardPlan) {
       console.warn(
-        `No "free" subscription plan found in subscriptionPlans table. ` +
+        `No "standard" subscription plan found in subscriptionPlans table. ` +
         `New tenant "${data.subdomain}" will have planId=null. ` +
-        `Ensure the "free" plan is seeded in the database.`
+        `Ensure the "standard" plan is seeded in the database.`
       );
     }
 
     // Create subscription record for the organization
     await db.insert(subscription).values({
       organizationId: orgId,
-      plan: "free",
-      planId: freePlan?.id ?? null,
+      plan: "standard",
+      planId: standardPlan?.id ?? null,
       status: "trialing",
       createdAt: new Date(),
       updatedAt: new Date(),

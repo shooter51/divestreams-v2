@@ -10,7 +10,8 @@ import { auth } from "../../lib/auth";
 import { seedDemoData } from "../../lib/db/seed-demo-data.server";
 import { DEFAULT_PLAN_FEATURES, DEFAULT_PLAN_LIMITS } from "../../lib/plan-features";
 
-async function globalSetup(config: FullConfig) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function globalSetup(_config: FullConfig) {
   // Load .env file
   const envPath = path.join(process.cwd(), ".env");
   dotenv.config({ path: envPath });
@@ -96,7 +97,7 @@ async function globalSetup(config: FullConfig) {
           .where(eq(user.id, demoUserId));
 
         console.log("✓ Demo owner user created");
-      } catch (error) {
+      } catch {
         // Race condition: user may have been created by another worker between check and create
         console.log("User creation conflict detected, re-querying...");
         const [newUser] = await db
@@ -165,46 +166,46 @@ async function globalSetup(config: FullConfig) {
       }
     }
 
-    // Upgrade demo org to ENTERPRISE plan for full feature access in E2E tests
+    // Upgrade demo org to PRO plan for full feature access in E2E tests
     // This ensures all features (POS, Training, Public Site, Equipment) are accessible
     // without hitting feature gate redirects during test execution
     console.log("Checking demo organization subscription plan...");
 
-    const [enterprisePlan] = await db
+    const [proPlan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "enterprise"))
+      .where(eq(subscriptionPlans.name, "pro"))
       .limit(1);
 
-    if (!enterprisePlan) {
+    if (!proPlan) {
       throw new Error(
-        "❌ SETUP FAILED: Enterprise subscription plan not found in database.\n" +
+        "❌ SETUP FAILED: Pro subscription plan not found in database.\n" +
         "   This will cause 40+ E2E test failures due to feature gate restrictions.\n" +
         "   Fix: Run 'npm run db:seed' or 'tsx scripts/seed.ts' to populate subscription_plans table."
       );
     }
 
-    // Fix enterprise plan features: DB may have legacy string[] format (marketing text)
+    // Fix pro plan features: DB may have legacy string[] format (marketing text)
     // but the app expects PlanFeaturesObject (boolean flags). Without this fix,
-    // the app falls back to DEFAULT_PLAN_FEATURES.free and shows all features as locked.
-    const planFeatures = enterprisePlan.features;
+    // the app falls back to DEFAULT_PLAN_FEATURES.standard and shows all features as locked.
+    const planFeatures = proPlan.features;
     if (Array.isArray(planFeatures) || !planFeatures || typeof planFeatures !== "object") {
-      console.log("Fixing enterprise plan features format (legacy string[] → boolean flags)...");
+      console.log("Fixing pro plan features format (legacy string[] → boolean flags)...");
       await db
         .update(subscriptionPlans)
         .set({
-          features: DEFAULT_PLAN_FEATURES.enterprise,
-          limits: DEFAULT_PLAN_LIMITS.enterprise,
+          features: DEFAULT_PLAN_FEATURES.pro,
+          limits: DEFAULT_PLAN_LIMITS.pro,
         })
-        .where(eq(subscriptionPlans.id, enterprisePlan.id));
-      console.log("✓ Enterprise plan features updated to boolean flags format");
+        .where(eq(subscriptionPlans.id, proPlan.id));
+      console.log("✓ Pro plan features updated to boolean flags format");
     }
 
     // Also fix all other plans in case they have the same issue
     const allPlans = await db.select().from(subscriptionPlans);
     for (const plan of allPlans) {
       const planName = plan.name.toLowerCase();
-      if (planName !== "enterprise" && DEFAULT_PLAN_FEATURES[planName]) {
+      if (planName !== "pro" && DEFAULT_PLAN_FEATURES[planName]) {
         const pf = plan.features;
         if (Array.isArray(pf) || !pf || typeof pf !== "object") {
           console.log(`Fixing ${plan.name} plan features format...`);
@@ -222,17 +223,81 @@ async function globalSetup(config: FullConfig) {
     await db
       .update(subscription)
       .set({
-        plan: "enterprise",
-        planId: enterprisePlan.id,
+        plan: "pro",
+        planId: proPlan.id,
         status: "active",
       })
       .where(eq(subscription.organizationId, demoOrg.id));
 
+    // Create dedicated E2E test user (separate from owner, with form-compliant password)
+    // This matches the user created by bootstrap on remote environments via signup form
+    const e2eTesterEmail = "e2e-tester@demo.com";
+    const [existingTester] = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, e2eTesterEmail))
+      .limit(1);
+
+    if (!existingTester) {
+      console.log("Creating E2E tester user...");
+      try {
+        const testerResult = await auth.api.signUpEmail({
+          body: {
+            email: e2eTesterEmail,
+            password: "DemoPass1234",
+            name: "E2E Test User",
+          },
+        });
+
+        if (testerResult.user) {
+          await db
+            .update(user)
+            .set({ emailVerified: true })
+            .where(eq(user.id, testerResult.user.id));
+
+          // Add as member of demo org
+          await db.insert(member).values({
+            id: crypto.randomUUID(),
+            organizationId: demoOrg.id,
+            userId: testerResult.user.id,
+            role: "owner",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+          console.log("✓ E2E tester user created");
+        }
+      } catch {
+        console.log("E2E tester user already exists or conflict — OK");
+      }
+    } else {
+      // Ensure member relationship exists
+      const [testerMember] = await db
+        .select()
+        .from(member)
+        .where(and(
+          eq(member.userId, existingTester.id),
+          eq(member.organizationId, demoOrg.id)
+        ))
+        .limit(1);
+
+      if (!testerMember) {
+        await db.insert(member).values({
+          id: crypto.randomUUID(),
+          organizationId: demoOrg.id,
+          userId: existingTester.id,
+          role: "owner",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+      console.log("✓ E2E tester user already exists");
+    }
+
     console.log("✓ Demo environment ready for E2E tests");
-    console.log("  - Organization: demo.localhost:5173");
-    console.log("  - Email: owner@demo.com");
-    console.log("  - Password: demo1234");
-    console.log("  - Plan: ENTERPRISE (all features enabled)");
+    console.log(`  - Organization: demo.${(process.env.BASE_URL || "http://localhost:5173").replace(/^https?:\/\//, "")}`);
+    console.log("  - Owner: owner@demo.com / demo1234");
+    console.log("  - E2E Tester: e2e-tester@demo.com / DemoPass1234");
+    console.log("  - Plan: PRO (all features enabled)");
 
     // =====================================================
     // Create PLATFORM organization and admin for E2E tests
@@ -313,7 +378,7 @@ async function globalSetup(config: FullConfig) {
           .where(eq(user.id, platformAdminUserId));
 
         console.log("✓ Platform admin user created");
-      } catch (error) {
+      } catch {
         // Race condition handling
         console.log("Admin user creation conflict detected, re-querying...");
         const [newAdmin] = await db
@@ -373,7 +438,7 @@ async function globalSetup(config: FullConfig) {
     }
 
     console.log("✓ Platform admin environment ready for E2E tests");
-    console.log("  - Admin URL: admin.localhost:5173");
+    console.log(`  - Admin URL: admin.${(process.env.BASE_URL || "http://localhost:5173").replace(/^https?:\/\//, "")}`);
     console.log("  - Email: " + platformAdminEmail);
     console.log("  - Password: " + platformAdminPassword);
 
@@ -477,7 +542,7 @@ async function globalSetup(config: FullConfig) {
           .where(eq(user.id, e2eUserId));
 
         console.log("✓ E2E test user created");
-      } catch (error) {
+      } catch {
         console.log("E2E user creation conflict detected, re-querying...");
         const [newUser] = await db
           .select()
@@ -545,9 +610,8 @@ async function globalSetup(config: FullConfig) {
       }
     }
 
-    // Upgrade e2etest org to ENTERPRISE plan for full feature access
-    // PRO plan doesn't include Boats, Equipment, Products, Discounts, Training, Gallery
-    if (enterprisePlan) {
+    // Upgrade e2etest org to PRO plan for full feature access
+    if (proPlan) {
       // Check if subscription exists
       const [existingSub] = await db
         .select()
@@ -559,24 +623,24 @@ async function globalSetup(config: FullConfig) {
         await db
           .update(subscription)
           .set({
-            plan: "enterprise",
-            planId: enterprisePlan.id,
+            plan: "pro",
+            planId: proPlan.id,
             status: "active",
           })
           .where(eq(subscription.organizationId, e2eOrg.id));
       } else {
         await db.insert(subscription).values({
           organizationId: e2eOrg.id,
-          plan: "enterprise",
-          planId: enterprisePlan.id,
+          plan: "pro",
+          planId: proPlan.id,
           status: "active",
           createdAt: new Date(),
           updatedAt: new Date(),
         });
       }
-      console.log("✓ E2E test organization upgraded to ENTERPRISE plan");
+      console.log("✓ E2E test organization upgraded to PRO plan");
     } else {
-      console.warn("⚠️  Enterprise plan not found - e2etest org will use default plan");
+      console.warn("⚠️  Pro plan not found - e2etest org will use default plan");
     }
 
     // Seed training agencies for e2etest org
@@ -589,10 +653,10 @@ async function globalSetup(config: FullConfig) {
     }
 
     console.log("\n✓ E2E test environment ready for workflow tests");
-    console.log("  - Organization: e2etest.localhost:5173");
+    console.log(`  - Organization: e2etest.${(process.env.BASE_URL || "http://localhost:5173").replace(/^https?:\/\//, "")}`);
     console.log("  - Email: " + e2eUserEmail);
     console.log("  - Password: " + e2eUserPassword);
-    console.log("  - Plan: ENTERPRISE (all features enabled)");
+    console.log("  - Plan: PRO (all features enabled)");
 
   } catch (error) {
     console.error("Global setup failed:", error);

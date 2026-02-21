@@ -21,7 +21,7 @@ vi.mock("react-router", () => ({
 }));
 
 vi.mock("../../../../../app/components/ui/Button", () => ({
-  Button: ({ children, onClick, loading, type, ...rest }: any) => (
+  Button: ({ children, onClick, loading, type, ...rest }: Record<string, unknown>) => (
     <button type={type || "button"} onClick={onClick} disabled={loading} {...rest}>
       {children}
     </button>

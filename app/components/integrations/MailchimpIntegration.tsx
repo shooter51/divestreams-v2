@@ -11,7 +11,6 @@ interface MailchimpIntegrationProps {
 }
 
 export function MailchimpIntegration({
-  mailchimpSettings,
   onNotification,
 }: MailchimpIntegrationProps) {
   const fetcher = useFetcher();

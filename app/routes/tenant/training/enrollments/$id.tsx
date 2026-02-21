@@ -1,5 +1,5 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, Link, useFetcher, useNavigate, redirect } from "react-router";
+import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { useState } from "react";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import {
@@ -183,12 +183,6 @@ const statusColors: Record<string, string> = {
   failed: "bg-danger-muted text-danger",
 };
 
-const paymentStatusColors: Record<string, string> = {
-  pending: "bg-warning-muted text-warning",
-  partial: "bg-warning-muted text-warning",
-  paid: "bg-success-muted text-success",
-  refunded: "bg-surface-inset text-foreground-muted",
-};
 
 export default function EnrollmentDetailPage() {
   useNotification();
@@ -197,7 +191,6 @@ export default function EnrollmentDetailPage() {
   const fetcher = useFetcher<{
     error?: string;
   }>();
-  const navigate = useNavigate();
   const [showSkillModal, setShowSkillModal] = useState(false);
   const [showCertModal, setShowCertModal] = useState(false);
 

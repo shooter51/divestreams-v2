@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader, action } from "../../../../../app/routes/tenant/equipment/index";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
@@ -36,7 +35,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100, hasEquipmentRentals: true },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -82,7 +81,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
+        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as unknown;
       });
 
       const request = new Request("http://test.com/tenant/equipment");
@@ -125,7 +124,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
+        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as unknown;
       });
 
       const request = new Request("http://test.com/tenant/equipment?q=aqualung");
@@ -165,7 +164,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
+        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as unknown;
       });
 
       const request = new Request("http://test.com/tenant/equipment?category=bcd");
@@ -205,7 +204,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
+        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as unknown;
       });
 
       const request = new Request("http://test.com/tenant/equipment?status=maintenance");
@@ -240,7 +239,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
+        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as unknown;
       });
 
       const request = new Request("http://test.com/tenant/equipment");
@@ -255,7 +254,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
     });
 
     it("should return freemium rental flags", async () => {
-      const mockEquipment: any[] = [];
+      const mockEquipment: unknown[] = [];
 
       // First query: filtered equipment with orderBy
       const mockFilteredBuilder = {
@@ -273,7 +272,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
       let selectCallCount = 0;
       vi.mocked(db.select).mockImplementation(() => {
         selectCallCount++;
-        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as any;
+        return (selectCallCount === 1 ? mockFilteredBuilder : mockAllBuilder) as unknown;
       });
 
       vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
@@ -282,7 +281,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
         usage: { customers: 0 },
         limits: { customers: 10, hasEquipmentRentals: false },
         isPremium: false,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/equipment");
       const result = await loader({ request, params: {}, context: {} });
@@ -306,7 +305,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
         limit: vi.fn().mockResolvedValue([mockEquipment]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const formData = new FormData();
       formData.append("intent", "barcode-lookup");
@@ -333,7 +332,7 @@ describe("app/routes/tenant/equipment/index.tsx", () => {
         limit: vi.fn().mockResolvedValue([]),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const formData = new FormData();
       formData.append("intent", "barcode-lookup");

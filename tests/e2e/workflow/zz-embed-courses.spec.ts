@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/subdomain-page";
-import type { Page } from "@playwright/test";
+import { getEmbedUrl as _getEmbedUrl } from "../helpers/urls";
 
 /**
  * Embed Courses Widget E2E Tests - DiveStreams
@@ -60,7 +60,7 @@ const testData = {
  * Get embed widget URL
  */
 const getEmbedUrl = (path: string = "/courses") =>
-  `http://localhost:5173/embed/${testData.tenant.subdomain}${path}`;
+  _getEmbedUrl(testData.tenant.subdomain, path);
 
 /**
  * Extract course ID from URL
@@ -258,7 +258,7 @@ test.describe.serial("Block B: Course Detail", () => {
       // Store session ID from href for later tests
       const href = await enrollButton.getAttribute("href");
       if (href) {
-        const sessionId = extractSessionId(`http://localhost${href}`);
+        const sessionId = extractSessionId(new URL(href, page.url()).toString());
         testData.createdIds.sessionId = sessionId;
       }
     } else {
@@ -443,7 +443,7 @@ test.describe.serial("Block C: Enrollment Form", () => {
     // Submit form
     const submitButton = page.getByRole("button", { name: /enroll/i });
     await submitButton.click();
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Should redirect to confirmation page
     const redirectedToConfirm = page.url().includes("/confirm");

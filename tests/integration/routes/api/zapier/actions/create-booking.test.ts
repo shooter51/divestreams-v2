@@ -42,7 +42,7 @@ describe("api/zapier/actions/create-booking route", () => {
       const request = new Request("https://divestreams.com/api/zapier/actions/create-booking", {
         method: "GET",
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(405);
 
@@ -59,7 +59,7 @@ describe("api/zapier/actions/create-booking route", () => {
           participants: 2,
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -79,7 +79,7 @@ describe("api/zapier/actions/create-booking route", () => {
           participants: 2,
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(401);
 
@@ -98,7 +98,7 @@ describe("api/zapier/actions/create-booking route", () => {
           participants: 2,
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(400);
 
@@ -117,7 +117,7 @@ describe("api/zapier/actions/create-booking route", () => {
           participants: 2,
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(400);
 
@@ -136,7 +136,7 @@ describe("api/zapier/actions/create-booking route", () => {
           customer_email: "test@example.com",
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(400);
 
@@ -182,7 +182,7 @@ describe("api/zapier/actions/create-booking route", () => {
           participants: 2,
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(404);
 
@@ -252,7 +252,7 @@ describe("api/zapier/actions/create-booking route", () => {
           notes: "Test booking",
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(200);
 
@@ -339,7 +339,7 @@ describe("api/zapier/actions/create-booking route", () => {
           participants: 3,
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(200);
 
@@ -390,7 +390,7 @@ describe("api/zapier/actions/create-booking route", () => {
           participants: 2,
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(403);
 
@@ -455,7 +455,7 @@ describe("api/zapier/actions/create-booking route", () => {
           participants: 1,
         }),
       });
-      const response = await action({ request, params: {}, context: {} } as any);
+      const response = await action({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
       expect(data.booking_number).toBe("BK-booking-");

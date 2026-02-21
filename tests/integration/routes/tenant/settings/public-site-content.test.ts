@@ -56,7 +56,7 @@ describe("tenant/settings/public-site.content route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toEqual({ success: true, message: "Content settings updated successfully" });
       expect(updatePublicSiteSettings).toHaveBeenCalledWith("org-uuid", {
@@ -83,7 +83,7 @@ describe("tenant/settings/public-site.content route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toEqual({ success: true, message: "Content settings updated successfully" });
       expect(updatePublicSiteSettings).toHaveBeenCalledWith("org-uuid", {
@@ -111,7 +111,7 @@ describe("tenant/settings/public-site.content route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result.success).toBe(true);
       expect(updatePublicSiteSettings).toHaveBeenCalledWith("org-uuid", expect.objectContaining({
@@ -133,7 +133,7 @@ describe("tenant/settings/public-site.content route", () => {
         method: "POST",
         body: formData,
       });
-      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(result).toBeNull();
     });
@@ -146,7 +146,7 @@ describe("tenant/settings/public-site.content route", () => {
         method: "POST",
         body: formData,
       });
-      await action({ request, params: {}, context: {}, unstable_pattern: "" } as any);
+      await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
       expect(requireOrgContext).toHaveBeenCalledWith(request);
     });

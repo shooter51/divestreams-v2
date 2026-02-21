@@ -2,7 +2,8 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import type { ResetPasswordParams } from "../../../../lib/auth/admin-password-reset.server";
 import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { useState, useEffect } from "react";
-import { PremiumGate } from "../../../components/ui/UpgradePrompt";
+
+
 import { ResetPasswordModal } from "../../../components/settings/ResetPasswordModal";
 import { CsrfInput } from "../../../components/CsrfInput";
 
@@ -41,7 +42,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
 
   // Check users limit - this will redirect if limit exceeded
-  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
+  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
   const limitCheck = await requireLimit(ctx.org.id, "users", limits);
 
   // Get team members from Better Auth member table
@@ -419,7 +420,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TeamPage() {
-  const { team, pendingInvites, roles, planLimit, limitRemaining, isPremium, canInviteTeamMembers } = useLoaderData<typeof loader>();
+  const { team, pendingInvites, roles, planLimit, limitRemaining, canInviteTeamMembers } = useLoaderData<typeof loader>();
   const layoutData = useRouteLoaderData("routes/tenant/layout") as { csrfToken?: string } | undefined;
   const csrfToken = layoutData?.csrfToken;
   const fetcher = useFetcher();

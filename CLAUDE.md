@@ -194,13 +194,12 @@ See [TESTING.md](./TESTING.md) for:
 **IMPORTANT: NEVER deploy directly. ALWAYS use the CI/CD pipeline via git push.**
 
 ```
-Feature PR -> develop    ci.yml: lint + typecheck + unit ("test" check)
-                         merge
-develop push             deploy.yml: build :dev -> deploy Dev -> auto-create PR develop->staging
-                         ci.yml: test + e2e -> auto-merge
-staging push             deploy.yml: sanity -> build :test -> deploy Test -> smoke -> Release PR
-                         Tom approves + merges
-main push                deploy.yml: pact gate -> retag :test->:latest -> deploy Production
+Feature PR → develop     ci-pr.yml: lint + typecheck + unit (no DB) + pact consumer + build check → auto-merge
+Push to develop          deploy-dev.yml: build :dev → deploy Dev VPS → create PR develop→test
+PR to test               ci-test.yml: lint + typecheck + unit + integration (DB) + pact consumer+provider → auto-merge
+Push to test             deploy-test.yml: build :test → deploy Test VPS → E2E against test.divestreams.com
+Manual PR test→main      No automated tests (Tom reviews on test.divestreams.com)
+Push to main             deploy-prod.yml: retag :test→:latest → deploy Production VPS
 ```
 
 ### Three Environments
@@ -213,30 +212,26 @@ main push                deploy.yml: pact gate -> retag :test->:latest -> deploy
 
 ### Auto-Promotion Pipeline
 
-The pipeline is fully automated from feature PR to production-ready, with a manual gate only at production.
+The pipeline is fully automated from feature PR to test, with a manual gate at production.
 
 **1. Feature PR → develop** (developer action)
 - Open PR targeting `develop`
-- `ci.yml` runs: lint, typecheck, unit tests, pact consumer
+- `ci-pr.yml` runs: lint, typecheck, unit tests, pact consumer, Docker build check
 - Branch protection requires `test` check to pass
-- Developer merges PR
+- Auto-merge enabled on pass
 
-**2. develop → staging** (automatic)
-- `deploy.yml` builds `:dev` image, deploys to Dev VPS
-- Auto-creates PR `develop → staging` with auto-merge enabled
-- `ci.yml` runs on that PR: `test` + `e2e` (full suite)
+**2. develop → test** (automatic)
+- `deploy-dev.yml` builds `:dev` image, deploys to Dev VPS
+- Auto-creates PR `develop → test` with auto-merge enabled
+- `ci-test.yml` runs full suite: lint, typecheck, unit+integration (with DB), pact consumer+provider
 - Auto-merge fires when checks pass
 
-**3. staging → main** (automatic PR, manual merge)
-- `deploy.yml` runs sanity check, builds `:test`, deploys to Test VPS, runs smoke tests
-- Auto-creates Release PR `staging → main` with Tom as reviewer
-- Tom tests on test.divestreams.com, approves, and merges
+**3. test → main** (manual)
+- Tom creates PR `test → main` after QA on test.divestreams.com
+- No automated checks required — Tom reviews and merges
 
 **4. main → production** (automatic)
-- Pact can-i-deploy hard gate
-- Retags `:test` → `:latest`, deploys to Production VPS
-
-**End-to-end timing:** ~35-45 min from feature merge to "ready for production"
+- `deploy-prod.yml` retags `:test` → `:latest`, deploys to Production VPS
 
 ### VPS Infrastructure
 
@@ -347,7 +342,7 @@ echo "<GITHUB_PAT>" | docker login ghcr.io -u shooter51 --password-stdin
 
 ### Branch Strategy
 - `develop` → Dev VPS (AI agent work)
-- `staging` → Test VPS (human QA)
+- `test` → Test VPS (human QA)
 - `main` → Production (live)
 
 ### Branch Cleanup
@@ -379,7 +374,7 @@ echo "<GITHUB_PAT>" | docker login ghcr.io -u shooter51 --password-stdin
 2. **Local-only branches**: Deleted if remote was already removed
 3. **Unmerged & stale**: Reported for manual review (requires human decision)
 
-**Protected branches:** `main`, `develop`, `staging` (never deleted)
+**Protected branches:** `main`, `develop`, `test` (never deleted)
 
 ### Branch Protection Rules
 All three branches are protected. Direct pushes are blocked — changes must go through PRs.
@@ -387,20 +382,20 @@ All three branches are protected. Direct pushes are blocked — changes must go 
 | Branch | Required CI Checks | PR Required | Approvals | Notes |
 |--------|-------------------|-------------|-----------|-------|
 | **develop** | `test` | Yes | 0 | Fast gate for AI agent work |
-| **staging** | `test` + `e2e` | Yes | 0 | Full gate, auto-merge from develop |
-| **main** | `test` + `e2e` | Yes | 1 (Tom) | Manual production gate |
+| **test** | `test` | Yes | 0 | Full gate, auto-merge from develop |
+| **main** | None | Yes | 1 (Tom) | Manual production gate |
 
 **All CI gates are enforced.** Lint errors, type errors, and test failures will block deployment.
 
 ### AI Agent Workflow (Vibe Coding)
 ```
 1. Agent creates feature branch and opens PR to develop
-2. ci.yml runs test checks → merge PR
-3. deploy.yml: build + deploy Dev → auto-create PR to staging (auto-merge)
-4. ci.yml runs test + e2e on staging PR → auto-merge fires
-5. deploy.yml: sanity + build + deploy Test → smoke tests → auto-create Release PR
-6. Tom reviews on test.divestreams.com → approves + merges
-7. deploy.yml: pact gate → retag → deploy Production
+2. ci-pr.yml runs: lint, typecheck, unit, pact consumer, build check → auto-merge
+3. deploy-dev.yml: build :dev + deploy Dev → auto-create PR develop→test
+4. ci-test.yml runs full suite on test PR → auto-merge
+5. deploy-test.yml: build :test + deploy Test → E2E runs (non-blocking)
+6. Tom creates PR test→main, reviews on test.divestreams.com → merges
+7. deploy-prod.yml: retag :test→:latest → deploy Production
 ```
 
 ### Auto-Promotion Prerequisites
@@ -409,7 +404,7 @@ Before the auto-promotion pipeline works, these GitHub settings must be configur
 1. **PROMOTION_PAT secret** — Fine-grained PAT with Contents + Pull Requests read/write
 2. **Auto-merge enabled** — Settings → General → Pull Requests → Allow auto-merge
 3. **Main branch requires 1 approval** — Settings → Branches → main → Required approving reviews: 1
-4. **Labels** — `auto-promotion` (green) and `release` (red) — created automatically on first run
+4. **Labels** — `auto-promotion` label created for auto-promotion PRs
 
 ### Checking CI Failures
 ```bash
@@ -443,7 +438,7 @@ Set in `.env` files on each VPS:
 - `PLATFORM_ADMIN_EMAIL` / `PLATFORM_ADMIN_PASSWORD` - Platform admin setup
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` - Stripe integration (test keys for Test, live for Prod)
 - `SMTP_*` - Email configuration
-- `B2_ENDPOINT` / `B2_REGION` / `B2_BUCKET` / `B2_KEY_ID` / `B2_APP_KEY` - Object storage
+- `S3_ENDPOINT` / `S3_REGION` / `S3_BUCKET` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` - Object storage
 - `CDN_URL` - CDN URL for images
 
 ### GitHub Repository Configuration

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { getTenantUrl as _getTenantUrl } from "../helpers/urls";
 
 /**
  * Training Import Wizard E2E Tests
@@ -8,8 +9,7 @@ import { test, expect } from "@playwright/test";
  * - Run 00-full-workflow.spec.ts first if tests fail due to missing user
  */
 
-const BASE_URL = process.env.BASE_URL || "http://e2etest.localhost:5173";
-const getTenantUrl = (path: string) => `${BASE_URL}${path}`;
+const getTenantUrl = (path: string) => _getTenantUrl("e2etest", path);
 
 // Shared test data (consistent with other test files)
 const testUser = {
@@ -18,7 +18,7 @@ const testUser = {
 };
 
 // Helper to select a supported agency (PADI, SSI, or NAUI have course templates)
-async function selectSupportedAgency(page: any) {
+async function selectSupportedAgency(page: import("@playwright/test").Page) {
   const agencyDropdown = page.locator('#agencySelect');
   // Try to select PADI first (most common), fall back to SSI, then NAUI
   const options = await agencyDropdown.locator('option').allTextContents();
@@ -40,7 +40,7 @@ async function selectSupportedAgency(page: any) {
 }
 
 // Helper function to login
-async function loginToTenant(page: any) {
+async function loginToTenant(page: import("@playwright/test").Page) {
   await page.goto(getTenantUrl("/auth/login"));
   await page.fill('input[name="email"]', testUser.email);
   await page.fill('input[name="password"]', testUser.password);
@@ -57,7 +57,7 @@ test.describe("Training Import Wizard", () => {
     // Go to training dashboard
     await page.goto(getTenantUrl("/tenant/training"));
     await page.waitForLoadState("load");
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("load").catch(() => {});
 
     // Check if we were redirected to dashboard (feature gate)
     if (page.url().includes("/dashboard") && !page.url().includes("/training")) {
@@ -71,7 +71,7 @@ test.describe("Training Import Wizard", () => {
     if (!(await importButton.isVisible().catch(() => false))) {
       await page.reload();
       await page.waitForLoadState("load");
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.waitForLoadState("load").catch(() => {});
     }
     await expect(importButton).toBeVisible({ timeout: 10000 });
 
@@ -151,7 +151,7 @@ test.describe("Training Import Wizard", () => {
     // HTML5 validation should prevent submission
     const agencyDropdown = page.locator('#agencySelect');
     await expect(agencyDropdown).toBeVisible({ timeout: 5000 });
-    const isInvalid = await agencyDropdown.evaluate((el: any) => !el.validity.valid);
+    const isInvalid = await agencyDropdown.evaluate((el: HTMLSelectElement) => !el.validity.valid);
     expect(isInvalid).toBeTruthy();
   });
 

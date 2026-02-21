@@ -7,7 +7,7 @@ set -e
 # Default settings
 DRY_RUN=true
 STALE_DAYS=30
-PROTECTED_BRANCHES="main|develop|staging|HEAD"
+PROTECTED_BRANCHES="main|develop|test|HEAD"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --live      Actually delete branches (default: dry run)"
       echo "  --days N    Days since last commit to consider stale (default: 30)"
       echo ""
-      echo "Protected branches: main, develop, staging"
+      echo "Protected branches: main, develop, test"
       exit 0
       ;;
     *)

@@ -7,9 +7,9 @@ vi.mock("react-router", () => ({
     state: "idle",
     data: null,
     submit: vi.fn(),
-    Form: ({ children, ...props }: any) => <form {...props}>{children}</form>,
+    Form: ({ children, ...props }: Record<string, unknown>) => <form {...props}>{children}</form>,
   }),
-  Link: ({ to, children, ...props }: any) => <a href={to} {...props}>{children}</a>,
+  Link: ({ to, children, ...props }: Record<string, unknown>) => <a href={to} {...props}>{children}</a>,
 }));
 
 vi.mock("../../../../../app/components/integrations/Icons", () => ({

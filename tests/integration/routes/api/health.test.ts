@@ -37,7 +37,7 @@ describe("api/health route", () => {
       (getRedisConnection as Mock).mockReturnValue(mockRedis);
 
       const request = new Request("https://divestreams.com/api/health");
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(200);
 
@@ -58,7 +58,7 @@ describe("api/health route", () => {
       (getRedisConnection as Mock).mockReturnValue(mockRedis);
 
       const request = new Request("https://divestreams.com/api/health");
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(503);
 
@@ -77,7 +77,7 @@ describe("api/health route", () => {
       (getRedisConnection as Mock).mockReturnValue(mockRedis);
 
       const request = new Request("https://divestreams.com/api/health");
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(503);
 
@@ -96,7 +96,7 @@ describe("api/health route", () => {
       (getRedisConnection as Mock).mockReturnValue(mockRedis);
 
       const request = new Request("https://divestreams.com/api/health");
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(503);
 
@@ -113,7 +113,7 @@ describe("api/health route", () => {
 
       const before = new Date();
       const request = new Request("https://divestreams.com/api/health");
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
       const after = new Date();
 
       const data = await response.json();
@@ -129,7 +129,7 @@ describe("api/health route", () => {
       (getRedisConnection as Mock).mockReturnValue(mockRedis);
 
       const request = new Request("https://divestreams.com/api/health");
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       const data = await response.json();
       expect(data.version).toMatch(/^\d+\.\d+\.\d+$/);
@@ -143,7 +143,7 @@ describe("api/health route", () => {
       (getRedisConnection as Mock).mockReturnValue(mockRedis);
 
       const request = new Request("https://divestreams.com/api/health");
-      await loader({ request, params: {}, context: {} } as any);
+      await loader({ request, params: {}, context: {} } as unknown);
 
       expect(executeMock).toHaveBeenCalled();
     });
@@ -156,7 +156,7 @@ describe("api/health route", () => {
       (getRedisConnection as Mock).mockReturnValue(mockRedis);
 
       const request = new Request("https://divestreams.com/api/health");
-      await loader({ request, params: {}, context: {} } as any);
+      await loader({ request, params: {}, context: {} } as unknown);
 
       expect(pingMock).toHaveBeenCalled();
     });

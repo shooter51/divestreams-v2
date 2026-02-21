@@ -2,61 +2,51 @@
   "version": "7",
   "dialect": "postgresql",
   "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1768187107625,
-      "tag": "0000_broken_hitman",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1768346785644,
-      "tag": "0001_bright_silverclaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1768358618228,
-      "tag": "0002_handy_network",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1768588391801,
-      "tag": "0003_ancient_forge",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1768616063618,
-      "tag": "0004_dazzling_professor_monster",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1768630637130,
-      "tag": "0005_jazzy_tattoo",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1768769837739,
-      "tag": "0006_tense_meltdown",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1768769961025,
-      "tag": "0007_nostalgic_salo",
-      "breakpoints": true
-    }
+    { "idx": 0, "version": "7", "when": 1768187107625, "tag": "0000_broken_hitman", "breakpoints": true },
+    { "idx": 1, "version": "7", "when": 1768187107626, "tag": "0001_bright_silverclaw", "breakpoints": true },
+    { "idx": 2, "version": "7", "when": 1768187107627, "tag": "0002_handy_network", "breakpoints": true },
+    { "idx": 3, "version": "7", "when": 1768187107628, "tag": "0003_ancient_forge", "breakpoints": true },
+    { "idx": 4, "version": "7", "when": 1768187107629, "tag": "0004_seed_subscription_plans", "breakpoints": true },
+    { "idx": 5, "version": "7", "when": 1768187107630, "tag": "0005_api_keys", "breakpoints": true },
+    { "idx": 6, "version": "7", "when": 1768187107631, "tag": "0006_dazzling_professor_monster", "breakpoints": true },
+    { "idx": 7, "version": "7", "when": 1768187107632, "tag": "0007_jazzy_tattoo", "breakpoints": true },
+    { "idx": 8, "version": "7", "when": 1768187107633, "tag": "0008_webhooks", "breakpoints": true },
+    { "idx": 9, "version": "7", "when": 1768187107634, "tag": "0009_integrations", "breakpoints": true },
+    { "idx": 10, "version": "7", "when": 1768187107635, "tag": "0010_tense_meltdown", "breakpoints": true },
+    { "idx": 11, "version": "7", "when": 1768187107636, "tag": "0011_add_barcode_fields", "breakpoints": true },
+    { "idx": 12, "version": "7", "when": 1768187107637, "tag": "0012_nostalgic_salo", "breakpoints": true },
+    { "idx": 13, "version": "7", "when": 1768187107638, "tag": "0013_add_recurring_trips", "breakpoints": true },
+    { "idx": 14, "version": "7", "when": 1768187107639, "tag": "0014_team_members", "breakpoints": true },
+    { "idx": 15, "version": "7", "when": 1768187107640, "tag": "0015_page_content", "breakpoints": true },
+    { "idx": 16, "version": "7", "when": 1768187107641, "tag": "0016_remove_api_keys_webhooks", "breakpoints": true },
+    { "idx": 17, "version": "7", "when": 1768187107642, "tag": "0017_create_zapier_tables", "breakpoints": true },
+    { "idx": 18, "version": "7", "when": 1768187107643, "tag": "0018_quickbooks_sync_tables", "breakpoints": true },
+    { "idx": 19, "version": "7", "when": 1768187107644, "tag": "0019_stripe_integration_tables", "breakpoints": true },
+    { "idx": 20, "version": "7", "when": 1768187107645, "tag": "0020_add_agency_course_templates", "breakpoints": true },
+    { "idx": 21, "version": "7", "when": 1768187107646, "tag": "0021_add_template_fields_to_courses", "breakpoints": true },
+    { "idx": 22, "version": "7", "when": 1768187107647, "tag": "0022_add_subscription_plan_id", "breakpoints": true },
+    { "idx": 23, "version": "7", "when": 1768187107648, "tag": "0023_feature_flags_and_limits", "breakpoints": true },
+    { "idx": 24, "version": "7", "when": 1768187107649, "tag": "0024_onboarding_progress", "breakpoints": true },
+    { "idx": 25, "version": "7", "when": 1768187107650, "tag": "0025_global_agency_templates", "breakpoints": true },
+    { "idx": 26, "version": "7", "when": 1768187107651, "tag": "0026_fix_plan_names", "breakpoints": true },
+    { "idx": 27, "version": "7", "when": 1768187107652, "tag": "0027_prevent_plan_feature_overwrites", "breakpoints": true },
+    { "idx": 28, "version": "7", "when": 1768187107653, "tag": "0028_backfill_subscription_plan_ids", "breakpoints": true },
+    { "idx": 29, "version": "7", "when": 1768187107654, "tag": "0029_add_tour_unique_constraint", "breakpoints": true },
+    { "idx": 30, "version": "7", "when": 1768187107655, "tag": "0030_backfill_plan_id_from_name", "breakpoints": true },
+    { "idx": 31, "version": "7", "when": 1768187107656, "tag": "0031_add_organization_id_to_images", "breakpoints": true },
+    { "idx": 32, "version": "7", "when": 1768187107657, "tag": "0032_add_unique_constraint_org_name", "breakpoints": true },
+    { "idx": 33, "version": "7", "when": 1768187107658, "tag": "0033_add_product_sale_pricing", "breakpoints": true },
+    { "idx": 34, "version": "7", "when": 1768187107659, "tag": "0034_fix_rentable_equipment_without_price", "breakpoints": true },
+    { "idx": 35, "version": "7", "when": 1768187107660, "tag": "0035_add_refund_fields", "breakpoints": true },
+    { "idx": 36, "version": "7", "when": 1768187107661, "tag": "0036_add_booking_cancellation_fields", "breakpoints": true },
+    { "idx": 37, "version": "7", "when": 1768187107662, "tag": "0037_add_subscription_plans_metadata", "breakpoints": true },
+    { "idx": 38, "version": "7", "when": 1768187107663, "tag": "0038_add_rentals_to_tenant_schemas", "breakpoints": true },
+    { "idx": 39, "version": "7", "when": 1768187107664, "tag": "0039_add_password_audit", "breakpoints": true },
+    { "idx": 40, "version": "7", "when": 1768187107665, "tag": "0040_backfill_subscription_plan_ids_v2", "breakpoints": true },
+    { "idx": 41, "version": "7", "when": 1768187107666, "tag": "0041_add_plan_id_not_null_constraint", "breakpoints": true },
+    { "idx": 42, "version": "7", "when": 1768187107667, "tag": "0042_add_row_level_security", "breakpoints": true },
+    { "idx": 43, "version": "7", "when": 1768187107668, "tag": "0043_add_stock_quantity_check", "breakpoints": true },
+    { "idx": 44, "version": "7", "when": 1768187107669, "tag": "0044_fix_dive_site_entity_type", "breakpoints": true },
+    { "idx": 45, "version": "7", "when": 1768187107670, "tag": "0045_verify_all_user_emails", "breakpoints": true }
   ]
 }

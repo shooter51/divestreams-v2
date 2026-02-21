@@ -14,7 +14,7 @@
  * This test verifies both modes work correctly.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { loader } from "../../../../app/routes/tenant/training/enrollments/new";
 
 // Mock dependencies
@@ -39,7 +39,7 @@ vi.mock("../../../../lib/db/training.server", () => ({
     }
     return null;
   }),
-  getSessions: vi.fn(async (orgId) => [
+  getSessions: vi.fn(async () => [
     {
       id: "session-1",
       courseName: "Open Water Diver",

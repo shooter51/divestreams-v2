@@ -176,7 +176,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   // Get current plan name and features from subscription
-  const currentPlan = ctx.subscription?.plan || "free";
+  const currentPlan = ctx.subscription?.plan || "standard";
   const planFeatures = ctx.subscription?.planDetails?.features || {};
 
   // Load all active plans to determine which plan is required for each integration
@@ -668,22 +668,6 @@ export default function IntegrationsPage() {
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher();
 
-  // OAuth configuration modal state
-  const [showGoogleOAuthModal, setShowGoogleOAuthModal] = useState(false);
-  const [googleClientId, setGoogleClientId] = useState("");
-  const [googleClientSecret, setGoogleClientSecret] = useState("");
-
-  const [showMailchimpOAuthModal, setShowMailchimpOAuthModal] = useState(false);
-  const [mailchimpClientId, setMailchimpClientId] = useState("");
-  const [mailchimpClientSecret, setMailchimpClientSecret] = useState("");
-
-  const [showQuickBooksOAuthModal, setShowQuickBooksOAuthModal] = useState(false);
-  const [quickBooksClientId, setQuickBooksClientId] = useState("");
-  const [quickBooksClientSecret, setQuickBooksClientSecret] = useState("");
-
-  const [showXeroOAuthModal, setShowXeroOAuthModal] = useState(false);
-  const [xeroClientId, setXeroClientId] = useState("");
-  const [xeroClientSecret, setXeroClientSecret] = useState("");
 
   // Success/error messages from URL params (OAuth callbacks)
   const urlSuccess = searchParams.get("success");

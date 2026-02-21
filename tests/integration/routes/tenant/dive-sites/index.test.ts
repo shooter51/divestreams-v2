@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getRedirectPathname } from "../../../../helpers/redirect";
 import { loader } from "../../../../../app/routes/tenant/dive-sites/index";
 import * as orgContext from "../../../../../lib/auth/org-context.server";
 import { db } from "../../../../../lib/db";
@@ -23,7 +22,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
       usage: { customers: 0 },
       limits: { customers: 100 },
       isPremium: false,
-    } as any);
+    } as unknown);
   });
 
   describe("loader", () => {
@@ -48,7 +47,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
         where: vi.fn().mockResolvedValue(mockSites),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {} });
@@ -61,14 +60,14 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
     });
 
     it("should filter dive sites by search query", async () => {
-      const mockSites: any[] = [];
+      const mockSites: unknown[] = [];
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue(mockSites),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/dive-sites?q=reef");
       const result = await loader({ request, params: {}, context: {} });
@@ -98,7 +97,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
         where: vi.fn().mockResolvedValue(mockSites),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/dive-sites?difficulty=beginner");
       const result = await loader({ request, params: {}, context: {} });
@@ -128,7 +127,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
         where: vi.fn().mockResolvedValue(mockSites),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {} });
@@ -164,7 +163,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
         where: vi.fn().mockResolvedValue(mockSites),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       const request = new Request("http://test.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {} });
@@ -173,14 +172,14 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
     });
 
     it("should return isPremium flag", async () => {
-      const mockSites: any[] = [];
+      const mockSites: unknown[] = [];
 
       const mockSelectBuilder = {
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockResolvedValue(mockSites),
       };
 
-      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as any);
+      vi.mocked(db.select).mockReturnValue(mockSelectBuilder as unknown);
 
       vi.mocked(orgContext.requireOrgContext).mockResolvedValue({
         org: { id: mockOrganizationId, name: "Premium Org", subdomain: "premium" },
@@ -188,7 +187,7 @@ describe("app/routes/tenant/dive-sites/index.tsx", () => {
         usage: { customers: 0 },
         limits: { customers: 1000 },
         isPremium: true,
-      } as any);
+      } as unknown);
 
       const request = new Request("http://test.com/tenant/dive-sites");
       const result = await loader({ request, params: {}, context: {} });

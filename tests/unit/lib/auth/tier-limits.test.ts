@@ -10,7 +10,6 @@ import {
   buildTierLimits,
   FREE_TIER_LIMITS,
   PREMIUM_LIMITS,
-  type TierLimits,
 } from "../../../../lib/auth/org-context.server";
 import type { PlanLimits, PlanFeaturesObject } from "../../../../lib/plan-features";
 
@@ -351,9 +350,9 @@ describe("buildTierLimits", () => {
       };
 
       const features: PlanFeaturesObject = {
-        has_pos: undefined as any,
-        has_equipment_boats: undefined as any,
-        has_advanced_notifications: undefined as any,
+        has_pos: undefined as unknown,
+        has_equipment_boats: undefined as unknown,
+        has_advanced_notifications: undefined as unknown,
       };
 
       const tierLimits = buildTierLimits(planLimits, features);

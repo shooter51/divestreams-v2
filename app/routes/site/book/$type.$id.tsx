@@ -14,7 +14,7 @@
  * - Creates booking with status "pending_payment"
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type {
   LoaderFunctionArgs,
   ActionFunctionArgs,
@@ -24,7 +24,6 @@ import {
   useLoaderData,
   useActionData,
   useNavigation,
-  useSearchParams,
   Form,
   Link,
   redirect,
@@ -334,7 +333,9 @@ export async function loader({
     };
   } else {
     // Load course details - first try training_courses, then fall back to tours
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let courseData: any = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let sessionsData: any[] = [];
     let isTrainingCourse = false;
 
@@ -949,6 +950,7 @@ export async function action({
           paymentStatus: "pending",
           specialRequests: specialRequests || null,
           equipmentRental:
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             equipmentRental.length > 0 ? (equipmentRental as any) : null,
           source: "website",
         })
@@ -1023,8 +1025,6 @@ export default function BookingPage() {
   const data = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const [searchParams] = useSearchParams();
-
   const isSubmitting = navigation.state === "submitting";
 
   const [participants, setParticipants] = useState(1);

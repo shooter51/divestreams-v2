@@ -17,25 +17,25 @@ const { mockRedirect, queryResults, createChainableDbMock } = vi.hoisted(() => {
 
   // Shared queue of results: each call to a terminal method (limit, returning,
   // or awaiting where) shifts the next result off this queue.
-  const queryResults: any[][] = [];
+  const queryResults: unknown[][] = [];
 
   function createChainableDbMock() {
-    const handler: ProxyHandler<any> = {
+    const handler: ProxyHandler<Record<string, unknown>> = {
       get(_target, prop) {
         if (prop === "then") {
           // Make the proxy thenable - resolve with next queued result
           const result = queryResults.shift() || [];
-          return (resolve: any) => resolve(result);
+          return (resolve: (value: unknown) => void) => resolve(result);
         }
         if (prop === "transaction") {
-          return (fn: any) => {
+          return (fn: (value: unknown) => unknown) => {
             // Create a new proxy for the transaction context
             const txProxy = new Proxy({}, handler);
             return fn(txProxy);
           };
         }
         // All other methods return the proxy for chaining
-        return (..._args: any[]) => new Proxy({}, handler);
+        return () => new Proxy({}, handler);
       },
     };
 
@@ -84,7 +84,7 @@ vi.mock("../../../../lib/db", () => ({
 // Mock schema - provide column references as strings
 vi.mock("../../../../lib/db/schema", () => {
   const createTable = (name: string, columns: string[]) => {
-    const table: any = {};
+    const table: Record<string, unknown> = {};
     for (const col of columns) {
       table[col] = `${name}.${col}`;
     }
@@ -136,10 +136,10 @@ vi.mock("../../../../lib/db/schema", () => {
 });
 
 vi.mock("drizzle-orm", () => ({
-  eq: vi.fn((a: any, b: any) => ({ type: "eq", field: a, value: b })),
-  and: vi.fn((...args: any[]) => ({ type: "and", conditions: args })),
+  eq: vi.fn((a: unknown, b: unknown) => ({ type: "eq", field: a, value: b })),
+  and: vi.fn((...args: unknown[]) => ({ type: "and", conditions: args })),
   sql: Object.assign(
-    (strings: TemplateStringsArray, ...values: any[]) => ({
+    (strings: TemplateStringsArray, ...values: unknown[]) => ({
       type: "sql",
       strings,
       values,
@@ -172,7 +172,7 @@ function makeActionArgs(
     params: { type, id },
     context: {},
     unstable_pattern: "",
-  } as any;
+  } as Record<string, unknown>;
 }
 
 function makeBookingFormData(overrides: Record<string, string> = {}) {
@@ -194,7 +194,7 @@ function makeBookingFormData(overrides: Record<string, string> = {}) {
 }
 
 /** Queue results that the mock DB will return in order */
-function queueResults(...results: any[][]) {
+function queueResults(...results: unknown[][]) {
   queryResults.length = 0; // clear
   for (const r of results) {
     queryResults.push(r);

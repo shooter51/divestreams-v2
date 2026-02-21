@@ -1,5 +1,5 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
+import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById } from "../../../../lib/db/queries.server";
@@ -140,8 +140,6 @@ export default function NewBookingPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-  const [searchParams] = useSearchParams();
-
   return (
     <div className="max-w-2xl">
       <div className="mb-6">

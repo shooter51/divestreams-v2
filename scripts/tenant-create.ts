@@ -75,17 +75,17 @@ async function main() {
 
   console.log(`✓ Subdomain "${values.subdomain}" is available`);
 
-  // Get the starter plan (or create it if it doesn't exist)
-  let [starterPlan] = await db
+  // Get the standard plan (or create it if it doesn't exist)
+  let [standardPlan] = await db
     .select()
     .from(subscriptionPlans)
-    .where(eq(subscriptionPlans.name, "starter"))
+    .where(eq(subscriptionPlans.name, "standard"))
     .limit(1);
 
-  if (!starterPlan) {
+  if (!standardPlan) {
     console.log("Creating default subscription plans...");
     await seedSubscriptionPlans();
-    [starterPlan] = await db.select().from(subscriptionPlans).limit(1);
+    [standardPlan] = await db.select().from(subscriptionPlans).limit(1);
   }
 
   console.log("Creating tenant...");
@@ -98,7 +98,7 @@ async function main() {
       phone: values.phone,
       timezone: values.timezone,
       currency: values.currency,
-      planId: starterPlan?.id,
+      planId: standardPlan?.id,
     });
 
     console.log("\n✅ Tenant created successfully!\n");
@@ -124,58 +124,39 @@ async function main() {
 async function seedSubscriptionPlans() {
   await db.insert(subscriptionPlans).values([
     {
-      name: "starter",
-      displayName: "Starter",
-      monthlyPrice: 4900, // $49
-      yearlyPrice: 47000, // $470 (2 months free)
+      name: "standard",
+      displayName: "Standard",
+      monthlyPrice: 3000, // $30
+      yearlyPrice: 28800, // $288 (20% off)
       features: [
         "Up to 3 users",
-        "1,000 customers",
-        "Booking management",
-        "Basic reporting",
+        "500 customers",
+        "Tours & booking management",
+        "Stripe payments",
+        "25 tours per month",
         "Email support",
       ],
       limits: {
         users: 3,
-        customers: 1000,
-        toursPerMonth: 100,
+        customers: 500,
+        toursPerMonth: 25,
         storageGb: 5,
       },
     },
     {
       name: "pro",
       displayName: "Pro",
-      monthlyPrice: 9900, // $99
-      yearlyPrice: 95000, // $950 (2 months free)
-      features: [
-        "Up to 10 users",
-        "Unlimited customers",
-        "Online booking widget",
-        "Equipment tracking",
-        "Advanced reporting",
-        "Priority support",
-        "API access",
-      ],
-      limits: {
-        users: 10,
-        customers: -1, // unlimited
-        toursPerMonth: -1,
-        storageGb: 25,
-      },
-    },
-    {
-      name: "enterprise",
-      displayName: "Enterprise",
-      monthlyPrice: 19900, // $199
-      yearlyPrice: 191000, // $1,910 (2 months free)
+      monthlyPrice: 10000, // $100
+      yearlyPrice: 96000, // $960 (20% off)
       features: [
         "Unlimited users",
         "Unlimited customers",
-        "Multi-location support",
-        "Custom integrations",
-        "Dedicated support",
-        "White-label options",
-        "SLA guarantee",
+        "Equipment & rental tracking",
+        "Training management",
+        "Point of Sale",
+        "All integrations",
+        "API access",
+        "Priority support",
       ],
       limits: {
         users: -1,

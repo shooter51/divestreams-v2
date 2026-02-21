@@ -4,9 +4,9 @@ import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { subscription } from "../../../lib/db/schema/subscription";
 import { subscriptionPlans } from "../../../lib/db/schema";
-import { eq, ilike, or, desc, sql, count, ne } from "drizzle-orm";
+import { eq, ilike, desc, sql, count, ne } from "drizzle-orm";
 import { requirePlatformContext, PLATFORM_ORG_SLUG } from "../../../lib/auth/platform-context.server";
-import { getTenantUrl, getBaseDomain } from "../../../lib/utils/url";
+import { getTenantUrl } from "../../../lib/utils/url";
 
 export const meta: MetaFunction = () => [{ title: "Organizations - DiveStreams Admin" }];
 
@@ -86,14 +86,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
           .limit(1);
 
         const sub = subWithPlan?.sub;
-        const displayPlanName = subWithPlan?.planName || sub?.plan || "free";
+        const displayPlanName = subWithPlan?.planName || sub?.plan || "standard";
 
         return {
           ...org,
           createdAt: org.createdAt.toISOString().split("T")[0],
           memberCount: memberCount?.count || 0,
           ownerEmail: owner?.email || "—",
-          subscriptionStatus: sub?.status || "free",
+          subscriptionStatus: sub?.status || "standard",
           subscriptionPlan: displayPlanName,
           // Pre-compute tenant URL server-side where process.env.APP_URL is available
           tenantUrl: getTenantUrl(org.slug, "/tenant"),
@@ -134,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
-  free: "bg-surface-inset text-foreground-muted",
+  standard: "bg-surface-inset text-foreground-muted",
   trialing: "bg-brand-muted text-brand",
   active: "bg-success-muted text-success",
   past_due: "bg-warning-muted text-warning",
@@ -143,7 +143,7 @@ const statusColors: Record<string, string> = {
 
 function getPlanColorClass(plan: string): string {
   const lower = plan.toLowerCase();
-  if (lower === "free") return "bg-surface-inset text-foreground-muted";
+  if (lower === "standard") return "bg-surface-inset text-foreground-muted";
   return "bg-info-muted text-info";
 }
 

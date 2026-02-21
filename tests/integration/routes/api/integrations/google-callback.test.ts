@@ -35,7 +35,7 @@ describe("api/integrations/google/callback route", () => {
       const request = new Request(
         "https://test-org.divestreams.com/api/integrations/google/callback?error=access_denied"
       );
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(302);
       expect(response.headers.get("Location")).toContain("/tenant/settings/integrations");
@@ -47,7 +47,7 @@ describe("api/integrations/google/callback route", () => {
       const request = new Request(
         "https://test-org.divestreams.com/api/integrations/google/callback?state=test-state"
       );
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(302);
       expect(response.headers.get("Location")).toContain("error=");
@@ -58,7 +58,7 @@ describe("api/integrations/google/callback route", () => {
       const request = new Request(
         "https://test-org.divestreams.com/api/integrations/google/callback?code=test-code"
       );
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(302);
       expect(response.headers.get("Location")).toContain("error=");
@@ -72,7 +72,7 @@ describe("api/integrations/google/callback route", () => {
       const request = new Request(
         "https://test-org.divestreams.com/api/integrations/google/callback?code=auth-code-123&state=valid-state"
       );
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(302);
       expect(response.headers.get("Location")).toContain("/tenant/settings/integrations");
@@ -87,7 +87,7 @@ describe("api/integrations/google/callback route", () => {
       const request = new Request(
         "https://test-org.divestreams.com/api/integrations/google/callback?code=code-xyz&state=state-123"
       );
-      await loader({ request, params: {}, context: {} } as any);
+      await loader({ request, params: {}, context: {} } as unknown);
 
       expect(handleGoogleCallback).toHaveBeenCalledWith("code-xyz", "org-abc", "test-org");
     });
@@ -98,7 +98,7 @@ describe("api/integrations/google/callback route", () => {
       const request = new Request(
         "https://test-org.divestreams.com/api/integrations/google/callback?code=code&state=invalid"
       );
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(302);
       expect(response.headers.get("Location")).toContain("error=");
@@ -111,7 +111,7 @@ describe("api/integrations/google/callback route", () => {
       const request = new Request(
         "https://test-org.divestreams.com/api/integrations/google/callback?code=code&state=state"
       );
-      const response = await loader({ request, params: {}, context: {} } as any);
+      const response = await loader({ request, params: {}, context: {} } as unknown);
 
       expect(response.status).toBe(302);
       expect(response.headers.get("Location")).toContain("error=");

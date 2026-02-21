@@ -20,7 +20,7 @@ let mockInsertReturning: unknown[] = [];
 let mockUpdateReturning: unknown[] = [];
 let mockSelectResult: unknown[] = [];
 
-const mockChain: Record<string, any> = {};
+const mockChain: Record<string, unknown> = {};
 mockChain.select = vi.fn(() => mockChain);
 mockChain.from = vi.fn(() => mockChain);
 mockChain.where = vi.fn(() => mockChain);
@@ -491,11 +491,6 @@ describe("Stock Validation - Unit Tests", () => {
       // The products table config should be accessible
       expect(schema.products).toBeDefined();
 
-      // Verify the check constraint exists by inspecting the table config
-      // The check() call in the schema creates a constraint that Drizzle includes
-      // in the table definition. We verify via the table's Symbol config.
-      const tableConfig = (schema.products as any)[Symbol.for("drizzle:Columns")]
-        ?? Object.getOwnPropertySymbols(schema.products);
       // Just verify the table is defined (the CHECK constraint is in the SQL migration)
       expect(schema.products).toBeDefined();
     });

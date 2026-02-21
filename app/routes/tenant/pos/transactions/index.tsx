@@ -278,11 +278,6 @@ const typeColors: Record<string, string> = {
   payment: "bg-info-muted text-info",
 };
 
-const paymentMethodIcons: Record<string, string> = {
-  cash: "$",
-  card: "Card",
-  stripe: "Stripe",
-};
 
 export default function TransactionsPage() {
   const { transactions, summary, organization } = useLoaderData<typeof loader>();
