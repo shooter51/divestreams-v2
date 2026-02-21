@@ -12,6 +12,7 @@ import { getAdminUrl, getTenantUrl } from "../helpers/urls";
  * so this spec ensures the demo tenant + test user exist with correct plan.
  */
 
+const adminEmail = process.env.ADMIN_EMAIL || "admin@divestreams.com";
 const adminPassword = process.env.ADMIN_PASSWORD || "DiveAdmin2026";
 const testUser = {
   email: "e2e-tester@demo.com",
@@ -30,7 +31,7 @@ async function adminLogin(page: import("@playwright/test").Page): Promise<boolea
     .catch(() => false);
 
   if (emailField) {
-    await page.getByRole("textbox", { name: /email/i }).fill("admin@divestreams.com");
+    await page.getByRole("textbox", { name: /email/i }).fill(adminEmail);
   }
   await page.locator('input[type="password"]').first().fill(adminPassword);
   await page.getByRole("button", { name: /sign in/i }).click();
