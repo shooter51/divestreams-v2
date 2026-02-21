@@ -20,7 +20,7 @@ vi.mock("../../../../../lib/auth/org-context.server", () => ({
 }));
 
 vi.mock("../../../../../lib/storage", () => ({
-  uploadToB2: vi.fn((key: string) =>
+  uploadToS3: vi.fn((key: string) =>
     Promise.resolve({
       cdnUrl: `https://cdn.example.com/${key}`,
       key,
@@ -56,9 +56,9 @@ describe("Gallery Upload Route", () => {
     vi.clearAllMocks();
 
     // Reset mock implementations that may have been changed by previous tests
-    const { isValidImageType, uploadToB2, getS3Client } = await import("../../../../../lib/storage");
+    const { isValidImageType, uploadToS3, getS3Client } = await import("../../../../../lib/storage");
     vi.mocked(isValidImageType).mockImplementation((type: string) => type.startsWith("image/"));
-    vi.mocked(uploadToB2).mockImplementation((key: string) =>
+    vi.mocked(uploadToS3).mockImplementation((key: string) =>
       Promise.resolve({
         cdnUrl: `https://cdn.example.com/${key}`,
         key,

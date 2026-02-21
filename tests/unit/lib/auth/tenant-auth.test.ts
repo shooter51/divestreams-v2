@@ -51,12 +51,12 @@ describe("org-context.server - tenant context helpers", () => {
     });
   });
 
-  describe("FREE_TIER_LIMITS (derived from DEFAULT_PLAN_LIMITS.free)", () => {
-    it("has limits matching DEFAULT_PLAN_LIMITS.free", () => {
-      expect(FREE_TIER_LIMITS.customers).toBe(DEFAULT_PLAN_LIMITS.free.customers);
-      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
-      expect(FREE_TIER_LIMITS.tours).toBe(DEFAULT_PLAN_LIMITS.free.toursPerMonth);
-      expect(FREE_TIER_LIMITS.teamMembers).toBe(DEFAULT_PLAN_LIMITS.free.users);
+  describe("FREE_TIER_LIMITS (derived from DEFAULT_PLAN_LIMITS.standard)", () => {
+    it("has limits matching DEFAULT_PLAN_LIMITS.standard", () => {
+      expect(FREE_TIER_LIMITS.customers).toBe(DEFAULT_PLAN_LIMITS.standard.customers);
+      expect(FREE_TIER_LIMITS.bookingsPerMonth).toBe(DEFAULT_PLAN_LIMITS.standard.toursPerMonth);
+      expect(FREE_TIER_LIMITS.tours).toBe(DEFAULT_PLAN_LIMITS.standard.toursPerMonth);
+      expect(FREE_TIER_LIMITS.teamMembers).toBe(DEFAULT_PLAN_LIMITS.standard.users);
       expect(FREE_TIER_LIMITS.hasPOS).toBe(false);
       expect(FREE_TIER_LIMITS.hasEquipmentRentals).toBe(false);
       expect(FREE_TIER_LIMITS.hasAdvancedReports).toBe(false);
@@ -64,7 +64,7 @@ describe("org-context.server - tenant context helpers", () => {
     });
   });
 
-  describe("PREMIUM_LIMITS (derived from DEFAULT_PLAN_LIMITS.enterprise)", () => {
+  describe("PREMIUM_LIMITS (derived from DEFAULT_PLAN_LIMITS.pro)", () => {
     it("has unlimited premium tier limits", () => {
       expect(PREMIUM_LIMITS.customers).toBe(Infinity);
       expect(PREMIUM_LIMITS.bookingsPerMonth).toBe(Infinity);

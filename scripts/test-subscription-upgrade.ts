@@ -69,7 +69,7 @@ async function test1_PriceSync() {
   let allMatch = true;
 
   for (const plan of plans) {
-    if (plan.name === "free" || plan.monthlyPrice === 0) {
+    if (plan.monthlyPrice === 0) {
       continue;
     }
 

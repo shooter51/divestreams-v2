@@ -70,11 +70,11 @@ describe("plan-features", () => {
     });
 
     it("core features specify required plans", () => {
-      expect(FEATURE_UPGRADE_INFO.has_tours_bookings.requiredPlan).toBe("Free");
-      expect(FEATURE_UPGRADE_INFO.has_equipment_boats.requiredPlan).toBe("Starter");
+      expect(FEATURE_UPGRADE_INFO.has_tours_bookings.requiredPlan).toBe("Standard");
+      expect(FEATURE_UPGRADE_INFO.has_equipment_boats.requiredPlan).toBe("Pro");
       expect(FEATURE_UPGRADE_INFO.has_training.requiredPlan).toBe("Pro");
-      expect(FEATURE_UPGRADE_INFO.has_integrations.requiredPlan).toBe("Enterprise");
-      expect(FEATURE_UPGRADE_INFO.has_api_access.requiredPlan).toBe("Enterprise");
+      expect(FEATURE_UPGRADE_INFO.has_integrations.requiredPlan).toBe("Pro");
+      expect(FEATURE_UPGRADE_INFO.has_api_access.requiredPlan).toBe("Pro");
     });
 
     it("individual integration features have empty requiredPlan (admin-determined)", () => {
@@ -85,51 +85,30 @@ describe("plan-features", () => {
   });
 
   describe("DEFAULT_PLAN_FEATURES", () => {
-    it("defines features for all four plan tiers", () => {
-      expect(DEFAULT_PLAN_FEATURES.free).toBeDefined();
-      expect(DEFAULT_PLAN_FEATURES.starter).toBeDefined();
+    it("defines features for both plan tiers", () => {
+      expect(DEFAULT_PLAN_FEATURES.standard).toBeDefined();
       expect(DEFAULT_PLAN_FEATURES.pro).toBeDefined();
-      expect(DEFAULT_PLAN_FEATURES.enterprise).toBeDefined();
     });
 
-    it("free plan has tours_bookings and stripe only", () => {
-      const free = DEFAULT_PLAN_FEATURES.free;
-      expect(free.has_tours_bookings).toBe(true);
-      expect(free.has_stripe).toBe(true);
-      expect(free.has_equipment_boats).toBe(false);
-      expect(free.has_training).toBe(false);
-      expect(free.has_pos).toBe(false);
-      expect(free.has_public_site).toBe(false);
-      expect(free.has_api_access).toBe(false);
+    it("standard plan has tours_bookings and stripe only", () => {
+      const standard = DEFAULT_PLAN_FEATURES.standard;
+      expect(standard.has_tours_bookings).toBe(true);
+      expect(standard.has_stripe).toBe(true);
+      expect(standard.has_equipment_boats).toBe(false);
+      expect(standard.has_training).toBe(false);
+      expect(standard.has_pos).toBe(false);
+      expect(standard.has_public_site).toBe(false);
+      expect(standard.has_api_access).toBe(false);
     });
 
-    it("starter plan adds equipment, boats, and public site", () => {
-      const starter = DEFAULT_PLAN_FEATURES.starter;
-      expect(starter.has_tours_bookings).toBe(true);
-      expect(starter.has_equipment_boats).toBe(true);
-      expect(starter.has_public_site).toBe(true);
-      expect(starter.has_google_calendar).toBe(true);
-      expect(starter.has_training).toBe(false);
-      expect(starter.has_pos).toBe(false);
-    });
-
-    it("pro plan adds training, POS, and advanced features", () => {
+    it("pro plan enables everything", () => {
       const pro = DEFAULT_PLAN_FEATURES.pro;
-      expect(pro.has_training).toBe(true);
-      expect(pro.has_pos).toBe(true);
-      expect(pro.has_advanced_notifications).toBe(true);
-      expect(pro.has_integrations).toBe(true);
-      expect(pro.has_api_access).toBe(false);
-    });
-
-    it("enterprise plan enables everything", () => {
-      const enterprise = DEFAULT_PLAN_FEATURES.enterprise;
-      const allValues = Object.values(enterprise);
+      const allValues = Object.values(pro);
       expect(allValues.every((v) => v === true)).toBe(true);
     });
 
     it("features are progressively more inclusive by tier", () => {
-      const tiers = ["free", "starter", "pro", "enterprise"];
+      const tiers = ["standard", "pro"];
       for (let i = 0; i < tiers.length - 1; i++) {
         const current = DEFAULT_PLAN_FEATURES[tiers[i]];
         const next = DEFAULT_PLAN_FEATURES[tiers[i + 1]];
@@ -141,39 +120,25 @@ describe("plan-features", () => {
   });
 
   describe("DEFAULT_PLAN_LIMITS", () => {
-    it("defines limits for all four plan tiers", () => {
-      expect(DEFAULT_PLAN_LIMITS.free).toBeDefined();
-      expect(DEFAULT_PLAN_LIMITS.starter).toBeDefined();
+    it("defines limits for both plan tiers", () => {
+      expect(DEFAULT_PLAN_LIMITS.standard).toBeDefined();
       expect(DEFAULT_PLAN_LIMITS.pro).toBeDefined();
-      expect(DEFAULT_PLAN_LIMITS.enterprise).toBeDefined();
     });
 
-    it("free plan has most restrictive limits", () => {
-      const free = DEFAULT_PLAN_LIMITS.free;
-      expect(free.users).toBe(1);
-      expect(free.customers).toBe(50);
-      expect(free.toursPerMonth).toBe(5);
-      expect(free.storageGb).toBe(0.5);
+    it("standard plan has restrictive limits", () => {
+      const standard = DEFAULT_PLAN_LIMITS.standard;
+      expect(standard.users).toBe(3);
+      expect(standard.customers).toBe(500);
+      expect(standard.toursPerMonth).toBe(25);
+      expect(standard.storageGb).toBe(5);
     });
 
-    it("enterprise plan uses -1 for unlimited", () => {
-      const enterprise = DEFAULT_PLAN_LIMITS.enterprise;
-      expect(enterprise.users).toBe(-1);
-      expect(enterprise.customers).toBe(-1);
-      expect(enterprise.toursPerMonth).toBe(-1);
-      expect(enterprise.storageGb).toBe(100);
-    });
-
-    it("limits increase progressively across tiers", () => {
-      const tiers = ["free", "starter", "pro"] as const;
-      for (let i = 0; i < tiers.length - 1; i++) {
-        const current = DEFAULT_PLAN_LIMITS[tiers[i]];
-        const next = DEFAULT_PLAN_LIMITS[tiers[i + 1]];
-        expect(next.users).toBeGreaterThan(current.users);
-        expect(next.customers).toBeGreaterThan(current.customers);
-        expect(next.toursPerMonth).toBeGreaterThan(current.toursPerMonth);
-        expect(next.storageGb).toBeGreaterThan(current.storageGb);
-      }
+    it("pro plan uses -1 for unlimited", () => {
+      const pro = DEFAULT_PLAN_LIMITS.pro;
+      expect(pro.users).toBe(-1);
+      expect(pro.customers).toBe(-1);
+      expect(pro.toursPerMonth).toBe(-1);
+      expect(pro.storageGb).toBe(100);
     });
   });
 

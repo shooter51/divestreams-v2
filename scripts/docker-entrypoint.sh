@@ -40,6 +40,30 @@ sql\`UPDATE \"user\" SET \"email_verified\" = true WHERE \"email_verified\" = fa
   .catch(err => { console.error('  Warning:', err.message); return sql.end(); });
 "
 
+# Fix plan features: ensure boolean flags are stored (not just marketing strings)
+echo "Ensuring plan features have boolean flags..."
+node -e "
+const postgres = require('postgres');
+const sql = postgres(process.env.DATABASE_URL);
+const plans = {
+  free: {has_tours_bookings:true,has_equipment_boats:false,has_training:false,has_pos:false,has_public_site:false,has_advanced_notifications:false,has_integrations:false,has_api_access:false,has_stripe:true,has_google_calendar:false,has_mailchimp:false,has_quickbooks:false,has_zapier:false,has_twilio:false,has_whatsapp:false,has_xero:false},
+  starter: {has_tours_bookings:true,has_equipment_boats:true,has_training:false,has_pos:false,has_public_site:true,has_advanced_notifications:false,has_integrations:false,has_api_access:false,has_stripe:true,has_google_calendar:true,has_mailchimp:false,has_quickbooks:false,has_zapier:false,has_twilio:false,has_whatsapp:false,has_xero:false},
+  pro: {has_tours_bookings:true,has_equipment_boats:true,has_training:true,has_pos:true,has_public_site:true,has_advanced_notifications:true,has_integrations:true,has_api_access:false,has_stripe:true,has_google_calendar:true,has_mailchimp:true,has_quickbooks:true,has_zapier:true,has_twilio:true,has_whatsapp:false,has_xero:false},
+  enterprise: {has_tours_bookings:true,has_equipment_boats:true,has_training:true,has_pos:true,has_public_site:true,has_advanced_notifications:true,has_integrations:true,has_api_access:true,has_stripe:true,has_google_calendar:true,has_mailchimp:true,has_quickbooks:true,has_zapier:true,has_twilio:true,has_whatsapp:true,has_xero:true}
+};
+(async () => {
+  for (const [name, features] of Object.entries(plans)) {
+    const rows = await sql\`SELECT id, features FROM subscription_plans WHERE name = \${name}\`;
+    if (rows.length && (!rows[0].features || !rows[0].features.has_tours_bookings)) {
+      const merged = { ...features, descriptions: Array.isArray(rows[0].features) ? rows[0].features : (rows[0].features?.descriptions || []) };
+      await sql\`UPDATE subscription_plans SET features = \${JSON.stringify(merged)}::jsonb WHERE name = \${name}\`;
+      console.log('  Fixed', name, 'plan features');
+    }
+  }
+  await sql.end();
+})().catch(err => { console.error('  Warning:', err.message); });
+"
+
 # Create platform admin if PLATFORM_ADMIN_EMAIL is set
 if [ -n "$PLATFORM_ADMIN_EMAIL" ] && [ -n "$PLATFORM_ADMIN_PASSWORD" ]; then
   echo "Checking for platform admin setup..."

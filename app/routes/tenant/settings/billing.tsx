@@ -59,7 +59,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Map database plans to billing page format
   const finalPlans = dbPlans.length > 0 ? dbPlans.map((plan, index) => ({
-    id: plan.name, // Plan name (e.g., "free", "professional", "enterprise")
+    id: plan.name, // Plan name (e.g., "standard", "pro")
     name: plan.displayName, // Display name for UI
     price: plan.monthlyPrice / 100, // cents to dollars
     yearlyPrice: plan.yearlyPrice / 100,
@@ -73,8 +73,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })) : [
     // Fallback if no plans in database
     {
-      id: "free",
-      name: "Free",
+      id: "standard",
+      name: "Standard",
       price: 0,
       yearlyPrice: 0,
       features: ["Up to 25 tours/month", "50 customers", "1 team member", "Basic features"],
@@ -92,11 +92,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
       isFree: false,
     },
     {
-      id: "enterprise",
-      name: "Enterprise",
+      id: "pro",
+      name: "Pro",
       price: 199,
       yearlyPrice: 1910,
-      features: ["Everything in Pro", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options"],
+      features: ["Everything in Standard", "Unlimited team members", "Custom integrations", "Dedicated support", "White-label options"],
       limits: { bookings: -1, team: -1 },
       isFree: false,
     },
@@ -129,8 +129,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const nextBillingDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   // Get plan price based on subscription
-  // subscription.plan stores the plan name (e.g., "free", "professional", "enterprise")
-  const subscriptionPlanName = ctx.subscription?.plan || "free";
+  // subscription.plan stores the plan name (e.g., "standard", "pro")
+  const subscriptionPlanName = ctx.subscription?.plan || "standard";
 
   // Find the matching plan from database
   // Try exact match first, then fall back to free plan logic
@@ -139,9 +139,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // If no exact match and subscription is "free" or "premium" (legacy values),
   // map to appropriate plan
   if (!currentPlanData) {
-    if (subscriptionPlanName === "free" || subscriptionPlanName === "premium") {
-      // "free" -> first free plan, "premium" -> first paid plan
-      currentPlanData = subscriptionPlanName === "free"
+    if (subscriptionPlanName === "standard" || subscriptionPlanName === "premium") {
+      // "standard" -> first free plan, "premium" -> first paid plan
+      currentPlanData = subscriptionPlanName === "standard"
         ? finalPlans.find(p => p.isFree) || finalPlans[0]
         : finalPlans.find(p => !p.isFree) || finalPlans[1] || finalPlans[0];
     } else {
@@ -150,7 +150,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  const currentPlan = currentPlanData?.id || "free";
+  const currentPlan = currentPlanData?.id || "standard";
 
   // Parse metadata if it exists
   let metadata: { stripeCustomerId?: string } = {};
@@ -267,7 +267,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const billingPeriod = (formData.get("billingPeriod") as "monthly" | "yearly") || "monthly";
 
     // Map planId to plan name for Stripe
-    const planName = planId as "starter" | "pro" | "enterprise";
+    const planName = planId as "standard" | "pro";
 
     try {
       const sessionUrl = await createCheckoutSession(

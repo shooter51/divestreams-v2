@@ -103,7 +103,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
         schema: { images: {} },
       } as unknown);
 
-      vi.mocked(storage.deleteFromB2).mockResolvedValue(undefined);
+      vi.mocked(storage.deleteFromS3).mockResolvedValue(undefined);
 
       const formData = new FormData();
       formData.append("imageId", "img-123");
@@ -115,7 +115,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
 
       const result = await action({ request, params: {}, context: {} });
 
-      expect(storage.deleteFromB2).toHaveBeenCalledTimes(2); // Original + thumbnail
+      expect(storage.deleteFromS3).toHaveBeenCalledTimes(2); // Original + thumbnail
       expect(result.status).toBe(200);
       const json = await result.json();
       expect(json.success).toBe(true);
@@ -174,7 +174,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
         schema: { images: {} },
       } as unknown);
 
-      vi.mocked(storage.deleteFromB2).mockResolvedValue(undefined);
+      vi.mocked(storage.deleteFromS3).mockResolvedValue(undefined);
 
       const formData = new FormData();
       formData.append("imageId", "img-123");
@@ -218,7 +218,7 @@ describe("app/routes/tenant/images/delete.tsx", () => {
         schema: { images: {} },
       } as unknown);
 
-      vi.mocked(storage.deleteFromB2).mockResolvedValue(undefined);
+      vi.mocked(storage.deleteFromS3).mockResolvedValue(undefined);
 
       const formData = new FormData();
       formData.append("imageId", "img-123");

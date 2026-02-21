@@ -91,26 +91,26 @@ export async function createTenant(data: {
       updatedAt: new Date(),
     });
 
-    // Look up the free plan to get its ID
-    const [freePlan] = await db
+    // Look up the standard plan to get its ID
+    const [standardPlan] = await db
       .select()
       .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.name, "free"))
+      .where(eq(subscriptionPlans.name, "standard"))
       .limit(1);
 
-    if (!freePlan) {
+    if (!standardPlan) {
       console.warn(
-        `No "free" subscription plan found in subscriptionPlans table. ` +
+        `No "standard" subscription plan found in subscriptionPlans table. ` +
         `New tenant "${data.subdomain}" will have planId=null. ` +
-        `Ensure the "free" plan is seeded in the database.`
+        `Ensure the "standard" plan is seeded in the database.`
       );
     }
 
     // Create subscription record for the organization
     await db.insert(subscription).values({
       organizationId: orgId,
-      plan: "free",
-      planId: freePlan?.id ?? null,
+      plan: "standard",
+      planId: standardPlan?.id ?? null,
       status: "trialing",
       createdAt: new Date(),
       updatedAt: new Date(),

@@ -36,8 +36,8 @@ describe("marketing/pricing route", () => {
   describe("loader", () => {
     it("returns plans from database sorted by price", async () => {
       const mockPlans = [
-        { id: "2", name: "pro", displayName: "Pro", monthlyPrice: 9900, yearlyPrice: 95000, features: ["Feature A"] },
-        { id: "1", name: "starter", displayName: "Starter", monthlyPrice: 4900, yearlyPrice: 47000, features: ["Feature B"] },
+        { id: "2", name: "pro", displayName: "Pro", monthlyPrice: 10000, yearlyPrice: 96000, features: ["Feature A"] },
+        { id: "1", name: "standard", displayName: "Standard", monthlyPrice: 3000, yearlyPrice: 28800, features: ["Feature B"] },
       ];
       (db.where as Mock).mockResolvedValue(mockPlans);
 
@@ -45,8 +45,8 @@ describe("marketing/pricing route", () => {
 
       expect(result.plans).toHaveLength(2);
       // Should be sorted by price ascending
-      expect(result.plans[0].monthlyPrice).toBe(4900);
-      expect(result.plans[1].monthlyPrice).toBe(9900);
+      expect(result.plans[0].monthlyPrice).toBe(3000);
+      expect(result.plans[1].monthlyPrice).toBe(10000);
     });
 
     it("returns default plans when database returns empty", async () => {
@@ -54,10 +54,9 @@ describe("marketing/pricing route", () => {
 
       const result = await loader({ request: new Request("https://divestreams.com/pricing"), params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(result.plans).toHaveLength(3);
-      expect(result.plans[0].name).toBe("starter");
+      expect(result.plans).toHaveLength(2);
+      expect(result.plans[0].name).toBe("standard");
       expect(result.plans[1].name).toBe("pro");
-      expect(result.plans[2].name).toBe("enterprise");
     });
 
     it("returns default plans when database query fails", async () => {
@@ -66,7 +65,7 @@ describe("marketing/pricing route", () => {
 
       const result = await loader({ request: new Request("https://divestreams.com/pricing"), params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(result.plans).toHaveLength(3);
+      expect(result.plans).toHaveLength(2);
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });

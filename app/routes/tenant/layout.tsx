@@ -25,7 +25,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   // Determine subscription status from subscription table
-  const subscriptionStatus = ctx.subscription?.status ?? "free";
+  const subscriptionStatus = ctx.subscription?.status ?? "standard";
 
   // Get plan features and limits
   // Features can be PlanFeaturesObject or legacy string[] format
@@ -33,9 +33,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const features: PlanFeaturesObject =
     rawFeatures && typeof rawFeatures === "object" && !Array.isArray(rawFeatures)
       ? (rawFeatures as PlanFeaturesObject)
-      : DEFAULT_PLAN_FEATURES.free;
-  const limits: PlanLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
-  const planName = ctx.subscription?.planDetails?.displayName ?? "Free";
+      : DEFAULT_PLAN_FEATURES.standard;
+  const limits: PlanLimits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
+  const planName = ctx.subscription?.planDetails?.displayName ?? "Standard";
 
   // Compute baseDomain on the server – getBaseDomain() accesses process.env
   // which is unavailable in the browser and would crash client-side hydration.

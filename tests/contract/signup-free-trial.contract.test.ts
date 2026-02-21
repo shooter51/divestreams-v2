@@ -71,33 +71,33 @@ describe("Contract: Free Trial Signup Flow (KAN-592)", () => {
     });
   });
 
-  describe("Free plan subscription contract", () => {
+  describe("Standard plan subscription contract", () => {
     it("creates subscription with status trialing", () => {
       const subscription = {
         organizationId: "org-1",
-        plan: "free",
+        plan: "standard",
         planId: null,
         status: "trialing",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      expect(subscription.plan).toBe("free");
+      expect(subscription.plan).toBe("standard");
       expect(subscription.status).toBe("trialing");
     });
 
-    it("handles missing free plan gracefully (planId null)", () => {
-      const freePlan = undefined;
-      const planId = freePlan?.id ?? null;
+    it("handles missing standard plan gracefully (planId null)", () => {
+      const standardPlan = undefined;
+      const planId = standardPlan?.id ?? null;
 
       expect(planId).toBeNull();
     });
 
-    it("preserves planId when free plan exists", () => {
-      const freePlan = { id: "plan-free-001" };
-      const planId = freePlan?.id ?? null;
+    it("preserves planId when standard plan exists", () => {
+      const standardPlan = { id: "plan-standard-001" };
+      const planId = standardPlan?.id ?? null;
 
-      expect(planId).toBe("plan-free-001");
+      expect(planId).toBe("plan-standard-001");
     });
   });
 });

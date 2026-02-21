@@ -40,7 +40,7 @@ describe("tenant/settings/billing route", () => {
     membership: { role: "owner" },
     subscription: {
       id: "sub-1",
-      plan: "free",
+      plan: "standard",
       status: "active",
       stripeCustomerId: null,
       stripeSubscriptionId: null,
@@ -67,7 +67,7 @@ describe("tenant/settings/billing route", () => {
 
     it("returns subscription data from context", () => {
       expect(mockOrgContext.subscription).toBeDefined();
-      expect(mockOrgContext.subscription.plan).toBe("free");
+      expect(mockOrgContext.subscription.plan).toBe("standard");
       expect(mockOrgContext.subscription.status).toBe("active");
     });
 
@@ -135,37 +135,37 @@ describe("tenant/settings/billing route", () => {
   describe("Plan Comparison", () => {
     const mockPlans = [
       {
-        id: "plan-free",
-        name: "free",
-        displayName: "Free",
-        monthlyPrice: 0,
-        yearlyPrice: 0,
-        features: ["Up to 50 customers", "3 tours"],
+        id: "plan-standard",
+        name: "standard",
+        displayName: "Standard",
+        monthlyPrice: 3000,
+        yearlyPrice: 28800,
+        features: ["Up to 500 customers", "25 tours per month"],
       },
       {
         id: "plan-pro",
-        name: "professional",
-        displayName: "Professional",
-        monthlyPrice: 4900,
-        yearlyPrice: 49000,
+        name: "pro",
+        displayName: "Pro",
+        monthlyPrice: 10000,
+        yearlyPrice: 96000,
         features: ["Unlimited customers", "Unlimited tours"],
       },
     ];
 
-    it("free plan has limited features", () => {
-      const freePlan = mockPlans.find(p => p.name === "free");
-      expect(freePlan?.monthlyPrice).toBe(0);
-      expect(freePlan?.features).toContain("Up to 50 customers");
+    it("standard plan has limited features", () => {
+      const standardPlan = mockPlans.find(p => p.name === "standard");
+      expect(standardPlan?.monthlyPrice).toBe(3000);
+      expect(standardPlan?.features).toContain("Up to 500 customers");
     });
 
-    it("professional plan has unlimited features", () => {
-      const proPlan = mockPlans.find(p => p.name === "professional");
-      expect(proPlan?.monthlyPrice).toBe(4900);
+    it("pro plan has unlimited features", () => {
+      const proPlan = mockPlans.find(p => p.name === "pro");
+      expect(proPlan?.monthlyPrice).toBe(10000);
       expect(proPlan?.features).toContain("Unlimited customers");
     });
 
     it("yearly pricing offers discount", () => {
-      const proPlan = mockPlans.find(p => p.name === "professional");
+      const proPlan = mockPlans.find(p => p.name === "pro");
       // 49000 / 12 = ~4083 vs 4900 monthly = savings
       const monthlyEquivalent = (proPlan?.yearlyPrice ?? 0) / 12;
       expect(monthlyEquivalent).toBeLessThan(proPlan?.monthlyPrice ?? 0);

@@ -328,7 +328,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       it("should upload images successfully and redirect to edit page", async () => {
         vi.mocked(storage.getS3Client).mockReturnValue({} as unknown);
         vi.mocked(storage.isValidImageType).mockReturnValue(true);
-        vi.mocked(storage.uploadToB2)
+        vi.mocked(storage.uploadToS3)
           .mockResolvedValueOnce({ cdnUrl: "https://cdn.example.com/image.webp" } as unknown)
           .mockResolvedValueOnce({ cdnUrl: "https://cdn.example.com/image-thumb.webp" } as unknown);
 
@@ -347,7 +347,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
 
         const result = await action({ request, params: {}, context: {} });
 
-        expect(storage.uploadToB2).toHaveBeenCalledTimes(2);
+        expect(storage.uploadToS3).toHaveBeenCalledTimes(2);
         expect(insertValues).toHaveBeenCalledWith(
           expect.objectContaining({
             organizationId: mockOrganizationId,
@@ -382,9 +382,9 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
 
         const result = await action({ request, params: {}, context: {} });
 
-        // Invalid type: processImage and uploadToB2 should not be called
+        // Invalid type: processImage and uploadToS3 should not be called
         expect(storage.processImage).not.toHaveBeenCalled();
-        expect(storage.uploadToB2).not.toHaveBeenCalled();
+        expect(storage.uploadToS3).not.toHaveBeenCalled();
 
         expect(result).toBeInstanceOf(Response);
         expect(result.status).toBe(302);
@@ -415,7 +415,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
 
         // Oversized file should be skipped, processImage should not be called
         expect(storage.processImage).not.toHaveBeenCalled();
-        expect(storage.uploadToB2).not.toHaveBeenCalled();
+        expect(storage.uploadToS3).not.toHaveBeenCalled();
 
         expect(result).toBeInstanceOf(Response);
         expect(result.status).toBe(302);
@@ -425,7 +425,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
         vi.mocked(storage.getS3Client).mockReturnValue({} as unknown);
         vi.mocked(storage.isValidImageType).mockReturnValue(true);
         // First upload succeeds, second's original upload returns null (failure)
-        vi.mocked(storage.uploadToB2)
+        vi.mocked(storage.uploadToS3)
           .mockResolvedValueOnce({ cdnUrl: "https://cdn.example.com/image1.webp" } as unknown)
           .mockResolvedValueOnce({ cdnUrl: "https://cdn.example.com/image1-thumb.webp" } as unknown)
           .mockResolvedValueOnce(null) // second file original upload fails
@@ -513,7 +513,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       it("should limit uploads to 5 images maximum", async () => {
         vi.mocked(storage.getS3Client).mockReturnValue({} as unknown);
         vi.mocked(storage.isValidImageType).mockReturnValue(true);
-        vi.mocked(storage.uploadToB2).mockResolvedValue({ cdnUrl: "https://cdn.example.com/img.webp" } as unknown);
+        vi.mocked(storage.uploadToS3).mockResolvedValue({ cdnUrl: "https://cdn.example.com/img.webp" } as unknown);
 
         const insertValues = setupDbMock();
 
@@ -540,7 +540,7 @@ describe("app/routes/tenant/dive-sites/new.tsx", () => {
       it("should set first image as primary with correct sort order", async () => {
         vi.mocked(storage.getS3Client).mockReturnValue({} as unknown);
         vi.mocked(storage.isValidImageType).mockReturnValue(true);
-        vi.mocked(storage.uploadToB2).mockResolvedValue({ cdnUrl: "https://cdn.example.com/img.webp" } as unknown);
+        vi.mocked(storage.uploadToS3).mockResolvedValue({ cdnUrl: "https://cdn.example.com/img.webp" } as unknown);
 
         const insertValues = setupDbMock();
 
