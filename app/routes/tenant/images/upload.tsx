@@ -22,10 +22,27 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
+    // Check content-length before parsing to catch oversized uploads early
+    const contentLength = parseInt(request.headers.get("content-length") || "0");
+    if (contentLength > MAX_FILE_SIZE + 1024) {
+      return Response.json(
+        { error: `File is too large (${(contentLength / 1024 / 1024).toFixed(1)}MB). Maximum size: 10MB` },
+        { status: 400 }
+      );
+    }
+
     const ctx = await requireOrgContext(request);
     const organizationId = ctx.org.id;
 
-    const formData = await request.formData();
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch {
+      return Response.json(
+        { error: "File is too large. Maximum size: 10MB" },
+        { status: 400 }
+      );
+    }
     const file = formData.get("file") as File | null;
     const entityType = formData.get("entityType") as string;
     const entityId = formData.get("entityId") as string;

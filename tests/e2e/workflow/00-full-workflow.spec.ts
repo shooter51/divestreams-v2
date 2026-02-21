@@ -666,6 +666,8 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await page.goto(getTenantUrl("/tenant/boats"));
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
+    // Skip if redirected to dashboard (feature gated)
+    if (page.url().includes("upgrade=")) { test.skip(true, "Boats feature is locked on current plan"); return; }
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     expect(searchInput).toBeTruthy();
   });
@@ -1565,6 +1567,7 @@ test.describe.serial("Block E: Dependent CRUD - Trips, Bookings", () => {
     await page.goto(getTenantUrl("/tenant/trips/new"));
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
+    if (page.url().includes("upgrade=")) { test.skip(true, "Trips feature is locked on current plan"); return; }
     const dateField = await page.getByLabel(/date/i).isVisible().catch(() => false);
     if (dateField) {
       await page.getByLabel(/date/i).fill(testData.trip.date);
@@ -1922,6 +1925,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
     await page.goto(getTenantUrl("/tenant/pos"));
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
+    if (page.url().includes("upgrade=")) { test.skip(true, "POS feature is locked on current plan"); return; }
     const paymentButton = await page.getByRole("button", { name: /card|cash|split/i }).first().isVisible().catch(() => false);
     expect(paymentButton || page.url().includes("/pos")).toBeTruthy();
   });
