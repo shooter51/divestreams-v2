@@ -112,16 +112,19 @@ test.describe('KAN-630: Album Image Upload', () => {
     // Wait for redirect back to album page or gallery.
     await page.waitForURL(/\/tenant\/gallery/, { timeout: 15000 });
 
-    // Check for storage-not-configured error — skip verification if storage unavailable
-    const pageContent = await page.content();
-    if (pageContent.includes('storage is not configured') || pageContent.includes('failed to upload')) {
+    // Check for storage-not-configured error — skip verification if storage unavailable.
+    // Notifications are rendered client-side via useNotification() hook (useEffect + useSearchParams),
+    // so we must use page.locator().isVisible() rather than page.content() which only returns SSR HTML.
+    const hasStorageError = await page.locator('text=/storage is not configured/i').isVisible({ timeout: 5000 }).catch(() => false);
+    const hasUploadError = await page.locator('text=/failed to upload/i').isVisible({ timeout: 1000 }).catch(() => false);
+    if (hasStorageError || hasUploadError) {
       test.skip(true, 'B2/S3 storage is not configured — skipping upload verification');
       return;
     }
 
-    // Verify upload succeeded - should show image in album or success notification
-    // The page may show either image grid or a success notification
-    const hasSuccessNotification = await page.locator('text=/successfully uploaded/i').isVisible({ timeout: 3000 }).catch(() => false);
+    // Verify upload succeeded - should show image in album or success notification.
+    // Allow up to 8 seconds for React hydration + toast render.
+    const hasSuccessNotification = await page.locator('text=/successfully uploaded/i').isVisible({ timeout: 8000 }).catch(() => false);
     const hasImageInGrid = await page.locator('img[alt]').first().isVisible({ timeout: 3000 }).catch(() => false);
 
     expect(hasSuccessNotification || hasImageInGrid).toBeTruthy();
