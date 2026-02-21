@@ -40,43 +40,21 @@ export interface PlanConfig {
  * Prices are in cents (e.g., 4900 = $49.00)
  */
 export const PLAN_CONFIGS: Record<string, PlanConfig> = {
-  free: {
-    name: "free",
-    displayName: "Free",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
-    description: "Perfect for getting started",
-    features: [
-      "1 user",
-      "50 customers",
-      "Basic booking management",
-      "5 tours per month",
-      "Community support",
-    ],
-    planFeatures: DEFAULT_PLAN_FEATURES.free,
-    limits: {
-      users: 1,
-      customers: 50,
-      toursPerMonth: 5,
-      storageGb: 0.5,
-    },
-  },
-
-  starter: {
-    name: "starter",
-    displayName: "Starter",
-    monthlyPrice: 4900, // $49.00
-    yearlyPrice: 47000, // $470.00 (save $118/year or 20%)
-    description: "Perfect for small dive shops getting started",
+  standard: {
+    name: "standard",
+    displayName: "Standard",
+    monthlyPrice: 3000, // $30.00
+    yearlyPrice: 28800, // $288.00 (save $72/year or 20%)
+    description: "Perfect for dive shops running tours",
     features: [
       "Up to 3 users",
       "500 customers",
-      "Booking management",
-      "Public booking site",
-      "Basic reporting",
+      "Tours & booking management",
+      "Stripe payments",
+      "25 tours per month",
       "Email support",
     ],
-    planFeatures: DEFAULT_PLAN_FEATURES.starter,
+    planFeatures: DEFAULT_PLAN_FEATURES.standard,
     limits: {
       users: 3,
       customers: 500,
@@ -88,45 +66,21 @@ export const PLAN_CONFIGS: Record<string, PlanConfig> = {
   pro: {
     name: "pro",
     displayName: "Pro",
-    monthlyPrice: 9900, // $99.00
-    yearlyPrice: 95000, // $950.00 (save $238/year or 20%)
-    description: "For growing dive shops that need more power",
-    features: [
-      "Up to 10 users",
-      "5,000 customers",
-      "Online booking widget",
-      "Equipment & rental tracking",
-      "Training management",
-      "Point of Sale",
-      "Advanced reporting",
-      "Priority support",
-      "API access",
-    ],
-    planFeatures: DEFAULT_PLAN_FEATURES.pro,
-    limits: {
-      users: 10,
-      customers: 5000,
-      toursPerMonth: 100,
-      storageGb: 25,
-    },
-  },
-
-  enterprise: {
-    name: "enterprise",
-    displayName: "Enterprise",
-    monthlyPrice: 19900, // $199.00
-    yearlyPrice: 191000, // $1,910.00 (save $478/year or 20%)
-    description: "For large operations and multiple locations",
+    monthlyPrice: 10000, // $100.00
+    yearlyPrice: 96000, // $960.00 (save $240/year or 20%)
+    description: "Everything you need to run your dive business",
     features: [
       "Unlimited users",
       "Unlimited customers",
-      "Multi-location support",
-      "Custom integrations",
-      "Dedicated support",
-      "White-label options",
-      "SLA guarantee",
+      "Equipment & rental tracking",
+      "Training management",
+      "Point of Sale",
+      "Public booking site",
+      "All integrations",
+      "API access",
+      "Priority support",
     ],
-    planFeatures: DEFAULT_PLAN_FEATURES.enterprise,
+    planFeatures: DEFAULT_PLAN_FEATURES.pro,
     limits: {
       users: -1, // unlimited
       customers: -1, // unlimited

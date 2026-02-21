@@ -42,7 +42,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
 
   // Check users limit - this will redirect if limit exceeded
-  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
+  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
   const limitCheck = await requireLimit(ctx.org.id, "users", limits);
 
   // Get team members from Better Auth member table

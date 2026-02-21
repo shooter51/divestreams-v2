@@ -199,7 +199,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const status = formData.get("status") as string;
 
     // [KAN-594 FIX] Get plan details for backwards compatibility AND validation
-    let planName = "free";
+    let planName = "standard";
     let selectedPlan = null;
 
     if (planId) {

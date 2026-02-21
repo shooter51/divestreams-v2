@@ -42,8 +42,8 @@ const mockOrgs = [
     createdAt: "2025-01-10",
     memberCount: 1,
     ownerEmail: "admin@deepdive.com",
-    subscriptionStatus: "free",
-    subscriptionPlan: "free",
+    subscriptionStatus: "standard",
+    subscriptionPlan: "standard",
     tenantUrl: "https://deepdive.divestreams.com/tenant",
   },
 ];
@@ -144,11 +144,11 @@ describe("AdminOrganizationsPage - Semantic Token Migration (KAN-670)", () => {
       expect(activeBadge).toHaveClass("bg-success-muted", "text-success");
     });
 
-    it("uses semantic status colors for free status", () => {
+    it("uses semantic status colors for standard status", () => {
       render(<AdminOrganizationsPage />);
-      const freeBadges = screen.getAllByText("free");
-      // Both plan and status badges for the free org use surface-inset tokens
-      freeBadges.forEach((badge) => {
+      const standardBadges = screen.getAllByText("standard");
+      // Both plan and status badges for the standard org use surface-inset tokens
+      standardBadges.forEach((badge) => {
         expect(badge).toHaveClass("bg-surface-inset", "text-foreground-muted");
       });
     });
@@ -161,12 +161,12 @@ describe("AdminOrganizationsPage - Semantic Token Migration (KAN-670)", () => {
       expect(premiumBadge).toHaveClass("bg-info-muted", "text-info");
     });
 
-    it("uses semantic surface colors for free plan", () => {
+    it("uses semantic surface colors for standard plan", () => {
       render(<AdminOrganizationsPage />);
-      // Both plan and status badges say "free" - get the plan one
-      const freePlanBadges = screen.getAllByText("free");
+      // Both plan and status badges say "standard" - get the plan one
+      const standardPlanBadges = screen.getAllByText("standard");
       // The plan badge comes first in the row
-      const planBadge = freePlanBadges[0];
+      const planBadge = standardPlanBadges[0];
       expect(planBadge).toHaveClass("bg-surface-inset", "text-foreground-muted");
     });
   });

@@ -13,7 +13,7 @@ export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
-  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.free;
+  const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
   const limitCheck = await requireLimit(ctx.org.id, "customers", limits);
   return {
     limitRemaining: limitCheck.remaining,

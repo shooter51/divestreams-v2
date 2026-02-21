@@ -172,7 +172,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     tenantName: ctx.org.name,
-    planName: ctx.subscription?.plan || "free",
+    planName: ctx.subscription?.plan || "standard",
     teamCount,
     connectedIntegrations,
     isPremium: ctx.isPremium,

@@ -9,17 +9,15 @@ import { getAllPlanConfigs, PLAN_CONFIGS } from "../../../../lib/stripe/plan-con
 
 describe("Plan Config", () => {
   describe("getAllPlanConfigs", () => {
-    it("returns 4 plans", () => {
+    it("returns 2 plans", () => {
       const plans = getAllPlanConfigs();
-      expect(plans).toHaveLength(4);
+      expect(plans).toHaveLength(2);
     });
 
-    it("includes free, starter, pro, and enterprise plans", () => {
+    it("includes standard and pro plans", () => {
       const planNames = getAllPlanConfigs().map((p) => p.name);
-      expect(planNames).toContain("free");
-      expect(planNames).toContain("starter");
+      expect(planNames).toContain("standard");
       expect(planNames).toContain("pro");
-      expect(planNames).toContain("enterprise");
     });
   });
 
@@ -36,25 +34,25 @@ describe("Plan Config", () => {
       }
     });
 
-    it("enterprise plan has all features enabled", () => {
-      const enterprise = PLAN_CONFIGS.enterprise;
-      const featureValues = Object.values(enterprise.planFeatures);
+    it("pro plan has all features enabled", () => {
+      const pro = PLAN_CONFIGS.pro;
+      const featureValues = Object.values(pro.planFeatures);
       expect(featureValues.length).toBeGreaterThan(0);
       for (const value of featureValues) {
         expect(value).toBe(true);
       }
     });
 
-    it("free plan has limited features", () => {
-      const free = PLAN_CONFIGS.free;
-      const featureValues = Object.values(free.planFeatures);
+    it("standard plan has limited features", () => {
+      const standard = PLAN_CONFIGS.standard;
+      const featureValues = Object.values(standard.planFeatures);
       const enabledCount = featureValues.filter((v) => v === true).length;
       const disabledCount = featureValues.filter((v) => v === false).length;
 
-      // Free plan should have some features enabled and some disabled
+      // Standard plan should have some features enabled and some disabled
       expect(enabledCount).toBeGreaterThan(0);
       expect(disabledCount).toBeGreaterThan(0);
-      // Free plan should have more disabled than enabled features
+      // Standard plan should have more disabled than enabled features
       expect(disabledCount).toBeGreaterThan(enabledCount);
     });
   });
