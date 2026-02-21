@@ -1925,6 +1925,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
     await page.goto(getTenantUrl("/tenant/pos"));
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
+
     if (page.url().includes("upgrade=")) { test.skip(true, "POS feature is locked on current plan"); return; }
     const paymentButton = await page.getByRole("button", { name: /card|cash|split/i }).first().isVisible().catch(() => false);
     expect(paymentButton || page.url().includes("/pos")).toBeTruthy();
