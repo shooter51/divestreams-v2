@@ -71,6 +71,7 @@ export const certificationLevels = pgTable(
     index("cert_levels_org_idx").on(table.organizationId),
     index("cert_levels_agency_idx").on(table.agencyId),
     uniqueIndex("cert_levels_org_code_idx").on(table.organizationId, table.code),
+    index("cert_levels_org_active_idx").on(table.organizationId, table.isActive),
   ]
 );
 
@@ -302,6 +303,7 @@ export const trainingEnrollments = pgTable(
     index("training_enrollments_session_idx").on(table.sessionId),
     index("training_enrollments_customer_idx").on(table.customerId),
     uniqueIndex("training_enrollments_unique_idx").on(table.sessionId, table.customerId),
+    index("training_enrollments_org_status_idx").on(table.organizationId, table.status),
   ]
 );
 

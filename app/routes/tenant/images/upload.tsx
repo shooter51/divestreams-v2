@@ -165,6 +165,10 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     );
   } catch (error) {
+    // Re-throw Response objects (e.g. redirects from requireOrgContext)
+    // so they are handled correctly by React Router instead of being swallowed as 500s.
+    if (!(error instanceof Error)) throw error;
+
     storageLogger.error({ err: error }, "Image upload error");
 
     // Differentiate error types for better debugging
