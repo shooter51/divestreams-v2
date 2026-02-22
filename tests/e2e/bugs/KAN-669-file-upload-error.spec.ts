@@ -52,6 +52,16 @@ test.describe("KAN-669: File upload error specifies filename", () => {
     // Using page.request preserves the authenticated session cookies.
     const baseUrl = uploadPage["tenantUrl"];
 
+    // Get CSRF token from the upload-images form page (has <CsrfInput /> in the form).
+    // The /tenant/images/upload endpoint calls requireOrgContext which runs requireCsrf,
+    // so we must include the _csrf token in multipart requests.
+    await page.goto(`${baseUrl}/tenant/gallery/upload-images`);
+    await page.waitForLoadState("networkidle");
+    const csrfToken = await page.evaluate(() => {
+      const input = document.querySelector('input[name="_csrf"]') as HTMLInputElement;
+      return input?.value ?? null;
+    });
+
     const response = await page.request.post(
       `${baseUrl}/tenant/images/upload`,
       {
@@ -63,6 +73,7 @@ test.describe("KAN-669: File upload error specifies filename", () => {
           },
           entityType: "tour",
           entityId: "test-entity-1",
+          ...(csrfToken ? { _csrf: csrfToken } : {}),
         },
       }
     );
@@ -131,6 +142,15 @@ test.describe("KAN-669: File upload error specifies filename", () => {
 
     // Use API route directly to verify error format
     const baseUrl = uploadPage["tenantUrl"];
+
+    // Get CSRF token from the upload-images form page (requireOrgContext checks CSRF).
+    await page.goto(`${baseUrl}/tenant/gallery/upload-images`);
+    await page.waitForLoadState("networkidle");
+    const csrfToken = await page.evaluate(() => {
+      const input = document.querySelector('input[name="_csrf"]') as HTMLInputElement;
+      return input?.value ?? null;
+    });
+
     const response = await page.request.post(
       `${baseUrl}/tenant/images/upload`,
       {
@@ -142,6 +162,7 @@ test.describe("KAN-669: File upload error specifies filename", () => {
           },
           entityType: "tour",
           entityId: "tour-1",
+          ...(csrfToken ? { _csrf: csrfToken } : {}),
         },
       }
     );

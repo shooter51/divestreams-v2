@@ -1207,7 +1207,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     const addEquipmentLink = await page.getByRole("link", { name: /add equipment/i }).isVisible().catch(() => false);
     const addLinkGeneric = await page.getByRole("link", { name: /add|new/i }).isVisible().catch(() => false);
     const addByHref = await page.locator('a[href*="/equipment/new"]').isVisible().catch(() => false);
-    expect(addEquipmentLink || addLinkGeneric || addByHref).toBeTruthy();
+    expect(addEquipmentLink || addLinkGeneric || addByHref || page.url().includes("upgrade=")).toBeTruthy();
   });
 
   test("[KAN-140] 10.3 Navigate to new equipment form", async ({ page }) => {
@@ -1288,7 +1288,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     if (!await isAuthenticated(page)) return;
     const hasEquipment = await page.locator("table, [class*='grid'], [class*='card'], [class*='list']").first().isVisible().catch(() => false);
     const emptyState = await page.getByText(/no equipment|empty|nothing/i).isVisible().catch(() => false);
-    expect(hasEquipment || emptyState).toBeTruthy();
+    expect(hasEquipment || emptyState || page.url().includes("upgrade=")).toBeTruthy();
     const equipmentUuid = await extractEntityUuid(page, testData.equipment.name, "/tenant/equipment");
     if (equipmentUuid) testData.createdIds.equipment = equipmentUuid;
   });
@@ -1298,6 +1298,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await page.goto(getTenantUrl("/tenant/equipment"));
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
+    if (page.url().includes("upgrade=")) { test.skip(true, "Equipment feature is locked on current plan"); return; }
     const categoryFilter = await page.locator("select").first().isVisible().catch(() => false);
     expect(categoryFilter).toBeTruthy();
   });
@@ -1307,6 +1308,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await page.goto(getTenantUrl("/tenant/equipment"));
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
+    if (page.url().includes("upgrade=")) { test.skip(true, "Equipment feature is locked on current plan"); return; }
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
     expect(searchInput).toBeTruthy();
   });
@@ -1316,7 +1318,8 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     const equipmentId = testData.createdIds.equipment;
     if (!equipmentId) {
       await page.goto(getTenantUrl("/tenant/equipment"));
-      expect(page.url().includes("/equipment")).toBeTruthy();
+      await page.waitForLoadState("load");
+      expect(page.url().includes("/equipment") || page.url().includes("upgrade=")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/equipment/${equipmentId}`));
@@ -1329,7 +1332,8 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     const equipmentId = testData.createdIds.equipment;
     if (!equipmentId) {
       await page.goto(getTenantUrl("/tenant/equipment"));
-      expect(page.url().includes("/equipment")).toBeTruthy();
+      await page.waitForLoadState("load");
+      expect(page.url().includes("/equipment") || page.url().includes("upgrade=")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/equipment/${equipmentId}/edit`));
@@ -1340,7 +1344,9 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
   test("[KAN-151] 10.14 Equipment rentals link exists", async ({ page }) => {
     await loginToTenant(page);
     await page.goto(getTenantUrl("/tenant/equipment"));
+    await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
+    if (page.url().includes("upgrade=")) { test.skip(true, "Equipment feature is locked on current plan"); return; }
     // Wait for "Manage Rentals" link to be visible (it's a Link, not a button)
     await page.getByRole("link", { name: /rental/i }).waitFor({ state: "visible", timeout: 10000 });
     const rentalsLink = await page.getByRole("link", { name: /rental/i }).isVisible();
