@@ -170,7 +170,7 @@ jobs:
           BASE_URL: https://test.divestreams.com
           SKIP_WEB_SERVER: 'true'
           ADMIN_EMAIL: ${{ secrets.PLATFORM_ADMIN_EMAIL }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_PASSWORD: ${{ secrets.TEST_PLATFORM_ADMIN_PASSWORD }}
 
       - name: Upload E2E report
         uses: actions/upload-artifact@v4
