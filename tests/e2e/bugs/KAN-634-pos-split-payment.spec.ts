@@ -33,7 +33,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
   test('KAN-634-A: Split payment modal opens and shows correct UI', async ({ page }) => {
     // Add a product to cart (click first product)
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
@@ -52,7 +52,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
   test('KAN-634-B: Cash-only split payment works', async ({ page }) => {
     // Add a product to cart
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
@@ -79,7 +79,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
   test('KAN-634-C: Multiple cash payments in split mode', async ({ page }) => {
     // Add a product to cart
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
@@ -118,7 +118,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
   test('KAN-634-D: Can remove payments from split payment', async ({ page }) => {
     // Add a product to cart
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
@@ -148,7 +148,7 @@ test.describe('KAN-634: POS Split Payment', () => {
 
   test('KAN-634-E: Complete sale button disabled when amount does not match total', async ({ page }) => {
     // Add a product to cart
-    const firstProduct = page.locator('.grid button').first();
+    const firstProduct = page.locator('.grid button:not([disabled])').first();
     await firstProduct.click();
     await page.waitForLoadState("domcontentloaded");
 
