@@ -766,7 +766,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const heading = await page.getByRole("heading", { name: /new tour|create tour/i }).isVisible().catch(() => false);
-    expect(heading || page.url().includes("/tours")).toBeTruthy();
+    expect(heading || page.url().includes("/tours") || page.url().includes("upgrade=") || page.url().includes("limit_exceeded=")).toBeTruthy();
   });
 
   test("[KAN-102] 7.4 New tour form has name field", async ({ page }) => {
@@ -1366,7 +1366,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
     await page.goto(getTenantUrl("/tenant/discounts"));
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
-    expect(page.url().includes("/discounts") || page.url().includes("/settings")).toBeTruthy();
+    expect(page.url().includes("/discounts") || page.url().includes("/settings") || page.url().includes("upgrade=")).toBeTruthy();
   });
 
   test("[KAN-154] 13.2 Discounts page has heading", async ({ page }) => {

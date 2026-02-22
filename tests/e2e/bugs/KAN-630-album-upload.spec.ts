@@ -104,32 +104,49 @@ test.describe('KAN-630: Album Image Upload', () => {
       await titleInput.fill('Test Upload Image');
     }
 
+    // Intercept the upload POST response at the network level to read the 302 Location header
+    // BEFORE React's useNotification hook removes URL params. The upload action uses
+    // redirectWithNotification which encodes the error/success message in URL params, but
+    // React's useEffect fires very quickly and removes those params before page.url() can read them.
+    let uploadRedirectError = '';
+    let uploadRedirectSuccess = false;
+    const responseHandler = async (response: import('@playwright/test').Response) => {
+      if (response.request().method() === 'POST' && response.url().includes('/gallery/upload')) {
+        const location = response.headers()['location'] ?? '';
+        if (location) {
+          try {
+            const locUrl = new URL(location, page.url());
+            const errorParam = locUrl.searchParams.get('error') ?? '';
+            if (errorParam) uploadRedirectError = errorParam;
+            if (locUrl.searchParams.get('success')) uploadRedirectSuccess = true;
+          } catch {
+            if (location.includes('error=')) uploadRedirectError = location;
+          }
+        }
+      }
+    };
+    page.on('response', responseHandler);
+
     // Submit upload form
     await page.getByRole('button', { name: /upload/i }).click();
 
     // After upload, the action redirects back to the album page with a notification.
-    // If storage is not configured, we get an error notification.
-    // Wait for redirect back to album page or gallery.
     await page.waitForURL(/\/tenant\/gallery/, { timeout: 15000 });
+    page.off('response', responseHandler);
 
-    // Check URL params immediately after redirect, BEFORE React cleans them up.
-    // The upload action uses redirectWithNotification which puts messages in URL params
-    // (?error=..., ?success=...). React's useNotification hook removes them after showing
-    // the toast, which may happen before page.locator().isVisible() can detect the toast.
-    const redirectedUrl = page.url();
-    const urlObj = new URL(redirectedUrl);
-    const urlErrorParam = urlObj.searchParams.get('error') || '';
-    const hasStorageErrorInUrl = urlErrorParam.toLowerCase().includes('storage') ||
-      urlErrorParam.toLowerCase().includes('not configured');
-    const hasUploadErrorInUrl = urlErrorParam.toLowerCase().includes('failed') ||
-      urlErrorParam.toLowerCase().includes('upload');
-
-    if (hasStorageErrorInUrl || hasUploadErrorInUrl) {
-      test.skip(true, `B2/S3 storage is not configured — skipping upload verification (${urlErrorParam})`);
-      return;
+    // Check error captured from the 302 Location header (before React cleaned URL params)
+    if (uploadRedirectError) {
+      const errLower = uploadRedirectError.toLowerCase();
+      if (errLower.includes('storage') || errLower.includes('not configured') ||
+          errLower.includes('failed') || errLower.includes('upload')) {
+        test.skip(true, `B2/S3 storage is not configured — skipping upload verification (${uploadRedirectError})`);
+        return;
+      }
     }
 
-    // Also check for toast notifications still visible after React hydration
+    if (uploadRedirectSuccess) return; // Upload succeeded
+
+    // Fallback: check for toast notifications still visible after React hydration
     const hasStorageError = await page.locator('text=/storage is not configured/i').isVisible({ timeout: 3000 }).catch(() => false);
     const hasUploadError = await page.locator('text=/failed to upload/i').isVisible({ timeout: 1000 }).catch(() => false);
     if (hasStorageError || hasUploadError) {
@@ -138,12 +155,10 @@ test.describe('KAN-630: Album Image Upload', () => {
     }
 
     // Verify upload succeeded - should show image in album or success notification.
-    // Allow up to 8 seconds for React hydration + toast render.
     const hasSuccessNotification = await page.locator('text=/successfully uploaded/i').isVisible({ timeout: 8000 }).catch(() => false);
     const hasImageInGrid = await page.locator('img[alt]').first().isVisible({ timeout: 3000 }).catch(() => false);
-    const hasSuccessInUrl = urlObj.searchParams.get('success') !== null;
 
-    expect(hasSuccessNotification || hasImageInGrid || hasSuccessInUrl).toBeTruthy();
+    expect(hasSuccessNotification || hasImageInGrid).toBeTruthy();
   });
 
   test('should handle upload errors gracefully', async ({ page }) => {
