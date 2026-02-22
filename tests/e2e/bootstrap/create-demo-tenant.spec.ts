@@ -177,9 +177,10 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.getByRole("button", { name: /sign in/i }).click();
 
     // Use a stricter pattern to avoid matching /tenant/login on auth failure
+    // Note: login redirects to /tenant (no trailing slash), so check includes("/tenant") not "/tenant/"
     const loginSuccess = await page
       .waitForURL(
-        (url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"),
+        (url) => url.includes("/tenant") && !url.includes("/tenant/login") && !url.includes("/auth/"),
         { timeout: 15000 }
       )
       .then(() => true)
@@ -196,9 +197,16 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.goto(getTenantUrl("demo", "/auth/signup"));
     await page.waitForLoadState("domcontentloaded");
 
+    // If already authenticated (login succeeded but URL pattern didn't match), signup redirects away
+    const afterSignupNav = page.url();
+    if (afterSignupNav.includes("/tenant") && !afterSignupNav.includes("/auth/signup")) {
+      console.log(`Already authenticated after signup nav (URL: ${afterSignupNav}) - test user exists`);
+      return;
+    }
+
     const signupForm = await page
       .getByLabel(/full name/i)
-      .isVisible({ timeout: 5000 })
+      .isVisible({ timeout: 8000 })
       .catch(() => false);
 
     if (!signupForm) {
@@ -226,7 +234,7 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
 
     const signupSuccess = await page
       .waitForURL(
-        (url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"),
+        (url) => url.includes("/tenant") && !url.includes("/tenant/login") && !url.includes("/auth/"),
         { timeout: 15000 }
       )
       .then(() => true)
@@ -257,7 +265,7 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
 
     const retryLoginSuccess = await page
       .waitForURL(
-        (url) => url.includes("/tenant/") && !url.includes("/tenant/login") && !url.includes("/auth/"),
+        (url) => url.includes("/tenant") && !url.includes("/tenant/login") && !url.includes("/auth/"),
         { timeout: 15000 }
       )
       .then(() => true)
