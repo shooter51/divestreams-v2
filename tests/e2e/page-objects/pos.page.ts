@@ -54,7 +54,8 @@ export class POSPage extends TenantBasePage {
   }
 
   async addProductByIndex(index: number): Promise<void> {
-    const productCards = this.productGrid.locator("button");
+    // Use only enabled buttons — out-of-stock products are disabled and cannot be clicked
+    const productCards = this.productGrid.locator("button:not([disabled])");
     await productCards.nth(index).click();
   }
 

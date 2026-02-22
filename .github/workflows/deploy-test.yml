@@ -120,6 +120,35 @@ jobs:
           npx playwright install chromium
           npx playwright install-deps chromium || true
 
+      - name: Fix plan features and product stock on test VPS
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.TEST_VPS_SSH_KEY }}" | tr -d '\r' > ~/.ssh/test_vps_key
+          echo "" >> ~/.ssh/test_vps_key
+          chmod 600 ~/.ssh/test_vps_key
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/test_vps_key root@${{ vars.TEST_VPS_IP }} '
+            PG_CONTAINER=$(docker ps --filter name=postgres --format "{{.Names}}" | head -1)
+            if [ -n "$PG_CONTAINER" ]; then
+              DB_NAME=$(grep "^POSTGRES_DB=" /docker/divestreams-test/.env 2>/dev/null | cut -d= -f2 || echo "divestreams")
+              DB_USER=$(grep "^POSTGRES_USER=" /docker/divestreams-test/.env 2>/dev/null | cut -d= -f2 || echo "postgres")
+              [ -z "$DB_NAME" ] && DB_NAME="divestreams"
+              [ -z "$DB_USER" ] && DB_USER="postgres"
+              # Ensure PRO plan has all feature flags set (fixes KAN-155 discounts feature gate)
+              docker exec "$PG_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -c "
+                UPDATE subscription_plans
+                SET features = '"'"'{\"has_tours_bookings\":true,\"has_equipment_boats\":true,\"has_training\":true,\"has_pos\":true,\"has_public_site\":true,\"has_advanced_notifications\":true,\"has_integrations\":true,\"has_api_access\":true,\"has_stripe\":true,\"has_google_calendar\":true,\"has_mailchimp\":true,\"has_quickbooks\":true,\"has_zapier\":true,\"has_twilio\":true,\"has_whatsapp\":true,\"has_xero\":true}'"'"'
+                WHERE LOWER(name) = '"'"'pro'"'"';
+              " 2>/dev/null && echo "PRO plan features updated" || echo "Plan update failed (non-fatal)"
+              # Reset out-of-stock products so POS buttons are always enabled (fixes KAN-631/633/634)
+              docker exec "$PG_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -c "
+                UPDATE products SET stock_quantity = 50 WHERE stock_quantity = 0;
+              " 2>/dev/null && echo "Product stock reset" || echo "Stock reset failed (non-fatal)"
+            else
+              echo "Postgres container not found - skipping DB fixes"
+            fi
+          ' || echo "SSH DB fix failed (non-fatal)"
+          rm -f ~/.ssh/test_vps_key
+
       - name: Flush rate limit keys on test VPS
         run: |
           mkdir -p ~/.ssh
