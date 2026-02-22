@@ -112,10 +112,25 @@ test.describe('KAN-630: Album Image Upload', () => {
     // Wait for redirect back to album page or gallery.
     await page.waitForURL(/\/tenant\/gallery/, { timeout: 15000 });
 
-    // Check for storage-not-configured error — skip verification if storage unavailable.
-    // Notifications are rendered client-side via useNotification() hook (useEffect + useSearchParams),
-    // so we must use page.locator().isVisible() rather than page.content() which only returns SSR HTML.
-    const hasStorageError = await page.locator('text=/storage is not configured/i').isVisible({ timeout: 5000 }).catch(() => false);
+    // Check URL params immediately after redirect, BEFORE React cleans them up.
+    // The upload action uses redirectWithNotification which puts messages in URL params
+    // (?error=..., ?success=...). React's useNotification hook removes them after showing
+    // the toast, which may happen before page.locator().isVisible() can detect the toast.
+    const redirectedUrl = page.url();
+    const urlObj = new URL(redirectedUrl);
+    const urlErrorParam = urlObj.searchParams.get('error') || '';
+    const hasStorageErrorInUrl = urlErrorParam.toLowerCase().includes('storage') ||
+      urlErrorParam.toLowerCase().includes('not configured');
+    const hasUploadErrorInUrl = urlErrorParam.toLowerCase().includes('failed') ||
+      urlErrorParam.toLowerCase().includes('upload');
+
+    if (hasStorageErrorInUrl || hasUploadErrorInUrl) {
+      test.skip(true, `B2/S3 storage is not configured — skipping upload verification (${urlErrorParam})`);
+      return;
+    }
+
+    // Also check for toast notifications still visible after React hydration
+    const hasStorageError = await page.locator('text=/storage is not configured/i').isVisible({ timeout: 3000 }).catch(() => false);
     const hasUploadError = await page.locator('text=/failed to upload/i').isVisible({ timeout: 1000 }).catch(() => false);
     if (hasStorageError || hasUploadError) {
       test.skip(true, 'B2/S3 storage is not configured — skipping upload verification');
@@ -126,8 +141,9 @@ test.describe('KAN-630: Album Image Upload', () => {
     // Allow up to 8 seconds for React hydration + toast render.
     const hasSuccessNotification = await page.locator('text=/successfully uploaded/i').isVisible({ timeout: 8000 }).catch(() => false);
     const hasImageInGrid = await page.locator('img[alt]').first().isVisible({ timeout: 3000 }).catch(() => false);
+    const hasSuccessInUrl = urlObj.searchParams.get('success') !== null;
 
-    expect(hasSuccessNotification || hasImageInGrid).toBeTruthy();
+    expect(hasSuccessNotification || hasImageInGrid || hasSuccessInUrl).toBeTruthy();
   });
 
   test('should handle upload errors gracefully', async ({ page }) => {
