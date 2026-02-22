@@ -7,6 +7,7 @@ import {
   createCourse,
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Create Course - DiveStreams" }];
 
@@ -118,6 +119,7 @@ export default function NewCoursePage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>

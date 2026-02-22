@@ -8,6 +8,7 @@ import { db } from "../../../../lib/db";
 import { user } from "../../../../lib/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }];
 
@@ -183,6 +184,7 @@ export default function NewCustomerPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>

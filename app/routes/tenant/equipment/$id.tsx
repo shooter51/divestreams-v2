@@ -15,6 +15,7 @@ import {
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Equipment Details - DiveStreams" }];
 
@@ -252,6 +253,7 @@ export default function EquipmentDetailPage() {
           </Link>
           {equipment.status !== "retired" && (
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="retire" />
               <button
                 type="submit"
@@ -308,6 +310,7 @@ export default function EquipmentDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <h2 className="font-semibold mb-4">Quick Status Change</h2>
             <fetcher.Form method="post" className="flex gap-2">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-status" />
               <select
                 name="status"
@@ -391,6 +394,7 @@ export default function EquipmentDetailPage() {
               <p className="text-foreground-muted text-sm mb-4">No service records yet.</p>
             )}
             <fetcher.Form method="post" className="space-y-3">
+              <CsrfInput />
               <input type="hidden" name="intent" value="log-service" />
               <div>
                 <label className="block text-xs text-foreground-muted mb-1">Type</label>

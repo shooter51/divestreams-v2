@@ -9,6 +9,7 @@ import { createProduct } from "../../../../../lib/db/queries.server";
 import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../../lib/storage";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "New Product - DiveStreams" }];
 
@@ -180,6 +181,7 @@ export default function NewProductPage() {
       )}
 
       <Form method="post" encType="multipart/form-data" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">

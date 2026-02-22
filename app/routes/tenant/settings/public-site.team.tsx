@@ -9,6 +9,7 @@ import {
   deleteTeamMember,
   reorderTeamMembers,
 } from "../../../../lib/db/team.server";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Team Profiles - Public Site Settings" }];
 
@@ -256,8 +257,10 @@ export default function PublicSiteTeamPage() {
             </h2>
             <fetcher.Form
               method="post"
-              onSubmit={() => setShowModal(false)}
+              onSubmit={() =>
+              setShowModal(false)}
             >
+              <CsrfInput />
               <input type="hidden" name="intent" value={editingMember ? "update" : "create"} />
               {editingMember && <input type="hidden" name="memberId" value={editingMember.id} />}
 

@@ -5,6 +5,7 @@ import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getTripWithFullDetails, getAllBoats, getAllTours } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Edit Trip - DiveStreams" }];
 
@@ -119,6 +120,7 @@ export default function EditTripPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Trip Details */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Trip Details</h2>

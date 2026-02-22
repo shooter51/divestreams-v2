@@ -6,6 +6,7 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 type OutletContextType = {
   settings: PublicSiteSettings;
@@ -70,6 +71,7 @@ export default function PublicSiteGeneralSettings() {
       )}
 
       <fetcher.Form method="post">
+        <CsrfInput />
         <input type="hidden" name="intent" value="update-general" />
 
         {/* Enable/Disable Toggle */}

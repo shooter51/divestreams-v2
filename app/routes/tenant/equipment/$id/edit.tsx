@@ -9,6 +9,7 @@ import { equipmentSchema, validateFormData, getFormValues } from "../../../../..
 import { ImageManager, type Image } from "../../../../../app/components/ui";
 import { BarcodeScannerModal } from "../../../../components/BarcodeScannerModal";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Edit Equipment - DiveStreams" }];
 
@@ -160,6 +161,7 @@ export default function EditEquipmentPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
