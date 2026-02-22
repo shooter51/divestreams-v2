@@ -244,7 +244,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
       vi.mocked(storage.uploadToS3).mockResolvedValue({
         cdnUrl: "https://cdn.divestreams.com/test/tour/123/test.webp",
-        b2Url: "https://s3.backblazeb2.com/test/tour/123/test.webp",
+        url: "https://test-bucket.s3.us-east-1.amazonaws.com/test/tour/123/test.webp",
       });
 
       const mockSelectBuilder = {
@@ -312,7 +312,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
       vi.mocked(storage.uploadToS3).mockResolvedValue({
         cdnUrl: "https://cdn.divestreams.com/test/tour/123/test.webp",
-        b2Url: "https://s3.backblazeb2.com/test/tour/123/test.webp",
+        url: "https://test-bucket.s3.us-east-1.amazonaws.com/test/tour/123/test.webp",
       });
 
       const mockSelectBuilder = {
@@ -376,7 +376,7 @@ describe("app/routes/tenant/images/upload.tsx", () => {
       vi.mocked(storage.getWebPMimeType).mockReturnValue("image/webp");
       vi.mocked(storage.uploadToS3).mockResolvedValue({
         cdnUrl: "https://cdn.divestreams.com/test/tour/123/test.webp",
-        b2Url: "https://s3.backblazeb2.com/test/tour/123/test.webp",
+        url: "https://test-bucket.s3.us-east-1.amazonaws.com/test/tour/123/test.webp",
       });
 
       const mockSelectBuilder = {

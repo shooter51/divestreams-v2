@@ -216,7 +216,7 @@ describe("Contract: POST /tenant/images/upload", () => {
   });
 
   describe("Storage unavailable response shape", () => {
-    it("returns { error: string } with status 503 when B2 not configured", async () => {
+    it("returns { error: string } with status 503 when S3 not configured", async () => {
       (uploadToS3 as MockFn).mockResolvedValue(null);
 
       const formData = new FormData();

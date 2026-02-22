@@ -291,7 +291,7 @@ describe("tenant/images/upload route", () => {
       expect(data.error).toContain("Maximum 5 images allowed");
     });
 
-    it("returns error when B2 upload fails", async () => {
+    it("returns error when S3 upload fails", async () => {
       (uploadToS3 as Mock).mockResolvedValue(null);
 
       const formData = new FormData();

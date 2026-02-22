@@ -158,7 +158,7 @@ describe("Delete Image API Route", () => {
     expect(deleteSource).toContain("imageId is required");
   });
 
-  it("deletes from B2 storage", () => {
+  it("deletes from S3 storage", () => {
     expect(deleteSource).toContain("deleteFromS3");
   });
 
@@ -333,7 +333,7 @@ describe("Delete Image Action - Functional", () => {
     expect(deleteSource).toContain("status: 404");
   });
 
-  it("deletes both original and thumbnail from B2 storage", async () => {
+  it("deletes both original and thumbnail from S3 storage", async () => {
     const deleteSource = fs.readFileSync(
       path.resolve(__dirname, "../../../../../app/routes/tenant/images/delete.tsx"),
       "utf-8"
