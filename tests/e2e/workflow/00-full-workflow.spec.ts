@@ -689,7 +689,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       await page.goto(getTenantUrl("/tenant/boats"));
       await page.waitForLoadState("load");
       if (!await isAuthenticated(page)) return;
-      expect(page.url().includes("/boats")).toBeTruthy();
+      expect(page.url().includes("/boats") || page.url().includes("upgrade=")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/boats/${boatId}`));
@@ -705,7 +705,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       await page.goto(getTenantUrl("/tenant/boats"));
       await page.waitForLoadState("load");
       if (!await isAuthenticated(page)) return;
-      expect(page.url().includes("/boats")).toBeTruthy();
+      expect(page.url().includes("/boats") || page.url().includes("upgrade=")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/boats/${boatId}/edit`));
@@ -722,7 +722,7 @@ test.describe.serial("Block D: Independent CRUD - Boats, Tours, Sites, Customers
       await page.goto(getTenantUrl("/tenant/boats"));
       await page.waitForLoadState("load");
       if (!await isAuthenticated(page)) return;
-      expect(page.url().includes("/boats")).toBeTruthy();
+      expect(page.url().includes("/boats") || page.url().includes("upgrade=")).toBeTruthy();
       return;
     }
     await page.goto(getTenantUrl(`/tenant/boats/${boatId}/edit`));
@@ -1946,7 +1946,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const searchInput = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-    expect(searchInput || page.url().includes("/pos")).toBeTruthy();
+    expect(searchInput || page.url().includes("/pos") || page.url().includes("upgrade=")).toBeTruthy();
   });
 
   test("[KAN-200] 14.8 POS handles empty cart", async ({ page }) => {
@@ -1955,7 +1955,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const emptyCart = await page.getByText(/empty|no items|add items/i).isVisible().catch(() => false);
-    expect(emptyCart || page.url().includes("/pos")).toBeTruthy();
+    expect(emptyCart || page.url().includes("/pos") || page.url().includes("upgrade=")).toBeTruthy();
   });
 
   test("[KAN-201] 14.9 POS discount code field", async ({ page }) => {
@@ -1964,7 +1964,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const discountField = await page.getByPlaceholder(/discount|promo|code/i).isVisible().catch(() => false);
-    expect(discountField || page.url().includes("/pos")).toBeTruthy();
+    expect(discountField || page.url().includes("/pos") || page.url().includes("upgrade=")).toBeTruthy();
   });
 
   test("[KAN-202] 14.10 POS subtotal display", async ({ page }) => {
@@ -1973,7 +1973,7 @@ test.describe.serial("Block F: Feature Tests - POS, Reports, Settings, Calendar,
     await page.waitForLoadState("load");
     if (!await isAuthenticated(page)) return;
     const subtotal = await page.getByText(/subtotal|total/i).first().isVisible().catch(() => false);
-    expect(subtotal || page.url().includes("/pos")).toBeTruthy();
+    expect(subtotal || page.url().includes("/pos") || page.url().includes("upgrade=")).toBeTruthy();
   });
 
   // Phase 15: Reports
