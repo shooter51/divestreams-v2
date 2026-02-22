@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
+import { CsrfInput } from "../../../components/CsrfInput";
 type OutletContextType = {
   settings: PublicSiteSettings;
   orgSlug: string;
@@ -140,6 +141,7 @@ export default function PublicSiteAppearanceSettings() {
       )}
 
       <fetcher.Form method="post">
+        <CsrfInput />
         <input type="hidden" name="intent" value="update-appearance" />
 
         {/* Theme Selector */}

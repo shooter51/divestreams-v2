@@ -5,6 +5,7 @@ import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/
 import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById } from "../../../../lib/db/queries.server";
 import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
 import { redirectWithNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }];
 
@@ -150,6 +151,7 @@ export default function NewBookingPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Customer Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Customer</h2>

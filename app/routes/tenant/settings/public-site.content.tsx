@@ -4,6 +4,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
 import { sanitizeIframeEmbed } from "../../../../lib/security/sanitize";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 type OutletContextType = {
   settings: PublicSiteSettings;
@@ -58,6 +59,7 @@ export default function PublicSiteContentSettings() {
       )}
 
       <fetcher.Form method="post">
+        <CsrfInput />
         <input type="hidden" name="intent" value="update-content" />
 
         {/* Branding */}

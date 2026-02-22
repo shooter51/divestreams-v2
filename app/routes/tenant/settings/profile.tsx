@@ -4,6 +4,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Shop Profile - DiveStreams" }];
 
@@ -201,6 +202,7 @@ export default function ProfileSettingsPage() {
 
       {/* Basic Info */}
       <form method="post" className="space-y-6">
+        <CsrfInput />
         <input type="hidden" name="intent" value="update-profile" />
 
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
@@ -407,6 +409,7 @@ export default function ProfileSettingsPage() {
 
       {/* Booking Settings */}
       <form method="post" className="mt-8">
+        <CsrfInput />
         <input type="hidden" name="intent" value="update-booking-settings" />
 
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">

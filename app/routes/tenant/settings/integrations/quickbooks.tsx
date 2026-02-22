@@ -27,6 +27,7 @@ import {
 import { db } from "../../../../../lib/db";
 import { eq, desc } from "drizzle-orm";
 import { integrationSyncLog } from "../../../../../lib/db/schema/integrations";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [
   { title: "QuickBooks Integration - DiveStreams" },
@@ -188,6 +189,7 @@ export default function QuickBooksSettings() {
           <div>
             {isConnected ? (
               <Form method="post">
+                <CsrfInput />
                 <input type="hidden" name="intent" value="disconnect" />
                 <button
                   type="submit"

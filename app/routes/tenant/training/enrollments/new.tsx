@@ -4,6 +4,7 @@ import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getSessionById, createEnrollment, getSessions } from "../../../../../lib/db/training.server";
 import { getCustomers } from "../../../../../lib/db/queries.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "New Enrollment - DiveStreams" }];
 
@@ -155,6 +156,7 @@ export default function NewEnrollmentPage() {
       </div>
 
       <form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
+        <CsrfInput />
         {actionData?.errors?.form && (
           <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words text-sm">
             {actionData.errors.form}

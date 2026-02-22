@@ -12,6 +12,7 @@ import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { eq, and, desc } from "drizzle-orm";
 import { useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Manage Rentals - DiveStreams" }];
 
@@ -351,6 +352,7 @@ export default function RentalsPage() {
                   <td className="py-3 px-4 text-right">
                     {rental.status !== "returned" && (
                       <form method="post" className="inline">
+                        <CsrfInput />
                         <input type="hidden" name="rentalId" value={rental.id} />
                         <button
                           type="submit"

@@ -9,6 +9,7 @@ import { requireOrgContext } from "../../../../../../lib/auth/org-context.server
 import { getProductById, updateProduct } from "../../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../../../app/components/ui";
+import { CsrfInput } from "../../../../../components/CsrfInput";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
   { title: data?.product ? `Edit ${data.product.name} - DiveStreams` : "Edit Product - DiveStreams" },
@@ -122,6 +123,7 @@ export default function EditProductPage() {
       </div>
 
       <Form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
