@@ -86,7 +86,6 @@
     "@tiptap/pm": "^3.19.0",
     "@tiptap/react": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
-    "backblaze-b2": "^1.7.1",
     "bcryptjs": "^3.0.3",
     "better-auth": "^1.2.0",
     "bullmq": "^5.0.0",

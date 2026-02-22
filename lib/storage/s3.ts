@@ -71,7 +71,7 @@ export function getS3Client(): S3Client | null {
 }
 
 export function isStorageConfigured(): boolean {
-  return Boolean(S3_ENDPOINT && S3_ACCESS_KEY_ID && S3_SECRET_ACCESS_KEY);
+  return Boolean(S3_ACCESS_KEY_ID && S3_SECRET_ACCESS_KEY);
 }
 
 export interface UploadResult {
