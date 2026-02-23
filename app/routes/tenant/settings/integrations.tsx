@@ -14,7 +14,6 @@ import {
   updateIntegrationSettings,
 } from "../../../../lib/integrations/index.server";
 import { getGoogleAuthUrl } from "../../../../lib/integrations/google-calendar.server";
-import { connectTwilio, sendSMS } from "../../../../lib/integrations/twilio.server";
 import {
   connectZapier,
   getZapierIntegration,
@@ -30,7 +29,6 @@ import { getXeroAuthUrl } from "../../../../lib/integrations/xero.server";
 import { getMailchimpAuthUrl, listAudiences } from "../../../../lib/integrations/mailchimp.server";
 import { getQuickBooksAuthUrl } from "../../../../lib/integrations/quickbooks.server";
 import { getStripeSettings, connectStripe } from "../../../../lib/integrations/stripe.server";
-import { connectWhatsApp, sendWhatsApp } from "../../../../lib/integrations/whatsapp.server";
 
 // Per-provider UI components
 import {
@@ -40,8 +38,6 @@ import {
   QuickBooksIntegration,
   XeroIntegration,
   ZapierIntegration,
-  TwilioIntegration,
-  WhatsAppIntegration,
   Icons,
 } from "../../../components/integrations";
 import type {
@@ -100,24 +96,6 @@ const availableIntegrations = [
     icon: "Zap",
     features: ["Custom workflows", "Triggers", "Multi-step automations"],
     requiredPlan: "professional",
-  },
-  {
-    id: "twilio",
-    name: "Twilio SMS",
-    description: "Send SMS notifications to customers",
-    category: "notifications",
-    icon: "MessageSquare",
-    features: ["Booking confirmations", "Reminders", "Custom messages"],
-    requiredPlan: "professional",
-  },
-  {
-    id: "whatsapp",
-    name: "WhatsApp Business",
-    description: "Chat with customers on WhatsApp",
-    category: "notifications",
-    icon: "MessageCircle",
-    features: ["Booking updates", "Customer support", "Automated responses"],
-    requiredPlan: "enterprise",
   },
   {
     id: "xero",
@@ -199,8 +177,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     "has_mailchimp",
     "has_quickbooks",
     "has_zapier",
-    "has_twilio",
-    "has_whatsapp",
     "has_xero",
   ] as const;
 
@@ -286,99 +262,13 @@ export async function action({ request }: ActionFunctionArgs) {
     const integrationId = formData.get("integrationId") as string;
 
     if (integrationId === "google-calendar") return { showGoogleOAuthModal: true };
-    if (integrationId === "twilio") return { showTwilioModal: true };
     if (integrationId === "zapier") return { showZapierModal: true };
     if (integrationId === "mailchimp") return { showMailchimpOAuthModal: true };
     if (integrationId === "xero") return { showXeroOAuthModal: true };
     if (integrationId === "quickbooks") return { showQuickBooksOAuthModal: true };
-    if (integrationId === "whatsapp") return { showWhatsAppModal: true };
     if (integrationId === "stripe") return { showStripeModal: true };
 
     return { error: `${integrationId} integration is coming soon!` };
-  }
-
-  // Connect Twilio with API credentials
-  if (intent === "connectTwilio") {
-    const accountSid = formData.get("accountSid") as string;
-    const authToken = formData.get("authToken") as string;
-    const phoneNumber = formData.get("phoneNumber") as string;
-    const messagingServiceSid = formData.get("messagingServiceSid") as string;
-
-    if (!accountSid || !authToken || !phoneNumber) {
-      return { error: "Account SID, Auth Token, and Phone Number are required" };
-    }
-
-    try {
-      const result = await connectTwilio(ctx.org.id, {
-        accountSid,
-        authToken,
-        phoneNumber,
-        messagingServiceSid: messagingServiceSid || undefined,
-      });
-      if (!result.success) return { error: result.error || "Failed to connect Twilio" };
-      return { success: true, message: "Twilio connected successfully!" };
-    } catch (error) {
-      console.error("Error connecting Twilio:", error);
-      return { error: "Failed to connect Twilio" };
-    }
-  }
-
-  // Connect WhatsApp with API credentials
-  if (intent === "connectWhatsApp") {
-    const apiType = formData.get("apiType") as "meta" | "twilio";
-    const phoneNumberId = formData.get("phoneNumberId") as string;
-    const businessAccountId = formData.get("businessAccountId") as string;
-    const accessToken = formData.get("accessToken") as string;
-    const twilioAccountSid = formData.get("twilioAccountSid") as string;
-    const twilioAuthToken = formData.get("twilioAuthToken") as string;
-    const twilioWhatsAppNumber = formData.get("twilioWhatsAppNumber") as string;
-
-    if (apiType === "meta") {
-      if (!phoneNumberId || !businessAccountId || !accessToken) {
-        return { error: "Phone Number ID, Business Account ID, and Access Token are required for Meta API" };
-      }
-    } else if (apiType === "twilio") {
-      if (!twilioAccountSid || !twilioAuthToken || !twilioWhatsAppNumber) {
-        return { error: "Account SID, Auth Token, and WhatsApp Number are required for Twilio" };
-      }
-    } else {
-      return { error: "Please select an API type" };
-    }
-
-    try {
-      type WhatsAppCredentials =
-        | { provider: "meta"; phoneNumberId: string; businessAccountId: string; accessToken: string }
-        | { provider: "twilio"; accountSid: string; authToken: string; phoneNumber: string };
-
-      const credentials: WhatsAppCredentials = apiType === "meta"
-        ? { provider: "meta" as const, phoneNumberId, businessAccountId, accessToken }
-        : { provider: "twilio" as const, accountSid: twilioAccountSid, authToken: twilioAuthToken, phoneNumber: twilioWhatsAppNumber };
-
-      const result = await connectWhatsApp(ctx.org.id, credentials);
-      if (!result.success) return { error: result.error || "Failed to connect WhatsApp" };
-      return { success: true, message: "WhatsApp Business connected successfully!" };
-    } catch (error) {
-      console.error("Error connecting WhatsApp:", error);
-      return { error: "Failed to connect WhatsApp" };
-    }
-  }
-
-  // Test WhatsApp message
-  if (intent === "testWhatsApp") {
-    const phoneNumber = formData.get("phoneNumber") as string;
-    if (!phoneNumber) return { error: "Phone number is required" };
-
-    try {
-      const result = await sendWhatsApp(ctx.org.id, {
-        to: phoneNumber,
-        body: "Test message from DiveStreams! Your WhatsApp Business integration is working.",
-      });
-      if (!result.success) return { error: result.error || "Failed to send test WhatsApp message" };
-      return { success: true, message: "Test WhatsApp message sent successfully!" };
-    } catch (error) {
-      console.error("Error sending test WhatsApp message:", error);
-      return { error: "Failed to send test WhatsApp message" };
-    }
   }
 
   // Connect Stripe with API credentials
@@ -563,24 +453,6 @@ export async function action({ request }: ActionFunctionArgs) {
     return { showXeroConfigModal: true };
   }
 
-  // Test SMS (for Twilio)
-  if (intent === "testSMS") {
-    const phoneNumber = formData.get("phoneNumber") as string;
-    if (!phoneNumber) return { error: "Phone number is required" };
-
-    try {
-      const result = await sendSMS(ctx.org.id, {
-        to: phoneNumber,
-        body: "Test message from DiveStreams! Your Twilio integration is working.",
-      });
-      if (!result.success) return { error: result.error || "Failed to send test SMS" };
-      return { success: true, message: "Test SMS sent successfully!" };
-    } catch (error) {
-      console.error("Error sending test SMS:", error);
-      return { error: "Failed to send test SMS" };
-    }
-  }
-
   // Zapier actions
   if (intent === "connectZapier") {
     const zapierWebhookUrl = formData.get("zapierWebhookUrl") as string;
@@ -702,8 +574,6 @@ export default function IntegrationsPage() {
     mailchimp: "has_mailchimp",
     quickbooks: "has_quickbooks",
     zapier: "has_zapier",
-    twilio: "has_twilio",
-    whatsapp: "has_whatsapp",
     xero: "has_xero",
   };
 
@@ -728,7 +598,6 @@ export default function IntegrationsPage() {
     { id: "calendar", name: "Calendar" },
     { id: "marketing", name: "Marketing" },
     { id: "accounting", name: "Accounting" },
-    { id: "notifications", name: "Notifications" },
     { id: "automation", name: "Automation" },
   ];
 
@@ -812,18 +681,6 @@ export default function IntegrationsPage() {
                       )}
                       {connection.id === "google-calendar" && (
                         <GoogleCalendarIntegration
-                          isConnected={true}
-                          onNotification={handleNotification}
-                        />
-                      )}
-                      {connection.id === "twilio" && (
-                        <TwilioIntegration
-                          isConnected={true}
-                          onNotification={handleNotification}
-                        />
-                      )}
-                      {connection.id === "whatsapp" && (
-                        <WhatsAppIntegration
                           isConnected={true}
                           onNotification={handleNotification}
                         />
@@ -992,14 +849,6 @@ export default function IntegrationsPage() {
         zapierTriggerDescriptions={zapierTriggerDescriptions}
         zapierWebhookUrl={zapierWebhookUrl}
         zapierSettings={zapierSettings as { webhookUrl?: string | null; enabledTriggers?: string[] } | null}
-        onNotification={handleNotification}
-      />
-      <TwilioIntegration
-        isConnected={false}
-        onNotification={handleNotification}
-      />
-      <WhatsAppIntegration
-        isConnected={false}
         onNotification={handleNotification}
       />
     </div>
