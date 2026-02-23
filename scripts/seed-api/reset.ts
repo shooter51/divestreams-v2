@@ -11,6 +11,11 @@ export async function resetDemoData(
     method: "DELETE",
   });
 
+  if (response.status === 404) {
+    console.log("⚠️  Reset endpoint not deployed yet — skipping (data will be additive)");
+    return;
+  }
+
   if (!response.ok) {
     const text = await response.text().catch(() => "(no body)");
     throw new Error(
