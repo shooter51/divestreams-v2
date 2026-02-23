@@ -79,6 +79,7 @@ export class SeedClient {
       redirect: "manual",
       headers: {
         "Content-Type": "application/json",
+        "Origin": this.baseUrl,
         Cookie: this.buildCookieHeader(),
       },
     });
