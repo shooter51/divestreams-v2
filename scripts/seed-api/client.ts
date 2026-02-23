@@ -138,6 +138,10 @@ export class SeedClient {
   parseAlbumIds(html: string): string[] {
     return parseHrefIds(html, "/tenant/gallery/");
   }
+
+  sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 }
 
 function parseCsrfFromHtml(html: string): string | null {

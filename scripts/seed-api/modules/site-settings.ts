@@ -17,7 +17,7 @@ export async function seedSiteSettings(client: SeedClient): Promise<void> {
   generalData.set("page-contact", "true");
   generalData.set("page-gallery", "true");
 
-  const generalResult = await client.post("/tenant/settings/public-site.general", generalData);
+  const generalResult = await client.post("/tenant/settings/public-site", generalData);
   if (!generalResult.ok) {
     console.warn(`  Warning: general settings returned ${generalResult.status}`);
   } else {
@@ -36,7 +36,7 @@ export async function seedSiteSettings(client: SeedClient): Promise<void> {
   appearanceData.set("secondaryColor", "#0284c7");
   appearanceData.set("fontFamily", "inter");
 
-  const appearanceResult = await client.post("/tenant/settings/public-site.appearance", appearanceData);
+  const appearanceResult = await client.post("/tenant/settings/public-site/appearance", appearanceData);
   if (!appearanceResult.ok) {
     console.warn(`  Warning: appearance settings returned ${appearanceResult.status}`);
   } else {
@@ -63,7 +63,7 @@ export async function seedSiteSettings(client: SeedClient): Promise<void> {
   contentData.set("contactEmail", "info@bluehorizondive.com");
   contentData.set("contactHours", "Mon–Fri: 7:00 AM – 6:00 PM\nSat–Sun: 6:00 AM – 7:00 PM");
 
-  const contentResult = await client.post("/tenant/settings/public-site.content", contentData);
+  const contentResult = await client.post("/tenant/settings/public-site/content", contentData);
   if (!contentResult.ok) {
     console.warn(`  Warning: content settings returned ${contentResult.status}`);
   } else {
