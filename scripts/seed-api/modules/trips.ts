@@ -133,6 +133,7 @@ export async function seedTrips(
 
   const specs = buildTripSpecs(tours);
   console.log(`  Creating ${specs.length} trips...`);
+  const created: CreatedTrip[] = [];
 
   for (const spec of specs) {
     const tour = tours[spec.tourIndex];
@@ -170,29 +171,16 @@ export async function seedTrips(
     await client.sleep(50);
   }
 
-  // Scrape trip IDs from list pages
+  // Scrape IDs from list pages (trips redirect to list, not individual pages)
   console.log("  Scraping trip IDs from list pages...");
-
-  const pastHtml = await client.getHtml("/tenant/trips?view=past");
-  const pastIds = client.parseTripIds(pastHtml);
-  console.log(`  Found ${pastIds.length} past trip IDs`);
-
-  const upcomingHtml = await client.getHtml("/tenant/trips?view=upcoming");
+  const upcomingHtml = await client.getHtml("/tenant/trips");
   const upcomingIds = client.parseTripIds(upcomingHtml);
   console.log(`  Found ${upcomingIds.length} upcoming trip IDs`);
 
-  const result: CreatedTrip[] = [];
-
-  // Map past IDs back to tours (created in order: tour0*2, tour1*2, ...)
-  // We can't reliably match to specific tours by order since the page may sort differently,
-  // so we return them with empty tourId and let callers use them generically.
-  for (const id of pastIds) {
-    result.push({ id, tourId: "", date: "", isPast: true });
-  }
   for (const id of upcomingIds) {
-    result.push({ id, tourId: "", date: "", isPast: false });
+    created.push({ id, tourId: "", date: "", isPast: false });
   }
 
-  console.log(`Trips seeded: ${specs.length} created, ${result.length} IDs scraped`);
-  return result;
+  console.log(`Trips seeded: ${specs.length} created, ${created.length} IDs scraped`);
+  return created;
 }
