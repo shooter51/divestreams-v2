@@ -58,6 +58,7 @@ export async function seedSiteSettings(client: SeedClient): Promise<void> {
     "or an experienced wreck diver. We offer small-group tours to ensure personalized attention and maximum enjoyment. " +
     "Come dive with us and discover the wonders beneath the surface."
   );
+  contentData.set("heroImageUrl", "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&q=80");
   contentData.set("contactAddress", "104 Ocean Drive\nKey Largo, FL 33037");
   contentData.set("contactPhone", "+1 (305) 555-0147");
   contentData.set("contactEmail", "info@bluehorizondive.com");
