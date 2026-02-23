@@ -69,7 +69,12 @@
     "validate:structure": "tsx scripts/validate-directory-structure.ts",
     "cleanup:structure": "tsx scripts/cleanup-directory-structure.ts",
     "git:cleanup": "scripts/cleanup-branches.sh",
-    "git:cleanup:live": "scripts/cleanup-branches.sh --live"
+    "git:cleanup:live": "scripts/cleanup-branches.sh --live",
+    "seed:api": "tsx scripts/seed-api/index.ts",
+    "seed:api:dev": "tsx scripts/seed-api/index.ts --env=dev",
+    "seed:api:local": "tsx scripts/seed-api/index.ts --env=local",
+    "seed:export": "tsx scripts/seed-api/export.ts",
+    "seed:full": "npm run seed:api && npm run seed:export"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
