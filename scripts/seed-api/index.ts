@@ -11,6 +11,12 @@ import { seedCourses } from "./modules/courses";
 import { seedSessions } from "./modules/sessions";
 import { seedBookings } from "./modules/bookings";
 import { seedGallery } from "./modules/gallery";
+import { seedBoats } from "./modules/boats";
+import { seedDiveSites } from "./modules/dive-sites";
+import { seedProducts } from "./modules/products";
+import { seedDiscounts } from "./modules/discounts";
+import { seedOrgSettings } from "./modules/org-settings";
+import { seedStatusTransitions } from "./modules/status-transitions";
 import "dotenv/config";
 
 const ENV_URLS: Record<string, string> = {
@@ -41,7 +47,14 @@ async function main() {
   await login(client, email, password);
   await sleep(200);
 
+  await seedOrgSettings(client);
   await seedSiteSettings(client);
+
+  const boats = await seedBoats(client);
+  console.log(`✓ Created ${boats.length} boats`);
+
+  const diveSites = await seedDiveSites(client);
+  console.log(`✓ Created ${diveSites.length} dive sites`);
 
   const tours = await seedTours(client);
   console.log(`✓ Created ${tours.length} tours`);
@@ -61,6 +74,13 @@ async function main() {
   await seedSessions(client, courses);
 
   await seedBookings(client, customers, trips);
+
+  await seedProducts(client);
+  await seedDiscounts(client);
+
+  // Mark past trips and their bookings as completed
+  const pastTripIds = trips.filter(t => t.isPast).map(t => t.id);
+  await seedStatusTransitions(client, pastTripIds, []);
 
   await seedGallery(client);
 
