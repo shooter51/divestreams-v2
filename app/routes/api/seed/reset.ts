@@ -7,6 +7,11 @@ import {
   bookings,
   customers,
   equipment,
+  transactions,
+  rentals,
+  customerCommunications,
+  tourDiveSites,
+  serviceRecords,
 } from "../../../../lib/db/schema";
 import {
   trainingCourses,
@@ -57,77 +62,51 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const orgId = org.id;
 
-  // Delete in dependency order to respect foreign key constraints
-  // Use .returning() to get deleted row counts
-
-  // 1. Enrollments
+  // Delete in FK dependency order
   const enrollmentsDeleted = await deleteAndCount(
-    db.delete(trainingEnrollments)
-      .where(eq(trainingEnrollments.organizationId, orgId))
-      .returning({ id: trainingEnrollments.id })
+    db.delete(trainingEnrollments).where(eq(trainingEnrollments.organizationId, orgId)).returning({ id: trainingEnrollments.id })
   );
-
-  // 2. Sessions
   const sessionsDeleted = await deleteAndCount(
-    db.delete(trainingSessions)
-      .where(eq(trainingSessions.organizationId, orgId))
-      .returning({ id: trainingSessions.id })
+    db.delete(trainingSessions).where(eq(trainingSessions.organizationId, orgId)).returning({ id: trainingSessions.id })
   );
-
-  // 3. Courses
   const coursesDeleted = await deleteAndCount(
-    db.delete(trainingCourses)
-      .where(eq(trainingCourses.organizationId, orgId))
-      .returning({ id: trainingCourses.id })
+    db.delete(trainingCourses).where(eq(trainingCourses.organizationId, orgId)).returning({ id: trainingCourses.id })
   );
-
-  // 4. Bookings
-  const bookingsDeleted = await deleteAndCount(
-    db.delete(bookings)
-      .where(eq(bookings.organizationId, orgId))
-      .returning({ id: bookings.id })
+  await deleteAndCount(
+    db.delete(serviceRecords).where(eq(serviceRecords.organizationId, orgId)).returning({ id: serviceRecords.id })
   );
-
-  // 5. Trips
-  const tripsDeleted = await deleteAndCount(
-    db.delete(trips)
-      .where(eq(trips.organizationId, orgId))
-      .returning({ id: trips.id })
+  await deleteAndCount(
+    db.delete(customerCommunications).where(eq(customerCommunications.organizationId, orgId)).returning({ id: customerCommunications.id })
   );
-
-  // 6. Tours
-  const toursDeleted = await deleteAndCount(
-    db.delete(tours)
-      .where(eq(tours.organizationId, orgId))
-      .returning({ id: tours.id })
+  const transactionsDeleted = await deleteAndCount(
+    db.delete(transactions).where(eq(transactions.organizationId, orgId)).returning({ id: transactions.id })
   );
-
-  // 7. Equipment
-  const equipmentDeleted = await deleteAndCount(
-    db.delete(equipment)
-      .where(eq(equipment.organizationId, orgId))
-      .returning({ id: equipment.id })
+  const rentalsDeleted = await deleteAndCount(
+    db.delete(rentals).where(eq(rentals.organizationId, orgId)).returning({ id: rentals.id })
   );
-
-  // 8. Customers
-  const customersDeleted = await deleteAndCount(
-    db.delete(customers)
-      .where(eq(customers.organizationId, orgId))
-      .returning({ id: customers.id })
-  );
-
-  // 9. Gallery images
   const galleryImagesDeleted = await deleteAndCount(
-    db.delete(galleryImages)
-      .where(eq(galleryImages.organizationId, orgId))
-      .returning({ id: galleryImages.id })
+    db.delete(galleryImages).where(eq(galleryImages.organizationId, orgId)).returning({ id: galleryImages.id })
   );
-
-  // 10. Gallery albums
+  const bookingsDeleted = await deleteAndCount(
+    db.delete(bookings).where(eq(bookings.organizationId, orgId)).returning({ id: bookings.id })
+  );
+  const tripsDeleted = await deleteAndCount(
+    db.delete(trips).where(eq(trips.organizationId, orgId)).returning({ id: trips.id })
+  );
+  await deleteAndCount(
+    db.delete(tourDiveSites).where(eq(tourDiveSites.organizationId, orgId)).returning({ id: tourDiveSites.id })
+  );
+  const toursDeleted = await deleteAndCount(
+    db.delete(tours).where(eq(tours.organizationId, orgId)).returning({ id: tours.id })
+  );
+  const equipmentDeleted = await deleteAndCount(
+    db.delete(equipment).where(eq(equipment.organizationId, orgId)).returning({ id: equipment.id })
+  );
+  const customersDeleted = await deleteAndCount(
+    db.delete(customers).where(eq(customers.organizationId, orgId)).returning({ id: customers.id })
+  );
   const galleryAlbumsDeleted = await deleteAndCount(
-    db.delete(galleryAlbums)
-      .where(eq(galleryAlbums.organizationId, orgId))
-      .returning({ id: galleryAlbums.id })
+    db.delete(galleryAlbums).where(eq(galleryAlbums.organizationId, orgId)).returning({ id: galleryAlbums.id })
   );
 
   return Response.json({
@@ -137,6 +116,8 @@ export async function action({ request }: ActionFunctionArgs) {
       enrollments: enrollmentsDeleted,
       sessions: sessionsDeleted,
       courses: coursesDeleted,
+      transactions: transactionsDeleted,
+      rentals: rentalsDeleted,
       bookings: bookingsDeleted,
       trips: tripsDeleted,
       tours: toursDeleted,

@@ -86,13 +86,11 @@ export async function seedEquipment(client: SeedClient): Promise<CreatedEquipmen
     }
     formData.set("status", "available");
     formData.set("condition", "good");
+    formData.set("isRentable", spec.isRentable ? "true" : "false");
     if (spec.isRentable && spec.rentalPrice > 0) {
       formData.set("rentalPrice", String(spec.rentalPrice));
-      formData.set("isRentable", "true");
     }
-    if (spec.isPublic) {
-      formData.set("isPublic", "true");
-    }
+    formData.set("isPublic", spec.isPublic ? "true" : "false");
 
     const result = await client.post("/tenant/equipment/new", formData);
 
