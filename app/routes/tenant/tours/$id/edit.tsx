@@ -7,6 +7,7 @@ import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { tourSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { ImageManager, type Image } from "../../../../components/ui";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Edit Tour - DiveStreams" }];
 
@@ -167,6 +168,7 @@ export default function EditTourPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>

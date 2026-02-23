@@ -19,6 +19,7 @@ import {
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
 
@@ -434,6 +435,7 @@ export default function TripDetailPage() {
           )}
           {trip.status === "confirmed" && (
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="complete" />
               <button
                 type="submit"
@@ -458,11 +460,13 @@ export default function TripDetailPage() {
                 Cancel Trip
               </button>
               {recurringInfo?.isRecurring && (
-                <fetcher.Form method="post" onSubmit={(e) => {
+                <fetcher.Form method="post" onSubmit={(e) =>
+                  {
                   if (!confirm("Are you sure you want to cancel ALL future trips in this series?")) {
                     e.preventDefault();
                   }
                 }}>
+                  <CsrfInput />
                   <input type="hidden" name="intent" value="cancel-series" />
                   <input type="hidden" name="templateId" value={recurringInfo.templateId || ""} />
                   <button

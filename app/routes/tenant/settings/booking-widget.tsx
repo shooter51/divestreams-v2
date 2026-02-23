@@ -6,6 +6,7 @@ import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getAppUrl } from "../../../../lib/utils/url";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Booking Widget - DiveStreams" }];
 
@@ -144,6 +145,7 @@ export default function BookingWidgetPage() {
         {/* Settings Form */}
         <div>
           <fetcher.Form method="post" className="space-y-6">
+            <CsrfInput />
             {/* Appearance */}
             <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
               <h2 className="font-semibold mb-4">Appearance</h2>

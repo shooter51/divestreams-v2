@@ -6,6 +6,7 @@ import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
 import { organization, member, user } from "../../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Notifications - DiveStreams" }];
 
@@ -136,6 +137,7 @@ export default function NotificationsPage() {
       )}
 
       <fetcher.Form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Customer Notifications */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Customer Notifications</h2>

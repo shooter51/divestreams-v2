@@ -364,6 +364,7 @@ export const trips = pgTable("trips", {
   index("trips_org_idx").on(table.organizationId),
   index("trips_org_date_idx").on(table.organizationId, table.date),
   index("trips_org_status_idx").on(table.organizationId, table.status),
+  index("trips_org_date_status_idx").on(table.organizationId, table.date, table.status),
   index("trips_recurring_template_idx").on(table.recurringTemplateId),
 ]);
 

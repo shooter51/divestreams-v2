@@ -133,7 +133,7 @@ describe("Gallery Upload Route", () => {
     expect(location).toContain("error=All");
   });
 
-  it("should handle missing B2 configuration", async () => {
+  it("should handle missing S3 configuration", async () => {
     const { getS3Client } = await import("../../../../../lib/storage");
     vi.mocked(getS3Client).mockReturnValueOnce(null);
 

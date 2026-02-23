@@ -13,6 +13,7 @@ import {
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Tour Details - DiveStreams" }];
 
@@ -433,6 +434,7 @@ export default function TourDetailPage() {
                 Schedule Trip
               </Link>
               <fetcher.Form method="post">
+                <CsrfInput />
                 <input type="hidden" name="intent" value="toggle-active" />
                 <button
                   type="submit"

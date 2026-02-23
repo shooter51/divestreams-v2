@@ -3,6 +3,7 @@ import { redirect, useLoaderData, useActionData, useNavigation, Link } from "rea
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getCourseById, getCourses, createSession } from "../../../../../lib/db/training.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Schedule Session - DiveStreams" }];
 
@@ -98,6 +99,7 @@ export default function NewSessionPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Course Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Course</h2>

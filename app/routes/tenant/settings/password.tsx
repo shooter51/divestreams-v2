@@ -6,6 +6,7 @@ import { db } from "../../../../lib/db";
 import { account } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "react-router";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Change Password - DiveStreams" }];
 
@@ -132,6 +133,7 @@ export default function PasswordSettingsPage() {
 
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
         <Form method="post">
+          <CsrfInput />
           <div className="space-y-4">
             {!forced && (
               <div>

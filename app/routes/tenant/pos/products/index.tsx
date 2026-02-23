@@ -13,6 +13,7 @@ import {
   deleteProduct,
   type Product,
 } from "../../../../../lib/db/queries.server";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -213,6 +214,7 @@ export default function ProductsPage() {
                         Edit
                       </Link>
                       <Form method="post" className="inline">
+                        <CsrfInput />
                         <input type="hidden" name="intent" value="delete" />
                         <input type="hidden" name="id" value={product.id} />
                         <button

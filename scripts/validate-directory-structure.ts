@@ -22,8 +22,11 @@ const ALLOWED_ROOT_FILES = new Set([
   '.env.pact-broker.example',
   '.gitattributes',
   '.gitignore',
+  '.coverage-config.json',
+  '.mcp.json',
   '.mcp.json.example',
   '.nycrc.json',
+  '.vibe-issue-mapping.json',
   '.pactrc',
   '.prettierrc',
   'drizzle.config.ts',
@@ -55,9 +58,7 @@ const ALLOWED_ROOT_FILES = new Set([
   'plan.md',
   'coverage-summary.json',
 
-  // Cleanup implementation docs (can be moved to docs/ after execution)
-  'DIRECTORY_CLEANUP_SUMMARY.md',
-  'CLEANUP_EXECUTION_CHECKLIST.md',
+
 ]);
 
 // Allowed directories in root
@@ -78,6 +79,8 @@ const ALLOWED_ROOT_DIRS = new Set([
   'tests',
   'tools',
   'zapier-app',
+  'deployment',
+  'schemas',
   'build',
   '.cache',
   '.react-router',

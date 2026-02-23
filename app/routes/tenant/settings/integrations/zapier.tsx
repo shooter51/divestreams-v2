@@ -24,6 +24,7 @@ import {
   ZAPIER_TRIGGER_DESCRIPTIONS,
   type ZapierTriggerType,
 } from "../../../../../lib/integrations/zapier.server";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -123,6 +124,7 @@ export default function ZapierIntegrationSettings() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">API Keys</h2>
           <Form method="post">
+            <CsrfInput />
             <input type="hidden" name="intent" value="generate-key" />
             <button
               type="submit"
@@ -162,6 +164,7 @@ export default function ZapierIntegrationSettings() {
                   </div>
                 </div>
                 <Form method="post">
+                  <CsrfInput />
                   <input type="hidden" name="intent" value="revoke-key" />
                   <input type="hidden" name="keyId" value={key.id} />
                   <button

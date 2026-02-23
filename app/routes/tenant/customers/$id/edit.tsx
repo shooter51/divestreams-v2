@@ -6,6 +6,7 @@ import { getCustomerById } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { customerSchema, validateFormData, getFormValues } from "../../../../../lib/validation";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Edit Customer - DiveStreams" }];
 
@@ -125,6 +126,7 @@ export default function EditCustomerPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>

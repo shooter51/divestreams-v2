@@ -5,6 +5,7 @@ import { auth } from "../../../../lib/auth";
 import { db } from "../../../../lib/db";
 import { user as userTable } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "My Profile - DiveStreams" }];
 
@@ -120,6 +121,7 @@ export default function UserProfilePage() {
         )}
 
         <Form method="post" className="space-y-4">
+          <CsrfInput />
           <input type="hidden" name="intent" value="update-name" />
 
           <div>
@@ -200,6 +202,7 @@ export default function UserProfilePage() {
         )}
 
         <Form method="post" className="space-y-4">
+          <CsrfInput />
           <input type="hidden" name="intent" value="change-password" />
 
           <div>

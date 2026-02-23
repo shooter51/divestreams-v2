@@ -9,6 +9,7 @@ import { eq, and, asc } from "drizzle-orm";
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
 import { getProductById, deleteProduct, adjustProductStock } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
   { title: data?.product ? `${data.product.name} - DiveStreams` : "Product - DiveStreams" },
@@ -211,6 +212,7 @@ export default function ProductDetailPage() {
                 <p className="text-sm text-foreground-muted mb-2">Quick Adjustment</p>
                 <div className="flex gap-2">
                   <Form method="post" className="flex gap-2">
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="adjustStock" />
                     <input type="hidden" name="adjustment" value="-1" />
                     <button
@@ -221,6 +223,7 @@ export default function ProductDetailPage() {
                     </button>
                   </Form>
                   <Form method="post" className="flex gap-2">
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="adjustStock" />
                     <input type="hidden" name="adjustment" value="1" />
                     <button
@@ -231,6 +234,7 @@ export default function ProductDetailPage() {
                     </button>
                   </Form>
                   <Form method="post" className="flex gap-2">
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="adjustStock" />
                     <input type="hidden" name="adjustment" value="10" />
                     <button
@@ -358,6 +362,7 @@ export default function ProductDetailPage() {
       <div className="bg-surface-raised rounded-xl p-6 shadow-sm mt-6 border border-danger">
         <h2 className="font-semibold text-danger mb-4">Danger Zone</h2>
         <Form method="post">
+          <CsrfInput />
           <input type="hidden" name="intent" value="delete" />
           <button
             type="submit"

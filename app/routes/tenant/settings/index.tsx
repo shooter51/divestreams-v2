@@ -8,6 +8,7 @@ import { eq, count, and } from "drizzle-orm";
 import { seedDemoData } from "../../../../lib/db/seed-demo-data.server";
 import { sendEmail } from "../../../../lib/email/email.server";
 import { cancelSubscription } from "../../../../lib/stripe/index";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 /**
  * Seed only training agencies (PADI, SSI, NAUI) without other demo data.
@@ -486,6 +487,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="seedDemoData" />
               <button
                 type="submit"
@@ -547,6 +549,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="requestDeletion" />
               <button
                 type="submit"

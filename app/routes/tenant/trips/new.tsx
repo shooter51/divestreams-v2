@@ -6,6 +6,7 @@ import { tripSchema, validateFormData, getFormValues } from "../../../../lib/val
 import { getTours, getBoats, getStaff, createTrip } from "../../../../lib/db/queries.server";
 import { createRecurringTrip, type RecurrencePattern } from "../../../../lib/trips/recurring.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 // Client-side helper to preview recurrence dates
 function calculatePreviewDates(
@@ -278,6 +279,7 @@ export default function NewTripPage() {
       </div>
 
       <form method="post" className="space-y-6">
+        <CsrfInput />
         {/* Tour Selection */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Tour</h2>

@@ -12,6 +12,7 @@ import {
 import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { storageLogger } from "../../../../lib/logger";
 import { useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Album - DiveStreams" }];
 
@@ -197,6 +198,7 @@ export default function AlbumDetailPage() {
 
         {/* Edit Form */}
         <fetcher.Form method="post" encType="multipart/form-data" className="space-y-4">
+          <CsrfInput />
           <input type="hidden" name="intent" value="update-album" />
 
           <div className="grid grid-cols-2 gap-4">
@@ -360,6 +362,7 @@ export default function AlbumDetailPage() {
                 {/* Image Actions Overlay */}
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity rounded-lg flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                   <fetcher.Form method="post">
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="update-image-status" />
                     <input type="hidden" name="imageId" value={image.id} />
                     <select

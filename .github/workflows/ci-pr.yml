@@ -38,6 +38,9 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
+      - name: Run contract tests
+        run: npx vitest run tests/contract
+
       - name: Run Pact consumer tests
         run: npm run pact:consumer
 

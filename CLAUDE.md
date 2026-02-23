@@ -122,7 +122,7 @@ npm run coverage:enforce
 
 ### Complete Documentation
 
-See [TESTING.md](./TESTING.md) for:
+See [TESTING.md](./docs/guides/testing.md) for:
 - Detailed testing workflow
 - Test type requirements
 - Coverage configuration
@@ -174,7 +174,7 @@ npm run coverage:enforce
 
 ### Complete Documentation
 
-See [TESTING.md](./TESTING.md) for:
+See [TESTING.md](./docs/guides/testing.md) for:
 - Detailed testing workflow
 - Test type requirements
 - Coverage configuration

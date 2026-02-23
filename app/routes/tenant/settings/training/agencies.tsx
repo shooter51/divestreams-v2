@@ -10,6 +10,7 @@ import {
   updateAgency,
   deleteAgency,
 } from "../../../../../lib/db/training.server";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Certification Agencies - DiveStreams" }];
 
@@ -196,7 +197,9 @@ export default function AgenciesPage() {
           <h2 className="font-semibold mb-4">
             {editingAgency ? "Edit Agency" : "Add New Agency"}
           </h2>
-          <form method="post" onSubmit={() => handleCancel()}>
+          <form method="post" onSubmit={() =>
+            handleCancel()}>
+            <CsrfInput />
             <input type="hidden" name="intent" value={editingAgency ? "update" : "create"} />
             {editingAgency && (
               <input type="hidden" name="agencyId" value={editingAgency.id} />
@@ -379,6 +382,7 @@ export default function AgenciesPage() {
                       }
                     }}
                   >
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="delete" />
                     <input type="hidden" name="agencyId" value={agency.id} />
                     <button

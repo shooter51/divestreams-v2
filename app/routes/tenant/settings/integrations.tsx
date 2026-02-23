@@ -51,6 +51,7 @@ import type {
   MailchimpAudience,
   StripeSettings,
 } from "../../../components/integrations";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Integrations - DiveStreams" }];
 
@@ -853,12 +854,14 @@ export default function IntegrationsPage() {
                       {/* Disconnect button (always shown) */}
                       <fetcher.Form
                         method="post"
-                        onSubmit={(e) => {
+                        onSubmit={(e) =>
+                        {
                           if (!confirm(`Are you sure you want to disconnect ${integration.name}?`)) {
                             e.preventDefault();
                           }
                         }}
                       >
+                        <CsrfInput />
                         <input type="hidden" name="intent" value="disconnect" />
                         <input type="hidden" name="integrationId" value={connection.id} />
                         <button
@@ -924,6 +927,7 @@ export default function IntegrationsPage() {
 
                     {available ? (
                       <fetcher.Form method="post">
+                        <CsrfInput />
                         <input type="hidden" name="intent" value="connect" />
                         <input type="hidden" name="integrationId" value={integration.id} />
                         <button

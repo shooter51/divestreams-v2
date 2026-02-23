@@ -10,6 +10,7 @@ import {
   getCourses,
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Session Details - DiveStreams" }];
 
@@ -235,6 +236,7 @@ export default function SessionDetailPage() {
           {/* Session Details / Edit Form */}
           {isEditing ? (
             <fetcher.Form method="post" className="bg-surface-raised rounded-xl p-6 shadow-sm">
+              <CsrfInput />
               <input type="hidden" name="intent" value="update-session" />
               <h2 className="font-semibold mb-4">Edit Session</h2>
               <div className="grid grid-cols-2 gap-4">

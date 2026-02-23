@@ -15,6 +15,7 @@ import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
+import { CsrfInput } from "../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams" }];
 
@@ -411,6 +412,7 @@ export default function DiscountsPage() {
                             Edit
                           </button>
                           <fetcher.Form method="post">
+                            <CsrfInput />
                             <input type="hidden" name="intent" value="toggle-active" />
                             <input type="hidden" name="id" value={discount.id} />
                             <input type="hidden" name="isActive" value="false" />
@@ -489,6 +491,7 @@ export default function DiscountsPage() {
                         <div className="flex items-center justify-end gap-2">
                           {status.label === "Inactive" && (
                             <fetcher.Form method="post">
+                              <CsrfInput />
                               <input type="hidden" name="intent" value="toggle-active" />
                               <input type="hidden" name="id" value={discount.id} />
                               <input type="hidden" name="isActive" value="true" />
@@ -532,6 +535,7 @@ export default function DiscountsPage() {
               </h2>
 
               <fetcher.Form method="post" className="space-y-4">
+                <CsrfInput />
                 <input type="hidden" name="intent" value={editingDiscount ? "update" : "create"} />
                 {editingDiscount && <input type="hidden" name="id" value={editingDiscount.id} />}
 
@@ -705,6 +709,7 @@ export default function DiscountsPage() {
                 {editingDiscount && (
                   <div className="pt-4 border-t">
                     <fetcher.Form method="post">
+                      <CsrfInput />
                       <input type="hidden" name="intent" value="delete" />
                       <input type="hidden" name="id" value={editingDiscount.id} />
                       <button

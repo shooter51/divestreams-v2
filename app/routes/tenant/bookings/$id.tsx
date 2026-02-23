@@ -6,6 +6,7 @@ import { getBookingWithFullDetails, getPaymentsByBookingId, updateBookingStatus,
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Booking Details - DiveStreams" }];
 
@@ -257,6 +258,7 @@ export default function BookingDetailPage() {
         <div className="flex gap-2">
           {booking.status === "pending" && (
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="confirm" />
               <button
                 type="submit"
@@ -268,6 +270,7 @@ export default function BookingDetailPage() {
           )}
           {booking.status === "confirmed" && (
             <fetcher.Form method="post">
+              <CsrfInput />
               <input type="hidden" name="intent" value="complete" />
               <button
                 type="submit"
@@ -506,6 +509,7 @@ export default function BookingDetailPage() {
             <h2 className="font-semibold mb-4">Actions</h2>
             <div className="space-y-2">
               <fetcher.Form method="post">
+                <CsrfInput />
                 <input type="hidden" name="intent" value="send-confirmation" />
                 <button
                   type="submit"
@@ -528,6 +532,7 @@ export default function BookingDetailPage() {
               </Link>
               {booking.status === "confirmed" && (
                 <fetcher.Form method="post">
+                  <CsrfInput />
                   <input type="hidden" name="intent" value="no-show" />
                   <button
                     type="submit"

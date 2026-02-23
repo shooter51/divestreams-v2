@@ -11,6 +11,7 @@ import {
   updateLevel,
   deleteLevel,
 } from "../../../../../lib/db/training.server";
+import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Certification Levels - DiveStreams" }];
 
@@ -205,7 +206,9 @@ export default function LevelsPage() {
           <h2 className="font-semibold mb-4">
             {editingLevel ? "Edit Level" : "Add New Level"}
           </h2>
-          <form method="post" onSubmit={() => handleCancel()}>
+          <form method="post" onSubmit={() =>
+            handleCancel()}>
+            <CsrfInput />
             <input type="hidden" name="intent" value={editingLevel ? "update" : "create"} />
             {editingLevel && (
               <input type="hidden" name="levelId" value={editingLevel.id} />
@@ -479,6 +482,7 @@ export default function LevelsPage() {
                       }
                     }}
                   >
+                    <CsrfInput />
                     <input type="hidden" name="intent" value="delete" />
                     <input type="hidden" name="levelId" value={level.id} />
                     <button

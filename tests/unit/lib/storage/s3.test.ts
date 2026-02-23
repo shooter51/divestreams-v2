@@ -19,10 +19,7 @@ vi.mock("@aws-sdk/client-s3", () => {
   };
 });
 
-// NOTE: These tests are for the AWS SDK-based implementation (lib/storage/s3.ts)
-// The project now uses the native SDK (lib/storage/s3-native.ts)
-// TODO: Create new tests for s3-native.ts implementation
-describe.skip("S3 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
+describe("S3 Storage Service", () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -39,7 +36,6 @@ describe.skip("S3 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
 
   describe("getS3Client", () => {
     it("returns null when S3 is not configured", async () => {
-      delete process.env.S3_ENDPOINT;
       delete process.env.S3_ACCESS_KEY_ID;
       delete process.env.S3_SECRET_ACCESS_KEY;
 
@@ -48,29 +44,38 @@ describe.skip("S3 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
       expect(client).toBeNull();
     });
 
-    it("creates S3 client when properly configured", async () => {
-      process.env.S3_ENDPOINT = "https://s3.us-west-000.backblazeb2.com";
-      process.env.S3_REGION = "us-west-000";
+    it("creates S3 client for AWS S3 (no endpoint)", async () => {
+      process.env.S3_REGION = "us-east-1";
       process.env.S3_ACCESS_KEY_ID = "test-key-id";
       process.env.S3_SECRET_ACCESS_KEY = "test-app-key";
       process.env.S3_BUCKET = "test-bucket";
+      delete process.env.S3_ENDPOINT;
 
       const { getS3Client } = await import("../../../../lib/storage/s3");
       const client = getS3Client();
 
       expect(client).not.toBeNull();
-      expect((client as unknown).config).toEqual({
-        endpoint: "https://s3.us-west-000.backblazeb2.com",
-        region: "us-west-000",
+      expect((client as unknown).config).toMatchObject({
+        region: "us-east-1",
         credentials: {
           accessKeyId: "test-key-id",
           secretAccessKey: "test-app-key",
         },
       });
+      // No endpoint set for default AWS
+      expect((client as unknown).config.endpoint).toBeUndefined();
+    });
+
+    it("rejects Backblaze B2 endpoints", async () => {
+      process.env.S3_ENDPOINT = "https://s3.us-west-000.backblazeb2.com";
+      process.env.S3_ACCESS_KEY_ID = "test-key-id";
+      process.env.S3_SECRET_ACCESS_KEY = "test-app-key";
+
+      const { getS3Client } = await import("../../../../lib/storage/s3");
+      expect(() => getS3Client()).toThrow("Backblaze B2 is not supported");
     });
 
     it("reuses existing client on subsequent calls", async () => {
-      process.env.S3_ENDPOINT = "https://s3.us-west-000.backblazeb2.com";
       process.env.S3_ACCESS_KEY_ID = "test-key-id";
       process.env.S3_SECRET_ACCESS_KEY = "test-app-key";
 
@@ -84,7 +89,8 @@ describe.skip("S3 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
 
   describe("uploadToS3", () => {
     it("returns null when client is not configured", async () => {
-      delete process.env.S3_ENDPOINT;
+      delete process.env.S3_ACCESS_KEY_ID;
+      delete process.env.S3_SECRET_ACCESS_KEY;
 
       const { uploadToS3 } = await import("../../../../lib/storage/s3");
       const result = await uploadToS3("test-key", Buffer.from("test"), "image/webp");
@@ -93,7 +99,7 @@ describe.skip("S3 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
     });
 
     it("uploads file and returns URLs", async () => {
-      process.env.S3_ENDPOINT = "https://s3.us-west-000.backblazeb2.com";
+      process.env.S3_REGION = "us-east-1";
       process.env.S3_ACCESS_KEY_ID = "test-key-id";
       process.env.S3_SECRET_ACCESS_KEY = "test-app-key";
       process.env.S3_BUCKET = "test-bucket";
@@ -105,13 +111,12 @@ describe.skip("S3 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
 
       expect(result).not.toBeNull();
       expect(result?.key).toBe("tenant/tour/123/image.webp");
-      expect(result?.url).toContain("s3.us-west-000");
+      expect(result?.url).toContain("amazonaws.com");
       expect(result?.cdnUrl).toBe("https://cdn.example.com/tenant/tour/123/image.webp");
       expect(mockSend).toHaveBeenCalledTimes(1);
     });
 
     it("falls back to S3 URL when CDN_URL is not set", async () => {
-      process.env.S3_ENDPOINT = "https://s3.us-west-000.backblazeb2.com";
       process.env.S3_ACCESS_KEY_ID = "test-key-id";
       process.env.S3_SECRET_ACCESS_KEY = "test-app-key";
       process.env.S3_BUCKET = "test-bucket";
@@ -126,7 +131,8 @@ describe.skip("S3 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
 
   describe("deleteFromS3", () => {
     it("returns false when client is not configured", async () => {
-      delete process.env.S3_ENDPOINT;
+      delete process.env.S3_ACCESS_KEY_ID;
+      delete process.env.S3_SECRET_ACCESS_KEY;
 
       const { deleteFromS3 } = await import("../../../../lib/storage/s3");
       const result = await deleteFromS3("test-key");
@@ -135,7 +141,6 @@ describe.skip("S3 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
     });
 
     it("deletes file and returns true on success", async () => {
-      process.env.S3_ENDPOINT = "https://s3.us-west-000.backblazeb2.com";
       process.env.S3_ACCESS_KEY_ID = "test-key-id";
       process.env.S3_SECRET_ACCESS_KEY = "test-app-key";
       process.env.S3_BUCKET = "test-bucket";
@@ -148,7 +153,6 @@ describe.skip("S3 Storage Service (OLD AWS SDK - DEPRECATED)", () => {
     });
 
     it("returns false on delete failure", async () => {
-      process.env.S3_ENDPOINT = "https://s3.us-west-000.backblazeb2.com";
       process.env.S3_ACCESS_KEY_ID = "test-key-id";
       process.env.S3_SECRET_ACCESS_KEY = "test-app-key";
 

@@ -13,6 +13,7 @@ import {
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 import { ImageManager, type Image } from "../../../../app/components/ui";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Dive Site Details - DiveStreams" }];
 
@@ -213,6 +214,7 @@ export default function DiveSiteDetailPage() {
             Edit
           </Link>
           <fetcher.Form method="post">
+            <CsrfInput />
             <input type="hidden" name="intent" value="toggle-active" />
             <button
               type="submit"

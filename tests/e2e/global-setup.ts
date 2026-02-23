@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import * as path from "path";
 import { db } from "../../lib/db";
 import { organization, user, member } from "../../lib/db/schema/auth";
-import { subscription, subscriptionPlans } from "../../lib/db/schema";
+import { subscription, subscriptionPlans, products } from "../../lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { createTenant } from "../../lib/db/tenant.server";
 import { auth } from "../../lib/auth";
@@ -185,38 +185,32 @@ async function globalSetup(_config: FullConfig) {
       );
     }
 
-    // Fix pro plan features: DB may have legacy string[] format (marketing text)
-    // but the app expects PlanFeaturesObject (boolean flags). Without this fix,
-    // the app falls back to DEFAULT_PLAN_FEATURES.standard and shows all features as locked.
-    const planFeatures = proPlan.features;
-    if (Array.isArray(planFeatures) || !planFeatures || typeof planFeatures !== "object") {
-      console.log("Fixing pro plan features format (legacy string[] → boolean flags)...");
-      await db
-        .update(subscriptionPlans)
-        .set({
-          features: DEFAULT_PLAN_FEATURES.pro,
-          limits: DEFAULT_PLAN_LIMITS.pro,
-        })
-        .where(eq(subscriptionPlans.id, proPlan.id));
-      console.log("✓ Pro plan features updated to boolean flags format");
-    }
+    // Always ensure plan features are set to the correct boolean flags format.
+    // The DB may have legacy string[] format, an empty object, or be missing fields
+    // like has_pos. Without this, feature gates redirect away from POS-gated pages.
+    console.log("Ensuring all plan features have correct boolean flags...");
+    await db
+      .update(subscriptionPlans)
+      .set({
+        features: DEFAULT_PLAN_FEATURES.pro,
+        limits: DEFAULT_PLAN_LIMITS.pro,
+      })
+      .where(eq(subscriptionPlans.id, proPlan.id));
+    console.log("✓ Pro plan features updated to boolean flags format");
 
-    // Also fix all other plans in case they have the same issue
+    // Also fix all other plans
     const allPlans = await db.select().from(subscriptionPlans);
     for (const plan of allPlans) {
       const planName = plan.name.toLowerCase();
       if (planName !== "pro" && DEFAULT_PLAN_FEATURES[planName]) {
-        const pf = plan.features;
-        if (Array.isArray(pf) || !pf || typeof pf !== "object") {
-          console.log(`Fixing ${plan.name} plan features format...`);
-          await db
-            .update(subscriptionPlans)
-            .set({
-              features: DEFAULT_PLAN_FEATURES[planName],
-              limits: DEFAULT_PLAN_LIMITS[planName],
-            })
-            .where(eq(subscriptionPlans.id, plan.id));
-        }
+        console.log(`Fixing ${plan.name} plan features format...`);
+        await db
+          .update(subscriptionPlans)
+          .set({
+            features: DEFAULT_PLAN_FEATURES[planName],
+            limits: DEFAULT_PLAN_LIMITS[planName],
+          })
+          .where(eq(subscriptionPlans.id, plan.id));
       }
     }
 
@@ -463,6 +457,16 @@ async function globalSetup(_config: FullConfig) {
       console.log("✓ Minimal test data inserted");
     }
 
+    // Always reset product stock quantities for POS test reliability.
+    // seedDemoData inserts new rows on each run (no unique constraint), so older
+    // product rows can accumulate 0 stock after POS checkout tests decrement them.
+    // Resetting to 50 ensures POS product buttons are always enabled.
+    await db
+      .update(products)
+      .set({ stockQuantity: 50 })
+      .where(eq(products.organizationId, demoOrg.id));
+    console.log("✓ Demo product stock quantities reset for POS tests");
+
     // =====================================================
     // Create E2ETEST tenant for workflow tests
     // This allows workflow tests to run in parallel without
@@ -651,6 +655,13 @@ async function globalSetup(_config: FullConfig) {
     } catch (error) {
       console.warn("⚠️  E2E test data seeding failed (tests will seed on demand):", error);
     }
+
+    // Reset e2etest product stock quantities for POS test reliability
+    await db
+      .update(products)
+      .set({ stockQuantity: 50 })
+      .where(eq(products.organizationId, e2eOrg.id));
+    console.log("✓ E2E test product stock quantities reset for POS tests");
 
     console.log("\n✓ E2E test environment ready for workflow tests");
     console.log(`  - Organization: e2etest.${(process.env.BASE_URL || "http://localhost:5173").replace(/^https?:\/\//, "")}`);

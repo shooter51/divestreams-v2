@@ -17,6 +17,7 @@ import {
   getPageContentHistory,
 } from "../../../../lib/db/page-content.server";
 import type { PageContent } from "../../../../lib/db/schema/page-content";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -160,6 +161,7 @@ export default function PageEditPage() {
 
       {/* Editor Form */}
       <Form method="post" className="space-y-6">
+        <CsrfInput />
         <input type="hidden" name="intent" value="save" />
         <input type="hidden" name="contentBlocks" value={contentBlocks} />
 
@@ -319,6 +321,7 @@ export default function PageEditPage() {
                   </div>
                 </div>
                 <Form method="post" className="inline">
+                  <CsrfInput />
                   <input type="hidden" name="intent" value="restore" />
                   <input type="hidden" name="version" value={entry.version} />
                   <button

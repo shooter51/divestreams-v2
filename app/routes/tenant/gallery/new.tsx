@@ -4,6 +4,7 @@ import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { createGalleryAlbum } from "../../../../lib/db/gallery.server";
 import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { storageLogger } from "../../../../lib/logger";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
 
@@ -92,6 +93,7 @@ export default function NewGalleryAlbumPage() {
       </div>
 
       <form method="post" encType="multipart/form-data" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Album Information</h2>

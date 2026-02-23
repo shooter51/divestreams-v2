@@ -8,6 +8,7 @@ import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
 import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
+import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Create Tour - DiveStreams" }];
 
@@ -255,6 +256,7 @@ export default function NewTourPage() {
       </div>
 
       <form method="post" encType="multipart/form-data" className="space-y-6">
+        <CsrfInput />
         {/* Basic Info */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
           <h2 className="font-semibold mb-4">Basic Information</h2>
