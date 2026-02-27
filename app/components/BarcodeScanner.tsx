@@ -1,12 +1,14 @@
 /**
  * Barcode Scanner Component
  *
- * Uses Quagga2 library to scan barcodes via device camera.
- * Supports EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39.
+ * Uses ZXing (@zxing/browser) to scan barcodes via device camera.
+ * Supports EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, QR, Data Matrix, etc.
+ * ZXing does not use eval(), so it is compatible with strict CSP.
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import Quagga from "@ericblade/quagga2";
+import { BrowserMultiFormatReader } from "@zxing/browser";
+import { NotFoundException } from "@zxing/library";
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -21,7 +23,9 @@ export function BarcodeScanner({
   enabled = true,
   className = "",
 }: BarcodeScannerProps) {
-  const scannerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,16 +38,12 @@ export function BarcodeScanner({
       const audioContext = new (window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-
       oscillator.frequency.value = 1000;
       oscillator.type = "sine";
-
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.1);
     } catch {
@@ -51,87 +51,59 @@ export function BarcodeScanner({
     }
   }, []);
 
-  // Handle barcode detection
-  const handleDetected = useCallback(
-    (result: { codeResult?: { code?: string | null } }) => {
-      const code = result.codeResult?.code;
-      if (!code) return;
+  const stopScanner = useCallback(() => {
+    controlsRef.current?.stop();
+    controlsRef.current = null;
+    readerRef.current = null;
+    setIsInitialized(false);
+  }, []);
 
-      // Debounce: prevent duplicate scans within 1 second
-      const now = Date.now();
-      if (code === lastScanRef.current && now - lastScanTimeRef.current < 1000) {
-        return;
-      }
-
-      lastScanRef.current = code;
-      lastScanTimeRef.current = now;
-
-      playBeep();
-      onScan(code);
-    },
-    [onScan, playBeep]
-  );
-
-  // Initialize scanner
   useEffect(() => {
-    if (!enabled || !scannerRef.current) return;
+    if (!enabled || !videoRef.current) return;
 
-    const initScanner = async () => {
+    const reader = new BrowserMultiFormatReader();
+    readerRef.current = reader;
+
+    const startScanning = async () => {
       try {
-        // Check for camera permission
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        stream.getTracks().forEach(track => track.stop());
-
-        Quagga.init(
+        const controls = await reader.decodeFromConstraints(
           {
-            inputStream: {
-              type: "LiveStream",
-              target: scannerRef.current!,
-              constraints: {
-                facingMode: "environment",
-                width: { min: 640, ideal: 1280, max: 1920 },
-                height: { min: 480, ideal: 720, max: 1080 },
-              },
-            },
-            decoder: {
-              readers: [
-                "ean_reader",
-                "ean_8_reader",
-                "upc_reader",
-                "upc_e_reader",
-                "code_128_reader",
-                "code_39_reader",
-              ],
-            },
-            locate: true,
-            locator: {
-              halfSample: true,
-              patchSize: "medium",
+            video: {
+              facingMode: "environment",
+              width: { min: 640, ideal: 1280, max: 1920 },
+              height: { min: 480, ideal: 720, max: 1080 },
             },
           },
-          (err) => {
-            if (err) {
-              console.error("Quagga init error:", err);
-              const errorMessage = err instanceof Error ? err.message : String(err);
-              if (errorMessage.includes("Permission") || errorMessage.includes("NotAllowed")) {
-                setPermissionDenied(true);
+          videoRef.current!,
+          (result, err) => {
+            if (result) {
+              const code = result.getText();
+              const now = Date.now();
+              // Debounce: prevent duplicate scans within 1 second
+              if (code === lastScanRef.current && now - lastScanTimeRef.current < 1000) {
+                return;
               }
-              setError(errorMessage);
-              onError?.(err instanceof Error ? err : new Error(errorMessage));
-              return;
+              lastScanRef.current = code;
+              lastScanTimeRef.current = now;
+              playBeep();
+              onScan(code);
             }
-
-            setIsInitialized(true);
-            setError(null);
-            Quagga.start();
+            if (err && !(err instanceof NotFoundException)) {
+              // NotFoundException is thrown on every frame with no barcode — ignore it
+              console.error("ZXing scan error:", err);
+            }
           }
         );
-
-        Quagga.onDetected(handleDetected);
+        controlsRef.current = controls;
+        setIsInitialized(true);
+        setError(null);
       } catch (err) {
-        console.error("Camera access error:", err);
         const errorMessage = err instanceof Error ? err.message : String(err);
-        if (errorMessage.includes("Permission") || errorMessage.includes("NotAllowed")) {
+        const isPermissionError =
+          errorMessage.includes("Permission") ||
+          errorMessage.includes("NotAllowed") ||
+          errorMessage.includes("NotFoundError");
+        if (isPermissionError) {
           setPermissionDenied(true);
         }
         setError(errorMessage);
@@ -139,23 +111,19 @@ export function BarcodeScanner({
       }
     };
 
-    initScanner();
+    startScanning();
 
     return () => {
-      if (isInitialized) {
-        Quagga.offDetected(handleDetected);
-        Quagga.stop();
-      }
+      stopScanner();
     };
-  }, [enabled, handleDetected, onError, isInitialized]);
+  }, [enabled, onScan, onError, playBeep, stopScanner]);
 
   // Stop scanner when disabled
   useEffect(() => {
-    if (!enabled && isInitialized) {
-      Quagga.stop();
-      setIsInitialized(false);
+    if (!enabled) {
+      stopScanner();
     }
-  }, [enabled, isInitialized]);
+  }, [enabled, stopScanner]);
 
   if (permissionDenied) {
     return (
@@ -192,7 +160,7 @@ export function BarcodeScanner({
         <button
           onClick={() => {
             setError(null);
-            setIsInitialized(false);
+            setPermissionDenied(false);
           }}
           className="px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
         >
@@ -204,22 +172,25 @@ export function BarcodeScanner({
 
   return (
     <div className={`relative overflow-hidden rounded-lg bg-black ${className}`}>
-      {/* Camera viewport */}
-      <div ref={scannerRef} className="w-full aspect-[4/3]">
-        {!isInitialized && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 dark:bg-black">
-            <div className="text-center">
-              <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2" />
-              <p className="text-white text-sm">Starting camera...</p>
-            </div>
+      <video
+        ref={videoRef}
+        className="w-full aspect-[4/3] object-cover"
+        muted
+        playsInline
+      />
+
+      {!isInitialized && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+          <div className="text-center">
+            <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-2" />
+            <p className="text-white text-sm">Starting camera...</p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Scanning overlay */}
       {isInitialized && (
         <div className="absolute inset-0 pointer-events-none">
-          {/* Scan area indicator */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-3/4 h-24 border-2 border-brand rounded-lg relative">
               {/* Corner markers */}
@@ -227,13 +198,10 @@ export function BarcodeScanner({
               <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-4 border-r-4 border-brand rounded-tr" />
               <div className="absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-4 border-l-4 border-brand rounded-bl" />
               <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-4 border-r-4 border-brand rounded-br" />
-
               {/* Scan line animation */}
               <div className="absolute top-0 left-0 right-0 h-0.5 bg-danger animate-pulse" />
             </div>
           </div>
-
-          {/* Instructions */}
           <div className="absolute bottom-4 left-0 right-0 text-center">
             <p className="text-white text-sm bg-black/50 px-4 py-2 rounded-full inline-block">
               Position barcode within the frame
