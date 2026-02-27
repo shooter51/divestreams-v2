@@ -203,24 +203,6 @@ export default function NewDiveSitePage() {
             </div>
 
             <div>
-              <label htmlFor="location" className="block text-sm font-medium mb-1">
-                Location *
-              </label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                required
-                placeholder="e.g., South Bay, Outer Reef"
-                defaultValue={actionData?.values?.location}
-                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
-              />
-              {actionData?.errors?.location && (
-                <p className="text-danger text-sm mt-1">{actionData.errors.location}</p>
-              )}
-            </div>
-
-            <div>
               <label htmlFor="description" className="block text-sm font-medium mb-1">
                 Description
               </label>
