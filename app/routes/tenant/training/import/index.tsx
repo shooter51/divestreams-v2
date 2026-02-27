@@ -316,6 +316,7 @@ export async function action({ request }: ActionFunctionArgs) {
           medicalRequirements: template.medicalRequirements ?? undefined,
           materialsIncluded: template.materialsIncluded ?? undefined,
           requiredItems: template.requiredItems ?? undefined,
+          images: template.images ?? undefined,
           price: "0.00", // Default price - user will set
           currency: "USD",
           isActive: true,
