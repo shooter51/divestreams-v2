@@ -57,7 +57,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }));
 
   const selectedCustomer = customerId ? customers.find((c) => c.id === customerId) : null;
-  const selectedTrip = tripId ? upcomingTrips.find((t) => t.id === tripId) : null;
+
+  // If tripId is provided, fetch it directly so it always pre-fills regardless of status/capacity
+  let selectedTrip = tripId ? upcomingTrips.find((t) => t.id === tripId) : null;
+  if (tripId && !selectedTrip) {
+    const tripData = await getTripById(organizationId, tripId);
+    if (tripData) {
+      const hasCapacityLimit = (tripData.maxParticipants ?? 0) > 0;
+      const bookedParticipants = tripData.bookedParticipants || 0;
+      const spotsAvailable = hasCapacityLimit ? Math.max(0, tripData.maxParticipants! - bookedParticipants) : null;
+      selectedTrip = {
+        id: tripData.id,
+        tourName: tripData.tourName || "Trip",
+        date: typeof tripData.date === "string" ? tripData.date : new Date(tripData.date).toISOString().split("T")[0],
+        startTime: tripData.startTime || "00:00",
+        spotsAvailable,
+        price: tripData.price ? tripData.price.toFixed(2) : "0.00",
+      };
+    }
+  }
 
   return { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip };
 }

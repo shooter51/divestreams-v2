@@ -558,7 +558,7 @@ export default function TripDetailPage() {
                       className="block text-sm text-brand hover:underline"
                     >
                       {site.name}
-                      {site.maxDepth && ` (${site.maxDepth}m)`}
+                      {site.maxDepth && ` (${site.maxDepth}m / ${Math.round(site.maxDepth * 3.28084)}ft)`}
                     </Link>
                   ))}
                 </div>

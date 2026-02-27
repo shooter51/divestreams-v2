@@ -362,7 +362,7 @@ export default function TourDetailPage() {
                         )}
                       </div>
                       {site.maxDepth && (
-                        <p className="text-sm text-foreground-muted">{site.maxDepth}m max depth</p>
+                        <p className="text-sm text-foreground-muted">{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft max depth</p>
                       )}
                     </div>
                   </Link>

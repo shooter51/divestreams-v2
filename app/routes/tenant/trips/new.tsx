@@ -334,7 +334,7 @@ export default function NewTripPage() {
                 <div key={site.id} className="flex items-center justify-between p-2 bg-surface-inset rounded-lg">
                   <span className="text-sm font-medium">{site.name}</span>
                   <div className="flex items-center gap-3 text-xs text-foreground-muted">
-                    {site.maxDepth && <span>{site.maxDepth}m max</span>}
+                    {site.maxDepth && <span>{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft max</span>}
                     {site.difficulty && <span className="capitalize">{site.difficulty}</span>}
                   </div>
                 </div>
