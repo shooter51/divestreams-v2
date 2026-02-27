@@ -79,7 +79,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
-    "@ericblade/quagga2": "^1.12.1",
     "@fullcalendar/core": "^6.1.20",
     "@fullcalendar/daygrid": "^6.1.20",
     "@fullcalendar/react": "^6.1.20",
@@ -92,6 +91,8 @@
     "@tiptap/pm": "^3.19.0",
     "@tiptap/react": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
+    "@zxing/browser": "^0.1.5",
+    "@zxing/library": "^0.21.3",
     "bcryptjs": "^3.0.3",
     "better-auth": "^1.2.0",
     "bullmq": "^5.0.0",
