@@ -253,6 +253,7 @@ export async function createTrip(organizationId: string, data: {
   price?: number;
   notes?: string;
   isPublic?: boolean;
+  staffIds?: string[];
 }) {
   const [trip] = await db
     .insert(schema.trips)
@@ -267,6 +268,7 @@ export async function createTrip(organizationId: string, data: {
       price: data.price ? String(data.price) : null,
       notes: data.notes || null,
       isPublic: data.isPublic ?? false,
+      staffIds: data.staffIds && data.staffIds.length > 0 ? data.staffIds : null,
     })
     .returning();
 
@@ -331,12 +333,32 @@ export async function getTripWithFullDetails(organizationId: string, id: string)
     getDiveSitesForTour(organizationId, trip.tourId, 10),
   ]);
 
+  // Resolve staffIds to member objects
+  let staff: Array<{ id: string; name: string; role: string }> = [];
+  if (trip.staffIds && trip.staffIds.length > 0) {
+    const members = await db
+      .select({
+        id: schema.member.id,
+        role: schema.member.role,
+        name: schema.user.name,
+        email: schema.user.email,
+      })
+      .from(schema.member)
+      .innerJoin(schema.user, eq(schema.member.userId, schema.user.id))
+      .where(inArray(schema.member.id, trip.staffIds));
+    staff = members.map((m) => ({
+      id: m.id,
+      name: m.name || m.email || "",
+      role: m.role,
+    }));
+  }
+
   return {
     ...trip,
     tour: tour ? { id: tour.id, name: tour.name } : { id: trip.tourId, name: trip.tourName || "" },
     boat: boat ? { id: boat.id, name: boat.name } : { id: "", name: "No boat assigned" },
     diveSites: diveSites || [],
-    staff: [] as Array<{ id: string; name: string; role: string }>, // No trip-specific staff assignments in schema yet
+    staff,
     weatherNotes: trip.weatherNotes || null,
   };
 }

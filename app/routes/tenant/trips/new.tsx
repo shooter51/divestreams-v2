@@ -216,6 +216,7 @@ export async function action({ request }: ActionFunctionArgs) {
       price: formData.get("price") ? Number(formData.get("price")) : undefined,
       notes: (formData.get("notes") as string) || undefined,
       isPublic: formData.get("isPublic") === "true",
+      staffIds: staffIds.length > 0 ? staffIds as string[] : undefined,
     });
   }
 

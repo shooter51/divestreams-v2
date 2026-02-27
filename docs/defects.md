@@ -12,3 +12,5 @@
 | 8 | Inviting existing-pending user gives unhelpful error | Low | Open | "This email already has a pending invitation" — no way to resend or cancel |
 | 9 | Post-invitation redirect goes to root URL instead of tenant login | Medium | Fixed | accept-invite.tsx redirected to /login (base domain); now looks up org slug and redirects to tenant subdomain login |
 | 10 | Public site only shows gallery images; tour images absent | Medium | Open | Tours have no images in seed data (Defect #1 manifests on public site) |
+| 11 | No staff assignment on trip edit form | Medium | Fixed | edit.tsx had no staff section; added staff loader, action handling, and UI with pre-checked checkboxes |
+| 12 | Request account deletion does nothing | High | Open | Button/form fires but no handler or backend action exists |
