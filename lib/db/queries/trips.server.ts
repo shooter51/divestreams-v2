@@ -90,6 +90,7 @@ export async function getTrips(
       trip: schema.trips,
       tourName: schema.tours.name,
       tourType: schema.tours.type,
+      tourPrice: schema.tours.price,
       boatName: schema.boats.name,
     })
     .from(schema.trips)
@@ -121,6 +122,7 @@ export async function getTrips(
     ...row.trip,
     tour_name: row.tourName,
     tour_type: row.tourType,
+    tour_price: row.tourPrice,
     boat_name: row.boatName,
     booked_participants: countMap.get(row.trip.id) || 0,
   }));
