@@ -14,3 +14,4 @@
 | 10 | Public site only shows gallery images; tour images absent | Medium | Fixed | Resolved by Defect #1 fix — run `npm run seed:images` to populate tour images |
 | 11 | No staff assignment on trip edit form | Medium | Fixed | edit.tsx had no staff section; added staff loader, action handling, and UI with pre-checked checkboxes |
 | 12 | Request account deletion does nothing | High | Fixed | Danger Zone section had no feedback display; fetcher.data.message now shown below the delete button so success/error is visible |
+# Post-seed gaps fixes
