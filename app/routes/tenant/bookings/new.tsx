@@ -36,9 +36,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Map trips to expected format with availability
   const upcomingTrips = tripsData.map((t) => {
-    const maxParticipants = t.maxParticipants || 10;
+    const hasCapacityLimit = (t.maxParticipants ?? 0) > 0;
     const bookedParticipants = t.bookedParticipants || 0;
-    const spotsAvailable = Math.max(0, maxParticipants - bookedParticipants);
+    const spotsAvailable = hasCapacityLimit ? Math.max(0, t.maxParticipants! - bookedParticipants) : null;
     return {
       id: t.id,
       tourName: t.tourName || "Trip",
@@ -47,7 +47,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       spotsAvailable,
       price: t.price ? t.price.toFixed(2) : "0.00",
     };
-  }).filter((t) => t.spotsAvailable > 0); // Only show trips with availability
+  }).filter((t) => t.spotsAvailable === null || t.spotsAvailable > 0);
 
   // Map equipment to expected format
   const rentalEquipment = equipmentData.map((e) => ({
@@ -57,7 +57,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }));
 
   const selectedCustomer = customerId ? customers.find((c) => c.id === customerId) : null;
-  const selectedTrip = tripId ? upcomingTrips.find((t) => t.id === tripId) : null;
+
+  // If tripId is provided, fetch it directly so it always pre-fills regardless of status/capacity
+  let selectedTrip = tripId ? upcomingTrips.find((t) => t.id === tripId) : null;
+  if (tripId && !selectedTrip) {
+    const tripData = await getTripById(organizationId, tripId);
+    if (tripData) {
+      const hasCapacityLimit = (tripData.maxParticipants ?? 0) > 0;
+      const bookedParticipants = tripData.bookedParticipants || 0;
+      const spotsAvailable = hasCapacityLimit ? Math.max(0, tripData.maxParticipants! - bookedParticipants) : null;
+      selectedTrip = {
+        id: tripData.id,
+        tourName: tripData.tourName || "Trip",
+        date: typeof tripData.date === "string" ? tripData.date : new Date(tripData.date).toISOString().split("T")[0],
+        startTime: tripData.startTime || "00:00",
+        spotsAvailable,
+        price: tripData.price ? tripData.price.toFixed(2) : "0.00",
+      };
+    }
+  }
 
   return { customers, upcomingTrips, rentalEquipment, selectedCustomer, selectedTrip };
 }
@@ -263,14 +281,14 @@ export default function NewBookingPage() {
                 id="participants"
                 name="participants"
                 min="1"
-                max={selectedTrip?.spotsAvailable || 10}
+                max={selectedTrip?.spotsAvailable ?? undefined}
                 defaultValue={actionData?.values?.participants || "1"}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {selectedTrip && (
                 <p className="text-sm text-foreground-muted mt-1">
-                  Max {selectedTrip.spotsAvailable} available
+                  {selectedTrip.spotsAvailable !== null ? `Max ${selectedTrip.spotsAvailable} available` : "Unlimited availability"}
                 </p>
               )}
             </div>
@@ -383,9 +401,8 @@ export default function NewBookingPage() {
               <p>{selectedTrip.tourName}</p>
               <p>{selectedTrip.date} at {selectedTrip.startTime}</p>
               <p className="text-lg font-bold mt-2">
-                Total: ${(parseFloat(selectedTrip.price) * 1).toFixed(2)}
+                ${parseFloat(selectedTrip.price).toFixed(2)} per person
               </p>
-              <p className="text-xs text-foreground-muted">(Price updates based on participants)</p>
             </div>
           </div>
         )}

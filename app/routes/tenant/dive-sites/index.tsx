@@ -221,7 +221,7 @@ export default function DiveSitesPage() {
 
               <div className="flex justify-between items-center text-sm border-t pt-3">
                 <span className="text-foreground-muted">
-                  Max depth: <strong>{site.maxDepth}m</strong>
+                  Max depth: <strong>{site.maxDepth}m / {Math.round(site.maxDepth * 3.28084)}ft</strong>
                 </span>
               </div>
 

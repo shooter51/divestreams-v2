@@ -2,7 +2,7 @@
  * BarcodeScanner Component Unit Tests
  *
  * Tests the camera scanner UI states: initial loading, permission denied,
- * and error / retry states. Quagga2 and getUserMedia are heavily mocked
+ * and error / retry states. ZXing and getUserMedia are heavily mocked
  * because they require real browser media APIs.
  */
 
@@ -10,56 +10,36 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { BarcodeScanner } from "../../../../app/components/BarcodeScanner";
 
-vi.mock("@ericblade/quagga2", () => ({
-  default: {
-    init: vi.fn(),
-    start: vi.fn(),
-    stop: vi.fn(),
-    onDetected: vi.fn(),
-    offDetected: vi.fn(),
-  },
+// Mock ZXing BrowserMultiFormatReader
+const mockStop = vi.fn();
+const mockDecodeFromConstraints = vi.fn();
+
+vi.mock("@zxing/browser", () => {
+  class BrowserMultiFormatReader {
+    decodeFromConstraints = mockDecodeFromConstraints;
+  }
+  return { BrowserMultiFormatReader };
+});
+
+vi.mock("@zxing/library", () => ({
+  NotFoundException: class NotFoundException extends Error {},
 }));
 
-import Quagga from "@ericblade/quagga2";
-const mockQuagga = vi.mocked(Quagga);
-
-// Helper: make getUserMedia resolve (camera allowed, no real stream)
-function mockGetUserMediaSuccess() {
-  const mockStream = {
-    getTracks: () => [{ stop: vi.fn() }],
-  } as unknown as MediaStream;
-
-  Object.defineProperty(navigator, "mediaDevices", {
-    value: {
-      getUserMedia: vi.fn().mockResolvedValue(mockStream),
-    },
-    writable: true,
-    configurable: true,
-  });
+// Helper: make decodeFromConstraints resolve (camera started successfully)
+function mockScannerSuccess() {
+  mockDecodeFromConstraints.mockResolvedValue({ stop: mockStop });
 }
 
-// Helper: make getUserMedia reject with a permission error
-function mockGetUserMediaDenied() {
-  const error = new Error("NotAllowedError: Permission denied");
-  Object.defineProperty(navigator, "mediaDevices", {
-    value: {
-      getUserMedia: vi.fn().mockRejectedValue(error),
-    },
-    writable: true,
-    configurable: true,
-  });
+// Helper: make decodeFromConstraints reject with a permission error
+function mockScannerPermissionDenied() {
+  mockDecodeFromConstraints.mockRejectedValue(
+    new Error("NotAllowedError: Permission denied")
+  );
 }
 
-// Helper: make getUserMedia reject with a generic camera error
-function mockGetUserMediaError(message = "Camera not found") {
-  const error = new Error(message);
-  Object.defineProperty(navigator, "mediaDevices", {
-    value: {
-      getUserMedia: vi.fn().mockRejectedValue(error),
-    },
-    writable: true,
-    configurable: true,
-  });
+// Helper: make decodeFromConstraints reject with a generic error
+function mockScannerError(message = "Camera not found") {
+  mockDecodeFromConstraints.mockRejectedValue(new Error(message));
 }
 
 beforeEach(() => {
@@ -69,9 +49,7 @@ beforeEach(() => {
 describe("BarcodeScanner", () => {
   describe("renders scanner container", () => {
     it("mounts without crashing", () => {
-      mockGetUserMediaSuccess();
-      // Quagga.init just hangs (never calls callback) – that's fine for this test
-      mockQuagga.init.mockImplementation(() => {});
+      mockScannerSuccess();
 
       const { container } = render(
         <BarcodeScanner onScan={vi.fn()} />,
@@ -83,9 +61,8 @@ describe("BarcodeScanner", () => {
 
   describe("shows 'Starting camera...' initially", () => {
     it("displays the loading message before camera initialises", () => {
-      mockGetUserMediaSuccess();
-      // Quagga.init never calls its callback – scanner stays uninitialized
-      mockQuagga.init.mockImplementation(() => {});
+      // decodeFromConstraints never resolves – scanner stays uninitialized
+      mockDecodeFromConstraints.mockReturnValue(new Promise(() => {}));
 
       render(<BarcodeScanner onScan={vi.fn()} />);
 
@@ -94,8 +71,8 @@ describe("BarcodeScanner", () => {
   });
 
   describe("shows 'Camera Access Denied' when permission denied", () => {
-    it("renders the permission-denied UI when getUserMedia rejects with NotAllowedError", async () => {
-      mockGetUserMediaDenied();
+    it("renders the permission-denied UI when decodeFromConstraints rejects with NotAllowedError", async () => {
+      mockScannerPermissionDenied();
 
       render(<BarcodeScanner onScan={vi.fn()} />);
 
@@ -109,7 +86,7 @@ describe("BarcodeScanner", () => {
     });
 
     it("shows a 'Try Again' button in the denied state", async () => {
-      mockGetUserMediaDenied();
+      mockScannerPermissionDenied();
 
       render(<BarcodeScanner onScan={vi.fn()} />);
 
@@ -120,12 +97,8 @@ describe("BarcodeScanner", () => {
   });
 
   describe("shows scanner error state with retry button", () => {
-    it("renders the error UI when Quagga.init calls back with an error", async () => {
-      mockGetUserMediaSuccess();
-
-      mockQuagga.init.mockImplementation((_config: unknown, callback: (err: Error | null) => void) => {
-        callback(new Error("Failed to initialize scanner"));
-      });
+    it("renders the error UI when decodeFromConstraints rejects with a generic error", async () => {
+      mockScannerError("Failed to initialize scanner");
 
       render(<BarcodeScanner onScan={vi.fn()} />);
 
@@ -135,11 +108,7 @@ describe("BarcodeScanner", () => {
     });
 
     it("renders a 'Retry' button in the error state", async () => {
-      mockGetUserMediaSuccess();
-
-      mockQuagga.init.mockImplementation((_config: unknown, callback: (err: Error | null) => void) => {
-        callback(new Error("Hardware failure"));
-      });
+      mockScannerError("Hardware failure");
 
       render(<BarcodeScanner onScan={vi.fn()} />);
 
@@ -148,12 +117,8 @@ describe("BarcodeScanner", () => {
       });
     });
 
-    it("shows the error message text from Quagga init", async () => {
-      mockGetUserMediaSuccess();
-
-      mockQuagga.init.mockImplementation((_config: unknown, callback: (err: Error | null) => void) => {
-        callback(new Error("No video device found"));
-      });
+    it("shows the error message text", async () => {
+      mockScannerError("No video device found");
 
       render(<BarcodeScanner onScan={vi.fn()} />);
 
@@ -162,12 +127,11 @@ describe("BarcodeScanner", () => {
       });
     });
 
-    it("shows 'Camera Access Denied' when getUserMedia rejects with generic error", async () => {
-      mockGetUserMediaError("Camera not found");
+    it("shows 'Scanner Error' when decodeFromConstraints rejects with generic error", async () => {
+      mockScannerError("Camera not found");
 
       render(<BarcodeScanner onScan={vi.fn()} />);
 
-      // Generic error (not a permission error) shows the error state, not the denied state
       await waitFor(() => {
         expect(screen.getByText("Scanner Error")).toBeInTheDocument();
         expect(screen.getByText("Camera not found")).toBeInTheDocument();
@@ -175,14 +139,7 @@ describe("BarcodeScanner", () => {
     });
 
     it("clicking Retry clears the error and shows loading again", async () => {
-      mockGetUserMediaSuccess();
-
-      mockQuagga.init.mockImplementationOnce((_config: unknown, callback: (err: Error | null) => void) => {
-        callback(new Error("Temporary failure"));
-      });
-
-      // On retry, Quagga.init hangs so we go back to the loading state
-      mockQuagga.init.mockImplementation(() => {});
+      mockScannerError("Temporary failure");
 
       render(<BarcodeScanner onScan={vi.fn()} />);
 
@@ -190,10 +147,12 @@ describe("BarcodeScanner", () => {
         expect(screen.getByText("Scanner Error")).toBeInTheDocument();
       });
 
+      // On retry, decodeFromConstraints hangs so we go back to loading state
+      mockDecodeFromConstraints.mockReturnValue(new Promise(() => {}));
+
       const retryButton = screen.getByRole("button", { name: /retry/i });
       fireEvent.click(retryButton);
 
-      // After retry the error UI should be gone (scanner re-initialises)
       await waitFor(() => {
         expect(screen.queryByText("Scanner Error")).not.toBeInTheDocument();
       });

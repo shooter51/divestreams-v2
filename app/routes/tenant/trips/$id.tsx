@@ -228,7 +228,8 @@ export default function TripDetailPage() {
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
 
-  const spotsAvailable = (trip.maxParticipants ?? 0) - trip.bookedParticipants;
+  const hasCapacityLimit = (trip.maxParticipants ?? 0) > 0;
+  const spotsAvailable = hasCapacityLimit ? trip.maxParticipants! - trip.bookedParticipants : null;
 
   // Get unique customers from bookings
   const customers = bookings.map((b) => ({
@@ -425,7 +426,7 @@ export default function TripDetailPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {trip.status !== "cancelled" && trip.status !== "completed" && spotsAvailable > 0 && (
+          {trip.status !== "cancelled" && trip.status !== "completed" && (spotsAvailable === null || spotsAvailable > 0) && (
             <Link
               to={`/tenant/bookings/new?tripId=${trip.id}`}
               className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
@@ -506,7 +507,7 @@ export default function TripDetailPage() {
               <p className="text-foreground-muted text-sm">Booked</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold text-success">{spotsAvailable}</p>
+              <p className="text-2xl font-bold text-success">{spotsAvailable ?? "∞"}</p>
               <p className="text-foreground-muted text-sm">Spots Left</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
@@ -557,7 +558,7 @@ export default function TripDetailPage() {
                       className="block text-sm text-brand hover:underline"
                     >
                       {site.name}
-                      {site.maxDepth && ` (${site.maxDepth}m)`}
+                      {site.maxDepth && ` (${site.maxDepth}m / ${Math.round(site.maxDepth * 3.28084)}ft)`}
                     </Link>
                   ))}
                 </div>
@@ -590,7 +591,7 @@ export default function TripDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Bookings ({bookings.length})</h2>
-              {spotsAvailable > 0 && (
+              {(spotsAvailable === null || spotsAvailable > 0) && (
                 <Link
                   to={`/tenant/bookings/new?tripId=${trip.id}`}
                   className="text-brand text-sm hover:underline"
@@ -701,7 +702,7 @@ export default function TripDetailPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Max Capacity</span>
-                <span>{trip.maxParticipants}</span>
+                <span>{hasCapacityLimit ? trip.maxParticipants : "Unlimited"}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Booked</span>
@@ -709,15 +710,15 @@ export default function TripDetailPage() {
               </div>
               <div className="flex justify-between text-sm font-medium">
                 <span>Available</span>
-                <span className={spotsAvailable === 0 ? "text-danger" : "text-success"}>
-                  {spotsAvailable}
+                <span className={spotsAvailable !== null && spotsAvailable === 0 ? "text-danger" : "text-success"}>
+                  {spotsAvailable ?? "Unlimited"}
                 </span>
               </div>
               <div className="mt-2 bg-surface-overlay rounded-full h-2">
                 <div
                   className="bg-brand rounded-full h-2"
                   style={{
-                    width: `${(trip.bookedParticipants / (trip.maxParticipants ?? 1)) * 100}%`,
+                    width: hasCapacityLimit ? `${(trip.bookedParticipants / trip.maxParticipants!) * 100}%` : "0%",
                   }}
                 />
               </div>

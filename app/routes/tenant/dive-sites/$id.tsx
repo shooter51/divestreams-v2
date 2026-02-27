@@ -117,10 +117,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  const orgMetadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
-  const depthUnit: "meters" | "feet" = orgMetadata.depthUnit === "feet" ? "feet" : "meters";
-
-  return { diveSite, recentTrips: formattedRecentTrips, stats, toursUsingSite, images, depthUnit };
+  return { diveSite, recentTrips: formattedRecentTrips, stats, toursUsingSite, images };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -160,13 +157,12 @@ const difficultyColors: Record<string, string> = {
   expert: "bg-danger-muted text-danger",
 };
 
-function formatDepth(depth: number, unit: "meters" | "feet"): string {
-  if (unit === "feet") return `${Math.round(depth * 3.28084)}ft`;
-  return `${depth}m`;
+function formatDepth(depth: number): string {
+  return `${depth}m / ${Math.round(depth * 3.28084)}ft`;
 }
 
 export default function DiveSiteDetailPage() {
-  const { diveSite, recentTrips, stats, toursUsingSite, images, depthUnit } = useLoaderData<typeof loader>();
+  const { diveSite, recentTrips, stats, toursUsingSite, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
 
@@ -254,7 +250,7 @@ export default function DiveSiteDetailPage() {
               <p className="text-foreground-muted text-sm">Total Divers</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{formatDepth(diveSite.maxDepth, depthUnit)}</p>
+              <p className="text-2xl font-bold">{formatDepth(diveSite.maxDepth)}</p>
               <p className="text-foreground-muted text-sm">Max Depth</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
@@ -435,7 +431,7 @@ export default function DiveSiteDetailPage() {
                       <div class="section">
                         <h2>Details</h2>
                         <div class="grid">
-                          <div class="item"><label>Max Depth</label><span>${diveSite.maxDepth}m</span></div>
+                          <div class="item"><label>Max Depth</label><span>${diveSite.maxDepth}m / ${Math.round(diveSite.maxDepth * 3.28084)}ft</span></div>
                           <div class="item"><label>Difficulty</label><span>${diveSite.difficulty}</span></div>
                           ${diveSite.coordinates ? `<div class="item"><label>Coordinates</label><span>${diveSite.coordinates.lat}, ${diveSite.coordinates.lng}</span></div>` : ""}
                           <div class="item"><label>Conditions</label><span>${diveSite.conditions || "Variable"}</span></div>

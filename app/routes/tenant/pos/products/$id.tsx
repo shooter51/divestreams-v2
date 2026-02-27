@@ -108,7 +108,7 @@ export default function ProductDetailPage() {
   const { product, images } = useLoaderData<typeof loader>();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const margin = product.costPrice
+  const margin = product.costPrice && product.price > 0
     ? Math.round(((product.price - product.costPrice) / product.price) * 100)
     : null;
 
