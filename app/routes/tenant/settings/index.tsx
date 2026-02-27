@@ -565,6 +565,11 @@ export default function SettingsPage() {
               </button>
             </fetcher.Form>
           </div>
+          {fetcher.data?.message && fetcher.state === "idle" && (
+            <p className={`mt-3 text-sm ${fetcher.data.success ? "text-success" : "text-danger"}`}>
+              {fetcher.data.message}
+            </p>
+          )}
         </div>
       </div>
     </div>
