@@ -54,6 +54,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     notes: tripData.notes || "",
     isPublic: tripData.isPublic ?? true,
     staffIds: tripData.staffIds ?? [],
+    diveSites: tripData.diveSites ?? [],
   };
 
   const staff = staffData.map((s) => ({ id: s.id, name: s.name, role: s.role }));
@@ -324,6 +325,25 @@ export default function EditTripPage() {
             </div>
           </div>
         </div>
+
+        {/* Dive Sites (from tour, read-only) */}
+        {trip.diveSites.length > 0 && (
+          <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
+            <h2 className="font-semibold mb-1">Dive Sites</h2>
+            <p className="text-xs text-foreground-muted mb-3">From the selected tour</p>
+            <div className="space-y-2">
+              {trip.diveSites.map((site) => (
+                <div key={site.id} className="flex items-center justify-between p-2 bg-surface-inset rounded-lg">
+                  <span className="text-sm font-medium">{site.name}</span>
+                  <div className="flex items-center gap-3 text-xs text-foreground-muted">
+                    {site.maxDepth && <span>{site.maxDepth}m max</span>}
+                    {site.difficulty && <span className="capitalize">{site.difficulty}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Staff Assignment */}
         <div className="bg-surface-raised rounded-xl p-6 shadow-sm">

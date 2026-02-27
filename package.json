@@ -38,6 +38,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "seed:training": "tsx scripts/seed-training-data.ts",
     "seed:templates": "tsx scripts/seed-agency-templates.ts",
+    "seed:images": "tsx scripts/seed-images.ts",
     "tenant:create": "tsx scripts/tenant-create.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "platform:setup": "tsx scripts/setup-platform-admin.ts",
