@@ -91,7 +91,7 @@ export default function TenantLayout() {
     { href: "/tenant/dive-sites", label: "Dive Sites", icon: "🌊" },
     { href: "/tenant/boats", label: "Boats", icon: "⛵", feature: "has_equipment_boats" },
     { href: "/tenant/equipment", label: "Equipment", icon: "🤿", feature: "has_equipment_boats" },
-    { href: "/tenant/products", label: "Products", icon: "📦", feature: "has_pos" },
+    { href: "/tenant/pos/products", label: "Products", icon: "📦", feature: "has_pos" },
     { href: "/tenant/discounts", label: "Discounts", icon: "🏷️", feature: "has_pos" },
     { href: "/tenant/training", label: "Training", icon: "🎓", feature: "has_training" },
     { href: "/tenant/gallery", label: "Gallery", icon: "📸" },

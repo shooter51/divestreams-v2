@@ -591,7 +591,7 @@ export default function TripDetailPage() {
           <div className="bg-surface-raised rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Bookings ({bookings.length})</h2>
-              {spotsAvailable > 0 && (
+              {(spotsAvailable === null || spotsAvailable > 0) && (
                 <Link
                   to={`/tenant/bookings/new?tripId=${trip.id}`}
                   className="text-brand text-sm hover:underline"
