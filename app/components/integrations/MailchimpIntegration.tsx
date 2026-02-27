@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 import { Icons } from "./Icons";
 import type { MailchimpAudience, MailchimpSettings } from "./types";
@@ -8,13 +8,19 @@ interface MailchimpIntegrationProps {
   mailchimpSettings: MailchimpSettings | null;
   mailchimpAudiences: MailchimpAudience[];
   onNotification: (notification: { type: "success" | "error"; message: string }) => void;
+  openModal?: boolean;
 }
 
 export function MailchimpIntegration({
   onNotification,
+  openModal,
 }: MailchimpIntegrationProps) {
   const fetcher = useFetcher();
   const [showOAuthModal, setShowOAuthModal] = useState(false);
+
+  useEffect(() => {
+    if (openModal) setShowOAuthModal(true);
+  }, [openModal]);
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
 

@@ -117,7 +117,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isPrimary: img.isPrimary,
   }));
 
-  return { diveSite, recentTrips: formattedRecentTrips, stats, toursUsingSite, images };
+  const orgMetadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
+  const depthUnit: "meters" | "feet" = orgMetadata.depthUnit === "feet" ? "feet" : "meters";
+
+  return { diveSite, recentTrips: formattedRecentTrips, stats, toursUsingSite, images, depthUnit };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -157,8 +160,13 @@ const difficultyColors: Record<string, string> = {
   expert: "bg-danger-muted text-danger",
 };
 
+function formatDepth(depth: number, unit: "meters" | "feet"): string {
+  if (unit === "feet") return `${Math.round(depth * 3.28084)}ft`;
+  return `${depth}m`;
+}
+
 export default function DiveSiteDetailPage() {
-  const { diveSite, recentTrips, stats, toursUsingSite, images } = useLoaderData<typeof loader>();
+  const { diveSite, recentTrips, stats, toursUsingSite, images, depthUnit } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const actionData = fetcher.data as { deleteError?: string } | undefined;
 
@@ -246,7 +254,7 @@ export default function DiveSiteDetailPage() {
               <p className="text-foreground-muted text-sm">Total Divers</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{diveSite.maxDepth}m</p>
+              <p className="text-2xl font-bold">{formatDepth(diveSite.maxDepth, depthUnit)}</p>
               <p className="text-foreground-muted text-sm">Max Depth</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">

@@ -15,6 +15,9 @@ export default [
   // Health check
   route("api/health", "routes/api/health.tsx"),
 
+  // Demo seed reset endpoint (protected by SEED_KEY)
+  route("api/seed/reset", "routes/api/seed/reset.ts"),
+
   // Better Auth API (catch-all for /api/auth/*)
   route("api/auth/*", "routes/api/auth.$.tsx"),
 
