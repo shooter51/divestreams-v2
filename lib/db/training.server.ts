@@ -408,7 +408,7 @@ export async function getSessions(
     conditions.push(gte(schema.trainingSessions.startDate, options.startDate));
   }
   if (options?.endDate) {
-    conditions.push(lte(schema.trainingSessions.startDate, options.endDate));
+    conditions.push(lte(schema.trainingSessions.endDate, options.endDate));
   }
 
   return db
