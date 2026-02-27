@@ -13,4 +13,4 @@
 | 9 | Post-invitation redirect goes to root URL instead of tenant login | Medium | Fixed | accept-invite.tsx redirected to /login (base domain); now looks up org slug and redirects to tenant subdomain login |
 | 10 | Public site only shows gallery images; tour images absent | Medium | Open | Tours have no images in seed data (Defect #1 manifests on public site) |
 | 11 | No staff assignment on trip edit form | Medium | Fixed | edit.tsx had no staff section; added staff loader, action handling, and UI with pre-checked checkboxes |
-| 12 | Request account deletion does nothing | High | Open | Button/form fires but no handler or backend action exists |
+| 12 | Request account deletion does nothing | High | Fixed | Danger Zone section had no feedback display; fetcher.data.message now shown below the delete button so success/error is visible |
