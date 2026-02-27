@@ -542,6 +542,13 @@ export default function IntegrationsPage() {
   const fetcher = useFetcher();
 
 
+  // Track which integration's modal to open (client-side only, no server round-trip needed)
+  const [openModalFor, setOpenModalFor] = useState<string | null>(null);
+  // Reset after one render so the prop acts as a one-shot trigger
+  useEffect(() => {
+    if (openModalFor) setOpenModalFor(null);
+  }, [openModalFor]);
+
   // Success/error messages from URL params (OAuth callbacks)
   const urlSuccess = searchParams.get("success");
   const urlError = searchParams.get("error");
@@ -783,17 +790,13 @@ export default function IntegrationsPage() {
                     </ul>
 
                     {available ? (
-                      <fetcher.Form method="post">
-                        <CsrfInput />
-                        <input type="hidden" name="intent" value="connect" />
-                        <input type="hidden" name="integrationId" value={integration.id} />
-                        <button
-                          type="submit"
-                          className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
-                        >
-                          Connect
-                        </button>
-                      </fetcher.Form>
+                      <button
+                        type="button"
+                        onClick={() => setOpenModalFor(integration.id)}
+                        className="w-full py-2 bg-brand text-white rounded-lg hover:bg-brand-hover text-sm"
+                      >
+                        Connect
+                      </button>
                     ) : (
                       <div className="text-center">
                         <p className="text-xs text-foreground-muted mb-2">
@@ -818,30 +821,35 @@ export default function IntegrationsPage() {
         );
       })}
 
-      {/* Provider modals for not-yet-connected integrations (triggered by "connect" action) */}
+      {/* Provider modals for not-yet-connected integrations */}
       <StripeIntegration
         connection={null}
         stripeSettings={stripeSettings as StripeSettings | null}
         onNotification={handleNotification}
+        openModal={openModalFor === "stripe"}
       />
       <GoogleCalendarIntegration
         isConnected={false}
         onNotification={handleNotification}
+        openModal={openModalFor === "google-calendar"}
       />
       <MailchimpIntegration
         isConnected={false}
         mailchimpSettings={mailchimpSettings as { selectedAudienceId?: string; syncOnBooking?: boolean; syncOnCustomerCreate?: boolean } | null}
         mailchimpAudiences={mailchimpAudiences as MailchimpAudience[]}
         onNotification={handleNotification}
+        openModal={openModalFor === "mailchimp"}
       />
       <QuickBooksIntegration
         isConnected={false}
         onNotification={handleNotification}
+        openModal={openModalFor === "quickbooks"}
       />
       <XeroIntegration
         isConnected={false}
         xeroSettings={xeroSettings as XeroSettings | null}
         onNotification={handleNotification}
+        openModal={openModalFor === "xero"}
       />
       <ZapierIntegration
         isConnected={false}
@@ -850,6 +858,7 @@ export default function IntegrationsPage() {
         zapierWebhookUrl={zapierWebhookUrl}
         zapierSettings={zapierSettings as { webhookUrl?: string | null; enabledTriggers?: string[] } | null}
         onNotification={handleNotification}
+        openModal={openModalFor === "zapier"}
       />
     </div>
   );
