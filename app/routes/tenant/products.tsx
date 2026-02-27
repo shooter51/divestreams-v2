@@ -4,7 +4,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { useLoaderData, useFetcher, useRouteLoaderData } from "react-router";
+import { useLoaderData, useFetcher, useRouteLoaderData, Link } from "react-router";
 import { getTenantDb } from "../../../lib/db/tenant.server";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db/index";
@@ -837,12 +837,13 @@ export default function ProductsPage() {
           <h3 className="font-semibold text-warning mb-2">Low Stock Alert</h3>
           <div className="flex flex-wrap gap-2">
             {lowStockProducts.map((p) => (
-              <span
+              <Link
                 key={p.id}
-                className="px-3 py-1 bg-warning-muted text-warning rounded-full text-sm"
+                to={`/tenant/pos/products/${p.id}`}
+                className="px-3 py-1 bg-warning-muted text-warning rounded-full text-sm hover:bg-warning hover:text-white transition-colors"
               >
                 {p.name}: {p.stockQuantity} left
-              </span>
+              </Link>
             ))}
           </div>
         </div>
