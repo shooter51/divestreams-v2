@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 import { Icons } from "./Icons";
 import type { StripeSettings, ConnectedIntegration } from "./types";
@@ -7,15 +7,21 @@ interface StripeIntegrationProps {
   connection: ConnectedIntegration | null;
   stripeSettings: StripeSettings | null;
   onNotification: (notification: { type: "success" | "error"; message: string }) => void;
+  openModal?: boolean;
 }
 
 export function StripeIntegration({
   connection,
   stripeSettings,
   onNotification,
+  openModal,
 }: StripeIntegrationProps) {
   const fetcher = useFetcher();
   const [showConnectModal, setShowConnectModal] = useState(false);
+
+  useEffect(() => {
+    if (openModal) setShowConnectModal(true);
+  }, [openModal]);
   const [secretKey, setSecretKey] = useState("");
   const [publishableKey, setPublishableKey] = useState("");
   const [showSettingsModal, setShowSettingsModal] = useState(false);

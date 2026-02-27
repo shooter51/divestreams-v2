@@ -15,6 +15,7 @@ interface OrgMetadata {
   website?: string;
   timezone?: string;
   currency?: string;
+  depthUnit?: "meters" | "feet";
   address?: {
     street?: string;
     city?: string;
@@ -45,6 +46,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     website: metadata.website || "",
     timezone: metadata.timezone || "America/New_York",
     currency: metadata.currency || "USD",
+    depthUnit: metadata.depthUnit || "meters",
     address: {
       street: metadata.address?.street || "",
       city: metadata.address?.city || "",
@@ -61,7 +63,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
   };
 
-  return { profile, orgId: ctx.org.id, isPremium: ctx.isPremium };
+  return { profile: { ...profile, depthUnit: profile.depthUnit as "meters" | "feet" }, orgId: ctx.org.id, isPremium: ctx.isPremium };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -79,6 +81,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const website = (formData.get("website") as string) || undefined;
     const timezone = formData.get("timezone") as string;
     const currency = formData.get("currency") as string;
+    const depthUnit = (formData.get("depthUnit") as string) === "feet" ? "feet" : "meters";
 
     const address = {
       street: (formData.get("street") as string) || undefined,
@@ -96,6 +99,7 @@ export async function action({ request }: ActionFunctionArgs) {
       website,
       timezone,
       currency,
+      depthUnit,
       address,
     });
 
@@ -391,6 +395,20 @@ export default function ProfileSettingsPage() {
                     {c.label}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="depthUnit" className="block text-sm font-medium mb-1">
+                Depth Unit
+              </label>
+              <select
+                id="depthUnit"
+                name="depthUnit"
+                defaultValue={profile.depthUnit}
+                className="w-full px-3 py-2 border border-border-strong rounded-lg bg-surface-raised text-foreground focus:ring-2 focus:ring-brand focus:border-brand"
+              >
+                <option value="meters">Meters (m)</option>
+                <option value="feet">Feet (ft)</option>
               </select>
             </div>
           </div>

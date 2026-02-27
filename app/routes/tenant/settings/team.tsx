@@ -209,7 +209,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .limit(1);
 
     if (existingInvite) {
-      return { error: "This email already has a pending invitation" };
+      return { error: "This email already has a pending invitation. See the Pending Invitations section below to resend or cancel it." };
     }
 
     // User doesn't exist - create invitation for new user

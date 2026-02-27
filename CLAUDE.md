@@ -15,74 +15,55 @@ Multi-tenant SaaS platform for dive shop and dive tour management. Built with Re
   - File naming: Use kebab-case (e.g., `stripe-setup.md`)
   - Tests: Mirror the structure of code they test
 
-## Vibe Kanban Issue Tracking & Defect Repair Workflow
+## Defect Tracking — Beads Task Tracker
 
-**IMPORTANT: All work must be tracked in vibe-kanban before making code changes.**
+**IMPORTANT: Use `bd` (beads) CLI for defect tracking. Do NOT use vibe-kanban.**
+
+Beads is backed by Dolt SQL server (auto-starts via launchd on login). Issue prefix: `DS`.
+`docs/defects.md` is kept as a human-readable summary but beads is the source of truth.
 
 ### Defect Repair Workflow
 
 When a defect is found during development or testing:
 
 1. **Create Defect Issue**
-   - Use `mcp__vibe_kanban__create_issue` with title format: `[DEFECT] <description>`
-   - Include detailed description of the issue, steps to reproduce, and expected vs actual behavior
-   - If related to an active feature issue, note the parent issue ID in the description
+   ```bash
+   bd create "Short description" --label bug --label medium --body "Steps to reproduce, expected vs actual"
+   ```
 
-2. **Link to Workspace** (if applicable)
-   - Use `mcp__vibe_kanban__link_workspace` to associate the defect with current workspace
-
-3. **Fix the Defect**
-   - Write unit tests that reproduce the defect first (TDD approach)
+2. **Fix the Defect**
    - Fix the issue
    - Ensure all unit tests pass: `npm test -- --run`
    - Run lint and typecheck: `npm run lint && npm run typecheck`
 
-4. **Update Issue Status**
-   - Use `mcp__vibe_kanban__update_issue` to mark as completed
-   - Add summary of fix in issue description
+3. **Close the Issue**
+   ```bash
+   bd update DS-xxxx --status done
+   ```
 
-5. **Deploy Through CI/CD Pipeline**
-   - Push to feature branch → PR to `develop` → unit tests gate
-   - Merge to `develop` → auto-deploy to Dev VPS
-   - Create PR to `staging` → full E2E tests gate
-   - Merge to `staging` → auto-deploy to Test VPS for QA verification
+4. **Update docs/defects.md** — mark the row as Fixed with brief notes
 
-### Issue Management Commands
+### Key beads commands
 
-```javascript
-// List all issues in project
-mcp__vibe_kanban__list_issues({ project_id: "<project-id>" })
-
-// Create new defect
-mcp__vibe_kanban__create_issue({
-  title: "[DEFECT] <description>",
-  description: "Steps to reproduce:\n1. ...\n\nExpected: ...\nActual: ...",
-  project_id: "<project-id>"
-})
-
-// Get issue details
-mcp__vibe_kanban__get_issue({ issue_id: "<issue-id>" })
-
-// Update issue status
-mcp__vibe_kanban__update_issue({
-  issue_id: "<issue-id>",
-  status: "Done"
-})
-
-// Link workspace to issue
-mcp__vibe_kanban__link_workspace({
-  workspace_id: "<workspace-id>",
-  issue_id: "<issue-id>"
-})
+```bash
+bd list                                          # Show all open issues
+bd create "title" --label bug --label medium \
+  --body "description"                           # Create issue
+bd show DS-p1h                                   # View issue details
+bd update DS-p1h --status done                   # Close issue
+bd dolt test                                     # Verify Dolt connection
 ```
 
-### Defect Categories
+### Severity labels
+- `critical` — Production blocking, data loss, security
+- `high` — Major functionality broken, no workaround
+- `medium` — Functionality broken but workaround exists
+- `low` — Minor issues, cosmetic bugs, edge cases
 
-Tag defects with appropriate prefixes:
-- `[DEFECT] [CRITICAL]` - Production blocking, data loss, security issues
-- `[DEFECT] [HIGH]` - Major functionality broken, no workaround
-- `[DEFECT] [MEDIUM]` - Functionality broken but workaround exists
-- `[DEFECT] [LOW]` - Minor issues, cosmetic bugs, edge cases
+### If Dolt server is not running
+```bash
+launchctl start com.dolt.sql-server
+```
 
 ## Code Coverage & Testing - REQUIRED FOR ALL FEATURES
 

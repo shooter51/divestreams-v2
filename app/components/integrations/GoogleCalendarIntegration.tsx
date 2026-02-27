@@ -1,18 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 import { Icons } from "./Icons";
 
 interface GoogleCalendarIntegrationProps {
   isConnected: boolean;
   onNotification: (notification: { type: "success" | "error"; message: string }) => void;
+  openModal?: boolean;
 }
 
 export function GoogleCalendarIntegration({
   isConnected,
   onNotification,
+  openModal,
 }: GoogleCalendarIntegrationProps) {
   const fetcher = useFetcher();
   const [showOAuthModal, setShowOAuthModal] = useState(false);
+
+  useEffect(() => {
+    if (openModal) setShowOAuthModal(true);
+  }, [openModal]);
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
 
