@@ -153,7 +153,7 @@ describe("app/routes/tenant/bookings/new.tsx", () => {
 
       expect(result.upcomingTrips[0].tourName).toBe("Trip");
       expect(result.upcomingTrips[0].startTime).toBe("00:00");
-      expect(result.upcomingTrips[0].spotsAvailable).toBe(10); // Default max 10 - 0 booked
+      expect(result.upcomingTrips[0].spotsAvailable).toBeNull(); // null maxParticipants = unlimited
       expect(result.upcomingTrips[0].price).toBe("0.00");
     });
 
