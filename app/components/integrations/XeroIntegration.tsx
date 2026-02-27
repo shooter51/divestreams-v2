@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 import { Icons } from "./Icons";
 import type { XeroSettings } from "./types";
@@ -7,15 +7,21 @@ interface XeroIntegrationProps {
   isConnected: boolean;
   xeroSettings: XeroSettings | null;
   onNotification: (notification: { type: "success" | "error"; message: string }) => void;
+  openModal?: boolean;
 }
 
 export function XeroIntegration({
   isConnected,
   xeroSettings,
   onNotification,
+  openModal,
 }: XeroIntegrationProps) {
   const fetcher = useFetcher();
   const [showOAuthModal, setShowOAuthModal] = useState(false);
+
+  useEffect(() => {
+    if (openModal) setShowOAuthModal(true);
+  }, [openModal]);
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
 

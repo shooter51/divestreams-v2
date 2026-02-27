@@ -184,7 +184,7 @@ export function mapTrip(row: TripInput) {
     endTime: pick(row.endTime, r.end_time) as string | null,
     status: row.status,
     maxParticipants: pick(row.maxParticipants, r.max_participants) as number | null,
-    price: row.price ? Number(row.price) : null,
+    price: row.price ? Number(row.price) : (row.tour_price ? Number(row.tour_price) : null),
     notes: row.notes,
     weatherNotes: pick(row.weatherNotes, r.weather_notes) as string | null ?? null,
     isPublic: pick(row.isPublic, r.is_public) ?? false,
@@ -192,6 +192,7 @@ export function mapTrip(row: TripInput) {
     tourType: pick(row.tourType, row.tour_type),
     boatName: pick(row.boatName, row.boat_name),
     bookedParticipants: Number(pick(row.bookedParticipants, row.booked_participants) ?? 0),
+    staffIds: (pick(row.staffIds, r.staff_ids) ?? null) as string[] | null,
     createdAt: pick(row.createdAt, r.created_at) as Date,
     updatedAt: pick(row.updatedAt, r.updated_at) as Date,
   };
