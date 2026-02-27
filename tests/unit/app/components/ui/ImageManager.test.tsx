@@ -18,6 +18,7 @@ vi.mock("react-router", () => ({
     submit: vi.fn(),
     Form: "form",
   }),
+  useRouteLoaderData: () => ({ csrfToken: "test-csrf-token" }),
 }));
 
 vi.mock("../../../../../app/components/ui/Button", () => ({
