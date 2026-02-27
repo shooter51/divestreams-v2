@@ -142,6 +142,19 @@ export async function action({ request }: ActionFunctionArgs) {
       })
       .returning();
 
+    // Sync products.imageUrl when a primary product image is uploaded
+    if (entityType === "product" && image.isPrimary) {
+      await db
+        .update(schema.products)
+        .set({ imageUrl: image.url })
+        .where(
+          and(
+            eq(schema.products.id, entityId),
+            eq(schema.products.organizationId, organizationId)
+          )
+        );
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
