@@ -148,7 +148,7 @@ export async function getEquipmentRentalHistory(organizationId: string, equipmen
     })
     .from(schema.rentals)
     .innerJoin(schema.customers, eq(schema.rentals.customerId, schema.customers.id))
-    .where(eq(schema.rentals.equipmentId, equipmentId))
+    .where(and(eq(schema.rentals.organizationId, organizationId), eq(schema.rentals.equipmentId, equipmentId)))
     .orderBy(desc(schema.rentals.rentedAt))
     .limit(limit);
 
