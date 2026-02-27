@@ -36,9 +36,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Map trips to expected format with availability
   const upcomingTrips = tripsData.map((t) => {
-    const maxParticipants = t.maxParticipants || 10;
+    const hasCapacityLimit = (t.maxParticipants ?? 0) > 0;
     const bookedParticipants = t.bookedParticipants || 0;
-    const spotsAvailable = Math.max(0, maxParticipants - bookedParticipants);
+    const spotsAvailable = hasCapacityLimit ? Math.max(0, t.maxParticipants! - bookedParticipants) : null;
     return {
       id: t.id,
       tourName: t.tourName || "Trip",
@@ -47,7 +47,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       spotsAvailable,
       price: t.price ? t.price.toFixed(2) : "0.00",
     };
-  }).filter((t) => t.spotsAvailable > 0); // Only show trips with availability
+  }).filter((t) => t.spotsAvailable === null || t.spotsAvailable > 0);
 
   // Map equipment to expected format
   const rentalEquipment = equipmentData.map((e) => ({
@@ -263,14 +263,14 @@ export default function NewBookingPage() {
                 id="participants"
                 name="participants"
                 min="1"
-                max={selectedTrip?.spotsAvailable || 10}
+                max={selectedTrip?.spotsAvailable ?? undefined}
                 defaultValue={actionData?.values?.participants || "1"}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand"
                 required
               />
               {selectedTrip && (
                 <p className="text-sm text-foreground-muted mt-1">
-                  Max {selectedTrip.spotsAvailable} available
+                  {selectedTrip.spotsAvailable !== null ? `Max ${selectedTrip.spotsAvailable} available` : "Unlimited availability"}
                 </p>
               )}
             </div>
@@ -383,9 +383,8 @@ export default function NewBookingPage() {
               <p>{selectedTrip.tourName}</p>
               <p>{selectedTrip.date} at {selectedTrip.startTime}</p>
               <p className="text-lg font-bold mt-2">
-                Total: ${(parseFloat(selectedTrip.price) * 1).toFixed(2)}
+                ${parseFloat(selectedTrip.price).toFixed(2)} per person
               </p>
-              <p className="text-xs text-foreground-muted">(Price updates based on participants)</p>
             </div>
           </div>
         )}
