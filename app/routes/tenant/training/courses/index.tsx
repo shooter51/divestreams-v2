@@ -197,12 +197,18 @@ export default function CoursesIndexPage() {
                         src={course.imageUrl}
                         alt={course.name}
                         className="w-16 h-16 object-cover rounded"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          e.currentTarget.nextElementSibling?.removeAttribute("style");
+                        }}
                       />
-                    ) : (
-                      <div className="w-16 h-16 bg-surface-inset rounded flex items-center justify-center text-foreground-muted text-xs">
-                        No image
-                      </div>
-                    )}
+                    ) : null}
+                    <div
+                      className="w-16 h-16 bg-surface-inset rounded flex items-center justify-center text-foreground-muted text-xs"
+                      style={course.imageUrl ? { display: "none" } : undefined}
+                    >
+                      No image
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div>

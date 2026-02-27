@@ -3,7 +3,7 @@ import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
-import { eq, sql, count, and, gte } from "drizzle-orm";
+import { eq, sql, count, and, gte, ne, lt } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";
@@ -88,14 +88,46 @@ export async function loader({ request }: LoaderFunctionArgs) {
     createdAt: b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "",
   }));
 
-  // Calculate stats from the current page data
-  const today = new Date().toLocaleDateString();
+  // Calculate stats from full DB (not just current page)
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+  const tomorrowDate = new Date(todayDate);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+
+  const [[{ value: statsToday }], [{ value: statsUpcoming }], [{ value: statsPendingPayment }]] =
+    await Promise.all([
+      db
+        .select({ value: count() })
+        .from(bookings)
+        .leftJoin(trips, eq(bookings.tripId, trips.id))
+        .where(
+          and(
+            eq(bookings.organizationId, ctx.org.id),
+            gte(trips.date, todayDate.toISOString().slice(0, 10)),
+            lt(trips.date, tomorrowDate.toISOString().slice(0, 10))
+          )
+        ),
+      db
+        .select({ value: count() })
+        .from(bookings)
+        .where(and(eq(bookings.organizationId, ctx.org.id), eq(bookings.status, "confirmed"))),
+      db
+        .select({ value: count() })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.organizationId, ctx.org.id),
+            ne(bookings.status, "cancelled"),
+            ne(bookings.status, "canceled"),
+            lt(bookings.paidAmount, bookings.total)
+          )
+        ),
+    ]);
+
   const stats = {
-    today: bookingData.filter((b) => b.trip.date === today).length,
-    upcoming: bookingData.filter((b) => b.status === "confirmed").length,
-    pendingPayment: bookingData.filter(
-      (b) => b.status !== "cancelled" && b.status !== "canceled" && parseFloat(b.paidAmount) < parseFloat(b.total)
-    ).length,
+    today: statsToday,
+    upcoming: statsUpcoming,
+    pendingPayment: statsPendingPayment,
   };
 
   // Get monthly booking count for limit tracking
