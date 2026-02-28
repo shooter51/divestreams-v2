@@ -194,7 +194,7 @@ export default function CustomersPage() {
                   <td className="px-6 py-4 text-sm">${Number(customer.totalSpent || 0).toLocaleString("en-US")}</td>
                   <td className="px-6 py-4 text-sm text-foreground-muted">
                     {customer.lastDiveAt
-                      ? new Date(customer.lastDiveAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+                      ? new Date(customer.lastDiveAt).toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" })
                       : "Never"}
                   </td>
                   <td className="px-6 py-4 text-right">
