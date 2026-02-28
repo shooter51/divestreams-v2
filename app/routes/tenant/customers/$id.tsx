@@ -62,6 +62,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     dateOfBirth: formatDate(customer.dateOfBirth),
     createdAt: formatDate(customer.createdAt),
     updatedAt: formatDate(customer.updatedAt),
+    lastDiveAt: formatDate(customer.lastDiveAt),
     certifications: formattedCertifications,
   };
 
@@ -406,8 +407,8 @@ export default function CustomerDetailPage() {
                   <div key={comm.id} className="text-sm border-l-2 border-brand pl-3">
                     <p className="font-medium">{comm.subject || "(No subject)"}</p>
                     <p className="text-foreground-muted text-xs">
-                      {new Date(comm.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })} at{" "}
-                      {new Date(comm.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(comm.createdAt).toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" })} at{" "}
+                      {new Date(comm.createdAt).toLocaleTimeString("en-US", { timeZone: "UTC", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                 ))}
