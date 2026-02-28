@@ -406,8 +406,8 @@ export default function CustomerDetailPage() {
                   <div key={comm.id} className="text-sm border-l-2 border-brand pl-3">
                     <p className="font-medium">{comm.subject || "(No subject)"}</p>
                     <p className="text-foreground-muted text-xs">
-                      {new Date(comm.createdAt).toLocaleDateString()} at{" "}
-                      {new Date(comm.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(comm.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })} at{" "}
+                      {new Date(comm.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                 ))}

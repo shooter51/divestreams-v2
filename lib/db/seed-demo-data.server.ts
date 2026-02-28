@@ -76,12 +76,12 @@ const DEMO_IMAGES = {
     wetsuitBare5mm: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400",
     computerShearwater: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400",
     computerSuunto: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400",
-    lightBigblue: "https://images.unsplash.com/photo-1580019542155-247062e19ce0?w=400",
-    lightTovatec: "https://images.unsplash.com/photo-1580019542155-247062e19ce0?w=400",
+    lightBigblue: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400",
+    lightTovatec: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400",
     smbKit: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400",
     knife: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400",
     antiFog: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400",
-    slate: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400",
+    slate: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
     dryBag: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400",
     sunscreen: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400",
     maskStrap: "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=400",
@@ -110,6 +110,29 @@ export async function seedDemoData(organizationId: string): Promise<void> {
   if (!org) {
     throw new Error(`Organization ${organizationId} not found`);
   }
+
+  // Set public site settings with hero image
+  await db
+    .update(organization)
+    .set({
+      publicSiteSettings: {
+        enabled: true,
+        theme: "ocean" as const,
+        // eslint-disable-next-line no-restricted-syntax
+        primaryColor: "#0ea5e9",
+        // eslint-disable-next-line no-restricted-syntax
+        secondaryColor: "#06b6d4",
+        logoUrl: null,
+        heroImageUrl: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1600",
+        heroVideoUrl: null,
+        fontFamily: "inter" as const,
+        pages: { home: true, about: true, trips: true, courses: true, equipment: true, contact: true, gallery: true },
+        aboutContent: null,
+        contactInfo: null,
+      },
+      updatedAt: new Date(),
+    })
+    .where(eq(organization.id, organizationId));
 
   // Check if data already exists for this organization
   const [existingCustomer] = await db
