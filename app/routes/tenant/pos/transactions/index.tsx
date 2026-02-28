@@ -268,6 +268,7 @@ function formatDateTime(date: Date | string): string {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "UTC",
   }).format(d);
 }
 

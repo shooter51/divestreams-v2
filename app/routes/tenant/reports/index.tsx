@@ -12,8 +12,8 @@ import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, Link, useSearchParams } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { bookings, customers } from "../../../../lib/db/schema";
-import { eq, gte, and, sql, count, lte } from "drizzle-orm";
+import { bookings, customers, trips, tours, equipment } from "../../../../lib/db/schema";
+import { eq, gte, and, sql, count, lte, desc } from "drizzle-orm";
 import { PremiumGate } from "../../../components/ui/UpgradePrompt";
 import { useState, useRef, useEffect } from "react";
 
@@ -260,11 +260,81 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } | null = null;
 
   if (ctx.isPremium) {
+    const revenueData = await db
+      .select({
+        period: sql<string>`DATE(${bookings.createdAt})`,
+        revenue: sql<number>`SUM(${bookings.total})`,
+        bookings: sql<number>`COUNT(*)`,
+      })
+      .from(bookings)
+      .where(and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, dateStart),
+        lte(bookings.createdAt, dateEnd),
+      ))
+      .groupBy(sql`DATE(${bookings.createdAt})`)
+      .orderBy(sql`DATE(${bookings.createdAt}) ASC`);
+
+    const bookingsByStatus = await db
+      .select({
+        status: bookings.status,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(bookings)
+      .where(and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, dateStart),
+        lte(bookings.createdAt, dateEnd),
+      ))
+      .groupBy(bookings.status);
+
+    const topTours = await db
+      .select({
+        id: tours.id,
+        name: tours.name,
+        bookings: sql<number>`COUNT(${bookings.id})`,
+        revenue: sql<number>`SUM(${bookings.total})`,
+      })
+      .from(bookings)
+      .innerJoin(trips, eq(bookings.tripId, trips.id))
+      .innerJoin(tours, eq(trips.tourId, tours.id))
+      .where(and(
+        eq(bookings.organizationId, ctx.org.id),
+        gte(bookings.createdAt, dateStart),
+        lte(bookings.createdAt, dateEnd),
+      ))
+      .groupBy(tours.id, tours.name)
+      .orderBy(desc(sql`SUM(${bookings.total})`))
+      .limit(5);
+
+    const equipmentRaw = await db
+      .select({
+        category: equipment.category,
+        status: equipment.status,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(equipment)
+      .where(eq(equipment.organizationId, ctx.org.id))
+      .groupBy(equipment.category, equipment.status);
+
+    const equipmentMap = new Map<string, { category: string; total: number; available: number; rented: number; maintenance: number }>();
+    for (const row of equipmentRaw) {
+      if (!equipmentMap.has(row.category)) {
+        equipmentMap.set(row.category, { category: row.category, total: 0, available: 0, rented: 0, maintenance: 0 });
+      }
+      const entry = equipmentMap.get(row.category)!;
+      entry.total += Number(row.count);
+      if (row.status === "available") entry.available += Number(row.count);
+      if (row.status === "rented") entry.rented += Number(row.count);
+      if (row.status === "maintenance") entry.maintenance += Number(row.count);
+    }
+    const equipmentUtilization = Array.from(equipmentMap.values());
+
     advancedData = {
-      revenueData: [] as RevenueDataItem[], // Placeholder - would need daily aggregation query
-      bookingsByStatus: [] as BookingStatusItem[], // Placeholder - would need status grouping query
-      topTours: [] as TopTourItem[], // Placeholder - would need tour revenue aggregation
-      equipmentUtilization: [] as EquipmentUtilizationItem[], // Placeholder - would need equipment status query
+      revenueData: revenueData.map(r => ({ period: String(r.period), revenue: Number(r.revenue), bookings: Number(r.bookings) })),
+      bookingsByStatus: bookingsByStatus.map(b => ({ status: String(b.status), count: Number(b.count) })),
+      topTours: topTours.map(t => ({ id: t.id, name: t.name, bookings: Number(t.bookings), revenue: Number(t.revenue) })),
+      equipmentUtilization,
     };
   }
 
