@@ -142,9 +142,13 @@ export async function action({ request }: ActionFunctionArgs) {
       .where(eq(subscriptionPlans.name, plan))
       .limit(1);
 
+    if (!selectedPlan) {
+      throw new Error(`Plan '${plan}' not found`);
+    }
+
     await db.insert(subscription).values({
       organizationId: orgId,
-      planId: selectedPlan?.id || null,
+      planId: selectedPlan.id,
       plan,
       status: "active",
       createdAt: new Date(),
