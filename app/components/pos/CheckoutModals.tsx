@@ -720,8 +720,10 @@ export function SplitModal({
 
   const addCashPayment = () => {
     const amount = parseFloat(currentAmount);
-    if (!isNaN(amount) && amount > 0 && amount <= remaining) {
-      setPayments([...payments, { method: "cash", amount }]);
+    if (!isNaN(amount) && amount > 0 && amount <= remaining + 0.005) {
+      // Cap to remaining to avoid overpayment from floating-point rounding
+      const adjustedAmount = Math.min(amount, remaining);
+      setPayments([...payments, { method: "cash", amount: adjustedAmount }]);
       setCurrentAmount("");
       setError(null);
     }
@@ -729,7 +731,7 @@ export function SplitModal({
 
   const addCardPayment = () => {
     const amount = parseFloat(currentAmount);
-    if (!isNaN(amount) && amount > 0 && amount <= remaining) {
+    if (!isNaN(amount) && amount > 0 && amount <= remaining + 0.005) {
       if (!cardComplete) {
         setError("Please enter complete card details");
         return;
@@ -888,7 +890,7 @@ export function SplitModal({
                 disabled={
                   !currentAmount ||
                   parseFloat(currentAmount) <= 0 ||
-                  parseFloat(currentAmount) > remaining ||
+                  parseFloat(currentAmount) > remaining + 0.005 ||
                   processingCard ||
                   (currentMethod === "card" && !cardComplete)
                 }
@@ -913,7 +915,7 @@ export function SplitModal({
           </button>
           <button
             onClick={() => onComplete(payments)}
-            disabled={remaining > 0.01 || processingCard}
+            disabled={Math.round(remaining * 100) > 0 || processingCard}
             className="flex-1 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover disabled:bg-surface-overlay disabled:cursor-not-allowed font-medium"
           >
             Complete Sale
