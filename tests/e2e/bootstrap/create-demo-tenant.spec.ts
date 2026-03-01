@@ -42,6 +42,48 @@ async function adminLogin(page: import("@playwright/test").Page): Promise<boolea
     .catch(() => false);
 }
 
+/**
+ * Promote a user to admin role on the given tenant via admin panel.
+ * Assumes admin is already logged in on the admin subdomain.
+ */
+async function promoteUserToAdmin(
+  page: import("@playwright/test").Page,
+  tenantSlug: string,
+  userEmail: string
+): Promise<void> {
+  await page.goto(getAdminUrl(`/tenants/${tenantSlug}`));
+  await page.waitForLoadState("domcontentloaded");
+
+  // Find the memberId from the hidden input in the "Remove" form for this user
+  const memberId = await page.evaluate((email: string) => {
+    const emailEls = document.querySelectorAll("p.text-xs");
+    for (const el of emailEls) {
+      if (el.textContent?.trim() === email) {
+        const row = el.closest(".flex");
+        if (row) {
+          const input = row.querySelector('input[name="memberId"]');
+          if (input) return (input as HTMLInputElement).value;
+        }
+      }
+    }
+    return null;
+  }, userEmail);
+
+  if (!memberId) {
+    console.log(`Could not find memberId for ${userEmail} on tenant ${tenantSlug} — may already be owner`);
+    return;
+  }
+
+  const response = await page.request.post(getAdminUrl(`/tenants/${tenantSlug}`), {
+    form: { intent: "updateRole", memberId, role: "admin" },
+  });
+  if (response.ok() || response.status() === 302) {
+    console.log(`Promoted ${userEmail} to admin on tenant ${tenantSlug}`);
+  } else {
+    console.log(`Role promotion returned ${response.status()} — user may already be admin`);
+  }
+}
+
 /** Upgrade the demo tenant to pro plan via admin panel. Assumes admin is already logged in. */
 async function upgradeDemoToPro(page: import("@playwright/test").Page): Promise<void> {
   await page.goto(getAdminUrl("/tenants/demo"));
@@ -176,8 +218,6 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
     await page.locator('input[type="password"]').first().fill(testUser.password);
     await page.getByRole("button", { name: /sign in/i }).click();
 
-    // Use a stricter pattern to avoid matching /tenant/login on auth failure
-    // Note: login redirects to /tenant (no trailing slash), so check includes("/tenant") not "/tenant/"
     const loginSuccess = await page
       .waitForURL(
         (url) => url.includes("/tenant") && !url.includes("/tenant/login") && !url.includes("/auth/"),
@@ -186,98 +226,82 @@ test.describe.serial("Bootstrap: Demo Tenant Setup", () => {
       .then(() => true)
       .catch(() => false);
 
-    if (loginSuccess) {
+    if (!loginSuccess) {
+      console.log(`Login failed (URL: ${page.url()}) - creating test user via signup...`);
+
+      // Step 2: Login failed - create the user via signup
+      await page.goto(getTenantUrl("demo", "/auth/signup"));
+      await page.waitForLoadState("domcontentloaded");
+
+      const afterSignupNav = page.url();
+      if (afterSignupNav.includes("/tenant") && !afterSignupNav.includes("/auth/signup")) {
+        console.log(`Already authenticated (URL: ${afterSignupNav}) - test user exists`);
+      } else {
+        const signupForm = await page
+          .getByLabel(/full name/i)
+          .isVisible({ timeout: 8000 })
+          .catch(() => false);
+
+        if (!signupForm) {
+          throw new Error("Signup page not available - cannot create test user");
+        }
+
+        await page.getByLabel(/full name/i).fill(testUser.name);
+        await page.getByLabel(/email address/i).fill(testUser.email);
+        await page.locator("#password").fill(testUser.password);
+        await page.locator("#confirmPassword").fill(testUser.password);
+        await page.getByRole("button", { name: /create account/i }).click();
+
+        const signupSuccess = await page
+          .waitForURL(
+            (url) => url.includes("/tenant") && !url.includes("/tenant/login") && !url.includes("/auth/"),
+            { timeout: 15000 }
+          )
+          .then(() => true)
+          .catch(() => false);
+
+        if (!signupSuccess) {
+          const errorText = await page
+            .locator('[class*="bg-danger"], [class*="text-danger"], [role="alert"]')
+            .first()
+            .textContent()
+            .catch(() => null);
+          console.log(`Signup result - URL: ${page.url()}, error: ${errorText || "none"}`);
+
+          // Retry login — user may already exist
+          await page.goto(getTenantUrl("demo", "/auth/login"));
+          await page.waitForLoadState("domcontentloaded");
+          await page.getByRole("textbox", { name: /email/i }).fill(testUser.email);
+          await page.locator('input[type="password"]').first().fill(testUser.password);
+          await page.getByRole("button", { name: /sign in/i }).click();
+          const retryOk = await page
+            .waitForURL(
+              (url) => url.includes("/tenant") && !url.includes("/tenant/login") && !url.includes("/auth/"),
+              { timeout: 15000 }
+            )
+            .then(() => true)
+            .catch(() => false);
+          if (!retryOk) {
+            console.log(`WARNING: Could not create/login test user. URL: ${page.url()}`);
+          } else {
+            console.log("Login succeeded on retry - user exists with correct password");
+          }
+        } else {
+          console.log("Test user created via signup successfully");
+        }
+      }
+    } else {
       console.log("Test user login successful");
-      return;
     }
 
-    console.log(`Login failed (URL: ${page.url()}) - creating test user via signup...`);
-
-    // Step 2: Login failed - create the user via signup
-    await page.goto(getTenantUrl("demo", "/auth/signup"));
-    await page.waitForLoadState("domcontentloaded");
-
-    // If already authenticated (login succeeded but URL pattern didn't match), signup redirects away
-    const afterSignupNav = page.url();
-    if (afterSignupNav.includes("/tenant") && !afterSignupNav.includes("/auth/signup")) {
-      console.log(`Already authenticated after signup nav (URL: ${afterSignupNav}) - test user exists`);
-      return;
+    // Step 3: Ensure test user has admin role so RBAC-protected routes are accessible.
+    // Users created via signup get "customer" role by default; we need at least "admin".
+    // promoteUserToAdmin is a no-op if the user is already owner (memberId hidden input not rendered).
+    const adminLoggedIn = await adminLogin(page);
+    if (adminLoggedIn) {
+      await promoteUserToAdmin(page, "demo", testUser.email);
+    } else {
+      console.log("WARNING: Admin login failed — could not promote test user to admin");
     }
-
-    const signupForm = await page
-      .getByLabel(/full name/i)
-      .isVisible({ timeout: 8000 })
-      .catch(() => false);
-
-    if (!signupForm) {
-      throw new Error("Signup page not available - cannot create test user");
-    }
-
-    await page.getByLabel(/full name/i).fill(testUser.name);
-    await page.getByLabel(/email address/i).fill(testUser.email);
-    await page.locator("#password").fill(testUser.password);
-    await page.locator("#confirmPassword").fill(testUser.password);
-
-    const responsePromise = page
-      .waitForResponse(
-        (resp) => resp.url().includes("/auth/signup") && resp.request().method() === "POST",
-        { timeout: 15000 }
-      )
-      .catch(() => null);
-
-    await page.getByRole("button", { name: /create account/i }).click();
-
-    const response = await responsePromise;
-    if (response) {
-      console.log(`Signup response: ${response.status()} ${response.url()}`);
-    }
-
-    const signupSuccess = await page
-      .waitForURL(
-        (url) => url.includes("/tenant") && !url.includes("/tenant/login") && !url.includes("/auth/"),
-        { timeout: 15000 }
-      )
-      .then(() => true)
-      .catch(() => false);
-
-    if (signupSuccess) {
-      console.log("Test user created via signup successfully");
-      return;
-    }
-
-    const currentUrl = page.url();
-    const errorText = await page
-      .locator('[class*="bg-danger"], [class*="text-danger"], [role="alert"]')
-      .first()
-      .textContent()
-      .catch(() => null);
-
-    console.log(`Signup result - URL: ${currentUrl}`);
-    console.log(`Signup error: ${errorText || "none visible"}`);
-
-    // Retry login — user may already exist
-    console.log("Retrying login (user may already exist)...");
-    await page.goto(getTenantUrl("demo", "/auth/login"));
-    await page.waitForLoadState("domcontentloaded");
-    await page.getByRole("textbox", { name: /email/i }).fill(testUser.email);
-    await page.locator('input[type="password"]').first().fill(testUser.password);
-    await page.getByRole("button", { name: /sign in/i }).click();
-
-    const retryLoginSuccess = await page
-      .waitForURL(
-        (url) => url.includes("/tenant") && !url.includes("/tenant/login") && !url.includes("/auth/"),
-        { timeout: 15000 }
-      )
-      .then(() => true)
-      .catch(() => false);
-
-    if (retryLoginSuccess) {
-      console.log("Login succeeded on retry - user exists with correct password");
-      return;
-    }
-
-    console.log(
-      `WARNING: Could not create/login test user. URL: ${page.url()}, Signup error: ${errorText || "none"}`
-    );
   });
 });
