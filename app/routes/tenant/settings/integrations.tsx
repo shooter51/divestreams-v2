@@ -254,6 +254,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+
+  // Only owners and admins may manage integrations
+  if (ctx.membership.role === "staff") {
+    return { error: "You don't have permission to manage integrations" };
+  }
+
   const formData = await request.formData();
   const intent = formData.get("intent");
 

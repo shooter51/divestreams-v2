@@ -79,11 +79,15 @@ describe("Google Calendar Integration", () => {
       const { parseOAuthState } = await import(
         "../../../../lib/integrations/google-calendar.server"
       );
+      const { createHmac } = await import("crypto");
 
       const orgId = "test-org-456";
-      const state = Buffer.from(
+      const payload = Buffer.from(
         JSON.stringify({ orgId, nonce: Date.now() })
       ).toString("base64url");
+      const secret = process.env.AUTH_SECRET || "";
+      const sig = createHmac("sha256", secret).update(payload).digest("base64url");
+      const state = `${payload}.${sig}`;
 
       const decoded = parseOAuthState(state);
 

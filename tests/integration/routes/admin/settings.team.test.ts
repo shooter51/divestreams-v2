@@ -309,7 +309,7 @@ describe("admin/settings.team route", () => {
         const formData = new FormData();
         formData.append("intent", "update-role");
         formData.append("memberId", "m2");
-        formData.append("role", "owner");
+        formData.append("role", "admin");
 
         const result = await action(makeActionArgs(formData));
 
