@@ -25,6 +25,26 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 /**
+ * Verify a password against a stored hash
+ * Uses same scrypt parameters as Better Auth / hashPassword
+ */
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  try {
+    const [salt, storedHash] = hash.split(":");
+    if (!salt || !storedHash) return false;
+    const key = await scryptAsync(
+      password.normalize("NFKC"),
+      salt,
+      64,
+      { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 }
+    );
+    return key.toString("hex") === storedHash;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Generate a random alphanumeric password.
  * Excludes ambiguous characters (0, O, l, 1, I) for readability.
  * @param length - Password length (default 16)

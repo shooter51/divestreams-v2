@@ -77,6 +77,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+
+  if (ctx.membership.role === "staff") {
+    return { error: "You don't have permission to manage notification settings" };
+  }
+
   const formData = await request.formData();
 
   // Parse existing metadata
