@@ -11,6 +11,7 @@ export const cartProductSchema = z.object({
   name: z.string(),
   quantity: z.number().int().positive(),
   unitPrice: z.number().positive(),
+  taxRate: z.number().min(0).optional(),
   total: z.number().positive(),
 });
 

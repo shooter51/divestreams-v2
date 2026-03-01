@@ -77,7 +77,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         ? { lat: siteData.latitude, lng: siteData.longitude }
         : null,
     conditions: siteData.currentStrength
-      ? `Current: ${siteData.currentStrength}. Visibility: ${siteData.visibility || "Variable"}.`
+      ? `Current: ${({ none: "None", mild: "Mild", moderate: "Moderate", strong: "Strong", variable: "Variable" })[siteData.currentStrength] ?? siteData.currentStrength}. Visibility: ${siteData.visibility || "Variable"}.`
       : null,
     highlights: siteData.highlights || [],
     isActive: siteData.isActive,

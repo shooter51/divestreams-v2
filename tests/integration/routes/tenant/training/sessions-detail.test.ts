@@ -63,7 +63,7 @@ const mockSession = {
   meetingPoint: "Front desk",
   instructorName: "John Smith",
   maxStudents: 8,
-  enrolledCount: 3,
+  enrolledCount: 1,
   completedCount: 0,
   priceOverride: null,
   coursePrice: "350.00",
