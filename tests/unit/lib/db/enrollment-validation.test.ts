@@ -65,8 +65,10 @@ describe("Enrollment Validation Tests", () => {
   });
 
   it("should throw error when session not found", async () => {
-    // Mock empty session result: .where().for("update") returns []
-    (dbMock.where as Mock).mockReturnValueOnce(withFor([]));
+    vi.clearAllMocks();
+    (dbMock.where as Mock).mockReset().mockImplementation(() => {
+      return withFor([]);
+    });
 
     const { createEnrollment } = await import("../../../../lib/db/training.server");
 
@@ -80,15 +82,17 @@ describe("Enrollment Validation Tests", () => {
   });
 
   it("should throw error when session is cancelled", async () => {
-    // Mock session that is cancelled: .where().for("update") returns cancelled session
-    (dbMock.where as Mock).mockReturnValueOnce(withFor([
-      {
-        id: "session-1",
-        status: "cancelled",
-        maxStudents: 10,
-        enrolledCount: 5,
-      },
-    ]));
+    vi.clearAllMocks();
+    (dbMock.where as Mock).mockReset().mockImplementation(() => {
+      return withFor([
+        {
+          id: "session-1",
+          status: "cancelled",
+          maxStudents: 10,
+          enrolledCount: 5,
+        },
+      ]);
+    });
 
     const { createEnrollment } = await import("../../../../lib/db/training.server");
 
@@ -102,18 +106,25 @@ describe("Enrollment Validation Tests", () => {
   });
 
   it("should throw error when session is full", async () => {
-    // Mock session that is full
-    (dbMock.where as Mock)
-      .mockReturnValueOnce(withFor([
-        {
-          id: "session-1",
-          status: "scheduled",
-          maxStudents: 5,
-          enrolledCount: 5,
-        },
-      ]))
-      .mockResolvedValueOnce([{ id: "customer-1" }]) // Customer exists
-      .mockResolvedValueOnce([]); // No existing enrollment
+    vi.clearAllMocks();
+    let callCount = 0;
+    (dbMock.where as Mock).mockReset().mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return withFor([
+          {
+            id: "session-1",
+            status: "scheduled",
+            maxStudents: 5,
+            enrolledCount: 5,
+          },
+        ]);
+      } else if (callCount === 2) {
+        return Promise.resolve([{ id: "customer-1" }]); // Customer exists
+      } else {
+        return Promise.resolve([]); // No existing enrollment
+      }
+    });
 
     const { createEnrollment } = await import("../../../../lib/db/training.server");
 
@@ -127,17 +138,29 @@ describe("Enrollment Validation Tests", () => {
   });
 
   it("should throw error when customer not found", async () => {
+    vi.clearAllMocks();
+
     // Mock valid session but customer not found
-    (dbMock.where as Mock)
-      .mockReturnValueOnce(withFor([
-        {
-          id: "session-1",
-          status: "scheduled",
-          maxStudents: 10,
-          enrolledCount: 3,
-        },
-      ]))
-      .mockResolvedValueOnce([]); // Customer not found
+    let callCount = 0;
+    (dbMock.where as Mock).mockReset().mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        // Session validation: .where().for("update")
+        return withFor([
+          {
+            id: "session-1",
+            status: "scheduled",
+            maxStudents: 10,
+            enrolledCount: 3,
+          },
+        ]);
+      } else if (callCount === 2) {
+        // Customer not found
+        return Promise.resolve([]);
+      } else {
+        return Promise.resolve([]);
+      }
+    });
 
     const { createEnrollment } = await import("../../../../lib/db/training.server");
 
