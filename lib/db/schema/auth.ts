@@ -163,6 +163,7 @@ export const organization = pgTable(
   (table) => [
     uniqueIndex("organization_slug_idx").on(table.slug),
     index("organization_name_idx").on(table.name),
+    uniqueIndex("organization_custom_domain_idx").on(table.customDomain),
   ]
 );
 

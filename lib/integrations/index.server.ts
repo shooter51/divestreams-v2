@@ -34,8 +34,10 @@ function getEncryptionKey(): Buffer {
   if (!secret) {
     throw new Error("INTEGRATION_ENCRYPTION_KEY or AUTH_SECRET environment variable must be set");
   }
-  // Use scrypt to derive a 32-byte key from the secret
-  return scryptSync(secret, "divestreams-salt", 32);
+  // Use a deployment-specific salt derived from the secret itself
+  // This ensures the salt varies per deployment without requiring an additional env var
+  const salt = process.env.INTEGRATION_ENCRYPTION_SALT || `divestreams:${secret.slice(0, 16)}`;
+  return scryptSync(secret, salt, 32);
 }
 
 /**

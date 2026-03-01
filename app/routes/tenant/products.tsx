@@ -14,6 +14,7 @@ import { useNotification } from "../../../lib/use-notification";
 import { useToast } from "../../../lib/toast-context";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
+import { escapeHtml } from "../../../lib/security/sanitize";
 
 export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
@@ -448,15 +449,15 @@ export async function action({ request }: ActionFunctionArgs) {
 
       try {
         await db.insert(tables.products).values({
-          organizationId, // Use actual organization UUID
-          name: row.name,
-          sku: row.sku,
+          organizationId,
+          name: escapeHtml(row.name),
+          sku: escapeHtml(row.sku),
           category: validCategories.includes(category) ? category : "other",
           price: row.price,
           costPrice: row.costprice || null,
           stockQuantity: parseInt(row.stockquantity),
           lowStockThreshold: row.lowstockthreshold ? parseInt(row.lowstockthreshold) : 5,
-          description: row.description || null,
+          description: row.description ? escapeHtml(row.description) : null,
           isActive: row.isactive?.toLowerCase() !== "false",
           trackInventory: true,
         });

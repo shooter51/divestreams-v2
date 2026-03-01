@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getAgencies, createAgency, createCourse } from "../../../../../lib/db/training.server";
 import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
+import { escapeHtml } from "../../../../../lib/security/sanitize";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
@@ -110,19 +111,19 @@ export async function action({ request }: ActionFunctionArgs) {
             continue;
           }
 
-          // Create course
+          // Sanitize string fields to prevent stored XSS
           await createCourse({
             organizationId: orgContext.org.id,
             agencyId: agency.id,
-            name: courseName,
-            code: courseCode || "",
-            description: description || "",
+            name: escapeHtml(courseName),
+            code: escapeHtml(courseCode || ""),
+            description: escapeHtml(description || ""),
             durationDays: parseInt(durationDays) || 0,
             classroomHours: classroomHours ? parseInt(classroomHours) : undefined,
             poolHours: poolHours ? parseInt(poolHours) : undefined,
             openWaterDives: openWaterDives ? parseInt(openWaterDives) : undefined,
             minAge: minAge ? parseInt(minAge) : undefined,
-            prerequisites: prerequisites || undefined,
+            prerequisites: prerequisites ? escapeHtml(prerequisites) : undefined,
             price: price || "0.00",
             currency: currency || "USD",
             isActive: true,
