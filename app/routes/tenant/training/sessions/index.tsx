@@ -32,6 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const statusColors: Record<string, string> = {
+  open: "bg-brand-muted text-brand",
   scheduled: "bg-brand-muted text-brand",
   in_progress: "bg-warning-muted text-warning",
   completed: "bg-success-muted text-success",
@@ -39,11 +40,21 @@ const statusColors: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
+  open: "Open",
+  full: "Full",
   scheduled: "Scheduled",
   in_progress: "In Progress",
   completed: "Completed",
   cancelled: "Cancelled",
 };
+
+function formatTime(t: string | null | undefined): string {
+  if (!t) return "TBD";
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
 
 export default function SessionsPage() {
   useNotification();
@@ -83,7 +94,7 @@ export default function SessionsPage() {
           <p className="text-foreground-muted">{total} session{total !== 1 ? "s" : ""}</p>
         </div>
         <Link
-          to="/tenant/training/courses"
+          to="/tenant/training/sessions/new"
           className="bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-hover"
         >
           New Session
@@ -180,7 +191,7 @@ export default function SessionsPage() {
                     >
                       <div className="flex items-center gap-4">
                         <div className="text-center min-w-[60px]">
-                          <p className="text-lg font-bold">{session.startTime || "TBD"}</p>
+                          <p className="text-lg font-bold">{formatTime(session.startTime)}</p>
                           {session.endDate && session.endDate !== session.startDate && (
                             <p className="text-xs text-foreground-muted">
                               to {new Date(session.endDate + "T00:00:00").toLocaleDateString("en-US", {

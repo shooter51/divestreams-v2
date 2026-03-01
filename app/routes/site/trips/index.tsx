@@ -94,7 +94,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Build query conditions
   const conditions = [
     eq(trips.organizationId, org.id),
-    eq(trips.isPublic, true),
     eq(trips.status, "scheduled"),
     gte(trips.date, fromDate),
   ];

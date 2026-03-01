@@ -274,7 +274,7 @@ export default function SiteLoginPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">Welcome Back</h1>
           <p className="mt-2 opacity-75">
-            Sign in to your {organization?.name || "account"}
+            Sign in to your {organization?.name ? `${organization.name} account` : "account"}
           </p>
         </div>
 

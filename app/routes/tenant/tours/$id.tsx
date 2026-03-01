@@ -165,6 +165,14 @@ const tourTypes: Record<string, string> = {
   other: "Other",
 };
 
+function formatTime(t: string | null | undefined): string {
+  if (!t) return "TBD";
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 export default function TourDetailPage() {
   const { tour, upcomingTrips, diveSites, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
@@ -248,7 +256,7 @@ export default function TourDetailPage() {
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">{tour.tripCount}</p>
-              <p className="text-foreground-muted text-sm">Trips Run</p>
+              <p className="text-foreground-muted text-sm">{tour.tripCount !== 1 ? "Trips" : "Trip"} Run</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">${tour.totalRevenue}</p>
@@ -394,7 +402,7 @@ export default function TourDetailPage() {
                   >
                     <div>
                       <p className="font-medium">
-                        {trip.date} at {trip.time}
+                        {trip.date} at {formatTime(trip.time)}
                       </p>
                       <p className="text-sm text-foreground-muted">{trip.boatName}</p>
                     </div>

@@ -4,7 +4,7 @@
  * All boat-related database operations including CRUD, stats, and trip history.
  */
 
-import { desc, eq, gte, and, sql, inArray } from "drizzle-orm";
+import { desc, eq, gte, lt, and, sql, inArray } from "drizzle-orm";
 import { db } from "../index";
 import * as schema from "../schema";
 import { mapBoat } from "./mappers";
@@ -96,6 +96,8 @@ export async function createBoat(organizationId: string, data: {
 // ============================================================================
 
 export async function getBoatRecentTrips(organizationId: string, boatId: string, limit = 5) {
+  const today = new Date().toISOString().split("T")[0];
+
   const trips = await db
     .select({
       id: schema.trips.id,
@@ -107,7 +109,8 @@ export async function getBoatRecentTrips(organizationId: string, boatId: string,
     .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
     .where(and(
       eq(schema.trips.boatId, boatId),
-      eq(schema.trips.organizationId, organizationId)
+      eq(schema.trips.organizationId, organizationId),
+      lt(schema.trips.date, today)
     ))
     .orderBy(desc(schema.trips.date))
     .limit(limit);

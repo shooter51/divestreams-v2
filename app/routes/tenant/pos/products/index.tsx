@@ -62,6 +62,23 @@ const categoryColors: Record<string, string> = {
   rental: "bg-accent-muted text-accent",
 };
 
+const categoryLabels: Record<string, string> = {
+  regulator: "Regulator",
+  bcd: "BCD",
+  wetsuit: "Wetsuit",
+  mask: "Mask",
+  fins: "Fins",
+  tank: "Tank",
+  computer: "Dive Computer",
+  torch: "Torch",
+  equipment: "Equipment",
+  apparel: "Apparel",
+  accessories: "Accessories",
+  courses: "Courses",
+  rental: "Rental",
+  other: "Other",
+};
+
 export default function ProductsPage() {
   const { products, categories } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
@@ -170,7 +187,7 @@ export default function ProductsPage() {
                         categoryColors[product.category] || "bg-surface-inset text-foreground"
                       }`}
                     >
-                      {product.category}
+                      {categoryLabels[product.category] || (product.category.charAt(0).toUpperCase() + product.category.slice(1))}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-foreground-muted">

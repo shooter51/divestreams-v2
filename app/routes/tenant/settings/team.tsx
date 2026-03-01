@@ -30,6 +30,14 @@ const roles = [
   },
 ];
 
+const roleDisplayLabels: Record<string, string> = {
+  owner: "Owner",
+  admin: "Admin",
+  staff: "Staff",
+  member: "Staff",
+  customer: "Customer",
+};
+
 export async function loader({ request }: LoaderFunctionArgs) {
   // Import server-only modules inline to prevent client bundle leakage
   const { requireOrgContext } = await import("../../../../lib/auth/org-context.server");
@@ -564,7 +572,7 @@ export default function TeamPage() {
                         : "bg-surface-inset text-foreground"
                     }`}
                   >
-                    {roles.find((r) => r.id === member.role)?.name || member.role}
+                    {roles.find((r) => r.id === member.role)?.name || roleDisplayLabels[member.role] || member.role}
                   </span>
                   <p className="text-xs text-foreground-subtle mt-1">{member.lastActive}</p>
                 </div>

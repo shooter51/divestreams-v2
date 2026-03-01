@@ -9,6 +9,7 @@ interface Product {
   name: string;
   category: string;
   price: string;
+  taxRate?: string | null;
   salePrice: string | null;
   saleStartDate: Date | string | null;
   saleEndDate: Date | string | null;

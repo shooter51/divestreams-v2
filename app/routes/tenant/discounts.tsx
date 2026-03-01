@@ -249,6 +249,14 @@ function getDiscountStatus(discount: DiscountCode, now: Date): { label: string; 
   return { label: "Active", color: "bg-success-muted text-success" };
 }
 
+const applicableToLabels: Record<string, string> = {
+  all: "All",
+  tours: "Tours",
+  equipment: "Equipment",
+  products: "Products",
+  courses: "Courses",
+};
+
 function formatDiscountValue(type: string, value: string): string {
   if (type === "percentage") {
     return `${Number(value)}%`;
@@ -376,7 +384,7 @@ export default function DiscountsPage() {
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 capitalize text-sm">{discount.applicableTo}</td>
+                      <td className="px-4 py-3 text-sm">{applicableToLabels[discount.applicableTo] || discount.applicableTo}</td>
                       <td className="px-4 py-3 text-sm text-foreground-muted">
                         {discount.validFrom ? (
                           <>
@@ -390,8 +398,9 @@ export default function DiscountsPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {discount.usedCount}
-                        {discount.maxUses && ` / ${discount.maxUses}`}
+                        {discount.maxUses
+                          ? `${discount.usedCount} / ${discount.maxUses}`
+                          : `${discount.usedCount} / \u221e`}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
@@ -479,8 +488,9 @@ export default function DiscountsPage() {
                         {formatDiscountValue(discount.discountType, discount.discountValue)}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {discount.usedCount}
-                        {discount.maxUses && ` / ${discount.maxUses}`}
+                        {discount.maxUses
+                          ? `${discount.usedCount} / ${discount.maxUses}`
+                          : `${discount.usedCount} / \u221e`}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
