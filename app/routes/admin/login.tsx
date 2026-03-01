@@ -48,8 +48,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Validate redirectTo to prevent open redirect attacks
   const rawRedirect = typeof redirectTo === "string" ? redirectTo : "/dashboard";
-  // Only allow relative URLs (must start with / and not contain ://)
-  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+  // Only allow relative URLs (must start with / and not contain :// or //)
+  const validatedRedirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") && !rawRedirect.includes("://")
     ? rawRedirect : "/dashboard";
 
   // Validate email and password with null checks

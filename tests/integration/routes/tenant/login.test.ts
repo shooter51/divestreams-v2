@@ -421,7 +421,6 @@ describe("tenant/login route", () => {
 
         const formData = new FormData();
         formData.append("intent", "join");
-        formData.append("orgId", "org-1");
 
         const request = new Request("https://demo.divestreams.com/login", {
           method: "POST",
@@ -430,25 +429,27 @@ describe("tenant/login route", () => {
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Missing user or organization information", email: "" });
+        expect(response).toEqual({ error: "You must be logged in to join an organization" });
       });
 
-      it("returns error when orgId is missing", async () => {
+      it("returns error when org not found from subdomain", async () => {
         (auth.api.getSession as Mock).mockResolvedValue({
           user: { id: "user-1", email: "user@example.com" },
         });
+        // getSubdomainFromRequest returns a subdomain but org not found in DB
+        (getSubdomainFromRequest as Mock).mockReturnValue("nonexistent");
 
         const formData = new FormData();
         formData.append("intent", "join");
 
-        const request = new Request("https://demo.divestreams.com/login", {
+        const request = new Request("https://nonexistent.divestreams.com/login", {
           method: "POST",
           body: formData,
         });
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Missing user or organization information", email: "" });
+        expect(response).toEqual({ error: "Organization not found", email: "" });
       });
 
       it("does not create duplicate membership", async () => {

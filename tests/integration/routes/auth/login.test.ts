@@ -67,6 +67,12 @@ vi.mock("../../../../lib/utils/url", () => ({
   getAppUrl: vi.fn(() => "https://divestreams.com"),
 }));
 
+// Mock rate limiting - always allow in tests
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10, resetAt: Date.now() + 900000 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 import { loader, action } from "../../../../app/routes/auth/login";
 import { getSubdomainFromRequest, getOrgContext } from "../../../../lib/auth/org-context.server";
 import { auth } from "../../../../lib/auth";

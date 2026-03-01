@@ -26,6 +26,7 @@ import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { customerCredentials } from "../../../lib/db/schema";
 import { resetPassword } from "../../../lib/auth/customer-auth.server";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 // ============================================================================
 // META
@@ -102,6 +103,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // ============================================================================
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Rate limit password set attempts
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`set-password:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { error: "Too many attempts. Please try again later." };
+  }
+
   const url = new URL(request.url);
   const host = url.host;
   const subdomain = host.split(".")[0];

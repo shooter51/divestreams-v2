@@ -48,7 +48,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Rate limit password reset requests
   const clientIp = getClientIp(request);
-  const rateLimitResult = checkRateLimit(`forgot-password:${clientIp}`, {
+  const rateLimitResult = await checkRateLimit(`forgot-password:${clientIp}`, {
     maxAttempts: 5,
     windowMs: 15 * 60 * 1000,
   });

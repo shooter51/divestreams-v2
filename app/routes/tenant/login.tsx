@@ -56,7 +56,11 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<LoaderDat
   const orgContext = await getOrgContext(request);
   if (orgContext) {
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/tenant";
+    const rawRedirect = url.searchParams.get("redirect") || "/tenant";
+    // Validate redirect to prevent open redirects
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") && !rawRedirect.includes("://")
+      ? rawRedirect
+      : "/tenant";
     throw redirect(redirectTo);
   }
 
@@ -107,36 +111,42 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  // Validate redirectTo to prevent open redirects (only allow relative URLs)
+  // Validate redirectTo to prevent open redirects (only allow relative URLs, block // protocol-relative)
   let validatedRedirectTo = "/tenant"; // default
-  if (typeof redirectTo === "string" && redirectTo.startsWith("/") && !redirectTo.includes("://")) {
+  if (typeof redirectTo === "string" && redirectTo.startsWith("/") && !redirectTo.startsWith("//") && !redirectTo.includes("://")) {
     validatedRedirectTo = redirectTo;
   }
 
   // Handle "join" intent - user wants to join org as customer
   if (intent === "join") {
     // Get authenticated session - userId MUST come from session, not form data
-    const sessionData = await auth.api.getSession({
+    const joinSession = await auth.api.getSession({
       headers: request.headers,
     });
 
-    if (!sessionData?.user) {
+    if (!joinSession?.user) {
       return { error: "You must be logged in to join an organization" };
     }
 
-    const userId = sessionData.user.id;
-    const orgId = formData.get("orgId");
+    const userId = joinSession.user.id;
 
-    // Null check before using
-    if (typeof userId !== "string" || typeof orgId !== "string" || !userId || !orgId) {
-      return { error: "Missing user or organization information", email: "" };
+    // Derive orgId from subdomain, NOT from form data (prevents joining arbitrary orgs)
+    const joinSubdomain = getSubdomainFromRequest(request);
+    if (!joinSubdomain) {
+      return { error: "Unable to determine organization", email: "" };
     }
 
-    // Verify session matches the userId to prevent unauthorized joins
-    const sessionData = await auth.api.getSession({ headers: request.headers });
-    if (!sessionData?.user || sessionData.user.id !== userId) {
-      return { error: "Unauthorized: session mismatch" };
+    const [joinOrg] = await db
+      .select({ id: organization.id })
+      .from(organization)
+      .where(eq(organization.slug, joinSubdomain))
+      .limit(1);
+
+    if (!joinOrg) {
+      return { error: "Organization not found", email: "" };
     }
+
+    const orgId = joinOrg.id;
 
     try {
       // Check if user is already a member (edge case)
@@ -174,17 +184,6 @@ export async function action({ request }: ActionFunctionArgs) {
   // Handle normal login
   const email = formData.get("email");
   const password = formData.get("password");
-
-  // Rate limit login attempts
-  const clientIp = getClientIp(request);
-  const rateLimitResult = checkRateLimit(`tenant-login:${clientIp}`, {
-    maxAttempts: 10,
-    windowMs: 15 * 60 * 1000,
-  });
-
-  if (!rateLimitResult.allowed) {
-    return { error: "Too many login attempts. Please try again later." };
-  }
 
   // Validate email and password with null checks
   if (typeof email !== "string" || !email || !emailRegex.test(email)) {
