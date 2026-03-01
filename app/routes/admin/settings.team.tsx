@@ -205,17 +205,26 @@ export async function action({ request }: ActionFunctionArgs) {
       const [targetMember] = await db
         .select()
         .from(member)
-        .where(eq(member.id, memberId))
+        .where(and(eq(member.id, memberId), eq(member.organizationId, platformOrg.id)))
         .limit(1);
 
-      if (targetMember?.userId === ctx.user.id) {
+      if (!targetMember) {
+        return { error: "Member not found" };
+      }
+
+      if (targetMember.userId === ctx.user.id) {
         return { error: "Cannot change your own role" };
+      }
+
+      // Cannot demote organization owners
+      if (targetMember.role === "owner") {
+        return { error: "Cannot change the role of an organization owner" };
       }
 
       await db
         .update(member)
         .set({ role: newRole })
-        .where(eq(member.id, memberId));
+        .where(and(eq(member.id, memberId), eq(member.organizationId, platformOrg.id)));
 
       return { success: true };
     }
@@ -223,23 +232,27 @@ export async function action({ request }: ActionFunctionArgs) {
     case "remove": {
       const memberId = formData.get("memberId") as string;
 
-      // Get member to check if trying to remove self
+      // Get member scoped to platform org
       const [targetMember] = await db
         .select()
         .from(member)
-        .where(eq(member.id, memberId))
+        .where(and(eq(member.id, memberId), eq(member.organizationId, platformOrg.id)))
         .limit(1);
 
-      if (targetMember?.userId === ctx.user.id) {
+      if (!targetMember) {
+        return { error: "Member not found" };
+      }
+
+      if (targetMember.userId === ctx.user.id) {
         return { error: "Cannot remove yourself" };
       }
 
       // Only owners can remove other owners
-      if (targetMember?.role === "owner" && !ctx.isOwner) {
+      if (targetMember.role === "owner" && !ctx.isOwner) {
         return { error: "Only owners can remove other owners" };
       }
 
-      await db.delete(member).where(eq(member.id, memberId));
+      await db.delete(member).where(and(eq(member.id, memberId), eq(member.organizationId, platformOrg.id)));
 
       return { success: true };
     }
@@ -250,7 +263,7 @@ export async function action({ request }: ActionFunctionArgs) {
       await db
         .update(invitation)
         .set({ status: "canceled" })
-        .where(eq(invitation.id, inviteId));
+        .where(and(eq(invitation.id, inviteId), eq(invitation.organizationId, platformOrg.id)));
 
       return { success: true };
     }
@@ -333,11 +346,36 @@ export async function action({ request }: ActionFunctionArgs) {
           userAgent: request.headers.get("user-agent") || undefined,
         });
 
+        // Email the temporary password instead of returning in response
+        if (method === "auto_generated" && result.temporaryPassword) {
+          const [targetUser] = await db
+            .select({ email: user.email, name: user.name })
+            .from(user)
+            .where(eq(user.id, userId))
+            .limit(1);
+
+          if (targetUser?.email) {
+            try {
+              await sendEmail({
+                to: targetUser.email,
+                subject: "Your DiveStreams password has been reset",
+                html: `
+                  <p>Hi${targetUser.name ? ` ${targetUser.name}` : ''},</p>
+                  <p>Your password has been reset by an administrator.</p>
+                  <p>Your temporary password is: <strong>${result.temporaryPassword}</strong></p>
+                  <p>You will be required to change this password on your next login.</p>
+                `,
+              });
+            } catch (emailErr) {
+              console.error("Failed to email temporary password:", emailErr);
+            }
+          }
+        }
+
         return {
           success: true,
-          temporaryPassword: result.temporaryPassword,
           message: method === "auto_generated"
-            ? `Password reset successful. Temporary password: ${result.temporaryPassword}`
+            ? "Password reset successful. The temporary password has been emailed to the user."
             : "Password reset successful",
         };
       } catch (error) {

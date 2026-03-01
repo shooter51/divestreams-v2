@@ -225,9 +225,10 @@ describe("Validation Module", () => {
 
   describe("tripSchema", () => {
     it("should validate a trip with required fields", () => {
+      const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: futureDate,
         startTime: "09:00",
       };
       const result = tripSchema.safeParse(data);
@@ -235,9 +236,10 @@ describe("Validation Module", () => {
     });
 
     it("should reject invalid tourId UUID", () => {
+      const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
       const data = {
         tourId: "not-a-uuid",
-        date: "2025-03-15",
+        date: futureDate,
         startTime: "09:00",
       };
       const result = tripSchema.safeParse(data);
@@ -264,10 +266,11 @@ describe("Validation Module", () => {
     });
 
     it("should validate optional fields", () => {
+      const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
         boatId: "550e8400-e29b-41d4-a716-446655440001",
-        date: "2025-03-15",
+        date: futureDate,
         startTime: "09:00",
         endTime: "12:00",
         maxParticipants: 10,
@@ -282,9 +285,10 @@ describe("Validation Module", () => {
 
     // LINE 113 COVERAGE: Invalid JSON in recurrenceDays
     it("should handle invalid JSON in recurrenceDays (line 113)", () => {
+      const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: futureDate,
         startTime: "09:00",
         recurrenceDays: "{invalid json}",
       };
@@ -297,9 +301,10 @@ describe("Validation Module", () => {
     });
 
     it("should parse valid JSON array in recurrenceDays", () => {
+      const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: futureDate,
         startTime: "09:00",
         recurrenceDays: "[1,3,5]",
       };
@@ -319,7 +324,7 @@ describe("Validation Module", () => {
     it("should validate recurring trip with all required fields", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: true,
         recurrencePattern: "daily",
@@ -332,7 +337,7 @@ describe("Validation Module", () => {
     it("should validate weekly pattern without recurrenceDays (lines 133-140)", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: true,
         recurrencePattern: "weekly",
@@ -346,7 +351,7 @@ describe("Validation Module", () => {
     it("should validate biweekly pattern without recurrenceDays (lines 133-140)", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: true,
         recurrencePattern: "biweekly",
@@ -360,7 +365,7 @@ describe("Validation Module", () => {
     it("should validate recurring trip without endDate or count (lines 142-145)", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: true,
         recurrencePattern: "monthly",
@@ -373,7 +378,7 @@ describe("Validation Module", () => {
     it("should validate recurring trip with endDate", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: true,
         recurrencePattern: "weekly",
@@ -387,7 +392,7 @@ describe("Validation Module", () => {
     it("should validate recurring trip with count", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: true,
         recurrencePattern: "daily",
@@ -400,7 +405,7 @@ describe("Validation Module", () => {
     it("should reject non-recurring trip (isRecurring must be true)", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: false,
         recurrencePattern: "daily",
@@ -412,7 +417,7 @@ describe("Validation Module", () => {
     it("should reject recurring trip without pattern", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-03-15",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: true,
       };

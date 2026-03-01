@@ -120,17 +120,8 @@ export async function createWidgetBooking(
 
     if (existingCustomers.length > 0) {
       customerId = existingCustomers[0].id;
-
-      // Update customer info
-      await tx
-        .update(schema.customers)
-        .set({
-          firstName: input.firstName,
-          lastName: input.lastName,
-          phone: input.phone || undefined,
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.customers.id, customerId));
+      // Do NOT overwrite existing customer profile from unauthenticated booking
+      // Only update fields that are not already set would require auth
     } else {
       // Create new customer
       const newCustomer = await tx

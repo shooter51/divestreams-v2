@@ -43,6 +43,7 @@ import {
 } from "../../../../lib/db/schema";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 import { nanoid } from "nanoid";
 
 // ============================================================================
@@ -526,6 +527,13 @@ export async function action({
   request,
   params,
 }: ActionFunctionArgs): Promise<ActionData | Response> {
+  // Rate limit site booking by IP
+  const clientIp = getClientIp(request);
+  const rateResult = await checkRateLimit(`site:booking:${clientIp}`, { maxAttempts: 10, windowMs: 60 * 1000 });
+  if (!rateResult.allowed) {
+    return { errors: { _form: "Too many booking attempts. Please try again later." } };
+  }
+
   const { type, id } = params;
   const formData = await request.formData();
 
@@ -573,8 +581,8 @@ export async function action({
     }
   }
 
-  if (participants < 1) {
-    errors.participants = "At least 1 participant is required";
+  if (!Number.isInteger(participants) || participants < 1) {
+    errors.participants = "Participants must be a whole number (minimum 1)";
   }
 
   // For courses, session selection is required
@@ -607,17 +615,7 @@ export async function action({
       .limit(1);
 
     if (existingCustomer) {
-      // Update existing customer info
-      await db
-        .update(customers)
-        .set({
-          firstName: firstName!,
-          lastName: lastName!,
-          phone,
-          updatedAt: new Date(),
-        })
-        .where(eq(customers.id, existingCustomer.id));
-
+      // Do NOT overwrite existing customer profile from unauthenticated guest checkout
       finalCustomerId = existingCustomer.id;
     } else {
       // Create new customer

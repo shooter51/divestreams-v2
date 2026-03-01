@@ -143,5 +143,9 @@ export function getImageKey(
 ): string {
   const timestamp = Date.now();
   const sanitized = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
-  return `${tenantId}/${entityType}/${entityId}/${timestamp}-${sanitized}`;
+  // Sanitize path components to prevent path traversal
+  const safeTenantId = tenantId.replace(/[^a-zA-Z0-9-]/g, "");
+  const safeEntityType = entityType.replace(/[^a-zA-Z0-9-]/g, "");
+  const safeEntityId = entityId.replace(/[^a-zA-Z0-9-]/g, "");
+  return `${safeTenantId}/${safeEntityType}/${safeEntityId}/${timestamp}-${sanitized}`;
 }

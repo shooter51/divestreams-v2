@@ -850,7 +850,7 @@ describe("Booking Validation and Pricing Logic", () => {
       expect(result.customerId).toBe("cust-new");
     });
 
-    it("should update existing customer if email found", async () => {
+    it("should reuse existing customer without overwriting profile", async () => {
       const tripData = [
         {
           id: "trip-1",
@@ -903,7 +903,8 @@ describe("Booking Validation and Pricing Logic", () => {
       });
 
       expect(result.customerId).toBe("cust-existing");
-      expect((db.update as any)).toHaveBeenCalled(); // Should update existing customer
+      // Security: existing customer profile should NOT be overwritten from unauthenticated booking
+      expect((db.update as any)).not.toHaveBeenCalled();
     });
 
     it("should normalize email to lowercase", async () => {

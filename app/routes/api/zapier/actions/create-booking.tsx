@@ -10,7 +10,9 @@ import type { ActionFunctionArgs } from "react-router";
 import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enhanced.server.js";
 import { db } from "../../../../../lib/db/index.js";
 import { bookings, customers, trips } from "../../../../../lib/db/schema.js";
+import { nanoid } from "nanoid";
 import { eq, and, count, gte } from "drizzle-orm";
+import { checkRateLimit } from "../../../../../lib/utils/rate-limit";
 
 interface CreateBookingInput {
   trip_id: string;
@@ -39,6 +41,12 @@ export async function action({ request }: ActionFunctionArgs) {
   const orgId = await validateZapierApiKey(apiKey);
   if (!orgId) {
     return Response.json({ error: "Invalid API key" }, { status: 401 });
+  }
+
+  // Rate limit per API key
+  const rateResult = await checkRateLimit(`zapier:create-booking:${apiKey}`, { maxAttempts: 60, windowMs: 60 * 1000 });
+  if (!rateResult.allowed) {
+    return Response.json({ error: "Rate limit exceeded. Please try again later." }, { status: 429 });
   }
 
   // Check plan booking limits before creating (DB-driven, single source of truth)
@@ -100,7 +108,11 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   } catch (limitError) {
     console.error("Failed to check booking limits:", limitError);
-    // Allow the booking to proceed if limit check fails to avoid blocking legitimate requests
+    // Fail closed — deny booking if limit check fails to prevent abuse
+    return Response.json(
+      { error: "Unable to verify booking limits. Please try again later." },
+      { status: 503 }
+    );
   }
 
   try {
@@ -112,6 +124,14 @@ export async function action({ request }: ActionFunctionArgs) {
         {
           error: "Missing required fields: trip_id, customer_email, participants",
         },
+        { status: 400 }
+      );
+    }
+
+    // Validate participants is a positive integer
+    if (!Number.isInteger(body.participants) || body.participants < 1) {
+      return Response.json(
+        { error: "participants must be a positive integer (minimum 1)" },
         { status: 400 }
       );
     }
@@ -162,7 +182,7 @@ export async function action({ request }: ActionFunctionArgs) {
         customerId: customer.id,
         participants: body.participants,
         status: "pending",
-        bookingNumber: `BK-${Date.now()}`,
+        bookingNumber: `BK-${Date.now().toString(36).toUpperCase()}-${nanoid(4).toUpperCase()}`,
         subtotal: "0",
         total: "0",
         internalNotes: body.notes || null,
