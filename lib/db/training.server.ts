@@ -229,7 +229,8 @@ export async function getCourses(
       eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
     )
     .where(eq(schema.trainingCourses.organizationId, organizationId))
-    .orderBy(asc(schema.trainingCourses.sortOrder), asc(schema.trainingCourses.name));
+    .orderBy(asc(schema.trainingCourses.sortOrder), asc(schema.trainingCourses.name))
+    .limit(200);
 
   return query;
 }

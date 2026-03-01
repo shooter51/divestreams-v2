@@ -142,7 +142,7 @@ export async function getDiveSiteStats(organizationId: string, siteId: string) {
     .where(and(
       eq(schema.tourDiveSites.diveSiteId, siteId),
       eq(schema.trips.organizationId, organizationId),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ));
 
   return {
@@ -182,7 +182,7 @@ export async function getRecentTripsForDiveSite(organizationId: string, siteId: 
     .from(schema.bookings)
     .where(and(
       inArray(schema.bookings.tripId, tripIds),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ))
     .groupBy(schema.bookings.tripId);
 

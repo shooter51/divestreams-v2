@@ -91,7 +91,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<Dashboard
         eq(bookings.customerId, customer.id),
         eq(bookings.organizationId, customer.organizationId),
         gte(trips.date, today),
-        sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+        sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
       )
     );
 
@@ -142,7 +142,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<Dashboard
         eq(bookings.customerId, customer.id),
         eq(bookings.organizationId, customer.organizationId),
         gte(trips.date, today),
-        sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+        sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
       )
     )
     .orderBy(trips.date, trips.startTime)
@@ -400,7 +400,7 @@ function mapBookingStatusToBadgeStatus(status: string): BadgeStatus {
     confirmed: "confirmed",
     checked_in: "checked_in",
     completed: "completed",
-    canceled: "cancelled", // Map to 'cancelled' (UK spelling used in BadgeStatus)
+    cancelled: "cancelled", // Map to 'cancelled' (UK spelling used in BadgeStatus)
     no_show: "cancelled", // Map no_show to cancelled as closest match
   };
 

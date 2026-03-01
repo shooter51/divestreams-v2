@@ -223,7 +223,7 @@ export default function NotificationsPage() {
               <div>
                 <p className="font-medium">Cancellation Alerts</p>
                 <p className="text-sm text-foreground-muted">
-                  Get notified when bookings are canceled
+                  Get notified when bookings are cancelled
                 </p>
               </div>
             </label>

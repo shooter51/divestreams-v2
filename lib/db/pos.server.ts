@@ -118,7 +118,7 @@ export async function getPOSTrips(tables: TenantTables, organizationId: string, 
       tables.bookings,
       and(
         eq(tables.bookings.tripId, tables.trips.id),
-        sql`${tables.bookings.status} NOT IN ('canceled', 'no_show')`
+        sql`${tables.bookings.status} NOT IN ('cancelled', 'no_show')`
       )
     )
     .where(

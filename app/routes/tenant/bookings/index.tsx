@@ -95,7 +95,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     today: bookingData.filter((b) => b.trip.date === today).length,
     upcoming: bookingData.filter((b) => b.status === "confirmed").length,
     pendingPayment: bookingData.filter(
-      (b) => b.status !== "cancelled" && b.status !== "canceled" && parseFloat(b.paidAmount) < parseFloat(b.total)
+      (b) => b.status !== "cancelled" && parseFloat(b.paidAmount) < parseFloat(b.total)
     ).length,
   };
 
@@ -132,7 +132,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 // Map database status to BadgeStatus type
 function mapBookingStatus(status: string): BadgeStatus {
-  if (status === "canceled") return "cancelled";
+  if (status === "cancelled") return "cancelled";
   if (status === "checked_in") return "checked_in";
   return status as BadgeStatus;
 }
@@ -247,7 +247,7 @@ export default function BookingsPage() {
           <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
           <option value="completed">Completed</option>
-          <option value="canceled">Cancelled</option>
+          <option value="cancelled">Cancelled</option>
           <option value="no_show">No Show</option>
         </select>
         <button

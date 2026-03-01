@@ -121,7 +121,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 function mapTripStatus(status: string): BadgeStatus {
   if (status === "open") return "pending";
   if (status === "full") return "confirmed";
-  if (status === "canceled") return "cancelled";
+  if (status === "cancelled") return "cancelled";
   return status as BadgeStatus;
 }
 

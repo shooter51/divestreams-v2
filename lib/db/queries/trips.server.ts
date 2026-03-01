@@ -54,7 +54,7 @@ export async function getUpcomingTrips(organizationId: string, limit = 5) {
     .from(schema.bookings)
     .where(and(
       inArray(schema.bookings.tripId, tripIds),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ))
     .groupBy(schema.bookings.tripId);
 
@@ -111,7 +111,7 @@ export async function getTrips(
     .from(schema.bookings)
     .where(and(
       inArray(schema.bookings.tripId, tripIds),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ))
     .groupBy(schema.bookings.tripId);
 
@@ -216,7 +216,7 @@ export async function getCalendarTrips(
     .from(schema.bookings)
     .where(and(
       inArray(schema.bookings.tripId, tripIds),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ))
     .groupBy(schema.bookings.tripId);
 
@@ -365,7 +365,7 @@ export async function getTripRevenue(organizationId: string, tripId: string) {
     .where(and(
       eq(schema.bookings.organizationId, organizationId),
       eq(schema.bookings.tripId, tripId),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'refunded')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'refunded')`
     ));
 
   const bookingsTotal = Number(result[0]?.total || 0).toFixed(2);
@@ -382,7 +382,7 @@ export async function getTripBookedParticipants(organizationId: string, tripId: 
     .where(and(
       eq(schema.bookings.organizationId, organizationId),
       eq(schema.bookings.tripId, tripId),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ));
 
   return Number(result[0]?.total || 0);

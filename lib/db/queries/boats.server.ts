@@ -125,7 +125,7 @@ export async function getBoatRecentTrips(organizationId: string, boatId: string,
     .from(schema.bookings)
     .where(and(
       inArray(schema.bookings.tripId, tripIds),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ))
     .groupBy(schema.bookings.tripId);
 
@@ -178,7 +178,7 @@ export async function getBoatUpcomingTrips(organizationId: string, boatId: strin
     .from(schema.bookings)
     .where(and(
       inArray(schema.bookings.tripId, tripIds),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ))
     .groupBy(schema.bookings.tripId);
 
@@ -225,7 +225,7 @@ export async function getBoatStats(organizationId: string, boatId: string) {
     .where(and(
       eq(schema.trips.organizationId, organizationId),
       eq(schema.trips.boatId, boatId),
-      sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+      sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
     ));
 
   // Get boat capacity for avg occupancy calculation
