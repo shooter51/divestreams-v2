@@ -24,6 +24,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const startDateParam = url.searchParams.get("startDate");
   const endDateParam = url.searchParams.get("endDate");
 
+  // Validate date params
+  if (startDateParam && isNaN(Date.parse(startDateParam))) {
+    return new Response("Invalid startDate parameter", { status: 400 });
+  }
+  if (endDateParam && isNaN(Date.parse(endDateParam))) {
+    return new Response("Invalid endDate parameter", { status: 400 });
+  }
+
   // Default to current month if no dates provided
   const startOfMonth = new Date();
   startOfMonth.setDate(1);

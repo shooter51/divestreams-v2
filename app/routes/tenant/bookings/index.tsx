@@ -7,6 +7,7 @@ import { eq, or, ilike, sql, count, and, gte } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";
+import { formatTime } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Bookings - DiveStreams" }];
 
@@ -15,7 +16,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const status = url.searchParams.get("status") || "";
-  const page = parseInt(url.searchParams.get("page") || "1");
+  const page = Math.max(1, parseInt(url.searchParams.get("page") || "1") || 1);
   const limit = 20;
   const offset = (page - 1) * limit;
 
@@ -304,7 +305,7 @@ export default function BookingsPage() {
                   <td className="px-6 py-4">
                     <p className="font-medium">{booking.trip.tourName}</p>
                     <p className="text-sm text-foreground-muted">
-                      {booking.trip.date} at {booking.trip.startTime}
+                      {booking.trip.date} at {formatTime(booking.trip.startTime)}
                     </p>
                   </td>
                   <td className="px-6 py-4">{booking.participants}</td>

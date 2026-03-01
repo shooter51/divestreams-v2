@@ -49,6 +49,9 @@ export async function action({ request }: ActionFunctionArgs) {
       const importedCourses: string[] = [];
       const errors: { course: string; reason: string }[] = [];
 
+      // Pre-fetch agencies once outside the loop to avoid N+1 queries
+      let existingAgencies = await getAgencies(orgContext.org.id);
+
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
@@ -75,7 +78,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
         try {
           // Find or create agency
-          const existingAgencies = await getAgencies(orgContext.org.id);
           let agency = existingAgencies.find(a => a.code.toLowerCase() === agencyCode.toLowerCase());
 
           if (!agency) {
@@ -85,6 +87,8 @@ export async function action({ request }: ActionFunctionArgs) {
               code: agencyCode.toLowerCase(),
               isActive: true,
             });
+            // Refresh the cached list so subsequent rows find this agency
+            existingAgencies = await getAgencies(orgContext.org.id);
           }
 
           // Check for duplicate course before creating

@@ -120,10 +120,10 @@ export async function action({ request }: ActionFunctionArgs) {
       return { errors: { form: "Cannot enroll in a cancelled session" }, values };
     }
     if (errorMessage.includes("full")) {
-      return { errors: { form: errorMessage }, values };
+      return { errors: { form: "This session is full" }, values };
     }
 
-    return { errors: { form: errorMessage }, values };
+    return { errors: { form: "Failed to create enrollment. Please try again." }, values };
   }
 }
 

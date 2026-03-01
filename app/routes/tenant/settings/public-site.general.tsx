@@ -4,7 +4,7 @@ import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
-import { eq, and, ne } from "drizzle-orm";
+import { eq, and, ne, sql } from "drizzle-orm";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
 
 type OutletContextType = {
@@ -47,12 +47,13 @@ export async function action({ request }: ActionFunctionArgs) {
     if (customDomain !== ctx.org.customDomain) {
       // Check uniqueness of custom domain
       if (customDomain) {
+        const normalizedDomain = customDomain.toLowerCase().trim();
         const existing = await db
           .select({ id: organization.id })
           .from(organization)
           .where(
             and(
-              eq(organization.customDomain, customDomain),
+              sql`LOWER(${organization.customDomain}) = ${normalizedDomain}`,
               ne(organization.id, ctx.org.id)
             )
           )
@@ -63,7 +64,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
       await db
         .update(organization)
-        .set({ customDomain, updatedAt: new Date() })
+        .set({ customDomain: customDomain?.toLowerCase().trim() ?? null, updatedAt: new Date() })
         .where(eq(organization.id, ctx.org.id));
     }
 

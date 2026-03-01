@@ -79,6 +79,16 @@ export async function action({ request }: ActionFunctionArgs) {
     const timezone = formData.get("timezone") as string;
     const currency = formData.get("currency") as string;
 
+    // Validate email format
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { error: "Please enter a valid email address" };
+    }
+
+    // Validate website URL format
+    if (website && !/^https?:\/\/.+\..+/.test(website)) {
+      return { error: "Please enter a valid website URL (e.g., https://example.com)" };
+    }
+
     const address = {
       street: (formData.get("street") as string) || undefined,
       city: (formData.get("city") as string) || undefined,
@@ -112,6 +122,11 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent === "update-booking-settings") {
     const minAdvanceBooking = Number(formData.get("minAdvanceBooking")) || 24;
     const maxAdvanceBooking = Number(formData.get("maxAdvanceBooking")) || 90;
+
+    // Validate min <= max advance booking
+    if (minAdvanceBooking > maxAdvanceBooking) {
+      return { error: "Minimum advance booking cannot be greater than maximum advance booking" };
+    }
     const cancellationPolicy = (formData.get("cancellationPolicy") as string) || "24h";
     const requireDeposit = formData.get("requireDeposit") === "true";
     const depositPercentStr = formData.get("depositPercent") as string;

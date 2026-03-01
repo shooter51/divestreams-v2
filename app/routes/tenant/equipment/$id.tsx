@@ -183,6 +183,7 @@ const categoryLabels: Record<string, string> = {
   fins: "Fins",
   tank: "Tank",
   computer: "Dive Computer",
+  torch: "Torch/Light",
   other: "Other",
 };
 
@@ -241,7 +242,7 @@ export default function EquipmentDetailPage() {
             </span>
           </div>
           <p className="text-foreground-muted">
-            {categoryLabels[equipment.category]} • {equipment.brand} {equipment.model}
+            {categoryLabels[equipment.category]} • {[equipment.brand, equipment.model].filter(Boolean).join(" ") || "No brand"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -494,10 +495,12 @@ export default function EquipmentDetailPage() {
                 <span className="text-foreground-muted">Brand</span>
                 <span>{equipment.brand}</span>
               </div>
+              {equipment.model && (
               <div className="flex justify-between">
                 <span className="text-foreground-muted">Model</span>
                 <span>{equipment.model}</span>
               </div>
+              )}
               {equipment.serialNumber && (
                 <div className="flex justify-between">
                   <span className="text-foreground-muted">Serial #</span>

@@ -34,9 +34,10 @@ function getEncryptionKey(): Buffer {
   if (!secret) {
     throw new Error("INTEGRATION_ENCRYPTION_KEY or AUTH_SECRET environment variable must be set");
   }
-  // Use a deployment-specific salt derived from the secret itself
-  // This ensures the salt varies per deployment without requiring an additional env var
-  const salt = process.env.INTEGRATION_ENCRYPTION_SALT || `divestreams:${secret.slice(0, 16)}`;
+  const salt = process.env.INTEGRATION_ENCRYPTION_SALT;
+  if (!salt) {
+    throw new Error("INTEGRATION_ENCRYPTION_SALT environment variable must be set");
+  }
   return scryptSync(secret, salt, 32);
 }
 

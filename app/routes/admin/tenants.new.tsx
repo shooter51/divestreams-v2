@@ -219,7 +219,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return redirect("/dashboard");
   } catch (error) {
     console.error("[TENANT CREATE] Failed to create organization:", error);
-    return { errors: { form: `Failed to create organization: ${error instanceof Error ? error.message : String(error)}` } };
+    return { errors: { form: "Failed to create organization. Please try again or contact support." } };
   }
 }
 

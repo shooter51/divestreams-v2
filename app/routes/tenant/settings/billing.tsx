@@ -21,7 +21,11 @@ import { CsrfInput } from "../../../components/CsrfInput";
 export const meta: MetaFunction = () => [{ title: "Billing - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const { requireRole } = await import("../../../../lib/auth/org-context.server");
   const ctx = await requireOrgContext(request);
+
+  // Billing page accessible to owner and admin roles
+  requireRole(ctx, ["owner", "admin"]);
 
   // Fetch subscription plans from database
   const dbPlans = await db
@@ -250,8 +254,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const { requireRole } = await import("../../../../lib/auth/org-context.server");
   const ctx = await requireOrgContext(request);
 
-  // Billing actions (upgrade, cancel, payment changes) require owner role only
-  requireRole(ctx, ["owner"]);
+  requireRole(ctx, ["owner", "admin"]);
 
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -442,7 +445,7 @@ export default function BillingPage() {
                     : "bg-warning-muted text-warning"
                 }`}
               >
-                {billing.subscriptionStatus}
+                {billing.subscriptionStatus === "active" ? "Active" : billing.subscriptionStatus === "trialing" ? "Trial" : billing.subscriptionStatus === "past_due" ? "Past Due" : billing.subscriptionStatus.charAt(0).toUpperCase() + billing.subscriptionStatus.slice(1)}
               </span>
             </div>
             <p className="text-foreground-muted mt-1">
@@ -473,7 +476,7 @@ export default function BillingPage() {
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-foreground-muted">Bookings</span>
                 <span>
-                  {billing.usage.bookingsThisMonth} / {billing.usage.bookingsLimit}
+                  {billing.usage.bookingsThisMonth} / {billing.usage.bookingsLimit === Infinity || billing.usage.bookingsLimit === -1 ? "Unlimited" : billing.usage.bookingsLimit}
                 </span>
               </div>
               <div className="w-full bg-surface-overlay rounded-full h-2">
@@ -498,7 +501,7 @@ export default function BillingPage() {
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-foreground-muted">Team Members</span>
                 <span>
-                  {billing.usage.teamMembers} / {billing.usage.teamLimit}
+                  {billing.usage.teamMembers} / {billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1 ? "Unlimited" : billing.usage.teamLimit}
                 </span>
               </div>
               <div className="w-full bg-surface-overlay rounded-full h-2">
@@ -506,11 +509,16 @@ export default function BillingPage() {
                   className="h-2 rounded-full bg-brand"
                   style={{
                     width: `${
-                      (billing.usage.teamMembers / billing.usage.teamLimit) * 100
+                      billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1
+                        ? 0
+                        : Math.min((billing.usage.teamMembers / billing.usage.teamLimit) * 100, 100)
                     }%`,
                   }}
                 />
               </div>
+              {(billing.usage.teamLimit === Infinity || billing.usage.teamLimit === -1) && (
+                <p className="text-xs text-success mt-1">Unlimited</p>
+              )}
             </div>
           </div>
         </div>
@@ -719,10 +727,10 @@ export default function BillingPage() {
                           : "bg-warning-muted text-warning"
                       }`}
                     >
-                      {invoice.status}
+                      {invoice.status === "paid" ? "Paid" : invoice.status === "pending" ? "Pending" : invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                     </span>
                   </td>
-                  <td className="py-3 text-sm text-right">${invoice.amount}</td>
+                  <td className="py-3 text-sm text-right">${Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td className="py-3 text-right">
                     <a
                       href={invoice.invoiceUrl}

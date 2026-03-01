@@ -256,7 +256,7 @@ export default function CustomerDetailPage() {
               <p className="text-foreground-muted text-sm">Total Spent</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">{customer.lastDiveAt ? String(customer.lastDiveAt) : "Never"}</p>
+              <p className="text-2xl font-bold">{customer.lastDiveAt ? new Date(customer.lastDiveAt).toLocaleDateString() : "Never"}</p>
               <p className="text-foreground-muted text-sm">Last Dive</p>
             </div>
           </div>

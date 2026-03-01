@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link } from "react-router";
 import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
-import { createGalleryAlbum } from "../../../../lib/db/gallery.server";
+import { createGalleryAlbum, getAllGalleryAlbums } from "../../../../lib/db/gallery.server";
 
 export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
 
@@ -24,6 +24,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!name) {
     return { errors: { name: "Album name is required" } };
+  }
+
+  // Check for duplicate slug
+  const existingAlbums = await getAllGalleryAlbums(ctx.org.id);
+  if (existingAlbums.some((a) => a.slug === slug)) {
+    return { errors: { slug: "An album with this URL slug already exists" } };
   }
 
   const album = await createGalleryAlbum(ctx.org.id, {
@@ -88,6 +94,9 @@ export default function NewGalleryAlbumPage() {
               <p className="text-xs text-foreground-muted mt-1">
                 Leave blank to auto-generate from album name
               </p>
+              {actionData?.errors?.slug && (
+                <p className="text-danger text-sm mt-1">{actionData.errors.slug}</p>
+              )}
             </div>
 
             <div>
