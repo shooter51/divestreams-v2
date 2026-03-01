@@ -96,6 +96,20 @@ vi.mock("../../../../lib/auth", () => ({
 
 import { db } from "../../../../lib/db";
 
+const mockPlan = { id: "plan-standard", name: "standard", displayName: "Standard", monthlyPrice: 0, isActive: true };
+const mockPremiumPlan = { id: "plan-premium", name: "premium", displayName: "Premium", monthlyPrice: 4900, isActive: true };
+
+/** Creates a db.select mock that returns [] for slug+name checks and a plan for the plan lookup */
+function mockSelectForSuccess(planName = "standard") {
+  const emptyQuery = { select: vi.fn().mockReturnThis(), from: vi.fn().mockReturnThis(), where: vi.fn().mockReturnThis(), limit: vi.fn().mockResolvedValue([]) };
+  const planQuery = { select: vi.fn().mockReturnThis(), from: vi.fn().mockReturnThis(), where: vi.fn().mockReturnThis(), limit: vi.fn().mockResolvedValue([planName === "premium" ? mockPremiumPlan : mockPlan]) };
+  let callCount = 0;
+  (db.select as Mock).mockImplementation(() => {
+    callCount++;
+    return callCount <= 2 ? emptyQuery : planQuery;
+  });
+}
+
 describe("admin/tenants.new route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -225,21 +239,8 @@ describe("admin/tenants.new route", () => {
       });
 
       it("accepts valid single-character slug", async () => {
-        // Mock slug availability check (no existing org)
-        const mockSelectQuery = {
-          select: vi.fn().mockReturnThis(),
-          from: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockResolvedValue([]),
-        };
-
-        // Mock insert operations
-        const mockInsertQuery = {
-          insert: vi.fn().mockReturnThis(),
-          values: vi.fn().mockResolvedValue([]),
-        };
-
-        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        mockSelectForSuccess();
+        const mockInsertQuery = { insert: vi.fn().mockReturnThis(), values: vi.fn().mockResolvedValue([]) };
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
@@ -257,19 +258,8 @@ describe("admin/tenants.new route", () => {
       });
 
       it("accepts valid slug with hyphens", async () => {
-        const mockSelectQuery = {
-          select: vi.fn().mockReturnThis(),
-          from: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockResolvedValue([]),
-        };
-
-        const mockInsertQuery = {
-          insert: vi.fn().mockReturnThis(),
-          values: vi.fn().mockResolvedValue([]),
-        };
-
-        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        mockSelectForSuccess();
+        const mockInsertQuery = { insert: vi.fn().mockReturnThis(), values: vi.fn().mockResolvedValue([]) };
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
@@ -314,19 +304,8 @@ describe("admin/tenants.new route", () => {
       });
 
       it("converts slug to lowercase before checking availability", async () => {
-        const mockSelectQuery = {
-          select: vi.fn().mockReturnThis(),
-          from: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockResolvedValue([]),
-        };
-
-        const mockInsertQuery = {
-          insert: vi.fn().mockReturnThis(),
-          values: vi.fn().mockResolvedValue([]),
-        };
-
-        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        mockSelectForSuccess();
+        const mockInsertQuery = { insert: vi.fn().mockReturnThis(), values: vi.fn().mockResolvedValue([]) };
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
@@ -347,19 +326,8 @@ describe("admin/tenants.new route", () => {
 
     describe("organization creation", () => {
       it("creates organization with required fields only", async () => {
-        const mockSelectQuery = {
-          select: vi.fn().mockReturnThis(),
-          from: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockResolvedValue([]),
-        };
-
-        const mockInsertQuery = {
-          insert: vi.fn().mockReturnThis(),
-          values: vi.fn().mockResolvedValue([]),
-        };
-
-        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        mockSelectForSuccess();
+        const mockInsertQuery = { insert: vi.fn().mockReturnThis(), values: vi.fn().mockResolvedValue([]) };
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
@@ -380,19 +348,8 @@ describe("admin/tenants.new route", () => {
       });
 
       it("creates organization with premium plan", async () => {
-        const mockSelectQuery = {
-          select: vi.fn().mockReturnThis(),
-          from: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockResolvedValue([]),
-        };
-
-        const mockInsertQuery = {
-          insert: vi.fn().mockReturnThis(),
-          values: vi.fn().mockResolvedValue([]),
-        };
-
-        (db.select as Mock).mockReturnValue(mockSelectQuery);
+        mockSelectForSuccess("premium");
+        const mockInsertQuery = { insert: vi.fn().mockReturnThis(), values: vi.fn().mockResolvedValue([]) };
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
 
         const formData = new FormData();
@@ -476,6 +433,13 @@ describe("admin/tenants.new route", () => {
           limit: vi.fn().mockResolvedValue([]),
         };
 
+        const mockPlanQuery = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([mockPlan]),
+        };
+
         const mockInsertQuery = {
           insert: vi.fn().mockReturnThis(),
           values: vi.fn().mockResolvedValue([]),
@@ -486,6 +450,7 @@ describe("admin/tenants.new route", () => {
           selectCallCount++;
           if (selectCallCount === 1) return mockSlugCheckQuery;
           if (selectCallCount === 2) return mockNameCheckQuery;
+          if (selectCallCount === 3) return mockPlanQuery;
           return mockUserCheckQuery;
         });
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
@@ -535,6 +500,13 @@ describe("admin/tenants.new route", () => {
           limit: vi.fn().mockResolvedValue([{ id: "existing-user-id", email: "existing@example.com" }]),
         };
 
+        const mockPlanQueryForExisting = {
+          select: vi.fn().mockReturnThis(),
+          from: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([mockPlan]),
+        };
+
         const mockInsertQuery = {
           insert: vi.fn().mockReturnThis(),
           values: vi.fn().mockResolvedValue([]),
@@ -545,6 +517,7 @@ describe("admin/tenants.new route", () => {
           selectCallCount++;
           if (selectCallCount === 1) return mockSlugCheckQuery;
           if (selectCallCount === 2) return mockNameCheckQuery;
+          if (selectCallCount === 3) return mockPlanQueryForExisting;
           return mockUserCheckQuery;
         });
         (db.insert as Mock).mockReturnValue(mockInsertQuery);
