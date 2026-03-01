@@ -42,8 +42,13 @@ vi.mock("../../../../../lib/auth/org-context.server", () => ({
 const mockDbUpdate = vi.fn().mockReturnThis();
 const mockDbSet = vi.fn().mockReturnThis();
 const mockDbWhere = vi.fn().mockResolvedValue([]);
+const mockDbSelectLimit = vi.fn().mockResolvedValue([{ forcePasswordChange: false }]);
+const mockDbSelectWhere = vi.fn().mockReturnValue({ limit: mockDbSelectLimit });
+const mockDbSelectFrom = vi.fn().mockReturnValue({ where: mockDbSelectWhere });
+const mockDbSelect = vi.fn().mockReturnValue({ from: mockDbSelectFrom });
 vi.mock("../../../../../lib/db", () => ({
   db: {
+    select: (...args: unknown[]) => mockDbSelect(...args),
     update: (...args: unknown[]) => {
       mockDbUpdate(...args);
       return { set: mockDbSet };
@@ -94,6 +99,11 @@ describe("Password Change Route - Action Validation", () => {
     mockRequireOrgContext.mockResolvedValue(mockOrgContext);
     mockChangePassword.mockResolvedValue({});
     mockDbSet.mockReturnValue({ where: mockDbWhere });
+    // Reset select mock to return forcePasswordChange=false by default
+    mockDbSelectLimit.mockResolvedValue([{ forcePasswordChange: false }]);
+    mockDbSelectWhere.mockReturnValue({ limit: mockDbSelectLimit });
+    mockDbSelectFrom.mockReturnValue({ where: mockDbSelectWhere });
+    mockDbSelect.mockReturnValue({ from: mockDbSelectFrom });
   });
 
   // ===========================================================================
@@ -285,14 +295,16 @@ describe("Password Change Route - Action Validation", () => {
   // ===========================================================================
 
   describe("forced password change", () => {
-    it("does not require current password when forced=true", async () => {
+    it("does not require current password when forced=true (DB flag)", async () => {
+      // Set DB flag to force password change
+      mockDbSelectLimit.mockResolvedValue([{ forcePasswordChange: true }]);
+
       const request = makeFormRequest(
         {
           currentPassword: "",
           newPassword: "NewValidPass123",
           confirmPassword: "NewValidPass123",
-        },
-        "https://demo.divestreams.com/tenant/settings/password?forced=true"
+        }
       );
 
       try {
@@ -308,13 +320,15 @@ describe("Password Change Route - Action Validation", () => {
     });
 
     it("clears forcePasswordChange flag after forced change", async () => {
+      // Set DB flag to force password change
+      mockDbSelectLimit.mockResolvedValue([{ forcePasswordChange: true }]);
+
       const request = makeFormRequest(
         {
           currentPassword: "",
           newPassword: "NewValidPass123",
           confirmPassword: "NewValidPass123",
-        },
-        "https://demo.divestreams.com/tenant/settings/password?forced=true"
+        }
       );
 
       try {
@@ -333,6 +347,8 @@ describe("Password Change Route - Action Validation", () => {
     });
 
     it("returns error message for forced change failure", async () => {
+      // Set DB flag to force password change
+      mockDbSelectLimit.mockResolvedValue([{ forcePasswordChange: true }]);
       mockChangePassword.mockRejectedValue(new Error("Auth error"));
 
       const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -342,8 +358,7 @@ describe("Password Change Route - Action Validation", () => {
           currentPassword: "",
           newPassword: "NewValidPass123",
           confirmPassword: "NewValidPass123",
-        },
-        "https://demo.divestreams.com/tenant/settings/password?forced=true"
+        }
       );
 
       const result = await action(makeArgs(request));
@@ -428,6 +443,12 @@ describe("Password Change Route - User Profile Action", () => {
     redirectUrl = null;
     mockRequireOrgContext.mockResolvedValue(mockOrgContext);
     mockChangePassword.mockResolvedValue({});
+    mockDbSet.mockReturnValue({ where: mockDbWhere });
+    // Reset select mock to return forcePasswordChange=false by default
+    mockDbSelectLimit.mockResolvedValue([{ forcePasswordChange: false }]);
+    mockDbSelectWhere.mockReturnValue({ limit: mockDbSelectLimit });
+    mockDbSelectFrom.mockReturnValue({ where: mockDbSelectWhere });
+    mockDbSelect.mockReturnValue({ from: mockDbSelectFrom });
   });
 
   // ===========================================================================

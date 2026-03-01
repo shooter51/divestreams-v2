@@ -20,6 +20,11 @@ vi.mock("../../../../../../lib/db", () => ({
   },
 }));
 
+// Mock rate limiting to avoid Redis dependency in unit tests
+vi.mock("../../../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 }),
+}));
+
 import { validateZapierApiKey } from "../../../../../../lib/integrations/zapier-enhanced.server";
 import { db } from "../../../../../../lib/db";
 
@@ -379,7 +384,7 @@ describe("api/zapier/actions/update-customer route", () => {
       expect(response.status).toBe(500);
 
       const data = await response.json();
-      expect(data.error).toBe("Database connection lost");
+      expect(data.error).toBe("Failed to update customer");
     });
   });
 });

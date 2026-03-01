@@ -7,6 +7,8 @@ import { eq, sql, and, gte, count, desc } from "drizzle-orm";
 import { UpgradePrompt } from "../../components/ui/UpgradePrompt";
 import { LIMIT_LABELS, DEFAULT_PLAN_LIMITS, FEATURE_LABELS, type PlanLimits } from "../../../lib/plan-features";
 import { getUsage, checkAllLimits, type UsageStats, type LimitCheck } from "../../../lib/usage.server";
+import { StatusBadge, type BadgeStatus } from "../../components/ui";
+import { formatTime, formatCurrency, formatCapacity, formatLabel } from "../../lib/format";
 
 
 export const meta: MetaFunction = () => {
@@ -231,7 +233,7 @@ export default function DashboardPage() {
                 ? "bg-brand-muted text-brand"
                 : "bg-warning-muted text-warning"
             }`}>
-              {subscription?.plan || "standard"} - {subscription?.status || "active"}
+              {formatLabel(subscription?.plan || "standard")} - {formatLabel(subscription?.status || "active")}
             </span>
           </div>
           {!isPremium && (
@@ -254,7 +256,7 @@ export default function DashboardPage() {
         <StatCard title="Today's Bookings" value={stats.todayBookings} icon="calendar" />
         <StatCard
           title="This Week's Revenue"
-          value={`$${stats.weekRevenue.toLocaleString()}`}
+          value={formatCurrency(stats.weekRevenue)}
           icon="dollar"
         />
         <StatCard title="Active Trips" value={stats.activeTrips} icon="boat" />
@@ -285,12 +287,12 @@ export default function DashboardPage() {
                 <div>
                   <p className="font-medium">{trip.name}</p>
                   <p className="text-sm text-foreground-muted">
-                    {trip.date} at {trip.time}
+                    {trip.date} at {formatTime(trip.time)}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="font-medium">
-                    {trip.participants}/{trip.maxParticipants}
+                    {formatCapacity(trip.participants, trip.maxParticipants)}
                   </p>
                   <p className="text-sm text-foreground-muted">participants</p>
                 </div>
@@ -320,16 +322,8 @@ export default function DashboardPage() {
                   <p className="text-sm text-foreground-muted">{booking.trip}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">${booking.amount}</p>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      booking.status === "confirmed"
-                        ? "bg-success-muted text-success"
-                        : "bg-warning-muted text-warning"
-                    }`}
-                  >
-                    {booking.status}
-                  </span>
+                  <p className="font-medium">{formatCurrency(booking.amount)}</p>
+                  <StatusBadge status={booking.status as BadgeStatus} />
                 </div>
               </Link>
             ))}

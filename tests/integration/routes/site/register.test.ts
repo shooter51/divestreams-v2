@@ -32,6 +32,11 @@ vi.mock("../../../../lib/email/triggers", () => ({
   triggerCustomerWelcomeEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 5, resetAt: Date.now() + 900000 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 import { db } from "../../../../lib/db";
 import { registerCustomer, loginCustomer } from "../../../../lib/auth/customer-auth.server";
 import { action } from "../../../../app/routes/site/register";

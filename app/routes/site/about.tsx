@@ -120,9 +120,9 @@ export default function SiteAboutPage() {
             </div>
           </div>
         ) : (
-          // Hardcoded fallback - shown when no content has been configured
+          // Fallback - shown when no content has been configured
           <div className="prose prose-lg max-w-none">
-            <h2 className="text-2xl font-bold mb-6">Our Story</h2>
+            <h2 className="text-2xl font-bold mb-6">About {organization.name}</h2>
             <p className="opacity-75">
               Welcome to {organization.name}! We are passionate about sharing the
               wonders of the underwater world with divers of all experience levels.
@@ -133,9 +133,6 @@ export default function SiteAboutPage() {
               experiences. Whether you're taking your first breath underwater or
               exploring advanced technical diving, we're here to guide you every
               step of the way.
-            </p>
-            <p className="mt-8 text-sm opacity-50">
-              To customize this page, go to Settings → Public Site → Content
             </p>
           </div>
         )}

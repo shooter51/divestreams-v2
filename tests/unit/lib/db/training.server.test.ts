@@ -37,6 +37,11 @@ const createDbMock = () => {
   chain.offset = vi.fn(() => chain);
   chain.returning = vi.fn(() => Promise.resolve([{ id: "new-id" }]));
 
+  // Transaction support - execute callback with same chain as tx
+  chain.transaction = vi.fn(async (callback: any) => callback(chain));
+  // Raw SQL execute support (FOR UPDATE locks)
+  chain.execute = vi.fn(async () => []);
+
   return chain;
 };
 
@@ -411,10 +416,12 @@ describe("Training Server - Enrollment Queries", () => {
       },
     ];
 
-    // Mock customer validation (second query)
-    vi.mocked(dbMock.where).mockResolvedValueOnce(mockReturnValue)
-      .mockResolvedValueOnce([{ id: "customer-1" }]) // Customer exists
-      .mockResolvedValueOnce([]); // No existing enrollment
+    // Mock session query: .where().for("update") returns session data
+    const mockSessionFor = vi.fn().mockResolvedValue(mockReturnValue);
+    vi.mocked(dbMock.where)
+      .mockReturnValueOnce({ for: mockSessionFor } as any) // Session query with FOR UPDATE
+      .mockResolvedValueOnce([{ id: "customer-1" }] as any) // Customer exists
+      .mockResolvedValueOnce([] as any); // No existing enrollment
 
     (dbMock.returning as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
       {
@@ -438,9 +445,10 @@ describe("Training Server - Enrollment Queries", () => {
   it("should update an enrollment", async () => {
     const { updateEnrollment } = await import("../../../../lib/db/training.server");
 
-    // Mock the returning value correctly
+    // Mock the returning value: .where().returning() chain
     mockReturnValue = [{ id: "enroll-1", status: "completed" }];
-    (dbMock.returning as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockReturnValue);
+    const mockReturning = vi.fn().mockResolvedValue(mockReturnValue);
+    vi.mocked(dbMock.where).mockReturnValueOnce({ returning: mockReturning } as any);
 
     const result = await updateEnrollment("org-1", "enroll-1", { status: "completed" });
 

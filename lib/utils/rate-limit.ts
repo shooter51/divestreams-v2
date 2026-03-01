@@ -2,7 +2,7 @@
  * Redis-based rate limiter for spam prevention
  * Uses a fixed window approach with atomic INCR + EXPIRE via Redis MULTI/EXEC.
  *
- * Falls open (allows request) if Redis is unavailable to avoid blocking users.
+ * Fails closed (denies request) if Redis is unavailable to prevent abuse.
  */
 
 import { getRedisConnection } from "../redis.server";
@@ -25,7 +25,7 @@ export interface RateLimitResult {
  * Uses Redis MULTI/EXEC for atomic increment + expire.
  * Key format: `ratelimit:{identifier}` with TTL = max(1000, windowMs).
  *
- * Fail-open: if Redis is unavailable, the request is allowed with a warning.
+ * Fail-closed: if Redis is unavailable, the request is denied to prevent abuse.
  *
  * @param identifier - Unique identifier (IP address, email, etc.)
  * @param config - Rate limit configuration
@@ -73,9 +73,9 @@ export async function checkRateLimit(
     const results = await pipeline.exec();
 
     if (!results || results.length < 2) {
-      // Unexpected Redis response - fail open
-      redisLogger.warn("Rate limiter: unexpected Redis MULTI/EXEC response, allowing request");
-      return failOpen(config);
+      // Unexpected Redis response - fail closed
+      redisLogger.warn("Rate limiter: unexpected Redis MULTI/EXEC response, denying request");
+      return failClosed(config);
     }
 
     // results[0] = [error, count], results[1] = [error, pttl]
@@ -83,8 +83,8 @@ export async function checkRateLimit(
     const [pttlErr, pttl] = results[1] as [Error | null, number];
 
     if (incrErr || pttlErr) {
-      redisLogger.warn({ err: incrErr || pttlErr }, "Rate limiter: Redis command error, allowing request");
-      return failOpen(config);
+      redisLogger.warn({ err: incrErr || pttlErr }, "Rate limiter: Redis command error, denying request");
+      return failClosed(config);
     }
 
     // If the key has no TTL yet (pttl == -1, meaning INCR just created it), set the expiry.
@@ -104,20 +104,20 @@ export async function checkRateLimit(
 
     return { allowed, remaining, resetAt };
   } catch (error) {
-    // Redis unavailable - fail open
-    redisLogger.warn({ err: error }, "Rate limiter: Redis unavailable, allowing request");
-    return failOpen(config);
+    // Redis unavailable - fail closed to prevent abuse
+    redisLogger.warn({ err: error }, "Rate limiter: Redis unavailable, denying request");
+    return failClosed(config);
   }
 }
 
 /**
- * Fail-open response when Redis is unavailable.
- * Allows the request to proceed to avoid blocking users.
+ * Fail-closed response when Redis is unavailable.
+ * Denies the request to prevent abuse when rate limiting cannot be enforced.
  */
-function failOpen(config: RateLimitConfig): RateLimitResult {
+function failClosed(config: RateLimitConfig): RateLimitResult {
   return {
-    allowed: true,
-    remaining: config.maxAttempts - 1,
+    allowed: false,
+    remaining: 0,
     resetAt: Date.now() + config.windowMs,
   };
 }
@@ -144,10 +144,12 @@ export async function resetRateLimit(identifier: string): Promise<void> {
  * The leftmost IP can be set to anything by the client.
  */
 export function getClientIp(request: Request): string {
-  // Cloudflare sets this header and it is trustworthy
-  const cfConnectingIp = request.headers.get("cf-connecting-ip");
-  if (cfConnectingIp) {
-    return cfConnectingIp.trim();
+  // Only trust cf-connecting-ip if explicitly configured (prevents IP spoofing)
+  if (process.env.TRUST_CLOUDFLARE === "true") {
+    const cfConnectingIp = request.headers.get("cf-connecting-ip");
+    if (cfConnectingIp) {
+      return cfConnectingIp.trim();
+    }
   }
 
   // X-Real-IP is typically set by the reverse proxy (Caddy/nginx) to the connecting IP

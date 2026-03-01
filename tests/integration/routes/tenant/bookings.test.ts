@@ -4,6 +4,7 @@ import { loader } from "../../../../app/routes/tenant/bookings/index";
 
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../lib/db", () => ({

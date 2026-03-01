@@ -67,9 +67,17 @@ vi.mock("../../../../lib/utils/url", () => ({
   getAppUrl: vi.fn(() => "https://divestreams.com"),
 }));
 
+// Mock rate limiting - always allow in tests
 vi.mock("../../../../lib/utils/rate-limit", () => ({
-  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10 }),
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10, resetAt: Date.now() + 900000 }),
   getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
+// Mock CSRF module
+vi.mock("../../../../lib/security/csrf.server", () => ({
+  generateAnonCsrfToken: vi.fn().mockReturnValue("test-csrf-token"),
+  validateAnonCsrfToken: vi.fn().mockReturnValue(true),
+  CSRF_FIELD_NAME: "_csrf",
 }));
 
 import { loader, action } from "../../../../app/routes/auth/login";
@@ -142,7 +150,8 @@ describe("auth/login route", () => {
       expect(result).toEqual({
         tenantName: "Demo Dive Shop",
         mainSiteUrl: "https://divestreams.com",
-        noAccessError: null
+        noAccessError: null,
+        csrfToken: "test-csrf-token"
       });
     });
   });

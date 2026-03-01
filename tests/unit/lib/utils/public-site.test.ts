@@ -327,7 +327,7 @@ describe("Public Site Utilities", () => {
       const defaults = getDefaultSiteSettings();
       expect(defaults.enabled).toBe(false);
       expect(defaults.theme).toBe("ocean");
-      expect(defaults.primaryColor).toBe("#0077B6");
+      expect(defaults.primaryColor).toBe("var(--brand)");
       expect(defaults.fontFamily).toBe("inter");
     });
 

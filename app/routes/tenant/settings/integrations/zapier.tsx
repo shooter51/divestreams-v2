@@ -11,7 +11,7 @@
 import { useState } from "react";
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useNavigation } from "react-router";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import {
   generateZapierApiKey,
   listZapierApiKeys,
@@ -28,6 +28,7 @@ import { CsrfInput } from "../../../../components/CsrfInput";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Get API keys
   const apiKeys = await listZapierApiKeys(ctx.org.id);
@@ -51,6 +52,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   const formData = await request.formData();
   const intent = formData.get("intent");

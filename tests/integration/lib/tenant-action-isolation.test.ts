@@ -14,6 +14,8 @@ import type { Mock } from "vitest";
 // Mock the organization context
 vi.mock("../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
+  requireTenant: vi.fn(),
 }));
 
 // Mock database

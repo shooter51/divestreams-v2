@@ -7,6 +7,7 @@ import { eq, sql, count, and, gte, ne, lt } from "drizzle-orm";
 import { UpgradePrompt } from "../../../components/ui/UpgradePrompt";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";
+import { formatTime } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Bookings - DiveStreams" }];
 
@@ -15,7 +16,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
   const status = url.searchParams.get("status") || "";
-  const page = parseInt(url.searchParams.get("page") || "1");
+  const page = Math.max(1, parseInt(url.searchParams.get("page") || "1") || 1);
   const limit = 20;
   const offset = (page - 1) * limit;
 
@@ -161,17 +162,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-function formatTime(t: string | null | undefined): string {
-  if (!t) return "";
-  const [h, m] = t.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour = h % 12 || 12;
-  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
-}
-
 // Map database status to BadgeStatus type
 function mapBookingStatus(status: string): BadgeStatus {
-  if (status === "canceled") return "cancelled";
+  if (status === "cancelled") return "cancelled";
   if (status === "checked_in") return "checked_in";
   return status as BadgeStatus;
 }
@@ -286,7 +279,7 @@ export default function BookingsPage() {
           <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
           <option value="completed">Completed</option>
-          <option value="canceled">Cancelled</option>
+          <option value="cancelled">Cancelled</option>
           <option value="no_show">No Show</option>
         </select>
         <button

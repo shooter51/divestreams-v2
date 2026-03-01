@@ -224,7 +224,7 @@ export async function getPublicTrips(
     .where(
       and(
         inArray(schema.bookings.tripId, tripIds),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+        sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
       )
     )
     .groupBy(schema.bookings.tripId);
@@ -428,7 +428,7 @@ export async function getPublicTripById(
     .where(
       and(
         eq(schema.bookings.tripId, tripId),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+        sql`${schema.bookings.status} NOT IN ('cancelled', 'no_show')`
       )
     );
 

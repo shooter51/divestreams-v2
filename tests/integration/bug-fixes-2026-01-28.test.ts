@@ -10,10 +10,21 @@
  * server-side business logic to ensure defense-in-depth.
  */
 
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { db } from '../../lib/db';
 import { subscription, subscriptionPlans, organization } from '../../lib/db/schema';
 import { eq } from 'drizzle-orm';
+
+vi.mock("../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10, resetAt: Date.now() + 900000 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
+vi.mock("../../lib/security/csrf.server", () => ({
+  generateAnonCsrfToken: vi.fn().mockReturnValue("test-csrf-token"),
+  validateAnonCsrfToken: vi.fn().mockReturnValue(true),
+  CSRF_FIELD_NAME: "_csrf",
+}));
 
 describe('Bug Fixes 2026-01-28', () => {
 

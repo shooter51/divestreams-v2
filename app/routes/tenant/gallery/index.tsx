@@ -97,7 +97,7 @@ export default function GalleryIndexPage() {
                 )}
                 <div className="flex items-center gap-4 text-sm text-foreground-muted">
                   <span>📷 {album.imageCount} photos</span>
-                  <span>#{album.sortOrder}</span>
+                  <span>Position {(album.sortOrder ?? 0) + 1}</span>
                 </div>
               </div>
             </Link>

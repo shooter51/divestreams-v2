@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Mock } from "vitest";
+
+// Set AUTH_SECRET before importing route (needed for CSRF token generation)
+process.env.AUTH_SECRET = "test-secret-for-csrf-token-generation";
+
 import { loader, action } from "../../../../app/routes/auth/forgot-password";
 
 // Mock org-context
@@ -99,7 +103,8 @@ describe("auth/forgot-password route", () => {
       const request = new Request("https://demo.divestreams.com/auth/forgot-password");
       const result = await loader({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof loader>[0]);
 
-      expect(result).toEqual({ tenantName: "Demo Dive Shop" });
+      expect(result).toHaveProperty("tenantName", "Demo Dive Shop");
+      expect(result).toHaveProperty("csrfToken");
     });
   });
 

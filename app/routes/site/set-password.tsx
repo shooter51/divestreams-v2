@@ -21,11 +21,12 @@ import {
   Form,
 } from "react-router";
 import { useState } from "react";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { customerCredentials } from "../../../lib/db/schema";
 import { resetPassword } from "../../../lib/auth/customer-auth.server";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 // ============================================================================
 // META
@@ -71,7 +72,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
   }
 
-  // Validate token exists and hasn't expired
+  // Validate token exists, belongs to this org, and hasn't expired
   const [creds] = await db
     .select({
       id: customerCredentials.id,
@@ -79,7 +80,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
       resetTokenExpires: customerCredentials.resetTokenExpires,
     })
     .from(customerCredentials)
-    .where(eq(customerCredentials.resetToken, token))
+    .where(
+      and(
+        eq(customerCredentials.organizationId, org.id),
+        eq(customerCredentials.resetToken, token)
+      )
+    )
     .limit(1);
 
   if (!creds || !creds.resetTokenExpires || creds.resetTokenExpires < new Date()) {
@@ -102,6 +108,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // ============================================================================
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Rate limit password set attempts
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`set-password:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { error: "Too many attempts. Please try again later." };
+  }
+
   const url = new URL(request.url);
   const host = url.host;
   const subdomain = host.split(".")[0];
@@ -133,6 +150,18 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters long" };
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return { error: "Password must contain at least one uppercase letter" };
+  }
+
+  if (!/[a-z]/.test(password)) {
+    return { error: "Password must contain at least one lowercase letter" };
+  }
+
+  if (!/[0-9]/.test(password)) {
+    return { error: "Password must contain at least one number" };
   }
 
   if (password !== confirmPassword) {

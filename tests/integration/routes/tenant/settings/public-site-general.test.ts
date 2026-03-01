@@ -3,6 +3,7 @@ import type { Mock } from "vitest";
 
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/db/public-site.server", () => ({
@@ -11,6 +12,13 @@ vi.mock("../../../../../lib/db/public-site.server", () => ({
 
 vi.mock("../../../../../lib/db", () => ({
   db: {
+    select: vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([]),
+        }),
+      }),
+    }),
     update: vi.fn().mockReturnThis(),
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockResolvedValue(undefined),
@@ -27,6 +35,9 @@ vi.mock("../../../../../lib/db/schema", () => ({
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
+  and: vi.fn((...args: unknown[]) => ({ type: "and", conditions: args })),
+  ne: vi.fn((a, b) => ({ type: "ne", field: a, value: b })),
+  sql: vi.fn(),
 }));
 
 import { requireOrgContext } from "../../../../../lib/auth/org-context.server";

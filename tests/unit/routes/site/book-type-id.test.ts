@@ -77,6 +77,11 @@ vi.mock("../../../../lib/jobs", () => ({
   })),
 }));
 
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10, resetAt: Date.now() + 60000 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
+}));
+
 vi.mock("../../../../lib/db", () => ({
   db: createChainableDbMock(),
 }));
@@ -454,12 +459,10 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
       queueResults(
         // 1. Org lookup
         [{ id: "org-1", name: "Test Dive Shop", slug: "demo" }],
-        // 2. Customer lookup - existing
+        // 2. Customer lookup - existing (no update for guest checkout)
         [{ id: "existing-cust-1" }],
-        // 3. Customer update
-        [],
         // --- inside transaction ---
-        // 4. Trip data (SELECT ... FOR UPDATE)
+        // 3. Trip data (SELECT ... FOR UPDATE)
         [{
           id: "trip-1",
           tourId: "tour-1",
@@ -473,9 +476,9 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
           date: "2026-07-20",
           startTime: "08:00",
         }],
-        // 5. Booking count
+        // 4. Booking count
         [{ total: 4 }],
-        // 6. Insert booking returning
+        // 5. Insert booking returning
         [{
           id: "booking-1",
           bookingNumber: "BK-TEST-ABCD",
@@ -501,11 +504,9 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
       queueResults(
         // 1. Org
         [{ id: "org-1", name: "Test Dive Shop", slug: "demo" }],
-        // 2. Customer
+        // 2. Customer (existing, no update for guest checkout)
         [{ id: "existing-cust-1" }],
-        // 3. Customer update
-        [],
-        // 4. Trip lookup in tx - NOT FOUND
+        // 3. Trip lookup in tx - NOT FOUND
         [],
       );
 
@@ -521,11 +522,9 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
       queueResults(
         // 1. Org
         [{ id: "org-1", name: "Test Dive Shop", slug: "demo" }],
-        // 2. Customer
+        // 2. Customer (existing, no update for guest checkout)
         [{ id: "existing-cust-1" }],
-        // 3. Customer update
-        [],
-        // 4. Trip data
+        // 3. Trip data
         [{
           id: "trip-1",
           tourId: "tour-1",
@@ -539,7 +538,7 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
           date: "2026-07-20",
           startTime: "08:00",
         }],
-        // 5. Booking count - 5 already booked, requesting 3
+        // 4. Booking count - 5 already booked, requesting 3
         [{ total: 5 }],
       );
 
@@ -563,12 +562,10 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
         [{ id: "org-1", name: "Test Dive Shop", slug: "demo" }],
         // 2. Training session lookup - NOT found
         [],
-        // 3. Customer lookup
+        // 3. Customer lookup (existing, no update for guest checkout)
         [{ id: "existing-cust-1" }],
-        // 4. Customer update
-        [],
         // --- inside transaction ---
-        // 5. Trip data
+        // 4. Trip data
         [{
           id: "trip-session-1",
           tourId: "tour-1",
@@ -582,9 +579,9 @@ describe("Booking Action - $type.$id.tsx (KAN-638)", () => {
           date: "2026-08-01",
           startTime: "10:00",
         }],
-        // 6. Booking count
+        // 5. Booking count
         [{ total: 2 }],
-        // 7. Insert booking
+        // 6. Insert booking
         [{
           id: "booking-2",
           bookingNumber: "BK-COURSE-ABCD",

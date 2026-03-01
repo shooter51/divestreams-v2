@@ -61,9 +61,24 @@ export interface SendEmailResult {
 }
 
 /**
+ * Strip newlines from email header values to prevent header injection
+ */
+function sanitizeEmailHeader(value: string): string {
+  return value.replace(/[\r\n]/g, "");
+}
+
+/**
  * Send an email
  */
 export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
+  // Sanitize header fields to prevent email header injection
+  options = {
+    ...options,
+    to: sanitizeEmailHeader(options.to),
+    subject: sanitizeEmailHeader(options.subject),
+    ...(options.replyTo && { replyTo: sanitizeEmailHeader(options.replyTo) }),
+  };
+
   const transport = getTransporter();
 
   // Log email in development or when SMTP not configured

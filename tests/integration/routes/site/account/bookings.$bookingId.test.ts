@@ -207,7 +207,7 @@ describe("site/account/bookings.$bookingId route", () => {
     it("returns 400 for already cancelled bookings", async () => {
       (db.limit as Mock).mockResolvedValue([{
         id: "booking-1",
-        status: "canceled",
+        status: "cancelled",
         tripId: "trip-1",
         organizationId: "org-1",
       }]);

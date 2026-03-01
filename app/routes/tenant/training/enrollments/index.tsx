@@ -84,6 +84,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+const enrollmentStatusLabels: Record<string, string> = {
+  enrolled: "Enrolled",
+  in_progress: "In Progress",
+  completed: "Completed",
+  dropped: "Dropped",
+  failed: "Failed",
+};
+
 const statusColors: Record<string, string> = {
   enrolled: "bg-brand-muted text-brand",
   in_progress: "bg-warning-muted text-warning",

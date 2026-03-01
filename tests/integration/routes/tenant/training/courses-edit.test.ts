@@ -7,6 +7,7 @@ import type { Mock } from "vitest";
 
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/db/training.server", () => ({

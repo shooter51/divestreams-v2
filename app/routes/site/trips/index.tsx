@@ -151,7 +151,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         .where(
           and(
             eq(bookings.tripId, trip.id),
-            sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+            sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
           )
         );
 

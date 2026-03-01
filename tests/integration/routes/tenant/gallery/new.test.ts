@@ -5,7 +5,10 @@ import * as orgContext from "../../../../../lib/auth/org-context.server";
 import * as gallery from "../../../../../lib/db/gallery.server";
 
 // Mock dependencies
-vi.mock("../../../../../lib/auth/org-context.server");
+vi.mock("../../../../../lib/auth/org-context.server", () => ({
+  requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
+}));
 vi.mock("../../../../../lib/db/gallery.server");
 
 describe("app/routes/tenant/gallery/new.tsx", () => {
@@ -20,6 +23,7 @@ describe("app/routes/tenant/gallery/new.tsx", () => {
       limits: { customers: 100 },
       isPremium: false,
     } as unknown);
+    vi.mocked(gallery.getAllGalleryAlbums).mockResolvedValue([]);
   });
 
   describe("action", () => {

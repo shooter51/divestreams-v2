@@ -331,14 +331,14 @@ describe("csrf.server", () => {
       await expect(requireCsrf(request, "session-123")).resolves.toBeUndefined();
     });
 
-    it("should skip CSRF validation for non-form-data requests (JSON)", async () => {
+    it("should require CSRF validation for JSON requests", async () => {
       const request = new Request("https://example.com/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data: "test" }),
       });
 
-      await expect(requireCsrf(request, "session-123")).resolves.toBeUndefined();
+      await expect(requireCsrf(request, "session-123")).rejects.toThrow();
     });
 
     it("should throw 403 when CSRF token is missing in POST form", async () => {

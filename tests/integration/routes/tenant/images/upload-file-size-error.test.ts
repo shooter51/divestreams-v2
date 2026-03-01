@@ -4,6 +4,7 @@ import { action } from "../../../../../app/routes/tenant/images/upload";
 // Mock dependencies with proper exports
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/db/tenant.server", () => ({

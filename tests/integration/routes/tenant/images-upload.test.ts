@@ -3,7 +3,9 @@ import type { Mock } from "vitest";
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
+  requireTenant: vi.fn(),
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../lib/storage", () => ({

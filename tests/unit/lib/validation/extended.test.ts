@@ -193,7 +193,7 @@ describe("validation extended", () => {
     it("validates minimal trip data", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-01-20",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
       };
       const result = tripSchema.safeParse(data);
@@ -204,7 +204,7 @@ describe("validation extended", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
         boatId: "550e8400-e29b-41d4-a716-446655440001",
-        date: "2025-01-20",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         endTime: "12:00",
         maxParticipants: 8,
@@ -220,7 +220,7 @@ describe("validation extended", () => {
     it("rejects invalid tour UUID", () => {
       const data = {
         tourId: "not-a-uuid",
-        date: "2025-01-20",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
       };
       const result = tripSchema.safeParse(data);
@@ -230,7 +230,7 @@ describe("validation extended", () => {
     it("validates recurring trip fields", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-01-20",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: true,
         recurrencePattern: "weekly",
@@ -244,7 +244,7 @@ describe("validation extended", () => {
     it("handles isRecurring as string 'true'", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-01-20",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         isRecurring: "true",
       };
@@ -258,7 +258,7 @@ describe("validation extended", () => {
     it("parses recurrenceDays from JSON string", () => {
       const data = {
         tourId: "550e8400-e29b-41d4-a716-446655440000",
-        date: "2025-01-20",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         startTime: "09:00",
         recurrenceDays: "[1, 3, 5]",
       };

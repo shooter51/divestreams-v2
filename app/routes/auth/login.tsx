@@ -8,6 +8,8 @@ import { db } from "../../../lib/db";
 import { organization, member } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { CsrfTokenInput } from "../../components/CsrfInput";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Login - DiveStreams" }];
@@ -43,16 +45,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     headers: request.headers,
   });
 
+  const csrfToken = generateAnonCsrfToken();
+
   if (sessionData && sessionData.user) {
     // User is logged in but doesn't have access to this organization
     return {
       tenantName: org.name,
       mainSiteUrl: getAppUrl(),
-      noAccessError: `You are logged in as ${sessionData.user.email}, but you don't have access to this organization. Please contact the organization owner to request access, or log out and sign in with a different account.`
+      noAccessError: `You are logged in as ${sessionData.user.email}, but you don't have access to this organization. Please contact the organization owner to request access, or log out and sign in with a different account.`,
+      csrfToken,
     };
   }
 
-  return { tenantName: org.name, noAccessError: null, mainSiteUrl: getAppUrl() };
+  return { tenantName: org.name, noAccessError: null, mainSiteUrl: getAppUrl(), csrfToken };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -77,12 +82,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
+  // Validate CSRF token
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
+    return { errors: { form: "Invalid form submission. Please refresh and try again." } };
+  }
+
   const errors: Record<string, string> = {};
 
   // Rate limit login attempts
   const clientIp = getClientIp(request);
   const rateLimitResult = await checkRateLimit(`login:${clientIp}`, {
-    maxAttempts: 30,
+    maxAttempts: 10,
     windowMs: 15 * 60 * 1000,
   });
 
@@ -153,8 +164,8 @@ export async function action({ request }: ActionFunctionArgs) {
     // Get redirect URL from query params and validate to prevent open redirects
     const url = new URL(request.url);
     const rawRedirect = url.searchParams.get("redirect") || "/tenant";
-    // Only allow relative URLs (must start with / and not contain ://)
-    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.includes("://")
+    // Only allow relative URLs (must start with / and not contain :// or //)
+    const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") && !rawRedirect.includes("://")
       ? rawRedirect
       : "/tenant";
 
@@ -169,7 +180,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function LoginPage() {
-  const { tenantName, noAccessError, mainSiteUrl } = useLoaderData<typeof loader>();
+  const { tenantName, noAccessError, mainSiteUrl, csrfToken } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
@@ -206,6 +217,7 @@ export default function LoginPage() {
         )}
 
         <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
+          <CsrfTokenInput token={csrfToken} />
           {actionData?.errors?.form && (
             <div className="bg-danger-muted text-danger p-3 rounded-lg max-w-4xl break-words mb-4">
               {actionData.errors.form}

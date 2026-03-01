@@ -24,38 +24,38 @@ import { getSubdomainFromHost } from "../../../../lib/utils/url";
 const CERTIFICATION_AGENCIES: Record<string, { name: string; lightColor: string; darkColor: string; description: string }> = {
   padi: {
     name: "PADI",
-    lightColor: "#003087",
-    darkColor: "#5b9bd5",
+    lightColor: "var(--brand)",
+    darkColor: "var(--brand)",
     description: "Professional Association of Diving Instructors - World's largest diver training organization",
   },
   ssi: {
     name: "SSI",
-    lightColor: "#00529b",
-    darkColor: "#6cb4ee",
+    lightColor: "var(--brand)",
+    darkColor: "var(--brand)",
     description: "Scuba Schools International - Globally recognized dive training",
   },
   naui: {
     name: "NAUI",
-    lightColor: "#002855",
-    darkColor: "#4d7ac7",
+    lightColor: "var(--brand)",
+    darkColor: "var(--brand)",
     description: "National Association of Underwater Instructors - Since 1959",
   },
   sdi: {
     name: "SDI/TDI",
-    lightColor: "#ff6600",
-    darkColor: "#ff6600",
+    lightColor: "var(--brand)",
+    darkColor: "var(--brand)",
     description: "Scuba Diving International / Technical Diving International",
   },
   raid: {
     name: "RAID",
-    lightColor: "#e31937",
-    darkColor: "#e31937",
+    lightColor: "var(--danger)",
+    darkColor: "var(--danger)",
     description: "Rebreather Association of International Divers",
   },
   gue: {
     name: "GUE",
-    lightColor: "#1a1a1a",
-    darkColor: "#e5e7eb",
+    lightColor: "var(--surface)",
+    darkColor: "var(--border)",
     description: "Global Underwater Explorers - Excellence in diving education",
   },
 };
@@ -130,7 +130,7 @@ function getAgencyColorVar(agencyName: string | null): string {
  * Get agency color object from name
  */
 function getAgencyColorObj(agencyName: string | null): { light: string; dark: string } {
-  if (!agencyName) return { light: "#6b7280", dark: "#9ca3af" };
+  if (!agencyName) return { light: "var(--foreground-muted)", dark: "var(--foreground-subtle)" };
 
   const nameLower = agencyName.toLowerCase();
   for (const [id, agency] of Object.entries(CERTIFICATION_AGENCIES)) {
@@ -138,7 +138,7 @@ function getAgencyColorObj(agencyName: string | null): { light: string; dark: st
       return { light: agency.lightColor, dark: agency.darkColor };
     }
   }
-  return { light: "#6b7280", dark: "#9ca3af" };
+  return { light: "var(--foreground-muted)", dark: "var(--foreground-subtle)" };
 }
 
 /**
@@ -674,11 +674,11 @@ export default function SiteCourseDetailPage() {
     `)
     .join('\n') + `
       :root {
-        --agency-default: #6b7280;
+        --agency-default: var(--foreground-muted);
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --agency-default: #9ca3af;
+          --agency-default: var(--foreground-subtle);
         }
       }
     `;

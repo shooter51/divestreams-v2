@@ -3,6 +3,7 @@ import { useLoaderData, Link } from "react-router";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
+import { formatLabel } from "../../../lib/format";
 import {
   getTrainingDashboardStats,
   getUpcomingTrainingSessions,
@@ -188,7 +189,7 @@ export default function TrainingDashboardPage() {
                         enrollment.status
                       )}`}
                     >
-                      {enrollment.status}
+                      {formatLabel(enrollment.status)}
                     </span>
                     {enrollment.enrolledAt && (
                       <p className="text-xs text-foreground-subtle mt-1">

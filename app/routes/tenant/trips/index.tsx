@@ -6,6 +6,7 @@ import { trips as tripsTable, tours, boats, bookings } from "../../../../lib/db/
 import { eq, and, gte, sql, lt } from "drizzle-orm";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
 import { useNotification } from "../../../../lib/use-notification";
+import { formatTime, formatRecurrencePattern, formatCapacity } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Trips - DiveStreams" }];
 
@@ -119,7 +120,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 function mapTripStatus(status: string): BadgeStatus {
   if (status === "open") return "pending";
   if (status === "full") return "confirmed";
-  if (status === "canceled") return "cancelled";
+  if (status === "cancelled") return "cancelled";
   return status as BadgeStatus;
 }
 
@@ -218,8 +219,8 @@ export default function TripsPage() {
                     >
                       <div className="flex items-center gap-4">
                         <div className="text-center">
-                          <p className="text-lg font-bold">{trip.startTime}</p>
-                          <p className="text-xs text-foreground-muted">{trip.endTime}</p>
+                          <p className="text-lg font-bold">{formatTime(trip.startTime)}</p>
+                          <p className="text-xs text-foreground-muted">{formatTime(trip.endTime)}</p>
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
@@ -227,12 +228,12 @@ export default function TripsPage() {
                             {trip.isRecurring && (
                               <span
                                 className="text-xs px-2 py-0.5 rounded bg-info-muted text-info"
-                                title={`Recurring ${trip.recurrencePattern || ""} trip${trip.isTemplate ? " (template)" : ""}`}
+                                title={`Recurring ${formatRecurrencePattern(trip.recurrencePattern)} trip${trip.isTemplate ? " (template)" : ""}`}
                               >
                                 <svg className="w-3 h-3 inline mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                {trip.recurrencePattern}
+                                {formatRecurrencePattern(trip.recurrencePattern)}
                               </span>
                             )}
                           </div>
@@ -247,7 +248,7 @@ export default function TripsPage() {
                       <div className="flex items-center gap-6">
                         <div className="text-right">
                           <p className="font-medium">
-                            {trip.bookedParticipants}/{trip.maxParticipants} booked
+                            {formatCapacity(trip.bookedParticipants, trip.maxParticipants)} booked
                           </p>
                           <p className="text-sm text-foreground-muted">${trip.revenue}</p>
                         </div>

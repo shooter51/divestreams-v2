@@ -230,7 +230,8 @@ export async function getCourses(
       eq(schema.trainingCourses.levelId, schema.certificationLevels.id)
     )
     .where(eq(schema.trainingCourses.organizationId, organizationId))
-    .orderBy(asc(schema.trainingCourses.sortOrder), asc(schema.trainingCourses.name));
+    .orderBy(asc(schema.trainingCourses.sortOrder), asc(schema.trainingCourses.name))
+    .limit(200);
 
   return query;
 }
@@ -319,6 +320,11 @@ export async function createCourse(data: {
   isActive?: boolean;
   sortOrder?: number;
 }) {
+  // Validate: if depositRequired, depositAmount must be > 0
+  if (data.depositRequired && (!data.depositAmount || parseFloat(data.depositAmount) <= 0)) {
+    throw new Error("Deposit amount must be greater than 0 when deposit is required");
+  }
+
   const [course] = await db
     .insert(schema.trainingCourses)
     .values(data)
@@ -359,6 +365,11 @@ export async function updateCourse(
     sortOrder: number | null;
   }>
 ) {
+  // Validate: if depositRequired, depositAmount must be > 0
+  if (data.depositRequired && (!data.depositAmount || parseFloat(data.depositAmount) <= 0)) {
+    throw new Error("Deposit amount must be greater than 0 when deposit is required");
+  }
+
   const [course] = await db
     .update(schema.trainingCourses)
     .set({ ...data, updatedAt: new Date() })
@@ -701,105 +712,110 @@ export async function createEnrollment(data: {
   paymentStatus?: string;
   notes?: string;
 }) {
-  // Validate session exists and get details including pricing
-  const [session] = await db
-    .select({
-      id: schema.trainingSessions.id,
-      status: schema.trainingSessions.status,
-      maxStudents: schema.trainingSessions.maxStudents,
-      enrolledCount: schema.trainingSessions.enrolledCount,
-      priceOverride: schema.trainingSessions.priceOverride,
-      coursePrice: schema.trainingCourses.price,
-    })
-    .from(schema.trainingSessions)
-    .leftJoin(
-      schema.trainingCourses,
-      eq(schema.trainingSessions.courseId, schema.trainingCourses.id)
-    )
-    .where(
-      and(
-        eq(schema.trainingSessions.organizationId, data.organizationId),
-        eq(schema.trainingSessions.id, data.sessionId)
+  // Wrap in transaction with FOR UPDATE to prevent TOCTOU race conditions
+  return await db.transaction(async (tx) => {
+    // Get session details with FOR UPDATE lock to serialize concurrent enrollments
+    const [session] = await tx
+      .select({
+        id: schema.trainingSessions.id,
+        status: schema.trainingSessions.status,
+        maxStudents: schema.trainingSessions.maxStudents,
+        enrolledCount: schema.trainingSessions.enrolledCount,
+        priceOverride: schema.trainingSessions.priceOverride,
+        coursePrice: schema.trainingCourses.price,
+      })
+      .from(schema.trainingSessions)
+      .leftJoin(
+        schema.trainingCourses,
+        eq(schema.trainingSessions.courseId, schema.trainingCourses.id)
       )
-    );
+      .where(
+        and(
+          eq(schema.trainingSessions.organizationId, data.organizationId),
+          eq(schema.trainingSessions.id, data.sessionId)
+        )
+      )
+      .for("update");
 
-  if (!session) {
-    throw new Error("Session not found");
-  }
-
-  // Check if session is cancelled
-  if (session.status === "cancelled") {
-    throw new Error("Cannot enroll in a cancelled session");
-  }
-
-  // Check if session is full (allow enrollments for scheduled, in_progress, and completed sessions)
-  if (session.maxStudents && session.enrolledCount >= session.maxStudents) {
-    throw new Error(`Session is full (${session.enrolledCount}/${session.maxStudents} students enrolled)`);
-  }
-
-  // SECURITY: Validate payment amount doesn't exceed session price
-  if (data.amountPaid) {
-    const amountPaid = Number(data.amountPaid);
-    const sessionPrice = Number(session.priceOverride || session.coursePrice || 0);
-
-    if (amountPaid < 0) {
-      throw new Error("Payment amount cannot be negative");
+    if (!session) {
+      throw new Error("Session not found");
     }
 
-    // Allow overpayment by max 1 cent (for rounding)
-    if (amountPaid > sessionPrice + 0.01) {
-      throw new Error(
-        `Payment amount (${amountPaid.toFixed(2)}) exceeds session price (${sessionPrice.toFixed(2)})`
+    // Check if session is cancelled
+    if (session.status === "cancelled") {
+      throw new Error("Cannot enroll in a cancelled session");
+    }
+
+    // Check if session is full (allow enrollments for scheduled, in_progress, and completed sessions)
+    if (session.maxStudents && session.enrolledCount >= session.maxStudents) {
+      throw new Error(`Session is full (${session.enrolledCount}/${session.maxStudents} students enrolled)`);
+    }
+
+    // SECURITY: Validate payment amount doesn't exceed session price
+    if (data.amountPaid) {
+      const amountPaid = Number(data.amountPaid);
+      const sessionPrice = Number(session.priceOverride || session.coursePrice || 0);
+
+      if (amountPaid < 0) {
+        throw new Error("Payment amount cannot be negative");
+      }
+
+      // Allow overpayment by max 1 cent (for rounding)
+      if (amountPaid > sessionPrice + 0.01) {
+        throw new Error(
+          `Payment amount (${amountPaid.toFixed(2)}) exceeds session price (${sessionPrice.toFixed(2)})`
+        );
+      }
+    }
+
+    // Validate customer exists
+    const [customer] = await tx
+      .select({ id: schema.customers.id })
+      .from(schema.customers)
+      .where(
+        and(
+          eq(schema.customers.organizationId, data.organizationId),
+          eq(schema.customers.id, data.customerId)
+        )
       );
+
+    if (!customer) {
+      throw new Error("Customer not found");
     }
-  }
 
-  // Validate customer exists
-  const [customer] = await db
-    .select({ id: schema.customers.id })
-    .from(schema.customers)
-    .where(
-      and(
-        eq(schema.customers.organizationId, data.organizationId),
-        eq(schema.customers.id, data.customerId)
-      )
-    );
+    // Check if customer is already enrolled in this session
+    const [existingEnrollment] = await tx
+      .select({ id: schema.trainingEnrollments.id })
+      .from(schema.trainingEnrollments)
+      .where(
+        and(
+          eq(schema.trainingEnrollments.organizationId, data.organizationId),
+          eq(schema.trainingEnrollments.sessionId, data.sessionId),
+          eq(schema.trainingEnrollments.customerId, data.customerId)
+        )
+      );
 
-  if (!customer) {
-    throw new Error("Customer not found");
-  }
+    if (existingEnrollment) {
+      throw new Error("Customer is already enrolled in this session");
+    }
 
-  // Check if customer is already enrolled in this session
-  const [existingEnrollment] = await db
-    .select({ id: schema.trainingEnrollments.id })
-    .from(schema.trainingEnrollments)
-    .where(
-      and(
-        eq(schema.trainingEnrollments.sessionId, data.sessionId),
-        eq(schema.trainingEnrollments.customerId, data.customerId)
-      )
-    );
+    // Create enrollment
+    const [enrollment] = await tx
+      .insert(schema.trainingEnrollments)
+      .values(data)
+      .returning();
 
-  if (existingEnrollment) {
-    throw new Error("Customer is already enrolled in this session");
-  }
+    // Update session enrolled count
+    await tx
+      .update(schema.trainingSessions)
+      .set({
+        enrolledCount: sql`${schema.trainingSessions.enrolledCount} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.trainingSessions.id, data.sessionId));
 
-  // Create enrollment
-  const [enrollment] = await db
-    .insert(schema.trainingEnrollments)
-    .values(data)
-    .returning();
-
-  // Update session enrolled count
-  await db
-    .update(schema.trainingSessions)
-    .set({
-      enrolledCount: sql`${schema.trainingSessions.enrolledCount} + 1`,
-      updatedAt: new Date(),
-    })
-    .where(eq(schema.trainingSessions.id, data.sessionId));
-
-  return enrollment;
+    return enrollment;
+  });
 }
 
 export async function updateEnrollment(

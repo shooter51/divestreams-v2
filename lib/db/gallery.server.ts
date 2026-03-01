@@ -4,7 +4,7 @@
  * Server-side functions for retrieving and managing gallery images and albums.
  */
 
-import { eq, and, desc, asc, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, sql, inArray, not, ilike } from "drizzle-orm";
 import { db } from "./index";
 import {
   galleryImages,
@@ -100,6 +100,7 @@ export async function getPublicGalleryImages(
       and(
         eq(galleryImages.organizationId, organizationId),
         eq(galleryImages.status, "published"),
+        not(ilike(galleryImages.title, "%test upload%")),
         albumId ? eq(galleryImages.albumId, albumId) : undefined,
         category ? eq(galleryImages.category, category) : undefined,
         featured !== undefined ? eq(galleryImages.isFeatured, featured) : undefined

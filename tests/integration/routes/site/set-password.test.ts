@@ -30,10 +30,16 @@ vi.mock("../../../../lib/db/schema", () => ({
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((a, b) => ({ type: "eq", field: a, value: b })),
+  and: vi.fn((...conditions: unknown[]) => ({ type: "and", conditions })),
 }));
 
 vi.mock("../../../../lib/auth/customer-auth.server", () => ({
   resetPassword: vi.fn(),
+}));
+
+vi.mock("../../../../lib/utils/rate-limit", () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 5, resetAt: Date.now() + 900000 }),
+  getClientIp: vi.fn().mockReturnValue("127.0.0.1"),
 }));
 
 import { db } from "../../../../lib/db";
@@ -170,8 +176,8 @@ describe("site/set-password route", () => {
 
       const formData = new FormData();
       formData.set("token", "valid-token");
-      formData.set("password", "validpassword123");
-      formData.set("confirmPassword", "different123");
+      formData.set("password", "ValidPassword123");
+      formData.set("confirmPassword", "DifferentPass123");
 
       const request = new Request("https://demo.divestreams.com/site/set-password", {
         method: "POST",
@@ -193,8 +199,8 @@ describe("site/set-password route", () => {
 
       const formData = new FormData();
       formData.set("token", "valid-token");
-      formData.set("password", "newpassword123");
-      formData.set("confirmPassword", "newpassword123");
+      formData.set("password", "NewPassword123");
+      formData.set("confirmPassword", "NewPassword123");
 
       const request = new Request("https://demo.divestreams.com/site/set-password", {
         method: "POST",
@@ -223,8 +229,8 @@ describe("site/set-password route", () => {
       (db.limit as Mock).mockResolvedValue([mockOrg]);
 
       const formData = new FormData();
-      formData.set("password", "newpassword123");
-      formData.set("confirmPassword", "newpassword123");
+      formData.set("password", "NewPassword123");
+      formData.set("confirmPassword", "NewPassword123");
 
       const request = new Request("https://demo.divestreams.com/site/set-password", {
         method: "POST",

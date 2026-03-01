@@ -484,7 +484,15 @@ export async function findQuickBooksCustomer(
   orgId: string,
   email: string
 ): Promise<QBCustomer | null> {
-  const query = `SELECT * FROM Customer WHERE PrimaryEmailAddr = '${email.replace(/'/g, "\\'")}'`;
+  // Validate email format before using in QB query
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return null;
+  }
+  // Sanitize: strip control chars, escape single quotes for QB query language
+  // eslint-disable-next-line no-control-regex
+  const sanitizedEmail = email.replace(/[\r\n\t\x00-\x1f]/g, "").replace(/'/g, "\\'");
+  const query = `SELECT * FROM Customer WHERE PrimaryEmailAddr = '${sanitizedEmail}'`;
   const result = await quickBooksRequest<{
     QueryResponse: { Customer?: QBCustomer[] };
   }>(orgId, `/query?query=${encodeURIComponent(query)}`);

@@ -10,7 +10,10 @@ import * as emailTriggers from "../../../../../lib/email/triggers";
 vi.mock("../../../../../lib/auth/org-context.server");
 vi.mock("../../../../../lib/db/queries.server");
 vi.mock("../../../../../lib/validation");
-vi.mock("../../../../../lib/email/triggers");
+vi.mock("../../../../../lib/email/triggers", () => ({
+  triggerBookingConfirmation: vi.fn(),
+  getNotificationSettings: vi.fn(() => ({ emailBookingConfirmation: true })),
+}));
 
 describe("app/routes/tenant/bookings/new.tsx", () => {
   const mockOrganizationId = "org-123";
