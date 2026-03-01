@@ -303,13 +303,6 @@ export default function DiscountsPage() {
     }
   }, [fetcherData, showToast]);
 
-  // Close modal on successful create/update/delete
-  useEffect(() => {
-    if (fetcherData?.success) {
-      setShowForm(false);
-      setEditingDiscount(null);
-    }
-  }, [fetcherData?.success]);
 
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {
@@ -335,6 +328,7 @@ export default function DiscountsPage() {
           <p className="text-foreground-muted">Create and manage discount codes for bookings</p>
         </div>
         <button
+          type="button"
           onClick={() => {
             setEditingDiscount(null);
             setDiscountType("percentage");
@@ -412,6 +406,7 @@ export default function DiscountsPage() {
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
+                            type="button"
                             onClick={() => {
                               const disc = discount as DiscountCode;
                               setEditingDiscount(disc);
@@ -446,6 +441,7 @@ export default function DiscountsPage() {
           <div className="bg-surface-inset rounded-lg p-8 text-center">
             <p className="text-foreground-muted mb-4">No active discount codes.</p>
             <button
+              type="button"
               onClick={() => {
                 setDiscountType("percentage");
                 setShowForm(true);
@@ -516,6 +512,7 @@ export default function DiscountsPage() {
                             </fetcher.Form>
                           )}
                           <button
+                            type="button"
                             onClick={() => {
                               const disc = discount as DiscountCode;
                               setEditingDiscount(disc);
@@ -717,29 +714,28 @@ export default function DiscountsPage() {
                     {isSubmitting ? "Saving..." : editingDiscount ? "Update" : "Create"}
                   </button>
                 </div>
-
-                {editingDiscount && (
-                  <div className="pt-4 border-t">
-                    <fetcher.Form method="post">
-                      <CsrfInput />
-                      <input type="hidden" name="intent" value="delete" />
-                      <input type="hidden" name="id" value={editingDiscount.id} />
-                      <button
-                        type="submit"
-                        onClick={(e) => {
-                          if (!confirm("Delete this discount code? This cannot be undone.")) {
-                            e.preventDefault();
-                          }
-                          // Don't close modal here - let useEffect handle it after success
-                        }}
-                        className="w-full py-2 text-danger hover:bg-danger-muted rounded-lg text-sm"
-                      >
-                        Delete Discount Code
-                      </button>
-                    </fetcher.Form>
-                  </div>
-                )}
               </fetcher.Form>
+
+              {editingDiscount && (
+                <div className="pt-4 border-t">
+                  <fetcher.Form method="post">
+                    <CsrfInput />
+                    <input type="hidden" name="intent" value="delete" />
+                    <input type="hidden" name="id" value={editingDiscount.id} />
+                    <button
+                      type="submit"
+                      onClick={(e) => {
+                        if (!confirm("Delete this discount code? This cannot be undone.")) {
+                          e.preventDefault();
+                        }
+                      }}
+                      className="w-full py-2 text-danger hover:bg-danger-muted rounded-lg text-sm"
+                    >
+                      Delete Discount Code
+                    </button>
+                  </fetcher.Form>
+                </div>
+              )}
             </div>
           </div>
         </div>

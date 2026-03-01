@@ -10,15 +10,6 @@ import { action } from "../../../../../app/routes/tenant/gallery/upload";
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(() =>
     Promise.resolve({
-      org: { id: "test-org-id", name: "Test Org", subdomain: "test" },
-      canAddCustomer: true,
-      usage: { customers: 0 },
-      limits: { customers: 100 },
-      isPremium: false,
-    })
-  ),
-  requireOrgContext: vi.fn(() =>
-    Promise.resolve({
       user: { id: "user-1", name: "Test User", email: "test@example.com" },
       org: { id: "test-org-id", name: "Test Org", slug: "test" },
       membership: { role: "owner" },
