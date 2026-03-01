@@ -2,7 +2,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useFetcher, Link, redirect, useSearchParams } from "react-router";
 import { useState, useEffect } from "react";
 // Server-only imports for loader/action
-import { requireOrgContext, getSubdomainFromRequest } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, getSubdomainFromRequest, requireRole} from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES, FEATURE_UPGRADE_INFO, type PlanFeaturesObject } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
@@ -133,6 +133,7 @@ const availableIntegrations = [
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_INTEGRATIONS);
   const subdomain = getSubdomainFromRequest(request);
 
@@ -277,6 +278,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
 

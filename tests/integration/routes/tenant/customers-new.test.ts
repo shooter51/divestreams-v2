@@ -26,6 +26,7 @@ vi.mock("react-router", async () => {
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   requireTenant: vi.fn(),
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../lib/db/queries.server", () => ({

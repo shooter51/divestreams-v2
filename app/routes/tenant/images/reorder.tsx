@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, inArray } from "drizzle-orm";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
 
 interface ReorderItem {
@@ -23,6 +23,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const ctx = await requireOrgContext(request);
+    requireRole(ctx, ["owner", "admin"]);
 
     const body = await request.json();
     const { entityType, entityId, images } = body as {

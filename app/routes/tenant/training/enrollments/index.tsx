@@ -67,6 +67,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+const enrollmentStatusLabels: Record<string, string> = {
+  enrolled: "Enrolled",
+  in_progress: "In Progress",
+  completed: "Completed",
+  dropped: "Dropped",
+  failed: "Failed",
+};
+
+const paymentStatusLabels: Record<string, string> = {
+  pending: "Pending",
+  partial: "Partial",
+  paid: "Paid",
+  refunded: "Refunded",
+};
+
 const statusColors: Record<string, string> = {
   enrolled: "bg-brand-muted text-brand",
   in_progress: "bg-warning-muted text-warning",
@@ -264,7 +279,7 @@ export default function EnrollmentsPage() {
                         "bg-surface-inset text-foreground"
                       }`}
                     >
-                      {enrollment.status.replace("_", " ")}
+                      {enrollmentStatusLabels[enrollment.status] || enrollment.status}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -274,7 +289,7 @@ export default function EnrollmentsPage() {
                         "bg-surface-inset text-foreground"
                       }`}
                     >
-                      {enrollment.paymentStatus || "pending"}
+                      {paymentStatusLabels[enrollment.paymentStatus || "pending"] || enrollment.paymentStatus || "Pending"}
                     </span>
                     <p className="text-xs text-foreground-muted mt-1">
                       ${enrollment.amountPaid} paid

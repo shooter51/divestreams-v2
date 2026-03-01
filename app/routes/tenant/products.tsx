@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Form } from "react-router";
 import { getTenantDb } from "../../../lib/db/tenant.server";
-import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db/index";
 import { eq, and } from "drizzle-orm";
 import { BarcodeScannerModal } from "../../components/BarcodeScannerModal";
@@ -19,6 +19,7 @@ export const meta: MetaFunction = () => [{ title: "Products - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Products are part of POS functionality - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
@@ -71,6 +72,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Products are part of POS functionality - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);

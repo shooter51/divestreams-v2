@@ -10,13 +10,14 @@
 
 import type { LoaderFunctionArgs } from "react-router";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { bookings, customers, trips, tours } from "../../../../lib/db/schema";
 import { eq, gte, and, sql, count, desc } from "drizzle-orm";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Parse date range from query params
   const url = new URL(request.url);

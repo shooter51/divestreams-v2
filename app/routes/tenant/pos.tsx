@@ -8,7 +8,7 @@ import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { z } from "zod";
-import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { getTenantDb } from "../../../lib/db/tenant.server";
@@ -55,6 +55,7 @@ export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" 
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
   const tenant = {
     id: ctx.org.id,
@@ -121,6 +122,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const tenant = {
     id: ctx.org.id,
     subdomain: ctx.org.slug,

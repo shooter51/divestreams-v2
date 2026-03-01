@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { useOutletContext, useFetcher } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
@@ -18,6 +18,7 @@ type OutletContextType = {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
 

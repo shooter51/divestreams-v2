@@ -6,6 +6,7 @@ import { loader, action } from "../../../../app/routes/tenant/pos";
 // Mock the org-context module
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 // Mock the main database module

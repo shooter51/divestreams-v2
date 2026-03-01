@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { useOutletContext, useFetcher } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
 import { sanitizeIframeEmbed } from "../../../../lib/security/sanitize";
@@ -13,6 +13,7 @@ type OutletContextType = {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
@@ -22,12 +23,13 @@ export async function action({ request }: ActionFunctionArgs) {
     const heroVideoUrl = (formData.get("heroVideoUrl") as string) || null;
     const logoUrl = (formData.get("logoUrl") as string) || null;
 
+    const rawMapEmbed = (formData.get("mapEmbed") as string) || null;
     const contactInfo = {
       address: (formData.get("contactAddress") as string) || null,
       phone: (formData.get("contactPhone") as string) || null,
       email: (formData.get("contactEmail") as string) || null,
       hours: (formData.get("contactHours") as string) || null,
-      mapEmbed: (formData.get("mapEmbed") as string) || null,
+      mapEmbed: rawMapEmbed ? sanitizeIframeEmbed(rawMapEmbed) : null,
     };
 
     await updatePublicSiteSettings(ctx.org.id, {

@@ -1,7 +1,7 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData, useSearchParams } from "react-router";
 import { useState, useEffect } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { tripSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getTours, getBoats, getStaff, createTrip } from "../../../../lib/db/queries.server";
 import { createRecurringTrip, type RecurrencePattern } from "../../../../lib/trips/recurring.server";
@@ -86,6 +86,7 @@ export const meta: MetaFunction = () => [{ title: "Schedule Trip - DiveStreams" 
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const url = new URL(request.url);
   const tourId = url.searchParams.get("tourId");
@@ -125,6 +126,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
 

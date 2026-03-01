@@ -1,12 +1,13 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Form, useActionData, useNavigation } from "react-router";
 import React, { useState } from "react";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getAgencies, createAgency, createCourse } from "../../../../../lib/db/training.server";
 import { getGlobalAgencyCourseTemplates, getAvailableAgencies } from "../../../../../lib/db/training-templates.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Get all available agencies from global templates
   const agencies = await getAvailableAgencies();
@@ -16,6 +17,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const orgContext = await requireOrgContext(request);
+  requireRole(orgContext, ["owner", "admin"]);
 
   const formData = await request.formData();
   const step = formData.get("step") as string;

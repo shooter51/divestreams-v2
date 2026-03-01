@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { organization } from "../../../../lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -31,6 +31,7 @@ const defaultSettings: WidgetSettings = {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Parse widget settings from org metadata
   let metadata: { widget?: Partial<WidgetSettings>; branding?: { primaryColor?: string } } = {};
@@ -62,6 +63,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
 
   // Parse existing metadata

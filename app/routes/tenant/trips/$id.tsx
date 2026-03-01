@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getTripWithFullDetails,
   getTripBookings,
@@ -10,7 +10,7 @@ import {
   updateTripStatus,
 } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
-import { customerCommunications, trips } from "../../../../lib/db/schema";
+import { customerCommunications, trips, bookings as bookingsTable, customers as customersTable } from "../../../../lib/db/schema";
 import { eq, and, or } from "drizzle-orm";
 import {
   getRecurringSeriesInstances,
@@ -107,6 +107,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -134,36 +135,47 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "send-bulk-email") {
     const subject = formData.get("subject") as string;
     const body = formData.get("body") as string;
-    const customerDataRaw = formData.get("customers") as string;
 
     if (!subject || !body) {
       return { error: "Subject and message are required" };
     }
 
-    let customers: Array<{ id: string; email: string; firstName: string; lastName: string }> = [];
-    try {
-      customers = JSON.parse(customerDataRaw);
-    } catch {
-      return { error: "Invalid customer data" };
-    }
+    // Fetch actual trip participants from DB — never trust client-supplied customer IDs
+    const tripPassengers = await db
+      .select({
+        customerId: bookingsTable.customerId,
+        customerEmail: customersTable.email,
+      })
+      .from(bookingsTable)
+      .innerJoin(customersTable, eq(bookingsTable.customerId, customersTable.id))
+      .where(
+        and(
+          eq(bookingsTable.tripId, tripId),
+          eq(bookingsTable.organizationId, organizationId),
+          or(
+            eq(bookingsTable.status, "confirmed"),
+            eq(bookingsTable.status, "pending")
+          )
+        )
+      );
 
-    if (customers.length === 0) {
+    if (tripPassengers.length === 0) {
       return { error: "No passengers to email" };
     }
 
-    // Log communications for each customer
+    // Log communications for each verified participant
     let sentCount = 0;
-    for (const customer of customers) {
+    for (const passenger of tripPassengers) {
       try {
         await db.insert(customerCommunications).values({
           organizationId,
-          customerId: customer.id,
+          customerId: passenger.customerId,
           type: "email",
           subject,
           body,
           status: "sent",
           sentAt: new Date(),
-          emailTo: customer.email,
+          emailTo: passenger.customerEmail,
           metadata: { tripId },
         });
         sentCount++;

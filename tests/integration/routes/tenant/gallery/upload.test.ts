@@ -14,6 +14,15 @@ vi.mock("../../../../../lib/auth/org-context.server", () => ({
       organizationId: "test-org-id",
     })
   ),
+  requireOrgContext: vi.fn(() =>
+    Promise.resolve({
+      user: { id: "user-1", name: "Test User", email: "test@example.com" },
+      org: { id: "test-org-id", name: "Test Org", slug: "test" },
+      membership: { role: "owner" },
+      subscription: null,
+    })
+  ),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/storage", () => ({

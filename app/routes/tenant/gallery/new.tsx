@@ -1,17 +1,19 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { createGalleryAlbum } from "../../../../lib/db/gallery.server";
 
 export const meta: MetaFunction = () => [{ title: "New Album - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
 
   const name = formData.get("name") as string;

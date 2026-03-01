@@ -9,6 +9,7 @@ import type { Mock } from "vitest";
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
   getSubdomainFromRequest: vi.fn().mockReturnValue("demo"),
 }));
 

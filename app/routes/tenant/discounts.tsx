@@ -7,7 +7,7 @@
 import { useState, useEffect } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, redirect } from "react-router";
-import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { db } from "../../../lib/db";
 import { discountCodes } from "../../../lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -20,6 +20,7 @@ export const meta: MetaFunction = () => [{ title: "Discount Codes - DiveStreams"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Discount codes are used in POS - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
@@ -38,6 +39,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
 
   // Discount codes are used in POS - require POS feature
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);

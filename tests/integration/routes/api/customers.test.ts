@@ -15,7 +15,8 @@ import {
 
 // Mock org context
 vi.mock("../../../../lib/auth/org-context.server", () => ({
-  requireOrgContext: vi.fn().mockResolvedValue({
+  requireOrgContext: vi.fn(),
+  requireRole: vi.fn().mockResolvedValue({
     user: { id: "test-user", email: "test@test.com" },
     org: { id: "test-org", slug: "test-org", name: "Test Org" },
     membership: { role: "owner" },

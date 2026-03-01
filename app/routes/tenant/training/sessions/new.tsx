@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getCourseById, getCourses, createSession } from "../../../../../lib/db/training.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
 
@@ -8,6 +8,7 @@ export const meta: MetaFunction = () => [{ title: "Schedule Session - DiveStream
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const url = new URL(request.url);
   const courseId = url.searchParams.get("courseId");
 
@@ -25,6 +26,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
 
   const courseId = formData.get("courseId") as string;

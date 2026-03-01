@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useActionData, useNavigation, Link } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireOrgContext } from "../../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../../lib/auth/org-context.server";
 import {
   getCourseById,
   getAgencies,
@@ -16,6 +16,7 @@ export const meta: MetaFunction = () => [{ title: "Edit Course - DiveStreams" }]
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const courseId = params.id;
 
   if (!courseId) {
@@ -72,6 +73,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const courseId = params.id;
 
   if (!courseId) {

@@ -128,6 +128,7 @@ const categoryLabels: Record<string, string> = {
   fins: "Fins",
   tank: "Tank",
   computer: "Dive Computer",
+  torch: "Torch/Light",
   other: "Other",
 };
 

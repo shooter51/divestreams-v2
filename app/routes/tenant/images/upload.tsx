@@ -7,7 +7,7 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { eq, and, count } from "drizzle-orm";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { uploadToB2, getImageKey, getWebPMimeType } from "../../../../lib/storage";
 import { processImage, isValidImageType } from "../../../../lib/storage";
 import { getTenantDb } from "../../../../lib/db/tenant.server";
@@ -23,6 +23,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const ctx = await requireOrgContext(request);
+    requireRole(ctx, ["owner", "admin"]);
     const organizationId = ctx.org.id;
 
     const formData = await request.formData();

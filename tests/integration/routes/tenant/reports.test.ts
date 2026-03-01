@@ -10,6 +10,7 @@ import { getRedirectPathname } from "../../../helpers/redirect";
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";

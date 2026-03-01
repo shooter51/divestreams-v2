@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { equipmentSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createEquipment } from "../../../../lib/db/queries.server";
 import { BarcodeScannerModal } from "../../../components/BarcodeScannerModal";
@@ -10,12 +10,14 @@ import { redirectWithNotification } from "../../../../lib/use-notification";
 export const meta: MetaFunction = () => [{ title: "Add Equipment - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
 

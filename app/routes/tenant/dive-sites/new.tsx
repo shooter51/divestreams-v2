@@ -1,6 +1,6 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { diveSiteSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { createDiveSite } from "../../../../lib/db/queries.server";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
@@ -10,12 +10,14 @@ import { getTenantDb } from "../../../../lib/db/tenant.server";
 export const meta: MetaFunction = () => [{ title: "Add Dive Site - DiveStreams" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   return {};
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
 
