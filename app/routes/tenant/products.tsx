@@ -1447,6 +1447,7 @@ export default function ProductsPage() {
             </h2>
 
             <form onSubmit={handleBulkUpdate} className="space-y-4">
+              <CsrfInput />
               <div>
                 <label className="block text-sm font-medium mb-2">Update Type</label>
                 <div className="flex gap-4">

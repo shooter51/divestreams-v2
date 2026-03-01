@@ -140,14 +140,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
 
   // Check for customer session
   const cookieHeader = request.headers.get("Cookie") || "";
-  const cookies = Object.fromEntries(
-    cookieHeader.split("; ").filter(Boolean).map((c) => {
-      const [key, ...rest] = c.split("=");
-      return [key, rest.join("=")];
-    })
-  );
-
-  const sessionToken = cookies["customer_session"];
+  const sessionToken = parseCookieValue(cookieHeader, "customer_session");
   let customer: Customer | null = null;
 
   if (sessionToken) {
@@ -168,6 +161,25 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<SiteLoade
     contactInfo: settings.contactInfo,
     customer,
   };
+}
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+/**
+ * Parse a specific cookie value from a Cookie header string.
+ * Handles both "; " and ";" separators for maximum compatibility.
+ */
+function parseCookieValue(cookieHeader: string, name: string): string | null {
+  const cookies = cookieHeader.split(";").map((c) => c.trim());
+  for (const cookie of cookies) {
+    const [key, ...rest] = cookie.split("=");
+    if (key === name) {
+      return rest.join("=");
+    }
+  }
+  return null;
 }
 
 // ============================================================================
