@@ -45,27 +45,22 @@ describe("Health API", () => {
       expect(data.status).toBe("ok");
     });
 
-    it("returns timestamp", async () => {
+    it("does not expose timestamp (security hardening)", async () => {
       const request = new Request("http://localhost:3000/api/health");
-      const before = new Date().toISOString();
       const response = await loader({ request, params: {}, context: {} });
-      const after = new Date().toISOString();
 
       const data = await response.json();
 
-      expect(data.timestamp).toBeDefined();
-      expect(data.timestamp >= before).toBe(true);
-      expect(data.timestamp <= after).toBe(true);
+      expect(data.timestamp).toBeUndefined();
     });
 
-    it("returns version", async () => {
+    it("does not expose version (security hardening)", async () => {
       const request = new Request("http://localhost:3000/api/health");
       const response = await loader({ request, params: {}, context: {} });
 
       const data = await response.json();
 
-      expect(data.version).toBeDefined();
-      expect(typeof data.version).toBe("string");
+      expect(data.version).toBeUndefined();
     });
 
     it("returns JSON content type", async () => {
