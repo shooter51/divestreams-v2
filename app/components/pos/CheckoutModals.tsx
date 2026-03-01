@@ -90,11 +90,11 @@ export function CardModal({
     // Get colors from CSS variables
     const computedStyle = getComputedStyle(document.documentElement);
     const foreground = computedStyle.getPropertyValue("--foreground").trim() ||
-      computedStyle.getPropertyValue("color") || "#1F2937";  // Fallback to body color or default
+      computedStyle.getPropertyValue("color") || "var(--foreground)";  // Fallback to body color or default
     const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() ||
-      "#6B7280";  // Gray-500 fallback
+      "var(--foreground-muted)";  // Muted text fallback
     const danger = computedStyle.getPropertyValue("--danger").trim() ||
-      "#DC2626";  // Red-600 fallback
+      "var(--danger)";  // Error color fallback
 
     const elements = stripe.elements();
     const card = elements.create("card", {
@@ -620,11 +620,11 @@ export function SplitModal({
 
     const computedStyle = getComputedStyle(document.documentElement);
     const foreground = computedStyle.getPropertyValue("--foreground").trim() ||
-      computedStyle.getPropertyValue("color") || "#1F2937";  // Fallback to body color or default
+      computedStyle.getPropertyValue("color") || "var(--foreground)";  // Fallback to body color or default
     const foregroundMuted = computedStyle.getPropertyValue("--foreground-muted").trim() ||
-      "#6B7280";  // Gray-500 fallback
+      "var(--foreground-muted)";  // Muted text fallback
     const danger = computedStyle.getPropertyValue("--danger").trim() ||
-      "#DC2626";  // Red-600 fallback
+      "var(--danger)";  // Error color fallback
 
     const elements = stripe.elements();
     const card = elements.create("card", {

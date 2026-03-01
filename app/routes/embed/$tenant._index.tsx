@@ -191,7 +191,7 @@ function TourCard({
 
 // Default widget settings (fallback if not provided)
 const defaultWidgetSettings: WidgetSettings = {
-  primaryColor: "#2563eb",
+  primaryColor: "var(--info)",
   buttonText: "Book Now",
   showPrices: true,
   showAvailability: true,

@@ -20,7 +20,7 @@ type WidgetSettings = {
 };
 
 const defaultSettings: WidgetSettings = {
-  primaryColor: "#2563eb",
+  primaryColor: "var(--info)",
   buttonText: "Book Now",
   showPrices: true,
   showAvailability: true,

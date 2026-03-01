@@ -25,7 +25,7 @@ type WidgetSettings = {
 };
 
 const defaultWidgetSettings: WidgetSettings = {
-  primaryColor: "#2563eb",
+  primaryColor: "var(--info)",
   buttonText: "Book Now",
   showPrices: true,
   showAvailability: true,
@@ -81,7 +81,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     },
     branding: {
       primaryColor: widgetSettings.primaryColor,
-      secondaryColor: branding.secondaryColor || "#f0f9ff",
+      secondaryColor: branding.secondaryColor || "var(--surface-inset)",
       logo: branding.logo,
     },
     widgetSettings,

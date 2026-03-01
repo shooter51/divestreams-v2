@@ -84,7 +84,7 @@ describe("tenant/settings/booking-widget route", () => {
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       expect(result.settings).toEqual({
-        primaryColor: "#2563eb",
+        primaryColor: "var(--info)",
         buttonText: "Book Now",
         showPrices: true,
         showAvailability: true,
@@ -132,7 +132,7 @@ describe("tenant/settings/booking-widget route", () => {
       const result = await loader({ request, params: {}, context: {} } as Parameters<typeof loader>[0]);
 
       // Should fall back to defaults
-      expect(result.settings.primaryColor).toBe("#2563eb");
+      expect(result.settings.primaryColor).toBe("var(--info)");
     });
 
     it("uses branding color as fallback for widget color", async () => {
