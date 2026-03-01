@@ -227,7 +227,7 @@ function TripCard({
         <div
           className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold"
           style={{
-            backgroundColor: "rgba(255,255,255,0.9)",
+            backgroundColor: "var(--surface-inset)",
             color: "var(--primary-color)",
           }}
         >
@@ -302,7 +302,7 @@ function CourseCard({
           <div
             className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold"
             style={{
-              backgroundColor: "rgba(255,255,255,0.9)",
+              backgroundColor: "var(--surface-inset)",
               color: "var(--primary-color)",
             }}
           >
@@ -384,7 +384,7 @@ export default function SiteHomePage() {
           </h1>
           <p
             className="mt-4 text-lg sm:text-xl lg:text-2xl max-w-2xl mx-auto"
-            style={{ color: "rgba(255,255,255,0.9)" }}
+            style={{ color: "white" }}
           >
             Discover amazing underwater adventures and dive experiences
           </p>

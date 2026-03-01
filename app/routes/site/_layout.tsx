@@ -477,7 +477,7 @@ export function ErrorBoundary() {
               : "Something Went Wrong"
             : "Unexpected Error"}
         </h2>
-        <p className="text-gray-600 mb-8">
+        <p className="mb-8" style={{ color: "var(--foreground-muted)" }}>
           {isRouteError
             ? error.status === 404
               ? "The page you're looking for doesn't exist or has been moved."
@@ -494,7 +494,8 @@ export function ErrorBoundary() {
           </Link>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-white text-gray-700 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 rounded-lg font-medium border transition-colors"
+            style={{ backgroundColor: "var(--surface-inset)", color: "var(--foreground-muted)", borderColor: "var(--border)" }}
           >
             Try Again
           </button>
