@@ -107,6 +107,17 @@ export async function action({ request }: ActionFunctionArgs) {
   let userId: string;
 
   if (existingUserId) {
+    // Verify the existing user's email matches the invitation
+    const [existingUser] = await db
+      .select({ id: user.id, email: user.email })
+      .from(user)
+      .where(eq(user.id, existingUserId))
+      .limit(1);
+
+    if (!existingUser || existingUser.email.toLowerCase() !== invite.email.toLowerCase()) {
+      return { error: "This invitation was sent to a different email address" };
+    }
+
     // User already exists, just add them as a member
     userId = existingUserId;
   } else {

@@ -274,6 +274,20 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: "Invalid role" };
     }
 
+    // Fetch target member to prevent demoting owners
+    const [targetMember] = await db
+      .select({ role: member.role })
+      .from(member)
+      .where(and(eq(member.userId, userId), eq(member.organizationId, ctx.org.id)))
+      .limit(1);
+
+    if (!targetMember) {
+      return { error: "User not found" };
+    }
+    if (targetMember.role === "owner") {
+      return { error: "Cannot change the role of an owner" };
+    }
+
     await db
       .update(member)
       .set({ role })
@@ -298,6 +312,20 @@ export async function action({ request }: ActionFunctionArgs) {
     // Prevent users from removing themselves
     if (userId === ctx.user.id) {
       return { error: "You cannot modify your own role" };
+    }
+
+    // Prevent removing owners
+    const [targetMember] = await db
+      .select({ role: member.role })
+      .from(member)
+      .where(and(eq(member.userId, userId), eq(member.organizationId, ctx.org.id)))
+      .limit(1);
+
+    if (!targetMember) {
+      return { error: "User not found" };
+    }
+    if (targetMember.role === "owner") {
+      return { error: "Cannot remove the owner from the team" };
     }
 
     await db.delete(member).where(

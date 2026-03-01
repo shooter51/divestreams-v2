@@ -615,10 +615,20 @@ export async function action({
 
     if (trainingSession) {
       // This is a training course - use enrollment flow
-      // Find or create customer
-      let enrollCustomerId = customerId;
+      // Find or create customer — verify any supplied customerId belongs to this org
+      let enrollCustomerId: string;
 
-      if (!customerId) {
+      if (customerId) {
+        const [verifiedCustomer] = await db
+          .select({ id: customers.id })
+          .from(customers)
+          .where(and(eq(customers.id, customerId), eq(customers.organizationId, org.id)))
+          .limit(1);
+        if (!verifiedCustomer) {
+          return { errors: { _form: "Invalid customer" } };
+        }
+        enrollCustomerId = verifiedCustomer.id;
+      } else {
         const [existingCustomer] = await db
           .select({ id: customers.id })
           .from(customers)
@@ -724,14 +734,14 @@ export async function action({
         enrollmentIds.push(enrollment.id);
       }
 
-      // Update enrolled count on session
+      // Update enrolled count on session — scoped to org to prevent cross-tenant tampering
       await db
         .update(trainingSessions)
         .set({
           enrolledCount: sql`${trainingSessions.enrolledCount} + ${participants}`,
           updatedAt: new Date(),
         })
-        .where(eq(trainingSessions.id, sessionId));
+        .where(and(eq(trainingSessions.id, sessionId), eq(trainingSessions.organizationId, org.id)));
 
       // Generate a booking reference for the confirmation page
       const bookingRef = generateBookingNumber();
@@ -778,9 +788,20 @@ export async function action({
 
   // Find or create customer (outside the booking transaction to avoid
   // holding the trip row lock longer than necessary)
-  let finalCustomerId = customerId;
+  let finalCustomerId: string;
 
-  if (!customerId) {
+  if (customerId) {
+    // Verify supplied customerId belongs to this org to prevent IDOR
+    const [verifiedCustomer] = await db
+      .select({ id: customers.id })
+      .from(customers)
+      .where(and(eq(customers.id, customerId), eq(customers.organizationId, org.id)))
+      .limit(1);
+    if (!verifiedCustomer) {
+      return { errors: { _form: "Invalid customer" } };
+    }
+    finalCustomerId = verifiedCustomer.id;
+  } else {
     // Check if customer already exists
     const [existingCustomer] = await db
       .select({ id: customers.id })

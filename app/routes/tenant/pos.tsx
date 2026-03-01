@@ -8,6 +8,7 @@ import { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { z } from "zod";
+import { checkoutSchema } from "../../../lib/validation/pos";
 import { requireOrgContext } from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
@@ -279,7 +280,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "checkout") {
     try {
-      const data = JSON.parse(formData.get("data") as string);
+      const rawData = JSON.parse(formData.get("data") as string);
+      const data = checkoutSchema.parse(rawData);
 
       // Get the actual user ID from the authenticated session
       const userId = ctx.user.id;

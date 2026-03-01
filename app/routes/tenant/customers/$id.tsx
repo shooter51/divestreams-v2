@@ -103,11 +103,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "send-email") {
     const subject = formData.get("subject") as string;
     const body = formData.get("body") as string;
-    const customerEmail = formData.get("customerEmail") as string;
 
     if (!subject || !body) {
       return { error: "Subject and body are required" };
     }
+
+    // Fetch customer email from DB — never trust client-supplied email address
+    const customerData = await getCustomerById(organizationId, customerId);
+    if (!customerData?.email) {
+      return { error: "Customer email not found" };
+    }
+    const customerEmail = customerData.email;
 
     // Actually send the email via SMTP [KAN-607 FIX]
     try {

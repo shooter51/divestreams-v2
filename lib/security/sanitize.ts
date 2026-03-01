@@ -74,8 +74,20 @@ export function sanitizeIframeEmbed(html: string): string {
     return ""; // Must use HTTPS
   }
 
-  // Validate src is from an allowed domain
-  const isAllowed = allowedDomains.some((domain) => src.includes(domain));
+  // Validate src is from an allowed domain — check hostname + path prefix, not substring
+  let parsedSrc: URL;
+  try {
+    parsedSrc = new URL(src);
+  } catch {
+    return ""; // Invalid URL
+  }
+  const isAllowed = allowedDomains.some((domain) => {
+    const [allowedHost, allowedPath] = domain.split("/");
+    if (parsedSrc.hostname !== allowedHost && !parsedSrc.hostname.endsWith("." + allowedHost)) {
+      return false;
+    }
+    return allowedPath ? parsedSrc.pathname.startsWith("/" + allowedPath) : true;
+  });
 
   if (!isAllowed) {
     return ""; // Domain not in whitelist
