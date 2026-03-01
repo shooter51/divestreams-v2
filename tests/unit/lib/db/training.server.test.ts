@@ -37,6 +37,11 @@ const createDbMock = () => {
   chain.offset = vi.fn(() => chain);
   chain.returning = vi.fn(() => Promise.resolve([{ id: "new-id" }]));
 
+  // Transaction support - execute callback with same chain as tx
+  chain.transaction = vi.fn(async (callback: any) => callback(chain));
+  // Raw SQL execute support (FOR UPDATE locks)
+  chain.execute = vi.fn(async () => []);
+
   return chain;
 };
 

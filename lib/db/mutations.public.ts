@@ -43,67 +43,70 @@ export async function createWidgetBooking(
   organizationId: string,
   input: CreateWidgetBookingInput
 ): Promise<WidgetBookingResult> {
-  // Get trip details and verify availability
-  const tripData = await db
-    .select({
-      id: schema.trips.id,
-      tourId: schema.trips.tourId,
-      tripMaxParticipants: schema.trips.maxParticipants,
-      tourMaxParticipants: schema.tours.maxParticipants,
-      tripPrice: schema.trips.price,
-      tourPrice: schema.tours.price,
-      currency: schema.tours.currency,
-      date: schema.trips.date,
-      status: schema.trips.status,
-    })
-    .from(schema.trips)
-    .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
-    .where(
-      and(
-        eq(schema.trips.organizationId, organizationId),
-        eq(schema.trips.id, input.tripId),
-        eq(schema.trips.status, "scheduled"),
-        eq(schema.tours.isActive, true)
-      )
-    )
-    .limit(1);
-
-  if (tripData.length === 0) {
-    throw new Error("Trip not found or not available");
-  }
-
-  const trip = tripData[0];
-
-  // Get current booking count for the trip
-  const bookingCount = await db
-    .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
-    .from(schema.bookings)
-    .where(
-      and(
-        eq(schema.bookings.tripId, input.tripId),
-        sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
-      )
-    );
-
-  const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
-  const bookedParticipants = Number(bookingCount[0]?.total || 0);
-  const availableSpots = maxParticipants - bookedParticipants;
-
-  if (input.participants > availableSpots) {
-    throw new Error(`Only ${availableSpots} spots available`);
-  }
-
-  // Check if trip is in the future
-  const tripDate = new Date(trip.date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  if (tripDate < today) {
-    throw new Error("Cannot book past trips");
-  }
-
-  // Wrap find-or-create customer + create booking in a transaction for atomicity
+  // Wrap entire availability check + booking in a transaction to prevent TOCTOU race conditions
   return await db.transaction(async (tx) => {
+    // Lock the trip row to serialize concurrent bookings
+    await tx.execute(sql`SELECT id FROM trips WHERE id = ${input.tripId} FOR UPDATE`);
+
+    // Get trip details and verify availability (inside transaction, after lock)
+    const tripData = await tx
+      .select({
+        id: schema.trips.id,
+        tourId: schema.trips.tourId,
+        tripMaxParticipants: schema.trips.maxParticipants,
+        tourMaxParticipants: schema.tours.maxParticipants,
+        tripPrice: schema.trips.price,
+        tourPrice: schema.tours.price,
+        currency: schema.tours.currency,
+        date: schema.trips.date,
+        status: schema.trips.status,
+      })
+      .from(schema.trips)
+      .innerJoin(schema.tours, eq(schema.trips.tourId, schema.tours.id))
+      .where(
+        and(
+          eq(schema.trips.organizationId, organizationId),
+          eq(schema.trips.id, input.tripId),
+          eq(schema.trips.status, "scheduled"),
+          eq(schema.tours.isActive, true)
+        )
+      )
+      .limit(1);
+
+    if (tripData.length === 0) {
+      throw new Error("Trip not found or not available");
+    }
+
+    const trip = tripData[0];
+
+    // Get current booking count for the trip
+    const bookingCount = await tx
+      .select({ total: sql<number>`COALESCE(SUM(participants), 0)` })
+      .from(schema.bookings)
+      .where(
+        and(
+          eq(schema.bookings.tripId, input.tripId),
+          sql`${schema.bookings.status} NOT IN ('canceled', 'no_show')`
+        )
+      );
+
+    const maxParticipants = Number(trip.tripMaxParticipants || trip.tourMaxParticipants);
+    const bookedParticipants = Number(bookingCount[0]?.total || 0);
+    const availableSpots = maxParticipants - bookedParticipants;
+
+    if (input.participants > availableSpots) {
+      throw new Error(`Only ${availableSpots} spots available`);
+    }
+
+    // Check if trip is in the future
+    const tripDate = new Date(trip.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (tripDate < today) {
+      throw new Error("Cannot book past trips");
+    }
+
     // Find or create customer
     const existingCustomers = await tx
       .select({ id: schema.customers.id })
@@ -338,167 +341,161 @@ export async function createWidgetEnrollment(
   organizationId: string,
   input: WidgetEnrollmentInput
 ) {
-  // Verify session exists and is available
-  const sessions = await db
-    .select({
-      id: schema.trainingSessions.id,
-      courseId: schema.trainingSessions.courseId,
-      maxStudents: schema.trainingSessions.maxStudents,
-      status: schema.trainingSessions.status,
-      startDate: schema.trainingSessions.startDate,
-    })
-    .from(schema.trainingSessions)
-    .where(
-      and(
-        eq(schema.trainingSessions.organizationId, organizationId),
-        eq(schema.trainingSessions.id, input.sessionId),
-        eq(schema.trainingSessions.status, "scheduled")
-      )
-    )
-    .limit(1);
+  // Wrap entire capacity check + enrollment in a transaction to prevent TOCTOU race conditions
+  return await db.transaction(async (tx) => {
+    // Lock the session row to serialize concurrent enrollments
+    await tx.execute(sql`SELECT id FROM training_sessions WHERE id = ${input.sessionId} FOR UPDATE`);
 
-  if (sessions.length === 0) {
-    throw new Error("Training session not found or not available");
-  }
-
-  const session = sessions[0];
-
-  // Check if session is in the past
-  const sessionDate = new Date(session.startDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  if (sessionDate < today) {
-    throw new Error("Cannot enroll in a past training session");
-  }
-
-  // Get course details for pricing
-  const courses = await db
-    .select({
-      id: schema.trainingCourses.id,
-      name: schema.trainingCourses.name,
-      price: schema.trainingCourses.price,
-      depositAmount: schema.trainingCourses.depositAmount,
-      maxStudents: schema.trainingCourses.maxStudents,
-    })
-    .from(schema.trainingCourses)
-    .where(eq(schema.trainingCourses.id, session.courseId))
-    .limit(1);
-
-  if (courses.length === 0) {
-    throw new Error("Course not found");
-  }
-
-  const course = courses[0];
-
-  // Check enrollment capacity
-  const [enrollmentCount] = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.trainingEnrollments)
-    .where(
-      and(
-        eq(schema.trainingEnrollments.organizationId, organizationId),
-        eq(schema.trainingEnrollments.sessionId, input.sessionId),
-        sql`${schema.trainingEnrollments.status} NOT IN ('dropped', 'failed')`
-      )
-    );
-
-  const maxStudents = session.maxStudents || course.maxStudents;
-  const currentEnrollments = Number(enrollmentCount?.count || 0);
-
-  if (currentEnrollments >= maxStudents) {
-    throw new Error("This training session is fully booked");
-  }
-
-  // Get organization settings for currency
-  const orgSettings = await db
-    .select({ currency: schema.organizationSettings.currency })
-    .from(schema.organizationSettings)
-    .where(eq(schema.organizationSettings.organizationId, organizationId))
-    .limit(1);
-
-  const currency = orgSettings[0]?.currency || "USD";
-
-  // Find or create customer
-  const existingCustomers = await db
-    .select({ id: schema.customers.id })
-    .from(schema.customers)
-    .where(
-      and(
-        eq(schema.customers.organizationId, organizationId),
-        eq(schema.customers.email, input.email.toLowerCase())
-      )
-    )
-    .limit(1);
-
-  let customerId: string;
-
-  if (existingCustomers.length > 0) {
-    customerId = existingCustomers[0].id;
-
-    // Update customer info
-    await db
-      .update(schema.customers)
-      .set({
-        firstName: input.firstName,
-        lastName: input.lastName,
-        phone: input.phone || undefined,
-        dateOfBirth: input.dateOfBirth || undefined,
-        updatedAt: new Date(),
+    // Verify session exists and is available (inside transaction, after lock)
+    const sessions = await tx
+      .select({
+        id: schema.trainingSessions.id,
+        courseId: schema.trainingSessions.courseId,
+        maxStudents: schema.trainingSessions.maxStudents,
+        status: schema.trainingSessions.status,
+        startDate: schema.trainingSessions.startDate,
       })
-      .where(eq(schema.customers.id, customerId));
-  } else {
-    // Create new customer
-    const newCustomer = await db
-      .insert(schema.customers)
+      .from(schema.trainingSessions)
+      .where(
+        and(
+          eq(schema.trainingSessions.organizationId, organizationId),
+          eq(schema.trainingSessions.id, input.sessionId),
+          eq(schema.trainingSessions.status, "scheduled")
+        )
+      )
+      .limit(1);
+
+    if (sessions.length === 0) {
+      throw new Error("Training session not found or not available");
+    }
+
+    const session = sessions[0];
+
+    // Check if session is in the past
+    const sessionDate = new Date(session.startDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (sessionDate < today) {
+      throw new Error("Cannot enroll in a past training session");
+    }
+
+    // Get course details for pricing
+    const courses = await tx
+      .select({
+        id: schema.trainingCourses.id,
+        name: schema.trainingCourses.name,
+        price: schema.trainingCourses.price,
+        depositAmount: schema.trainingCourses.depositAmount,
+        maxStudents: schema.trainingCourses.maxStudents,
+      })
+      .from(schema.trainingCourses)
+      .where(eq(schema.trainingCourses.id, session.courseId))
+      .limit(1);
+
+    if (courses.length === 0) {
+      throw new Error("Course not found");
+    }
+
+    const course = courses[0];
+
+    // Check enrollment capacity
+    const [enrollmentCount] = await tx
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.trainingEnrollments)
+      .where(
+        and(
+          eq(schema.trainingEnrollments.organizationId, organizationId),
+          eq(schema.trainingEnrollments.sessionId, input.sessionId),
+          sql`${schema.trainingEnrollments.status} NOT IN ('dropped', 'failed')`
+        )
+      );
+
+    const maxStudents = session.maxStudents || course.maxStudents;
+    const currentEnrollments = Number(enrollmentCount?.count || 0);
+
+    if (currentEnrollments >= maxStudents) {
+      throw new Error("This training session is fully booked");
+    }
+
+    // Get organization settings for currency
+    const orgSettings = await tx
+      .select({ currency: schema.organizationSettings.currency })
+      .from(schema.organizationSettings)
+      .where(eq(schema.organizationSettings.organizationId, organizationId))
+      .limit(1);
+
+    const currency = orgSettings[0]?.currency || "USD";
+
+    // Find or create customer (do NOT overwrite existing customer profile from unauthenticated widget)
+    const existingCustomers = await tx
+      .select({ id: schema.customers.id })
+      .from(schema.customers)
+      .where(
+        and(
+          eq(schema.customers.organizationId, organizationId),
+          eq(schema.customers.email, input.email.toLowerCase())
+        )
+      )
+      .limit(1);
+
+    let customerId: string;
+
+    if (existingCustomers.length > 0) {
+      customerId = existingCustomers[0].id;
+    } else {
+      // Create new customer
+      const newCustomer = await tx
+        .insert(schema.customers)
+        .values({
+          organizationId,
+          email: input.email.toLowerCase(),
+          firstName: input.firstName,
+          lastName: input.lastName,
+          phone: input.phone || null,
+          dateOfBirth: input.dateOfBirth || null,
+        })
+        .returning({ id: schema.customers.id });
+
+      customerId = newCustomer[0].id;
+    }
+
+    // Create enrollment
+    const newEnrollment = await tx
+      .insert(schema.trainingEnrollments)
       .values({
         organizationId,
-        email: input.email.toLowerCase(),
-        firstName: input.firstName,
-        lastName: input.lastName,
-        phone: input.phone || null,
-        dateOfBirth: input.dateOfBirth || null,
+        sessionId: input.sessionId,
+        customerId,
+        status: "enrolled",
+        paymentStatus: "pending",
+        amountPaid: "0",
+        notes: input.notes || null,
       })
-      .returning({ id: schema.customers.id });
+      .returning({
+        id: schema.trainingEnrollments.id,
+        sessionId: schema.trainingEnrollments.sessionId,
+        customerId: schema.trainingEnrollments.customerId,
+        status: schema.trainingEnrollments.status,
+        paymentStatus: schema.trainingEnrollments.paymentStatus,
+        enrolledAt: schema.trainingEnrollments.enrolledAt,
+      });
 
-    customerId = newCustomer[0].id;
-  }
+    const enrollment = newEnrollment[0];
 
-  // Create enrollment (staging schema uses simpler payment tracking)
-  const newEnrollment = await db
-    .insert(schema.trainingEnrollments)
-    .values({
-      organizationId,
-      sessionId: input.sessionId,
-      customerId,
-      status: "enrolled",
-      paymentStatus: "pending",
-      amountPaid: "0",
-      notes: input.notes || null,
-    })
-    .returning({
-      id: schema.trainingEnrollments.id,
-      sessionId: schema.trainingEnrollments.sessionId,
-      customerId: schema.trainingEnrollments.customerId,
-      status: schema.trainingEnrollments.status,
-      paymentStatus: schema.trainingEnrollments.paymentStatus,
-      enrolledAt: schema.trainingEnrollments.enrolledAt,
-    });
-
-  const enrollment = newEnrollment[0];
-
-  return {
-    id: enrollment.id,
-    sessionId: enrollment.sessionId,
-    customerId: enrollment.customerId,
-    courseName: course.name,
-    price: course.price,
-    depositAmount: course.depositAmount,
-    currency,
-    status: enrollment.status,
-    paymentStatus: enrollment.paymentStatus,
-    enrolledAt: enrollment.enrolledAt.toISOString(),
-  };
+    return {
+      id: enrollment.id,
+      sessionId: enrollment.sessionId,
+      customerId: enrollment.customerId,
+      courseName: course.name,
+      price: course.price,
+      depositAmount: course.depositAmount,
+      currency,
+      status: enrollment.status,
+      paymentStatus: enrollment.paymentStatus,
+      enrolledAt: enrollment.enrolledAt.toISOString(),
+    };
+  });
 }
 
 // Get enrollment details for confirmation page

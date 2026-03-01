@@ -69,6 +69,11 @@ const createChainMock = () => {
   chain.offset = vi.fn(() => createThenable([]));
   chain.returning = mockReturning;
 
+  // Transaction support - execute callback with same chain as tx
+  chain.transaction = vi.fn(async (callback: any) => callback(chain));
+  // Raw SQL execute support (FOR UPDATE locks)
+  chain.execute = vi.fn(async () => []);
+
   return chain;
 };
 
