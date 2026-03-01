@@ -260,11 +260,39 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } | null = null;
 
   if (ctx.isPremium) {
+    let revenueData: RevenueDataItem[] = [];
+    try {
+      const dailyRevenue = await db
+        .select({
+          day: sql<string>`TO_CHAR(${bookings.createdAt}, 'Mon DD')`,
+          revenue: sql<number>`COALESCE(SUM(${bookings.total}), 0)`,
+          bookingCount: count(),
+        })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.organizationId, ctx.org.id),
+            gte(bookings.createdAt, dateStart),
+            lte(bookings.createdAt, dateEnd)
+          )
+        )
+        .groupBy(sql`TO_CHAR(${bookings.createdAt}, 'Mon DD')`, sql`DATE(${bookings.createdAt})`)
+        .orderBy(sql`DATE(${bookings.createdAt})`);
+
+      revenueData = dailyRevenue.map((row) => ({
+        period: String(row.day),
+        revenue: Number(row.revenue),
+        bookings: Number(row.bookingCount),
+      }));
+    } catch {
+      // Fall back to empty if query fails
+    }
+
     advancedData = {
-      revenueData: [] as RevenueDataItem[], // Placeholder - would need daily aggregation query
-      bookingsByStatus: [] as BookingStatusItem[], // Placeholder - would need status grouping query
-      topTours: [] as TopTourItem[], // Placeholder - would need tour revenue aggregation
-      equipmentUtilization: [] as EquipmentUtilizationItem[], // Placeholder - would need equipment status query
+      revenueData,
+      bookingsByStatus: [] as BookingStatusItem[],
+      topTours: [] as TopTourItem[],
+      equipmentUtilization: [] as EquipmentUtilizationItem[],
     };
   }
 
@@ -295,7 +323,7 @@ const statusColors: Record<string, { bg: string; text: string; bar: string }> = 
   pending: { bg: "bg-warning-muted", text: "text-warning", bar: "bg-warning" },
   checked_in: { bg: "bg-brand-muted", text: "text-brand", bar: "bg-brand" },
   completed: { bg: "bg-surface-inset", text: "text-foreground", bar: "bg-surface-overlay" },
-  canceled: { bg: "bg-danger-muted", text: "text-danger", bar: "bg-danger" },
+  cancelled: { bg: "bg-danger-muted", text: "text-danger", bar: "bg-danger" },
   no_show: { bg: "bg-warning-muted", text: "text-warning", bar: "bg-warning" },
 };
 

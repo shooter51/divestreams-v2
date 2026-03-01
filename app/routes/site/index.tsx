@@ -367,14 +367,12 @@ export default function SiteHomePage() {
                 backgroundPosition: "center",
               }
             : {
-                background: `linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)`,
+                background: `linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--secondary-color) 85%, #000) 100%)`,
               }
         }
       >
-        {/* Overlay for image backgrounds */}
-        {settings?.heroImageUrl && (
-          <div className="absolute inset-0 bg-black/40" />
-        )}
+        {/* Overlay for readability */}
+        <div className={`absolute inset-0 ${settings?.heroImageUrl ? "bg-black/40" : "bg-black/10"}`} />
 
         {/* Hero Content */}
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">

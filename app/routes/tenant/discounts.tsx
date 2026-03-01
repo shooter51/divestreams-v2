@@ -244,7 +244,7 @@ function getDiscountStatus(discount: DiscountCode, now: Date): { label: string; 
   }
 
   if (discount.validFrom && new Date(discount.validFrom) > now) {
-    return { label: "Scheduled", color: "bg-brand-muted text-brand" };
+    return { label: "Not Yet Active", color: "bg-warning-muted text-warning" };
   }
 
   return { label: "Active", color: "bg-success-muted text-success" };
@@ -305,11 +305,11 @@ export default function DiscountsPage() {
   // Categorize discounts
   const activeDiscounts = discountCodes.filter((d) => {
     const status = discountStatuses.get(d.id);
-    return status && (status.label === "Active" || status.label === "Scheduled");
+    return status && (status.label === "Active" || status.label === "Not Yet Active");
   });
   const inactiveDiscounts = discountCodes.filter((d) => {
     const status = discountStatuses.get(d.id);
-    return !status || (status.label !== "Active" && status.label !== "Scheduled");
+    return !status || (status.label !== "Active" && status.label !== "Not Yet Active");
   });
 
   const formatDateForInput = (dateVal: Date | string | null): string => {
