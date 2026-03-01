@@ -3,9 +3,8 @@ import { Link, useLoaderData, useFetcher } from "react-router";
 import { useEffect } from "react";
 import { requireOrgContext } from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
-import { member, customers, certificationAgencies, certificationLevels, tenants, organization } from "../../../../lib/db/schema";
+import { member, certificationAgencies, certificationLevels, tenants, organization } from "../../../../lib/db/schema";
 import { eq, count, and } from "drizzle-orm";
-import { seedDemoData } from "../../../../lib/db/seed-demo-data.server";
 import { sendEmail } from "../../../../lib/email/email.server";
 import { cancelSubscription } from "../../../../lib/stripe/index";
 
@@ -290,14 +289,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const teamCount = teamCountResult?.count || 1;
 
-  // Check if there's already customer data (to show/hide seed option)
-  const [customerCountResult] = await db
-    .select({ count: count() })
-    .from(customers)
-    .where(eq(customers.organizationId, ctx.org.id));
-
-  const hasData = (customerCountResult?.count || 0) > 0;
-
   // Parse metadata to check for integrations
   const metadata = ctx.org.metadata ? JSON.parse(ctx.org.metadata) : {};
 
@@ -310,7 +301,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     teamCount,
     connectedIntegrations,
     isPremium: ctx.isPremium,
-    hasData,
   };
 }
 
@@ -323,16 +313,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const intent = formData.get("intent");
-
-  if (intent === "seedDemoData") {
-    try {
-      await seedDemoData(ctx.org.id);
-      return { success: true, message: "Demo data seeded successfully!" };
-    } catch (error) {
-      console.error("Failed to seed demo data:", error);
-      return { success: false, message: "Failed to seed demo data. Please try again." };
-    }
-  }
 
   // Separate action to seed only training agencies (PADI, SSI, NAUI)
   // This is idempotent and can be called multiple times safely
@@ -477,10 +457,9 @@ Next Steps:
 }
 
 export default function SettingsPage() {
-  const { tenantName, planName, teamCount, connectedIntegrations, hasData } =
+  const { tenantName, planName, teamCount, connectedIntegrations } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
-  const isSeeding = fetcher.state === "submitting";
 
   // Handle logout redirect after deletion request
   useEffect(() => {
@@ -605,46 +584,6 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Demo Data Section - only show if no data exists */}
-      {!hasData && (
-        <div className="mt-8 bg-brand-muted rounded-xl p-6 border border-brand-muted">
-          <h2 className="font-semibold text-brand mb-2">Get Started</h2>
-          <p className="text-sm text-brand mb-4">
-            Your account is empty. Populate with sample data to explore all features.
-          </p>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-brand">Seed Demo Data</p>
-              <p className="text-xs text-brand">
-                Add sample customers, tours, bookings, equipment, and products
-              </p>
-            </div>
-            <fetcher.Form method="post">
-              <input type="hidden" name="intent" value="seedDemoData" />
-              <button
-                type="submit"
-                disabled={isSeeding}
-                onClick={(e) => {
-                  if (!window.confirm(
-                    "This will add sample customers, tours, bookings, equipment, and products to your account. " +
-                    "This action cannot be easily undone. Continue?"
-                  )) {
-                    e.preventDefault();
-                  }
-                }}
-                className="px-4 py-2 text-sm bg-brand text-white rounded-lg hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSeeding ? "Seeding..." : "Load Demo Data"}
-              </button>
-            </fetcher.Form>
-          </div>
-          {fetcher.data?.message && (
-            <p className={`mt-3 text-sm ${fetcher.data.success ? "text-success" : "text-danger"}`}>
-              {fetcher.data.message}
-            </p>
-          )}
-        </div>
-      )}
 
       {/* Danger Zone */}
       <div className="mt-8 bg-danger-muted rounded-xl p-6 border border-danger-muted">
@@ -653,26 +592,6 @@ export default function SettingsPage() {
           Permanent actions that cannot be undone
         </p>
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-danger">Export all data</p>
-              <p className="text-xs text-danger">
-                Download a copy of all your data in JSON format
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                console.error("Data export feature not yet implemented.");
-                // TODO: Implement data export feature
-              }}
-              disabled
-              title="Data export feature coming soon. Contact support@divestreams.com for immediate data export needs."
-              className="px-4 py-2 text-sm border border-danger-muted rounded-lg hover:bg-danger-muted text-danger disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Export Data (Coming Soon)
-            </button>
-          </div>
-          <hr className="border-danger-muted" />
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-danger">Delete account</p>

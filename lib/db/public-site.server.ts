@@ -322,6 +322,7 @@ export async function getPublicCourses(
       prerequisites: trainingCourses.prerequisites,
       materialsIncluded: trainingCourses.materialsIncluded,
       equipmentIncluded: trainingCourses.equipmentIncluded,
+      templateImages: trainingCourses.images,
       agencyName: certificationAgencies.name,
       levelName: certificationLevels.name,
     })
@@ -370,7 +371,7 @@ export async function getPublicCourses(
       prerequisites: course.prerequisites,
       materialsIncluded: course.materialsIncluded,
       equipmentIncluded: course.equipmentIncluded,
-      images: imageMap.get(course.id) || null,
+      images: imageMap.get(course.id) || course.templateImages || null,
       agencyName: course.agencyName,
       levelName: course.levelName,
     })),
