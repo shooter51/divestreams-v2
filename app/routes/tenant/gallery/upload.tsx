@@ -10,8 +10,8 @@
 
 import type { ActionFunctionArgs } from "react-router";
 import { redirect } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
-import { uploadToS3, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
+import { uploadToS3, getImageKey, getWebPMimeType, processImage, isValidImageType, getS3Client } from "../../../../lib/storage";
 import { createGalleryImage } from "../../../../lib/db/gallery.server";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { storageLogger } from "../../../../lib/logger";
@@ -24,6 +24,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
 
   const albumId = formData.get("albumId") as string | null;

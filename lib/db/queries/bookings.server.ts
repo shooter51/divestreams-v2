@@ -383,7 +383,10 @@ export async function recordPayment(organizationId: string, data: {
         paymentStatus: newPaymentStatus,
         updatedAt: new Date(),
       })
-      .where(eq(schema.bookings.id, bookingId));
+      .where(and(
+        eq(schema.bookings.organizationId, organizationId),
+        eq(schema.bookings.id, bookingId)
+      ));
 
     return transaction;
   });

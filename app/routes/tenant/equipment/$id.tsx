@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { db } from "../../../../lib/db";
 import { serviceRecords } from "../../../../lib/db/schema";
 import {
@@ -116,6 +116,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -188,6 +189,7 @@ const categoryLabels: Record<string, string> = {
   fins: "Fins",
   tank: "Tank",
   computer: "Dive Computer",
+  torch: "Torch/Light",
   other: "Other",
 };
 
@@ -260,7 +262,7 @@ export default function EquipmentDetailPage() {
             </span>
           </div>
           <p className="text-foreground-muted">
-            {categoryLabels[equipment.category]} • {equipment.brand} {equipment.model}
+            {categoryLabels[equipment.category]} • {[equipment.brand, equipment.model].filter(Boolean).join(" ") || "No brand"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -516,10 +518,12 @@ export default function EquipmentDetailPage() {
                 <span className="text-foreground-muted">Brand</span>
                 <span>{equipment.brand}</span>
               </div>
+              {equipment.model && (
               <div className="flex justify-between">
                 <span className="text-foreground-muted">Model</span>
                 <span>{equipment.model}</span>
               </div>
+              )}
               {equipment.serialNumber && (
                 <div className="flex justify-between">
                   <span className="text-foreground-muted">Serial #</span>

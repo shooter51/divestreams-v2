@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Form, Link, useActionData, useNavigation, useRouteLoaderData, redirect } from "react-router";
 import type { ActionFunctionArgs } from "react-router";
 import { registerCustomer, loginCustomer } from "../../../lib/auth/customer-auth.server";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import type { SiteLoaderData } from "./_layout";
 
 // ============================================================================
@@ -168,6 +169,17 @@ function validatePassword(password: string): PasswordValidation {
 // ============================================================================
 
 export async function action({ request }: ActionFunctionArgs): Promise<ActionData | Response> {
+  // Rate limit registration attempts
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`register:${clientIp}`, {
+    maxAttempts: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return { error: "Too many registration attempts. Please try again later." };
+  }
+
   const formData = await request.formData();
   const url = new URL(request.url);
 
@@ -446,7 +458,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.firstName
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -485,7 +497,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.lastName
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -525,7 +537,7 @@ export default function SiteRegisterPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.email
-                    ? "#ef4444"
+                    ? "var(--danger)"
                     : "var(--accent-color)",
                   // @ts-expect-error -- CSS custom property
                   "--tw-ring-color": "var(--primary-color)",
@@ -563,7 +575,7 @@ export default function SiteRegisterPage() {
                 className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                 style={{
                   borderColor: actionData?.errors?.phone
-                    ? "#ef4444"
+                    ? "var(--danger)"
                     : "var(--accent-color)",
                   // @ts-expect-error -- CSS custom property
                   "--tw-ring-color": "var(--primary-color)",
@@ -605,7 +617,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.password
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",
@@ -656,7 +668,7 @@ export default function SiteRegisterPage() {
                   className="w-full px-4 py-3 pr-12 rounded-lg border transition-colors focus:outline-none focus:ring-2"
                   style={{
                     borderColor: actionData?.errors?.confirmPassword
-                      ? "#ef4444"
+                      ? "var(--danger)"
                       : "var(--accent-color)",
                     // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--primary-color)",

@@ -42,7 +42,9 @@ import {
   trainingEnrollments,
 } from "../../../../lib/db/schema";
 import { getCustomerBySession } from "../../../../lib/auth/customer-auth.server";
+import { getNotificationSettings } from "../../../../lib/email/triggers";
 import { getSubdomainFromHost } from "../../../../lib/utils/url";
+import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 import { nanoid } from "nanoid";
 
 // ============================================================================
@@ -291,7 +293,7 @@ export async function loader({
       .where(
         and(
           eq(bookings.tripId, id),
-          sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+          sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
         )
       );
 
@@ -471,7 +473,7 @@ export async function loader({
             .where(
               and(
                 eq(bookings.tripId, session.id),
-                sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+                sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
               )
             );
           bookedPart = Number(bookingCount?.total || 0);
@@ -528,6 +530,13 @@ export async function action({
   request,
   params,
 }: ActionFunctionArgs): Promise<ActionData | Response> {
+  // Rate limit site booking by IP
+  const clientIp = getClientIp(request);
+  const rateResult = await checkRateLimit(`site:booking:${clientIp}`, { maxAttempts: 10, windowMs: 60 * 1000 });
+  if (!rateResult.allowed) {
+    return { errors: { _form: "Too many booking attempts. Please try again later." } };
+  }
+
   const { type, id } = params;
   const formData = await request.formData();
 
@@ -575,8 +584,8 @@ export async function action({
     }
   }
 
-  if (participants < 1) {
-    errors.participants = "At least 1 participant is required";
+  if (!Number.isInteger(participants) || participants < 1) {
+    errors.participants = "Participants must be a whole number (minimum 1)";
   }
 
   // For courses, session selection is required
@@ -812,17 +821,7 @@ export async function action({
       .limit(1);
 
     if (existingCustomer) {
-      // Update existing customer info
-      await db
-        .update(customers)
-        .set({
-          firstName: firstName!,
-          lastName: lastName!,
-          phone,
-          updatedAt: new Date(),
-        })
-        .where(eq(customers.id, existingCustomer.id));
-
+      // Do NOT overwrite existing customer profile from unauthenticated guest checkout
       finalCustomerId = existingCustomer.id;
     } else {
       // Create new customer
@@ -900,7 +899,7 @@ export async function action({
         .where(
           and(
             eq(bookings.tripId, tripId),
-            sql`${bookings.status} NOT IN ('canceled', 'no_show')`
+            sql`${bookings.status} NOT IN ('cancelled', 'no_show')`
           )
         );
 
@@ -1008,28 +1007,31 @@ export async function action({
     throw error;
   }
 
-  // Queue booking confirmation email (fire-and-forget, do not block redirect)
-  try {
-    const { getEmailQueue } = await import("../../../../lib/jobs");
-    const emailQueue = getEmailQueue();
-    await emailQueue.add("booking-confirmation", {
-      to: email || "",
-      customerName: `${firstName || ""} ${lastName || ""}`.trim(),
-      tripName: newBooking.tourName,
-      tripDate: newBooking.tripDate,
-      tripTime: newBooking.tripStartTime || "",
-      participants,
-      total: newBooking.total,
-      bookingNumber: newBooking.bookingNumber,
-      shopName: org.name,
-      tenantId: org.id,
-    }, {
-      attempts: 3,
-      backoff: { type: "exponential", delay: 1000 },
-    });
-  } catch (emailError) {
-    // Log but do not block the booking flow
-    console.error("Failed to queue booking confirmation email:", emailError);
+  // Queue booking confirmation email if notification settings allow it
+  const notifSettings = getNotificationSettings(org.metadata);
+  if (notifSettings.emailBookingConfirmation) {
+    try {
+      const { getEmailQueue } = await import("../../../../lib/jobs");
+      const emailQueue = getEmailQueue();
+      await emailQueue.add("booking-confirmation", {
+        to: email || "",
+        customerName: `${firstName || ""} ${lastName || ""}`.trim(),
+        tripName: newBooking.tourName,
+        tripDate: newBooking.tripDate,
+        tripTime: newBooking.tripStartTime || "",
+        participants,
+        total: newBooking.total,
+        bookingNumber: newBooking.bookingNumber,
+        shopName: org.name,
+        tenantId: org.id,
+      }, {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 1000 },
+      });
+    } catch (emailError) {
+      // Log but do not block the booking flow
+      console.error("Failed to queue booking confirmation email:", emailError);
+    }
   }
 
   // Redirect to confirmation page with booking details
@@ -1481,7 +1483,7 @@ export default function BookingPage() {
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2"
                         style={{
                           borderColor: actionData?.errors?.firstName
-                            ? "#ef4444"
+                            ? "var(--danger)"
                             : "var(--accent-color)",
                         }}
                         required
@@ -1507,7 +1509,7 @@ export default function BookingPage() {
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2"
                         style={{
                           borderColor: actionData?.errors?.lastName
-                            ? "#ef4444"
+                            ? "var(--danger)"
                             : "var(--accent-color)",
                         }}
                         required
@@ -1535,7 +1537,7 @@ export default function BookingPage() {
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2"
                       style={{
                         borderColor: actionData?.errors?.email
-                          ? "#ef4444"
+                          ? "var(--danger)"
                           : "var(--accent-color)",
                       }}
                       required

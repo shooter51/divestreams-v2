@@ -315,7 +315,8 @@ export async function getOrgContext(
       .then(([result]) => result?.count ?? 0)
       .catch((error) => {
         authLogger.error({ err: error, organizationId: org.id }, "Failed to count customers");
-        return 0;
+        // Fail closed: return limit value so canAdd check returns false on error
+        return limits.customers === Infinity ? Number.MAX_SAFE_INTEGER : limits.customers;
       }),
     // Count tours for this organization
     db
@@ -325,7 +326,8 @@ export async function getOrgContext(
       .then(([result]) => result?.count ?? 0)
       .catch((error) => {
         authLogger.error({ err: error, organizationId: org.id }, "Failed to count tours");
-        return 0;
+        // Fail closed: return limit value so canAdd check returns false on error
+        return limits.tours === Infinity ? Number.MAX_SAFE_INTEGER : limits.tours;
       }),
     // Count bookings created this month for this organization
     db
@@ -340,7 +342,8 @@ export async function getOrgContext(
       .then(([result]) => result?.count ?? 0)
       .catch((error) => {
         authLogger.error({ err: error, organizationId: org.id }, "Failed to count bookings");
-        return 0;
+        // Fail closed: return limit value so canAdd check returns false on error
+        return limits.bookingsPerMonth === Infinity ? Number.MAX_SAFE_INTEGER : limits.bookingsPerMonth;
       }),
   ]);
 

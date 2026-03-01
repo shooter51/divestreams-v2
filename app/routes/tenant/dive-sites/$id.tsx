@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { eq, and, asc } from "drizzle-orm";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getDiveSiteById,
   getDiveSiteStats,
@@ -122,6 +122,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -155,6 +156,13 @@ const difficultyColors: Record<string, string> = {
   intermediate: "bg-brand-muted text-brand",
   advanced: "bg-accent-muted text-accent",
   expert: "bg-danger-muted text-danger",
+};
+
+const difficultyLabels: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+  expert: "Expert",
 };
 
 function formatDepth(depth: number): string {
@@ -200,7 +208,7 @@ export default function DiveSiteDetailPage() {
                 difficultyColors[diveSite.difficulty]
               }`}
             >
-              {diveSite.difficulty}
+              {difficultyLabels[diveSite.difficulty] || diveSite.difficulty}
             </span>
             {!diveSite.isActive && (
               <span className="text-sm px-3 py-1 rounded-full bg-surface-inset text-foreground-muted">
@@ -432,7 +440,7 @@ export default function DiveSiteDetailPage() {
                         <h2>Details</h2>
                         <div class="grid">
                           <div class="item"><label>Max Depth</label><span>${diveSite.maxDepth}m / ${Math.round(diveSite.maxDepth * 3.28084)}ft</span></div>
-                          <div class="item"><label>Difficulty</label><span>${diveSite.difficulty}</span></div>
+                          <div class="item"><label>Difficulty</label><span>${diveSite.difficulty.charAt(0).toUpperCase() + diveSite.difficulty.slice(1)}</span></div>
                           ${diveSite.coordinates ? `<div class="item"><label>Coordinates</label><span>${diveSite.coordinates.lat}, ${diveSite.coordinates.lng}</span></div>` : ""}
                           <div class="item"><label>Conditions</label><span>${diveSite.conditions || "Variable"}</span></div>
                         </div>

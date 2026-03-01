@@ -231,18 +231,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
       await db
         .update(subscription)
         .set({
-          planId: planId || null,
+          ...(planId ? { planId } : {}),
           plan: planName, // Keep legacy field updated for backwards compatibility
           status: status as "active" | "trialing" | "past_due" | "canceled",
           updatedAt: new Date(),
         })
         .where(eq(subscription.id, existingSub.id));
-    } else {
+    } else if (planId) {
       // [KAN-594 FIX] Create subscription with BOTH fields set
       await db.insert(subscription).values({
         id: crypto.randomUUID(),
         organizationId: org.id,
-        planId: planId || null,
+        planId,
         plan: planName, // Keep legacy field for backwards compatibility
         status: status as "active" | "trialing" | "past_due" | "canceled",
         createdAt: new Date(),

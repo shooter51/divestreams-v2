@@ -153,6 +153,15 @@ export async function action({ request }: ActionFunctionArgs): Promise<ActionDat
     if (newPassword.length < 8) {
       return { error: "Password must be at least 8 characters", field: "newPassword", type: "password" };
     }
+    if (!/[A-Z]/.test(newPassword)) {
+      return { error: "Password must contain at least one uppercase letter", field: "newPassword", type: "password" };
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      return { error: "Password must contain at least one lowercase letter", field: "newPassword", type: "password" };
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      return { error: "Password must contain at least one number", field: "newPassword", type: "password" };
+    }
     if (newPassword !== confirmPassword) {
       return { error: "Passwords do not match", field: "confirmPassword", type: "password" };
     }

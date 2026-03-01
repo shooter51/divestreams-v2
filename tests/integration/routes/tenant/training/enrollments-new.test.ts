@@ -3,6 +3,7 @@ import type { Mock } from "vitest";
 
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../../lib/db/training.server", () => ({
@@ -359,7 +360,7 @@ describe("tenant/training/enrollments/new route", () => {
 
         const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
-        expect(result.errors.form).toBe("Session is full (8/8 enrolled)");
+        expect(result.errors.form).toBe("This session is full");
       });
 
       it("handles customer not found error", async () => {
@@ -393,7 +394,7 @@ describe("tenant/training/enrollments/new route", () => {
 
         const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as unknown);
 
-        expect(result.errors.form).toBe("Database connection failed");
+        expect(result.errors.form).toBe("Failed to create enrollment. Please try again.");
       });
 
       it("preserves form values on error", async () => {

@@ -20,6 +20,7 @@ import type { Mock } from "vitest";
 
 vi.mock("../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../lib/db/queries.server", () => ({
@@ -33,6 +34,7 @@ vi.mock("../../lib/db/queries.server", () => ({
 
 vi.mock("../../lib/email/triggers", () => ({
   triggerBookingConfirmation: vi.fn(),
+  getNotificationSettings: vi.fn(() => ({ emailBookingConfirmation: true })),
 }));
 
 import { action } from "../../app/routes/tenant/bookings/new";
@@ -66,7 +68,7 @@ const mockTrip = {
 const mockOrgContext = {
   user: { id: "user-1", name: "Staff", email: "staff@demo.com" },
   session: { id: "session-1" },
-  org: { id: "org-uuid", slug: "demo", name: "Demo Dive Shop" },
+  org: { id: "org-uuid", slug: "demo", name: "Demo Dive Shop", metadata: {} },
   membership: { role: "owner" },
   subscription: null,
 };

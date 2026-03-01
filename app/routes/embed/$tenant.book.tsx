@@ -10,7 +10,8 @@ import { useLoaderData, useOutletContext, Form, useActionData, useNavigation, Li
 import { redirect } from "react-router";
 import { getOrganizationBySlug, getPublicTripById } from "../../../lib/db/queries.public";
 import { createWidgetBooking } from "../../../lib/db/mutations.public";
-import { triggerBookingConfirmation } from "../../../lib/email/triggers";
+import { triggerBookingConfirmation, getNotificationSettings } from "../../../lib/email/triggers";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 import { useState } from "react";
 
 export const meta: MetaFunction = () => [{ title: "Complete Your Booking" }];
@@ -59,6 +60,13 @@ export async function action({ params, request }: ActionFunctionArgs) {
     throw new Response("Shop not found", { status: 404 });
   }
 
+  // Rate limit embed booking by IP
+  const clientIp = getClientIp(request);
+  const rateResult = await checkRateLimit(`embed:booking:${clientIp}`, { maxAttempts: 10, windowMs: 60 * 1000 });
+  if (!rateResult.allowed) {
+    return { errors: { form: "Too many booking attempts. Please try again later." } as Record<string, string>, values: {} as Record<string, string> };
+  }
+
   const formData = await request.formData();
   const tripId = formData.get("tripId") as string;
   const participants = parseInt(formData.get("participants") as string, 10) || 1;
@@ -72,6 +80,9 @@ export async function action({ params, request }: ActionFunctionArgs) {
   const errors: Record<string, string> = {};
 
   if (!tripId) errors.form = "Trip not specified";
+  if (!Number.isInteger(participants) || participants < 1) {
+    errors.participants = "Participants must be a whole number (minimum 1)";
+  }
   if (!firstName) errors.firstName = "First name is required";
   if (!lastName) errors.lastName = "Last name is required";
   if (!email) errors.email = "Email is required";
@@ -114,23 +125,26 @@ export async function action({ params, request }: ActionFunctionArgs) {
       specialRequests: specialRequests || undefined,
     });
 
-    // Send booking confirmation email
-    try {
-      await triggerBookingConfirmation({
-        customerEmail: email,
-        customerName: `${firstName} ${lastName}`,
-        tripName: trip!.tourName,
-        tripDate: trip!.date,
-        tripTime: trip!.startTime || "TBA",
-        participants,
-        totalCents: Math.round(parseFloat(booking.total) * 100),
-        bookingNumber: booking.bookingNumber,
-        shopName: org.name,
-        tenantId: org.id,
-      });
-    } catch (emailError) {
-      // Log email error but don't fail the booking
-      console.error("Failed to send booking confirmation email:", emailError);
+    // Send booking confirmation email if notification settings allow it
+    const notifSettings = getNotificationSettings(org.metadata);
+    if (notifSettings.emailBookingConfirmation) {
+      try {
+        await triggerBookingConfirmation({
+          customerEmail: email,
+          customerName: `${firstName} ${lastName}`,
+          tripName: trip!.tourName,
+          tripDate: trip!.date,
+          tripTime: trip!.startTime || "TBA",
+          participants,
+          totalCents: Math.round(parseFloat(booking.total) * 100),
+          bookingNumber: booking.bookingNumber,
+          shopName: org.name,
+          tenantId: org.id,
+        });
+      } catch (emailError) {
+        // Log email error but don't fail the booking
+        console.error("Failed to send booking confirmation email:", emailError);
+      }
     }
 
     // For Phase 1: Redirect to confirmation page

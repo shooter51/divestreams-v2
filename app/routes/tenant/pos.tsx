@@ -9,7 +9,7 @@ import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react
 import { useLoaderData, useFetcher, Link, useRouteLoaderData } from "react-router";
 import { z } from "zod";
 import { checkoutSchema } from "../../../lib/validation/pos";
-import { requireOrgContext } from "../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../lib/plan-features";
 import { CSRF_FIELD_NAME } from "../../../lib/security/csrf-constants";
@@ -57,6 +57,7 @@ export const meta: MetaFunction = () => [{ title: "Point of Sale - DiveStreams" 
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_POS);
   const tenant = {
     id: ctx.org.id,
@@ -123,6 +124,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const tenant = {
     id: ctx.org.id,
     subdomain: ctx.org.slug,

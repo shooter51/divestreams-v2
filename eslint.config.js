@@ -131,7 +131,11 @@ export default tseslint.config(
       "app/routes/**/print-*.tsx",                     // Print templates
       "app/routes/tenant/bookings/$id.tsx",           // HTML email templates
       "app/routes/tenant/dive-sites/$id.tsx",         // HTML embed templates
-      "lib/themes/**",                                 // Theme preset definitions (color data)
+      "tests/**",                                      // Test assertions may reference colors for validation
+      "docs/**",                                       // Documentation files
+      "zapier-app/**",                                 // Zapier app JS files
+      "lib/themes/**",                                 // Theme definitions need actual color values
+      "lib/db/seed-demo-data.server.ts",               // Seed data generation
       "lib/utils/public-site.ts",                      // Theme utility defaults
       "app/routes/embed/**",                           // Embed widget branding defaults & CSS fallbacks
       "app/routes/site/**",                             // Public site with own theming (agency colors, overlays)

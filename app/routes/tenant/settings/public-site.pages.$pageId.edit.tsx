@@ -8,7 +8,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, useLoaderData, useNavigation, useActionData } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getPageContent,
   updatePageContent,
@@ -21,6 +21,7 @@ import { CsrfInput } from "../../../components/CsrfInput";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const { pageId } = params;
 
   if (!pageId) {
@@ -45,6 +46,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const { pageId } = params;
 
   if (!pageId) {

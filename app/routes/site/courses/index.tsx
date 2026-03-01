@@ -17,13 +17,13 @@ import { getPublicCourses } from "../../../../lib/db/public-site.server";
 // ============================================================================
 
 const CERTIFICATION_AGENCIES = [
-  { id: "padi", name: "PADI", lightColor: "#003087", darkColor: "#5b9bd5" },
-  { id: "ssi", name: "SSI", lightColor: "#00529b", darkColor: "#6cb4ee" },
-  { id: "naui", name: "NAUI", lightColor: "#002855", darkColor: "#4d7ac7" },
-  { id: "sdi", name: "SDI/TDI", lightColor: "#ff6600", darkColor: "#ff6600" },
-  { id: "raid", name: "RAID", lightColor: "#e31937", darkColor: "#e31937" },
-  { id: "gue", name: "GUE", lightColor: "#1a1a1a", darkColor: "#e5e7eb" },
-  { id: "other", name: "Other", lightColor: "#6b7280", darkColor: "#9ca3af" },
+  { id: "padi", name: "PADI", lightColor: "var(--brand)", darkColor: "var(--brand)" },
+  { id: "ssi", name: "SSI", lightColor: "var(--brand)", darkColor: "var(--brand)" },
+  { id: "naui", name: "NAUI", lightColor: "var(--brand)", darkColor: "var(--brand)" },
+  { id: "sdi", name: "SDI/TDI", lightColor: "var(--brand)", darkColor: "var(--brand)" },
+  { id: "raid", name: "RAID", lightColor: "var(--danger)", darkColor: "var(--danger)" },
+  { id: "gue", name: "GUE", lightColor: "var(--surface)", darkColor: "var(--border)" },
+  { id: "other", name: "Other", lightColor: "var(--foreground-muted)", darkColor: "var(--foreground-subtle)" },
 ];
 
 const COURSE_LEVELS = [

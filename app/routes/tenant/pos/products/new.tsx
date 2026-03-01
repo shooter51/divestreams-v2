@@ -4,7 +4,7 @@
 
 import type { MetaFunction, ActionFunctionArgs } from "react-router";
 import { Form, Link, useActionData, useNavigation, redirect } from "react-router";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { createProduct } from "../../../../../lib/db/queries.server";
 import { uploadToS3, getImageKey, processImage, isValidImageType, getWebPMimeType, getS3Client } from "../../../../../lib/storage";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
@@ -15,6 +15,7 @@ export const meta: MetaFunction = () => [{ title: "New Product - DiveStreams" }]
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
 
@@ -33,6 +34,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!name || !category || isNaN(price)) {
     return { error: "Name, category, and price are required" };
+  }
+
+  if (price < 0) {
+    return { error: "Price cannot be negative" };
   }
 
   const product = await createProduct(organizationId, {

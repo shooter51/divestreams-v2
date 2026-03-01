@@ -2,6 +2,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from "react
 import { Form, Link, useActionData, useNavigation, redirect } from "react-router";
 
 import { auth } from "../../../lib/auth";
+import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,6 +24,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Rate limit password reset requests
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(`tenant-forgot-password:${clientIp}`, {
+    maxAttempts: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    // Don't reveal rate limiting — always show success to prevent enumeration
+    return { success: true, email: "" };
+  }
+
   const formData = await request.formData();
   const email = formData.get("email");
 

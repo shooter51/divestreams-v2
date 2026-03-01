@@ -13,7 +13,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
   const url = new URL(request.url);
   const search = url.searchParams.get("search") || "";
-  const page = parseInt(url.searchParams.get("page") || "1");
+  const page = Math.max(1, parseInt(url.searchParams.get("page") || "1") || 1);
   const limit = 20;
   const offset = (page - 1) * limit;
 

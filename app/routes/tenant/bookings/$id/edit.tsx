@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation, Link } from "react-router";
 import { eq, and } from "drizzle-orm";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import { getBookingWithFullDetails } from "../../../../../lib/db/queries.server";
 import { getTenantDb } from "../../../../../lib/db/tenant.server";
 import { redirectWithNotification } from "../../../../../lib/use-notification";
@@ -11,6 +11,7 @@ export const meta: MetaFunction = () => [{ title: "Edit Booking - DiveStreams" }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const bookingId = params.id;
 
@@ -43,6 +44,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const bookingId = params.id;
 
@@ -150,7 +152,7 @@ export default function EditBookingPage() {
                   <option value="pending">Pending</option>
                   <option value="confirmed">Confirmed</option>
                   <option value="completed">Completed</option>
-                  <option value="canceled">Cancelled</option>
+                  <option value="cancelled">Cancelled</option>
                   <option value="no_show">No Show</option>
                 </select>
               </div>

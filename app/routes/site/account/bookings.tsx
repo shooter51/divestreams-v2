@@ -83,7 +83,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<BookingsL
 
   switch (filter) {
     case "upcoming":
-      statusCondition = sql`${bookings.status} NOT IN ('canceled', 'no_show', 'completed')`;
+      statusCondition = sql`${bookings.status} NOT IN ('cancelled', 'no_show', 'completed')`;
       dateCondition = gte(trips.date, today);
       break;
     case "completed":
@@ -91,7 +91,7 @@ export async function loader({ request }: LoaderFunctionArgs): Promise<BookingsL
       dateCondition = undefined;
       break;
     case "cancelled":
-      statusCondition = sql`${bookings.status} IN ('canceled', 'no_show')`;
+      statusCondition = sql`${bookings.status} IN ('cancelled', 'no_show')`;
       dateCondition = undefined;
       break;
     default:
@@ -172,7 +172,7 @@ export default function AccountBookings() {
     { value: "all", label: "All Bookings" },
     { value: "upcoming", label: "Upcoming" },
     { value: "completed", label: "Completed" },
-    { value: "canceled", label: "Cancelled" },
+    { value: "cancelled", label: "Cancelled" },
   ];
 
   const handleFilterChange = (newFilter: string) => {
@@ -239,7 +239,8 @@ export default function AccountBookings() {
 // ============================================================================
 
 function BookingCard({ booking }: { booking: BookingItem }) {
-  const isCancelled = booking.status === "canceled" || booking.status === "no_show";
+  const isUpcoming = new Date(booking.trip.date) >= new Date(new Date().toISOString().split("T")[0]);
+  const isCancelled = booking.status === "cancelled" || booking.status === "canceled" || booking.status === "no_show";
 
   return (
     <div
@@ -360,7 +361,7 @@ function mapBookingStatus(status: string): BadgeStatus {
     confirmed: "confirmed",
     checked_in: "checked_in",
     completed: "completed",
-    canceled: "cancelled",
+    cancelled: "cancelled",
     no_show: "cancelled", // Map no_show to cancelled for badge purposes
   };
   return statusMap[status] || "pending";

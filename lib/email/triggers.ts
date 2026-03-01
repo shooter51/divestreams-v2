@@ -10,6 +10,29 @@ import { getTenantUrl, getAppUrl } from "../utils/url";
 import { isEmailConfigured } from "./index";
 
 /**
+ * Parse notification settings from org metadata JSON.
+ * Returns defaults (all enabled) when settings are not configured.
+ */
+export function getNotificationSettings(orgMetadata: string | null | undefined): {
+  emailBookingConfirmation: boolean;
+  notifyNewBooking: boolean;
+  notifyCancellation: boolean;
+} {
+  const defaults = {
+    emailBookingConfirmation: true,
+    notifyNewBooking: true,
+    notifyCancellation: true,
+  };
+  if (!orgMetadata) return defaults;
+  try {
+    const metadata = JSON.parse(orgMetadata);
+    return { ...defaults, ...metadata.notifications };
+  } catch {
+    return defaults;
+  }
+}
+
+/**
  * Format cents to USD currency string
  */
 export function formatCurrency(cents: number): string {

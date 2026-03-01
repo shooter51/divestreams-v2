@@ -81,18 +81,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-const difficultyColors: Record<string, string> = {
-  beginner: "bg-success-muted text-success",
-  intermediate: "bg-brand-muted text-brand",
-  advanced: "bg-accent-muted text-accent",
-  expert: "bg-danger-muted text-danger",
-};
-
 const difficultyLabels: Record<string, string> = {
   beginner: "Beginner",
   intermediate: "Intermediate",
   advanced: "Advanced",
   expert: "Expert",
+};
+
+const difficultyColors: Record<string, string> = {
+  beginner: "bg-success-muted text-success",
+  intermediate: "bg-brand-muted text-brand",
+  advanced: "bg-accent-muted text-accent",
+  expert: "bg-danger-muted text-danger",
 };
 
 export default function DiveSitesPage() {

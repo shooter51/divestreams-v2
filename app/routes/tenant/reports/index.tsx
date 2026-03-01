@@ -388,7 +388,7 @@ const statusColors: Record<string, { bg: string; text: string; bar: string }> = 
   pending: { bg: "bg-warning-muted", text: "text-warning", bar: "bg-warning" },
   checked_in: { bg: "bg-brand-muted", text: "text-brand", bar: "bg-brand" },
   completed: { bg: "bg-surface-inset", text: "text-foreground", bar: "bg-surface-overlay" },
-  canceled: { bg: "bg-danger-muted", text: "text-danger", bar: "bg-danger" },
+  cancelled: { bg: "bg-danger-muted", text: "text-danger", bar: "bg-danger" },
   no_show: { bg: "bg-warning-muted", text: "text-warning", bar: "bg-warning" },
 };
 

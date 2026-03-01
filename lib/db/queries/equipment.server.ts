@@ -96,13 +96,17 @@ export async function getEquipmentRentalStats(organizationId: string, equipmentI
   const rentalsResult = await db
     .select({ count: sql<number>`count(*)` })
     .from(schema.rentals)
-    .where(eq(schema.rentals.equipmentId, equipmentId));
+    .where(and(
+      eq(schema.rentals.organizationId, organizationId),
+      eq(schema.rentals.equipmentId, equipmentId)
+    ));
 
   // Get active rentals
   const activeResult = await db
     .select({ count: sql<number>`count(*)` })
     .from(schema.rentals)
     .where(and(
+      eq(schema.rentals.organizationId, organizationId),
       eq(schema.rentals.equipmentId, equipmentId),
       eq(schema.rentals.status, "active")
     ));
@@ -114,7 +118,10 @@ export async function getEquipmentRentalStats(organizationId: string, equipmentI
       daysRented: sql<number>`COALESCE(SUM(EXTRACT(DAY FROM (COALESCE(${schema.rentals.returnedAt}, NOW()) - ${schema.rentals.rentedAt}))), 0)`
     })
     .from(schema.rentals)
-    .where(eq(schema.rentals.equipmentId, equipmentId));
+    .where(and(
+      eq(schema.rentals.organizationId, organizationId),
+      eq(schema.rentals.equipmentId, equipmentId)
+    ));
 
   const totalRentals = Number(rentalsResult[0]?.count || 0);
   const totalRevenue = Number(revenueResult[0]?.total || 0);
@@ -148,7 +155,10 @@ export async function getEquipmentRentalHistory(organizationId: string, equipmen
     })
     .from(schema.rentals)
     .innerJoin(schema.customers, eq(schema.rentals.customerId, schema.customers.id))
-    .where(and(eq(schema.rentals.organizationId, organizationId), eq(schema.rentals.equipmentId, equipmentId)))
+    .where(and(
+      eq(schema.rentals.organizationId, organizationId),
+      eq(schema.rentals.equipmentId, equipmentId)
+    ))
     .orderBy(desc(schema.rentals.rentedAt))
     .limit(limit);
 

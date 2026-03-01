@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Link } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { requireFeature } from "../../../../lib/require-feature.server";
 import { PLAN_FEATURES } from "../../../../lib/plan-features";
 import { db } from "../../../../lib/db";
@@ -36,6 +36,7 @@ const defaultSettings: NotificationSettings = {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   requireFeature(ctx.subscription?.planDetails?.features ?? {}, PLAN_FEATURES.HAS_ADVANCED_NOTIFICATIONS);
 
   // Parse notification settings from org metadata
@@ -77,11 +78,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
-
-  if (ctx.membership.role === "staff") {
-    return { error: "You don't have permission to manage notification settings" };
-  }
-
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
 
   // Parse existing metadata
@@ -228,7 +225,7 @@ export default function NotificationsPage() {
               <div>
                 <p className="font-medium">Cancellation Alerts</p>
                 <p className="text-sm text-foreground-muted">
-                  Get notified when bookings are canceled
+                  Get notified when bookings are cancelled
                 </p>
               </div>
             </label>

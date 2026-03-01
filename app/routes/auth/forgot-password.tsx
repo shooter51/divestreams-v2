@@ -1,5 +1,5 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { redirect, useActionData, useNavigation } from "react-router";
+import { redirect, useActionData, useNavigation, useLoaderData } from "react-router";
 import { eq } from "drizzle-orm";
 import { getSubdomainFromRequest, getOrgContext } from "../../../lib/auth/org-context.server";
 import { auth } from "../../../lib/auth";
@@ -7,6 +7,8 @@ import { db } from "../../../lib/db";
 import { organization } from "../../../lib/db/schema/auth";
 import { getAppUrl } from "../../../lib/utils/url";
 import { checkRateLimit, getClientIp } from "../../../lib/utils/rate-limit";
+import { generateAnonCsrfToken, validateAnonCsrfToken, CSRF_FIELD_NAME } from "../../../lib/security/csrf.server";
+import { CsrfTokenInput } from "../../components/CsrfInput";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Forgot Password - DiveStreams" }];
@@ -36,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect(getAppUrl());
   }
 
-  return { tenantName: org.name };
+  return { tenantName: org.name, csrfToken: generateAnonCsrfToken() };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -58,6 +60,13 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const formData = await request.formData();
+
+  // Validate CSRF token
+  const csrfToken = formData.get(CSRF_FIELD_NAME) as string | null;
+  if (csrfToken && !validateAnonCsrfToken(csrfToken)) {
+    return { error: "Invalid form submission. Please refresh and try again." };
+  }
+
   const email = formData.get("email") as string;
 
   if (!email) {
@@ -83,6 +92,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function ForgotPasswordPage() {
+  const loaderData = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -114,6 +124,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <form method="post" className="bg-surface-raised rounded-xl p-8 shadow-sm border">
+          <CsrfTokenInput token={loaderData?.csrfToken} />
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
               Email

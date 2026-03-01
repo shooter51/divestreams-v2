@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getAllTeamMembers,
   createTeamMember,
@@ -19,6 +19,7 @@ export const meta: MetaFunction = () => [{ title: "Team Profiles - Public Site S
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const teamMembers = await getAllTeamMembers(ctx.org.id);
 
   return {
@@ -32,6 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
 

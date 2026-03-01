@@ -283,9 +283,9 @@ export default function SiteLoginPage() {
           <div
             className="mb-6 p-4 rounded-lg text-sm max-w-4xl break-words"
             style={{
-              backgroundColor: "var(--success-bg, #d1fae5)",
-              color: "var(--success-text, #065f46)",
-              border: "1px solid var(--success-border, #34d399)",
+              backgroundColor: "var(--success-bg, var(--success-muted))",
+              color: "var(--success-text, var(--success))",
+              border: "1px solid var(--success-border, var(--success))",
             }}
           >
             <div className="flex items-center gap-2">

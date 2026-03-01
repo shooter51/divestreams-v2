@@ -1,13 +1,15 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { getCustomerById, getCustomerBookings, deleteCustomer } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
 import { customerCommunications } from "../../../../lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { sendEmail } from "../../../../lib/email/index";
 import { redirectWithNotification, useNotification } from "../../../../lib/use-notification";
+import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { formatCurrency } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Customer Details - DiveStreams" }];
 
@@ -84,6 +86,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -111,7 +114,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     // Fetch customer email from DB — never trust client-supplied email address
     const customerData = await getCustomerById(organizationId, customerId);
     if (!customerData?.email) {
-      return { error: "Customer email not found" };
+      return { error: "Customer not found or has no email address" };
     }
     const customerEmail = customerData.email;
 
@@ -255,7 +258,7 @@ export default function CustomerDetailPage() {
               <p className="text-foreground-muted text-sm">Total Dives</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
-              <p className="text-2xl font-bold">${Number(customer.totalSpent || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <p className="text-2xl font-bold">{formatCurrency(customer.totalSpent)}</p>
               <p className="text-foreground-muted text-sm">Total Spent</p>
             </div>
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
@@ -328,18 +331,8 @@ export default function CustomerDetailPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${booking.total}</p>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        booking.status === "completed"
-                          ? "bg-surface-inset text-foreground-muted"
-                          : booking.status === "confirmed"
-                          ? "bg-success-muted text-success"
-                          : "bg-warning-muted text-warning"
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
+                    <p className="font-medium">{formatCurrency(booking.total)}</p>
+                    <StatusBadge status={booking.status as BadgeStatus} />
                   </div>
                 </div>
               ))}

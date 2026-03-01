@@ -1,9 +1,9 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, Link, useLoaderData } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { bookingSchema, validateFormData, getFormValues } from "../../../../lib/validation";
 import { getCustomers, getTrips, getEquipment, createBooking, getCustomerById, getTripById } from "../../../../lib/db/queries.server";
-import { triggerBookingConfirmation } from "../../../../lib/email/triggers";
+import { triggerBookingConfirmation, getNotificationSettings } from "../../../../lib/email/triggers";
 import { redirectWithNotification } from "../../../../lib/use-notification";
 import { CsrfInput } from "../../../components/CsrfInput";
 
@@ -11,6 +11,7 @@ export const meta: MetaFunction = () => [{ title: "New Booking - DiveStreams" }]
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const url = new URL(request.url);
   const customerId = url.searchParams.get("customerId");
@@ -89,6 +90,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
 
@@ -140,22 +142,25 @@ export async function action({ request }: ActionFunctionArgs) {
     throw error;
   }
 
-  // Queue confirmation email (don't fail booking if email fails)
-  try {
-    await triggerBookingConfirmation({
-      customerEmail: customer.email,
-      customerName: `${customer.firstName} ${customer.lastName}`,
-      tripName: trip.tourName || "Trip",
-      tripDate: typeof trip.date === "string" ? trip.date : new Date(trip.date).toISOString().split("T")[0],
-      tripTime: trip.startTime || "",
-      participants,
-      totalCents: Math.round(total * 100), // Convert to cents for email formatting
-      bookingNumber: booking.bookingNumber,
-      shopName: ctx.org.name,
-      tenantId: ctx.org.id,
-    });
-  } catch (emailError) {
-    console.error("Failed to queue booking confirmation email:", emailError);
+  // Queue confirmation email if notification settings allow it
+  const notifSettings = getNotificationSettings(ctx.org.metadata);
+  if (notifSettings.emailBookingConfirmation) {
+    try {
+      await triggerBookingConfirmation({
+        customerEmail: customer.email,
+        customerName: `${customer.firstName} ${customer.lastName}`,
+        tripName: trip.tourName || "Trip",
+        tripDate: typeof trip.date === "string" ? trip.date : new Date(trip.date).toISOString().split("T")[0],
+        tripTime: trip.startTime || "",
+        participants,
+        totalCents: Math.round(total * 100), // Convert to cents for email formatting
+        bookingNumber: booking.bookingNumber,
+        shopName: ctx.org.name,
+        tenantId: ctx.org.id,
+      });
+    } catch (emailError) {
+      console.error("Failed to queue booking confirmation email:", emailError);
+    }
   }
 
   return redirect(redirectWithNotification("/tenant/bookings", "Booking has been successfully created", "success"));

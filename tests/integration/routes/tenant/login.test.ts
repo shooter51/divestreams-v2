@@ -383,26 +383,36 @@ describe("tenant/login route", () => {
           session: { id: "session-1" },
         });
 
-        // Mock that user is not already a member
-        const mockMemberCheckQuery = {
-          select: vi.fn().mockReturnThis(),
-          from: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockResolvedValue([]),
+        // Mock org lookup by slug (first select) then member check (second select)
+        const mockOrgLookupQuery = {
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([{ id: "org-1" }]),
+            }),
+          }),
         };
+
+        const mockMemberCheckQuery = {
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([]),
+            }),
+          }),
+        };
+
+        (db.select as Mock)
+          .mockReturnValueOnce(mockOrgLookupQuery)
+          .mockReturnValueOnce(mockMemberCheckQuery);
 
         // db.insert(table).values({...}) - need to return object with values method
         const mockInsertChain = {
           values: vi.fn().mockResolvedValue([]),
         };
 
-        (db.select as Mock).mockReturnValue(mockMemberCheckQuery);
         (db.insert as Mock).mockReturnValue(mockInsertChain);
 
         const formData = new FormData();
         formData.append("intent", "join");
-        formData.append("userId", "user-1");
-        formData.append("orgId", "org-1");
         formData.append("redirectTo", "/tenant");
 
         const request = new Request("https://demo.divestreams.com/login", {
@@ -423,7 +433,6 @@ describe("tenant/login route", () => {
         // No session mock - getSession returns null (default from beforeEach)
         const formData = new FormData();
         formData.append("intent", "join");
-        formData.append("orgId", "org-1");
 
         const request = new Request("https://demo.divestreams.com/login", {
           method: "POST",
@@ -435,24 +444,25 @@ describe("tenant/login route", () => {
         expect(response).toEqual({ error: "You must be logged in to join an organization" });
       });
 
-      it("returns error when orgId is missing", async () => {
-        // Mock session so code reaches the validation check
+      it("returns error when org not found from subdomain", async () => {
         (auth.api.getSession as Mock).mockResolvedValue({
           user: { id: "user-1", email: "user@example.com" },
           session: { id: "session-1" },
         });
+        // getSubdomainFromRequest returns a subdomain but org not found in DB
+        (getSubdomainFromRequest as Mock).mockReturnValue("nonexistent");
 
         const formData = new FormData();
         formData.append("intent", "join");
 
-        const request = new Request("https://demo.divestreams.com/login", {
+        const request = new Request("https://nonexistent.divestreams.com/login", {
           method: "POST",
           body: formData,
         });
 
         const response = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
 
-        expect(response).toEqual({ error: "Missing user or organization information", email: "" });
+        expect(response).toEqual({ error: "Organization not found", email: "" });
       });
 
       it("does not create duplicate membership", async () => {

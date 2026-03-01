@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { useOutletContext, useFetcher } from "react-router";
 import { useState, useEffect } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { updatePublicSiteSettings } from "../../../../lib/db/public-site.server";
 import type { PublicSiteSettings } from "../../../../lib/db/schema";
 import { CsrfInput } from "../../../components/CsrfInput";
@@ -54,6 +54,7 @@ const fontFamilies = [
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
 

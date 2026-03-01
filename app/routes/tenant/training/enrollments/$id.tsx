@@ -1,13 +1,14 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher, redirect } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import {
   getEnrollmentById,
   updateEnrollment,
   deleteEnrollment,
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
+import { formatLabel } from "../../../../lib/format";
 import { CsrfInput } from "../../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [
@@ -66,6 +67,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const enrollmentId = params.id!;
@@ -246,7 +248,7 @@ export default function EnrollmentDetailPage() {
                 statusColors[enrollment.status] || "bg-surface-inset text-foreground"
               }`}
             >
-              {enrollment.status.replace("_", " ")}
+              {formatLabel(enrollment.status)}
             </span>
           </div>
           <p className="text-foreground-muted">

@@ -10,7 +10,7 @@ vi.stubGlobal("crypto", {
 // Mock the org-context module
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
-  requireRole: vi.fn(), // requireRole is a synchronous function that throws if role doesn't match
+  requireRole: vi.fn(),
 }));
 
 // Mock the database module
@@ -472,6 +472,23 @@ describe("tenant/settings/team route", () => {
         expect(db.insert).not.toHaveBeenCalled();
       });
 
+      it("returns error when inviting self (self-invite prevention)", async () => {
+        const formData = new FormData();
+        formData.append("intent", "invite");
+        formData.append("email", "owner@example.com"); // Same as ctx.user.email
+        formData.append("role", "admin");
+
+        const request = new Request("https://demo.divestreams.com/tenant/settings/team", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await action({ request, params: {}, context: {}, unstable_pattern: "" } as Parameters<typeof action>[0]);
+
+        expect(result).toEqual({ error: "You cannot invite yourself" });
+        expect(db.insert).not.toHaveBeenCalled();
+      });
+
       it("returns error when inviting email that is already a team member (KAN-599)", async () => {
         // Mock select query to return existing member with matching email
         const mockMemberCheckQuery = {
@@ -479,14 +496,14 @@ describe("tenant/settings/team route", () => {
           from: vi.fn().mockReturnThis(),
           innerJoin: vi.fn().mockReturnThis(),
           where: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockResolvedValue([{ email: "owner@example.com" }]), // Existing member found
+          limit: vi.fn().mockResolvedValue([{ email: "existing-member@example.com" }]), // Existing member found
         };
 
         (db.select as Mock).mockImplementation(() => mockMemberCheckQuery);
 
         const formData = new FormData();
         formData.append("intent", "invite");
-        formData.append("email", "owner@example.com"); // Same as owner
+        formData.append("email", "existing-member@example.com"); // Different from owner, but already a member
         formData.append("role", "admin");
 
         const request = new Request("https://demo.divestreams.com/tenant/settings/team", {

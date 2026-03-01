@@ -11,6 +11,7 @@ import { validateZapierApiKey } from "../../../../../lib/integrations/zapier-enh
 import { db } from "../../../../../lib/db/index.js";
 import { customers } from "../../../../../lib/db/schema.js";
 import { eq, and } from "drizzle-orm";
+import { checkRateLimit } from "../../../../../lib/utils/rate-limit";
 
 interface UpdateCustomerInput {
   email: string;
@@ -40,6 +41,12 @@ export async function action({ request }: ActionFunctionArgs) {
   const orgId = await validateZapierApiKey(apiKey);
   if (!orgId) {
     return Response.json({ error: "Invalid API key" }, { status: 401 });
+  }
+
+  // Rate limit per API key
+  const rateResult = await checkRateLimit(`zapier:update-customer:${apiKey}`, { maxAttempts: 60, windowMs: 60 * 1000 });
+  if (!rateResult.allowed) {
+    return Response.json({ error: "Rate limit exceeded. Please try again later." }, { status: 429 });
   }
 
   try {
@@ -110,7 +117,7 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error("Zapier update customer error:", error);
     return Response.json(
       {
-        error: error instanceof Error ? error.message : "Failed to update customer",
+        error: "Failed to update customer",
       },
       { status: 500 }
     );

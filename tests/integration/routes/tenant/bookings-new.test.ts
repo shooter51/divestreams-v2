@@ -24,7 +24,9 @@ vi.mock("react-router", async () => {
 
 // Mock dependencies
 vi.mock("../../../../lib/auth/org-context.server", () => ({
+  requireTenant: vi.fn(),
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 vi.mock("../../../../lib/validation", () => ({
@@ -52,6 +54,11 @@ vi.mock("../../../../lib/db/queries.server", () => ({
 
 vi.mock("../../../../lib/email/triggers", () => ({
   triggerBookingConfirmation: vi.fn(),
+  getNotificationSettings: vi.fn().mockReturnValue({
+    emailBookingConfirmation: true,
+    notifyNewBooking: true,
+    notifyCancellation: true,
+  }),
 }));
 
 import { loader, action } from "../../../../app/routes/tenant/bookings/new";

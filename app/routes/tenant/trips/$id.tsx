@@ -1,7 +1,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, Link, useFetcher } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import {
   getTripWithFullDetails,
   getTripBookings,
@@ -10,8 +10,8 @@ import {
   updateTripStatus,
 } from "../../../../lib/db/queries.server";
 import { db } from "../../../../lib/db";
-import { customerCommunications, trips } from "../../../../lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { customerCommunications, trips, bookings as bookingsTable, customers as customersTable } from "../../../../lib/db/schema";
+import { eq, and, or } from "drizzle-orm";
 import {
   getRecurringSeriesInstances,
   cancelRecurringSeries,
@@ -19,6 +19,7 @@ import {
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { formatRecurrencePattern, formatCapacity } from "../../../lib/format";
 import { CsrfInput } from "../../../components/CsrfInput";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
@@ -108,6 +109,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -135,36 +137,47 @@ export async function action({ request, params }: ActionFunctionArgs) {
   if (intent === "send-bulk-email") {
     const subject = formData.get("subject") as string;
     const body = formData.get("body") as string;
-    const customerDataRaw = formData.get("customers") as string;
 
     if (!subject || !body) {
       return { error: "Subject and message are required" };
     }
 
-    let customers: Array<{ id: string; email: string; firstName: string; lastName: string }> = [];
-    try {
-      customers = JSON.parse(customerDataRaw);
-    } catch {
-      return { error: "Invalid customer data" };
-    }
+    // Fetch actual trip participants from DB — never trust client-supplied customer IDs
+    const tripPassengers = await db
+      .select({
+        customerId: bookingsTable.customerId,
+        customerEmail: customersTable.email,
+      })
+      .from(bookingsTable)
+      .innerJoin(customersTable, eq(bookingsTable.customerId, customersTable.id))
+      .where(
+        and(
+          eq(bookingsTable.tripId, tripId),
+          eq(bookingsTable.organizationId, organizationId),
+          or(
+            eq(bookingsTable.status, "confirmed"),
+            eq(bookingsTable.status, "pending")
+          )
+        )
+      );
 
-    if (customers.length === 0) {
+    if (tripPassengers.length === 0) {
       return { error: "No passengers to email" };
     }
 
-    // Log communications for each customer
+    // Log communications for each verified participant
     let sentCount = 0;
-    for (const customer of customers) {
+    for (const passenger of tripPassengers) {
       try {
         await db.insert(customerCommunications).values({
           organizationId,
-          customerId: customer.id,
+          customerId: passenger.customerId,
           type: "email",
           subject,
           body,
           status: "sent",
           sentAt: new Date(),
-          emailTo: customer.email,
+          emailTo: passenger.customerEmail,
           metadata: { tripId },
         });
         sentCount++;
@@ -335,7 +348,7 @@ export default function TripDetailPage() {
           </div>
           <div class="info-item">
             <label>Capacity</label>
-            <span>${trip.bookedParticipants} / ${trip.maxParticipants} passengers</span>
+            <span>${trip.bookedParticipants} / ${trip.maxParticipants || 'Unlimited'} passengers</span>
           </div>
         </div>
 
@@ -410,7 +423,7 @@ export default function TripDetailPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                {recurringInfo.recurrencePattern}
+                {formatRecurrencePattern(recurringInfo.recurrencePattern)}
                 {recurringInfo.isTemplate && " (template)"}
               </span>
             )}
@@ -502,7 +515,7 @@ export default function TripDetailPage() {
           <div className="grid grid-cols-4 gap-4">
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
-                {trip.bookedParticipants}/{trip.maxParticipants}
+                {formatCapacity(trip.bookedParticipants, trip.maxParticipants)}
               </p>
               <p className="text-foreground-muted text-sm">Booked</p>
             </div>
@@ -714,14 +727,16 @@ export default function TripDetailPage() {
                   {spotsAvailable ?? "Unlimited"}
                 </span>
               </div>
-              <div className="mt-2 bg-surface-overlay rounded-full h-2">
-                <div
-                  className="bg-brand rounded-full h-2"
-                  style={{
-                    width: hasCapacityLimit ? `${(trip.bookedParticipants / trip.maxParticipants!) * 100}%` : "0%",
-                  }}
-                />
-              </div>
+              {hasCapacityLimit && (
+                <div className="mt-2 bg-surface-overlay rounded-full h-2">
+                  <div
+                    className="bg-brand rounded-full h-2"
+                    style={{
+                      width: `${(trip.bookedParticipants / trip.maxParticipants!) * 100}%`,
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -742,7 +757,7 @@ export default function TripDetailPage() {
                 <div>
                   <h2 className="text-lg font-bold">Recurring Trip Series</h2>
                   <p className="text-sm text-foreground-muted">
-                    {recurringInfo.recurrencePattern} recurrence
+                    {formatRecurrencePattern(recurringInfo.recurrencePattern)} recurrence
                     {recurringInfo.isTemplate && " - This is the template trip"}
                   </p>
                 </div>

@@ -1,6 +1,6 @@
 import type { MetaFunction, ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { redirect, useActionData, useNavigation, useLoaderData, Link } from "react-router";
-import { requireOrgContext } from "../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../lib/auth/org-context.server";
 import { createCustomer } from "../../../../lib/db/queries.server";
 import { requireLimit } from "../../../../lib/require-feature.server";
 import { DEFAULT_PLAN_LIMITS } from "../../../../lib/plan-features";
@@ -14,6 +14,7 @@ export const meta: MetaFunction = () => [{ title: "Add Customer - DiveStreams" }
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const limits = ctx.subscription?.planDetails?.limits ?? DEFAULT_PLAN_LIMITS.standard;
   const limitCheck = await requireLimit(ctx.org.id, "customers", limits);
   return {
@@ -24,6 +25,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
   const organizationId = ctx.org.id;
   const formData = await request.formData();
 

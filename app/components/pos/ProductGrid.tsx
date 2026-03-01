@@ -183,6 +183,7 @@ export function ProductGrid({
                   src={product.imageUrl}
                   alt={product.name}
                   className="w-full h-24 object-cover rounded-md mb-2"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                 />
               )}
               <p className="font-medium truncate">{product.name}</p>

@@ -9,6 +9,7 @@ import type { Mock } from "vitest";
 // Mock dependencies before imports
 vi.mock("../../../../../lib/auth/org-context.server", () => ({
   requireOrgContext: vi.fn(),
+  requireRole: vi.fn(),
 }));
 
 // Mock the entire route module to test action intents

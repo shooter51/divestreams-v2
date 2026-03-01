@@ -12,7 +12,7 @@
 import type { MetaFunction, LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher, Form, redirect, Link } from "react-router";
 import { useState } from "react";
-import { requireOrgContext } from "../../../../../lib/auth/org-context.server";
+import { requireOrgContext, requireRole} from "../../../../../lib/auth/org-context.server";
 import {
   getIntegration,
   disconnectIntegration,
@@ -34,7 +34,9 @@ export const meta: MetaFunction = () => [
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { org } = await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
+  const { org } = ctx;
 
   // Get QuickBooks integration
   const integration = await getIntegration(org.id, "quickbooks");
@@ -80,7 +82,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { org } = await requireOrgContext(request);
+  const ctx = await requireOrgContext(request);
+  requireRole(ctx, ["owner", "admin"]);
+  const { org } = ctx;
   const formData = await request.formData();
   const intent = formData.get("intent");
 

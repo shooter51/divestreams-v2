@@ -122,7 +122,7 @@ export async function getPOSTrips(tables: TenantTables, organizationId: string, 
       tables.bookings,
       and(
         eq(tables.bookings.tripId, tables.trips.id),
-        sql`${tables.bookings.status} NOT IN ('canceled', 'no_show')`
+        sql`${tables.bookings.status} NOT IN ('cancelled', 'no_show')`
       )
     )
     .where(
@@ -534,7 +534,10 @@ export async function processPOSCheckout(
           stockQuantity: sql`${tables.products.stockQuantity} - ${product.quantity}`,
           updatedAt: new Date(),
         })
-        .where(eq(tables.products.id, product.productId));
+        .where(and(
+          eq(tables.products.organizationId, organizationId),
+          eq(tables.products.id, product.productId)
+        ));
     }
 
     return txnRecord;

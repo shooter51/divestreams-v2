@@ -11,8 +11,16 @@ import { validateZapierApiKey } from "../../../../lib/integrations/zapier-enhanc
 import { db } from "../../../../lib/db/index.js";
 import { organization } from "../../../../lib/db/schema/auth.js";
 import { eq } from "drizzle-orm";
+import { checkRateLimit, getClientIp } from "../../../../lib/utils/rate-limit";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  // Rate limit API key auth attempts by IP
+  const clientIp = getClientIp(request);
+  const rateResult = await checkRateLimit(`zapier:auth:${clientIp}`, { maxAttempts: 20, windowMs: 60 * 1000 });
+  if (!rateResult.allowed) {
+    return Response.json({ error: "Rate limit exceeded. Please try again later." }, { status: 429 });
+  }
+
   // Authenticate request using API key
   const apiKey = request.headers.get("x-api-key");
   if (!apiKey) {

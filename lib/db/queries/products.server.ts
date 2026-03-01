@@ -199,7 +199,10 @@ export async function createPOSTransaction(organizationId: string, data: {
       .set({
         stockQuantity: sql`GREATEST(0, ${schema.products.stockQuantity} - ${item.quantity})`,
       })
-      .where(eq(schema.products.id, item.productId));
+      .where(and(
+        eq(schema.products.organizationId, organizationId),
+        eq(schema.products.id, item.productId)
+      ));
   }
 
   return transaction;

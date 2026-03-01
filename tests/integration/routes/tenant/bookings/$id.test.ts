@@ -217,6 +217,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
     });
 
     it("should complete booking when intent is complete", async () => {
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue({ status: "confirmed" } as unknown);
       vi.mocked(queries.updateBookingStatus).mockResolvedValue(undefined);
 
       const formData = new FormData();
@@ -236,6 +237,7 @@ describe("app/routes/tenant/bookings/$id.tsx", () => {
     });
 
     it("should mark as no-show when intent is no-show", async () => {
+      vi.mocked(queries.getBookingWithFullDetails).mockResolvedValue({ status: "confirmed" } as unknown);
       vi.mocked(queries.updateBookingStatus).mockResolvedValue(undefined);
 
       const formData = new FormData();
