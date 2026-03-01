@@ -157,6 +157,13 @@ const difficultyColors: Record<string, string> = {
   expert: "bg-danger-muted text-danger",
 };
 
+const difficultyLabels: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+  expert: "Expert",
+};
+
 export default function DiveSiteDetailPage() {
   const { diveSite, recentTrips, stats, toursUsingSite, images } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
@@ -196,7 +203,7 @@ export default function DiveSiteDetailPage() {
                 difficultyColors[diveSite.difficulty]
               }`}
             >
-              {diveSite.difficulty}
+              {difficultyLabels[diveSite.difficulty] || diveSite.difficulty}
             </span>
             {!diveSite.isActive && (
               <span className="text-sm px-3 py-1 rounded-full bg-surface-inset text-foreground-muted">
@@ -427,7 +434,7 @@ export default function DiveSiteDetailPage() {
                         <h2>Details</h2>
                         <div class="grid">
                           <div class="item"><label>Max Depth</label><span>${diveSite.maxDepth}m</span></div>
-                          <div class="item"><label>Difficulty</label><span>${diveSite.difficulty}</span></div>
+                          <div class="item"><label>Difficulty</label><span>${diveSite.difficulty.charAt(0).toUpperCase() + diveSite.difficulty.slice(1)}</span></div>
                           ${diveSite.coordinates ? `<div class="item"><label>Coordinates</label><span>${diveSite.coordinates.lat}, ${diveSite.coordinates.lng}</span></div>` : ""}
                           <div class="item"><label>Conditions</label><span>${diveSite.conditions || "Variable"}</span></div>
                         </div>

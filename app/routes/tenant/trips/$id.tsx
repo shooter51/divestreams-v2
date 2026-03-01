@@ -19,6 +19,7 @@ import {
 import { useNotification, redirectWithNotification } from "../../../../lib/use-notification";
 import { redirect } from "react-router";
 import { StatusBadge, type BadgeStatus } from "../../../components/ui";
+import { formatRecurrencePattern, formatCapacity } from "../../../lib/format";
 
 export const meta: MetaFunction = () => [{ title: "Trip Details - DiveStreams" }];
 
@@ -239,7 +240,8 @@ export default function TripDetailPage() {
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
 
-  const spotsAvailable = (trip.maxParticipants ?? 0) - trip.bookedParticipants;
+  const isUnlimited = !trip.maxParticipants || trip.maxParticipants <= 0;
+  const spotsAvailable = isUnlimited ? Infinity : (trip.maxParticipants ?? 0) - trip.bookedParticipants;
 
   // Get unique customers from bookings
   const customers = bookings.map((b) => ({
@@ -345,7 +347,7 @@ export default function TripDetailPage() {
           </div>
           <div class="info-item">
             <label>Capacity</label>
-            <span>${trip.bookedParticipants} / ${trip.maxParticipants} passengers</span>
+            <span>${trip.bookedParticipants} / ${trip.maxParticipants || 'Unlimited'} passengers</span>
           </div>
         </div>
 
@@ -420,7 +422,7 @@ export default function TripDetailPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                {recurringInfo.recurrencePattern}
+                {formatRecurrencePattern(recurringInfo.recurrencePattern)}
                 {recurringInfo.isTemplate && " (template)"}
               </span>
             )}
@@ -509,7 +511,7 @@ export default function TripDetailPage() {
           <div className="grid grid-cols-4 gap-4">
             <div className="bg-surface-raised rounded-xl p-4 shadow-sm">
               <p className="text-2xl font-bold">
-                {trip.bookedParticipants}/{trip.maxParticipants}
+                {formatCapacity(trip.bookedParticipants, trip.maxParticipants)}
               </p>
               <p className="text-foreground-muted text-sm">Booked</p>
             </div>
@@ -709,7 +711,7 @@ export default function TripDetailPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Max Capacity</span>
-                <span>{trip.maxParticipants}</span>
+                <span>{trip.maxParticipants || "Unlimited"}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Booked</span>
@@ -718,17 +720,19 @@ export default function TripDetailPage() {
               <div className="flex justify-between text-sm font-medium">
                 <span>Available</span>
                 <span className={spotsAvailable === 0 ? "text-danger" : "text-success"}>
-                  {spotsAvailable}
+                  {isUnlimited ? "Unlimited" : spotsAvailable}
                 </span>
               </div>
-              <div className="mt-2 bg-surface-overlay rounded-full h-2">
-                <div
-                  className="bg-brand rounded-full h-2"
-                  style={{
-                    width: `${(trip.bookedParticipants / (trip.maxParticipants ?? 1)) * 100}%`,
-                  }}
-                />
-              </div>
+              {!isUnlimited && (
+                <div className="mt-2 bg-surface-overlay rounded-full h-2">
+                  <div
+                    className="bg-brand rounded-full h-2"
+                    style={{
+                      width: `${(trip.bookedParticipants / (trip.maxParticipants ?? 1)) * 100}%`,
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -749,7 +753,7 @@ export default function TripDetailPage() {
                 <div>
                   <h2 className="text-lg font-bold">Recurring Trip Series</h2>
                   <p className="text-sm text-foreground-muted">
-                    {recurringInfo.recurrencePattern} recurrence
+                    {formatRecurrencePattern(recurringInfo.recurrencePattern)} recurrence
                     {recurringInfo.isTemplate && " - This is the template trip"}
                   </p>
                 </div>

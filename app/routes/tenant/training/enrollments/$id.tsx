@@ -8,6 +8,7 @@ import {
   deleteEnrollment,
 } from "../../../../../lib/db/training.server";
 import { redirectWithNotification, useNotification } from "../../../../../lib/use-notification";
+import { formatLabel } from "../../../../lib/format";
 
 export const meta: MetaFunction = () => [
   { title: "Enrollment Details - DiveStreams" },
@@ -253,7 +254,7 @@ export default function EnrollmentDetailPage() {
                 statusColors[enrollment.status] || "bg-surface-inset text-foreground"
               }`}
             >
-              {enrollment.status.replace("_", " ")}
+              {formatLabel(enrollment.status)}
             </span>
           </div>
           <p className="text-foreground-muted">

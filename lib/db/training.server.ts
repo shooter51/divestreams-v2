@@ -318,6 +318,11 @@ export async function createCourse(data: {
   isActive?: boolean;
   sortOrder?: number;
 }) {
+  // Validate: if depositRequired, depositAmount must be > 0
+  if (data.depositRequired && (!data.depositAmount || parseFloat(data.depositAmount) <= 0)) {
+    throw new Error("Deposit amount must be greater than 0 when deposit is required");
+  }
+
   const [course] = await db
     .insert(schema.trainingCourses)
     .values(data)
@@ -358,6 +363,11 @@ export async function updateCourse(
     sortOrder: number | null;
   }>
 ) {
+  // Validate: if depositRequired, depositAmount must be > 0
+  if (data.depositRequired && (!data.depositAmount || parseFloat(data.depositAmount) <= 0)) {
+    throw new Error("Deposit amount must be greater than 0 when deposit is required");
+  }
+
   const [course] = await db
     .update(schema.trainingCourses)
     .set({ ...data, updatedAt: new Date() })
