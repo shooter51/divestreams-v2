@@ -1,20 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
+// Helper: creates a .where() return value that supports .for("update") chaining
+const withFor = (data: unknown[]) => ({
+  for: vi.fn().mockResolvedValue(data),
+});
+
 // Mock the database
-vi.mock("../../../../lib/db/index", () => ({
-  db: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    leftJoin: vi.fn().mockReturnThis(), // Added for blocker #4 fix
-    where: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    values: vi.fn().mockReturnThis(),
-    returning: vi.fn(),
-    update: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-  },
-}));
+vi.mock("../../../../lib/db/index", () => {
+  const dbObj: Record<string, any> = {};
+  dbObj.select = vi.fn(() => dbObj);
+  dbObj.from = vi.fn(() => dbObj);
+  dbObj.leftJoin = vi.fn(() => dbObj);
+  dbObj.where = vi.fn(() => dbObj);
+  dbObj.insert = vi.fn(() => dbObj);
+  dbObj.values = vi.fn(() => dbObj);
+  dbObj.returning = vi.fn();
+  dbObj.update = vi.fn(() => dbObj);
+  dbObj.set = vi.fn(() => dbObj);
+  dbObj.for = vi.fn(() => dbObj);
+  // Promise-like so await resolves to []
+  dbObj.then = (resolve: any) => { resolve([]); return dbObj; };
+  dbObj.catch = () => dbObj;
+  // Transaction support - execute callback with same db mock as tx
+  dbObj.transaction = vi.fn(async (callback: any) => callback(dbObj));
+  return { db: dbObj };
+});
 
 // Mock the schema
 vi.mock("../../../../lib/db/schema", () => ({
@@ -54,8 +65,8 @@ describe("Enrollment Validation Tests", () => {
   });
 
   it("should throw error when session not found", async () => {
-    // Mock empty session result
-    (dbMock.where as Mock).mockResolvedValueOnce([]);
+    // Mock empty session result: .where().for("update") returns []
+    (dbMock.where as Mock).mockReturnValueOnce(withFor([]));
 
     const { createEnrollment } = await import("../../../../lib/db/training.server");
 
@@ -69,15 +80,15 @@ describe("Enrollment Validation Tests", () => {
   });
 
   it("should throw error when session is cancelled", async () => {
-    // Mock session that is cancelled
-    (dbMock.where as Mock).mockResolvedValueOnce([
+    // Mock session that is cancelled: .where().for("update") returns cancelled session
+    (dbMock.where as Mock).mockReturnValueOnce(withFor([
       {
         id: "session-1",
         status: "cancelled",
         maxStudents: 10,
         enrolledCount: 5,
       },
-    ]);
+    ]));
 
     const { createEnrollment } = await import("../../../../lib/db/training.server");
 
@@ -93,14 +104,14 @@ describe("Enrollment Validation Tests", () => {
   it("should throw error when session is full", async () => {
     // Mock session that is full
     (dbMock.where as Mock)
-      .mockResolvedValueOnce([
+      .mockReturnValueOnce(withFor([
         {
           id: "session-1",
           status: "scheduled",
           maxStudents: 5,
           enrolledCount: 5,
         },
-      ])
+      ]))
       .mockResolvedValueOnce([{ id: "customer-1" }]) // Customer exists
       .mockResolvedValueOnce([]); // No existing enrollment
 
@@ -118,14 +129,14 @@ describe("Enrollment Validation Tests", () => {
   it("should throw error when customer not found", async () => {
     // Mock valid session but customer not found
     (dbMock.where as Mock)
-      .mockResolvedValueOnce([
+      .mockReturnValueOnce(withFor([
         {
           id: "session-1",
           status: "scheduled",
           maxStudents: 10,
           enrolledCount: 3,
         },
-      ])
+      ]))
       .mockResolvedValueOnce([]); // Customer not found
 
     const { createEnrollment } = await import("../../../../lib/db/training.server");
@@ -148,8 +159,8 @@ describe("Enrollment Validation Tests", () => {
     (dbMock.where as Mock).mockReset().mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
-        // Session validation
-        return Promise.resolve([
+        // Session validation: .where().for("update")
+        return withFor([
           {
             id: "session-1",
             status: "scheduled",
@@ -189,8 +200,8 @@ describe("Enrollment Validation Tests", () => {
     (dbMock.where as Mock).mockReset().mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
-        // Session validation
-        return Promise.resolve([
+        // Session validation: .where().for("update")
+        return withFor([
           {
             id: "session-1",
             status: "scheduled",
@@ -238,7 +249,8 @@ describe("Enrollment Validation Tests", () => {
     (dbMock.where as Mock).mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
-        return Promise.resolve([
+        // Session validation: .where().for("update")
+        return withFor([
           {
             id: "session-1",
             status: "in_progress",
@@ -279,7 +291,8 @@ describe("Enrollment Validation Tests", () => {
     (dbMock.where as Mock).mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
-        return Promise.resolve([
+        // Session validation: .where().for("update")
+        return withFor([
           {
             id: "session-1",
             status: "completed",
@@ -320,7 +333,8 @@ describe("Enrollment Validation Tests", () => {
     (dbMock.where as Mock).mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
-        return Promise.resolve([
+        // Session validation: .where().for("update")
+        return withFor([
           {
             id: "session-1",
             status: "scheduled",

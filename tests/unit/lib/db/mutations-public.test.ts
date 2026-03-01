@@ -145,7 +145,7 @@ vi.mock("../../../../lib/db/schema", () => ({
 describe("Public Mutations Module", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockLimit.mockResolvedValue([]);
+    mockLimit.mockReturnValue(createThenable([]));
     mockReturning.mockResolvedValue([
       {
         id: "booking-1",
@@ -192,7 +192,7 @@ describe("Public Mutations Module", () => {
 
   describe("createWidgetBooking", () => {
     it("throws error when trip not found", async () => {
-      mockLimit.mockResolvedValue([]);
+      mockLimit.mockReturnValue(createThenable([]));
 
       const { createWidgetBooking } = await import("../../../../lib/db/mutations.public");
 
@@ -215,7 +215,7 @@ describe("Public Mutations Module", () => {
 
       // Note: With our simplified mock, multi-step operations will fail
       // but we can verify the function accepts the correct parameters
-      mockLimit.mockResolvedValue([
+      mockLimit.mockReturnValue(createThenable([
         {
           id: "trip-1",
           tourId: "tour-1",
@@ -227,7 +227,7 @@ describe("Public Mutations Module", () => {
           date: futureDateStr,
           status: "scheduled",
         },
-      ]);
+      ]));
 
       const { createWidgetBooking } = await import("../../../../lib/db/mutations.public");
 
@@ -248,7 +248,7 @@ describe("Public Mutations Module", () => {
     });
 
     it("accepts optional specialRequests parameter", async () => {
-      mockLimit.mockResolvedValue([]);
+      mockLimit.mockReturnValue(createThenable([]));
 
       const { createWidgetBooking } = await import("../../../../lib/db/mutations.public");
 
@@ -268,7 +268,7 @@ describe("Public Mutations Module", () => {
 
   describe("getBookingDetails", () => {
     it("returns null when booking not found", async () => {
-      mockLimit.mockResolvedValue([]);
+      mockLimit.mockReturnValue(createThenable([]));
 
       const { getBookingDetails } = await import("../../../../lib/db/mutations.public");
       const details = await getBookingDetails("org-1", "nonexistent", "BK-000");
@@ -277,7 +277,7 @@ describe("Public Mutations Module", () => {
     });
 
     it("accepts organizationId, bookingId and bookingNumber parameters", async () => {
-      mockLimit.mockResolvedValue([]);
+      mockLimit.mockReturnValue(createThenable([]));
 
       const { getBookingDetails } = await import("../../../../lib/db/mutations.public");
 
